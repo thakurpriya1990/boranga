@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from django.contrib.auth.models import Group
 from django.contrib.gis import admin
 from ledger_api_client.admin import SystemGroupAdmin
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
@@ -64,5 +65,6 @@ class CustomSystemGroupAdmin(SystemGroupAdmin):
             return ["name"]  # make fields readonly when editing an existing object
 
 
+admin.site.unregister(Group)
 admin.site.unregister(SystemGroup)
 admin.site.register(SystemGroup, CustomSystemGroupAdmin)

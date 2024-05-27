@@ -295,13 +295,20 @@ def send_user_community_create_email_notification(request, community_proposal):
     return msg
 
 def send_nomos_script_failed(errors):
+
     """ Internal failed notification email for NOMOS script """
     email = NomosScriptFailedEmail()
 
     context = {
         'errors': errors,
     }
-    email.send(settings.NOTIFICATION_EMAIL, context=context)
+    all_ccs = []
+    try:
+        msg = email.send(settings.NOTIFICATION_EMAIL, cc=all_ccs, context=context)
+        return msg
+    except Exception as e:
+        err_msg = 'NOMOS Script Exception Email :'
+        logger.error('{}\n{}'.format(err_msg, str(e)))
 
 def _log_species_email(
     email_message, species_proposal, sender=None, file_bytes=None, filename=None

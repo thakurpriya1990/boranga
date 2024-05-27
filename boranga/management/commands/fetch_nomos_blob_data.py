@@ -20,7 +20,6 @@ import itertools
 
 import logging
 logger = logging.getLogger(__name__)
-errors = ["check cron email"]
 
 class Command(BaseCommand):
     help = 'Fetch Taxonomy data'
@@ -28,7 +27,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info('Running command {}'.format(__name__))
 
-        # errors = []
+        errors = []
         updates = []
         
         my_url = settings.NOMOS_BLOB_URL
@@ -58,14 +57,14 @@ class Command(BaseCommand):
                                 except Exception as e:
                                     err_msg = 'Create kingdom:'
                                     logger.error('{}\n{}'.format(err_msg, str(e)))
-                                    errors.append(err_msg)
+                                    errors.append(str(e))
                         
                         rank_id = t['rank_id'] if 'rank_id' in t else None
                         taxon_rank_fk = None
                         if rank_id and kingdom_id:
                             try:
                                 taxon_rank_fk = TaxonomyRank.objects.get(taxon_rank_id = rank_id)
-                            except Kingdom.DoesNotExist:
+                            except TaxonomyRank.DoesNotExist:
                                 try:
                                     rank_obj, created=TaxonomyRank.objects.update_or_create(taxon_rank_id = rank_id,
                                                                                             defaults={
@@ -75,9 +74,9 @@ class Command(BaseCommand):
                                                                                             })
                                     taxon_rank_fk = rank_obj
                                 except Exception as e:
-                                    err_msg = 'Create rank:'
+                                    err_msg = 'Create taxon rank:'
                                     logger.error('{}\n{}'.format(err_msg, str(e)))
-                                    errors.append(err_msg)
+                                    errors.append(str(e))
 
                         taxon_obj, created=Taxonomy.objects.update_or_create(taxon_name_id = t["taxon_name_id"], defaults={"scientific_name" : t["canonical_name"],
                                                                                                             "kingdom_id" : t["kingdom_id"],
@@ -117,7 +116,7 @@ class Command(BaseCommand):
                                 except Exception as e:
                                     err_msg = "Create Taxon Vernacular:"
                                     logger.error('{}\n{}'.format(err_msg, str(e)))
-                                    errors.append(err_msg)
+                                    errors.append(str(e))
 
                             # check if the taxon has classification_system_ids and then create the ClassificationSystem records for taxon which will be the "phylogenetic groups"
                             classification_systems = t["class_desc"] if "class_desc" in t else ""
@@ -143,12 +142,12 @@ class Command(BaseCommand):
                                                 except Exception as e:
                                                     err_msg = 'Create informal group:'
                                                     logger.error('{}\n{}'.format(err_msg, str(e)))
-                                                    errors.append(err_msg)
+                                                    errors.append(str(e))
 
                                         except Exception as e:
                                             err_msg = "Create Taxon Classification Systems:"
                                             logger.error('{}\n{}'.format(err_msg, str(e)))
-                                            errors.append(err_msg)
+                                            errors.append(str(e))
 
                             # check if the taxon has previous_names
                             previous_names = t["previous_names"] if "previous_names" in t else ""
@@ -165,7 +164,7 @@ class Command(BaseCommand):
                                 except Exception as e:
                                     err_msg = "Create Taxon Previous Name:"
                                     logger.error('{}\n{}'.format(err_msg, str(e)))
-                                    errors.append(err_msg)
+                                    errors.append(str(e))
                     
                     # printing last records out of for loop
                     total_count += count
@@ -174,17 +173,17 @@ class Command(BaseCommand):
                 except Exception as e:
                     err_msg = 'Create Taxon:'
                     logger.error('{}\n{}'.format(err_msg, str(e)))
-                    errors.append(err_msg)
+                    errors.append(str(e))
 
             else:
                 err_msg = 'Login failed with status code {}'.format(taxon_res.status_code)
                 #logger.error('{}\n{}'.format(err_msg, str(e)))
                 logger.error('{}'.format(err_msg))
-                errors.append(err_msg)
+                errors.append(str(e))
         except Exception as e:
             err_msg = 'Error at the end'
             logger.error('{}\n{}'.format(err_msg, str(e)))
-            errors.append(err_msg)
+            errors.append(str(e))
 
 
         cmd_name = __name__.split('.')[-1].replace('_', ' ').upper()
@@ -193,13 +192,7 @@ class Command(BaseCommand):
         logger.info(msg)
         print(msg) # will redirect to cron_tasks.log file, by the parent script
 
-        # if len(errors)>0:
-        #     # send_nomos_script_failed(errors)
-        #     self.send_email()
+        if len(errors)>0:
+            # send email notification
+            send_nomos_script_failed(errors)
 
-    def send_email(self):
-        log_txt = errors
-        subject = '{} - Cronjob'.format(settings.SYSTEM_NAME_SHORT)
-        body = ''
-        to = settings.CRON_NOTIFICATION_EMAIL if isinstance(settings.NOTIFICATION_EMAIL, list) else [settings.CRON_NOTIFICATION_EMAIL]
-        send_mail(subject, body, settings.EMAIL_FROM, to, fail_silently=False, html_message=log_txt)

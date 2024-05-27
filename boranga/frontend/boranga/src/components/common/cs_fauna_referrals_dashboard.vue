@@ -4,12 +4,6 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Scientific Name:</label>
-                        <select class="form-select" v-model="filterCSRefFaunaScientificName">
-                            <option value="all">All</option>
-                            <option v-for="option in scientific_name_list" :value="option.id">{{option.name}}
-                            </option>
-                        </select> -->
                         <label for="cs_ref_scientific_name_lookup">Scientific Name:</label>
                         <select
                             id="cs_ref_scientific_name_lookup"
@@ -20,11 +14,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Common Name:</label>
-                        <select class="form-select" v-model="filterCSRefFaunaCommonName">
-                            <option value="all">All</option>
-                            <option v-for="option in common_name_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
                         <label for="cs_ref_common_name_lookup">Common Name:</label>
                         <select
                             id="cs_ref_common_name_lookup"
@@ -35,12 +24,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Phylo Group:</label>
-                        <select class="form-select" v-model="filterCSRefFaunaPhylogeneticGroup">
-                            <option value="all">All</option>
-                            <option v-for="option in phylogenetic_group_list" :value="option.id">
-                                {{option.name}}</option>
-                        </select> -->
                         <label for="cs_ref_phylo_group_lookup">Phylo Group:</label>
                         <select
                             id="cs_ref_phylo_group_lookup"
@@ -51,11 +34,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Family:</label>
-                        <select class="form-select" v-model="filterCSRefFaunaFamily">
-                            <option value="all">All</option>
-                            <option v-for="option in family_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
                         <label for="cs_ref_family_lookup">Family:</label>
                         <select
                             id="cs_ref_family_lookup"
@@ -66,36 +44,12 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Genera:</label>
-                        <select class="form-select" v-model="filterCSRefFaunaGenus">
-                            <option value="all">All</option>
-                            <option v-for="option in genus_list" :value="option.id">{{option.name}}</option>
-                        </select> -->
                         <label for="cs_ref_genera_lookup">Genera:</label>
                         <select
                             id="cs_ref_genera_lookup"
                             name="cs_ref_genera_lookup"
                             ref="cs_ref_genera_lookup"
                             class="form-control" />
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterCSRefFaunaConservationList"
-                        @change="filterConservationCategory($event)">
-                            <option value="all">All</option>
-                            <option v-for="list in conservation_list_dict" :value="list.id">{{list.code}}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Conservation Category:</label>
-                        <select class="form-select" v-model="filterCSRefFaunaConservationCategory">
-                            <option value="all">All</option>
-                            <option v-for="list in filtered_conservation_category_list" :value="list.id">{{list.code}}</option>
-                        </select>
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -142,17 +96,11 @@
     </div>
 </template>
 <script>
-//require('@popperjs/core');
-//import { createPopper } from '@popperjs/core';
-//require('popperjs');
-//require('bootstrap');
+
 import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
-import Vue from 'vue'
-// var select2 = require('select2');
-// require("select2/dist/css/select2.min.css");
-// require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
+
 import {
     api_endpoints,
     constants,
@@ -199,16 +147,6 @@ export default {
             required: false,
             default: 'filterCSRefFaunaGenus',
         },
-        filterCSRefFaunaConservationList_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSRefFaunaConservationList',
-        },
-        filterCSRefFaunaConservationCategory_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSRefFaunaConservationCategory',
-        },
         filterCSRefFaunaRegion_cache: {
             type: String,
             required: false,
@@ -246,12 +184,6 @@ export default {
             filterCSRefFaunaGenus: sessionStorage.getItem(this.filterCSRefFaunaGenus_cache) ?
                                 sessionStorage.getItem(this.filterCSRefFaunaGenus_cache) : 'all',
 
-            filterCSRefFaunaConservationList: sessionStorage.getItem(this.filterCSRefFaunaConservationList_cache) ?
-                                    sessionStorage.getItem(this.filterCSRefFaunaConservationList_cache) : 'all',
-
-            filterCSRefFaunaConservationCategory: sessionStorage.getItem(this.filterCSRefFaunaConservationCategory_cache) ?
-                                    sessionStorage.getItem(this.filterCSRefFaunaConservationCategory_cache) : 'all',
-
             filterCSRefFaunaRegion: sessionStorage.getItem(this.filterCSRefFaunaRegion_cache) ?
                                     sessionStorage.getItem(this.filterCSRefFaunaRegion_cache) : 'all',
 
@@ -267,10 +199,6 @@ export default {
             common_name_list: [],
             family_list: [],
             phylogenetic_group_list: [],
-            genus_list: [],
-            conservation_list_dict: [],
-            conservation_category_list: [],
-            filtered_conservation_category_list: [],
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
@@ -308,16 +236,6 @@ export default {
             vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSRefFaunaGenus_cache, vm.filterCSRefFaunaGenus);
         },
-        filterCSRefFaunaConservationList: function() {
-            let vm = this;
-            vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefFaunaConservationList_cache, vm.filterCSRefFaunaConservationList);
-        },
-        filterCSRefFaunaConservationCategory: function() {
-            let vm = this;
-            vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefFaunaConservationCategory_cache, vm.filterCSRefFaunaConservationCategory);
-        },
         filterCSRefFaunaRegion: function(){
             let vm = this;
             vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
@@ -347,8 +265,6 @@ export default {
                 this.filterCSRefFaunaPhylogeneticGroup === 'all' &&
                 this.filterCSRefFaunaFamily === 'all' &&
                 this.filterCSRefFaunaGenus === 'all' &&
-                this.filterCSRefFaunaConservationList === 'all' &&
-                this.filterCSRefFaunaConservationCategory === 'all' &&
                 this.filterCSRefFaunaRegion === 'all' &&
                 this.filterCSRefFaunaDistrict === 'all' &&
                 this.filterCSRefFaunaApplicationStatus === 'all'){
@@ -358,8 +274,7 @@ export default {
             }
         },
         datatable_headers: function(){
-            return ['Number','Species','Scientific Name','Common Name','Conservation List',
-                    'Conservation Category', /*'Family', 'Genera' , 'Region', 'District',*/'Status', 'Action']
+            return ['Number','Species','Scientific Name','Common Name', 'Status', 'Action']
         },
         column_number: function(){
             return {
@@ -420,66 +335,6 @@ export default {
                 name: "conservation_status__species__taxonomy__vernaculars__vernacular_name",
             }
         },
-        column_conservation_list: function(){
-            return {
-                data: "conservation_list",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(data, type, full){
-                    if(full.conservation_list){
-                        return full.conservation_list;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status__conservation_list__code",
-            }
-        },
-        column_conservation_category: function(){
-            return {
-                data: "conservation_category",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(data, type, full){
-                    if(full.conservation_category){
-                        return full.conservation_category;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status__conservation_category__code",
-            }
-        },
-        /*column_family: function(){
-            return {
-                data: "family",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__taxonomy__family_name",
-            }
-        },
-        column_genera: function(){
-            return {
-                data: "genus",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(value, type){
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
-                },
-                //'createdCell': helpers.dtPopoverCellFn,
-                name: "species__taxonomy__genera_name",
-            }
-        },*/
         column_status: function(){
             return {
                 // 9. Workflow Status
@@ -497,38 +352,6 @@ export default {
                 name: "conservation_status__processing_status",
             }
         },
-        /*column_region: function(){
-            return {
-                data: "region",
-                orderable: true,
-                searchable: true, // handles by filter_queryset override method
-                visible: true,
-                'render': function(data, type, full){
-                    if (full.region){
-                        return full.region
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status__species__region__name",
-            }
-        },
-        column_district: function(){
-            return {
-                data: "district",
-                orderable: true,
-                searchable: true, // handles by filter_queryset override method
-                visible: true,
-                'render': function(data, type, full){
-                    if (full.district){
-                        return full.district
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status__species__district__name",
-            }
-        },*/
         column_action: function(){
             let vm = this
             return {
@@ -573,12 +396,6 @@ export default {
                 vm.column_species_number,
                 vm.column_scientific_name,
                 vm.column_common_name,
-                vm.column_conservation_list,
-                vm.column_conservation_category,
-                /*vm.column_family,
-                vm.column_genera,
-                vm.column_region,
-                vm.column_district,*/
                 vm.column_status,
                 vm.column_action,
             ]
@@ -633,8 +450,6 @@ export default {
                         d.filter_phylogenetic_group = vm.filterCSRefFaunaPhylogeneticGroup;
                         d.filter_family = vm.filterCSRefFaunaFamily;
                         d.filter_genus = vm.filterCSRefFaunaGenus;
-                        d.filter_conservation_list = vm.filterCSRefFaunaConservationList;
-                        d.filter_conservation_category = vm.filterCSRefFaunaConservationCategory;
                         d.filter_region = vm.filterCSRefFaunaRegion;
                         d.filter_district = vm.filterCSRefFaunaDistrict;
                         d.filter_application_status = vm.filterCSRefFaunaApplicationStatus;
@@ -864,10 +679,6 @@ export default {
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
                 vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
-                vm.genus_list = vm.filterListsSpecies.genus_list;
-                vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
-                vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
-                vm.filterConservationCategory();
                 vm.filterDistrict();
                 vm.proposal_status = vm.filterListsSpecies.processing_status_list;
             },(error) => {
@@ -880,22 +691,6 @@ export default {
             },(error) => {
                 console.log(error);
             })
-        },
-        //-------filter category dropdown dependent on conservation_list selected
-        filterConservationCategory: function(event) {
-                //this.$nextTick(() => {
-                    if(event){
-                      this.filterCSRefFaunaConservationCategory='all'; //-----to remove the previous selection
-                    }
-                    this.filtered_conservation_category_list=[];
-                    //---filter conservation_categories as per cons_list selected
-                    for(let choice of this.conservation_category_list){
-                        if(choice.conservation_list_id.toString() === this.filterCSRefFaunaConservationList.toString())
-                        {
-                          this.filtered_conservation_category_list.push(choice);
-                        }
-                    }
-                //});
         },
          //-------filter district dropdown dependent on region selected
          filterDistrict: function(event) {
@@ -1055,8 +850,6 @@ export default {
                 filter_common_name: vm.filterCSRefFaunaScientificName,
                 filter_family: vm.filterCSRefFaunaFamily,
                 filter_genus: vm.filterCSRefFaunaGenus,
-                filter_conservation_list: vm.filterCSRefFaunaConservationList,
-                filter_conservation_category: vm.filterCSRefFaunaConservationCategory,
                 filter_region: vm.filterCSRefFaunaRegion,
                 filter_district: vm.filterCSRefFaunaDistrict,
                 filter_application_status: vm.filterCSRefFaunaApplicationStatus,

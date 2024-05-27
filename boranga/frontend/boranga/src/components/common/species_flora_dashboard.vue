@@ -64,25 +64,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterFloraConservationList"
-                        @change="filterConservationCategory($event)">
-                            <option value="all">All</option>
-                            <option v-for="list in conservation_list_dict" :value="list.id" v-bind:key="list.id">{{list.code}}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Conservation Category:</label>
-                        <select class="form-select" v-model="filterFloraConservationCategory">
-                            <option value="all">All</option>
-                            <option v-for="list in filtered_conservation_category_list" :value="list.id" v-bind:key="list.id">{{list.code}}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterFloraApplicationStatus">
                             <option value="all">All</option>
@@ -209,16 +190,6 @@ export default {
             required: false,
             default: 'filterFloraNameStatus',
         },
-        filterFloraConservationList_cache: {
-            type: String,
-            required: false,
-            default: 'filterFloraConservationList',
-        },
-        filterFloraConservationCategory_cache: {
-            type: String,
-            required: false,
-            default: 'filterFloraConservationCategory',
-        },
         filterFloraApplicationStatus_cache: {
             type: String,
             required: false,
@@ -262,12 +233,6 @@ export default {
             filterFloraNameStatus: sessionStorage.getItem(this.filterFloraNameStatus_cache) ?
                         sessionStorage.getItem(this.filterFloraNameStatus_cache) : 'all',
 
-            filterFloraConservationList: sessionStorage.getItem(this.filterFloraConservationList_cache) ?
-                                    sessionStorage.getItem(this.filterFloraConservationList_cache) : 'all',
-
-            filterFloraConservationCategory: sessionStorage.getItem(this.filterFloraConservationCategory_cache) ?
-                                    sessionStorage.getItem(this.filterFloraConservationCategory_cache) : 'all',
-
             filterFloraApplicationStatus: sessionStorage.getItem(this.filterFloraApplicationStatus_cache) ?
             sessionStorage.getItem(this.filterFloraApplicationStatus_cache) : 'all',
 
@@ -283,10 +248,7 @@ export default {
             common_name_list: [],
             family_list: [],
             phylogenetic_group_list: [],
-            genus_list: [],
             conservation_list_dict: [],
-            conservation_category_list: [],
-            filtered_conservation_category_list: [],
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
@@ -347,16 +309,6 @@ export default {
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFloraNameStatus_cache, vm.filterFloraNameStatus);
         },
-        filterFloraConservationList: function() {
-            let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterFloraConservationList_cache, vm.filterFloraConservationList);
-        },
-        filterFloraConservationCategory: function() {
-            let vm = this;
-            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterFloraConservationCategory_cache, vm.filterFloraConservationCategory);
-        },
         filterFloraApplicationStatus: function() {
             let vm = this;
             vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
@@ -387,8 +339,6 @@ export default {
                 this.filterFloraPhylogeneticGroup === 'all' &&
                 this.filterFloraGenus === 'all' &&
                 this.filterFloraNameStatus === 'all' &&
-                this.filterFloraConservationList === 'all' &&
-                this.filterFloraConservationCategory === 'all' &&
                 this.filterFloraApplicationStatus === 'all' &&
                 this.filterFloraRegion === 'all' &&
                 this.filterFloraDistrict === 'all'){
@@ -412,11 +362,11 @@ export default {
         datatable_headers: function(){
             if (this.is_external){
                 return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera',
-                     'Conservation List', 'Conservation Category', 'Region', 'District', 'Action']
+                     'Region', 'District', 'Status', 'Action']
             }
             if (this.is_internal){
                 return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera',
-                    'Conservation List', 'Conservation Category', 'Region', 'District', 'Status', 'Action']
+                   'Region', 'District', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -535,38 +485,6 @@ export default {
                 name: "taxonomy__genera_name",
             }
         },
-        column_conservation_list: function(){
-            return {
-                data: "conservation_list",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(data, type, full){
-                    if(full.conservation_list){
-                        return full.conservation_list;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status__conservation_list__code",
-            }
-        },
-        column_conservation_category: function(){
-            return {
-                data: "conservation_category",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function(data, type, full){
-                    if(full.conservation_category){
-                        return full.conservation_category;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status__conservation_category__code",
-            }
-        },
         column_status: function(){
             return {
                 // 9. Workflow Status
@@ -679,8 +597,6 @@ export default {
                     vm.column_phylogenetic_group,
                     vm.column_family,
                     vm.column_genera,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     //vm.column_status,
@@ -697,8 +613,6 @@ export default {
                     vm.column_phylogenetic_group,
                     vm.column_family,
                     vm.column_genera,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_status,
@@ -738,8 +652,6 @@ export default {
                         d.filter_phylogenetic_group = vm.filterFloraPhylogeneticGroup;
                         d.filter_genus = vm.filterFloraGenus;
                         d.filter_name_status = vm.filterFloraNameStatus;
-                        d.filter_conservation_list = vm.filterFloraConservationList;
-                        d.filter_conservation_category = vm.filterFloraConservationCategory;
                         d.filter_application_status = vm.filterFloraApplicationStatus;
                         d.filter_region = vm.filterFloraRegion;
                         d.filter_district = vm.filterFloraDistrict;
@@ -988,10 +900,6 @@ export default {
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
                 vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
-                vm.genus_list = vm.filterListsSpecies.genus_list;
-                vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
-                vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
-                vm.filterConservationCategory();
                 vm.filterDistrict();
                 vm.species_status = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());
@@ -1006,22 +914,6 @@ export default {
             },(error) => {
                 console.log(error);
             })
-        },
-        //-------filter category dropdown dependent on conservation_list selected
-        filterConservationCategory: function(event) {
-                this.$nextTick(() => {
-                    if(event){
-                      this.filterFloraConservationCategory='all'; //-----to remove the previous selection
-                    }
-                    this.filtered_conservation_category_list=[];
-                    //---filter conservation_categories as per cons_list selected
-                    for(let choice of this.conservation_category_list){
-                        if(choice.conservation_list_id.toString() === this.filterFloraConservationList.toString())
-                        {
-                          this.filtered_conservation_category_list.push(choice);
-                        }
-                    }
-                });
         },
         //-------filter district dropdown dependent on region selected
         filterDistrict: function(event) {
