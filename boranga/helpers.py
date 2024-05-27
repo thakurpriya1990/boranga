@@ -2,17 +2,18 @@ import logging
 
 from django.conf import settings
 from django.db import models
-from ledger_api_client.ledger_models import EmailUserRO
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 
 from boranga.settings import (
+    DJANGO_ADMIN_GROUP,
     GROUP_NAME_CONSERVATION_STATUS_APPROVER,
     GROUP_NAME_CONSERVATION_STATUS_ASSESSOR,
     GROUP_NAME_EXTERNAL_CONTRIBUTOR,
     GROUP_NAME_INTERNAL_CONTRIBUTOR,
     GROUP_NAME_OCCURRENCE_APPROVER,
     GROUP_NAME_OCCURRENCE_ASSESSOR,
+    GROUP_NAME_READONLY_USER,
     GROUP_NAME_SPECIES_COMMUNITIES_APPROVER,
 )
 
@@ -34,76 +35,57 @@ def belongs_to(request, group_name):
 
 
 def is_django_admin(request):
-    return belongs_to(request, settings.DJANGO_ADMIN_GROUP)
+    return belongs_to(request, DJANGO_ADMIN_GROUP)
 
 
-def is_readonly_user(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    readonly_group = SystemGroup.objects.get(name=settings.GROUP_NAME_READONLY_USER)
-    return True if user_id in readonly_group.get_system_group_member_ids() else False
+def is_readonly_user(request):
+    return belongs_to(request, GROUP_NAME_READONLY_USER)
 
 
-def is_species_communities_approver(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    assessor_group = SystemGroup.objects.get(
-        name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER
-    )
-    return True if user_id in assessor_group.get_system_group_member_ids() else False
+def is_species_communities_approver(request):
+    return belongs_to(request, GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
 
 
-def is_conservation_status_referee(request, cs_proposal=None):
-    from boranga.components.conservation_status.models import ConservationStatusReferral
-
-    qs = ConservationStatusReferral.objects.filter(referral=request.user.id)
-    if cs_proposal:
-        qs = qs.filter(conservation_status=cs_proposal)
-
-    return qs.exists()
+def is_conservation_status_assessor(request):
+    return belongs_to(request, GROUP_NAME_CONSERVATION_STATUS_ASSESSOR)
 
 
-def is_conservation_status_assessor(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    assessor_group = SystemGroup.objects.get(
-        name=GROUP_NAME_CONSERVATION_STATUS_ASSESSOR
-    )
-    return True if user_id in assessor_group.get_system_group_member_ids() else False
+def is_conservation_status_approver(request):
+    return belongs_to(request, GROUP_NAME_CONSERVATION_STATUS_APPROVER)
 
 
-def is_conservation_status_approver(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    assessor_group = SystemGroup.objects.get(
-        name=GROUP_NAME_CONSERVATION_STATUS_APPROVER
-    )
-    return True if user_id in assessor_group.get_system_group_member_ids() else False
+def is_internal_contributor(request):
+    return belongs_to(request, GROUP_NAME_INTERNAL_CONTRIBUTOR)
 
 
-def is_external_contributor(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_EXTERNAL_CONTRIBUTOR)
-    return True if user_id in assessor_group.get_system_group_member_ids() else False
+def is_occurrence_assessor(request):
+    return belongs_to(request, GROUP_NAME_OCCURRENCE_ASSESSOR)
 
 
-def is_new_external_contributor(user_id):
+def is_occurrence_approver(request):
+    return belongs_to(request, GROUP_NAME_OCCURRENCE_APPROVER)
+
+
+def is_external_contributor(request):
+    return belongs_to(request, GROUP_NAME_EXTERNAL_CONTRIBUTOR)
+
+
+def is_new_external_contributor(request):
     from boranga.components.conservation_status.models import ConservationStatus
     from boranga.components.occurrence.models import OccurrenceReport
 
-    if not is_external_contributor(user_id):
+    if not is_external_contributor(request):
         return False
 
     finalised_cs = ConservationStatus.objects.filter(
-        submitter=user_id,
+        submitter=request.user.id,
         processing_status__in=[
             ConservationStatus.PROCESSING_STATUS_APPROVED,
             ConservationStatus.PROCESSING_STATUS_DECLINED,
         ],
     ).exists()
     finalised_ocr = OccurrenceReport.objects.filter(
-        submitter=user_id,
+        submitter=request.user.id,
         processing_status__in=[
             OccurrenceReport.PROCESSING_STATUS_APPROVED,
             OccurrenceReport.PROCESSING_STATUS_DECLINED,
@@ -113,25 +95,20 @@ def is_new_external_contributor(user_id):
     return not finalised_cs and not finalised_ocr
 
 
-def is_internal_contributor(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_INTERNAL_CONTRIBUTOR)
-    return True if user_id in assessor_group.get_system_group_member_ids() else False
+def is_conservation_status_referee(request, cs_proposal=None):
+    if not request.user.is_authenticated:
+        return False
 
+    if request.user.is_superuser:
+        return True
 
-def is_occurrence_assessor(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_ASSESSOR)
-    return True if user_id in assessor_group.get_system_group_member_ids() else False
+    from boranga.components.conservation_status.models import ConservationStatusReferral
 
+    qs = ConservationStatusReferral.objects.filter(referral=request.user.id)
+    if cs_proposal:
+        qs = qs.filter(conservation_status=cs_proposal)
 
-def is_occurrence_approver(user_id):
-    if isinstance(user_id, EmailUser) or isinstance(user_id, EmailUserRO):
-        user_id = user_id.id
-    assessor_group = SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
-    return True if user_id in assessor_group.get_system_group_member_ids() else False
+    return qs.exists()
 
 
 def in_dbca_domain(request):
