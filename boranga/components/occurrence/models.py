@@ -213,7 +213,7 @@ class OccurrenceReport(RevisionedMixin):
     )
 
     species_taxonomy = models.ForeignKey(
-        Taxonomy, on_delete=models.PROTECT, null=True, blank=True
+        Taxonomy, on_delete=models.PROTECT, null=True, blank=True, related_name="occurrence_reports"
     )
 
     # species related occurrence
@@ -297,7 +297,14 @@ class OccurrenceReport(RevisionedMixin):
             self.occurrence_report_number = new_occurrence_report_id
             self.save(*args, **kwargs)
         else:
+            self.species = self.get_taxonomy_species() #on save, checks if taxon has species and sets accordingly
             super().save(*args, **kwargs)
+
+    def get_taxonomy_species(self):
+        if self.species_taxonomy and hasattr(self.species_taxonomy,"species"):
+            return self.species_taxonomy.species
+        else:
+            return None
 
     @property
     def reference(self):
@@ -559,7 +566,7 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def assign_officer(self, request, officer):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         if not self.can_assess(officer):
@@ -595,7 +602,7 @@ class OccurrenceReport(RevisionedMixin):
                 )
 
     def unassign(self, request):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         if self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
@@ -629,7 +636,7 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def propose_decline(self, request, details):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR:
@@ -665,7 +672,7 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def decline(self, request, details):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
@@ -694,7 +701,7 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def propose_approve(self, request, validated_data):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR:
@@ -747,7 +754,7 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def approve(self, request):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
@@ -791,7 +798,7 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def back_to_assessor(self, request, validated_data):
-        if not self.can_assess(request.user) or self.processing_status not in [
+        if not self.can_assess(request) or self.processing_status not in [
             OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
             OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
         ]:
@@ -1078,7 +1085,7 @@ class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
 
     @transaction.atomic
     def generate_amendment(self, request):
-        if not self.occurrence_report.can_assess(request.user):
+        if not self.occurrence_report.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
         if self.status == "requested":
@@ -1263,7 +1270,7 @@ class OccurrenceReportReferral(models.Model):
 
     @transaction.atomic
     def remind(self, request):
-        if not self.occurrence_report.can_assess(request.user):
+        if not self.occurrence_report.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         # Create a log entry for the proposal
@@ -1297,7 +1304,7 @@ class OccurrenceReportReferral(models.Model):
 
     @transaction.atomic
     def recall(self, request):
-        if not self.occurrence_report.can_assess(request.user):
+        if not self.occurrence_report.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         self.processing_status = self.PROCESSING_STATUS_RECALLED
@@ -1329,7 +1336,7 @@ class OccurrenceReportReferral(models.Model):
 
     @transaction.atomic
     def resend(self, request):
-        if not self.occurrence_report.can_assess(request.user):
+        if not self.occurrence_report.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         self.processing_status = self.PROCESSING_STATUS_WITH_REFERRAL
@@ -2706,7 +2713,7 @@ class Occurrence(RevisionedMixin):
     )
 
     species_taxonomy = models.ForeignKey(
-        Taxonomy, on_delete=models.PROTECT, null=True, blank=True
+        Taxonomy, on_delete=models.PROTECT, null=True, blank=True, related_name="occurrences"
     )
 
     species = models.ForeignKey(
@@ -3820,7 +3827,7 @@ reversion.register(OccurrenceReportDocument)
 reversion.register(OCRConservationThreat)
 
 # Occurrence Report
-reversion.register(OccurrenceReport, follow=["species", "community"])
+reversion.register(OccurrenceReport, follow=["species_taxonomy", "community"])
 
 # Occurrence Document
 reversion.register(OccurrenceDocument)

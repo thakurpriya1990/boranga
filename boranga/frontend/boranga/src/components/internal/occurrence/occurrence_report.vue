@@ -637,7 +637,7 @@ export default {
             let vm = this;
             let blank_fields = []
             if (vm.occurrence_report.group_type == 'flora' || vm.occurrence_report.group_type == 'fauna') {
-                if (vm.occurrence_report.species_id == null || vm.occurrence_report.species_id == '') {
+                if (vm.occurrence_report.species_taxonomy_id == null || vm.occurrence_report.species_taxonomy_id == '') {
                     blank_fields.push(' Scientific Name is missing')
                 }
             }

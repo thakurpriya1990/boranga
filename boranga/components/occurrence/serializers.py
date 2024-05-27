@@ -56,7 +56,7 @@ from boranga.components.occurrence.models import (
     ReproductiveMaturity,
     SecondarySign,
 )
-from boranga.components.species_and_communities.models import CommunityTaxonomy
+from boranga.components.species_and_communities.models import CommunityTaxonomy, Taxonomy
 from boranga.helpers import (
     is_internal,
     is_new_external_contributor,
@@ -1098,6 +1098,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "id",
             "group_type",
             "group_type_id",
+            "species_taxonomy_id",
             "species_id",
             "community_id",
             "occurrence_report_number",
@@ -1541,9 +1542,6 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
 
 
 class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
-    #species_id = serializers.IntegerField(
-    #    required=False, allow_null=True, write_only=True
-    #)
     species_taxonomy_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
@@ -1559,7 +1557,6 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         fields = (
             "id",
             "group_type",
-            #"species_id",
             "species_taxonomy_id",
             "community_id",
             "lodgement_date",
