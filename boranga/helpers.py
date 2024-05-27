@@ -50,7 +50,8 @@ def member_ids(group_name):
         logger.warning(f"SystemGroup {group_name} not found")
         return []
 
-    member_ids = system_group.get_system_group_member_ids().append(superuser_ids_list())
+    member_ids = system_group.get_system_group_member_ids()
+    member_ids.append(superuser_ids_list())
     return member_ids
 
 
