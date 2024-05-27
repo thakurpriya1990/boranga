@@ -593,8 +593,7 @@ export default {
                             term: params.term,
                             type: 'public',
                             group_type_id: vm.conservation_status_obj.group_type_id,
-                            cs_species: true,
-                            cs_species_status: vm.conservation_status_obj.processing_status,
+                            has_species: true,
                         }
                         return query;
                     },
@@ -603,7 +602,7 @@ export default {
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    vm.conservation_status_obj.species_id = e.params.data.id
+                    vm.conservation_status_obj.species_id = e.params.data.species_id
                     vm.species_display = e.params.data.text;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
                 }).

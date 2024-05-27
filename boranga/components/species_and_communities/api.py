@@ -202,6 +202,7 @@ class GetScientificName(views.APIView):
         
         #identifies the request as for a species profile - we exclude those taxonomies already taken
         species_profile = request.GET.get("species_profile", False)
+        has_species = request.GET.get("has_species", False)
 
         if search_term:
             data_transform = []
@@ -290,6 +291,10 @@ class GetScientificName(views.APIView):
             #    )[:10]
             #else:
             qs = taxonomy_data_cache
+            if has_species:
+                #TODO this should be temporary, for until the name lookup change has been applied to both OCR/OCC and CS
+                qs = qs.exclude(species=None)
+
             if species_profile:
                 #TODO review if how taxonomy is handled (one to one with species) is changed
                 qs = qs.filter(species=None) #if changed, consider status when filtering
