@@ -1,12 +1,13 @@
 {%  extends 'boranga/emails/base_email.html' %}
 
 {%  block content %}
-	The Application {{ cs_proposal.conservation_status_number }} has been assessed and has been recommended ready for agenda.
+    <p>
+	    The Conservation Status Proposal {{ cs_proposal.conservation_status_number }} has been assessed and is now 'Ready for Agenda'.
+    </p>
 
     <p>
-    You can schedule a meeting for this Application using the following link:
+        You can schedule a meeting for this Proposal using the following link:
     </p>
+
     <a href="{{url}}">Schedule Meeting</a>
-
-
 {%  endblock %}

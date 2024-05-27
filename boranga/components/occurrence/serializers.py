@@ -560,7 +560,7 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
 
 
 class LocationSerializer(serializers.ModelSerializer):
-    #observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    # observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     # geojson_point = serializers.SerializerMethodField()
     # geojson_polygon = serializers.SerializerMethodField()
 
@@ -569,7 +569,7 @@ class LocationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "occurrence_report_id",
-            #"observation_date",
+            # "observation_date",
             "location_description",
             "boundary_description",
             "new_occurrence",
@@ -737,8 +737,6 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
     community_number = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
     community_migrated_id = serializers.SerializerMethodField()
-    conservation_list = serializers.SerializerMethodField()
-    conservation_category = serializers.SerializerMethodField()
     wild_status = serializers.CharField(source="wild_status.name", allow_null=True)
     can_user_edit = serializers.SerializerMethodField()
 
@@ -752,8 +750,6 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "community_number",
             "community_name",
             "community_migrated_id",
-            "conservation_list",
-            "conservation_category",
             "wild_status",
             "group_type",
             "group_type_id",
@@ -807,34 +803,11 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
         try:
             conservation_status = ConservationStatus.objects.get(
                 community=obj.community,
-                conservation_list__applies_to_wa=True,
                 processing_status="approved",
             )
             return conservation_status
         except ConservationStatus.DoesNotExist:
             return None
-
-    def get_conservation_list(self, obj):
-        if not obj.community:
-            return ""
-
-        conservation_status = self.get_conservation_status(obj)
-
-        if not conservation_status:
-            return ""
-
-        return conservation_status.conservation_list.code
-
-    def get_conservation_category(self, obj):
-        if not obj.community:
-            return ""
-
-        conservation_status = self.get_conservation_status(obj)
-
-        if not conservation_status:
-            return ""
-
-        return conservation_status.conservation_category.code
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
@@ -846,7 +819,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField(read_only=True)
     # group_type_id = serializers.SerializerMethodField(read_only=True)
     allowed_assessors = EmailUserSerializer(many=True)
-    # list_approval_level = serializers.SerializerMethodField(read_only=True)
     location = serializers.SerializerMethodField()
     habitat_composition = serializers.SerializerMethodField()
     habitat_condition = serializers.SerializerMethodField()
@@ -895,7 +867,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "allowed_assessors",
             "deficiency_data",
             "assessor_data",
-            # 'list_approval_level',
             "location",
             "habitat_composition",
             "habitat_condition",
@@ -928,12 +899,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_customer_status(self, obj):
         return obj.get_customer_status_display()
-
-    # def get_list_approval_level(self,obj):
-    #     if obj.conservation_list:
-    #         return obj.conservation_list.approval_level
-    #     else:
-    #         return None
 
     def get_location(self, obj):
         try:
@@ -1194,7 +1159,10 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     def get_can_user_assess(self, obj):
         request = self.context["request"]
         return (
-            (is_occurrence_assessor(request.user) or is_occurrence_approver(request.user))
+            (
+                is_occurrence_assessor(request.user)
+                or is_occurrence_approver(request.user)
+            )
             and obj.processing_status
             in [
                 OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
@@ -1211,20 +1179,22 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             and obj.processing_status == OccurrenceReport.CUSTOMER_STATUS_WITH_APPROVER
             and obj.assigned_approver == request.user.id
         )
-    
+
     def get_can_user_change_lock(self, obj):
         request = self.context["request"]
         return (
-            (is_occurrence_assessor(request.user) or is_occurrence_approver(request.user))
-            and obj.processing_status
-            in [
-                OccurrenceReport.PROCESSING_STATUS_APPROVED,
-                OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
-            ]
-        )
+            is_occurrence_assessor(request.user) or is_occurrence_approver(request.user)
+        ) and obj.processing_status in [
+            OccurrenceReport.PROCESSING_STATUS_APPROVED,
+            OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
+        ]
 
     def get_can_user_action(self, obj):
-        return self.get_can_user_assess(obj) or self.get_can_user_approve(obj) or self.get_can_user_change_lock(obj)
+        return (
+            self.get_can_user_assess(obj)
+            or self.get_can_user_approve(obj)
+            or self.get_can_user_change_lock(obj)
+        )
 
     def get_current_assessor(self, obj):
         user = self.context["request"].user
@@ -1494,26 +1464,22 @@ class SaveOCRIdentificationSerializer(serializers.ModelSerializer):
 
 
 class SaveLocationSerializer(serializers.ModelSerializer):
-    region_id = serializers.IntegerField(
-        required=False, allow_null=True
-    )
-    district_id = serializers.IntegerField(
-        required=False, allow_null=True
-    )
+    region_id = serializers.IntegerField(required=False, allow_null=True)
+    district_id = serializers.IntegerField(required=False, allow_null=True)
     occurrence_report_id = serializers.IntegerField(required=True, allow_null=False)
     datum_id = serializers.IntegerField(required=False, allow_null=True)
     coordination_source_id = serializers.IntegerField(required=False, allow_null=True)
     location_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
-    #observation_date = serializers.DateTimeField(
+    # observation_date = serializers.DateTimeField(
     #    format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
-    #)
+    # )
 
     class Meta:
         model = Location
         fields = (
             "id",
             "occurrence_report_id",
-            #"observation_date",
+            # "observation_date",
             "location_description",
             "boundary_description",
             "new_occurrence",
@@ -1572,8 +1538,9 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
     community_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
-    # conservation_criteria = ConservationCriteriaSerializer(read_only = True)
-    observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True)
+    observation_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    )
 
     class Meta:
         model = OccurrenceReport
@@ -1596,6 +1563,7 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
             "observation_date",
         )
         read_only_fields = ("id",)
+
 
 class OccurrenceReportUserActionSerializer(serializers.ModelSerializer):
     who = serializers.SerializerMethodField()

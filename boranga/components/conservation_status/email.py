@@ -179,7 +179,7 @@ def _log_conservation_status_email(
             EmailMessage,
         ),
     ):
-        # TODO this will log the plain text body, should we log the html instead
+        # This will log the plain text body
         text = email_message.body
         subject = email_message.subject
         fromm = smart_text(sender) if sender else smart_text(email_message.from_email)

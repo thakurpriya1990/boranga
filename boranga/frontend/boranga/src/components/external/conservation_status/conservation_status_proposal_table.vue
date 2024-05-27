@@ -29,26 +29,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterCSConservationList"
-                            @change="filterConservationCategory($event)">
-                            <option value="all">All</option>
-                            <option v-for="list in conservation_list_dict" :value="list.id">{{ list.code }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Conservation Category:</label>
-                        <select class="form-select" v-model="filterCSConservationCategory">
-                            <option value="all">All</option>
-                            <option v-for="list in filtered_conservation_category_list" :value="list.id">{{ list.code }}
-                            </option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSApplicationStatus">
                             <option value="all">All</option>
@@ -169,9 +149,6 @@ export default {
             //Filter list for scientific name and common name
             group_types: [],
             filterListsSpecies: {},
-            conservation_list_dict: [],
-            conservation_category_list: [],
-            filtered_conservation_category_list: [],
 
             // filtering options
             external_status: [
@@ -256,8 +233,7 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Number', 'Type', 'Scientific Name', 'Community Name', 'Conservation List',
-                    'Conservation Category', 'Status', 'Action']
+                return ['Number', 'Type', 'Scientific Name', 'Community Name', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -322,38 +298,6 @@ export default {
                 name: "community__community_name__name",
             }
         },
-        column_conservation_list: function () {
-            return {
-                data: "conservation_list",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function (data, type, full) {
-                    if (full.conservation_list) {
-                        return full.conservation_list;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_list__code",
-            }
-        },
-        column_conservation_category: function () {
-            return {
-                data: "conservation_category",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function (data, type, full) {
-                    if (full.conservation_category) {
-                        return full.conservation_category;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_category__code",
-            }
-        },
         column_status: function () {
             return {
                 // 9. Workflow Status
@@ -405,8 +349,6 @@ export default {
                     vm.column_type,
                     vm.column_scientific_name,
                     vm.column_community_name,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -541,11 +483,7 @@ export default {
             //large FilterList
             vm.$http.get(api_endpoints.conservation_list_dict).then((response) => {
                 vm.filterListsCS = response.body;
-                vm.conservation_list_dict = vm.filterListsCS.conservation_list;
-                vm.conservation_category_list = vm.filterListsCS.conservation_category_list;
-                vm.filterConservationCategory();
                 vm.proposal_status = vm.external_status;
-                //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
             }, (error) => {
                 console.log(error);
             })
@@ -554,21 +492,6 @@ export default {
             }, (error) => {
                 console.log(error);
             });
-        },
-        //-------filter category dropdown dependent on conservation_list selected
-        filterConservationCategory: function (event) {
-            //this.$nextTick(() => {
-            if (event) {
-                this.filterCSConservationCategory = 'all'; //-----to remove the previous selection
-            }
-            this.filtered_conservation_category_list = [];
-            //---filter conservation_categories as per cons_list selected
-            for (let choice of this.conservation_category_list) {
-                if (choice.conservation_list_id.toString() === this.filterCSConservationList.toString()) {
-                    this.filtered_conservation_category_list.push(choice);
-                }
-            }
-            //});
         },
         createConservationStatus: async function (group_type) {
             let newCSId = null

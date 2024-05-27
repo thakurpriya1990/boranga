@@ -169,10 +169,17 @@ SYSTEM_NAME = "Boranga System"
 SYSTEM_NAME_SHORT = env("SYSTEM_NAME_SHORT", "BGA")
 SITE_PREFIX = env("SITE_PREFIX")
 SITE_DOMAIN = env("SITE_DOMAIN")
+
+# These are used for converting between internal and external urls
+# This is useful when generating urls for emails when the current request user
+# is external and the link needs to be internal or vis versa
+# To get email links to work locally, set SITE_SUBDOMAIN_INTERNAL_SUFFIX=None in .env
 SITE_RANCHER_CLUSTER = env("SITE_RANCHER_CLUSTER", None)
 SITE_SUBDOMAIN_INTERNAL_SUFFIX = env("SITE_SUBDOMAIN_INTERNAL_SUFFIX", "-internal")
 if SITE_RANCHER_CLUSTER:
     SITE_SUBDOMAIN_INTERNAL_SUFFIX += "-" + SITE_RANCHER_CLUSTER
+
+
 SUPPORT_EMAIL = env("SUPPORT_EMAIL", "bio@" + SITE_DOMAIN).lower()
 DEP_URL = env("DEP_URL", "www." + SITE_DOMAIN)
 DEP_PHONE = env("DEP_PHONE", "(08) 9219 9978")
@@ -213,6 +220,7 @@ if not VALID_SYSTEMS:
 CRON_CLASSES = [
     "appmonitor_client.cron.CronJobAppMonitorClient",
     "boranga.cron.CronJobFetchNomosTaxonDataDaily",
+    "boranga.cron.CronJobDelistExpiredConservationStatus",
 ]
 
 
@@ -244,7 +252,11 @@ LOGGING["loggers"]["payment_checkout"] = {
 
 LOGGING["loggers"]["boranga"] = {"handlers": ["file"], "level": "INFO"}
 if DEBUG:
-    LOGGING["loggers"]["boranga"] = {"handlers": ["console"], "level": "DEBUG"}
+    LOGGING["loggers"]["boranga"] = {
+        "handlers": ["console"],
+        "level": "DEBUG",
+        "propagate": False,
+    }
 
     # Get rid of the annoying asyncio info log message
     LOGGING["loggers"]["asyncio"] = {
@@ -297,6 +309,10 @@ LEDGER_UI_ACCOUNTS_MANAGEMENT = [
     {"mobile_number": {"options": {"view": True, "edit": True}}},
 ]
 
+LEDGER_UI_ACCOUNTS_MANAGEMENT_KEYS = []
+for am in LEDGER_UI_ACCOUNTS_MANAGEMENT:
+    LEDGER_UI_ACCOUNTS_MANAGEMENT_KEYS.append(list(am.keys())[0])
+
 RECENT_REFERRAL_COUNT = env("RECENT_REFERRAL_COUNT", 5)
 
 # NOMOS login details
@@ -304,7 +320,9 @@ NOMOS_URL = env("NOMOS_URL")
 NOMOS_USERNAME = env("NOMOS_USERNAME")
 NOMOS_PASSWORD = env("NOMOS_PASSWORD")
 NOMOS_BLOB_URL = env("NOMOS_BLOB_URL")
-GIS_SERVER_URL = env("GIS_SERVER_URL", "https://kaartdijin-boodja-geoserver.dbca.wa.gov.au/geoserver/ows")
+GIS_SERVER_URL = env(
+    "GIS_SERVER_URL", "https://kaartdijin-boodja-geoserver.dbca.wa.gov.au/geoserver/ows"
+)
 
 # ---------- Identifier fields for logging ----------
 
@@ -327,3 +345,104 @@ ACTION_DESTROY = "Destroy {} {}"
 # ---------- Cache keys ----------
 
 CACHE_KEY_EPSG_CODES = "epsg-codes-{auth_name}-{pj_type}-{codes}"
+
+# ---------- Conservation Change Codes ----------
+
+CONSERVATION_CHANGE_CODE_NEW = "New"
+CONSERVATION_CHANGE_CODE_UPGRADE = "Upgrade"
+CONSERVATION_CHANGE_CODE_DOWNGRADE = "Downgrade"
+CONSERVATION_CHANGE_CODE_NAME_CHANGE = "Name Change"
+CONSERVATION_CHANGE_CODE_RANK_CHANGE = "Rank Change"
+CONSERVATION_CHANGE_CODE_CATEGORY_CHANGE = "Category Change"
+CONSERVATION_CHANGE_CODE_CRITERIA_CHANGE = "Criteria Change"
+CONSERVATION_CHANGE_CODE_DELIST = "DeList"
+CONSERVATION_CHANGE_CODE_OTHER = "Other"
+
+CONSERVATION_CHANGE_CODES = [
+    {"code": CONSERVATION_CHANGE_CODE_NEW, "label": "New"},
+    {"code": CONSERVATION_CHANGE_CODE_UPGRADE, "label": "Upgrade"},
+    {"code": CONSERVATION_CHANGE_CODE_DOWNGRADE, "label": "Downgrade"},
+    {"code": CONSERVATION_CHANGE_CODE_NAME_CHANGE, "label": "Name Change"},
+    {"code": CONSERVATION_CHANGE_CODE_RANK_CHANGE, "label": "Rank Change"},
+    {"code": CONSERVATION_CHANGE_CODE_CATEGORY_CHANGE, "label": "Category Change"},
+    {"code": CONSERVATION_CHANGE_CODE_CRITERIA_CHANGE, "label": "Criteria Change"},
+    {"code": CONSERVATION_CHANGE_CODE_DELIST, "label": "DeList"},
+    {"code": CONSERVATION_CHANGE_CODE_OTHER, "label": "Other"},
+]
+
+# ---------- Conservation Lists / Categories ----------
+
+WA_LEGISLATIVE_LIST_WCA = {"code": "WCA", "label": "Wildlife Conservation Act 1950"}
+WA_LEGISLATIVE_LIST_BCA = {
+    "code": "BCA",
+    "label": "Biodiversity Conservation Act 2016 + BCA",
+}
+
+WA_LEGISLATIVE_LISTS = [WA_LEGISLATIVE_LIST_WCA, WA_LEGISLATIVE_LIST_BCA]
+
+WA_LEGISLATIVE_CATEGORY_CR = {"code": "CR", "label": "Critically Endangered"}
+WA_LEGISLATIVE_CATEGORY_EN = {"code": "EN", "label": "Endangered"}
+WA_LEGISLATIVE_CATEGORY_VU = {"code": "VU", "label": "Vulnerable"}
+WA_LEGISLATIVE_CATEGORY_EX = {"code": "EX", "label": "Extinct"}
+WA_LEGISLATIVE_CATEGORY_EW = {"code": "EW", "label": "Extinct in the Wild"}
+WA_LEGISLATIVE_CATEGORY_CO = {"code": "CO", "label": "Collapsed"}
+WA_LEGISLATIVE_CATEGORY_RD = {"code": "RD", "label": "Rediscovered"}
+WA_LEGISLATIVE_CATEGORY_SP_SI = {
+    "code": "SP_SI",
+    "label": "Specially Protected - special conservation interest",
+}
+WA_LEGISLATIVE_CATEGORY_SP_MS = {
+    "code": "SP_MS",
+    "label": "Specially Protected - migratory species",
+}
+WA_LEGISLATIVE_CATEGORY_SP_C = {
+    "code": "SP_C",
+    "label": "Specially Protected - cetaceans",
+}
+WA_LEGISLATIVE_CATEGORY_SP_IA = {
+    "code": "SP_IA",
+    "label": "Specially Protected - international agreement",
+}
+
+WA_LEGISLATIVE_CATEGORIES = [
+    WA_LEGISLATIVE_CATEGORY_CR,
+    WA_LEGISLATIVE_CATEGORY_EN,
+    WA_LEGISLATIVE_CATEGORY_VU,
+    WA_LEGISLATIVE_CATEGORY_EX,
+    WA_LEGISLATIVE_CATEGORY_EW,
+    WA_LEGISLATIVE_CATEGORY_CO,
+    WA_LEGISLATIVE_CATEGORY_RD,
+    WA_LEGISLATIVE_CATEGORY_SP_SI,
+    WA_LEGISLATIVE_CATEGORY_SP_MS,
+    WA_LEGISLATIVE_CATEGORY_SP_C,
+    WA_LEGISLATIVE_CATEGORY_SP_IA,
+]
+
+WA_PRIORITY_LIST_FLORA = {"code": "FLORA", "label": "Flora"}
+WA_PRIORITY_LIST_FAUNA = {"code": "FAUNA", "label": "Fauna"}
+WA_PRIORITY_LIST_COMMUNITIES = {"code": "COMMUNITIES", "label": "Communities"}
+
+WA_PRIORITY_LISTS = [
+    WA_PRIORITY_LIST_FLORA,
+    WA_PRIORITY_LIST_FAUNA,
+    WA_PRIORITY_LIST_COMMUNITIES,
+]
+
+WA_PRIORITY_CATEGORY_P1 = {"code": "P1", "label": "Priority 1"}
+WA_PRIORITY_CATEGORY_P2 = {"code": "P2", "label": "Priority 2"}
+WA_PRIORITY_CATEGORY_P3 = {"code": "P3", "label": "Priority 3"}
+WA_PRIORITY_CATEGORY_P4 = {"code": "P4", "label": "Priority 4"}
+
+WA_PRIORITY_CATEGORIES = [
+    WA_PRIORITY_CATEGORY_P1,
+    WA_PRIORITY_CATEGORY_P2,
+    WA_PRIORITY_CATEGORY_P3,
+    WA_PRIORITY_CATEGORY_P4,
+]
+
+COMMONWEALTH_CONSERVATION_LIST_EPBC = {
+    "code": "EPBC",
+    "label": "Environment Protection and Biodiversity Conservation Act 1999",
+}
+
+COMMONWEALTH_CONSERVATION_LISTS = [COMMONWEALTH_CONSERVATION_LIST_EPBC]

@@ -554,18 +554,11 @@ export default {
                     vm.column_number,
                     vm.column_plan_type,
                     vm.column_wa_plan_number,
-                    // vm.column_species_number,
-                    // vm.column_scientific_name,
-                    // vm.column_common_name,
-                    // vm.column_conservation_list,
-                    // vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
                     vm.column_next_review_date,
-                    // vm.column_family,
-                    // vm.column_genera,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -576,18 +569,11 @@ export default {
                     vm.column_number,
                     vm.column_plan_type,
                     vm.column_wa_plan_number,
-                    // vm.column_species_number,
-                    // vm.column_scientific_name,
-                    // vm.column_common_name,
-                    // vm.column_conservation_list,
-                    // vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
                     vm.column_next_review_date,
-                    // vm.column_family,
-                    // vm.column_genera,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -656,18 +642,8 @@ export default {
             let vm = this;
             //large FilterList of Species Values object
             vm.$http.get(api_endpoints.filter_lists_species+ '?group_type_name=' + vm.group_type_name).then((response) => {
-                // vm.filterListsSpecies = response.body;
-                // vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
-                // vm.common_name_list = vm.filterListsSpecies.common_name_list;
-                // vm.family_list = vm.filterListsSpecies.family_list;
-                // vm.genus_list = vm.filterListsSpecies.genus_list;
-                // vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
-                // vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
-                // vm.filterConservationCategory();
                 vm.filterDistrict();
                 vm.proposal_status = vm.internal_status;
-                //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
-                //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             },(error) => {
                 console.log(error);
             })
@@ -836,26 +812,6 @@ export default {
                         "value": ""
                     },
                     "searchable": "true"
-                },
-                "3": {
-                    "data": "conservation_list",
-                    "name": "conservation_status__conservation_list__code",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "4": {
-                    "data": "conservation_category",
-                    "name": "conservation_status__conservation_category__code",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
                 },
                 "5": {
                     "data": "family",

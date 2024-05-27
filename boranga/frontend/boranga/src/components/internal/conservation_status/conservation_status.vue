@@ -20,8 +20,39 @@
                             <strong>Status</strong><br />
                             {{ conservation_status_obj.processing_status }}
                         </div>
-                        <div v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'"
-                            class="card-body border-top">
+                        <div v-if="!isFinalised" class="card-body border-top">
+                            <div class="row">
+                                <div class="col-sm-12 top-buffer-s">
+                                    <strong>Currently assigned to</strong><br />
+                                    <div class="form-group">
+                                        <template
+                                            v-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
+                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
+                                                v-model="conservation_status_obj.assigned_approver">
+                                                <option v-for="member in conservation_status_obj.allowed_assessors"
+                                                    :value="member.id">{{ member.first_name }} {{ member.last_name }}
+                                                </option>
+                                            </select>
+                                            <a v-if="canAssess && conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
+                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
+                                                to me</a>
+                                        </template>
+                                        <template v-else>
+                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
+                                                v-model="conservation_status_obj.assigned_officer">
+                                                <option v-for="member in conservation_status_obj.allowed_assessors"
+                                                    :value="member.id">{{ member.first_name }} {{ member.last_name }}
+                                                </option>
+                                            </select>
+                                            <a v-if="canAssess && conservation_status_obj.assigned_officer != conservation_status_obj.current_assessor.id"
+                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
+                                                to me</a>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="canRefer" class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Referrals</strong><br />
@@ -110,45 +141,12 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
-
                                             <CSMoreReferrals @refreshFromResponse="refreshFromResponse"
                                                 :conservation_status_obj="conservation_status_obj"
                                                 :canAction="canLimitedAction" :isFinalised="isFinalised"
                                                 :referral_url="referralListURL" />
                                         </div>
                                     </template>
-
-                                </div>
-                            </div>
-                        </div>
-                        <div v-if="!isFinalised" class="card-body border-top">
-                            <div class="row">
-                                <div class="col-sm-12 top-buffer-s">
-                                    <strong>Currently assigned to</strong><br />
-                                    <div class="form-group">
-                                        <template v-if="conservation_status_obj.processing_status == 'With Approver'">
-                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
-                                                v-model="conservation_status_obj.assigned_approver">
-                                                <option v-for="member in conservation_status_obj.allowed_assessors"
-                                                    :value="member.id">{{ member.first_name }} {{ member.last_name }}
-                                                </option>
-                                            </select>
-                                            <a v-if="canAssess && conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
-                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
-                                                to me</a>
-                                        </template>
-                                        <template v-else>
-                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
-                                                v-model="conservation_status_obj.assigned_officer">
-                                                <option v-for="member in conservation_status_obj.allowed_assessors"
-                                                    :value="member.id">{{ member.first_name }} {{ member.last_name }}
-                                                </option>
-                                            </select>
-                                            <a v-if="canAssess && conservation_status_obj.assigned_officer != conservation_status_obj.current_assessor.id"
-                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
-                                                to me</a>
-                                        </template>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -164,34 +162,29 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="amendmentRequest()">Request
                                                     Amendment</button><br />
                                             </div>
                                         </div>
-                                        <div class="row"
-                                            v-if="conservation_status_obj.list_approval_level == 'minister'">
+                                        <div class="row" v-if="conservation_status_obj.approval_level == 'minister'">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="proposedReadyForAgenda()">Propose Ready For
                                                     Agenda</button><br />
                                             </div>
                                         </div>
                                         <div class="row"
-                                            v-if="conservation_status_obj.list_approval_level == 'intermediate'">
+                                            v-if="conservation_status_obj.approval_level == 'intermediate'">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="declineProposal()">Decline</button><br />
                                             </div>
                                         </div>
                                         <div class="row"
-                                            v-if="conservation_status_obj.list_approval_level == 'intermediate'">
+                                            v-if="conservation_status_obj.approval_level == 'intermediate'">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="issueProposal()">Approve</button><br />
                                             </div>
                                         </div>
@@ -202,31 +195,26 @@
                                                 <strong>Action</strong><br />
                                             </div>
                                         </div>
-                                        <div class="row"
-                                            v-if="conservation_status_obj.list_approval_level == 'minister'">
+                                        <div class="row" v-if="conservation_status_obj.approval_level == 'minister'">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="declineProposal()">Decline</button><br />
                                             </div>
                                         </div>
-                                        <div class="row"
-                                            v-if="conservation_status_obj.list_approval_level == 'minister'">
+                                        <div class="row" v-if="conservation_status_obj.approval_level == 'minister'">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="issueProposal()">Approve</button><br />
                                             </div>
                                         </div>
                                     </template>
-                                    <!-- TODO the below template section will not be needed/used  according to Marks workflow where assessor approves the proposal -->
-                                    <template v-else-if="conservation_status_obj.processing_status == 'With Approver'">
+                                    <template
+                                        v-else-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <strong>Action</strong><br />
                                             </div>
                                         </div>
-
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <label class="control-label pull-left" for="Name">Approver
@@ -235,24 +223,20 @@
                                                     v-model="approver_comment"></textarea><br>
                                             </div>
                                         </div>
-
                                         <div class="row">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary"
-                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="switchStatus('with_assessor')">Back To
                                                     Assessor</button><br />
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="issueProposal()">Approve</button><br />
                                             </div>
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    :disabled="conservation_status_obj.can_user_edit"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="declineProposal()">Decline</button><br />
                                             </div>
                                         </div>
@@ -266,7 +250,7 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                            <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                 @click.prevent="discardCSProposal()">Discard</button><br />
                                         </div>
                                     </div>
@@ -285,7 +269,8 @@
                                     name="new_conservation_status" enctype="multipart/form-data">
                                     <ProposalConservationStatus ref="conservation_status"
                                         :conservation_status_obj="conservation_status_obj"
-                                        :canEditStatus="canEditStatus" id="ConservationStatusStart" :is_internal="true">
+                                        :canEditStatus="canEditStatus" id="ConservationStatusStart" :is_internal="true"
+                                        @approvalLevelChanged="save_wo()">
                                         <!-- TODO add hasAssessorMode props to ProposalConservationStatus -->
                                     </ProposalConservationStatus>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
@@ -466,47 +451,34 @@ export default {
             return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit : 'false';
         },
         isFinalised: function () {
-            return this.conservation_status_obj.processing_status == 'Declined' || this.conservation_status_obj.processing_status == 'Approved';
+            return this.conservation_status_obj.processing_status == 'Declined' ||
+                this.conservation_status_obj.processing_status == 'Approved' ||
+                this.conservation_status_obj.processing_status == 'DeListed';
         },
         canLimitedAction: function () {
-            if (this.conservation_status_obj.processing_status == 'With Approver') {
-                return this.conservation_status_obj && (this.conservation_status_obj.processing_status == 'With Assessor' || this.conservation_status_obj.processing_status == 'With Referral') && !this.isFinalised && !this.conservation_status_obj.can_user_edit && (this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver || this.conservation_status_obj.assigned_approver == null) && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
-            }
-            else {
-                return this.conservation_status_obj
-                    && (
-                        this.conservation_status_obj.processing_status == 'With Assessor'
-                        || this.conservation_status_obj.processing_status == 'With Referral'
-                    )
-                    && !this.isFinalised
-                    && !this.conservation_status_obj.can_user_edit
-                    && (
-                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
-                        || this.conservation_status_obj.assigned_officer == null
-                    )
-                    && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
-            }
+            return this.conservation_status_obj
+                && (
+                    this.conservation_status_obj.processing_status == 'With Assessor'
+                    || this.conservation_status_obj.processing_status == 'With Referral'
+                )
+                && !this.isFinalised
+                && (
+                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer)
+                && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
         },
         canAction: function () {
-            if (this.conservation_status_obj.processing_status == 'With Approver') {
+            if (this.conservation_status_obj.processing_status == 'Ready For Agenda') {
                 return this.conservation_status_obj
                     && !this.isFinalised
-                    && !this.conservation_status_obj.can_user_edit
                     && (
-                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
-                        || this.conservation_status_obj.assigned_approver == null
-                    )
+                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver)
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
             }
-            else if (this.conservation_status_obj.processing_status == 'With Assessor'
-                || this.conservation_status_obj.processing_status == 'Ready For Agenda') {
+            else if (['With Assessor'].includes(this.conservation_status_obj.processing_status)) {
                 return this.conservation_status_obj
-                    && !this.isFinalised &&
-                    !this.conservation_status_obj.can_user_edit
+                    && !this.isFinalised
                     && (
-                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
-                        || this.conservation_status_obj.assigned_officer == null
-                    )
+                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer)
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
             } else {
                 return this.conservation_status_obj
@@ -515,8 +487,17 @@ export default {
                     && this.conservation_status_obj.internal_user_edit
             }
         },
+        canRefer: function () {
+            return this.conservation_status_obj && ['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status)
+                && !this.isFinalised &&
+                (
+                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer)
+                && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
+        },
         canAssess: function () {
-            return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.assessor_can_assess ? true : false;
+            return this.conservation_status_obj &&
+                this.conservation_status_obj.assessor_mode.assessor_can_assess ||
+                this.conservation_status_obj.approver_process;
         },
         hasAssessorMode: function () {
             // Need to check for approved status as to show 'Save changes' button only when edit and not while view
@@ -579,6 +560,9 @@ export default {
         },
         proposedReadyForAgenda: function () {
             let vm = this;
+            if (!this.validateConservationStatus()) {
+                return;
+            }
             vm.proposeReadyForAgenda = true;
             vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/proposed_ready_for_agenda')).then((response) => {
                 vm.proposeReadyForAgenda = false;
@@ -590,11 +574,47 @@ export default {
             });
         },
         proposedApproval: function () {
-            this.$refs.proposed_approval.approval = this.conservation_status_obj.conservationstatusissuanceapprovaldetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails) : {};
+            if (this.conservation_status_obj.conservationstatusissuanceapprovaldetails &&
+                Object.keys(this.conservation_status_obj.conservationstatusissuanceapprovaldetails).length > 0) {
+                this.$refs.proposed_approval.approval = helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails);
+            }
             this.$refs.proposed_approval.isModalOpen = true;
         },
+        validateConservationStatus: function () {
+            let required_fields = [];
+            if (this.conservation_status_obj.processing_status == 'With Assessor') {
+                required_fields = [
+                    { 'id': 'change_code_id', 'display': 'Change Type' },
+                    { 'id': 'approval_level', 'display': 'Appplicable Workflow' }
+                ];
+            }
+            // TODO Add any other required validation for other statuses
+            let missing_fields = [];
+            for (let field of required_fields) {
+                console.log('Checking field:', field.id)
+                if (this.conservation_status_obj[field.id] == null || this.conservation_status_obj[field.id] == '') {
+                    missing_fields.push(field.display);
+                }
+            }
+            if (missing_fields.length == 0) {
+                return true;
+            }
+            swal.fire({
+                title: 'Validation Error',
+                text: `The following fields are required: ${missing_fields.join(', ')}`,
+                icon: 'error',
+                confirmButtonColor: '#226fbb'
+            });
+            return false;
+        },
         issueProposal: function () {
-            this.$refs.proposed_approval.approval = this.conservation_status_obj.conservationstatusissuanceapprovaldetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails) : {};
+            if (!this.validateConservationStatus()) {
+                return;
+            }
+            if (this.conservation_status_obj.conservationstatusissuanceapprovaldetails &&
+                Object.keys(this.conservation_status_obj.conservationstatusissuanceapprovaldetails).length > 0) {
+                this.$refs.proposed_approval.approval = helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails);
+            }
             this.$refs.proposed_approval.state = 'final_approval';
             this.$refs.proposed_approval.isApprovalLevelDocument = this.isApprovalLevelDocument;
             this.$refs.proposed_approval.isModalOpen = true;
@@ -716,12 +736,7 @@ export default {
                 }
             }
             if (check_action == "submit") {
-                if (vm.conservation_status_obj.conservation_list_id == null || vm.conservation_status_obj.conservation_list_id == '') {
-                    blank_fields.push(' Conservation List is missing')
-                }
-                if (vm.conservation_status_obj.conservation_category_id == null || vm.conservation_status_obj.conservation_category_id == '') {
-                    blank_fields.push(' Conservation Category is missing')
-                }
+                // TODO: Check for required conservation list / category fields
             }
             return blank_fields
         },
@@ -840,7 +855,7 @@ export default {
         },
         updateAssignedOfficerSelect: function () {
             let vm = this;
-            if (vm.conservation_status_obj.processing_status == 'With Approver') {
+            if (['With Approver', 'Ready For Agenda'].includes(vm.conservation_status_obj.processing_status)) {
                 $(vm.$refs.assigned_officer).val(vm.conservation_status_obj.assigned_approver);
                 $(vm.$refs.assigned_officer).trigger('change');
             }
@@ -856,7 +871,10 @@ export default {
                     vm.conservation_status_obj = response.body;
                     vm.original_conservation_status_obj = helpers.copyObject(response.body);
                     vm.updateAssignedOfficerSelect();
-
+                    vm.$nextTick(() => {
+                        vm.initialisedSelects = false;
+                        vm.initialiseSelects();
+                    });
                 }, (error) => {
                     vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
                     vm.updateAssignedOfficerSelect();
@@ -922,7 +940,7 @@ export default {
                     minimumInputLength: 2,
                     "theme": "bootstrap-5",
                     allowClear: true,
-                    placeholder: "Select Referrer",
+                    placeholder: "Search for a Referree",
                     ajax: {
                         url: api_endpoints.users_api + '/get_department_users/',
                         dataType: 'json',
@@ -1119,6 +1137,16 @@ export default {
     mounted: function () {
         let vm = this;
         vm.fetchDeparmentUsers();
+    },
+    created: function () {
+        if (!this.conservation_status_obj) {
+            this.$http.get('/api/conservation_status/' + this.$route.params.conservation_status_id + '/internal_conservation_status.json').then(res => {
+                this.conservation_status_obj = res.body.conservation_status_obj;
+            },
+                err => {
+                    console.log(err);
+                });
+        }
     },
     updated: function () {
         let vm = this;

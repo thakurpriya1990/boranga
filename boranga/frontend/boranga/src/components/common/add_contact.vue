@@ -1,5 +1,5 @@
 <template lang="html">
-    <div id="change-contact">
+    <div id="add-contact">
         <modal @ok="ok()" @cancel="cancel()" :title="title()" large>
             <form class="form-horizontal" name="addContactForm">
                 <div class="row">
@@ -159,7 +159,7 @@ export default {
                         vm.errorString = helpers.apiVueResourceError(error);
                         //vm.$parent.loading.splice('processing contact',1);
                     });
-                
+
             }
         },
         addFormValidations: function() {

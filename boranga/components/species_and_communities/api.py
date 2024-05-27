@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import subprocess
 from datetime import datetime
@@ -10,12 +11,10 @@ from django.db import transaction
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
-from django.shortcuts import redirect
-from django.urls import reverse
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import status, views, viewsets, mixins
+from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -25,10 +24,13 @@ from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 
 from boranga.components.conservation_status.models import (
-    ConservationCategory,
-    ConservationList,
+    CommonwealthConservationList,
     ConservationStatus,
     ConservationStatusUserAction,
+    WALegislativeCategory,
+    WALegislativeList,
+    WAPriorityCategory,
+    WAPriorityList,
 )
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import validate_threat_request
@@ -111,7 +113,9 @@ from boranga.components.species_and_communities.utils import (
     rename_species_original_submit,
     species_form_submit,
 )
-from boranga.helpers import is_internal, is_customer
+from boranga.helpers import is_customer, is_internal
+
+logger = logging.getLogger(__name__)
 
 
 class GetGroupTypeDict(views.APIView):
@@ -522,68 +526,41 @@ class GetCommunityName(views.APIView):
 
 
 class GetSpeciesFilterDict(views.APIView):
-
     def get(self, request, format=None):
-        conservation_list_dict = []
-        conservation_lists = ConservationList.objects.filter(applies_to_species=True)
-        if conservation_lists:
-            for choice in conservation_lists:
-                conservation_list_dict.append(
-                    {
-                        "id": choice.id,
-                        "code": choice.code,
-                    }
-                )
-
-        conservation_category_list = []
-        conservation_categories = ConservationCategory.objects.all()
-        if conservation_categories:
-            for choice in conservation_categories:
-                conservation_category_list.append(
-                    {
-                        "id": choice.id,
-                        "code": choice.code,
-                        "conservation_list_id": choice.conservation_list_id,
-                    }
-                )
+        # Note: Passing flora or fauna group type will return the same data (i.e. species)
+        group_type = GroupType.GROUP_TYPE_FLORA
         res_json = {
-            "conservation_list_dict": conservation_list_dict,
-            "conservation_category_list": conservation_category_list,
+            "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
+            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
+                group_type
+            ),
+            "wa_legislative_lists": WALegislativeList.get_lists_dict(group_type),
+            "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
+                group_type
+            ),
+            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+                group_type
+            ),
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
 
 
 class GetCommunityFilterDict(views.APIView):
-
     def get(self, request, format=None):
-        conservation_list_dict = []
-        conservation_lists = ConservationList.objects.filter(
-            applies_to_communities=True
-        )
-        if conservation_lists:
-            for choice in conservation_lists:
-                conservation_list_dict.append(
-                    {
-                        "id": choice.id,
-                        "code": choice.code,
-                    }
-                )
-
-        conservation_category_list = []
-        conservation_categories = ConservationCategory.objects.all()
-        if conservation_categories:
-            for choice in conservation_categories:
-                conservation_category_list.append(
-                    {
-                        "id": choice.id,
-                        "code": choice.code,
-                        "conservation_list_id": choice.conservation_list_id,
-                    }
-                )
+        group_type = GroupType.GROUP_TYPE_COMMUNITY
         res_json = {
-            "conservation_list_dict": conservation_list_dict,
-            "conservation_category_list": conservation_category_list,
+            "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
+            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
+                group_type
+            ),
+            "wa_legislative_lists": WALegislativeList.get_lists_dict(group_type),
+            "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
+                group_type
+            ),
+            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+                group_type
+            ),
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
@@ -878,7 +855,9 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if not is_internal(self.request):
-            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE).filter(species_publishing_status__species_public=True)
+            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE).filter(
+                species_publishing_status__species_public=True
+            )
         return qs
 
     @list_route(
@@ -935,8 +914,6 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "phylogenetic_group",
             "region",
             "district",
-            "conservation_list",
-            "conservation_category",
             "processing_status",
         ]
 
@@ -978,8 +955,6 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Phylo Group",
             "Region",
             "District",
-            "Conservation List",
-            "Conservation Category",
             "Processing Status",
         ]
         df.columns = new_headings
@@ -990,8 +965,6 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Phylo Group",
             "Family",
             "Genera",
-            "Conservation List",
-            "Conservation Category",
             "Region",
             "District",
             "Processing Status",
@@ -1110,7 +1083,9 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if not is_internal(self.request):
-            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE).filter(community_publishing_status__community_public=True)
+            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE).filter(
+                community_publishing_status__community_public=True
+            )
         return qs
 
     @list_route(
@@ -1197,8 +1172,6 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Number",
             "Community Id",
             "Community Name",
-            "Conservation List",
-            "Conservation Category",
             "Region",
             "District",
             "Processing Status",
@@ -1252,9 +1225,9 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
             qs = Community.objects.all()
             return qs
         elif is_customer(self.request):
-            qs = Community.objects \
-            .filter(processing_status=Species.PROCESSING_STATUS_ACTIVE) \
-            .filter(community_publishing_status__community_public=True)
+            qs = Community.objects.filter(
+                processing_status=Species.PROCESSING_STATUS_ACTIVE
+            ).filter(community_publishing_status__community_public=True)
             return qs
         return Community.objects.none()
 
@@ -1267,7 +1240,9 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
     def threats(self, request, *args, **kwargs):
         instance = self.get_object()
         if not instance.community_publishing_status.threats_public:
-            raise serializer.ValidationError("Threats are not publicly visible for this record")
+            raise serializers.ValidationError(
+                "Threats are not publicly visible for this record"
+            )
         qs = instance.community_threats.all()
         qs = qs.order_by("-date_observed")
 
@@ -1279,6 +1254,7 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
         )
         return Response(serializer.data)
 
+
 class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Species.objects.none()
     serializer_class = SpeciesSerializer
@@ -1288,9 +1264,9 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
             qs = Species.objects.all()
             return qs
         elif is_customer(self.request):
-            qs = Species.objects \
-            .filter(processing_status=Species.PROCESSING_STATUS_ACTIVE) \
-            .filter(species_publishing_status__species_public=True)
+            qs = Species.objects.filter(
+                processing_status=Species.PROCESSING_STATUS_ACTIVE
+            ).filter(species_publishing_status__species_public=True)
             return qs
         return Species.objects.none()
 
@@ -1303,7 +1279,9 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
     def threats(self, request, *args, **kwargs):
         instance = self.get_object()
         if not instance.species_publishing_status.threats_public:
-            raise serializer.ValidationError("Threats are not publicly visible for this record")
+            raise serializers.ValidationError(
+                "Threats are not publicly visible for this record"
+            )
         qs = instance.species_threats.all()
         qs = qs.order_by("-date_observed")
 
@@ -1315,7 +1293,8 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
         )
         return Response(serializer.data)
 
-class SpeciesViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
+
+class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Species.objects.none()
     serializer_class = InternalSpeciesSerializer
     lookup_field = "id"
@@ -1326,7 +1305,7 @@ class SpeciesViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
             return qs
         return Species.objects.none()
 
-    #def get_serializer_class(self):
+    # def get_serializer_class(self):
     #    return SpeciesSerializer
 
     @detail_route(
@@ -1465,7 +1444,7 @@ class SpeciesViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         serializer = InternalSpeciesSerializer(instance, context={"request": request})
 
         return Response(serializer.data)
-    
+
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
@@ -1481,14 +1460,18 @@ class SpeciesViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         )
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
-            if instance.processing_status != "active" and serializer.validated_data["species_public"]:
-                raise serializer.ValidationError("non-active species record cannot be made public")
+            if (
+                instance.processing_status != "active"
+                and serializer.validated_data["species_public"]
+            ):
+                raise serializers.ValidationError(
+                    "non-active species record cannot be made public"
+                )
             serializer.save()
 
         instance.save(version_user=request.user)
 
         return Response(serializer.data)
-
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -1521,7 +1504,7 @@ class SpeciesViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
             if serializer.is_valid():
                 serializer.save()
 
-        #TODO - move this to dedicated save and replace with setting to private
+        # TODO - move this to dedicated save and replace with setting to private
         if request_data.get("publishing_status"):
             publishing_status_instance, created = (
                 SpeciesPublishingStatus.objects.get_or_create(species=instance)
@@ -1934,7 +1917,7 @@ class SpeciesViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         return Response(serializer.data)
 
 
-class CommunityViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
+class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Community.objects.none()
     serializer_class = InternalCommunitySerializer
     lookup_field = "id"
@@ -1945,7 +1928,7 @@ class CommunityViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
             return qs
         return Community.objects.none()
 
-    #def get_serializer_class(self):
+    # def get_serializer_class(self):
     #    return CommunitySerializer
 
     @detail_route(
@@ -2118,8 +2101,13 @@ class CommunityViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         )
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
-            if instance.processing_status != "active" and serializer.validated_data["community_public"]:
-                raise serializer.ValidationError("non-active community record cannot be made public")
+            if (
+                instance.processing_status != "active"
+                and serializer.validated_data["community_public"]
+            ):
+                raise serializers.ValidationError(
+                    "non-active community record cannot be made public"
+                )
             serializer.save()
 
         instance.save(version_user=request.user)
@@ -2307,7 +2295,7 @@ class CommunityViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         return Response(serializer.data)
 
 
-class SpeciesDocumentViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
+class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = SpeciesDocument.objects.none()
     serializer_class = SpeciesDocumentSerializer
 
@@ -2389,7 +2377,7 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         return Response(serializer.data)
 
 
-class CommunityDocumentViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
+class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = CommunityDocument.objects.none()
     serializer_class = CommunityDocumentSerializer
 
@@ -2498,13 +2486,8 @@ class ConservationThreatFilterBackend(DatatablesFilterBackend):
         ):
             queryset = queryset.filter(potential_impact=filter_threat_potential_impact)
 
-        filter_threat_status = request.GET.get(
-            "filter_threat_status"
-        )
-        if (
-            filter_threat_status
-            and not filter_threat_status.lower() == "all"
-        ):
+        filter_threat_status = request.GET.get("filter_threat_status")
+        if filter_threat_status and not filter_threat_status.lower() == "all":
             if filter_threat_status == "active":
                 queryset = queryset.filter(visible=True)
             elif filter_threat_status == "removed":
@@ -2538,7 +2521,7 @@ class ConservationThreatFilterBackend(DatatablesFilterBackend):
         return queryset
 
 
-class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
+class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = ConservationThreat.objects.none()
     serializer_class = ConservationThreatSerializer
     filter_backends = (ConservationThreatFilterBackend,)
@@ -2550,12 +2533,12 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
         elif is_customer(self.request):
             qs = ConservationThreat.objects.filter(
                 (
-                Q(species__species_publishing_status__species_public=True) &
-                Q(species__species_publishing_status__threats_public=True)
-                ) |
-                (
-                Q(community__community_publishing_status__community_public=True) &
-                Q(community__community_publishing_status__threats_public=True)
+                    Q(species__species_publishing_status__species_public=True)
+                    & Q(species__species_publishing_status__threats_public=True)
+                )
+                | (
+                    Q(community__community_publishing_status__community_public=True)
+                    & Q(community__community_publishing_status__threats_public=True)
                 )
             ).order_by("id")
             return qs
@@ -2563,9 +2546,9 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
 
     def update_publishing_status(self):
 
-        #if the parent species or community of this threat is public 
-        #AND the threat section has been made public
-        #revert back to private on any change
+        # if the parent species or community of this threat is public
+        # AND the threat section has been made public
+        # revert back to private on any change
         instance = self.get_object()
         if instance.species:
             publishing_status_instance, created = (
@@ -2576,7 +2559,9 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
                 publishing_status_instance.save()
         elif instance.community:
             publishing_status_instance, created = (
-                CommunityPublishingStatus.objects.get_or_create(community=instance.community)
+                CommunityPublishingStatus.objects.get_or_create(
+                    community=instance.community
+                )
             )
             if publishing_status_instance.threats_public:
                 publishing_status_instance.community_public = False
@@ -2659,8 +2644,8 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
         detail=True,
     )
     def discard(self, request, *args, **kwargs):
-        if not is_internal(self.request): #TODO group checks
-            raise serializer.ValidationError("user not authorised to discard threat")
+        if not is_internal(self.request):  # TODO group checks
+            raise serializers.ValidationError("user not authorised to discard threat")
         instance = self.get_object()
         instance.visible = False
         instance.save(version_user=request.user)
@@ -2680,7 +2665,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
             )
 
         self.update_publishing_status()
-        
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -2691,8 +2676,8 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
         detail=True,
     )
     def reinstate(self, request, *args, **kwargs):
-        if not is_internal(self.request): #TODO group checks
-            raise serializer.ValidationError("user not authorised to reinstate threat")
+        if not is_internal(self.request):  # TODO group checks
+            raise serializers.ValidationError("user not authorised to reinstate threat")
         instance = self.get_object()
         instance.visible = True
         instance.save(version_user=request.user)
@@ -2718,8 +2703,8 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
-        if not is_internal(self.request): #TODO group checks
-            raise serializer.ValidationError("user not authorised to update threat")
+        if not is_internal(self.request):  # TODO group checks
+            raise serializers.ValidationError("user not authorised to update threat")
         instance = self.get_object()
         serializer = SaveConservationThreatSerializer(
             instance, data=json.loads(request.data.get("data"))
@@ -2749,8 +2734,8 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        if not is_internal(self.request): #TODO group checks
-            raise serializer.ValidationError("user not authorised to create threat")
+        if not is_internal(self.request):  # TODO group checks
+            raise serializers.ValidationError("user not authorised to create threat")
         serializer = SaveConservationThreatSerializer(
             data=json.loads(request.data.get("data"))
         )
@@ -2778,7 +2763,9 @@ class ConservationThreatViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixi
                 request,
             )
             publishing_status_instance, created = (
-                CommunityPublishingStatus.objects.get_or_create(community=instance.community)
+                CommunityPublishingStatus.objects.get_or_create(
+                    community=instance.community
+                )
             )
             if publishing_status_instance.threats_public:
                 publishing_status_instance.community_public = False

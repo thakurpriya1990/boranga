@@ -38,26 +38,6 @@
                             class="form-control" />
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Conservation List:</label>
-                        <select class="form-select" v-model="filterCSFaunaConservationList"
-                            @change="filterConservationCategory($event)">
-                            <option value="all">All</option>
-                            <option v-for="list in conservation_list_dict" :value="list.id">{{ list.code }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Conservation Category:</label>
-                        <select class="form-select" v-model="filterCSFaunaConservationCategory">
-                            <option value="all">All</option>
-                            <option v-for="list in filtered_conservation_category_list" :value="list.id">{{ list.code }}
-                            </option>
-                        </select>
-                    </div>
-                </div>
                 <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Status:</label>
@@ -319,11 +299,7 @@ export default {
             scientific_name_list: [],
             common_name_list: [],
             family_list: [],
-            genus_list: [],
             phylogenetic_group_list: [],
-            conservation_list_dict: [],
-            filtered_conservation_category_list: [],
-            conservation_category_list: [],
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
@@ -476,12 +452,10 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Conservation List',
-                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
+                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
             }
             if (this.is_internal) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Conservation List',
-                    'Conservation Category', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
+                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -578,38 +552,6 @@ export default {
                 },
                 //'createdCell': helpers.dtPopoverCellFn,
                 name: "species__taxonomy__genera_name",
-            }
-        },
-        column_conservation_list: function () {
-            return {
-                data: "conservation_list",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function (data, type, full) {
-                    if (full.conservation_list) {
-                        return full.conservation_list;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_list__code",
-            }
-        },
-        column_conservation_category: function () {
-            return {
-                data: "conservation_category",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                'render': function (data, type, full) {
-                    if (full.conservation_category) {
-                        return full.conservation_category;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_category__code",
             }
         },
         column_status: function () {
@@ -771,8 +713,6 @@ export default {
                     vm.column_species_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_effective_from_date,
@@ -790,8 +730,6 @@ export default {
                     vm.column_species_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
-                    vm.column_conservation_list,
-                    vm.column_conservation_category,
                     vm.column_region,
                     vm.column_district,
                     vm.column_effective_from_date,
@@ -1084,17 +1022,11 @@ export default {
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
-                vm.genus_list = vm.filterListsSpecies.genus_list;
                 vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
-                vm.conservation_list_dict = vm.filterListsSpecies.conservation_list_dict;
-                vm.conservation_category_list = vm.filterListsSpecies.conservation_category_list;
-                vm.filterConservationCategory();
                 vm.filterDistrict();
                 vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());
                 });
-                //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
-                //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             }, (error) => {
                 console.log(error);
             })
@@ -1105,21 +1037,6 @@ export default {
             }, (error) => {
                 console.log(error);
             })
-        },
-        //-------filter category dropdown dependent on conservation_list selected
-        filterConservationCategory: function (event) {
-            //this.$nextTick(() => {
-            if (event) {
-                this.filterCSFaunaConservationCategory = 'all'; //-----to remove the previous selection
-            }
-            this.filtered_conservation_category_list = [];
-            //---filter conservation_categories as per cons_list selected
-            for (let choice of this.conservation_category_list) {
-                if (choice.conservation_list_id.toString() === this.filterCSFaunaConservationList.toString()) {
-                    this.filtered_conservation_category_list.push(choice);
-                }
-            }
-            //});
         },
         //-------filter district dropdown dependent on region selected
         filterDistrict: function (event) {

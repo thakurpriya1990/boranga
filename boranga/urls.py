@@ -1,3 +1,5 @@
+import sys
+
 from django import conf, urls
 from django.conf import settings
 from django.conf.urls import include, url
@@ -14,11 +16,23 @@ from boranga.components.history import api as history_api
 from boranga.components.main import api as main_api
 from boranga.components.meetings import api as meeting_api
 from boranga.components.occurrence import api as occurrence_api
+from boranga.components.spatial import api as spatial_api
 from boranga.components.species_and_communities import api as species_communities_api
 from boranga.components.users import api as users_api
 from boranga.management.default_data_manager import DefaultDataManager
-from boranga.components.spatial import api as spatial_api
-from boranga.utils import are_migrations_running
+
+
+def are_migrations_running():
+    """
+    Checks whether the app was launched with the migration-specific params
+    """
+    # return sys.argv and ('migrate' in sys.argv or 'makemigrations' in sys.argv)
+    return sys.argv and (
+        "migrate" in sys.argv
+        or "makemigrations" in sys.argv
+        or "showmigrations" in sys.argv
+        or "sqlmigrate" in sys.argv
+    )
 
 
 # To test sentry

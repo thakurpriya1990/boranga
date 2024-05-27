@@ -3,6 +3,15 @@ import logging
 from django.conf import settings
 from ledger_api_client.managed_models import SystemGroup
 
+from boranga.components.conservation_status.models import (
+    CommonwealthConservationList,
+    ConservationChangeCode,
+    WALegislativeCategory,
+    WALegislativeList,
+    WAPriorityCategory,
+    WAPriorityList,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -22,3 +31,81 @@ class DefaultDataManager:
         ):
             sg.systemgrouppermission_set.all().delete()
             sg.delete()
+
+        for conservation_change_code in settings.CONSERVATION_CHANGE_CODES:
+            try:
+                conservation_change_code_obj, created = (
+                    ConservationChangeCode.objects.get_or_create(
+                        code=conservation_change_code["code"],
+                        defaults={"label": conservation_change_code["label"]},
+                    )
+                )
+                if created:
+                    logger.info(
+                        f"Created ConservationChangeCode: {conservation_change_code_obj}"
+                    )
+            except Exception as e:
+                logger.error(f"{e}, ConservationChangeCode: {conservation_change_code}")
+
+        for ll in settings.WA_LEGISLATIVE_LISTS:
+            try:
+                legislative_list_obj, created = WALegislativeList.objects.get_or_create(
+                    code=ll["code"],
+                    defaults={"label": ll["label"]},
+                )
+                if created:
+                    logger.info(f"Created LegislativeList: {legislative_list_obj}")
+            except Exception as e:
+                logger.error(f"{e}, LegislativeList: {ll}")
+
+        for lc in settings.WA_LEGISLATIVE_CATEGORIES:
+            try:
+                legislative_category_obj, created = (
+                    WALegislativeCategory.objects.get_or_create(
+                        code=lc["code"],
+                        defaults={"label": lc["label"]},
+                    )
+                )
+                if created:
+                    logger.info(
+                        f"Created LegislativeCategory: {legislative_category_obj}"
+                    )
+            except Exception as e:
+                logger.error(f"{e}, LegislativeCategory: {lc}")
+
+        for pl in settings.WA_PRIORITY_LISTS:
+            try:
+                priority_list_obj, created = WAPriorityList.objects.get_or_create(
+                    code=pl["code"],
+                    defaults={"label": pl["label"]},
+                )
+                if created:
+                    logger.info(f"Created PriorityList: {priority_list_obj}")
+            except Exception as e:
+                logger.error(f"{e}, PriorityList: {pl}")
+
+        for pc in settings.WA_PRIORITY_CATEGORIES:
+            try:
+                priority_category_obj, created = (
+                    WAPriorityCategory.objects.get_or_create(
+                        code=pc["code"],
+                        defaults={"label": pc["label"]},
+                    )
+                )
+                if created:
+                    logger.info(f"Created PriorityCategory: {priority_category_obj}")
+            except Exception as e:
+                logger.error(f"{e}, PriorityCategory: {pc}")
+
+        for ccl in settings.COMMONWEALTH_CONSERVATION_LISTS:
+            try:
+                conservation_list_obj, created = (
+                    CommonwealthConservationList.objects.get_or_create(
+                        code=ccl["code"],
+                        defaults={"label": ccl["label"]},
+                    )
+                )
+                if created:
+                    logger.info(f"Created ConservationList: {conservation_list_obj}")
+            except Exception as e:
+                logger.error(f"{e}, ConservationList: {ccl}")

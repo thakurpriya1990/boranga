@@ -1,5 +1,5 @@
 <template lang="html">
-    <div id="change-contact">
+    <div id="proposal-proposed-decline">
         <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large>
             <div class="container-fluid">
                 <div class="row">

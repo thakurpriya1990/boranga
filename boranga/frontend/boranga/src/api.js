@@ -130,7 +130,6 @@ module.exports = {
 
     //conservation Status profile page list of value dict
     cs_profile_dict: "/api/cs_profile_dict",
-    conservation_list_dict: "/api/conservation_list_dict",
 
     filter_list: "/api/proposal/filter_list.json",
     filter_list_approvals: "/api/approvals/filter_list.json",
