@@ -8,7 +8,6 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from ledger_api_client.managed_models import SystemGroup
 
 from boranga import exceptions
 from boranga.components.conservation_status.email import (
@@ -42,6 +41,7 @@ from boranga.helpers import (
     belongs_to_by_user_id,
     is_conservation_status_approver,
     is_conservation_status_assessor,
+    member_ids,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import (
@@ -730,40 +730,35 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def allowed_assessors(self):
-        group = None
+        group_ids = None
         if self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
         ]:
-            group = self.get_approver_group()
+            group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_APPROVER)
         elif self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
         ]:
-            group = self.get_assessor_group()
+            group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_ASSESSOR)
+
         users = (
             list(
                 map(
                     lambda id: retrieve_email_user(id),
-                    group.get_system_group_member_ids(),
+                    group_ids,
                 )
             )
-            if group
+            if group_ids
             else []
         )
         return users
 
-    def get_assessor_group(self):
-        return SystemGroup.objects.get(name=GROUP_NAME_CONSERVATION_STATUS_ASSESSOR)
-
-    def get_approver_group(self):
-        return SystemGroup.objects.get(name=GROUP_NAME_CONSERVATION_STATUS_APPROVER)
-
     @property
     def assessor_recipients(self):
         recipients = []
-        group_ids = self.get_assessor_group().get_system_group_member_ids()
+        group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_ASSESSOR)
         for id in group_ids:
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
@@ -772,7 +767,7 @@ class ConservationStatus(RevisionedMixin):
     @property
     def approver_recipients(self):
         recipients = []
-        group_ids = self.get_approver_group().get_system_group_member_ids()
+        group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_APPROVER)
         for id in group_ids:
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
