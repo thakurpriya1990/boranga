@@ -46,6 +46,10 @@ def belongs_to(request, group_name):
 def member_ids(group_name):
     # Centralised member_ids method that includes all superusers (not totally sure we want this yet)
     system_group = SystemGroup.objects.filter(name=group_name).first()
+    if not system_group:
+        logger.warning(f"SystemGroup {group_name} not found")
+        return []
+
     member_ids = system_group.get_system_group_member_ids().append(superuser_ids_list())
     return member_ids
 
