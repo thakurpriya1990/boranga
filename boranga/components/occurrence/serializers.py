@@ -24,7 +24,6 @@ from boranga.components.occurrence.models import (
     OCCObservationDetail,
     OCCObserverDetail,
     OCCPlantCount,
-    OCCVegetationStructure,
     Occurrence,
     OccurrenceDocument,
     OccurrenceLogEntry,
@@ -39,6 +38,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportReferral,
     OccurrenceReportUserAction,
     OccurrenceUserAction,
+    OCCVegetationStructure,
     OCRAnimalObservation,
     OCRAssociatedSpecies,
     OCRConservationThreat,
@@ -97,7 +97,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
-        return obj.can_user_edit(request.user)
+        return obj.can_user_edit(request)
 
     def get_habitat_composition(self, obj):
         try:
@@ -112,7 +112,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
             return OCCHabitatConditionSerializer(qs).data
         except OCCHabitatCondition.DoesNotExist:
             return OCCHabitatConditionSerializer().data
-        
+
     def get_vegetation_structure(self, obj):
         try:
             qs = OCCVegetationStructure.objects.get(occurrence=obj)
@@ -336,7 +336,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_can_user_assess(self, obj):
         request = self.context["request"]
-        return is_occurrence_assessor(request.user) and (
+        return is_occurrence_assessor(request) and (
             obj.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
             or obj.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL
         )
@@ -344,13 +344,14 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     def get_can_user_approve(self, obj):
         request = self.context["request"]
         return (
-            is_occurrence_assessor(request.user)
+            is_occurrence_assessor(request)
             and obj.processing_status
             == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
         )
 
     def get_is_new_contributor(self, obj):
-        return is_new_external_contributor(obj.submitter)
+        request = self.context["request"]
+        return is_new_external_contributor(request)
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
@@ -397,6 +398,7 @@ class OCRHabitatConditionSerializer(serializers.ModelSerializer):
             "completely_degraded",
         )
 
+
 class OCRVegetationStructureSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -409,6 +411,7 @@ class OCRVegetationStructureSerializer(serializers.ModelSerializer):
             "free_text_field_three",
             "free_text_field_four",
         )
+
 
 class OCRFireHistorySerializer(serializers.ModelSerializer):
     last_fire_estimate = serializers.DateField(format="%Y-%m")
@@ -811,7 +814,7 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
-        return obj.can_user_edit(request.user)
+        return obj.can_user_edit(request)
 
 
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
@@ -1159,10 +1162,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     def get_can_user_assess(self, obj):
         request = self.context["request"]
         return (
-            (
-                is_occurrence_assessor(request.user)
-                or is_occurrence_approver(request.user)
-            )
+            (is_occurrence_assessor(request) or is_occurrence_approver(request))
             and obj.processing_status
             in [
                 OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
@@ -1175,7 +1175,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     def get_can_user_approve(self, obj):
         request = self.context["request"]
         return (
-            is_occurrence_approver(request.user)
+            is_occurrence_approver(request)
             and obj.processing_status == OccurrenceReport.CUSTOMER_STATUS_WITH_APPROVER
             and obj.assigned_approver == request.user.id
         )
@@ -1183,7 +1183,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     def get_can_user_change_lock(self, obj):
         request = self.context["request"]
         return (
-            is_occurrence_assessor(request.user) or is_occurrence_approver(request.user)
+            is_occurrence_assessor(request) or is_occurrence_approver(request)
         ) and obj.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_APPROVED,
             OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
@@ -1206,19 +1206,17 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
 
     def get_assessor_mode(self, obj):
         request = self.context["request"]
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )
         return {
             "assessor_mode": True,
-            "has_assessor_mode": obj.has_assessor_mode(user),
-            "has_unlocked_mode": obj.has_unlocked_mode(user),
-            "assessor_can_assess": obj.can_assess(user),
+            "has_assessor_mode": obj.has_assessor_mode(request),
+            "has_unlocked_mode": obj.has_unlocked_mode(request),
+            "assessor_can_assess": obj.can_assess(request),
             "assessor_level": "assessor",
         }
 
     def get_is_new_contributor(self, obj):
-        return is_new_external_contributor(obj.submitter)
+        request = self.context["request"]
+        return is_new_external_contributor(request)
 
 
 class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
@@ -1275,6 +1273,7 @@ class SaveOCRHabitatConditionSerializer(serializers.ModelSerializer):
             "completely_degraded",
         )
 
+
 class SaveOCRVegetationStructureSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
@@ -1289,6 +1288,7 @@ class SaveOCRVegetationStructureSerializer(serializers.ModelSerializer):
             "free_text_field_three",
             "free_text_field_four",
         )
+
 
 class SaveOCRFireHistorySerializer(serializers.ModelSerializer):
     # occurrence_report_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
@@ -2037,6 +2037,7 @@ class OCCHabitatConditionSerializer(serializers.ModelSerializer):
             "completely_degraded",
         )
 
+
 class OCCVegetationStructureSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -2049,6 +2050,7 @@ class OCCVegetationStructureSerializer(serializers.ModelSerializer):
             "free_text_field_three",
             "free_text_field_four",
         )
+
 
 class SaveOCCVegetationStructureSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
@@ -2064,6 +2066,7 @@ class SaveOCCVegetationStructureSerializer(serializers.ModelSerializer):
             "free_text_field_three",
             "free_text_field_four",
         )
+
 
 class OCCFireHistorySerializer(serializers.ModelSerializer):
     last_fire_estimate = serializers.DateField(format="%Y-%m")

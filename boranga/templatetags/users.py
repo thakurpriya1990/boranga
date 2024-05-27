@@ -27,49 +27,49 @@ def is_internal(context):
 @register.simple_tag(takes_context=True)
 def is_conservation_status_assessor(context):
     request = context["request"]
-    return boranga_helpers.is_conservation_status_assessor(request.user)
+    return boranga_helpers.is_conservation_status_assessor(request)
 
 
 @register.simple_tag(takes_context=True)
 def is_conservation_status_approver(context):
     request = context["request"]
-    return boranga_helpers.is_conservation_status_approver(request.user)
+    return boranga_helpers.is_conservation_status_approver(request)
 
 
 @register.simple_tag(takes_context=True)
 def is_occurrence_assessor(context):
     request = context["request"]
-    return boranga_helpers.is_occurrence_assessor(request.user)
+    return boranga_helpers.is_occurrence_assessor(request)
 
 
 @register.simple_tag(takes_context=True)
 def is_occurrence_approver(context):
     request = context["request"]
-    return boranga_helpers.is_occurrence_approver(request.user)
+    return boranga_helpers.is_occurrence_approver(request)
 
 
 @register.simple_tag(takes_context=True)
 def is_readonly_user(context):
     request = context["request"]
-    return boranga_helpers.is_readonly_user(request.user)
+    return boranga_helpers.is_readonly_user(request)
 
 
 @register.simple_tag(takes_context=True)
 def is_species_communities_approver(context):
     request = context["request"]
-    return boranga_helpers.is_species_communities_approver(request.user)
+    return boranga_helpers.is_species_communities_approver(request)
 
 
 @register.simple_tag(takes_context=True)
 def is_external_contributor(context):
     request = context["request"]
-    return boranga_helpers.is_external_contributor(request.user)
+    return boranga_helpers.is_external_contributor(request)
 
 
 @register.simple_tag(takes_context=True)
 def is_internal_contributor(context):
     request = context["request"]
-    return boranga_helpers.is_internal_contributor(request.user)
+    return boranga_helpers.is_internal_contributor(request)
 
 
 @register.simple_tag(takes_context=True)
@@ -79,13 +79,13 @@ def show_internal_primary_menu_items(context):
         return False
     return (
         request.user.is_superuser
-        or boranga_helpers.is_conservation_status_approver(request.user)
-        or boranga_helpers.is_conservation_status_assessor(request.user)
-        or boranga_helpers.is_internal_contributor(request.user)
-        or boranga_helpers.is_occurrence_approver(request.user)
-        or boranga_helpers.is_occurrence_assessor(request.user)
-        or boranga_helpers.is_readonly_user(request.user)
-        or boranga_helpers.is_species_communities_approver(request.user)
+        or boranga_helpers.is_conservation_status_approver(request)
+        or boranga_helpers.is_conservation_status_assessor(request)
+        or boranga_helpers.is_internal_contributor(request)
+        or boranga_helpers.is_occurrence_approver(request)
+        or boranga_helpers.is_occurrence_assessor(request)
+        or boranga_helpers.is_readonly_user(request)
+        or boranga_helpers.is_species_communities_approver(request)
     )
 
 

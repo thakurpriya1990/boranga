@@ -18,7 +18,12 @@ from boranga.components.main.serializers import (
     EmailUserSerializer,
 )
 from boranga.components.species_and_communities.models import CommunityTaxonomy
-from boranga.helpers import is_internal_contributor, is_new_external_contributor
+from boranga.helpers import (
+    is_conservation_status_approver,
+    is_conservation_status_assessor,
+    is_internal_contributor,
+    is_new_external_contributor,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
@@ -114,7 +119,8 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
         return ""
 
     def get_is_new_contributor(self, obj):
-        return is_new_external_contributor(obj.submitter)
+        request = self.context["request"]
+        return is_new_external_contributor(request)
 
 
 class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
@@ -299,19 +305,11 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     def get_assessor_process(self, obj):
         # Check if currently logged in user has access to process the proposal
         request = self.context["request"]
-        return (
-            obj.can_officer_process
-            and request.user.id
-            in obj.get_assessor_group().get_system_group_member_ids()
-        )
+        return obj.can_officer_process and is_conservation_status_assessor(request)
 
     def get_approver_process(self, obj):
         request = self.context["request"]
-        return (
-            obj.can_approver_process
-            and request.user.id
-            in obj.get_approver_group().get_system_group_member_ids()
-        )
+        return obj.can_approver_process and is_conservation_status_approver(request)
 
     def get_assessor_edit(self, obj):
         request = self.context["request"]
@@ -326,12 +324,13 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
         return (
             obj.can_user_edit
             and obj.internal_application
-            and is_internal_contributor(request.user)
+            and is_internal_contributor(request)
             and obj.submitter == request.user.id
         )
 
     def get_is_new_contributor(self, obj):
-        return is_new_external_contributor(obj.submitter)
+        request = self.context["request"]
+        return is_new_external_contributor(request)
 
 
 class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
@@ -458,11 +457,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     def get_assessor_process(self, obj):
         # Check if currently logged in user has access to process the proposal
         request = self.context["request"]
-        return (
-            obj.can_officer_process
-            and request.user.id
-            in obj.get_assessor_group().get_system_group_member_ids()
-        )
+        return obj.can_officer_process and is_conservation_status_assessor(request)
 
     def get_assessor_edit(self, obj):
         request = self.context["request"]
@@ -477,7 +472,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
         return (
             obj.can_user_edit
             and obj.internal_application
-            and is_internal_contributor(request.user)
+            and is_internal_contributor(request)
             and obj.submitter == request.user.id
         )
 
@@ -774,15 +769,12 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     def get_assessor_mode(self, obj):
         # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )
         return {
             "assessor_mode": True,
-            "has_assessor_mode": obj.has_assessor_mode(user),
-            "assessor_can_assess": obj.can_assess(user),
+            "has_assessor_mode": obj.has_assessor_mode(request),
+            "assessor_can_assess": obj.can_assess(request),
             "assessor_level": "assessor",
-            "assessor_box_view": obj.assessor_comments_view(user),
+            "assessor_box_view": obj.assessor_comments_view(request),
         }
 
     def get_internal_user_edit(self, obj):
@@ -791,7 +783,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         return (
             obj.can_user_edit
             and obj.internal_application
-            and is_internal_contributor(request.user)
+            and is_internal_contributor(request)
             and obj.submitter == request.user.id
         )
 
@@ -815,21 +807,15 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     def get_can_edit_recommended(self, obj):
         # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )
-        return obj.can_edit_recommended(user)
+        return obj.can_edit_recommended(request)
 
     def get_is_new_contributor(self, obj):
-        return is_new_external_contributor(obj.submitter)
+        request = self.context["request"]
+        return is_new_external_contributor(request)
 
     def get_approver_process(self, obj):
         request = self.context["request"]
-        return (
-            obj.can_approver_process
-            and request.user.id
-            in obj.get_approver_group().get_system_group_member_ids()
-        )
+        return obj.can_approver_process and is_conservation_status_approver(request)
 
 
 class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
@@ -895,15 +881,12 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
     def get_assessor_mode(self, obj):
         # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )
         return {
             "assessor_mode": True,
-            "has_assessor_mode": obj.has_assessor_mode(user),
-            "assessor_can_assess": obj.can_assess(user),
+            "has_assessor_mode": obj.has_assessor_mode(request),
+            "assessor_can_assess": obj.can_assess(request),
             "assessor_level": "assessor",
-            "assessor_box_view": obj.assessor_comments_view(user),
+            "assessor_box_view": obj.assessor_comments_view(request),
         }
 
 
@@ -1057,15 +1040,12 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
     def get_assessor_mode(self, obj):
         # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )
         return {
             "assessor_mode": True,
-            "has_assessor_mode": obj.has_assessor_mode(user),
-            "assessor_can_assess": obj.can_assess(user),
+            "has_assessor_mode": obj.has_assessor_mode(request),
+            "assessor_can_assess": obj.can_assess(request),
             "assessor_level": "assessor",
-            "assessor_box_view": obj.assessor_comments_view(user),
+            "assessor_box_view": obj.assessor_comments_view(request),
         }
 
 
@@ -1269,16 +1249,13 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
 
     def get_can_user_process(self, obj):
         request = self.context["request"]
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )
-        if obj.can_be_completed:
-            if obj.assigned_officer:
-                if obj.assigned_officer == user:
-                    return True
-            else:
-                return True
-        return False
+        if not obj.can_be_completed:
+            return False
+
+        if not obj.assigned_officer:
+            return False
+
+        return obj.assigned_officer == request.user.id
 
     def get_group_type(self, obj):
         if obj.conservation_status:
@@ -1336,22 +1313,19 @@ class ConservationStatusReferralProposalSerializer(
     def get_assessor_mode(self, obj):
         # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )
         try:
             referral = ConservationStatusReferral.objects.get(
-                conservation_status=obj, referral=user.id
+                conservation_status=obj, referral=request.user.id
             )
         except ConservationStatusReferral.DoesNotExist:
             referral = None
         return {
             "assessor_mode": True,
             "assessor_can_assess": (
-                referral.can_assess_referral(user) if referral else None
+                referral.can_assess_referral() if referral else None
             ),
             "assessor_level": "referral",
-            "assessor_box_view": obj.assessor_comments_view(user),
+            "assessor_box_view": obj.assessor_comments_view(request),
         }
 
 
