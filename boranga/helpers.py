@@ -20,7 +20,16 @@ from boranga.settings import (
 logger = logging.getLogger(__name__)
 
 
+def superuser_ids_list():
+    return list(
+        EmailUser.objects.filter(is_superuser=True).values_list("id", flat=True)
+    )
+
+
 def belongs_to_by_user_id(user_id, group_name):
+    if user_id in superuser_ids_list():
+        return True
+
     system_group = SystemGroup.objects.filter(name=group_name).first()
     return system_group and user_id in system_group.get_system_group_member_ids()
 
@@ -36,11 +45,8 @@ def belongs_to(request, group_name):
 
 def member_ids(group_name):
     # Centralised member_ids method that includes all superusers (not totally sure we want this yet)
-    superusers = EmailUser.objects.filter(is_superuser=True).values_list(
-        "id", flat=True
-    )
     system_group = SystemGroup.objects.filter(name=group_name).first()
-    member_ids = system_group.get_system_group_member_ids().append(superusers)
+    member_ids = system_group.get_system_group_member_ids().append(superuser_ids_list())
     return member_ids
 
 
