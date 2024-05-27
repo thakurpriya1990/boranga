@@ -111,7 +111,7 @@ class AbstractConservationList(models.Model):
             logger.warning(f"GroupType {group_type} does not exist")
             return []
 
-        lists = cls.objects.values("id", "code")
+        lists = cls.objects.values("id", "code", "label")
         if group_type and group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
             lists = lists.filter(applies_to_communities=True)
         elif group_type and group_type.name in [
@@ -170,7 +170,9 @@ class WAPriorityCategory(AbstractConservationCategory):
             logger.warning(f"GroupType {group_type} does not exist")
             return []
         wa_priority_categories = []
-        wa_priority_categories_qs = WAPriorityCategory.objects.only("id", "code")
+        wa_priority_categories_qs = WAPriorityCategory.objects.only(
+            "id", "code", "label"
+        )
         if group_type and group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
             wa_priority_categories_qs = wa_priority_categories_qs.filter(
                 wa_priority_lists__applies_to_communities=True
@@ -192,6 +194,7 @@ class WAPriorityCategory(AbstractConservationCategory):
                 {
                     "id": wa_priority_category.id,
                     "code": wa_priority_category.code,
+                    "label": wa_priority_category.label,
                     "list_ids": list_ids,
                 }
             )
@@ -230,7 +233,9 @@ class WALegislativeCategory(AbstractConservationCategory):
             logger.warning(f"GroupType {group_type} does not exist")
             return []
         wa_legislative_categories = []
-        wa_legislative_categories_qs = WALegislativeCategory.objects.only("id", "code")
+        wa_legislative_categories_qs = WALegislativeCategory.objects.only(
+            "id", "code", "label"
+        )
         if group_type and group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
             wa_legislative_categories_qs = wa_legislative_categories_qs.filter(
                 wa_legislative_lists__applies_to_communities=True
@@ -252,6 +257,7 @@ class WALegislativeCategory(AbstractConservationCategory):
                 {
                     "id": wa_legislative_category.id,
                     "code": wa_legislative_category.code,
+                    "label": wa_legislative_category.label,
                     "list_ids": list_ids,
                 }
             )
