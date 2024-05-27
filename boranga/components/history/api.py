@@ -85,23 +85,23 @@ class InternalAuthorizationView(views.APIView):
                 return True
             if (
                 model_name in self.species_communities_approver_models
-                and is_species_communities_approver(request.user)
+                and is_species_communities_approver(request)
             ):
                 return True
             if (
                 model_name in self.conservation_status_editor_models
-                and is_conservation_status_assessor(request.user)
-                or is_conservation_status_approver(request.user)
+                and is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
             ):
                 return True
             if (
                 model_name in self.occurrence_assessor_models
-                and is_occurrence_assessor(request.user)
+                and is_occurrence_assessor(request)
             ):
                 return True
             if (
                 model_name in self.occurrence_approver_models
-                and is_occurrence_approver(request.user)
+                and is_occurrence_approver(request)
             ):
                 return True
 
