@@ -142,11 +142,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     def get_user_process(self, obj):
         # Check if currently logged in user has access to process the Species
         request = self.context["request"]
-        return (
-            obj.can_user_action
-            and request.user.id
-            in obj.get_approver_group().get_system_group_member_ids()
-        )
+        return obj.can_user_action and is_species_communities_approver(request)
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
@@ -240,11 +236,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
     def get_user_process(self, obj):
         # Check if currently logged in user has access to process the Community
         request = self.context["request"]
-        return (
-            obj.can_user_action
-            and request.user.id
-            in obj.get_approver_group().get_system_group_member_ids()
-        )
+        return obj.can_user_action and is_species_communities_approver(request)
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
@@ -834,11 +826,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
         request = self.context["request"]
         if request.user.is_superuser:
             return False
-        return not (
-            obj.can_user_edit
-            and request.user.id
-            in obj.get_approver_group().get_system_group_member_ids()
-        )
+        return not (obj.can_user_edit and is_species_communities_approver(request))
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
@@ -1297,11 +1285,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
         if request.user.is_superuser:
             return False
 
-        return not (
-            obj.can_user_edit
-            and request.user.id
-            in obj.get_approver_group().get_system_group_member_ids()
-        )
+        return not (obj.can_user_edit and is_species_communities_approver(request))
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
