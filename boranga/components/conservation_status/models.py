@@ -807,10 +807,10 @@ class ConservationStatus(RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
         ]:
-            if not ConservationStatusReferral.objects.filter(
+            if ConservationStatusReferral.objects.filter(
                 conservation_status=self, referral=request.user.id
             ).exists():
-                return False
+                return True
 
             return is_conservation_status_approver(
                 request
