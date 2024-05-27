@@ -38,6 +38,11 @@ from boranga.components.species_and_communities.models import (
     GroupType,
     Species,
 )
+from boranga.helpers import (
+    belongs_to_by_user_id,
+    is_conservation_status_approver,
+    is_conservation_status_assessor,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import (
     GROUP_NAME_CONSERVATION_STATUS_APPROVER,
@@ -786,58 +791,35 @@ class ConservationStatus(RevisionedMixin):
 
         return current_conservation_statuses.first()
 
-    # Check if the user is member of assessor group for the CS Proposal
-    def is_assessor(self, user):
-        if user.is_superuser:
-            return True
-
-        return user.id in self.get_assessor_group().get_system_group_member_ids()
-
-    # Check if the user is member of assessor group for the CS Proposal
-    def is_approver(self, user):
-        if user.is_superuser:
-            return True
-
-        return user.id in self.get_assessor_group().get_system_group_member_ids()
-
-    def can_assess(self, user):
+    def can_assess(self, request):
         if self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
         ]:
-            return user.id in self.get_assessor_group().get_system_group_member_ids()
+            return is_conservation_status_assessor(request)
         elif self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
         ]:
-            return user.id in self.get_approver_group().get_system_group_member_ids()
-        else:
-            return False
+            return is_conservation_status_approver(request)
 
-    def assessor_comments_view(self, user):
+        return False
+
+    def assessor_comments_view(self, request):
         if self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
         ]:
-            try:
-                referral = ConservationStatusReferral.objects.get(
-                    conservation_status=self, referral=user.id
-                )
-            except ConservationStatusReferral.DoesNotExist:
-                referral = None
-
-            if referral:
-                return True
-
-            elif user.id in self.get_assessor_group().get_system_group_member_ids():
-                return True
-
-            elif user.id in self.get_approver_group().get_system_group_member_ids():
-                return True
-            else:
+            if not ConservationStatusReferral.objects.filter(
+                conservation_status=self, referral=request.user.id
+            ).exists():
                 return False
+
+            return is_conservation_status_approver(
+                request
+            ) or is_conservation_status_assessor(request)
 
     @property
     def status_without_assessor(self):
@@ -852,7 +834,7 @@ class ConservationStatus(RevisionedMixin):
 
         return self.processing_status in status_without_assessor
 
-    def has_assessor_mode(self, user):
+    def has_assessor_mode(self, request):
         status_without_assessor = [
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
@@ -863,25 +845,18 @@ class ConservationStatus(RevisionedMixin):
         if self.processing_status in status_without_assessor:
             # For Editing the 'Approved' conservation status for authorised group
             if self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
-                return (
-                    user.id in self.get_approver_group().get_system_group_member_ids()
-                )
-            else:
-                return False
+                return is_conservation_status_approver(request)
+
+            return False
 
         else:
-            if self.assigned_officer:
-                if self.assigned_officer == user.id:
-                    return (
-                        user.id
-                        in self.get_assessor_group().get_system_group_member_ids()
-                    )
-                else:
-                    return False
-            else:
-                return (
-                    user.id in self.get_assessor_group().get_system_group_member_ids()
-                )
+            if not self.assigned_officer:
+                return False
+
+            if not self.assigned_officer == request.user.id:
+                return False
+
+            return is_conservation_status_assessor(request)
 
     @property
     def can_view_recommended(self):
@@ -890,32 +865,31 @@ class ConservationStatus(RevisionedMixin):
         return False
         # return self.processing_status in ["ready_for_agenda", "approved", "closed"]
 
-    def can_edit_recommended(self, user):
+    def can_edit_recommended(self, request):
         recommended_edit_status = [
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
         ]
-        if self.processing_status in recommended_edit_status:
-            if self.assigned_officer:
-                if self.assigned_officer == user.id:
-                    return (
-                        user.id
-                        in self.get_assessor_group().get_system_group_member_ids()
-                    )
-                else:
-                    return False
-            else:
-                return (
-                    user.id in self.get_assessor_group().get_system_group_member_ids()
-                )
-        else:
+        if self.processing_status not in recommended_edit_status:
             return False
+
+        if not self.assigned_officer:
+            return False
+
+        if not self.assigned_officer == request.user.id:
+            return False
+
+        return is_conservation_status_assessor(request)
 
     @transaction.atomic
     def assign_officer(self, request, officer):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
-        if not self.can_assess(officer):
+        if not belongs_to_by_user_id(
+            officer, settings.GROUP_NAME_CONSERVATION_STATUS_ASSESSOR
+        ) or not belongs_to_by_user_id(
+            officer, settings.GROUP_NAME_CONSERVATION_STATUS_APPROVER
+        ):
             raise ValidationError(
                 f"Officer with id {officer} is not authorised to be assigned to this conservation status"
             )
@@ -964,7 +938,7 @@ class ConservationStatus(RevisionedMixin):
 
     @transaction.atomic
     def unassign(self, request):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
         if (
@@ -1058,7 +1032,7 @@ class ConservationStatus(RevisionedMixin):
         return qs
 
     def move_to_status(self, request, status, approver_comment):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
         if status not in [
@@ -1098,7 +1072,7 @@ class ConservationStatus(RevisionedMixin):
 
     def proposed_decline(self, request, details):
         with transaction.atomic():
-            if not self.can_assess(request.user):
+            if not self.can_assess(request):
                 raise exceptions.ProposalNotAuthorized()
             if (
                 self.processing_status
@@ -1140,7 +1114,7 @@ class ConservationStatus(RevisionedMixin):
 
     @transaction.atomic
     def final_decline(self, request, details):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
         if self.processing_status not in ("with_assessor", "ready_for_agenda"):
@@ -1181,7 +1155,7 @@ class ConservationStatus(RevisionedMixin):
 
     @transaction.atomic
     def proposed_approval(self, request, details):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
         if self.processing_status != ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR:
@@ -1226,7 +1200,7 @@ class ConservationStatus(RevisionedMixin):
     def final_approval(self, request, details):
         self.proposed_decline_status = False
 
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
         if self.processing_status not in [
@@ -1365,7 +1339,7 @@ class ConservationStatus(RevisionedMixin):
 
     @transaction.atomic
     def proposed_ready_for_agenda(self, request):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
         if self.processing_status != ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR:
@@ -1746,7 +1720,7 @@ class ConservationStatusReferral(models.Model):
 
     @transaction.atomic
     def remind(self, request):
-        if not self.conservation_status.can_assess(request.user):
+        if not self.conservation_status.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
         # Create a log entry for the proposal
@@ -1770,7 +1744,7 @@ class ConservationStatusReferral(models.Model):
 
     @transaction.atomic
     def recall(self, request):
-        if not self.conservation_status.can_assess(request.user):
+        if not self.conservation_status.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
         self.processing_status = ConservationStatusReferral.PROCESSING_STATUS_RECALLED
@@ -1800,7 +1774,7 @@ class ConservationStatusReferral(models.Model):
 
     @transaction.atomic
     def resend(self, request):
-        if not self.conservation_status.can_assess(request.user):
+        if not self.conservation_status.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
         self.processing_status = (
@@ -1928,7 +1902,7 @@ class ConservationStatusReferral(models.Model):
 
         send_conservation_status_referral_complete_email_notification(self, request)
 
-    def can_assess_referral(self, user):
+    def can_assess_referral(self):
         return (
             self.processing_status
             == ConservationStatusReferral.PROCESSING_STATUS_WITH_REFERRAL
@@ -1987,7 +1961,7 @@ class ConservationStatusAmendmentRequest(ConservationStatusProposalRequest):
 
     @transaction.atomic
     def generate_amendment(self, request):
-        if not self.conservation_status.can_assess(request.user):
+        if not self.conservation_status.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
         if self.status == ConservationStatusAmendmentRequest.STATUS_CHOICE_REQUESTED:

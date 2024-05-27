@@ -1294,7 +1294,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = self.queryset
 
-        if is_external_contributor(self.request.user.id):
+        if is_external_contributor(self.request):
             qs = ConservationStatus.objects.filter(submitter=self.request.user.id)
 
         if is_internal(self.request):
@@ -1330,7 +1330,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     def get_queryset(self):
         qs = self.queryset
 
-        if is_external_contributor(self.request.user.id):
+        if is_external_contributor(self.request):
             qs = ConservationStatus.objects.filter(submitter=self.request.user.id)
 
         if is_internal(self.request):
@@ -1408,7 +1408,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     def conservation_status_edit(self, request, *args, **kwargs):
         instance = self.get_object()
         request_data = request.data
-        if not instance.can_assess(request.user):
+        if not instance.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
         if instance.processing_status == "approved":
             # to resolve error for serializer submitter id as object is received in request
@@ -1447,7 +1447,6 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     def draft(self, request, *args, **kwargs):
         instance = self.get_object()
         request_data = request.data
-        # request.data['submitter'] = u'{}'.format(request.user.id)
         if request_data["submitter"]:
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
         if (
