@@ -21,6 +21,7 @@ from boranga.components.main.models import (
     UserAction,
 )
 from boranga.components.main.related_item import RelatedItem
+from boranga.helpers import is_species_communities_approver
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import GROUP_NAME_SPECIES_COMMUNITIES_APPROVER
 
@@ -161,7 +162,7 @@ class GroupType(models.Model):
         max_length=64,
         choices=GROUP_TYPES,
         default=GROUP_TYPES[1],
-        verbose_name="GroupType Name"
+        verbose_name="GroupType Name",
     )
 
     class Meta:
@@ -437,7 +438,9 @@ class InformalGroup(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.classification_system_fk.class_desc)  # TODO: is the most appropriate?
+        return str(
+            self.classification_system_fk.class_desc
+        )  # TODO: is the most appropriate?
 
 
 class Species(RevisionedMixin):
@@ -675,11 +678,6 @@ class Species(RevisionedMixin):
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
-    def is_approver(self, user):
-        if user.is_superuser:
-            return True
-        return user.id in self.get_approver_group().get_system_group_member_ids()
-
     @property
     def status_without_assessor(self):
         status_without_assessor = [
@@ -694,12 +692,12 @@ class Species(RevisionedMixin):
             return True
         return False
 
-    def has_user_edit_mode(self, user):
+    def has_user_edit_mode(self, request):
         officer_view_state = ["draft", "historical"]
         if self.processing_status in officer_view_state:
             return False
-        else:
-            return self.is_approver(user)
+
+        return is_species_communities_approver(request)
 
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
@@ -1172,11 +1170,6 @@ class Community(RevisionedMixin):
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
-    def is_approver(self, user):
-        if user.is_superuser:
-            return True
-        return user.id in self.get_approver_group().get_system_group_member_ids()
-
     @property
     def status_without_assessor(self):
         status_without_assessor = [
@@ -1191,13 +1184,12 @@ class Community(RevisionedMixin):
             return True
         return False
 
-    def has_user_edit_mode(self, user):
+    def has_user_edit_mode(self, request):
         officer_view_state = ["draft", "historical"]
         if self.processing_status in officer_view_state:
             return False
-        else:
-            return self.is_approver(user)
-            return self.is_approver(user)
+
+        return is_species_communities_approver(request)
 
     @property
     def reference(self):
@@ -1837,6 +1829,7 @@ class ConservationThreat(RevisionedMixin):
         elif self.community:
             return self.community.community_number
 
+
 class SpeciesPublishingStatus(models.Model):
     """
     The public publishing status of a species instance and its sections.
@@ -1867,12 +1860,13 @@ class SpeciesPublishingStatus(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.species) 
+        return str(self.species)
+
 
 class CommunityPublishingStatus(models.Model):
     """
     The public publishing status of a community instance and its sections.
-    
+
     Has a:
     - community
     Used for:
@@ -1899,7 +1893,8 @@ class CommunityPublishingStatus(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.community) 
+        return str(self.community)
+
 
 class FloraRecruitmentType(models.Model):
     """
@@ -2121,8 +2116,12 @@ reversion.register(SpeciesDocument)
 # Species History
 reversion.register(
     Species,
-    follow=["taxonomy", "species_distribution", 
-            "species_conservation_attributes", "species_publishing_status"],
+    follow=[
+        "taxonomy",
+        "species_distribution",
+        "species_conservation_attributes",
+        "species_publishing_status",
+    ],
 )
 reversion.register(Taxonomy, follow=["taxon_previous_queryset", "vernaculars"])
 # reversion.register(CrossReference, follow=["old_taxonomy"])
@@ -2138,8 +2137,12 @@ reversion.register(CommunityDocument)
 # Community History
 reversion.register(
     Community,
-    follow=["taxonomy", "community_distribution", 
-            "community_conservation_attributes", "community_publishing_status"],
+    follow=[
+        "taxonomy",
+        "community_distribution",
+        "community_conservation_attributes",
+        "community_publishing_status",
+    ],
 )
 reversion.register(CommunityTaxonomy)
 reversion.register(CommunityDistribution)
