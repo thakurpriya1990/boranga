@@ -886,9 +886,9 @@ class ConservationStatus(RevisionedMixin):
             raise exceptions.ProposalNotAuthorized()
 
         if not belongs_to_by_user_id(
-            officer, settings.GROUP_NAME_CONSERVATION_STATUS_ASSESSOR
+            officer.id, settings.GROUP_NAME_CONSERVATION_STATUS_ASSESSOR
         ) or not belongs_to_by_user_id(
-            officer, settings.GROUP_NAME_CONSERVATION_STATUS_APPROVER
+            officer.id, settings.GROUP_NAME_CONSERVATION_STATUS_APPROVER
         ):
             raise ValidationError(
                 f"Officer with id {officer} is not authorised to be assigned to this conservation status"
