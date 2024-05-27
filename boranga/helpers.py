@@ -34,6 +34,16 @@ def belongs_to(request, group_name):
     return belongs_to_by_user_id(request.user.id, group_name)
 
 
+def member_ids(group_name):
+    # Centralised member_ids method that includes all superusers (not totally sure we want this yet)
+    superusers = EmailUser.objects.filter(is_superuser=True).values_list(
+        "id", flat=True
+    )
+    system_group = SystemGroup.objects.filter(name=group_name).first()
+    member_ids = system_group.get_system_group_member_ids().append(superusers)
+    return member_ids
+
+
 def is_django_admin(request):
     return belongs_to(request, DJANGO_ADMIN_GROUP)
 
