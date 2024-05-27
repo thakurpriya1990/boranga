@@ -7,7 +7,6 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.utils import timezone
-from ledger_api_client.managed_models import SystemGroup
 
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.models import CommunicationsLogEntry, Document, UserAction
@@ -16,6 +15,7 @@ from boranga.components.species_and_communities.models import (
     DocumentCategory,
     DocumentSubCategory,
 )
+from boranga.helpers import is_conservation_status_approver
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.ordered_model import OrderedModel
 
@@ -214,17 +214,12 @@ class Meeting(models.Model):
         ]
         return self.processing_status in user_editable_state
 
-    def has_user_edit_mode(self, user):
+    def has_user_edit_mode(self, request):
         officer_view_state = ["draft", "completed"]
         if self.processing_status in officer_view_state:
             return False
-        else:
-            return (
-                user.id
-                in SystemGroup.objects.get(
-                    name=settings.GROUP_NAME_CONSERVATION_STATUS_APPROVER
-                ).get_system_group_member_ids()
-            )
+
+        return is_conservation_status_approver(request)
 
     @transaction.atomic
     def submit(self, request, viewset):

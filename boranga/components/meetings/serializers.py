@@ -62,14 +62,14 @@ class ListMeetingSerializer(serializers.ModelSerializer):
         if obj.can_user_edit and request.user.is_superuser:
             return True
 
-        if not is_conservation_status_approver(request.user):
+        if not is_conservation_status_approver(request):
             return False
 
         return obj.can_user_edit or request.user.is_superuser
 
     def get_is_meeting_editable(self, obj):
         request = self.context["request"]
-        if not is_conservation_status_approver(request.user):
+        if not is_conservation_status_approver(request):
             return False
         return obj.can_user_edit
 
@@ -199,17 +199,14 @@ class MeetingSerializer(serializers.ModelSerializer):
     def get_user_edit_mode(self, obj):
         # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )
-        return obj.has_user_edit_mode(user)
+        return obj.has_user_edit_mode(request)
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
         if request.user.is_superuser:
             return True
 
-        if not is_conservation_status_approver(request.user):
+        if not is_conservation_status_approver(request):
             return False
         return obj.can_user_edit
 
