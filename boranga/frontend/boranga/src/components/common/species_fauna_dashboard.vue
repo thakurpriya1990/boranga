@@ -222,7 +222,6 @@ export default {
             datatable_fauna_id: 'species_fauna-datatable-'+vm._uid,
 
             //Profile to check if user has access to process Proposal
-            is_payment_admin: false,
 
             // selected values for filtering
             filterFaunaScientificName: sessionStorage.getItem(this.filterFaunaScientificName_cache) ?
