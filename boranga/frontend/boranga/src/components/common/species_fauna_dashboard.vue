@@ -391,7 +391,7 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family',  'Genera', 'Region', 'District','Status', 'Action']
+                return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family',  'Genera', 'Region', 'District', 'Action']
             }
             if (this.is_internal){
                 return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera', 'Region', 'District','Status', 'Action']
@@ -627,7 +627,6 @@ export default {
                     vm.column_genera,
                     vm.column_region,
                     vm.column_district,
-                    //vm.column_status,
                     vm.column_action,
                 ]
                 search = false
