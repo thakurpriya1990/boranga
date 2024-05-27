@@ -200,9 +200,9 @@ def is_authorised_to_access_community_document(request, document_id):
         return (
             request.user.is_superuser
             or is_django_admin(request)
-            or is_species_communities_approver(request.user)
-            or is_occurrence_assessor(request.user)
-            or is_occurrence_approver(request.user)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
         )
     else:
         return False
@@ -214,9 +214,9 @@ def is_authorised_to_access_species_document(request, document_id):
         return (
             request.user.is_superuser
             or is_django_admin(request)
-            or is_species_communities_approver(request.user)
-            or is_occurrence_assessor(request.user)
-            or is_occurrence_approver(request.user)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
         )
     else:
         return False
@@ -229,7 +229,7 @@ def is_authorised_to_access_meeting_document(request, document_id):
             request.user.is_superuser
             or is_django_admin(request)
             or is_species_communities_approver(request)
-            or is_conservation_status_assessor(request.user)
+            or is_conservation_status_assessor(request)
             or is_conservation_status_referee(request)
         )
     else:
@@ -256,8 +256,8 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
         return (
             request.user.is_superuser
             or is_django_admin(request)
-            or is_occurrence_assessor(request.user)
-            or is_occurrence_approver(request.user)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
         )
     elif is_customer(request):
         allowed_paths = ["documents"]
@@ -278,8 +278,8 @@ def is_authorised_to_access_occurrence_document(request, document_id):
         return (
             request.user.is_superuser
             or is_django_admin(request)
-            or is_occurrence_assessor(request.user)
-            or is_occurrence_approver(request.user)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
         )
     else:
         return False
@@ -291,8 +291,8 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
         return (
             request.user.is_superuser
             or is_django_admin(request)
-            or is_species_communities_approver(request.user)
-            or is_conservation_status_assessor(request.user)
+            or is_species_communities_approver(request)
+            or is_conservation_status_assessor(request)
         )
 
     return False
