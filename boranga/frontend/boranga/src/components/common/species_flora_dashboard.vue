@@ -212,7 +212,6 @@ export default {
             uuid:0,
             speciesHistoryId: null,
             datatable_id: 'species_flora-datatable-'+vm._uid,
-            is_payment_admin: false,
 
             // selected values for filtering
             filterFloraScientificName: sessionStorage.getItem(this.filterFloraScientificName_cache) ?

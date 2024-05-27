@@ -206,7 +206,6 @@ export default {
 
             //Profile to check if user has access to process Proposal
             profile: {},
-            is_payment_admin: false,
 
             // selected values for filtering
             filterCPFloraType: sessionStorage.getItem(this.filterCPFloraType_cache) ?
@@ -747,14 +746,6 @@ export default {
         },
         fetchProfile: function(){
             let vm = this;
-            /*Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body;
-                vm.is_payment_admin=response.body.is_payment_admin;
-
-            },(error) => {
-                console.log(error);
-
-            })*/
         },
 
         check_assessor: function(proposal){

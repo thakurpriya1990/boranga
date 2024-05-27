@@ -129,7 +129,7 @@
                             @change="filterWALegislativeCategories($event)">
                             <option :value="null" disabled>Select the appropriate WA Legislative List</option>
                             <option v-for="option in wa_legislative_lists" :value="option.id" v-bind:key="option.id">
-                                {{ option.code }}
+                                {{ option.code }} - {{ option.label }}
                             </option>
                         </select>
                     </div>
@@ -144,7 +144,7 @@
                             <option :value="null" disabled>Select the appropriate WA Legislative Category</option>
                             <option v-for="option in filtered_wa_legislative_categories" :value="option.id"
                                 v-bind:key="option.id">
-                                {{ option.code }}
+                                {{ option.code }} - {{ option.label }}
                             </option>
                         </select>
                     </div>
@@ -157,7 +157,7 @@
                             @change="filterWAPriorityCategories($event)">
                             <option :value="null" disabled>Select the appropriate WA Priority List</option>
                             <option v-for="option in wa_priority_lists" :value="option.id" v-bind:key="option.id">
-                                {{ option.code }}
+                                {{ option.code }} - {{ option.label }}
                             </option>
                         </select>
                     </div>
@@ -172,7 +172,7 @@
                             <option :value="null" disabled>Select the appropriate WA Priority Category</option>
                             <option v-for="option in filtered_wa_priority_categories" :value="option.id"
                                 v-bind:key="option.id">
-                                {{ option.code }}
+                                {{ option.code }} - {{ option.label }}
                             </option>
                         </select>
                     </div>
@@ -189,7 +189,7 @@
                             </option>
                             <option v-for="option in commonwealth_conservation_lists" :value="option.id"
                                 v-bind:key="option.id">
-                                {{ option.code }}
+                                {{ option.code }} - {{ option.label }}
                             </option>
                         </select>
                     </div>

@@ -190,7 +190,6 @@ export default {
             uuid:0,
             occurrenceHistoryId: null,
             datatable_id: 'community_ocr-datatable-'+vm._uid,
-            is_payment_admin: false,
 
             // selected values for filtering
             filterOCCCommunityOccurrenceName: sessionStorage.getItem(this.filterOCCCommunityOccurrenceName_cache) ?

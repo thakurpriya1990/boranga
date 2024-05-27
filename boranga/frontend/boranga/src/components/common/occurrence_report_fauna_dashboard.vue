@@ -210,7 +210,6 @@ export default {
             uuid: 0,
             occurrenceReportHistoryId: null,
             datatable_id: 'species_fauna_ocr-datatable-' + vm._uid,
-            is_payment_admin: false,
 
             // selected values for filtering
             filterOCRFaunaOccurrence: sessionStorage.getItem(this.filterOCRFaunaOccurrence_cache) ?
