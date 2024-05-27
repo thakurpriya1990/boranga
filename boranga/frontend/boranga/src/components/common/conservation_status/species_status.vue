@@ -626,14 +626,23 @@ export default {
         },
         getSpeciesDisplay: function () {
             let vm = this;
-            for (let choice of vm.species_list) {
-                if (choice.id === vm.conservation_status_obj.species_id) {
-                    var newOption = new Option(choice.name, choice.id, false, true);
-                    $('#' + vm.scientific_name_lookup).append(newOption);
-                    vm.species_display = choice.name;
-                    vm.taxon_previous_name = choice.taxon_previous_name;
+            if (vm.conservation_status_obj.species_id != null) {
+                    let species_display_url = api_endpoints.species_display + 
+                    "?species_id=" + vm.conservation_status_obj.species_id
+                    vm.$http.get(species_display_url).then(
+                    (response) => {
+                        vm.species_display = response.body.name
+                        vm.taxon_previous_name = response.body.taxon_previous_name
+                    })
                 }
-            }
+            //for (let choice of vm.species_list) {
+            //    if (choice.id === vm.conservation_status_obj.species_id) {
+            //        var newOption = new Option(choice.name, choice.id, false, true);
+            //        $('#' + vm.scientific_name_lookup).append(newOption);
+            //        vm.species_display = choice.name;
+            //        vm.taxon_previous_name = choice.taxon_previous_name;
+            //    }
+            //}
         },
         filterWALegislativeCategories: function (event) {
             this.$nextTick(() => {

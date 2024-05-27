@@ -205,14 +205,14 @@ export default {
                         // eslint-disable-next-line no-unused-vars
                         var selected = $(e.currentTarget);
                         let data = e.params.data.id;
-                        vm.occurrence_report_obj.species_id = data;
+                        vm.occurrence_report_obj.species_taxonomy_id = data;
                         vm.species_display = e.params.data.text;
                         vm.taxon_previous_name = e.params.data.taxon_previous_name;
                     })
                     .on('select2:unselect', function (e) {
                         // eslint-disable-next-line no-unused-vars
                         var selected = $(e.currentTarget);
-                        vm.occurrence_report_obj.species_id = null;
+                        vm.occurrence_report_obj.species_taxonomy_id = null;
                         vm.species_display = '';
                         vm.taxon_previous_name = '';
                     })
@@ -229,8 +229,17 @@ export default {
             },
             getSpeciesDisplay: function () {
                 let vm = this;
-                for (let choice of vm.species_list) {
-                    if (choice.id === vm.occurrence_report_obj.species_id) {
+                if (vm.occurrence_report_obj.species_taxonomy_id != null) {
+                    let species_display_url = api_endpoints.species_display + 
+                    "?taxon_id=" + vm.occurrence_report_obj.species_taxonomy_id
+                    vm.$http.get(species_display_url).then(
+                    (response) => {
+                        vm.species_display = response.body.name
+                        vm.taxon_previous_name = response.body.taxon_previous_name
+                    })
+                }
+                /*for (let choice of vm.species_list) {
+                    if (choice.id === vm.occurrence_report_obj.species_taxonomy_id) {
                         const newOption = new Option(
                             choice.name,
                             choice.id,
@@ -241,7 +250,7 @@ export default {
                         vm.species_display = choice.name;
                         vm.taxon_previous_name = choice.taxon_previous_name;
                     }
-                }
+                }*/
             },
             initialiseCommunityNameLookup: function () {
                 let vm = this;
@@ -294,18 +303,27 @@ export default {
                     });
             },
             getCommunityDisplay: function () {
-                for (let choice of this.community_list) {
-                    if (choice.id === this.occurrence_report_obj.community_id) {
-                        const newOption = new Option(
-                            choice.name,
-                            choice.id,
-                            false,
-                            true
-                        );
-                        $('#' + this.community_name_lookup).append(newOption);
-                        this.community_display = choice.name;
-                    }
+                let vm = this;
+                if (vm.occurrence_report_obj.community_id != null) {
+                    let community_display_url = api_endpoints.community_display + 
+                    "?community_id=" + vm.occurrence_report_obj.community_id
+                    vm.$http.get(community_display_url).then(
+                    (response) => {
+                        vm.community_display = response.body.name
+                    })
                 }
+                //for (let choice of this.community_list) {
+                //    if (choice.id === this.occurrence_report_obj.community_id) {
+                //        const newOption = new Option(
+                //            choice.name,
+                //            choice.id,
+                //            false,
+                //            true
+                //        );
+                //        $('#' + this.community_name_lookup).append(newOption);
+                //        this.community_display = choice.name;
+                //    }
+                //}
             },
             incrementComponentMapKey: function () {
                 this.uuid = uuid();
@@ -337,11 +355,14 @@ export default {
             vm.$http.get(dict_url).then(
                 (response) => {
                     vm.cs_profile_dict = response.body;
-                    vm.species_list = vm.cs_profile_dict.species_list;
-                    this.getSpeciesDisplay();
-
-                    vm.community_list = vm.cs_profile_dict.community_list;
-                    this.getCommunityDisplay();
+                    //vm.species_list = vm.cs_profile_dict.species_list;
+                    if (!vm.isCommunity) {
+                        this.getSpeciesDisplay();
+                    }
+                    else {
+                        //vm.community_list = vm.cs_profile_dict.community_list;
+                        this.getCommunityDisplay();
+                    }
                 },
                 (error) => {
                     console.log(error);

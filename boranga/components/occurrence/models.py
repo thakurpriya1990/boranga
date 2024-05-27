@@ -48,6 +48,7 @@ from boranga.components.species_and_communities.models import (
     ThreatCategory,
     District,
     Region,
+    Taxonomy,
 )
 from boranga.helpers import clone_model, email_in_dept_domains
 from boranga.ledger_api_utils import retrieve_email_user
@@ -202,6 +203,10 @@ class OccurrenceReport(RevisionedMixin):
         max_length=40,
         choices=APPLICATION_TYPE_CHOICES,
         default=APPLICATION_TYPE_CHOICES[0][0],
+    )
+
+    species_taxonomy = models.ForeignKey(
+        Taxonomy, on_delete=models.PROTECT, null=True, blank=True
     )
 
     # species related occurrence
@@ -2686,6 +2691,11 @@ class Occurrence(RevisionedMixin):
     group_type = models.ForeignKey(
         GroupType, on_delete=models.PROTECT, null=True, blank=True
     )
+
+    species_taxonomy = models.ForeignKey(
+        Taxonomy, on_delete=models.PROTECT, null=True, blank=True
+    )
+
     species = models.ForeignKey(
         Species,
         on_delete=models.PROTECT,

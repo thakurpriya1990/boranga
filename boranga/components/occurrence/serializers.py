@@ -222,9 +222,8 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
         return ""
 
     def get_scientific_name(self, obj):
-        if obj.species:
-            if obj.species.taxonomy:
-                return obj.species.taxonomy.scientific_name
+        if obj.species_taxonomy:
+            return obj.species_taxonomy.scientific_name
         return ""
 
     def get_community_name(self, obj):
@@ -310,9 +309,8 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         )
 
     def get_scientific_name(self, obj):
-        if obj.species:
-            if obj.species.taxonomy:
-                return obj.species.taxonomy.scientific_name
+        if obj.species_taxonomy:
+            return obj.species_taxonomy.scientific_name
         return ""
 
     def get_community_name(self, obj):
@@ -856,6 +854,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "group_type",
             "group_type_id",
             "species_id",
+            "species_taxonomy_id",
             "community_id",
             "occurrence_report_number",
             "reported_date",
@@ -1542,7 +1541,10 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
 
 
 class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
-    species_id = serializers.IntegerField(
+    #species_id = serializers.IntegerField(
+    #    required=False, allow_null=True, write_only=True
+    #)
+    species_taxonomy_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
     community_id = serializers.IntegerField(
@@ -1557,7 +1559,8 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         fields = (
             "id",
             "group_type",
-            "species_id",
+            #"species_id",
+            "species_taxonomy_id",
             "community_id",
             "lodgement_date",
             "reported_date",
