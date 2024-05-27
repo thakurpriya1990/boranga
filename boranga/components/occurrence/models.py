@@ -38,18 +38,23 @@ from boranga.components.occurrence.email import (
 from boranga.components.species_and_communities.models import (
     Community,
     CurrentImpact,
+    District,
     DocumentCategory,
     DocumentSubCategory,
     GroupType,
     PotentialImpact,
     PotentialThreatOnset,
+    Region,
     Species,
     ThreatAgent,
     ThreatCategory,
-    District,
-    Region,
 )
-from boranga.helpers import clone_model, email_in_dept_domains
+from boranga.helpers import (
+    clone_model,
+    email_in_dept_domains,
+    is_occurrence_approver,
+    is_occurrence_assessor,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import (
     GROUP_NAME_OCCURRENCE_APPROVER,
@@ -269,7 +274,7 @@ class OccurrenceReport(RevisionedMixin):
     assessor_data = models.TextField(null=True, blank=True)  # assessor comment
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
-    site = models.TextField(null=True,blank=True)
+    site = models.TextField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -399,10 +404,16 @@ class OccurrenceReport(RevisionedMixin):
             OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
         ]:
             group = self.get_approver_group()
-            users = list(map(
-                    lambda id: retrieve_email_user(id),
-                    group.get_system_group_member_ids(),
-                )) if group else []
+            users = (
+                list(
+                    map(
+                        lambda id: retrieve_email_user(id),
+                        group.get_system_group_member_ids(),
+                    )
+                )
+                if group
+                else []
+            )
             return users
         elif self.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
@@ -411,80 +422,80 @@ class OccurrenceReport(RevisionedMixin):
         ]:
             users = []
             group = self.get_assessor_group()
-            users = users + list(map(
-                lambda id: retrieve_email_user(id),
-                group.get_system_group_member_ids(),
-            )) if group else []
+            users = (
+                users
+                + list(
+                    map(
+                        lambda id: retrieve_email_user(id),
+                        group.get_system_group_member_ids(),
+                    )
+                )
+                if group
+                else []
+            )
 
             group = self.get_approver_group()
-            users = users + list(map(
-                lambda id: retrieve_email_user(id),
-                group.get_system_group_member_ids(),
-            )) if group else []
+            users = (
+                users
+                + list(
+                    map(
+                        lambda id: retrieve_email_user(id),
+                        group.get_system_group_member_ids(),
+                    )
+                )
+                if group
+                else []
+            )
 
             return list(set(users))
         else:
             return []
-        
 
-    def has_assessor_mode(self, user):
+    def has_assessor_mode(self, request):
         status_with_assessor = [
             "with_assessor",
             "with_referral",
         ]
         if self.processing_status not in status_with_assessor:
             return False
-        else:
-            if self.assigned_officer:
-                if self.assigned_officer == user.id:
-                    return (
-                        (user.id
-                        in self.get_assessor_group().get_system_group_member_ids()) or
-                        (user.id
-                        in self.get_approver_group().get_system_group_member_ids())
-                    )
-                else:
-                    return False
-            else:
-                return False
 
-    def has_approver_mode(self, user):
+        if not self.assigned_officer:
+            return False
+
+        if not self.assigned_officer == request.user.id:
+            return False
+
+        return is_occurrence_assessor(request)
+
+    def has_approver_mode(self, request):
         status_with_approver = [
             "with_approver",
         ]
         if self.processing_status not in status_with_approver:
             return False
-        else:
-            if self.assigned_approver:
-                if self.assigned_approver == user.id:
-                    return (
-                        user.id
-                        in self.get_approver_group().get_system_group_member_ids()
-                    )
-                else:
-                    return False
-            else:
-                return False
 
-    def has_unlocked_mode(self, user):
+        if not self.assigned_pprover:
+            return False
+
+        if not self.assigned_pprover == request.user.id:
+            return False
+
+        return is_occurrence_approver(request)
+
+    def has_unlocked_mode(self, request):
         status_with_assessor = [
             "unlocked",
         ]
         if self.processing_status not in status_with_assessor:
             return False
-        else:
-            if self.assigned_officer:
-                if self.assigned_officer == user.id:
-                    return (
-                        (user.id
-                        in self.get_assessor_group().get_system_group_member_ids()) or
-                        (user.id
-                        in self.get_approver_group().get_system_group_member_ids())
-                    )
-                else:
-                    return False
-            else:
-                return False
+
+        if not self.assigned_officer:
+            return False
+
+        if not self.assigned_officer == request.user.id:
+            return False
+
+        return is_occurrence_assessor(request) or is_occurrence_approver(request)
 
     def get_assessor_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_ASSESSOR)
@@ -496,8 +507,12 @@ class OccurrenceReport(RevisionedMixin):
     def assessor_recipients(self):
         logger.info("assessor_recipients")
         recipients = []
-        group_ids = list(set((self.get_assessor_group().get_system_group_member_ids()
-                    + self.get_assessor_group().get_system_group_member_ids())))
+        group_ids = list(
+            set(
+                self.get_assessor_group().get_system_group_member_ids()
+                + self.get_assessor_group().get_system_group_member_ids()
+            )
+        )
         for id in group_ids:
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
@@ -513,35 +528,27 @@ class OccurrenceReport(RevisionedMixin):
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
-    # Check if the user is member of assessor group for the OCR Proposal
-    def is_assessor(self, user):
-        return user.id in self.get_assessor_group().get_system_group_member_ids()
-
-    # Check if the user is member of assessor group for the OCR Proposal
-    def is_approver(self, user):
-        return user.id in self.get_approver_group().get_system_group_member_ids()
-
-    def can_assess(self, user):
+    def can_assess(self, request):
         if self.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
             OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
             OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
         ]:
-            return (user.id in self.get_assessor_group().get_system_group_member_ids() or
-                    user.id in self.get_approver_group().get_system_group_member_ids())
-        elif self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
-            return user.id in self.get_approver_group().get_system_group_member_ids()
-        else:
-            return False
+            return is_occurrence_assessor(request) or is_occurrence_approver(request)
 
-    def can_change_lock(self, user):
+        elif self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
+            return is_occurrence_approver(request)
+
+        return False
+
+    def can_change_lock(self, request):
         if self.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
             OccurrenceReport.PROCESSING_STATUS_APPROVED,
         ]:
-            #TODO: current requirment task allows assessors to unlock, is this too permissive?
-            return (user.id in self.get_assessor_group().get_system_group_member_ids() or
-                    user.id in self.get_approver_group().get_system_group_member_ids())
+            # TODO: current requirment task allows assessors to unlock, is this too permissive?
+            # Good question
+            return is_occurrence_assessor(request) or is_occurrence_approver(request)
 
     @transaction.atomic
     def assign_officer(self, request, officer):
@@ -777,12 +784,10 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def back_to_assessor(self, request, validated_data):
-        if (
-            not self.can_assess(request.user)
-            or not self.processing_status in
-            [OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
-             OccurrenceReport.PROCESSING_STATUS_UNLOCKED]
-        ):
+        if not self.can_assess(request.user) or self.processing_status not in [
+            OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+            OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
+        ]:
             raise exceptions.OccurrenceReportNotAuthorized()
 
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
@@ -802,12 +807,18 @@ class OccurrenceReport(RevisionedMixin):
         send_approver_back_to_assessor_email_notification(request, self, reason)
 
     def lock(self, request):
-        if self.can_change_lock(request.user) and self.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
-            self.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED 
+        if (
+            self.can_change_lock(request)
+            and self.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED
+        ):
+            self.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED
             self.save(version_user=request.user)
 
     def unlock(self, request):
-        if self.can_change_lock(request.user) and self.processing_status == OccurrenceReport.PROCESSING_STATUS_APPROVED:
+        if (
+            self.can_change_lock(request)
+            and self.processing_status == OccurrenceReport.PROCESSING_STATUS_APPROVED
+        ):
             self.processing_status = OccurrenceReport.PROCESSING_STATUS_UNLOCKED
             self.save(version_user=request.user)
 
@@ -1466,7 +1477,8 @@ class LocationAccuracy(models.Model):
     def __str__(self):
         return str(self.name)
 
-#TODO eventually rename this to apply to OCR specifically when we make the OCC specific equivalent
+
+# TODO eventually rename this to apply to OCR specifically when we make the OCC specific equivalent
 class Location(models.Model):
     """
     Location data  for occurrence report
@@ -1503,7 +1515,7 @@ class Location(models.Model):
     district = models.ForeignKey(
         District, default=None, on_delete=models.CASCADE, null=True, blank=True
     )
-    #TODO either keep as free text or have a foreign model similar to district and region
+    # TODO either keep as free text or have a foreign model similar to district and region
     locality = models.TextField(default=None, null=True, blank=True)
 
     class Meta:
@@ -1878,7 +1890,7 @@ class OCRVegetationStructure(models.Model):
         null=True,
         related_name="vegetation_structure",
     )
-    
+
     free_text_field_one = models.TextField(null=True, blank=True)
     free_text_field_two = models.TextField(null=True, blank=True)
     free_text_field_three = models.TextField(null=True, blank=True)
@@ -2772,52 +2784,54 @@ class Occurrence(RevisionedMixin):
     @property
     def number_of_reports(self):
         return self.occurrence_report_count
-    
-    def lock(self,request):
-        if (request.user.id in self.get_occurrence_editor_group().get_system_group_member_ids() and \
-            self.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
+
+    def lock(self, request):
+        if (
+            is_occurrence_approver(request)
+            and self.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+        ):
             self.processing_status = Occurrence.PROCESSING_STATUS_LOCKED
             self.save(version_user=request.user)
 
-    def unlock(self,request):
-        if (request.user.id in self.get_occurrence_editor_group().get_system_group_member_ids() and \
-            self.processing_status == Occurrence.PROCESSING_STATUS_LOCKED):
+    def unlock(self, request):
+        if (
+            is_occurrence_approver(request)
+            and self.processing_status == Occurrence.PROCESSING_STATUS_LOCKED
+        ):
             self.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
             self.save(version_user=request.user)
 
-    def close(self,request):
-        if (request.user.id in self.get_occurrence_editor_group().get_system_group_member_ids() and \
-            self.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
+    def close(self, request):
+        if (
+            is_occurrence_approver(request)
+            and self.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+        ):
             self.processing_status = Occurrence.PROCESSING_STATUS_HISTORICAL
             self.save(version_user=request.user)
 
-    #if this function is called and the OCC has no associated OCRs, discard it
-    def check_ocr_count_for_discard(self,request):
+    # if this function is called and the OCC has no associated OCRs, discard it
+    def check_ocr_count_for_discard(self, request):
         discardable = [
             Occurrence.PROCESSING_STATUS_ACTIVE,
             Occurrence.PROCESSING_STATUS_LOCKED,
         ]
-        if self.processing_status in discardable and \
-        request.user.id in self.get_occurrence_editor_group().get_system_group_member_ids() and \
-        OccurrenceReport.objects.filter(occurrence=self).count() < 1:
+        if (
+            self.processing_status in discardable
+            and is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+            and OccurrenceReport.objects.filter(occurrence=self).count() < 1
+        ):
             self.processing_status = Occurrence.PROCESSING_STATUS_DISCARDED
             self.save(version_user=request.user)
-            
 
-    def can_user_edit(self, user):
+    def can_user_edit(self, request):
         user_editable_state = [
             "active",
         ]
         if self.processing_status not in user_editable_state:
             return False
-        else:
-            return (
-                user.id
-                in self.get_occurrence_approver_group().get_system_group_member_ids()
-            )
 
-    def get_occurrence_approver_group(self):
-        return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
+        return is_occurrence_approver(request)
 
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)
@@ -2919,7 +2933,7 @@ class Occurrence(RevisionedMixin):
         if fire_history:
             fire_history.occurrence = occurrence
             fire_history.save()
-            
+
         associated_species = clone_model(
             OCRAssociatedSpecies,
             OCCAssociatedSpecies,
@@ -3357,7 +3371,7 @@ class OCCVegetationStructure(models.Model):
         null=True,
         related_name="vegetation_structure",
     )
-    
+
     free_text_field_one = models.TextField(null=True, blank=True)
     free_text_field_two = models.TextField(null=True, blank=True)
     free_text_field_three = models.TextField(null=True, blank=True)
