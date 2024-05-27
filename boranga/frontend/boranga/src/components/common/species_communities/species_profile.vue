@@ -1177,7 +1177,7 @@ export default {
                             term: params.term,
                             type: 'public',
                             group_type_id: vm.species_community.group_type_id,
-                            taxon_details: true,
+                            species_profile: true,
                             species_id: vm.species_community.id, // to filter species  current/non_current
                         }
                         return query;
