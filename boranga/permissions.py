@@ -22,8 +22,8 @@ class IsAssessor(BasePermission):
         if request.user.is_superuser:
             return True
 
-        return is_conservation_status_assessor(request.user) or is_occurrence_assessor(
-            request.user
+        return is_conservation_status_assessor(request) or is_occurrence_assessor(
+            request
         )
 
 
@@ -36,9 +36,9 @@ class IsApprover(BasePermission):
             return True
 
         return (
-            is_species_communities_approver(request.user)
-            or is_conservation_status_approver(request.user)
-            or is_occurrence_approver(request.user)
+            is_species_communities_approver(request)
+            or is_conservation_status_approver(request)
+            or is_occurrence_approver(request)
         )
 
 
@@ -50,7 +50,7 @@ class IsConservationStatusAssessor(BasePermission):
         if request.user.is_superuser:
             return True
 
-        return is_conservation_status_assessor(request.user)
+        return is_conservation_status_assessor(request)
 
 
 class IsConservationStatusReferee(BasePermission):

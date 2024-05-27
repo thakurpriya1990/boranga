@@ -150,7 +150,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
-        if not is_species_communities_approver(request.user.id):
+        if not is_species_communities_approver(request):
             return False
         return obj.can_user_edit
 
@@ -248,7 +248,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
-        if not is_species_communities_approver(request.user.id):
+        if not is_species_communities_approver(request):
             return False
         return obj.can_user_edit
 
@@ -848,9 +848,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
-        if request.user.is_superuser or is_species_communities_approver(
-            request.user.id
-        ):
+        if is_species_communities_approver(request):
             return obj.can_user_edit
         return False
 
@@ -864,10 +862,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
     def get_user_edit_mode(self, obj):
         # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )
-        return obj.has_user_edit_mode(user)
+        return obj.has_user_edit_mode(request)
 
 
 class CommunityDistributionSerializer(serializers.ModelSerializer):
@@ -1316,9 +1311,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
-        if request.user.is_superuser or is_species_communities_approver(
-            request.user.id
-        ):
+        if is_species_communities_approver(request):
             return obj.can_user_edit
         return False
 
@@ -1332,10 +1325,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
     def get_user_edit_mode(self, obj):
         # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
-        user = (
-            request.user._wrapped if hasattr(request.user, "_wrapped") else request.user
-        )
-        return obj.has_user_edit_mode(user)
+        return obj.has_user_edit_mode(request)
 
 
 class SaveSpeciesSerializer(BaseSpeciesSerializer):

@@ -242,7 +242,7 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District', 'Status', 'Action']
+                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District', 'Action']
             }
             if (this.is_internal) {
                 return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District', 'Status', 'Action']
@@ -409,7 +409,6 @@ export default {
                     vm.column_community_name,
                     vm.column_region,
                     vm.column_district,
-                    //vm.column_status,
                     vm.column_action,
                 ]
                 search = false
