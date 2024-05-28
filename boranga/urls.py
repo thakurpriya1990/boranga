@@ -264,6 +264,16 @@ api_patterns = [
         name="get-occurrence_source_lookup",
     ),
     url(
+        r"^api/species_display$",
+        conservation_status_api.GetSpeciesDisplay.as_view(),
+        name="get-cs-profile-dict",
+    ),
+    url(
+        r"^api/community_display$",
+        conservation_status_api.GetCommunityDisplay.as_view(),
+        name="get-community-display",
+    ),
+    url(
         r"^api/cs_profile_dict$",
         conservation_status_api.GetCSProfileDict.as_view(),
         name="get-cs-profile-dict",

@@ -483,9 +483,12 @@ class Species(RevisionedMixin):
 
     species_number = models.CharField(max_length=9, blank=True, default="")
     group_type = models.ForeignKey(GroupType, on_delete=models.CASCADE)
+
+    #TODO currently, if a species profile is forever in draft or made historical, the taxonomy becomes unusable in other profile while assigned
     taxonomy = models.OneToOneField(
         Taxonomy, on_delete=models.SET_NULL, null=True, blank=True
     )
+
     image_doc = models.ForeignKey(
         "SpeciesDocument",
         default=None,
@@ -540,6 +543,11 @@ class Species(RevisionedMixin):
             self.save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
+            if self.taxonomy:
+                for i in self.taxonomy.occurrence_reports.all().union(self.occurrence_report.all()):
+                    i.save(no_revision=True)
+                for i in self.taxonomy.occurrences.all().union(self.occurrence.all()):
+                    i.save(no_revision=True)
 
     @property
     def reference(self):
@@ -1287,8 +1295,8 @@ class CommunityTaxonomy(models.Model):
     community = models.OneToOneField(
         Community, on_delete=models.CASCADE, null=True, related_name="taxonomy"
     )
-    community_migrated_id = models.CharField(max_length=200, null=True, blank=True)
-    community_name = models.CharField(max_length=512, null=True, blank=True)
+    community_migrated_id = models.CharField(max_length=200, null=True, blank=True, unique=True)
+    community_name = models.CharField(max_length=512, null=True, blank=True, unique=True)
     community_description = models.CharField(max_length=2048, null=True, blank=True)
     name_currency = models.CharField(
         max_length=16, null=True, blank=True

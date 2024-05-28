@@ -5,10 +5,6 @@
         <H4>Hover over button to see help text.</H4>
         <form action="" method="POST">
             {% csrf_token %}
-            {% comment %} <button type="submit" name="script" value="fetch_kingdom_data" {% if fetch_kingdom_data == 'true' %}style="color:green" {% endif %} title="Fetch all the Kingdom data from NOMOS">Run Script 'fetch_kingdom_data'</button><br><br>
-            <button type="submit" name="script" value="fetch_classification_system_data" {% if fetch_classification_system_data == 'true' %}style="color:green" {% endif %} title="Fetch all the Classification System data from NOMOS">Run Script 'fetch_classification_system_data'</button><br><br>
-            <button type="submit" name="script" value="fetch_taxon_rank_data" {% if fetch_taxon_rank_data == 'true' %}style="color:green" {% endif %} title="Fetch all the Taxon Rank data from NOMOS">Run Script 'fetch_taxon_rank_data'</button><br><br>
-            <button type="submit" name="script" value="fetch_nomos_data" {% if fetch_nomos_data == 'true' %}style="color:green" {% endif %} title="Fetch all the Taxon data from NOMOS">Run Script 'fetch_taxon_data'</button><br><br> {% endcomment %}
             {% comment %} <button type="submit" name="script" value="fetch_nomos_blob_data" {% if fetch_nomos_blob_data == 'true' %}style="color:green" {% endif %} title="Fetch all the Taxon data from NOMOS">Run Script 'fetch_taxon_data'</button><br><br> {% endcomment %}
         </form>
         <br>

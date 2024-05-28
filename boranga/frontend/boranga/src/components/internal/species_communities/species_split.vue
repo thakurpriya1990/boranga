@@ -217,6 +217,15 @@ export default {
                 if (vm.new_species_list[index].taxonomy_id == null || vm.new_species_list[index].taxonomy_id == ''){
                         blank_fields.push('Species '+vm.new_species_list[index].species_number+ ' Scientific Name is missing')
                 }
+                if (vm.new_species_list[index].distribution.distribution == null || vm.new_species_list[index].distribution.distribution == '') {
+                    blank_fields.push('Distribution is missing')
+                }
+                if (vm.new_species_list[index].region_id == null || vm.new_species_list[index].region_id == '') {
+                    blank_fields.push('Region is missing')
+                }
+                if (vm.new_species_list[index].district_id == null || vm.new_species_list[index].district_id == '') {
+                    blank_fields.push('District is missing')
+                }
             }
             if(blank_fields.length==0){
                 return true;

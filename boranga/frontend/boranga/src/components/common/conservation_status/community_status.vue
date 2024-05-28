@@ -287,14 +287,23 @@ export default {
                 });
             },
             getCommunityDisplay: function(){
-                for(let choice of this.community_list){
-                        if(choice.id === this.conservation_status_obj.community_id)
-                        {
-                            var newOption = new Option(choice.name, choice.id, false, true);
-                            $('#'+ this.community_name_lookup).append(newOption);
-                            this.community_display = choice.name;
-                        }
-                    }
+                let vm = this;
+                if (vm.occurrence_report_obj.community_id != null) {
+                    let community_display_url = api_endpoints.community_display + 
+                    "?community_id=" + vm.occurrence_report_obj.community_id
+                    vm.$http.get(community_display_url).then(
+                    (response) => {
+                        vm.community_display = response.body.name
+                    })
+                }
+                //for(let choice of this.community_list){
+                //        if(choice.id === this.conservation_status_obj.community_id)
+                //        {
+                //            var newOption = new Option(choice.name, choice.id, false, true);
+                //            $('#'+ this.community_name_lookup).append(newOption);
+                //            this.community_display = choice.name;
+                //        }
+                //    }
             },
             generateReferralCommentBoxes: function(){
                 var box_visibility = this.conservation_status_obj.assessor_mode.assessor_box_view

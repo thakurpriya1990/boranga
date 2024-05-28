@@ -609,8 +609,7 @@ export default {
                             term: params.term,
                             type: 'public',
                             group_type_id: vm.conservation_status_obj.group_type_id,
-                            cs_species: true,
-                            cs_species_status: vm.conservation_status_obj.processing_status,
+                            has_species: true,
                         }
                         return query;
                     },
@@ -619,7 +618,7 @@ export default {
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    vm.conservation_status_obj.species_id = e.params.data.id
+                    vm.conservation_status_obj.species_id = e.params.data.species_id
                     vm.species_display = e.params.data.text;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
                 }).
@@ -642,14 +641,25 @@ export default {
         },
         getSpeciesDisplay: function () {
             let vm = this;
-            for (let choice of vm.species_list) {
-                if (choice.id === vm.conservation_status_obj.species_id) {
-                    var newOption = new Option(choice.name, choice.id, false, true);
-                    $('#' + vm.scientific_name_lookup).append(newOption);
-                    vm.species_display = choice.name;
-                    vm.taxon_previous_name = choice.taxon_previous_name;
+            if (vm.conservation_status_obj.species_id != null) {
+                    let species_display_url = api_endpoints.species_display +
+                    "?species_id=" + vm.conservation_status_obj.species_id
+                    vm.$http.get(species_display_url).then(
+                    (response) => {
+                        var newOption = new Option(response.body.name, response.body.id, false, true);
+                        $('#'+ vm.scientific_name_lookup).append(newOption);
+                        vm.species_display = response.body.name
+                        vm.taxon_previous_name = response.body.taxon_previous_name
+                    })
                 }
-            }
+            //for (let choice of vm.species_list) {
+            //    if (choice.id === vm.conservation_status_obj.species_id) {
+            //        var newOption = new Option(choice.name, choice.id, false, true);
+            //        $('#' + vm.scientific_name_lookup).append(newOption);
+            //        vm.species_display = choice.name;
+            //        vm.taxon_previous_name = choice.taxon_previous_name;
+            //    }
+            //}
         },
         filterWALegislativeCategories: function (event) {
             this.$nextTick(() => {

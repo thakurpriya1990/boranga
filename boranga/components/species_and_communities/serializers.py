@@ -262,6 +262,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
     phylogenetic_group = serializers.SerializerMethodField()
     conservation_status = serializers.SerializerMethodField()
     conservation_status_under_review = serializers.SerializerMethodField()
+    species_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Taxonomy
@@ -281,7 +282,12 @@ class TaxonomySerializer(serializers.ModelSerializer):
             "conservation_status_under_review",
             "family_name",
             "genera_name",
+            "species_id",
         )
+
+    def get_species_id(self, obj):
+        if hasattr(obj,"species"):
+            return obj.species.id
 
     def get_text(self, obj):
         return obj.scientific_name

@@ -592,9 +592,21 @@ export default {
                 if (vm.species_community.taxonomy_details.community_name == null || vm.species_community.taxonomy_details.community_name == '') {
                     blank_fields.push('Community Name is missing')
                 }
+                if (vm.species_community.taxonomy_details.community_migrated_id == null || vm.species_community.taxonomy_details.community_migrated_id == '') {
+                    blank_fields.push('Community ID is missing')
+                }
             }
             if (check_action == 'submit') {
                 //TODO add validation for fields required before submit
+                if (vm.species_community.distribution.distribution == null || vm.species_community.distribution.distribution == '') {
+                    blank_fields.push('Distribution is missing')
+                }
+                if (vm.species_community.region_id == null || vm.species_community.region_id == '') {
+                    blank_fields.push('Region is missing')
+                }
+                if (vm.species_community.district_id == null || vm.species_community.district_id == '') {
+                    blank_fields.push('District is missing')
+                }
             }
             if (blank_fields.length == 0) {
                 return true;

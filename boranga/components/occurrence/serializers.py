@@ -13,7 +13,8 @@ from boranga.components.main.spatial_utils import wkb_to_geojson
 from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
     LandForm,
-    Location,
+    OCRLocation,
+    OCCLocation,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
@@ -26,6 +27,7 @@ from boranga.components.occurrence.models import (
     OCCPlantCount,
     Occurrence,
     OccurrenceDocument,
+    OccurrenceGeometry,
     OccurrenceLogEntry,
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
@@ -54,7 +56,7 @@ from boranga.components.occurrence.models import (
     ReproductiveMaturity,
     SecondarySign,
 )
-from boranga.components.species_and_communities.models import CommunityTaxonomy
+from boranga.components.species_and_communities.models import CommunityTaxonomy, Taxonomy
 from boranga.helpers import (
     is_internal,
     is_new_external_contributor,
@@ -69,12 +71,14 @@ logger = logging.getLogger("boranga")
 class OccurrenceSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source="get_processing_status_display")
     scientific_name = serializers.CharField(
-        source="species.taxonomy.scientific_name", allow_null=True
+        source="species_taxonomy.scientific_name", allow_null=True
     )
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
     group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
+    species_taxonomy_id = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField()
 
+    location = serializers.SerializerMethodField()
     habitat_composition = serializers.SerializerMethodField()
     habitat_condition = serializers.SerializerMethodField()
     vegetation_structure = serializers.SerializerMethodField()
@@ -92,12 +96,23 @@ class OccurrenceSerializer(serializers.ModelSerializer):
         model = Occurrence
         fields = "__all__"
 
+    def get_species_taxonomy_id(self, obj):
+        if obj.species_taxonomy:
+            return obj.species_taxonomy.id
+
     def get_processing_status(self, obj):
         return obj.get_processing_status_display()
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
         return obj.can_user_edit(request)
+
+    def get_location(self, obj):
+        try:
+            qs = OCCLocation.objects.get(occurrence=obj)
+            return OCCLocationSerializer(qs).data
+        except OCCLocation.DoesNotExist:
+            return OCCLocationSerializer().data
 
     def get_habitat_composition(self, obj):
         try:
@@ -212,9 +227,8 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
         return ""
 
     def get_scientific_name(self, obj):
-        if obj.species:
-            if obj.species.taxonomy:
-                return obj.species.taxonomy.scientific_name
+        if obj.species_taxonomy:
+            return obj.species_taxonomy.scientific_name
         return ""
 
     def get_community_name(self, obj):
@@ -300,9 +314,8 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         )
 
     def get_scientific_name(self, obj):
-        if obj.species:
-            if obj.species.taxonomy:
-                return obj.species.taxonomy.scientific_name
+        if obj.species_taxonomy:
+            return obj.species_taxonomy.scientific_name
         return ""
 
     def get_community_name(self, obj):
@@ -561,13 +574,13 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
         )
 
 
-class LocationSerializer(serializers.ModelSerializer):
+class OCRLocationSerializer(serializers.ModelSerializer):
     # observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     # geojson_point = serializers.SerializerMethodField()
     # geojson_polygon = serializers.SerializerMethodField()
 
     class Meta:
-        model = Location
+        model = OCRLocation
         fields = (
             "id",
             "occurrence_report_id",
@@ -848,6 +861,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "group_type",
             "group_type_id",
             "species_id",
+            "species_taxonomy_id",
             "community_id",
             "occurrence_report_number",
             "reported_date",
@@ -904,10 +918,10 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_location(self, obj):
         try:
-            qs = Location.objects.get(occurrence_report=obj)
-            return LocationSerializer(qs).data
-        except Location.DoesNotExist:
-            return LocationSerializer().data
+            qs = OCRLocation.objects.get(occurrence_report=obj)
+            return OCRLocationSerializer(qs).data
+        except OCRLocation.DoesNotExist:
+            return OCRLocationSerializer().data
 
     def get_habitat_composition(self, obj):
         try:
@@ -1088,6 +1102,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "id",
             "group_type",
             "group_type_id",
+            "species_taxonomy_id",
             "species_id",
             "community_id",
             "occurrence_report_number",
@@ -1461,7 +1476,7 @@ class SaveOCRIdentificationSerializer(serializers.ModelSerializer):
         )
 
 
-class SaveLocationSerializer(serializers.ModelSerializer):
+class SaveOCRLocationSerializer(serializers.ModelSerializer):
     region_id = serializers.IntegerField(required=False, allow_null=True)
     district_id = serializers.IntegerField(required=False, allow_null=True)
     occurrence_report_id = serializers.IntegerField(required=True, allow_null=False)
@@ -1473,7 +1488,7 @@ class SaveLocationSerializer(serializers.ModelSerializer):
     # )
 
     class Meta:
-        model = Location
+        model = OCRLocation
         fields = (
             "id",
             "occurrence_report_id",
@@ -1530,7 +1545,7 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
 
 
 class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
-    species_id = serializers.IntegerField(
+    species_taxonomy_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
     community_id = serializers.IntegerField(
@@ -1545,7 +1560,7 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         fields = (
             "id",
             "group_type",
-            "species_id",
+            "species_taxonomy_id",
             "community_id",
             "lodgement_date",
             "reported_date",
@@ -1968,7 +1983,10 @@ class ProposeApproveSerializer(serializers.Serializer):
 
 
 class SaveOccurrenceSerializer(serializers.ModelSerializer):
-    species_id = serializers.IntegerField(
+    #species_id = serializers.IntegerField(
+    #    required=False, allow_null=True, write_only=True
+    #)
+    species_taxonomy_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
     community_id = serializers.IntegerField(
@@ -1982,7 +2000,8 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
             "wild_status",
             "occurrence_source",
             "comment",
-            "species_id",
+            #"species_id",
+            "species_taxonomy_id",
             "community_id",
             "species",
             "community",
@@ -2456,3 +2475,167 @@ class SaveOCCIdentificationSerializer(serializers.ModelSerializer):
             "barcode_number",
             "identification_comment",
         )
+
+class OCCLocationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OCCLocation
+        fields = (
+            "id",
+            "occurrence_id",
+            "location_description",
+            "boundary_description",
+            "boundary",
+            "mapped_boundary",
+            "buffer_radius",
+            "datum_id",
+            "epsg_code",
+            "coordination_source_id",
+            "location_accuracy_id",
+            "region_id",
+            "district_id",
+            "locality",
+        )
+
+class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
+    occurrence_id = serializers.IntegerField(write_only=True, required=False)
+    geometry_source = serializers.SerializerMethodField()
+    copied_from = serializers.SerializerMethodField(read_only=True)
+    srid = serializers.SerializerMethodField(read_only=True)
+    original_geometry = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = OccurrenceGeometry
+        geo_field = "geometry"
+        fields = (
+            "id",
+            "occurrence_id",
+            "geometry",
+            "original_geometry",
+            "srid",
+            "area_sqm",
+            "area_sqhm",
+            "intersects",
+            "geometry_source",
+            "locked",
+            "copied_from",
+        )
+        read_only_fields = ("id",)
+
+    def get_srid(self, obj):
+        if obj.geometry:
+            return obj.geometry.srid
+        else:
+            return None
+
+    def get_geometry_source(self, obj):
+        return get_geometry_source(obj)
+
+    def get_copied_from(self, obj):
+        if obj.copied_from:
+            return ListOCCMinimalSerializer(
+                obj.copied_from.occurrence, context=self.context
+            ).data
+
+        return None
+
+    def get_original_geometry(self, obj):
+        if obj.original_geometry_ewkb:
+            return wkb_to_geojson(obj.original_geometry_ewkb)
+        else:
+            return None
+
+class ListOCCMinimalSerializer(serializers.ModelSerializer):
+    occ_geometry = OccurrenceGeometrySerializer(many=True, read_only=True)
+    label = serializers.SerializerMethodField(read_only=True)
+    processing_status_display = serializers.CharField(
+        read_only=True, source="get_processing_status_display"
+    )
+    lodgement_date_display = serializers.DateTimeField(
+        read_only=True, format="%d/%m/%Y", source="lodgement_date"
+    )
+    details_url = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Occurrence
+        fields = (
+            "id",
+            "label",
+            "occurrence_number",
+            "processing_status",
+            "processing_status_display",
+            "occ_geometry",
+            "lodgement_date",
+            "lodgement_date_display",
+            "details_url",
+        )
+
+    def get_label(self, obj):
+        return "Occurrence"
+
+    def get_details_url(self, obj):
+        request = self.context["request"]
+
+        if request.user.is_authenticated:
+            if is_internal(request):
+                return reverse(
+                    "internal-occurrence-detail",
+                    kwargs={"occurrence_pk": obj.id},
+                )
+            else:
+                return reverse(
+                    "external-occurrence-detail",
+                    kwargs={"occurrence_pk": obj.id},
+                )
+
+        return None
+
+
+
+class SaveOCCLocationSerializer(serializers.ModelSerializer):
+    region_id = serializers.IntegerField(
+        required=False, allow_null=True
+    )
+    district_id = serializers.IntegerField(
+        required=False, allow_null=True
+    )
+    occurrence_id = serializers.IntegerField(required=False, allow_null=True)
+    datum_id = serializers.IntegerField(required=False, allow_null=True)
+    coordination_source_id = serializers.IntegerField(required=False, allow_null=True)
+    location_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = OCCLocation
+        fields = (
+            "id",
+            "occurrence_id",
+            "location_description",
+            "boundary_description",
+            "boundary",
+            "mapped_boundary",
+            "buffer_radius",
+            "datum_id",
+            "epsg_code",
+            "coordination_source_id",
+            "location_accuracy_id",
+            "region_id",
+            "district_id",
+            "locality",
+        )
+
+class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
+    occurrence_id = serializers.IntegerField(write_only=True, required=False)
+
+    class Meta:
+        model = OccurrenceGeometry
+        geo_field = "geometry"
+        fields = (
+            "id",
+            "occurrence_id",
+            "geometry",
+            "original_geometry_ewkb",
+            "intersects",
+            "drawn_by",
+            "locked",
+        )
+        read_only_fields = ("id",)

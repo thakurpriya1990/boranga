@@ -245,7 +245,7 @@
             :occurrence_report_number="occurrence_report.occurrence_report_number"
             @refreshFromResponse="refreshFromResponse">
         </BackToAssessor>
-        <ProposeAppprove ref="propose_approve" :occurrence_report_id="occurrence_report.id"
+        <ProposeAppprove ref="propose_approve" :occurrence_report="occurrence_report"
             :occurrence_report_number="occurrence_report.occurrence_report_number" :occurrence="occurrence_report.occurrence"
             :group_type_id="occurrence_report.group_type_id" @refreshFromResponse="refreshFromResponse">
         </ProposeAppprove>
@@ -637,7 +637,7 @@ export default {
             let vm = this;
             let blank_fields = []
             if (vm.occurrence_report.group_type == 'flora' || vm.occurrence_report.group_type == 'fauna') {
-                if (vm.occurrence_report.species_id == null || vm.occurrence_report.species_id == '') {
+                if (vm.occurrence_report.species_taxonomy_id == null || vm.occurrence_report.species_taxonomy_id == '') {
                     blank_fields.push(' Scientific Name is missing')
                 }
             }

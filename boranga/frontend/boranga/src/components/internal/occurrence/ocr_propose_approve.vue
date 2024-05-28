@@ -83,8 +83,8 @@ export default {
         alert,
     },
     props: {
-        occurrence_report_id: {
-            type: Number,
+        occurrence_report: {
+            type: Object,
         },
         occurrence_report_number: {
             type: String,
@@ -114,18 +114,25 @@ export default {
     },
     watch: {
         isModalOpen: function (value) {
-            if (value && this.occurrence == null) {
-                this.$nextTick(() => {
-                    $(this.$refs.occurrence_name_lookup_propose_approve).select2('open');
-                });
-            } else if (this.occurrence.id !== undefined) {
-                var newOption = new Option(this.occurrence.occurrence_number + " - " + 
-                    this.occurrence.occurrence_name + " ("+ this.occurrence.group_type +")", 
-                    this.occurrence.id, false, true);
-                $(this.$refs.occurrence_name_lookup_propose_approve).append(newOption);
+            if (value) {
+                if (this.occurrence !== null && this.occurrence.id !== undefined &&
+                    (
+                        (this.occurrence_report.species_taxonomy_id !== null && this.occurrence_report.species_taxonomy_id === this.occurrence.species_taxonomy_id) ||
+                        (this.occurrence_report.community_id !== null && this.occurrence_report.community_id === this.occurrence.community)
+                    )
+                ) {
+                    var newOption = new Option(this.occurrence.occurrence_number + " - " + 
+                        this.occurrence.occurrence_name + " ("+ this.occurrence.group_type +")", 
+                        this.occurrence.id, false, true);
+                    $(this.$refs.occurrence_name_lookup_propose_approve).append(newOption);
 
-                this.propose_approve.occurrence_id = this.occurrence.id;
-                this.propose_approve.occurrence_name = this.occurrence.occurrence_name;
+                    this.propose_approve.occurrence_id = this.occurrence.id;
+                    this.propose_approve.occurrence_name = this.occurrence.occurrence_name;
+                } else {
+                    this.$nextTick(() => {
+                        $(this.$refs.occurrence_name_lookup_propose_approve).select2('open');
+                    });
+                }
             }
         }
     },
@@ -179,7 +186,7 @@ export default {
                 },
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.post(helpers.add_endpoint_join(api_endpoints.occurrence_report, '/' + (vm.occurrence_report_id + '/propose_approve/')), JSON.stringify(vm.propose_approve))
+                    vm.$http.post(helpers.add_endpoint_join(api_endpoints.occurrence_report, '/' + (vm.occurrence_report.id + '/propose_approve/')), JSON.stringify(vm.propose_approve))
                         .then((response) => {
                             swal.fire({
                                 title: 'Proposal to Approve Successful',
@@ -228,7 +235,7 @@ export default {
                             term: params.term,
                             type: 'public',
                             group_type_id: vm.group_type_id,
-                            occurrence_report_id: vm.occurrence_report_id,
+                            occurrence_report_id: vm.occurrence_report.id,
                         }
                         return query;
                     },
