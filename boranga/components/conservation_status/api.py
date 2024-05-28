@@ -437,7 +437,6 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
 
         filter_assessor = request.POST.get("filter_assessor")
         if filter_assessor and not filter_assessor.lower() == "all":
-            logger.debug(f"filter_assessor: {filter_assessor}")
             if queryset.model is ConservationStatus:
                 queryset = queryset.filter(assigned_officer=filter_assessor)
             elif queryset.model is ConservationStatusReferral:
@@ -480,7 +479,9 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = ConservationStatus.objects.none()
 
         if is_internal(self.request):
-            qs = ConservationStatus.objects.all()
+            qs = ConservationStatus.objects.exclude(
+                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+            )
 
         return qs
 
@@ -945,8 +946,9 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
         qs = ConservationStatus.objects.none()
 
         if is_internal(self.request):
-            qs = ConservationStatus.objects.all()
-
+            qs = ConservationStatus.objects.exclude(
+                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+            )
         return qs
 
     @list_route(
@@ -1298,8 +1300,9 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             qs = ConservationStatus.objects.filter(submitter=self.request.user.id)
 
         if is_internal(self.request):
-            qs = ConservationStatus.objects.all()
-
+            qs = ConservationStatus.objects.exclude(
+                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+            )
         return qs
 
     @list_route(
@@ -1334,8 +1337,9 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             qs = ConservationStatus.objects.filter(submitter=self.request.user.id)
 
         if is_internal(self.request):
-            qs = ConservationStatus.objects.all()
-
+            qs = ConservationStatus.objects.exclude(
+                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+            )
         return qs
 
     def internal_serializer_class(self):
@@ -1778,17 +1782,15 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 class ConservationStatusReferralViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin
 ):
-    # queryset = Referral.objects.all()
     queryset = ConservationStatusReferral.objects.none()
     serializer_class = ConservationStatusReferralSerializer
 
     def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated and is_internal(self.request):
-            # queryset =  Referral.objects.filter(referral=user)
-            queryset = ConservationStatusReferral.objects.all()
-            return queryset
-        return ConservationStatusReferral.objects.none()
+        qs = self.queryset
+        if is_internal(self.request):
+            qs = ConservationStatusReferral.objects.all()
+
+        return qs
 
     def get_serializer_class(self):
         return ConservationStatusReferralSerializer
