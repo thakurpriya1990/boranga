@@ -190,6 +190,15 @@ export default {
             if (vm.new_combine_species.taxonomy_id == null || vm.new_combine_species.taxonomy_id == ''){
                         blank_fields.push('Species '+vm.new_combine_species.species_number+ ' Scientific Name is missing')
                 }
+            if (vm.new_combine_species.distribution.distribution == null || vm.new_combine_species.distribution.distribution == '') {
+                blank_fields.push('Distribution is missing')
+            }
+            if (vm.new_combine_species.region_id == null || vm.new_combine_species.region_id == '') {
+                blank_fields.push('Region is missing')
+            }
+            if (vm.new_combine_species.district_id == null || vm.new_combine_species.district_id == '') {
+                blank_fields.push('District is missing')
+            }
             if(blank_fields.length==0){
                 return true;
             }
