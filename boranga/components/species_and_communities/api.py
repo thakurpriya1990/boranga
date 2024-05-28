@@ -1775,11 +1775,7 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-            headers = self.get_success_headers(serializer.data)
-
-            return Response(
-                new_returned, status=status.HTTP_201_CREATED, headers=headers
-            )
+            return Response(new_returned, status=status.HTTP_201_CREATED)
 
     @detail_route(
         methods=[
@@ -2154,10 +2150,7 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-            headers = self.get_success_headers(serializer.data)
-            return Response(
-                new_returned, status=status.HTTP_201_CREATED, headers=headers
-            )
+            return Response(new_returned, status=status.HTTP_201_CREATED)
 
     @detail_route(
         methods=[
