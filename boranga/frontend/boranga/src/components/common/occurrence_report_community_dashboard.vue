@@ -214,7 +214,6 @@ export default {
             uuid:0,
             occurrenceReportHistoryId: null,
             datatable_id: 'community_ocr-datatable-'+vm._uid,
-            is_payment_admin: false,
 
             // selected values for filtering
             filterOCRCommunityOccurrence: sessionStorage.getItem(this.filterOCRCommunityOccurrence_cache) ?

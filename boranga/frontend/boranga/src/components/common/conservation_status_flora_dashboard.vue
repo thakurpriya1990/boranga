@@ -366,7 +366,6 @@ export default {
             speciesConservationStatusHistoryId: null,
             speciesHistoryId: null,
             listHistoryId: null,
-            is_payment_admin: false,
 
             // selected values for filtering
             filterCSFloraScientificName: sessionStorage.getItem(this.filterCSFloraScientificName_cache) ?

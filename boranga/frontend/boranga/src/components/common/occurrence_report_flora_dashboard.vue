@@ -215,7 +215,6 @@ export default {
             uuid: 0,
             occurrenceReportHistoryId: null,
             datatable_id: 'species_flora_or-datatable-' + vm._uid,
-            is_payment_admin: false,
 
             // selected values for filtering
             filterOCRFloraOccurrence: sessionStorage.getItem(this.filterOCRFloraOccurrence_cache) ?
