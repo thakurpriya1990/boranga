@@ -3,8 +3,28 @@
         <FormSection :formCollapse="false" label="Occurrence Report" Index="occurrence_report">
 
             <div v-show="!isCommunity">
+                
                 <div class="row mb-3">
-                    <label for="" class="col-sm-3 control-label">Scientific Name:</label>
+                    <label for="" class="col-sm-3 control-label">Scientific Name (S&C):</label>
+                    <div class="col-sm-6">
+                        <textarea
+                            id="species_name"  
+                            v-model="species_name"                          
+                            disabled
+                            class="form-control"
+                            rows="1"
+                            placeholder=""
+                        />                        
+                    </div>
+                    <div v-if="species_name" class="col-sm-3">
+                    <a :href="`/internal/species_communities/${occurrence_report_obj.species_id}?group_type_name=${occurrence_report_obj.group_type}`"
+                            target="_blank"><i class="bi bi-box-arrow-up-right"></i></a>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label v-if="is_external" for="" class="col-sm-3 control-label">Scientific Name:</label>
+                    <label v-else for="" class="col-sm-3 control-label">Scientific Name (Taxon):</label>
                     <div :id="select_scientific_name" class="col-sm-9">
                         <select
                             :id="scientific_name_lookup"
@@ -160,6 +180,7 @@ export default {
                         : false,
                 species_list: [],
                 species_display: '',
+                species_name:'',
                 community_display: '',
                 taxon_previous_name: '',
             }
@@ -169,6 +190,15 @@ export default {
             ObserverDatatable,
         },
         watch:{
+            occurrence_report_obj: function () {
+                let vm = this;
+                if (!vm.is_external && !vm.isCommunity) {
+                    //this.getSpeciesDisplay();
+                    this.getSpeciesName();
+                }// else {
+                //    this.getCommunityDisplay();
+                //}
+            }
         },
         methods:{
             initialiseScientificNameLookup: function () {
@@ -251,6 +281,19 @@ export default {
                         vm.taxon_previous_name = choice.taxon_previous_name;
                     }
                 }*/
+            },
+            getSpeciesName: function () {
+                let vm = this;
+                if (vm.occurrence_report_obj.species_id != null) {
+                    let species_display_url = api_endpoints.species_display + 
+                    "?species_id=" + vm.occurrence_report_obj.species_id
+                    vm.$http.get(species_display_url).then(
+                    (response) => {
+                        vm.species_name = response.body.name
+                    })
+                } else {
+                    vm.species_name = "";
+                }
             },
             initialiseCommunityNameLookup: function () {
                 let vm = this;
@@ -358,6 +401,9 @@ export default {
                     //vm.species_list = vm.cs_profile_dict.species_list;
                     if (!vm.isCommunity) {
                         this.getSpeciesDisplay();
+                        if (!vm.is_external) {
+                            this.getSpeciesName();
+                        }
                     }
                     else {
                         //vm.community_list = vm.cs_profile_dict.community_list;
