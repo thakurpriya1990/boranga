@@ -21,7 +21,7 @@ from boranga.components.main.models import (
     UserAction,
 )
 from boranga.components.main.related_item import RelatedItem
-from boranga.helpers import is_species_communities_approver
+from boranga.helpers import is_species_communities_approver, member_ids
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import GROUP_NAME_SPECIES_COMMUNITIES_APPROVER
 
@@ -672,7 +672,7 @@ class Species(RevisionedMixin):
     @property
     def approver_recipients(self):
         recipients = []
-        group_ids = self.get_approver_group().get_system_group_member_ids()
+        group_ids = member_ids(GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
         for id in group_ids:
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
@@ -1164,7 +1164,7 @@ class Community(RevisionedMixin):
     @property
     def approver_recipients(self):
         recipients = []
-        group_ids = self.get_approver_group().get_system_group_member_ids()
+        group_ids = member_ids(GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
         for id in group_ids:
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)

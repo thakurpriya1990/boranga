@@ -54,6 +54,7 @@ from boranga.helpers import (
     email_in_dept_domains,
     is_occurrence_approver,
     is_occurrence_assessor,
+    member_ids,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import (
@@ -399,19 +400,19 @@ class OccurrenceReport(RevisionedMixin):
 
     @property
     def allowed_assessors(self):
-        group = None
+        group_ids = None
         if self.processing_status in [
             OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
         ]:
-            group = self.get_approver_group()
+            group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER)
             users = (
                 list(
                     map(
                         lambda id: retrieve_email_user(id),
-                        group.get_system_group_member_ids(),
+                        group_ids,
                     )
                 )
-                if group
+                if group_ids
                 else []
             )
             return users
@@ -420,30 +421,28 @@ class OccurrenceReport(RevisionedMixin):
             OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
             OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
         ]:
-            users = []
-            group = self.get_assessor_group()
+            group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR)
             users = (
-                users
-                + list(
+                list(
                     map(
                         lambda id: retrieve_email_user(id),
-                        group.get_system_group_member_ids(),
+                        group_ids,
                     )
                 )
-                if group
+                if group_ids
                 else []
             )
 
-            group = self.get_approver_group()
+            group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER)
             users = (
                 users
                 + list(
                     map(
                         lambda id: retrieve_email_user(id),
-                        group.get_system_group_member_ids(),
+                        group_ids,
                     )
                 )
-                if group
+                if group_ids
                 else []
             )
 
@@ -497,22 +496,13 @@ class OccurrenceReport(RevisionedMixin):
 
         return is_occurrence_assessor(request) or is_occurrence_approver(request)
 
-    def get_assessor_group(self):
-        return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_ASSESSOR)
-
     def get_approver_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
 
     @property
     def assessor_recipients(self):
-        logger.info("assessor_recipients")
         recipients = []
-        group_ids = list(
-            set(
-                self.get_assessor_group().get_system_group_member_ids()
-                + self.get_assessor_group().get_system_group_member_ids()
-            )
-        )
+        group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR)
         for id in group_ids:
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
@@ -520,9 +510,8 @@ class OccurrenceReport(RevisionedMixin):
 
     @property
     def approver_recipients(self):
-        logger.info("approver_recipients")
         recipients = []
-        group_ids = self.get_approver_group().get_system_group_member_ids()
+        group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER)
         for id in group_ids:
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)

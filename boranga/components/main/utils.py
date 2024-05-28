@@ -8,11 +8,14 @@ from django.conf import settings
 from django.db import connection
 from django.db.models import Q
 from ledger_api_client.ledger_models import EmailUserRO
-from ledger_api_client.managed_models import SystemGroup
 from rest_framework import serializers
 
 from boranga.components.main.serializers import EmailUserROSerializerForReferral
-from boranga.settings import GROUP_NAME_CHOICES
+from boranga.helpers import member_ids
+from boranga.settings import (
+    GROUP_NAME_OCCURRENCE_APPROVER,
+    GROUP_NAME_OCCURRENCE_ASSESSOR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -69,11 +72,15 @@ def handle_validation_error(e):
 def validate_threat_request(request):
     data = json.loads(request.data.get("data"))
 
-    required_fields = {"threat_category_id":"Threat Category","current_impact":"Current Impact","date_observed":"Date Observed"}
+    required_fields = {
+        "threat_category_id": "Threat Category",
+        "current_impact": "Current Impact",
+        "date_observed": "Date Observed",
+    }
     missing_required = []
 
     for i in required_fields:
-        if not i in data or not data[i]:
+        if i not in data or not data[i]:
             missing_required.append(required_fields[i])
 
     if missing_required:
@@ -82,19 +89,15 @@ def validate_threat_request(request):
         )
 
     # data observed must not be in the future
-    try:
-        if (
-            "date_observed" in data
-            and data["date_observed"]
-            and datetime.strptime(data["date_observed"], "%Y-%m-%d") > datetime.now()
-        ):
-            raise serializers.ValidationError(
-                "Date observed value invalid - must be on or before the current date"
-            )
-    except:
+    if (
+        "date_observed" in data
+        and data["date_observed"]
+        and datetime.strptime(data["date_observed"], "%Y-%m-%d") > datetime.now()
+    ):
         raise serializers.ValidationError(
-                "Date observed value invalid - must be on or before the current date"
-            )
+            "Date observed value invalid - must be on or before the current date"
+        )
+
     return True
 
 
@@ -114,20 +117,12 @@ def get_geometry_source(geometry_obj):
         # Polygon drawn by submitter
         source = "Applicant"
     else:
-        # System group names, e.g. boranga_assessor
-        system_groups = SystemGroup.objects.filter(
-            name__in=[x for x in GROUP_NAME_CHOICES]
-        )
-        # System groups member ids
-        system_group_member = list(
-            {
-                itm
-                for group in system_groups
-                for itm in group.get_system_group_member_ids()
-            }
-        )
-        if geometry_obj.drawn_by in system_group_member:
-            # Polygon drawn by assessor
+        assessor_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR)
+        approver_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER)
+
+        if geometry_obj.drawn_by in assessor_ids:
             source = "Assessor"
+        elif geometry_obj.drawn_by in approver_ids:
+            source = "Approver"
 
     return source

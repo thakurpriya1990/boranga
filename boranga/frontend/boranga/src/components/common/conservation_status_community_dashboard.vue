@@ -201,7 +201,6 @@ export default {
             communityConservationStatusHistoryId: null,
             communityHistoryId: null,
             listHistoryId: null,
-            is_payment_admin: false,
 
             // selected values for filtering
             filterCSCommunityMigratedId: sessionStorage.getItem(this.filterCSCommunityMigratedId_cache) ?
