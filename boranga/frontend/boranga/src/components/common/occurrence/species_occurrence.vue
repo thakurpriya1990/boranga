@@ -11,15 +11,35 @@
             </div>
             
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Scientific Name:</label>
-                <div class="col-sm-8" :id="select_scientific_name">
-                    <select :disabled="isReadOnly"
-                        :id="scientific_name_lookup"  
-                        :name="scientific_name_lookup"  
-                        :ref="scientific_name_lookup" 
-                        class="form-control" />
+                    <label for="" class="col-sm-3 control-label">Scientific Name (S&C):</label>
+                    <div class="col-sm-6">
+                        <textarea
+                            id="species_name"  
+                            v-model="species_name"                          
+                            disabled
+                            class="form-control"
+                            rows="1"
+                            placeholder=""
+                        />                        
+                    </div>
+                    <div v-if="species_name" class="col-sm-3">
+                    <a :href="`/internal/species_communities/${occurrence_obj.species}?group_type_name=${occurrence_obj.group_type}`"
+                            target="_blank"><i class="bi bi-box-arrow-up-right"></i></a>
+                    </div>
                 </div>
-            </div>
+
+                <div class="row mb-3">
+                    <label for="" class="col-sm-3 control-label">Scientific Name (Taxon):</label>
+                    <div :id="select_scientific_name" class="col-sm-9">
+                        <select
+                            :id="scientific_name_lookup"
+                            :ref="scientific_name_lookup"
+                            :disabled="isReadOnly"
+                            :name="scientific_name_lookup"
+                            class="form-control"
+                        />
+                    </div>
+                </div>
 
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Common Name:</label>
@@ -106,6 +126,7 @@ export default {
                 species_list: [],
                 source_list: [],
                 wild_status_list: [],
+                species_name: "",
             }
         },
         components: {
@@ -113,6 +134,9 @@ export default {
             RelatedReports,
         },
         watch:{
+            occurrence_obj: function () {
+                this.getSpeciesName();
+            }
         },
         methods:{
             initialiseScientificNameLookup: function(){
@@ -145,15 +169,14 @@ export default {
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    vm.occurrence_obj.species = data;
-                    vm.occurrence_obj.species_id = data.id;
+                    vm.occurrence_obj.species_taxonomy_id = data;
                     vm.species_display = e.params.data.text;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
                     vm.common_name = e.params.data.common_name;
                 }).
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_obj.species_id = null
+                    vm.occurrence_obj.species_taxonomy_id = null
                     vm.species_display = '';
                     vm.taxon_previous_name = '';
                     vm.common_name = '';
@@ -236,7 +259,18 @@ export default {
             },
             getSpeciesDisplay: function(){
                 let vm = this;
-                for(let choice of vm.species_list){
+                if (vm.occurrence_obj.species_taxonomy_id != null) {
+                    let species_display_url = api_endpoints.species_display + 
+                    "?taxon_id=" + vm.occurrence_obj.species_taxonomy_id
+                    vm.$http.get(species_display_url).then(
+                    (response) => {
+                        var newOption = new Option(response.body.name, response.body.id, false, true);
+                        $('#'+ vm.scientific_name_lookup).append(newOption);
+                        vm.species_display = response.body.name
+                        vm.taxon_previous_name = response.body.taxon_previous_name
+                    })
+                }
+                /*for(let choice of vm.species_list){
                         if(choice.id === vm.occurrence_obj.species)
                         {
                             var newOption = new Option(choice.name, choice.id, false, true);
@@ -245,7 +279,7 @@ export default {
                             vm.taxon_previous_name = choice.taxon_previous_name;
                             vm.common_name = choice.common_name;
                         }
-                    }
+                    }*/
             },
             getSourceDisplay: function(){
                 let vm = this;
@@ -256,6 +290,19 @@ export default {
                             $('#'+ vm.occurrence_source_lookup).append(newOption);
                         }
                     }
+            },
+            getSpeciesName: function () {
+                let vm = this;
+                if (vm.occurrence_obj.species != null) {
+                    let species_display_url = api_endpoints.species_display + 
+                    "?species_id=" + vm.occurrence_obj.species
+                    vm.$http.get(species_display_url).then(
+                    (response) => {
+                        vm.species_name = response.body.name
+                    })
+                } else {
+                    vm.species_name = "";
+                }
             },
             getWildStatusDisplay: function(){
                 let vm = this;
@@ -285,6 +332,7 @@ export default {
                 vm.source_list = vm.occ_profile_dict.source_list;
                 vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
                 this.getSpeciesDisplay();
+                this.getSpeciesName();
                 this.getSourceDisplay();
                 this.getWildStatusDisplay();
                 

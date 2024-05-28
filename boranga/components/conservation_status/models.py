@@ -1416,8 +1416,8 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def related_item_descriptor(self):
-        if self.conservation_list:
-            return self.conservation_list.code
+        if self.commonwealth_conservation_list:
+            return self.commonwealth_conservation_list.code
 
     @property
     def related_item_status(self):

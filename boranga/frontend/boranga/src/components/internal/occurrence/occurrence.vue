@@ -278,6 +278,12 @@ export default {
                 return false;
             }
             vm.savingOccurrence = true;
+
+            // add map geometry to the occurrence
+            if (vm.$refs.occurrence.$refs.occ_location.$refs.component_map) {
+                vm.occurrence.occ_geometry = vm.$refs.occurrence.$refs.occ_location.$refs.component_map.getJSONFeatures();
+            }
+
             let payload = new Object();
             Object.assign(payload, vm.occurrence);
             await vm.$http.post(vm.occurrence_form_url, payload).then(res => {
@@ -289,6 +295,7 @@ export default {
                 });
                 vm.savingOccurrence = false;
                 vm.isSaved = true;
+                vm.refreshFromResponse(res);
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
@@ -354,7 +361,7 @@ export default {
             let vm = this;
             let blank_fields = []
             if (vm.occurrence.group_type == 'flora' || vm.occurrence.group_type == 'fauna') {
-                if (vm.occurrence.species == null || vm.occurrence.species == '') {
+                if (vm.occurrence.species_taxonomy_id == null || vm.occurrence.species_taxonomy_id == '') {
                     blank_fields.push('Scientific Name is missing')
                 }
             }

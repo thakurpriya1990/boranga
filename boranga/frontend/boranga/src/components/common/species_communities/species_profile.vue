@@ -619,7 +619,7 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection :formCollapse="false" label="General" :Index="generalBody">
+        <FormSection v-if="is_internal" :formCollapse="false" label="General" :Index="generalBody">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
                 <div v-if="distribution_public" class="col-sm-9">
@@ -1177,7 +1177,7 @@ export default {
                             term: params.term,
                             type: 'public',
                             group_type_id: vm.species_community.group_type_id,
-                            taxon_details: true,
+                            species_profile: true,
                             species_id: vm.species_community.id, // to filter species  current/non_current
                         }
                         return query;

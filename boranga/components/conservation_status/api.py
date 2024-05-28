@@ -95,40 +95,83 @@ class GetConservationListDict(views.APIView):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
 
+class GetSpeciesDisplay(views.APIView):
+    def get(self, request, format=None):
+        #requires species_id or taxon_id TODO: remove species id once scientific_name_lookup changes applied to both CS and OCR/OCC
+        #no auth should be required here
+        res_json = {}
+
+        species_id = request.GET.get("species_id", "")
+        taxon_id = request.GET.get("taxon_id", "")
+
+        if species_id and not taxon_id:
+            species = Species.objects.filter(id=species_id)
+            if species.exists() and species.first().taxonomy:
+                res_json["species_id"] = species.first().id
+                taxon_id = species.first().taxonomy.id
+        
+        if taxon_id:
+            taxonomy = Taxonomy.objects.filter(id=taxon_id)
+            if taxonomy.exists():
+                res_json["id"] = taxon_id
+                res_json["name"] = taxonomy.first().scientific_name
+                res_json["taxon_previous_name"] = taxonomy.first().taxon_previous_name
+
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
+class GetCommunityDisplay(views.APIView):
+    def get(self, request, format=None):
+        #requires community_id
+        #no auth should be required here
+        res_json = {}
+
+        community_id = request.GET.get("community_id", "")
+
+        if community_id:
+            community_taxon = CommunityTaxonomy.objects.filter(community_id=community_id)
+            if community_taxon.exists():
+                res_json["id"] = community_id
+                res_json["name"] = community_taxon.first().community_name
+
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
 
 class GetCSProfileDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get("group_type", "")
-        species_list = []
-        if group_type:
-            exculde_status = ["draft"]
-            species = Species.objects.filter(
-                ~Q(processing_status__in=exculde_status)
-                & ~Q(taxonomy=None)
-                & Q(group_type__name=group_type)
-            )
-            if species:
-                for specimen in species:
-                    species_list.append(
-                        {
-                            "id": specimen.id,
-                            "name": specimen.taxonomy.scientific_name,
-                            "taxon_previous_name": specimen.taxonomy.taxon_previous_name,
-                        }
-                    )
-        community_list = []
-        exculde_status = ["draft"]
-        communities = CommunityTaxonomy.objects.filter(
-            ~Q(community__processing_status__in=exculde_status)
-        )  # TODO remove later as every community will have community name
-        if communities:
-            for specimen in communities:
-                community_list.append(
-                    {
-                        "id": specimen.community.id,
-                        "name": specimen.community_name,
-                    }
-                )
+        
+        #NOTE: getting all (non-draft) species and communities here may not be a good idea - moving these to their own endpoint (with an id req)
+        #species_list = []
+        #if group_type:
+        #    exculde_status = ["draft"]
+        #    species = Species.objects.filter(
+        #        ~Q(processing_status__in=exculde_status)
+        #        & ~Q(taxonomy=None)
+        #        & Q(group_type__name=group_type)
+        #    )
+        #    if species:
+        #        for specimen in species:
+        #            species_list.append(
+        #                {
+        #                    "id": specimen.id,
+        #                    "name": specimen.taxonomy.scientific_name,
+        #                    "taxon_previous_name": specimen.taxonomy.taxon_previous_name,
+        #                }
+        #            )
+        #community_list = []
+        #exculde_status = ["draft"]
+        #communities = CommunityTaxonomy.objects.filter(
+        #    ~Q(community__processing_status__in=exculde_status)
+        #)  # TODO remove later as every community will have community name
+        #if communities:
+        #    for specimen in communities:
+        #        community_list.append(
+        #            {
+        #                "id": specimen.community.id,
+        #                "name": specimen.community_name,
+        #            }
+        #        )
 
         iucn_version_list = []
         if group_type:
@@ -153,8 +196,8 @@ class GetCSProfileDict(views.APIView):
                         }
                     )
         res_json = {
-            "species_list": species_list,
-            "community_list": community_list,
+            #"species_list": species_list,
+            #"community_list": community_list,
             "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
             "wa_priority_categories": WAPriorityCategory.get_categories_dict(
                 group_type

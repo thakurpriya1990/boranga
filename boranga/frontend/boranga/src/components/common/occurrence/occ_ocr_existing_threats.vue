@@ -108,10 +108,10 @@ export default {
                 searchable: true,
                 mRender: function(data,type,full){
                     if(full.visible){
-                        return full.occurrence_report.occurrence_report_number;
+                        return "OCR" + full.occurrence_report;
                     }
                     else{
-                        return '<s>'+ full.occurrence_report.occurrence_report_number + '</s>'
+                        return '<s>OCR' + full.occurrence_report + '</s>'
                     }
                 },
             };
@@ -259,6 +259,10 @@ export default {
                 ordering: true,
                 order: [[0, 'desc']],
                 //serverSide: true,
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 2, targets: 4 },
+                ],
                 ajax: {
                     url: "/api/occurrence/" + this.occurrenceId + "/get_existing_ocr_threats/",
                     dataSrc: '',

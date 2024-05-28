@@ -129,6 +129,8 @@ module.exports = {
     or_submitted_from_lookup: "/api/or_submitted_from_lookup",
 
     //conservation Status profile page list of value dict
+    species_display: "/api/species_display",
+    community_display: "/api/community_display",
     cs_profile_dict: "/api/cs_profile_dict",
 
     filter_list: "/api/proposal/filter_list.json",

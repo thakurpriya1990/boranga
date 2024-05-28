@@ -183,29 +183,38 @@ class GetCommunities(views.APIView):
 # used on dashboards and forms
 class GetScientificName(views.APIView):
     def get(self, request, format=None):
+
         search_term = request.GET.get("term", "")
         group_type_id = request.GET.get("group_type_id", "")
-        cs_referral = request.GET.get("cs_referral", "")
+
+        #NOTE: this lookup is being changed to always use taxonomy now
+
+        #cs_referral = request.GET.get("cs_referral", "")
         # used for conservation status form
-        cs_species = request.GET.get("cs_species", "")
-        cs_species_status = request.GET.get("cs_species_status", "")
+        #cs_species = request.GET.get("cs_species", "")
+        #cs_species_status = request.GET.get("cs_species_status", "")
         # used on combine select(+) species pop-up
-        combine_species = request.GET.get("combine_species", "")
+        #combine_species = request.GET.get("combine_species", "")
         # taxon_details is send from species profile form to get all the taxon details as well
-        taxon_details = request.GET.get("taxon_details", "")
+        #taxon_details = request.GET.get("taxon_details", "")
         # filter the taxon according to species processing status(e.g if draft the list should be only current= true)
-        species_id = request.GET.get("species_id", "")
+        #species_id = request.GET.get("species_id", "")
+        
+        #identifies the request as for a species profile - we exclude those taxonomies already taken
+        species_profile = request.GET.get("species_profile", False)
+        has_species = request.GET.get("has_species", False)
+
         if search_term:
             data_transform = []
-            dumped_species = cache.get("get_species_data")
-            species_data_cache = None
-            if dumped_species is None:
-                species_data_cache = Species.objects.all()
-                cache.set("get_species_data", species_data_cache, 86400)
-                # print("NOT from CACHE")
-            else:
-                species_data_cache = dumped_species
-                # print("from CACHE")
+            #dumped_species = cache.get("get_species_data")
+            #species_data_cache = None
+            #if dumped_species is None:
+            #    species_data_cache = Species.objects.all()
+            #    cache.set("get_species_data", species_data_cache, 86400)
+            #    # print("NOT from CACHE")
+            #else:
+            #    species_data_cache = dumped_species
+            #    # print("from CACHE")
 
             dumped_taxonomy = cache.get("get_taxonomy_data")
             taxonomy_data_cache = None
@@ -217,88 +226,97 @@ class GetScientificName(views.APIView):
                 taxonomy_data_cache = dumped_taxonomy
                 # print("taxon from CACHE")
 
-            if cs_referral != "":
-                # TODO may need to change the query for referral
-                data = taxonomy_data_cache.filter(
-                    scientific_name__icontains=search_term,
-                    kingdom_fk__grouptype=group_type_id,
-                ).values("id", "scientific_name")[:10]
-                data_transform = [
-                    {"id": taxon["id"], "text": taxon["scientific_name"]}
-                    for taxon in data
-                ]
-                data_transform = sorted(data_transform, key=lambda x: x["text"])
-            elif cs_species != "":
-                data = None
-                exculde_status = ["draft"]
-                # TODO do we need to check the taxonomy is_current=True as well
-                # for new cs species with draft and historical should not populate
-                if cs_species_status == "Draft":
-                    exculde_status = ["draft", "historical"]
-                    data = species_data_cache.filter(
-                        ~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None)
-                    )
-                else:
-                    exculde_status = ["draft"]
-                    data = species_data_cache.filter(
-                        ~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None)
-                    )
-                data = data.filter(
-                    taxonomy__scientific_name__icontains=search_term,
-                    taxonomy__kingdom_fk__grouptype=group_type_id,
-                )[:10]
-                data_transform = [
-                    {
-                        "id": species.id,
-                        "text": species.taxonomy.scientific_name,
-                        "taxon_previous_name": species.taxonomy.taxon_previous_name,
-                        "common_name": species.taxonomy.taxon_vernacular_name,
-                    }
-                    for species in data
-                ]
-                data_transform = sorted(data_transform, key=lambda x: x["text"])
-            elif combine_species != "":
-                # TODO do we need to check the taxonomy is_current=True as well
-                data = species_data_cache.filter(
-                    Q(processing_status="active")
-                    & Q(taxonomy__scientific_name__icontains=search_term)
-                    & Q(taxonomy__kingdom_fk__grouptype=group_type_id)
-                )[:10]
-                data_transform = [
-                    {"id": species.id, "text": species.taxonomy.scientific_name}
-                    for species in data
-                ]
-                data_transform = sorted(data_transform, key=lambda x: x["text"])
-            else:
-                if taxon_details != "":
-                    species_status = species_data_cache.get(
-                        id=species_id
-                    ).processing_status
-                    if species_status == Species.PROCESSING_STATUS_DRAFT:
-                        qs = taxonomy_data_cache.filter(
-                            scientific_name__icontains=search_term,
-                            kingdom_fk__grouptype=group_type_id,
-                            name_currency=True,
-                        )[:10]
-                    else:
-                        qs = taxonomy_data_cache.filter(
-                            scientific_name__icontains=search_term,
-                            kingdom_fk__grouptype=group_type_id,
-                        )[:10]
-                    serializer = TaxonomySerializer(
-                        qs, context={"request": request}, many=True
-                    )
-                    data_transform = serializer.data
-                else:
-                    data = taxonomy_data_cache.filter(
-                        scientific_name__icontains=search_term,
-                        kingdom_fk__grouptype=group_type_id,
-                    ).values("id", "scientific_name")[:10]
-                    data_transform = [
-                        {"id": taxon["id"], "text": taxon["scientific_name"]}
-                        for taxon in data
-                    ]
-                    data_transform = sorted(data_transform, key=lambda x: x["text"])
+            #if cs_referral != "":
+            #    # TODO may need to change the query for referral
+            #    data = taxonomy_data_cache.filter(
+            #        scientific_name__icontains=search_term,
+            #        kingdom_fk__grouptype=group_type_id,
+            #    ).values("id", "scientific_name")[:10]
+            #    data_transform = [
+            #        {"id": taxon["id"], "text": taxon["scientific_name"]}
+            #        for taxon in data
+            #    ]
+            #    data_transform = sorted(data_transform, key=lambda x: x["text"])
+            #elif cs_species != "":
+            #    data = None
+            #    exculde_status = ["draft"]
+            #    # TODO do we need to check the taxonomy is_current=True as well
+            #    # for new cs species with draft and historical should not populate
+            #    if cs_species_status == "Draft":
+            #        exculde_status = ["draft", "historical"]
+            #        data = species_data_cache.filter(
+            #            ~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None)
+            #        )
+            #    else:
+            #        exculde_status = ["draft"]
+            #        data = species_data_cache.filter(
+            #            ~Q(processing_status__in=exculde_status) & ~Q(taxonomy=None)
+            #        )
+            #    data = data.filter(
+            #        taxonomy__scientific_name__icontains=search_term,
+            #        taxonomy__kingdom_fk__grouptype=group_type_id,
+            #    )[:10]
+            #    data_transform = [
+            #        {
+            #            "id": species.id,
+            #            "text": species.taxonomy.scientific_name,
+            #            "taxon_previous_name": species.taxonomy.taxon_previous_name,
+            #            "common_name": species.taxonomy.taxon_vernacular_name,
+            #        }
+            #        for species in data
+            #    ]
+            #    data_transform = sorted(data_transform, key=lambda x: x["text"])
+            #elif combine_species != "":
+            #    # TODO do we need to check the taxonomy is_current=True as well
+            #    data = species_data_cache.filter(
+            #        Q(processing_status="active")
+            #        & Q(taxonomy__scientific_name__icontains=search_term)
+            #        & Q(taxonomy__kingdom_fk__grouptype=group_type_id)
+            #    )[:10]
+            #    data_transform = [
+            #        {"id": species.id, "text": species.taxonomy.scientific_name}
+            #        for species in data
+            #    ]
+            #    data_transform = sorted(data_transform, key=lambda x: x["text"])
+            #else:
+            #if taxon_details != "":
+            #species_status = species_data_cache.get(
+            #    id=species_id
+            #).processing_status
+            #if species_status == Species.PROCESSING_STATUS_DRAFT:
+            #    qs = taxonomy_data_cache.filter(
+            #        scientific_name__icontains=search_term,
+            #        kingdom_fk__grouptype=group_type_id,
+            #        name_currency=True,
+            #    )[:10]
+            #else:
+            qs = taxonomy_data_cache
+            if has_species:
+                #TODO this should be temporary, for until the name lookup change has been applied to both OCR/OCC and CS
+                qs = qs.exclude(species=None)
+
+            if species_profile:
+                #TODO review if how taxonomy is handled (one to one with species) is changed
+                qs = qs.filter(species=None) #if changed, consider status when filtering
+
+            qs = qs.filter(
+                scientific_name__icontains=search_term,
+                kingdom_fk__grouptype=group_type_id,
+            )[:10]
+            serializer = TaxonomySerializer(
+                qs, context={"request": request}, many=True
+            )
+            data_transform = serializer.data
+            #else:
+            #    data = taxonomy_data_cache.filter(
+            #        scientific_name__icontains=search_term,
+            #        kingdom_fk__grouptype=group_type_id,
+            #    ).values("id", "scientific_name")[:10]
+            #    data_transform = [
+            #        {"id": taxon["id"], "text": taxon["scientific_name"]}
+            #        for taxon in data
+            #    ]
+            #    data_transform = sorted(data_transform, key=lambda x: x["text"])
             return Response({"results": data_transform})
         return Response()
 

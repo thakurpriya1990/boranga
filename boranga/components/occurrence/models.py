@@ -48,6 +48,9 @@ from boranga.components.species_and_communities.models import (
     Species,
     ThreatAgent,
     ThreatCategory,
+    District,
+    Region,
+    Taxonomy,
 )
 from boranga.helpers import (
     clone_model,
@@ -210,6 +213,10 @@ class OccurrenceReport(RevisionedMixin):
         default=APPLICATION_TYPE_CHOICES[0][0],
     )
 
+    species_taxonomy = models.ForeignKey(
+        Taxonomy, on_delete=models.PROTECT, null=True, blank=True, related_name="occurrence_reports"
+    )
+
     # species related occurrence
     species = models.ForeignKey(
         Species,
@@ -291,7 +298,14 @@ class OccurrenceReport(RevisionedMixin):
             self.occurrence_report_number = new_occurrence_report_id
             self.save(*args, **kwargs)
         else:
+            self.species = self.get_taxonomy_species() #on save, checks if taxon has species and sets accordingly
             super().save(*args, **kwargs)
+
+    def get_taxonomy_species(self):
+        if self.species_taxonomy and hasattr(self.species_taxonomy,"species"):
+            return self.species_taxonomy.species
+        else:
+            return None
 
     @property
     def reference(self):
@@ -473,10 +487,10 @@ class OccurrenceReport(RevisionedMixin):
         if self.processing_status not in status_with_approver:
             return False
 
-        if not self.assigned_pprover:
+        if not self.assigned_approver:
             return False
 
-        if not self.assigned_pprover == request.user.id:
+        if not self.assigned_approver == request.user.id:
             return False
 
         return is_occurrence_approver(request)
@@ -541,7 +555,7 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def assign_officer(self, request, officer):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         if not self.can_assess(officer):
@@ -577,7 +591,7 @@ class OccurrenceReport(RevisionedMixin):
                 )
 
     def unassign(self, request):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         if self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
@@ -611,7 +625,7 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def propose_decline(self, request, details):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR:
@@ -647,7 +661,7 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def decline(self, request, details):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
@@ -676,7 +690,7 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def propose_approve(self, request, validated_data):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR:
@@ -729,7 +743,7 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def approve(self, request):
-        if not self.can_assess(request.user):
+        if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         if self.processing_status != OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
@@ -773,7 +787,7 @@ class OccurrenceReport(RevisionedMixin):
 
     @transaction.atomic
     def back_to_assessor(self, request, validated_data):
-        if not self.can_assess(request.user) or self.processing_status not in [
+        if not self.can_assess(request) or self.processing_status not in [
             OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
             OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
         ]:
@@ -1060,7 +1074,7 @@ class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
 
     @transaction.atomic
     def generate_amendment(self, request):
-        if not self.occurrence_report.can_assess(request.user):
+        if not self.occurrence_report.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
         if self.status == "requested":
@@ -1245,7 +1259,7 @@ class OccurrenceReportReferral(models.Model):
 
     @transaction.atomic
     def remind(self, request):
-        if not self.occurrence_report.can_assess(request.user):
+        if not self.occurrence_report.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         # Create a log entry for the proposal
@@ -1279,7 +1293,7 @@ class OccurrenceReportReferral(models.Model):
 
     @transaction.atomic
     def recall(self, request):
-        if not self.occurrence_report.can_assess(request.user):
+        if not self.occurrence_report.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         self.processing_status = self.PROCESSING_STATUS_RECALLED
@@ -1311,7 +1325,7 @@ class OccurrenceReportReferral(models.Model):
 
     @transaction.atomic
     def resend(self, request):
-        if not self.occurrence_report.can_assess(request.user):
+        if not self.occurrence_report.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
         self.processing_status = self.PROCESSING_STATUS_WITH_REFERRAL
@@ -1411,7 +1425,8 @@ class Datum(models.Model):
     # Admin List
 
     Used by:
-    - Location
+    - OCRLocation
+    - OCCLocation
 
     """
 
@@ -1430,7 +1445,8 @@ class CoordinationSource(models.Model):
     # Admin List
 
     Used by:
-    - Location
+    - OCRLocation
+    - OCCLocation
 
     """
 
@@ -1451,7 +1467,8 @@ class LocationAccuracy(models.Model):
     # Admin List
 
     Used by:
-    - Location
+    - OCRLocation
+    - OCCLocation
 
     """
 
@@ -1467,8 +1484,7 @@ class LocationAccuracy(models.Model):
         return str(self.name)
 
 
-# TODO eventually rename this to apply to OCR specifically when we make the OCC specific equivalent
-class Location(models.Model):
+class OCRLocation(models.Model):
     """
     Location data  for occurrence report
 
@@ -1504,7 +1520,6 @@ class Location(models.Model):
     district = models.ForeignKey(
         District, default=None, on_delete=models.CASCADE, null=True, blank=True
     )
-    # TODO either keep as free text or have a foreign model similar to district and region
     locality = models.TextField(default=None, null=True, blank=True)
 
     class Meta:
@@ -2685,6 +2700,11 @@ class Occurrence(RevisionedMixin):
     group_type = models.ForeignKey(
         GroupType, on_delete=models.PROTECT, null=True, blank=True
     )
+
+    species_taxonomy = models.ForeignKey(
+        Taxonomy, on_delete=models.PROTECT, null=True, blank=True, related_name="occurrences"
+    )
+
     species = models.ForeignKey(
         Species,
         on_delete=models.PROTECT,
@@ -2760,7 +2780,14 @@ class Occurrence(RevisionedMixin):
             self.occurrence_number = f"OCC{str(self.pk)}"
             self.save(*args, **kwargs)
         else:
+            self.species = self.get_taxonomy_species() #on save, checks if taxon has species and sets accordingly
             super().save(*args, **kwargs)
+            
+    def get_taxonomy_species(self):
+        if self.species_taxonomy and hasattr(self.species_taxonomy,"species"):
+            return self.species_taxonomy.species
+        else:
+            return None
 
     def __str__(self):
         if self.species:
@@ -2889,6 +2916,16 @@ class Occurrence(RevisionedMixin):
         occurrence.save(no_revision=True)
 
         # Clone all the associated models
+
+        location = clone_model(
+            OCRLocation,
+            OCCLocation,
+            occurrence_report.location,
+        )
+        if location:
+            location.occurrence = occurrence
+            location.save()
+
         habitat_composition = clone_model(
             OCRHabitatComposition,
             OCCHabitatComposition,
@@ -3118,6 +3155,133 @@ class OccurrenceDocument(Document):
             self.save(no_revision=True)
         # end save documents
         self.save(*args, **kwargs)
+
+
+class OCCLocation(models.Model):
+    """
+    Location data  for occurrence
+
+    Used for:
+    - Occurrence
+    Is:
+    - Table
+    """
+
+    occurrence = models.OneToOneField(
+        Occurrence, on_delete=models.CASCADE, null=True, related_name="location"
+    )
+    location_description = models.TextField(null=True, blank=True)
+    boundary_description = models.TextField(null=True, blank=True)
+
+    boundary = models.IntegerField(null=True, blank=True, default=0)
+    mapped_boundary = models.BooleanField(null=True, blank=True)
+    buffer_radius = models.IntegerField(null=True, blank=True, default=0)
+    datum = models.ForeignKey(Datum, on_delete=models.SET_NULL, null=True, blank=True)
+    epsg_code = models.IntegerField(null=False, blank=False, default=4326)
+    coordination_source = models.ForeignKey(
+        CoordinationSource, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    location_accuracy = models.ForeignKey(
+        LocationAccuracy, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    geojson_point = gis_models.PointField(srid=4326, blank=True, null=True)
+    geojson_polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
+
+    region = models.ForeignKey(
+        Region, default=None, on_delete=models.CASCADE, null=True, blank=True
+    )
+    district = models.ForeignKey(
+        District, default=None, on_delete=models.CASCADE, null=True, blank=True
+    )
+    locality = models.TextField(default=None, null=True, blank=True)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)  # TODO: is the most appropriate?
+
+#TODO do we need a separate model for OCC and OCR here?
+class OccurrenceGeometryManager(models.Manager):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        polygon_ids = qs.extra(
+            where=["geometrytype(geometry) LIKE 'POLYGON'"]
+        ).values_list("id", flat=True)
+        return qs.annotate(
+            area=models.Case(
+                models.When(
+                    models.Q(geometry__isnull=False) & models.Q(id__in=polygon_ids),
+                    then=Area(
+                        Cast("geometry", gis_models.PolygonField(geography=True))
+                    ),
+                ),
+                default=None,
+            )
+        )
+
+class OccurrenceGeometry(models.Model):
+    objects = OccurrenceGeometryManager()
+
+    EXTENT = (112.5, -35.5, 129.0, -13.5)
+
+    occurrence = models.ForeignKey(
+        Occurrence,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="occ_geometry",
+    )
+    # Extents of WA
+    geometry = gis_models.GeometryField(extent=EXTENT, blank=True, null=True)
+    original_geometry_ewkb = models.BinaryField(
+        blank=True, null=True, editable=True
+    )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
+    intersects = models.BooleanField(default=False)
+    copied_from = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, blank=True, null=True
+    )
+    drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
+    locked = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.occurrence)  # TODO: is the most appropriate?
+
+    def save(self, *args, **kwargs):
+        if (
+            self.occurrence.group_type.name == GroupType.GROUP_TYPE_FAUNA
+            and type(self.geometry).__name__ in ["Polygon", "MultiPolygon"]
+        ):
+            raise ValidationError("Fauna occurrences cannot have polygons")
+
+        if not self.geometry.within(
+            GEOSGeometry(Polygon.from_bbox(self.EXTENT), srid=4326)
+        ):
+            raise ValidationError(
+                "A geometry is not within the extent of Western Australia"
+            )
+
+        super().save(*args, **kwargs)
+
+    @property
+    def area_sqm(self):
+        if not hasattr(self, "area") or not self.area:
+            return None
+        return self.area.sq_m
+
+    @property
+    def area_sqhm(self):
+        if not hasattr(self, "area") or not self.area:
+            return None
+        return self.area.sq_m / 10000
+
+    @property
+    def original_geometry_srid(self):
+        if self.original_geometry_ewkb:
+            return GEOSGeometry(self.original_geometry_ewkb).srid
+        return None
 
 
 class OCCObserverDetail(models.Model):
@@ -3659,7 +3823,7 @@ reversion.register(OccurrenceReportDocument)
 reversion.register(OCRConservationThreat)
 
 # Occurrence Report
-reversion.register(OccurrenceReport, follow=["species", "community"])
+reversion.register(OccurrenceReport, follow=["species_taxonomy", "community"])
 
 # Occurrence Document
 reversion.register(OccurrenceDocument)

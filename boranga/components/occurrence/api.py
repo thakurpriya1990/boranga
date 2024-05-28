@@ -40,7 +40,8 @@ from boranga.components.occurrence.models import (
     IdentificationCertainty,
     Intensity,
     LandForm,
-    Location,
+    OCCLocation,
+    OCRLocation,
     LocationAccuracy,
     ObservationMethod,
     OCCAnimalObservation,
@@ -115,7 +116,8 @@ from boranga.components.occurrence.serializers import (
     OCRObserverDetailSerializer,
     ProposeApproveSerializer,
     ProposeDeclineSerializer,
-    SaveLocationSerializer,
+    SaveOCCLocationSerializer,
+    SaveOCRLocationSerializer,
     SaveOCCAnimalObservationSerializer,
     SaveOCCAssociatedSpeciesSerializer,
     SaveOCCConservationThreatSerializer,
@@ -144,7 +146,8 @@ from boranga.components.occurrence.serializers import (
 from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
     process_shapefile_document,
-    save_geometry,
+    save_ocr_geometry,
+    save_occ_geometry,
     validate_map_files,
 )
 from boranga.components.species_and_communities.models import (
@@ -698,7 +701,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         data = {"occurrence_report_id": new_instance.id}
 
         # create Location for new instance
-        serializer = SaveLocationSerializer(data=data)
+        serializer = SaveOCRLocationSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -1268,7 +1271,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         self.is_authorised_to_update()
         ocr_instance = self.get_object()
 
-        location_instance, created = Location.objects.get_or_create(
+        location_instance, created = OCRLocation.objects.get_or_create(
             occurrence_report=ocr_instance
         )
         # species_id saved seperately as its not field of Location but OCR
@@ -1287,7 +1290,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         # ocr geometry data to save seperately
         geometry_data = request.data.get("ocr_geometry")
         if geometry_data:
-            save_geometry(request, ocr_instance, geometry_data)
+            save_ocr_geometry(request, ocr_instance, geometry_data)
 
         # print(request.data.get('geojson_polygon'))
         # polygon = request.data.get('geojson_polygon')
@@ -1299,7 +1302,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
 
         # the request.data is only the habitat composition data thats been sent from front end
         location_data = request.data.get("location")
-        serializer = SaveLocationSerializer(
+        serializer = SaveOCRLocationSerializer(
             location_instance, data=location_data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
@@ -1742,10 +1745,10 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
                 serializer.save()
 
         if proposal_data.get("location"):
-            location_instance, created = Location.objects.get_or_create(
+            location_instance, created = OCRLocation.objects.get_or_create(
                 occurrence_report=instance
             )
-            serializer = SaveLocationSerializer(
+            serializer = SaveOCRLocationSerializer(
                 location_instance, data=proposal_data.get("location")
             )
             serializer.is_valid(raise_exception=True)
@@ -1755,7 +1758,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         # ocr geometry data to save seperately
         geometry_data = proposal_data.get("ocr_geometry", None)
         if geometry_data:
-            save_geometry(request, instance, geometry_data)
+            save_ocr_geometry(request, instance, geometry_data)
 
         serializer = SaveOccurrenceReportSerializer(
             instance, data=proposal_data, partial=True
@@ -3463,10 +3466,10 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         new_instance.save(version_user=request.user)
         data = {"occurrence_id": new_instance.id}
 
-        # create Location for new instance TODO
-        # serializer = SaveLocationSerializer(data=data)
-        # serializer.is_valid(raise_exception=True)
-        # serializer.save()
+        # create Location for new instance
+        serializer = SaveOCCLocationSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
         # create HabitatComposition for new instance
         serializer = SaveOCCHabitatCompositionSerializer(data=data)
@@ -3726,6 +3729,67 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         res_json = json.dumps(related_type)
         return HttpResponse(res_json, content_type="application/json")
 
+    # used for Location Tab of Occurrence external form
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+        url_path="location-list-of-values",
+    )
+    def location_list_of_values(self, request, *args, **kwargs):
+        """used for Occurrence external form"""
+        qs = self.get_queryset()
+        datum_list = []
+
+        id = request.GET.get("id", None)
+        try:
+            qs = qs.get(id=id)
+        except Occurrence.DoesNotExist:
+            logger.error(f"Occurrence with id {id} not found")
+        else:
+            pass
+            occ_geometries = qs.occ_geometry.all().exclude(**{"geometry": None})
+            epsg_codes = [
+                str(g.srid)
+                for g in occ_geometries.values_list("geometry", flat=True).distinct()
+            ]
+            # Add the srids of the original geometries to epsg_codes
+            original_geometry_srids = [
+                str(g.original_geometry_srid) for g in occ_geometries
+            ]
+            epsg_codes += [g for g in original_geometry_srids if g.isnumeric()]
+            epsg_codes = list(set(epsg_codes))
+            datum_list = search_datums("", codes=epsg_codes)
+
+        coordination_source_list = []
+        values = CoordinationSource.objects.all()
+        if values:
+            for val in values:
+                coordination_source_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        location_accuracy_list = []
+        values = LocationAccuracy.objects.all()
+        if values:
+            for val in values:
+                location_accuracy_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        res_json = {
+            "datum_list": datum_list,
+            "coordination_source_list": coordination_source_list,
+            "location_accuracy_list": location_accuracy_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
@@ -3837,26 +3901,21 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             if serializer.is_valid():
                 serializer.save()
 
-        # TODO: adjust and enable when OCC location ready
-        # if request_data.get("location"):
-        #    location_instance, created = Location.objects.get_or_create(
-        #        occurrence=instance
-        #    )
-        #    serializer = SaveLocationSerializer(
-        #        location_instance, data=request_data.get("location")
-        #    )
-        #    serializer.is_valid(raise_exception=True)
-        #    if serializer.is_valid():
-        #        serializer.save()
+        if request_data.get("location"):
+            location_instance, created = OCCLocation.objects.get_or_create(
+                occurrence=instance
+            )
+            serializer = SaveOCCLocationSerializer(
+                location_instance, data=request_data.get("location")
+            )
+            serializer.is_valid(raise_exception=True)
+            if serializer.is_valid():
+                serializer.save()
 
-        # occ geometry data to save seperately TODO: determine what is need here
-        # geometry_data = request_data.get("occ_geometry", None)
-        # if geometry_data:
-        #    save_geometry(request, instance, geometry_data)
-
-        serializer = SaveOccurrenceReportSerializer(
-            instance, data=request_data, partial=True
-        )
+        # occ geometry data to save seperately
+        geometry_data = request_data.get("occ_geometry", None)
+        if geometry_data:
+            save_occ_geometry(request, instance, geometry_data)
 
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -3871,7 +3930,9 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 request,
             )
 
-        return redirect(reverse("internal"))
+        final_instance = self.get_object()
+        serializer = self.get_serializer(final_instance)
+        return Response(serializer.data)
 
     @detail_route(methods=["post"], detail=True)
     @transaction.atomic
@@ -3910,6 +3971,36 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         serialized_obj = OccurrenceSerializer(instance, context={"request": request})
         return Response(serialized_obj.data)
+
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def update_location_details(self, request, *args, **kwargs):
+        
+        self.is_authorised_to_update()
+        occ_instance = self.get_object()
+
+        location_instance, created = OCCLocation.objects.get_or_create(
+            occurrence=occ_instance
+        )
+
+        # occ geometry data to save seperately
+        geometry_data = request.data.get("occ_geometry")
+        if geometry_data:
+            save_occ_geometry(request, occ_instance, geometry_data)
+
+        # the request.data is only the habitat composition data thats been sent from front end
+        location_data = request.data.get("location")
+        serializer = SaveOCCLocationSerializer(
+            location_instance, data=location_data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
 
     @list_route(
         methods=[

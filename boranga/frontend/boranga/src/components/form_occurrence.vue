@@ -149,7 +149,7 @@
                         :is-external="is_external"
                         :is-internal="is_internal"
                         :can-edit-status="canEditStatus"
-                        :occurrence="occurrence_obj"
+                        :occurrence_obj="occurrence_obj"
                         :referral="referral"
                         @refreshFromResponse="refreshFromResponse"
                     >
