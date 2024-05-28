@@ -2780,7 +2780,14 @@ class Occurrence(RevisionedMixin):
             self.occurrence_number = f"OCC{str(self.pk)}"
             self.save(*args, **kwargs)
         else:
+            self.species = self.get_taxonomy_species() #on save, checks if taxon has species and sets accordingly
             super().save(*args, **kwargs)
+            
+    def get_taxonomy_species(self):
+        if self.species_taxonomy and hasattr(self.species_taxonomy,"species"):
+            return self.species_taxonomy.species
+        else:
+            return None
 
     def __str__(self):
         if self.species:

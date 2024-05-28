@@ -295,6 +295,7 @@ export default {
                 });
                 vm.savingOccurrence = false;
                 vm.isSaved = true;
+                vm.refreshFromResponse(res);
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
@@ -360,7 +361,7 @@ export default {
             let vm = this;
             let blank_fields = []
             if (vm.occurrence.group_type == 'flora' || vm.occurrence.group_type == 'fauna') {
-                if (vm.occurrence.species == null || vm.occurrence.species == '') {
+                if (vm.occurrence.species_taxonomy == null || vm.occurrence.species_taxonomy == '') {
                     blank_fields.push('Scientific Name is missing')
                 }
             }

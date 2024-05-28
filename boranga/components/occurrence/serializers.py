@@ -71,10 +71,11 @@ logger = logging.getLogger("boranga")
 class OccurrenceSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source="get_processing_status_display")
     scientific_name = serializers.CharField(
-        source="species.taxonomy.scientific_name", allow_null=True
+        source="species_taxonomy.scientific_name", allow_null=True
     )
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
     group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
+    species_taxonomy_id = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField()
 
     location = serializers.SerializerMethodField()
@@ -94,6 +95,10 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Occurrence
         fields = "__all__"
+
+    def get_species_taxonomy_id(self, obj):
+        if obj.species_taxonomy:
+            return obj.species_taxonomy.id
 
     def get_processing_status(self, obj):
         return obj.get_processing_status_display()
@@ -1980,7 +1985,10 @@ class ProposeApproveSerializer(serializers.Serializer):
 
 
 class SaveOccurrenceSerializer(serializers.ModelSerializer):
-    species_id = serializers.IntegerField(
+    #species_id = serializers.IntegerField(
+    #    required=False, allow_null=True, write_only=True
+    #)
+    species_taxonomy_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
     community_id = serializers.IntegerField(
@@ -1994,7 +2002,8 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
             "wild_status",
             "occurrence_source",
             "comment",
-            "species_id",
+            #"species_id",
+            "species_taxonomy_id",
             "community_id",
             "species",
             "community",
@@ -2592,7 +2601,7 @@ class SaveOCCLocationSerializer(serializers.ModelSerializer):
     district_id = serializers.IntegerField(
         required=False, allow_null=True
     )
-    occurrence_id = serializers.IntegerField(required=True, allow_null=False)
+    occurrence_id = serializers.IntegerField(required=False, allow_null=True)
     datum_id = serializers.IntegerField(required=False, allow_null=True)
     coordination_source_id = serializers.IntegerField(required=False, allow_null=True)
     location_accuracy_id = serializers.IntegerField(required=False, allow_null=True)

@@ -546,6 +546,8 @@ class Species(RevisionedMixin):
             if self.taxonomy:
                 for i in self.taxonomy.occurrence_reports.all().union(self.occurrence_report.all()):
                     i.save(no_revision=True)
+                for i in self.taxonomy.occurrences.all().union(self.occurrence.all()):
+                    i.save(no_revision=True)
 
     @property
     def reference(self):

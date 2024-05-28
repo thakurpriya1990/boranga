@@ -630,6 +630,8 @@ export default {
                     "?species_id=" + vm.conservation_status_obj.species_id
                     vm.$http.get(species_display_url).then(
                     (response) => {
+                        var newOption = new Option(response.body.name, response.body.id, false, true);
+                        $('#'+ vm.scientific_name_lookup).append(newOption);
                         vm.species_display = response.body.name
                         vm.taxon_previous_name = response.body.taxon_previous_name
                     })

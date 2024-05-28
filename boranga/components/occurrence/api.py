@@ -3930,7 +3930,9 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 request,
             )
 
-        return redirect(reverse("internal"))
+        final_instance = self.get_object()
+        serializer = self.get_serializer(final_instance)
+        return Response(serializer.data)
 
     @detail_route(methods=["post"], detail=True)
     @transaction.atomic
