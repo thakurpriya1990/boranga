@@ -350,8 +350,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         )
 
     def get_is_new_contributor(self, obj):
-        request = self.context["request"]
-        return is_new_external_contributor(request)
+        return is_new_external_contributor(obj.submitter)
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
@@ -1215,8 +1214,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         }
 
     def get_is_new_contributor(self, obj):
-        request = self.context["request"]
-        return is_new_external_contributor(request)
+        return is_new_external_contributor(obj.submitter)
 
 
 class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):

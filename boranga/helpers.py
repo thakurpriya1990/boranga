@@ -89,22 +89,22 @@ def is_external_contributor(request):
     return belongs_to(request, GROUP_NAME_EXTERNAL_CONTRIBUTOR)
 
 
-def is_new_external_contributor(request):
+def is_new_external_contributor(user_id):
     from boranga.components.conservation_status.models import ConservationStatus
     from boranga.components.occurrence.models import OccurrenceReport
 
-    if not is_external_contributor(request):
+    if not belongs_to_by_user_id(user_id, GROUP_NAME_EXTERNAL_CONTRIBUTOR):
         return False
 
     finalised_cs = ConservationStatus.objects.filter(
-        submitter=request.user.id,
+        submitter=user_id,
         processing_status__in=[
             ConservationStatus.PROCESSING_STATUS_APPROVED,
             ConservationStatus.PROCESSING_STATUS_DECLINED,
         ],
     ).exists()
     finalised_ocr = OccurrenceReport.objects.filter(
-        submitter=request.user.id,
+        submitter=user_id,
         processing_status__in=[
             OccurrenceReport.PROCESSING_STATUS_APPROVED,
             OccurrenceReport.PROCESSING_STATUS_DECLINED,
