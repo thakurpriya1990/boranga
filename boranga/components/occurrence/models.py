@@ -487,10 +487,10 @@ class OccurrenceReport(RevisionedMixin):
         if self.processing_status not in status_with_approver:
             return False
 
-        if not self.assigned_pprover:
+        if not self.assigned_approver:
             return False
 
-        if not self.assigned_pprover == request.user.id:
+        if not self.assigned_approver == request.user.id:
             return False
 
         return is_occurrence_approver(request)
