@@ -315,11 +315,9 @@ for am in LEDGER_UI_ACCOUNTS_MANAGEMENT:
 
 RECENT_REFERRAL_COUNT = env("RECENT_REFERRAL_COUNT", 5)
 
-# NOMOS login details
-NOMOS_URL = env("NOMOS_URL")
-NOMOS_USERNAME = env("NOMOS_USERNAME")
-NOMOS_PASSWORD = env("NOMOS_PASSWORD")
+#  ------------- NOMOS JSON file url --------------
 NOMOS_BLOB_URL = env("NOMOS_BLOB_URL")
+
 GIS_SERVER_URL = env(
     "GIS_SERVER_URL", "https://kaartdijin-boodja-geoserver.dbca.wa.gov.au/geoserver/ows"
 )
