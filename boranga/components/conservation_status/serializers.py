@@ -604,13 +604,16 @@ class CreateConservationStatusSerializer(BaseConservationStatusSerializer):
 
 
 class ConservationStatusProposalReferralSerializer(serializers.ModelSerializer):
-    # referral = serializers.CharField(source='referral.get_full_name')
     referral_obj = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
+    referral_comment = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatusReferral
         fields = "__all__"
+
+    def get_referral_comment(self, obj):
+        return obj.referral_comment if obj.referral_comment else ""
 
     def get_referral_obj(self, obj):
         referral_email_user = retrieve_email_user(obj.referral)
@@ -767,6 +770,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     def get_assessor_mode(self, obj):
         # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
+        logger.debug(obj.assessor_comments_view(request))
         return {
             "assessor_mode": True,
             "has_assessor_mode": obj.has_assessor_mode(request),
@@ -1183,6 +1187,7 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
         source="conservation_status.conservation_status_number"
     )
     referral = serializers.SerializerMethodField()
+    referral_comment = serializers.SerializerMethodField()
     submitter = serializers.SerializerMethodField()
     document = serializers.SerializerMethodField()
     can_user_process = serializers.SerializerMethodField()
@@ -1232,6 +1237,9 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
     def get_referral(self, obj):
         serializer = EmailUserSerializer(retrieve_email_user(obj.referral))
         return serializer.data
+
+    def get_referral_comment(self, obj):
+        return obj.referral_comment if obj.referral_comment else ""
 
     def get_submitter(self, obj):
         # if obj.submitter:

@@ -1,43 +1,57 @@
 <template lang="html">
     <div id="speciesStatus">
-        <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status"
-            :isShowComment="isShowComment" :has_comment_value="has_comment_value"
-            v-on:toggleComment="toggleComment($event)" :displayCommentSection="!is_external">
-            <div v-if="!is_external">
-                <div v-show="isShowComment">
-                    <!-- Assessor Deficiencies and comment box -->
-                    <div class="row mb-3" v-if="deficiencyVisibility">
-                        <label for="" class="col-sm-4 col-form-label">Deficiencies:</label>
-                        <div class="col-sm-8">
-                            <textarea :disabled="deficiency_readonly" class="form-control" rows="3"
-                                id="assessor_deficiencies" placeholder=""
-                                v-model="conservation_status_obj.deficiency_data" />
-                        </div>
-                    </div>
-                    <div class="row mb-3" v-if="assessorCommentVisibility">
-                        <label for="" class="col-sm-4 col-form-label">Assessor:</label>
-                        <div class="col-sm-8">
-                            <textarea :disabled="assessor_comment_readonly" class="form-control" rows="3"
-                                id="assessor_comment" placeholder="" v-model="conservation_status_obj.assessor_data" />
-                        </div>
-                    </div>
-                    <!-- Assessor Deficiencies and comment box -->
-                    <div v-if="referral_comments_boxes.length > 0">
-                        <div v-for="ref in referral_comments_boxes">
-                            <div class="row mb-3" v-if="ref.box_view">
-                                <label for="" class="col-sm-4 col-form-label">{{ ref.label }}:</label>
-                                <div class="col-sm-8">
-                                    <textarea v-if='!ref.readonly' :disabled="ref.readonly" :name="ref.name"
-                                        class="form-control" rows="3" placeholder=""
-                                        v-model="referral.referral_comment" />
-                                    <textarea v-else :disabled="ref.readonly" :name="ref.name" :value="ref.value"
-                                        class="form-control" rows="" placeholder="" />
+        <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
+            <template v-if="!is_external">
+                <CollapsibleComponent component_title="Assessment Comments" ref="assessment-comments" :collapsed="false">
+                    <div class="row">
+                        <div class="col rounded">
+                            <div class="row" v-if="deficiencyVisibility">
+                                <div class="col">
+                                    <div class="form-floating m-3">
+                                        <textarea :disabled="deficiency_readonly" class="form-control"
+                                            id="assessor_deficiencies" placeholder="Deficiency Comments"
+                                            v-model="conservation_status_obj.deficiency_data" />
+                                        <label for="assessor_deficiencies" class="form-label">Deficiency
+                                            Comments</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" v-if="assessorCommentVisibility">
+                                <div class="col">
+                                    <div class="form-floating m-3 mt-1">
+                                        <textarea :disabled="assessor_comment_readonly" class="form-control" rows="3"
+                                            id="assessor_comment" placeholder="Assessor Comments"
+                                            v-model="conservation_status_obj.assessor_data" />
+                                        <label for="" class="col-sm-4 col-form-label">Assessor Comments</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="referral_comments_boxes.length > 0">
+                                <div v-for="ref in referral_comments_boxes">
+                                    <div class="row mt-2">
+                                        <div class="col ms-3">
+                                            <h6 class="text-muted">Referral Comments</h6>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3" v-if="ref.box_view">
+                                        <div class="col">
+                                            <div class="form-floating m-3 mt-1">
+                                                <textarea v-if='!ref.readonly' :disabled="ref.readonly" :id="ref.name"
+                                                    :name="ref.name" class="form-control" :placeholder="ref.label"
+                                                    v-model="referral.referral_comment" />
+                                                <textarea v-else :disabled="ref.readonly" :name="ref.name"
+                                                    :value="ref.value || ''" class="form-control"
+                                                    :placeholder="ref.label" />
+                                                <label :for="ref.name" class="form-label">{{ ref.label }}</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </CollapsibleComponent>
+            </template>
             <div class="row mb-3">
                 <label :for="scientific_name_lookup" class="col-sm-4 col-form-label">Scientific Name:</label>
                 <div class="col-sm-8" :id="select_scientific_name">
@@ -231,7 +245,7 @@
                         Number:</label>
                     <div class="col-sm-8">
                         <a :href="`/internal/conservation_status/${conservation_status_obj.current_conservation_status.id}`"
-                            target="_blank" class="btn btn-primary" >{{
+                            target="_blank" class="btn btn-primary">{{
                                 conservation_status_obj.current_conservation_status.conservation_status_number }}<i
                                 class="bi bi-box-arrow-up-right ps-2"></i></a>
                     </div>
@@ -428,6 +442,7 @@
 
 <script>
 import FormSection from '@/components/forms/section_toggle.vue';
+import CollapsibleComponent from '@/components/forms/collapsible_component.vue'
 import {
     api_endpoints,
 }
@@ -496,6 +511,7 @@ export default {
     },
     components: {
         FormSection,
+        CollapsibleComponent
     },
     computed: {
         show_administrative_information: function () {
@@ -542,7 +558,7 @@ export default {
             if (this.is_external) {
                 return !this.conservation_status_obj.can_user_edit;
             } else {
-                if(this.conservation_status_obj.processing_status == "Ready For Agenda"){
+                if (this.conservation_status_obj.processing_status == "Ready For Agenda") {
                     return true;
                 }
                 if (this.conservation_status_obj.assessor_mode.assessor_can_assess || this.conservation_status_obj.internal_user_edit) {
@@ -626,7 +642,7 @@ export default {
         getSpeciesDisplay: function () {
             let vm = this;
             if (vm.conservation_status_obj.species_id != null) {
-                    let species_display_url = api_endpoints.species_display + 
+                    let species_display_url = api_endpoints.species_display +
                     "?species_id=" + vm.conservation_status_obj.species_id
                     vm.$http.get(species_display_url).then(
                     (response) => {
@@ -696,7 +712,9 @@ export default {
                 var current_referral_present = false;
                 $.each(this.conservation_status_obj.latest_referrals, (i, v) => {
                     var referral_name = `comment-field-Referral-${v.referral_obj.email}`;
-                    var referral_visibility = assessor_mode == 'referral' && this.conservation_status_obj.assessor_mode.assessor_can_assess && this.referral.referral == v.referral_obj.id ? false : true;
+                    var referral_visibility = assessor_mode == 'referral' &&
+                        this.conservation_status_obj.assessor_mode.assessor_can_assess &&
+                        this.referral.referral == v.referral_obj.id ? false : true;
                     var referral_label = `${v.referral_obj.fullname}`;
                     var referral_comment_val = `${v.referral_comment}`;
                     this.referral_comments_boxes.push(
@@ -747,6 +765,7 @@ export default {
     },
     mounted: function () {
         let vm = this;
+        vm.$refs['assessment-comments'].show_warning_icon(false);
         vm.$nextTick(() => {
             vm.initialiseScientificNameLookup();
         });

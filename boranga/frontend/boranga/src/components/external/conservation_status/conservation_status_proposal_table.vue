@@ -157,6 +157,7 @@ export default {
                 { value: 'ready_for_agenda', name: 'In Meeting' },
                 { value: 'approved', name: 'Approved' },
                 { value: 'declined', name: 'Declined' },
+                { value: 'discarded', name: 'Discarded' },
                 { value: 'closed', name: 'Closed' },
             ],
             proposal_status: [],
@@ -331,6 +332,9 @@ export default {
                     }
                     else if (full.can_user_view) {
                         links += `<a href='/external/conservation_status/${full.id}'>View</a>`;
+                    }
+                    else if (full.processing_status=='discarded') {
+                        links += `<a <a href='#${full.id}' data-reinstate-cs-proposal='${full.id}'>Reinstate</a>`;
                     }
 
                     return links;
@@ -518,15 +522,20 @@ export default {
         discardCSProposal: function (conservation_status_id) {
             let vm = this;
             swal.fire({
-                title: "Discard Application",
+                title: "Discard Proposal",
                 text: "Are you sure you want to discard this proposal?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Discard Application',
-                confirmButtonColor: '#d9534f'
+                confirmButtonText: 'Discard Proposal',
+                reverseButtons: true,
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_cs_proposal(conservation_status_id))
+                    vm.$http.patch(api_endpoints.discard_cs_proposal(conservation_status_id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -541,6 +550,39 @@ export default {
                 }
             });
         },
+        reinstateCSProposal: function (conservation_status_id) {
+            let vm = this;
+            swal.fire({
+                title: "Reinstate Proposal",
+                text: "Are you sure you want to reinstate this proposal?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Reinstate Proposal',
+                reverseButtons: true,
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                }
+
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    vm.$http.patch(api_endpoints.reinstate_cs_proposal(conservation_status_id))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'Your proposal has been reinstated. You may continue to work on it now.',
+                                icon: 'success',
+                                confirmButtonColor: '#226fbb',
+                            });
+                            vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload();
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            });
+        },
+
         addEventListeners: function () {
             let vm = this;
             // External Discard listener
@@ -548,6 +590,11 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-cs-proposal');
                 vm.discardCSProposal(id);
+            });
+            vm.$refs.conservation_status_datatable.vmDataTable.on('click', 'a[data-reinstate-cs-proposal]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-reinstate-cs-proposal');
+                vm.reinstateCSProposal(id);
             });
             vm.$refs.conservation_status_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                     helpers.enablePopovers();
