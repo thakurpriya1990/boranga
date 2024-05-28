@@ -1418,8 +1418,18 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def related_item_descriptor(self):
-        if self.conservation_list:
-            return self.conservation_list.code
+        descriptor = ""
+        if self.wa_legislative_list:
+            descriptor = self.wa_legislative_list.code
+        if self.wa_legislative_category:
+            descriptor = f"{descriptor} - {self.wa_legislative_category.code}"
+        if self.wa_priority_list:
+            if descriptor:
+                descriptor += ", "
+            descriptor = f"{descriptor} {self.wa_priority_list.code}"
+        if self.wa_priority_category:
+            descriptor = f"{descriptor} - {self.wa_priority_category.code}"
+        return descriptor
 
     @property
     def related_item_status(self):
