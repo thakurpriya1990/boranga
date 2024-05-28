@@ -812,6 +812,7 @@ class ConservationStatus(RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
         ]:
             if ConservationStatusReferral.objects.filter(
                 conservation_status=self, referral=request.user.id
@@ -821,6 +822,7 @@ class ConservationStatus(RevisionedMixin):
             return is_conservation_status_approver(
                 request
             ) or is_conservation_status_assessor(request)
+        return False
 
     @property
     def status_without_assessor(self):
