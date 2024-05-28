@@ -34,11 +34,15 @@ def belongs_to_by_user_id(user_id, group_name):
     return system_group and user_id in system_group.get_system_group_member_ids()
 
 
-def belongs_to(request, group_name):
+def belongs_to(request, group_name, internal_only=False, external_only=False):
     if not request.user.is_authenticated:
         return False
     if request.user.is_superuser:
         return True
+    if internal_only and not is_internal(request):
+        return False
+    if external_only and is_internal(request):
+        return False
 
     return belongs_to_by_user_id(request.user.id, group_name)
 
@@ -54,57 +58,63 @@ def member_ids(group_name):
 
 
 def is_django_admin(request):
-    return belongs_to(request, DJANGO_ADMIN_GROUP)
+    return belongs_to(request, DJANGO_ADMIN_GROUP, internal_only=True)
 
 
 def is_readonly_user(request):
-    return belongs_to(request, GROUP_NAME_READONLY_USER)
+    return belongs_to(request, GROUP_NAME_READONLY_USER, internal_only=True)
 
 
 def is_species_communities_approver(request):
-    return belongs_to(request, GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
+    return belongs_to(
+        request, GROUP_NAME_SPECIES_COMMUNITIES_APPROVER, internal_only=True
+    )
 
 
 def is_conservation_status_assessor(request):
-    return belongs_to(request, GROUP_NAME_CONSERVATION_STATUS_ASSESSOR)
+    return belongs_to(
+        request, GROUP_NAME_CONSERVATION_STATUS_ASSESSOR, internal_only=True
+    )
 
 
 def is_conservation_status_approver(request):
-    return belongs_to(request, GROUP_NAME_CONSERVATION_STATUS_APPROVER)
+    return belongs_to(
+        request, GROUP_NAME_CONSERVATION_STATUS_APPROVER, internal_only=True
+    )
 
 
 def is_internal_contributor(request):
-    return belongs_to(request, GROUP_NAME_INTERNAL_CONTRIBUTOR)
+    return belongs_to(request, GROUP_NAME_INTERNAL_CONTRIBUTOR, internal_only=True)
 
 
 def is_occurrence_assessor(request):
-    return belongs_to(request, GROUP_NAME_OCCURRENCE_ASSESSOR)
+    return belongs_to(request, GROUP_NAME_OCCURRENCE_ASSESSOR, internal_only=True)
 
 
 def is_occurrence_approver(request):
-    return belongs_to(request, GROUP_NAME_OCCURRENCE_APPROVER)
+    return belongs_to(request, GROUP_NAME_OCCURRENCE_APPROVER, internal_only=True)
 
 
 def is_external_contributor(request):
-    return belongs_to(request, GROUP_NAME_EXTERNAL_CONTRIBUTOR)
+    return belongs_to(request, GROUP_NAME_EXTERNAL_CONTRIBUTOR, external_only=True)
 
 
-def is_new_external_contributor(request):
+def is_new_external_contributor(user_id):
     from boranga.components.conservation_status.models import ConservationStatus
     from boranga.components.occurrence.models import OccurrenceReport
 
-    if not is_external_contributor(request):
+    if not belongs_to_by_user_id(user_id, GROUP_NAME_EXTERNAL_CONTRIBUTOR):
         return False
 
     finalised_cs = ConservationStatus.objects.filter(
-        submitter=request.user.id,
+        submitter=user_id,
         processing_status__in=[
             ConservationStatus.PROCESSING_STATUS_APPROVED,
             ConservationStatus.PROCESSING_STATUS_DECLINED,
         ],
     ).exists()
     finalised_ocr = OccurrenceReport.objects.filter(
-        submitter=request.user.id,
+        submitter=user_id,
         processing_status__in=[
             OccurrenceReport.PROCESSING_STATUS_APPROVED,
             OccurrenceReport.PROCESSING_STATUS_DECLINED,
