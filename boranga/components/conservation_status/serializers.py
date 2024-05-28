@@ -119,8 +119,7 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
         return ""
 
     def get_is_new_contributor(self, obj):
-        request = self.context["request"]
-        return is_new_external_contributor(request)
+        return is_new_external_contributor(obj.submitter)
 
 
 class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
@@ -329,8 +328,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
         )
 
     def get_is_new_contributor(self, obj):
-        request = self.context["request"]
-        return is_new_external_contributor(request)
+        return is_new_external_contributor(obj.submitter)
 
 
 class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
@@ -810,8 +808,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         return obj.can_edit_recommended(request)
 
     def get_is_new_contributor(self, obj):
-        request = self.context["request"]
-        return is_new_external_contributor(request)
+        return is_new_external_contributor(obj.submitter)
 
     def get_approver_process(self, obj):
         request = self.context["request"]

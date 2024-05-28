@@ -59,9 +59,6 @@ def custom_exception_handler(exc, context):
     exceptions are in html format
     """
 
-    # Log all exceptions
-    logger.exception(traceback.print_exc())
-
     # Django rest framework errors are already in json format
     if isinstance(exc, serializers.ValidationError):
         pass
@@ -75,8 +72,10 @@ def custom_exception_handler(exc, context):
         else:
             exc = serializers.ValidationError(str(exc))
 
-    # Handle all other exceptions
     else:
+        # Handle all other exceptions
+        logger.exception(traceback.print_exc())
+
         exc = serializers.ValidationError(str(exc))
 
     return exception_handler(exc, context)
