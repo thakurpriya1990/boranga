@@ -1548,6 +1548,20 @@ class OccurrenceReportGeometryManager(models.Manager):
         )
 
 
+class GeometryBase(models.Model):
+    """
+    Base class for geometry models
+    """
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        if not self.geometry:
+            raise ValidationError("Geometry is required")
+        super().save(*args, **kwargs)
+
+
 class OccurrenceReportGeometry(models.Model):
     objects = OccurrenceReportGeometryManager()
 
