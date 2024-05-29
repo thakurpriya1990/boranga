@@ -31,11 +31,11 @@ class TileLayerViewSet(viewsets.ReadOnlyModelViewSet):
         if not self.request.user.is_authenticated:
             return TileLayer.objects.none()
         if is_customer(self.request):
-            return TileLayer.objects.filter(disabled=False, is_external=True).order_by(
+            return TileLayer.objects.filter(active=True, is_external=True).order_by(
                 "id"
             )
         elif is_internal(self.request):
-            return TileLayer.objects.filter(disabled=False, is_internal=True).order_by(
+            return TileLayer.objects.filter(active=True, is_internal=True).order_by(
                 "id"
             )
         else:

@@ -49,8 +49,8 @@ class TileLayer(models.Model):
     visible = models.BooleanField(
         default=False
     )  # Whether the layer is visible by default
-    disabled = models.BooleanField(
-        default=False
+    active = models.BooleanField(
+        default=True
     )  # Whether the layer is disabled and won't be used by the map component
     min_zoom = models.PositiveIntegerField(
         default=0,

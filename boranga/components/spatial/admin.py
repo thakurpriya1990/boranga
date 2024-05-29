@@ -1,6 +1,37 @@
+from django import forms
 from django.contrib import admin
 
 from .models import GeoserverUrl, Proxy, TileLayer
+
+
+class TileLayerModelForm(forms.ModelForm):
+    class Meta:
+        model = TileLayer
+        fields = "__all__"
+        help_texts = {
+            "display_title": "The title to display in the layer switcher",
+            "layer_name": "The name of the layer in Geoserver",
+            "layer_title": "The title of the layer",
+            "geoserver_url": "The Geoserver URL to which the layer belongs",
+            "is_satellite_background": "Whether the layer is the satellite background layer (mutually exclusive with is_streets_background)",
+            "is_streets_background": "Whether the layer is the streets background layer (mutually exclusive with is_satellite_background)",
+            "is_external": "Whether the layer is available for external use",
+            "is_internal": "Whether the layer is available for internal use",
+            "visible": "Whether the layer is visible by default",
+            "min_zoom": "The minimum zoom level at which the layer is visible",
+            "max_zoom": "The maximum zoom level at which the layer is visible",
+            "active": "Whether the layer is disabled and won't be used by the map component",
+        }
+
+
+class GeoserverUrlForm(forms.ModelForm):
+    class Meta:
+        model = GeoserverUrl
+        fields = "__all__"
+        help_texts = {
+            "url": "The URL of the Geoserver",
+            "wms_version": "The WMS version of the Geoserver",
+        }
 
 
 class TileLayerInline(admin.TabularInline):
@@ -63,6 +94,8 @@ class TileLayerInline(admin.TabularInline):
 
 @admin.register(GeoserverUrl)
 class GeoserverUrlAdmin(admin.ModelAdmin):
+    form = GeoserverUrlForm
+
     list_display = ("url", "wms_version")
     search_fields = ("url",)
     ordering = ("url",)
@@ -72,6 +105,8 @@ class GeoserverUrlAdmin(admin.ModelAdmin):
 
 @admin.register(TileLayer)
 class TileLayerAdmin(admin.ModelAdmin):
+    form = TileLayerModelForm
+
     list_display = (
         "display_title",
         "layer_name",
@@ -82,6 +117,7 @@ class TileLayerAdmin(admin.ModelAdmin):
         "is_external",
         "is_internal",
         "visible",
+        "active",
     )
     search_fields = ("display_title", "layer_name", "layer_title", "geoserver_url__url")
     ordering = ("display_title", "layer_name")
@@ -110,10 +146,12 @@ class TileLayerAdmin(admin.ModelAdmin):
                     "visible",
                     "min_zoom",
                     "max_zoom",
+                    "active",
                 )
             },
         ),
     )
+
 
 @admin.register(Proxy)
 class ProxyAdmin(admin.ModelAdmin):
