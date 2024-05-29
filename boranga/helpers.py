@@ -99,6 +99,10 @@ def is_external_contributor(request):
     return belongs_to(request, GROUP_NAME_EXTERNAL_CONTRIBUTOR, external_only=True)
 
 
+def is_contributor(request):
+    return is_internal_contributor(request) or is_external_contributor(request)
+
+
 def is_new_external_contributor(user_id):
     from boranga.components.conservation_status.models import ConservationStatus
     from boranga.components.occurrence.models import OccurrenceReport

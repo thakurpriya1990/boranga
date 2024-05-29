@@ -95,10 +95,12 @@ class GetConservationListDict(views.APIView):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
 
+
 class GetSpeciesDisplay(views.APIView):
     def get(self, request, format=None):
-        #requires species_id or taxon_id TODO: remove species id once scientific_name_lookup changes applied to both CS and OCR/OCC
-        #no auth should be required here
+        # requires species_id or taxon_id
+        # TODO: remove species id once scientific_name_lookup changes applied to both CS and OCR/OCC
+        # no auth should be required here
         res_json = {}
 
         species_id = request.GET.get("species_id", "")
@@ -109,7 +111,7 @@ class GetSpeciesDisplay(views.APIView):
             if species.exists() and species.first().taxonomy:
                 res_json["species_id"] = species.first().id
                 taxon_id = species.first().taxonomy.id
-        
+
         if taxon_id:
             taxonomy = Taxonomy.objects.filter(id=taxon_id)
             if taxonomy.exists():
@@ -120,16 +122,19 @@ class GetSpeciesDisplay(views.APIView):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
 
+
 class GetCommunityDisplay(views.APIView):
     def get(self, request, format=None):
-        #requires community_id
-        #no auth should be required here
+        # requires community_id
+        # no auth should be required here
         res_json = {}
 
         community_id = request.GET.get("community_id", "")
 
         if community_id:
-            community_taxon = CommunityTaxonomy.objects.filter(community_id=community_id)
+            community_taxon = CommunityTaxonomy.objects.filter(
+                community_id=community_id
+            )
             if community_taxon.exists():
                 res_json["id"] = community_id
                 res_json["name"] = community_taxon.first().community_name
@@ -137,13 +142,15 @@ class GetCommunityDisplay(views.APIView):
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
 
+
 class GetCSProfileDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get("group_type", "")
-        
-        #NOTE: getting all (non-draft) species and communities here may not be a good idea - moving these to their own endpoint (with an id req)
-        #species_list = []
-        #if group_type:
+
+        # NOTE: getting all (non-draft) species and communities here may not be a good idea
+        # - moving these to their own endpoint (with an id req)
+        # species_list = []
+        # if group_type:
         #    exculde_status = ["draft"]
         #    species = Species.objects.filter(
         #        ~Q(processing_status__in=exculde_status)
@@ -159,12 +166,12 @@ class GetCSProfileDict(views.APIView):
         #                    "taxon_previous_name": specimen.taxonomy.taxon_previous_name,
         #                }
         #            )
-        #community_list = []
-        #exculde_status = ["draft"]
-        #communities = CommunityTaxonomy.objects.filter(
+        # community_list = []
+        # exculde_status = ["draft"]
+        # communities = CommunityTaxonomy.objects.filter(
         #    ~Q(community__processing_status__in=exculde_status)
-        #)  # TODO remove later as every community will have community name
-        #if communities:
+        # )  # TODO remove later as every community will have community name
+        # if communities:
         #    for specimen in communities:
         #        community_list.append(
         #            {
@@ -196,8 +203,8 @@ class GetCSProfileDict(views.APIView):
                         }
                     )
         res_json = {
-            #"species_list": species_list,
-            #"community_list": community_list,
+            # "species_list": species_list,
+            # "community_list": community_list,
             "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
             "wa_priority_categories": WAPriorityCategory.get_categories_dict(
                 group_type
@@ -480,7 +487,6 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
 
         filter_assessor = request.POST.get("filter_assessor")
         if filter_assessor and not filter_assessor.lower() == "all":
-            logger.debug(f"filter_assessor: {filter_assessor}")
             if queryset.model is ConservationStatus:
                 queryset = queryset.filter(assigned_officer=filter_assessor)
             elif queryset.model is ConservationStatusReferral:
@@ -523,7 +529,9 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = ConservationStatus.objects.none()
 
         if is_internal(self.request):
-            qs = ConservationStatus.objects.all()
+            qs = ConservationStatus.objects.exclude(
+                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+            )
 
         return qs
 
@@ -988,8 +996,9 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
         qs = ConservationStatus.objects.none()
 
         if is_internal(self.request):
-            qs = ConservationStatus.objects.all()
-
+            qs = ConservationStatus.objects.exclude(
+                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+            )
         return qs
 
     @list_route(
@@ -1341,8 +1350,9 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             qs = ConservationStatus.objects.filter(submitter=self.request.user.id)
 
         if is_internal(self.request):
-            qs = ConservationStatus.objects.all()
-
+            qs = ConservationStatus.objects.exclude(
+                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+            )
         return qs
 
     @list_route(
@@ -1377,8 +1387,9 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             qs = ConservationStatus.objects.filter(submitter=self.request.user.id)
 
         if is_internal(self.request):
-            qs = ConservationStatus.objects.all()
-
+            qs = ConservationStatus.objects.exclude(
+                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+            )
         return qs
 
     def internal_serializer_class(self):
@@ -1795,6 +1806,20 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         )
         return Response(serializer.data)
 
+    @detail_route(methods=["patch"], detail=True)
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.discard(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(methods=["patch"], detail=True)
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reinstate(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
     @detail_route(methods=["get"], detail=True)
     def get_related_items(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1807,17 +1832,15 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 class ConservationStatusReferralViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin
 ):
-    # queryset = Referral.objects.all()
     queryset = ConservationStatusReferral.objects.none()
     serializer_class = ConservationStatusReferralSerializer
 
     def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated and is_internal(self.request):
-            # queryset =  Referral.objects.filter(referral=user)
-            queryset = ConservationStatusReferral.objects.all()
-            return queryset
-        return ConservationStatusReferral.objects.none()
+        qs = self.queryset
+        if is_internal(self.request):
+            qs = ConservationStatusReferral.objects.all()
+
+        return qs
 
     def get_serializer_class(self):
         return ConservationStatusReferralSerializer

@@ -41,6 +41,8 @@ from boranga.helpers import (
     belongs_to_by_user_id,
     is_conservation_status_approver,
     is_conservation_status_assessor,
+    is_external_contributor,
+    is_internal_contributor,
     member_ids,
 )
 from boranga.ledger_api_utils import retrieve_email_user
@@ -812,6 +814,7 @@ class ConservationStatus(RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
         ]:
             if ConservationStatusReferral.objects.filter(
                 conservation_status=self, referral=request.user.id
@@ -821,6 +824,7 @@ class ConservationStatus(RevisionedMixin):
             return is_conservation_status_approver(
                 request
             ) or is_conservation_status_assessor(request)
+        return False
 
     @property
     def status_without_assessor(self):
@@ -1364,6 +1368,82 @@ class ConservationStatus(RevisionedMixin):
 
         send_assessor_ready_for_agenda_email_notification(request, self)
 
+    @transaction.atomic
+    def discard(self, request):
+        if self.lodgement_date:
+            raise ValidationError(
+                "You cannot discard a conservation status that has been submitted"
+            )
+
+        if not self.processing_status == ConservationStatus.PROCESSING_STATUS_DRAFT:
+            raise ValidationError(
+                "You cannot discard a conservation status that is not a draft"
+            )
+
+        if not request.user.id == self.submitter:
+            raise ValidationError(
+                "You cannot discard a conservation status that is not yours"
+            )
+
+        if not is_external_contributor(request) and not is_internal_contributor(
+            request
+        ):
+            raise ValidationError(
+                "You cannot discard a conservation status unless you are a contributor"
+            )
+
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_DISCARDED
+        self.customer_status = ConservationStatus.CUSTOMER_STATUS_DISCARDED
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_DISCARD_PROPOSAL.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
+        # TODO create a log entry for the user
+
+    @transaction.atomic
+    def reinstate(self, request):
+        if self.lodgement_date:
+            raise ValidationError(
+                "You cannot reinstate a conservation status that has been submitted"
+            )
+
+        if not self.processing_status == ConservationStatus.PROCESSING_STATUS_DISCARDED:
+            raise ValidationError(
+                "You cannot reinstate a conservation status that has not been discarded"
+            )
+
+        if not request.user.id == self.submitter:
+            raise ValidationError(
+                "You cannot reinstate a conservation status that is not yours"
+            )
+
+        if not is_external_contributor(request) and not is_internal_contributor(
+            request
+        ):
+            raise ValidationError(
+                "You cannot reinstate a conservation status unless you are a contributor"
+            )
+
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_DRAFT
+        self.customer_status = ConservationStatus.CUSTOMER_STATUS_DRAFT
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_REINSTATE_PROPOSAL.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
+        # TODO create a log entry for the user
+
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
         if filter_type == "all":
@@ -1416,8 +1496,18 @@ class ConservationStatus(RevisionedMixin):
 
     @property
     def related_item_descriptor(self):
-        if self.commonwealth_conservation_list:
-            return self.commonwealth_conservation_list.code
+        descriptor = ""
+        if self.wa_legislative_list:
+            descriptor = self.wa_legislative_list.code
+        if self.wa_legislative_category:
+            descriptor = f"{descriptor} - {self.wa_legislative_category.code}"
+        if self.wa_priority_list:
+            if descriptor:
+                descriptor += ", "
+            descriptor = f"{descriptor} {self.wa_priority_list.code}"
+        if self.wa_priority_category:
+            descriptor = f"{descriptor} - {self.wa_priority_category.code}"
+        return descriptor
 
     @property
     def related_item_status(self):
@@ -1474,6 +1564,7 @@ class ConservationStatusUserAction(UserAction):
     ACTION_APPROVE_PROPOSAL_ = "Approve conservation status  proposal {}"
     ACTION_CLOSE_CONSERVATIONSTATUS = "De list conservation status {}"
     ACTION_DISCARD_PROPOSAL = "Discard conservation status proposal {}"
+    ACTION_REINSTATE_PROPOSAL = "Reinstate conservation status proposal {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
 
     # Amendment

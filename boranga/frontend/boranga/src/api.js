@@ -159,7 +159,10 @@ module.exports = {
     tile_layer: "/api/tile_layer",
 
     discard_cs_proposal: function (id) {
-        return `/api/conservation_status/${id}.json`;
+        return `/api/conservation_status/${id}/discard/`;
+    },
+    reinstate_cs_proposal: function (id) {
+        return `/api/conservation_status/${id}/reinstate/`;
     },
     discard_community_proposal: function (id) {
         return `/api/community/${id}.json`;
