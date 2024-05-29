@@ -399,7 +399,7 @@ const _helper = {
 
             let l = new TileWMS({
                 url: layer.geoserver_url,
-                crossOrigin: 'anonymous', // Data for a image tiles can only be retrieved if the source's crossOrigin property is set (https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#getData)
+                // crossOrigin: 'anonymous', // Data for a image tiles can only be retrieved if the source's crossOrigin property is set (https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#getData)
                 params: {
                     FORMAT: 'image/png',
                     VERSION: '1.1.1',
@@ -422,6 +422,8 @@ const _helper = {
                 displayInLayerSwitcher: !isBackgroundLayer,
                 is_satellite_background: layer.is_satellite_background,
                 is_streets_background: layer.is_streets_background,
+                minZoom: layer.min_zoom,
+                maxZoom: layer.max_zoom,
             });
 
             let legend_url = null;

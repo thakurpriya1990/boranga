@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+import requests
 
 from boranga.components.main.spatial_utils import feature_json_to_geosgeometry
 from boranga.components.occurrence.email import (
@@ -84,6 +85,41 @@ def save_ocr_geometry(request, instance, geometry_data):
         geoms = [(geom_4326, geom_original)]
 
         for geom in geoms:
+
+            # TODO:
+            # from shapely.geometry import Point
+            # g = Point(geom[0].y, geom[0].x)
+
+            # # namespace = layer_name.split(":")[0]
+            # # server_path = f"/geoserver/{namespace}/ows"
+            # server_path = "/geoserver/ows"
+            # layer_name = "CPT_DBCA_REGIONS"
+            # properties = "DRG_REGION_NAME"
+            # params = {
+            #     "service": "WFS",
+            #     "version": "2.0.0",
+            #     "request": "GetFeature",
+            #     "typeName": layer_name,
+            #     "maxFeatures": "5000",
+            #     "srsName": "EPSG:4326",  # using the default projection for open layers and geodjango
+            #     "outputFormat": "application/json",
+            #     "propertyName": properties,
+            #     "CQL_FILTER": f"INTERSECTS(SHAPE, {g.wkt})",
+            # }
+            # logger.info(
+            #     f"Requesting features from {settings.GIS_SERVER_URL}{server_path} with params: {params}"
+            # )
+
+            # # logger.debug("Using Basic HTTP Auth to access namespace: %s", namespace)
+            # url = f"{settings.GIS_SERVER_URL}{server_path}"
+            # url = f"{settings.GIS_SERVER_URL}"
+            # # response =
+            # requests.post(
+            #     url,
+            #     data=params,
+            #     # auth=(settings.KMI_AUTH_USERNAME, settings.KMI_AUTH_PASSWORD),
+            # )
+
             geometry_data = {
                 "occurrence_report_id": instance.id,
                 "geometry": geom[0],
