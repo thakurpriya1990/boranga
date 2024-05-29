@@ -164,6 +164,9 @@ module.exports = {
     reinstate_cs_proposal: function (id) {
         return `/api/conservation_status/${id}/reinstate/`;
     },
+    delist_cs_proposal: function (id) {
+        return `/api/conservation_status/${id}/delist/`;
+    },
     discard_community_proposal: function (id) {
         return `/api/community/${id}.json`;
     },
