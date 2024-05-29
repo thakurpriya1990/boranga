@@ -604,7 +604,7 @@ class CreateConservationStatusSerializer(BaseConservationStatusSerializer):
 
 
 class ConservationStatusProposalReferralSerializer(serializers.ModelSerializer):
-    referral_obj = serializers.SerializerMethodField()
+    referral = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
     referral_comment = serializers.SerializerMethodField()
 
@@ -615,7 +615,7 @@ class ConservationStatusProposalReferralSerializer(serializers.ModelSerializer):
     def get_referral_comment(self, obj):
         return obj.referral_comment if obj.referral_comment else ""
 
-    def get_referral_obj(self, obj):
+    def get_referral(self, obj):
         referral_email_user = retrieve_email_user(obj.referral)
         serializer = EmailUserSerializer(referral_email_user)
         return serializer.data
