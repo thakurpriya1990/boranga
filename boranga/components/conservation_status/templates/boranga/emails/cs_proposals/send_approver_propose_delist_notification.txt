@@ -1,0 +1,9 @@
+{%  extends 'boranga/emails/base_email.txt' %}
+
+{%  block content %}
+    The conservation status proposal {{ cs_proposal.conservation_status_number }} has been assessed and has been recommended for delisting.
+
+    You can access this proposal using the following link:
+
+    {{url}}
+{%  endblock %}

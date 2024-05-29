@@ -79,6 +79,16 @@ class ApproverDeclineSendNotificationEmail(TemplateEmailBase):
     txt_template = "boranga/emails/cs_proposals/send_approver_decline_notification.txt"
 
 
+class ApproverProposeDelistNotificationEmail(TemplateEmailBase):
+    subject = "A conservation status proposal has been proposed for delisting."
+    html_template = (
+        "boranga/emails/cs_proposals/send_approver_propose_delist_notification.html"
+    )
+    txt_template = (
+        "boranga/emails/cs_proposals/send_approver_propose_delist_notification.txt"
+    )
+
+
 class ApproverApproveSendNotificationEmail(TemplateEmailBase):
     subject = "A Proposal has been recommended for approval."
     html_template = (
@@ -476,6 +486,25 @@ def send_conservation_status_amendment_email_notification(
 # send email when Conservation Status Proposal is 'proposed to decline' by assessor.
 def send_approver_decline_email_notification(reason, request, conservation_status):
     email = ApproverDeclineSendNotificationEmail()
+    url = request.build_absolute_uri(
+        reverse(
+            "internal-conservation-status-detail",
+            kwargs={"cs_proposal_pk": conservation_status.id},
+        )
+    )
+    context = {"cs_proposal": conservation_status, "reason": reason, "url": url}
+
+    msg = email.send(conservation_status.approver_recipients, context=context)
+
+    sender = get_sender_user()
+
+    _log_conservation_status_email(msg, conservation_status, sender=sender)
+
+
+def send_approver_propose_delist_email_notification(
+    request, conservation_status, reason
+):
+    email = ApproverProposeDelistNotificationEmail()
     url = request.build_absolute_uri(
         reverse(
             "internal-conservation-status-detail",

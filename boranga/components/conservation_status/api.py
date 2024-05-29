@@ -1820,6 +1820,20 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
+    @detail_route(methods=["patch"], detail=True)
+    def propose_delist(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.propose_delist(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(methods=["patch"], detail=True)
+    def delist(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.delist(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
     @detail_route(methods=["get"], detail=True)
     def get_related_items(self, request, *args, **kwargs):
         instance = self.get_object()

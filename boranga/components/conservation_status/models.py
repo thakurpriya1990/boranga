@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import reversion
 from django.conf import settings
@@ -13,6 +13,7 @@ from boranga import exceptions
 from boranga.components.conservation_status.email import (
     send_approver_approve_email_notification,
     send_approver_decline_email_notification,
+    send_approver_propose_delist_email_notification,
     send_assessor_ready_for_agenda_email_notification,
     send_conservation_status_amendment_email_notification,
     send_conservation_status_approval_email_notification,
@@ -378,6 +379,7 @@ class ConservationStatus(RevisionedMixin):
     PROCESSING_STATUS_APPROVED = "approved"
     PROCESSING_STATUS_DECLINED = "declined"
     PROCESSING_STATUS_DISCARDED = "discarded"
+    PROCESSING_STATUS_DISCARDED_INTERNALLY = "discarded_internally"
     PROCESSING_STATUS_CLOSED = "closed"
     PROCESSING_STATUS_PARTIALLY_APPROVED = "partially_approved"
     PROCESSING_STATUS_PARTIALLY_DECLINED = "partially_declined"
@@ -802,6 +804,7 @@ class ConservationStatus(RevisionedMixin):
             return is_conservation_status_assessor(request)
         elif self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
         ]:
             return is_conservation_status_approver(request)
@@ -815,6 +818,7 @@ class ConservationStatus(RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_CLOSED,
         ]:
             if ConservationStatusReferral.objects.filter(
                 conservation_status=self, referral=request.user.id
@@ -1075,47 +1079,44 @@ class ConservationStatus(RevisionedMixin):
 
         # TODO: Create a log entry for the user
 
+    @transaction.atomic
     def proposed_decline(self, request, details):
-        with transaction.atomic():
-            if not self.can_assess(request):
-                raise exceptions.ProposalNotAuthorized()
-            if (
-                self.processing_status
-                != ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
-            ):
-                raise ValidationError(
-                    "You cannot propose to decline if it is not with assessor"
-                )
-
-            reason = details.get("reason")
-            ConservationStatusDeclinedDetails.objects.update_or_create(
-                conservation_status=self,
-                defaults={
-                    "officer": request.user.id,
-                    "reason": reason,
-                    "cc_email": details.get("cc_email", None),
-                },
-            )
-            self.proposed_decline_status = True
-            approver_comment = ""
-
-            self.move_to_status(
-                request,
-                ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
-                approver_comment,
+        if not self.can_assess(request):
+            raise exceptions.ProposalNotAuthorized()
+        if self.processing_status != ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR:
+            raise ValidationError(
+                "You cannot propose to decline if it is not with assessor"
             )
 
-            # Log proposal action
-            self.log_user_action(
-                ConservationStatusUserAction.ACTION_PROPOSED_DECLINE.format(
-                    self.conservation_status_number
-                ),
-                request,
-            )
+        reason = details.get("reason")
+        ConservationStatusDeclinedDetails.objects.update_or_create(
+            conservation_status=self,
+            defaults={
+                "officer": request.user.id,
+                "reason": reason,
+                "cc_email": details.get("cc_email", None),
+            },
+        )
+        self.proposed_decline_status = True
+        approver_comment = ""
 
-            # TODO create a log entry for the user
+        self.move_to_status(
+            request,
+            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            approver_comment,
+        )
 
-            send_approver_decline_email_notification(reason, request, self)
+        # Log proposal action
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_PROPOSED_DECLINE.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
+        # TODO create a log entry for the user
+
+        send_approver_decline_email_notification(reason, request, self)
 
     @transaction.atomic
     def final_decline(self, request, details):
@@ -1444,6 +1445,81 @@ class ConservationStatus(RevisionedMixin):
 
         # TODO create a log entry for the user
 
+    @transaction.atomic
+    def propose_delist(self, request):
+        if (
+            not self.processing_status
+            == ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
+        ):
+            raise ValidationError(
+                "You cannot propose to delist a conservation status that is not with assessor"
+            )
+
+        if not self.assigned_officer == request.user.id:
+            raise ValidationError(
+                "You cannot propose to delist a conservation status that you are not assigned to"
+            )
+
+        if not is_conservation_status_assessor(request):
+            raise ValidationError(
+                "You cannot propose to delist a conservation status unless you "
+                "are a member of the conservation status assessor group"
+            )
+
+        logger.debug(request.data)
+
+        self.effective_to = datetime.strptime(
+            request.data.get("effective_to"), "%Y-%m-%d"
+        )
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_WITH_APPROVER
+        self.save()
+
+        reason = request.data.get("reason")
+
+        # Log proposal action
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_PROPOSE_DELIST_PROPOSAL.format(
+                self.conservation_status_number, reason
+            ),
+            request,
+        )
+
+        # TODO create a log entry for the user
+
+        send_approver_propose_delist_email_notification(request, self, reason)
+
+    @transaction.atomic
+    def delist(self, request):
+        if (
+            not self.processing_status
+            == ConservationStatus.PROCESSING_STATUS_WITH_APPROVER
+        ):
+            raise ValidationError(
+                "You cannot delist a conservation status that is not with approver"
+            )
+
+        if not self.assigned_approver == request.user.id:
+            raise ValidationError(
+                "You cannot delist a conservation status that you are not assigned to"
+            )
+
+        if not is_conservation_status_approver(request):
+            raise ValidationError(
+                "You cannot delist a conservation status unless you are a "
+                "member of the conservation status approver group"
+            )
+
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_CLOSED
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_DELIST_PROPOSAL.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
         if filter_type == "all":
@@ -1564,6 +1640,13 @@ class ConservationStatusUserAction(UserAction):
     ACTION_APPROVE_PROPOSAL_ = "Approve conservation status  proposal {}"
     ACTION_CLOSE_CONSERVATIONSTATUS = "De list conservation status {}"
     ACTION_DISCARD_PROPOSAL = "Discard conservation status proposal {}"
+    ACTION_PROPOSE_DELIST_PROPOSAL = (
+        "Propose discard conservation status proposal {}. Reason: {}"
+    )
+    ACTION_DELIST_PROPOSAL = "Delist conservation status proposal {}"
+    ACTION_DISCARD_PROPOSAL_INTERNALLY = (
+        "Discard conservation status proposal internally {}"
+    )
     ACTION_REINSTATE_PROPOSAL = "Reinstate conservation status proposal {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
 

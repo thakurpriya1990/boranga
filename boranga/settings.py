@@ -56,7 +56,7 @@ GROUP_NAME_READONLY_USER = "Read Only Users"
 
 GROUP_NAME_SPECIES_COMMUNITIES_APPROVER = "Species and Communities Approvers"
 
-GROUP_NAME_CHOICES = (
+GROUP_NAME_CHOICES = [
     DJANGO_ADMIN_GROUP,
     GROUP_NAME_CONSERVATION_STATUS_ASSESSOR,
     GROUP_NAME_CONSERVATION_STATUS_APPROVER,
@@ -66,7 +66,11 @@ GROUP_NAME_CHOICES = (
     GROUP_NAME_OCCURRENCE_ASSESSOR,
     GROUP_NAME_READONLY_USER,
     GROUP_NAME_SPECIES_COMMUNITIES_APPROVER,
-)
+]
+
+INTERNAL_GROUPS = [
+    g for g in GROUP_NAME_CHOICES if g != GROUP_NAME_EXTERNAL_CONTRIBUTOR
+]
 
 if env("CONSOLE_EMAIL_BACKEND", False):
     EMAIL_BACKEND = "wagov_utils.components.utils.email_backend.EmailBackend"
@@ -220,7 +224,6 @@ if not VALID_SYSTEMS:
 CRON_CLASSES = [
     "appmonitor_client.cron.CronJobAppMonitorClient",
     "boranga.cron.CronJobFetchNomosTaxonDataDaily",
-    "boranga.cron.CronJobDelistExpiredConservationStatus",
 ]
 
 

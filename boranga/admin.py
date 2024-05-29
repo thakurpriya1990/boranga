@@ -1,8 +1,10 @@
 from copy import deepcopy
 
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.gis import admin
-from ledger_api_client.admin import SystemGroupAdmin
+from django.forms import ValidationError
+from ledger_api_client.admin import SystemGroupAdmin, SystemGroupPermissionInline
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 
@@ -33,12 +35,34 @@ class EmailUserAdmin(admin.ModelAdmin):
         return None
 
 
+class CustomSystemGroupPermissionInlineForm(SystemGroupPermissionInline.form):
+    def clean(self):
+        cleaned_data = super().clean()
+        system_group = cleaned_data.get("system_group")
+        emailuser = cleaned_data.get("emailuser")
+        if system_group.name in settings.INTERNAL_GROUPS:
+            if not emailuser.is_staff:
+                raise ValidationError(
+                    "Only internal users can be added to internal groups."
+                )
+        else:
+            if emailuser.is_staff:
+                raise ValidationError(
+                    "Only external users can be added to external groups."
+                )
+
+
+class CustomSystemGroupPermissionInline(SystemGroupPermissionInline):
+    form = CustomSystemGroupPermissionInlineForm
+
+
 class CustomSystemGroupAdmin(SystemGroupAdmin):
     """
     Overriding the SystemGroupAdmin from ledger.accounts.admin,
     to remove ledger_permissions selection field for DjangoAdmin SystemGroup on Admin page
     """
 
+    inlines = [CustomSystemGroupPermissionInline]
     filter_horizontal = ("permissions",)
 
     def get_fieldsets(self, request, obj=None):

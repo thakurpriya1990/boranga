@@ -46,11 +46,9 @@ from boranga.components.species_and_communities.models import (
     PotentialThreatOnset,
     Region,
     Species,
+    Taxonomy,
     ThreatAgent,
     ThreatCategory,
-    District,
-    Region,
-    Taxonomy,
 )
 from boranga.helpers import (
     clone_model,
@@ -214,7 +212,11 @@ class OccurrenceReport(RevisionedMixin):
     )
 
     species_taxonomy = models.ForeignKey(
-        Taxonomy, on_delete=models.PROTECT, null=True, blank=True, related_name="occurrence_reports"
+        Taxonomy,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="occurrence_reports",
     )
 
     # species related occurrence
@@ -298,11 +300,13 @@ class OccurrenceReport(RevisionedMixin):
             self.occurrence_report_number = new_occurrence_report_id
             self.save(*args, **kwargs)
         else:
-            self.species = self.get_taxonomy_species() #on save, checks if taxon has species and sets accordingly
+            self.species = (
+                self.get_taxonomy_species()
+            )  # on save, checks if taxon has species and sets accordingly
             super().save(*args, **kwargs)
 
     def get_taxonomy_species(self):
-        if self.species_taxonomy and hasattr(self.species_taxonomy,"species"):
+        if self.species_taxonomy and hasattr(self.species_taxonomy, "species"):
             return self.species_taxonomy.species
         else:
             return None
@@ -557,11 +561,6 @@ class OccurrenceReport(RevisionedMixin):
     def assign_officer(self, request, officer):
         if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
-
-        if not self.can_assess(officer):
-            raise ValidationError(
-                "The selected person is not authorised to be assigned to this proposal"
-            )
 
         if self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
             if officer.id != self.assigned_approver:
@@ -2716,7 +2715,11 @@ class Occurrence(RevisionedMixin):
     )
 
     species_taxonomy = models.ForeignKey(
-        Taxonomy, on_delete=models.PROTECT, null=True, blank=True, related_name="occurrences"
+        Taxonomy,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="occurrences",
     )
 
     species = models.ForeignKey(
@@ -2794,11 +2797,13 @@ class Occurrence(RevisionedMixin):
             self.occurrence_number = f"OCC{str(self.pk)}"
             self.save(*args, **kwargs)
         else:
-            self.species = self.get_taxonomy_species() #on save, checks if taxon has species and sets accordingly
+            self.species = (
+                self.get_taxonomy_species()
+            )  # on save, checks if taxon has species and sets accordingly
             super().save(*args, **kwargs)
-            
+
     def get_taxonomy_species(self):
-        if self.species_taxonomy and hasattr(self.species_taxonomy,"species"):
+        if self.species_taxonomy and hasattr(self.species_taxonomy, "species"):
             return self.species_taxonomy.species
         else:
             return None
@@ -3215,7 +3220,8 @@ class OCCLocation(models.Model):
     def __str__(self):
         return str(self.occurrence)  # TODO: is the most appropriate?
 
-#TODO do we need a separate model for OCC and OCR here?
+
+# TODO do we need a separate model for OCC and OCR here?
 class OccurrenceGeometryManager(models.Manager):
     def get_queryset(self):
         qs = super().get_queryset()
@@ -3233,6 +3239,7 @@ class OccurrenceGeometryManager(models.Manager):
                 default=None,
             )
         )
+
 
 class OccurrenceGeometry(models.Model):
     objects = OccurrenceGeometryManager()
@@ -3264,10 +3271,9 @@ class OccurrenceGeometry(models.Model):
         return str(self.occurrence)  # TODO: is the most appropriate?
 
     def save(self, *args, **kwargs):
-        if (
-            self.occurrence.group_type.name == GroupType.GROUP_TYPE_FAUNA
-            and type(self.geometry).__name__ in ["Polygon", "MultiPolygon"]
-        ):
+        if self.occurrence.group_type.name == GroupType.GROUP_TYPE_FAUNA and type(
+            self.geometry
+        ).__name__ in ["Polygon", "MultiPolygon"]:
             raise ValidationError("Fauna occurrences cannot have polygons")
 
         if not self.geometry.within(
