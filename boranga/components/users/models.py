@@ -11,22 +11,24 @@ private_storage = FileSystemStorage(
 )
 
 
-class UserCategory(models.Model):
+class SubmitterCategory(models.Model):
     name = models.CharField(max_length=100)
 
     class Meta:
         app_label = "boranga"
-        verbose_name_plural = "User Categories"
+        verbose_name_plural = "Submitter Categories"
 
     def __str__(self) -> str:
         return self.name
 
 
-class Profile(models.Model):
+class SubmitterInformation(models.Model):
     email_user = models.IntegerField()
+    name = models.CharField(max_length=100, blank=True, null=True)
+    contact_details = models.TextField(blank=True, null=True)
     organisation = models.CharField(max_length=100, blank=True, null=True)
     position = models.CharField(max_length=100, blank=True, null=True)
-    user_category = models.ForeignKey(UserCategory, on_delete=models.PROTECT)
+    submitter_category = models.ForeignKey(SubmitterCategory, on_delete=models.PROTECT)
 
     class Meta:
         app_label = "boranga"
