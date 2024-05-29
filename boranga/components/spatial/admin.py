@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import GeoserverUrl, TileLayer
+from .models import GeoserverUrl, Proxy, TileLayer
 
 
 class TileLayerInline(admin.TabularInline):
@@ -108,6 +108,29 @@ class TileLayerAdmin(admin.ModelAdmin):
                     "is_external",
                     "is_internal",
                     "visible",
+                    "min_zoom",
+                    "max_zoom",
+                )
+            },
+        ),
+    )
+
+@admin.register(Proxy)
+class ProxyAdmin(admin.ModelAdmin):
+    list_display = ("request_path", "username", "basic_auth_enabled", "active")
+    search_fields = ("request_path",)
+    ordering = ("request_path",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "request_path",
+                    "proxy_url",
+                    "basic_auth_enabled",
+                    "username",
+                    "password",
+                    "active",
                 )
             },
         ),

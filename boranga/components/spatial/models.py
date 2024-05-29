@@ -1,4 +1,8 @@
 from django.db import models
+from django.core.cache import cache
+from django.core.validators import MaxValueValidator, MinValueValidator
+
+from boranga import settings
 
 
 class GeoserverUrl(models.Model):
@@ -48,6 +52,18 @@ class TileLayer(models.Model):
     disabled = models.BooleanField(
         default=False
     )  # Whether the layer is disabled and won't be used by the map component
+    min_zoom = models.PositiveIntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(21)],
+        null=False,
+        blank=False,
+    )  # Minimum zoom level at which the layer is visible
+    max_zoom = models.PositiveIntegerField(
+        default=21,
+        validators=[MinValueValidator(0), MaxValueValidator(21)],
+        null=False,
+        blank=False,
+    )  # Maximum zoom level at which the layer is visible
 
     class Meta:
         app_label = "boranga"
@@ -69,6 +85,32 @@ class TileLayer(models.Model):
     def __str__(self):
         return self.layer_name
 
-    # @property
-    # def layer_url(self):
-    #     return f"{self.geoserver_url.url}/{self.layer_name}"
+    def save(self, *args, **kwargs):
+        # Clear the cache for the proxy layer data
+        cache_key = settings.CACHE_KEY_PROXY_LAYER_DATA.format(
+            app_label="boranga", model_name="tilelayer"
+        )
+        cache.delete(cache_key)
+
+        super().save(*args, **kwargs)
+
+
+class Proxy(models.Model):
+    request_path = models.CharField(max_length=255)
+    proxy_url = models.CharField(max_length=255)
+    basic_auth_enabled = models.BooleanField(default=False)
+    username = models.CharField(max_length=255, blank=False)
+    password = models.CharField(max_length=255, blank=False)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        app_label = "boranga"
+        ordering = ["request_path"]
+        verbose_name = "Proxy"
+        verbose_name_plural = "Proxies"
+
+    def save(self, *args, **kwargs):
+        if self.basic_auth_enabled:
+            if self.username == "" or self.password == "":
+                raise ValueError("Username and password are required for basic auth")
+        super().save(*args, **kwargs)
