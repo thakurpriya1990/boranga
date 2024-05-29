@@ -113,4 +113,10 @@ class Proxy(models.Model):
         if self.basic_auth_enabled:
             if self.username == "" or self.password == "":
                 raise ValueError("Username and password are required for basic auth")
+
+        # Clear the cache for the proxy data
+        cache_key = settings.CACHE_KEY_PROXY_NODE_DATA.format(
+            request_path=self.request_path
+        )
+        cache.delete(cache_key)
         super().save(*args, **kwargs)

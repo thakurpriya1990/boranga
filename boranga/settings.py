@@ -347,6 +347,7 @@ ACTION_DESTROY = "Destroy {} {}"
 
 CACHE_KEY_EPSG_CODES = "epsg-codes-{auth_name}-{pj_type}-{codes}"
 CACHE_KEY_PROXY_LAYER_DATA = "proxy-layer-data-{app_label}-{model_name}"
+CACHE_KEY_PROXY_NODE_DATA = "proxy-node-data-{request_path}"
 
 # ---------- Conservation Change Codes ----------
 

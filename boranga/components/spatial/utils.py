@@ -1,12 +1,37 @@
 from django.apps import apps
 from django.views.decorators.csrf import csrf_exempt
+from django.core.cache import cache
 
 from boranga import settings
+from boranga.components.spatial.models import Proxy
+from boranga.helpers import is_internal
+
+
+def proxy_object(request_path):
+    cache_key = settings.CACHE_KEY_PROXY_NODE_DATA.format(request_path=request_path)
+    proxy_dict = cache.get(cache_key)
+
+    if not proxy_dict:
+        try:
+            proxy = Proxy.objects.get(
+                active=True,
+                request_path=request_path,
+            )
+        except Proxy.DoesNotExist:
+            raise
+        else:
+            proxy_dict = {
+                "proxy_url": proxy.proxy_url,
+                "basic_auth_enabled": proxy.basic_auth_enabled,
+                "username": proxy.username,
+                "password": proxy.password,
+            }
+            cache.set(cache_key, proxy_dict, 86400)
+
+    return proxy_dict
 
 
 def get_proxy_cache(app_label, model_name):
-    from django.core.cache import cache
-
     cache_key = settings.CACHE_KEY_PROXY_LAYER_DATA.format(
         app_label=app_label, model_name=model_name
     )
@@ -17,7 +42,14 @@ def get_proxy_cache(app_label, model_name):
         proxy_cache_query = apps.get_model(app_label, model_name).objects.all()
 
         for pr in proxy_cache_query:
-            proxy_cache_array.append({"layer_name": pr.layer_name, "cache_expiry": 300})
+            proxy_cache_array.append(
+                {
+                    "layer_name": pr.layer_name,
+                    "cache_expiry": 300,
+                    "is_external": pr.is_external,
+                    "is_internal": pr.is_internal,
+                }
+            )
 
         cache.set(cache_key, proxy_cache_array, 86400)
     else:
@@ -42,6 +74,15 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
         query_string_remote_url = remoteurl + "?" + queryString
 
         cache_times_strings = get_proxy_cache("boranga", "tilelayer")
+        if is_internal(request):
+            cache_times_strings = [
+                cts for cts in cache_times_strings if cts["is_internal"] is True
+            ]
+        else:
+            cache_times_strings = [
+                cts for cts in cache_times_strings if cts["is_external"] is True
+            ]
+
         CACHE_EXPIRY = 300
         layer_allowed = False
 
@@ -65,6 +106,10 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
                 else:
                     auth_details = {"user": auth_user, "password": auth_password}
                 proxy_response = proxy_view(request, remoteurl, basic_auth=auth_details)
+
+                # if not is_internal(request):
+                #     raise ValidationError("User is not an internal user")
+
                 proxy_response_content_encoded = base64.b64encode(
                     proxy_response.content
                 )
