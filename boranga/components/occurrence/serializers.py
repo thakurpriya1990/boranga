@@ -2559,9 +2559,9 @@ class ListOCCMinimalSerializer(serializers.ModelSerializer):
     processing_status_display = serializers.CharField(
         read_only=True, source="get_processing_status_display"
     )
-    lodgement_date_display = serializers.DateTimeField(
-        read_only=True, format="%d/%m/%Y", source="lodgement_date"
-    )
+    # lodgement_date_display = serializers.DateTimeField(
+    #     read_only=True, format="%d/%m/%Y", source="lodgement_date"
+    # )
     details_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -2573,8 +2573,8 @@ class ListOCCMinimalSerializer(serializers.ModelSerializer):
             "processing_status",
             "processing_status_display",
             "occ_geometry",
-            "lodgement_date",
-            "lodgement_date_display",
+            # "lodgement_date",
+            # "lodgement_date_display",
             "details_url",
         )
 
@@ -2585,16 +2585,19 @@ class ListOCCMinimalSerializer(serializers.ModelSerializer):
         request = self.context["request"]
 
         if request.user.is_authenticated:
+            # TODO: Don't have these url names yet
             if is_internal(request):
-                return reverse(
-                    "internal-occurrence-detail",
-                    kwargs={"occurrence_pk": obj.id},
-                )
+                return f"{obj.id}"
+                # return reverse(
+                #     "internal-occurrence-detail",
+                #     kwargs={"occurrence_pk": obj.id},
+                # )
             else:
-                return reverse(
-                    "external-occurrence-detail",
-                    kwargs={"occurrence_pk": obj.id},
-                )
+                return None
+                # return reverse(
+                #     "external-occurrence-detail",
+                #     kwargs={"occurrence_pk": obj.id},
+                # )
 
         return None
 

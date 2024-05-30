@@ -1311,27 +1311,6 @@ export default {
             default: null,
         },
         /**
-         * Ids of proposals to be fetched by the map component and displayed on the map.
-         * Negative values fetch no proposals
-         * Positive values fetch proposals with those ids
-         * Empty list `[]` fetches all proposals
-         */
-        proposalIds: {
-            type: Array,
-            required: false,
-            default() {
-                return [];
-            },
-        },
-        /**
-         * The string name of the layer to add proposalId's proposals to
-         */
-        proposalIdsLayer: {
-            type: String,
-            required: false,
-            default: null,
-        },
-        /**
          * A geojson feature collection of features (possibvly related to the context) to display on the map.
          */
         featureCollection: {
@@ -1541,7 +1520,7 @@ export default {
             type: Array,
             required: false,
             default: () => {
-                return [{ key: 4326, value: 'WGS 84' }];
+                return [{ id: 4326, value: 'EPSG:4326 - WGS 84' }];
             },
         },
         mapSrid: {
@@ -1577,11 +1556,16 @@ export default {
             required: false,
             default: function () {
                 return {
-                    name: 'query_layer',
+                    name: 'query_layer', // The name of the layer by which is determined to add proposalId's proposals to
                     title: 'Query Layer',
                     default: true, // The default layer where in most cases features are added to
                     processed: true, // The layer where processed geometries are added to
                     can_edit: true,
+                    api_url: null, // The API endpoint to fetch features from
+                    ids: [], //Ids of proposals to be fetched by the map component and displayed on the map.
+                    //  Negative values fetch no proposals
+                    //  Positive values fetch proposals with those ids
+                    //  Empty list `[]` fetches all proposals
                 };
             },
         },
@@ -1988,27 +1972,51 @@ export default {
         },
     },
     created: function () {
-        console.log('created()');
-
         let initialisers = [
+            // Query Layer
+            this.fetchProposals(
+                this,
+                this.queryLayerDefinition.api_url,
+                this.queryLayerDefinition.ids
+            ),
+            // Tile Layers
             this.fetchTileLayers(this, this.tileLayerApiUrl),
-            this.fetchProposals(this, this.proposalApiUrl),
         ];
-        Promise.all(initialisers).then((initialised) => {
-            const proposals = this.initialiseProposals(initialised[1]);
-            const baseLayers = this.initialiseBaseLayers(initialised[0]);
-            this.createMap(baseLayers);
-            this.addTileLayers();
-            this.initialiseMap();
-            this.loadMapFeatures(proposals, this.proposalIdsLayer);
+        // Addional Layers
+        const additionalInitialisers = [];
+        for (let layerDef of this.additionalLayersDefinitions) {
+            additionalInitialisers.push(
+                this.fetchProposals(this, layerDef.api_url, layerDef.ids)
+            );
+        }
+        Promise.all([...initialisers, ...additionalInitialisers]).then(
+            (initialised) => {
+                const proposals = this.initialiseProposals(initialised.shift()); // pop first element
+                const baseLayers = this.initialiseBaseLayers(
+                    initialised.shift()
+                );
+                this.createMap(baseLayers);
+                this.addTileLayers();
+                this.initialiseMap();
+                // Query Layer
+                this.loadMapFeatures(proposals, this.queryLayerDefinition.name);
+                // TODO:
+                for (let i = 0; i < initialised.length; i++) {
+                    const layerDef = this.additionalLayersDefinitions[i];
+                    const proposals = this.initialiseProposals(initialised[i]);
+                    this.loadMapFeatures(proposals, layerDef.name);
+                }
 
-            console.log('Done fetching initilisation data');
-        });
+                console.log('Done fetching map initilisation data');
+            }
+        );
 
         this.selectedSpatialOperation =
             this.spatialOperationsAvailable.length == 0
                 ? null
                 : this.spatialOperationsAvailable[0].id;
+
+        console.log('Map created');
     },
     mounted: function () {
         console.log('mounted()');
@@ -3706,7 +3714,14 @@ export default {
             // Remove all features from the layer
             vm.layerSources[vm.defaultQueryLayerName].clear();
             proposals.forEach(function (proposal) {
-                proposal.ocr_geometry.features.forEach(function (featureData) {
+                const geometry = proposal.ocr_geometry || proposal.occ_geometry;
+                if (!geometry) {
+                    console.warn(
+                        `Proposal ${proposal.id} has no geometry. Skipping...`
+                    );
+                    return;
+                }
+                geometry.features.forEach(function (featureData) {
                     if (!featureData.geometry) {
                         console.warn(
                             `Feature ${featureData.id} has no geometry. Skipping...`

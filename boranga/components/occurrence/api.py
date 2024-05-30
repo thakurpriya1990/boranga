@@ -4,6 +4,7 @@ from datetime import datetime, time
 from io import BytesIO
 
 import pandas as pd
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import CharField, Q, Value
 from django.db.models.functions import Concat
@@ -23,6 +24,7 @@ from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 
+from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
@@ -100,6 +102,7 @@ from boranga.components.occurrence.serializers import (
     ListInternalOccurrenceReportSerializer,
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
+    ListOCCMinimalSerializer,
     ListOCRReportMinimalSerializer,
     OCCConservationThreatSerializer,
     OccurrenceDocumentSerializer,
@@ -1587,7 +1590,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
     @list_route(methods=["GET"], detail=False)
     def list_for_map(self, request, *args, **kwargs):
         """Returns the proposals for the map"""
-        proposal_ids = [
+        occurrence_report_ids = [
             int(id)
             for id in request.query_params.get("proposal_ids", "").split(",")
             if id.lstrip("-").isnumeric()
@@ -1595,9 +1598,8 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         # application_type = request.query_params.get("application_type", None)
         # processing_status = request.query_params.get("processing_status", None)
 
-        # cache_key = settings.CACHE_KEY_MAP_PROPOSALS
-        # qs = cache.get(cache_key)
-        # priya added qs=None as we don't have cache data yet
+        cache_key = settings.CACHE_KEY_MAP_OCCURRENCE_REPORTS
+        qs = cache.get(cache_key)
         qs = None
         if qs is None:
             qs = (
@@ -1605,10 +1607,10 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
                 .exclude(ocr_geometry__isnull=True)
                 .prefetch_related("ocr_geometry")
             )
-            # cache.set(cache_key, qs, settings.CACHE_TIMEOUT_2_HOURS)
+            cache.set(cache_key, qs, settings.CACHE_TIMEOUT_2_HOURS)
 
-        if len(proposal_ids) > 0:
-            qs = qs.filter(id__in=proposal_ids)
+        if len(occurrence_report_ids) > 0:
+            qs = qs.filter(id__in=occurrence_report_ids)
 
         # if (
         #     application_type
@@ -4487,6 +4489,33 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
+
+    @list_route(methods=["GET"], detail=False)
+    def list_for_map(self, request, *args, **kwargs):
+        request.query_params
+        occurrence_ids = [
+            int(id)
+            for id in request.query_params.get("proposal_ids", "").split(",")
+            if id.lstrip("-").isnumeric()
+        ]
+
+        cache_key = settings.CACHE_KEY_MAP_OCCURRENCES
+        qs = cache.get(cache_key)
+        if qs is None:
+            qs = (
+                self.get_queryset()
+                .exclude(occ_geometry__isnull=True)
+                .prefetch_related("occ_geometry")
+            )
+            cache.set(cache_key, qs, settings.CACHE_TIMEOUT_2_HOURS)
+
+        if len(occurrence_ids) > 0:
+            qs = qs.filter(id__in=occurrence_ids)
+
+        serializer = ListOCCMinimalSerializer(
+            qs, context={"request": request}, many=True
+        )
+        return Response(serializer.data)
 
 
 class OccurrenceReportReferralViewSet(

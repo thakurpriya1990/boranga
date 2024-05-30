@@ -87,6 +87,7 @@ def save_ocr_geometry(request, instance, geometry_data):
         for geom in geoms:
 
             # TODO:
+            # from boranga.components.spatial.models import TileLayer
             # from shapely.geometry import Point
             # g = Point(geom[0].y, geom[0].x)
 

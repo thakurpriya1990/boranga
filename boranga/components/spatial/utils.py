@@ -26,7 +26,7 @@ def proxy_object(request_path):
                 "username": proxy.username,
                 "password": proxy.password,
             }
-            cache.set(cache_key, proxy_dict, 86400)
+            cache.set(cache_key, proxy_dict, settings.CACHE_TIMEOUT_24_HOURS)
 
     return proxy_dict
 
@@ -51,7 +51,7 @@ def get_proxy_cache(app_label, model_name):
                 }
             )
 
-        cache.set(cache_key, proxy_cache_array, 86400)
+        cache.set(cache_key, proxy_cache_array, settings.CACHE_TIMEOUT_24_HOURS)
     else:
         proxy_cache_array = proxy_cache_dumped_data
 

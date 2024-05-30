@@ -6,15 +6,12 @@
             label="Location"
             Index="occurrence_report_location"
         >
-
-            <!--  -->
             <div class="row mb-3">
                 <MapComponent
                     ref="component_map"
                     :key="componentMapKey"
                     class="me-3"
                     :context="occurrence_report_obj"
-                    :proposal-ids="[occurrence_report_obj.id]"
                     :is_external="is_external"
                     :point-features-supported="true"
                     :polygon-features-supported="isFauna == false"
@@ -30,12 +27,13 @@
                     :selectable="true"
                     :coordinate-reference-systems="coordinateReferenceSystems"
                     :tile-layer-api-url="tileLayerApiUrl"
-                    :proposal-api-url="proposalApiUrl"
                     :query-layer-definition="{
                         name: 'query_layer',
                         title: 'Occurrence Report',
                         default: true,
                         can_edit: true,
+                        api_url: proposalApiUrl,
+                        ids: [occurrence_report_obj.id],
                     }"
                     @validate-feature="validateFeature.bind(this)()"
                     @refreshFromResponse="refreshFromResponse"
