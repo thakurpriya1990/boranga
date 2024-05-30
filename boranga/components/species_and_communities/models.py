@@ -302,7 +302,7 @@ class Taxonomy(models.Model):
         return str(self.scientific_name)  # TODO: is the most appropriate?
 
     def save(self, *args, **kwargs):
-        cache.delete("get_taxonomy_data")
+        cache.delete(settings.CACHE_KEY_TAXONOMIES)
         self.full_clean()
         super().save(*args, **kwargs)
 

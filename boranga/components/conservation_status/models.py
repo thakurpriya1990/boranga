@@ -37,6 +37,7 @@ from boranga.components.species_and_communities.models import (
     DocumentSubCategory,
     GroupType,
     Species,
+    Taxonomy,
 )
 from boranga.components.users.models import SubmitterInformation
 from boranga.helpers import (
@@ -444,6 +445,14 @@ class ConservationStatus(RevisionedMixin):
         default=APPLICATION_TYPE_CHOICES[0][0],
     )
 
+    species_taxonomy = models.ForeignKey(
+        Taxonomy,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="conservation_statuses",
+    )
+
     # species related conservation status
     species = models.ForeignKey(
         Species,
@@ -624,6 +633,7 @@ class ConservationStatus(RevisionedMixin):
             self.save(*args, **kwargs)
         else:
             self.create_submitter_information()
+            self.assign_or_create_species()
             super().save(*args, **kwargs)
 
     def create_submitter_information(self):
@@ -644,6 +654,20 @@ class ConservationStatus(RevisionedMixin):
             contact_details=contact_details,
         )
         self.submitter_information = submitter_information
+
+    def assign_or_create_species(self):
+        if not self.species_taxonomy or self.species:
+            return
+
+        species = Species.objects.filter(
+            taxonomy=self.species_taxonomy,
+        ).first()
+        if not species:
+            species = Species.objects.create(
+                taxonomy=self.species_taxonomy,
+                group_type=self.species_taxonomy.kingdom_fk.grouptype,
+            )
+        self.species = species
 
     @property
     def reference(self):
