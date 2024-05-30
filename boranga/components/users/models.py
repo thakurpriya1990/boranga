@@ -23,12 +23,14 @@ class SubmitterCategory(models.Model):
 
 
 class SubmitterInformation(models.Model):
-    email_user = models.IntegerField()
+    email_user = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     contact_details = models.TextField(blank=True, null=True)
     organisation = models.CharField(max_length=100, blank=True, null=True)
     position = models.CharField(max_length=100, blank=True, null=True)
-    submitter_category = models.ForeignKey(SubmitterCategory, on_delete=models.PROTECT)
+    submitter_category = models.ForeignKey(
+        SubmitterCategory, on_delete=models.PROTECT, blank=True, null=True
+    )
 
     class Meta:
         app_label = "boranga"

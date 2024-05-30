@@ -317,6 +317,9 @@ export default {
                     blank_fields.push(' Community Name is required')
                 }
             }
+            if(!vm.conservation_status_obj.submitter_information.submitter_category){
+                blank_fields.push(' Please select a submitter category')
+            }
             if (check_action == "submit" && (vm.conservation_status_obj.species_id || vm.conservation_status_obj.community_id)) {
                 vm.validateConservationStatusListsCategories(blank_fields)
                 if (vm.conservation_status_obj.comment == null || vm.conservation_status_obj.comment == '') {
@@ -335,7 +338,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -350,7 +355,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: vm.submit_text(),
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     let result = await vm.save_before_submit()
@@ -372,8 +381,12 @@ export default {
                             });
                         });
                     }
+                } else {
+                    vm.submitting = false;
+                    vm.paySubmitting = false;
                 }
             }, (error) => {
+                vm.submitting = true;
                 vm.paySubmitting = false;
             });
         },

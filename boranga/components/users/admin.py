@@ -8,7 +8,7 @@ class SubmitterCategoryAdmin(admin.ModelAdmin):
 
 
 class SubmitterInformationAdmin(admin.ModelAdmin):
-    list_display = ("email_user", "organisation", "position", "submitter_category")
+    list_display = ("name", "organisation", "position", "submitter_category")
 
 
 class ExternalContributorBlacklistAdmin(admin.ModelAdmin):
