@@ -1,182 +1,249 @@
 [
     {
-        "model": "boranga.district",
         "pk": 1,
+        "model": "boranga.region",
         "fields": {
-            "name": "GOLDFIELDS REGION",
-            "code": null,
-            "region": 1
+            "name": "Goldfields"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 2,
+        "model": "boranga.region",
         "fields": {
-            "name": "EAST KIMBERLEY",
-            "code": "EKM",
-            "region": 2
+            "name": "Kimberley"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 3,
+        "model": "boranga.region",
         "fields": {
-            "name": "WEST KIMBERLEY",
-            "code": "WKM",
-            "region": 2
+            "name": "Midwest"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 4,
+        "model": "boranga.region",
         "fields": {
-            "name": "GERALDTON",
-            "code": "GER",
-            "region": 3
+            "name": "Pilbara"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 5,
+        "model": "boranga.region",
         "fields": {
-            "name": "MOORA",
-            "code": "MOR",
-            "region": 3
+            "name": "South Coast"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 6,
+        "model": "boranga.region",
         "fields": {
-            "name": "SHARK BAY",
-            "code": "SHB",
-            "region": 3
+            "name": "South West",
+            "forest_region": true
         }
     },
     {
-        "model": "boranga.district",
         "pk": 7,
+        "model": "boranga.region",
         "fields": {
-            "name": "EXMOUTH",
-            "code": "EXM",
-            "region": 4
+            "name": "Swan",
+            "forest_region": true
         }
     },
     {
-        "model": "boranga.district",
         "pk": 8,
+        "model": "boranga.region",
         "fields": {
-            "name": "PILBARA REGION",
-            "code": "PIL",
-            "region": 4
+            "name": "Warren",
+            "forest_region": true
         }
     },
     {
-        "model": "boranga.district",
         "pk": 9,
+        "model": "boranga.region",
         "fields": {
-            "name": "ALBANY",
+            "name": "Wheatbelt"
+        }
+    },
+    
+    {
+        "pk": 1,
+        "model": "boranga.district",
+        "fields": {
+            "archive_date": null,
+            "region": 1,
+            "code": "GLD",
+            "name": "Goldfields Region"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "boranga.district",
+        "fields": {
+            "archive_date": null,
+            "region": 2,
+            "code": "EKM",
+            "name": "East Kimberley"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "boranga.district",
+        "fields": {
+            "archive_date": null,
+            "region": 2,
+            "code": "WKM",
+            "name": "West Kimberley"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "boranga.district",
+        "fields": {
+            "archive_date": null,
+            "region": 3,
+            "code": "GER",
+            "name": "Geraldton"
+        }
+    },
+    {
+        "pk": 5,
+        "model": "boranga.district",
+        "fields": {
+            "archive_date": null,
+            "region": 3,
+            "code": "MOR",
+            "name": "Moora"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "boranga.district",
+        "fields": {
+            "archive_date": null,
+            "region": 3,
+            "code": "SHB",
+            "name": "Shark Bay"
+        }
+    },
+    {
+        "pk": 7,
+        "model": "boranga.district",
+        "fields": {
+            "archive_date": null,
+            "region": 4,
+            "code": "EXM",
+            "name": "Exmouth"
+        }
+    },
+    {
+        "pk": 8,
+        "model": "boranga.district",
+        "fields": {
+            "archive_date": null,
+            "region": 4,
+            "code": "PIL",
+            "name": "Pilbara Region"
+        }
+    },
+    {
+        "pk": 9,
+        "model": "boranga.district",
+        "fields": {
+            "archive_date": null,
+            "region": 5,
             "code": "ALB",
-            "region": 5
+            "name": "Albany"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 10,
+        "model": "boranga.district",
         "fields": {
-            "name": "ESPERANCE",
+            "archive_date": null,
+            "region": 5,
             "code": "ESP",
-            "region": 5
+            "name": "Esperance"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 11,
+        "model": "boranga.district",
         "fields": {
-            "name": "BLACKWOOD",
+            "archive_date": null,
+            "region": 6,
             "code": "BWD",
-            "region": 6
+            "name": "Blackwood"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 12,
+        "model": "boranga.district",
         "fields": {
-            "name": "WELLINGTON",
+            "archive_date": null,
+            "region": 6,
             "code": "WTN",
-            "region": 6
+            "name": "Wellington"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 13,
+        "model": "boranga.district",
         "fields": {
-            "name": "PERTH HILLS",
+            "archive_date": null,
+            "region": 7,
             "code": "PHS",
-            "region": 7
+            "name": "Perth Hills"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 14,
+        "model": "boranga.district",
         "fields": {
-            "name": "SWAN COASTAL",
+            "archive_date": null,
+            "region": 7,
             "code": "SWC",
-            "region": 7
+            "name": "Swan Coastal"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 15,
+        "model": "boranga.district",
         "fields": {
-            "name": "DONNELLY",
+            "archive_date": null,
+            "region": 8,
             "code": "DON",
-            "region": 8
+            "name": "Donnelly"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 16,
+        "model": "boranga.district",
         "fields": {
-            "name": "FRANKLAND",
+            "archive_date": null,
+            "region": 8,
             "code": "FRK",
-            "region": 8
+            "name": "Frankland"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 17,
+        "model": "boranga.district",
         "fields": {
-            "name": "CENTRAL WHEATBELT",
+            "archive_date": null,
+            "region": 9,
             "code": "CWB",
-            "region": 9
+            "name": "Central Wheatbelt"
         }
     },
     {
-        "model": "boranga.district",
         "pk": 18,
-        "fields": {
-            "name": "WHEATBELT REGION",
-            "code": null,
-            "region": 9
-        }
-    },
-    {
         "model": "boranga.district",
-        "pk": 20,
         "fields": {
-            "name": "TURQUOISE COAST",
-            "code": null,
-            "region": 3
-        }
-    },
-    {
-        "model": "boranga.district",
-        "pk": 22,
-        "fields": {
-            "name": "MURCHISON",
-            "code": null,
-            "region": 3
+            "archive_date": null,
+            "region": 9,
+            "code": "SWB",
+            "name": "Wheatbelt Region"
         }
     }
 ]
