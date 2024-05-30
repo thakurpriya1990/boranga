@@ -79,9 +79,24 @@ export async function fetchTileLayers(map_component, tileLayerApiUrl) {
     return tileLayers;
 }
 
-export async function fetchProposals(map_component, proposalApiUrl) {
+/**
+ * Returns proposal objects by ID from an API endpoint
+ * @param {Object} map_component The map component instance
+ * @param {String} proposalApiUrl The URL to the proposal API
+ * @param {Array} proposalIds An array of proposal IDs to fetch
+ * @returns Proposal objects
+ */
+export async function fetchProposals(
+    map_component,
+    proposalApiUrl,
+    proposalIds
+) {
     if (!proposalApiUrl) {
         console.error('No proposal API URL provided');
+        return [];
+    }
+    if (!proposalIds) {
+        console.error('No proposal IDs provided');
         return [];
     }
     map_component.fetchingProposals = true;
@@ -90,10 +105,8 @@ export async function fetchProposals(map_component, proposalApiUrl) {
     let chars = ['&', '&', '?'];
     let proposals = [];
 
-    if (map_component.proposalIds.length > 0) {
-        url +=
-            `${chars.pop()}proposal_ids=` +
-            map_component.proposalIds.toString();
+    if (proposalIds.length > 0) {
+        url += `${chars.pop()}proposal_ids=` + proposalIds.toString();
     }
     await fetch(url)
         .then(async (response) => {

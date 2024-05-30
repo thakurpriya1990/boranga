@@ -11,8 +11,6 @@
                     :key="componentMapKey"
                     class="me-3"
                     :context="occurrence_obj"
-                    :proposal-ids="occurrenceReportIds"
-                    :proposal-ids-layer="'query_layer'"
                     :is_external="false"
                     :point-features-supported="true"
                     :polygon-features-supported="true"
@@ -28,12 +26,13 @@
                     :coordinate-reference-systems="coordinateReferenceSystems"
                     :spatial-operations-allowed="['__all__']"
                     :tile-layer-api-url="tileLayerApiUrl"
-                    :proposal-api-url="proposalApiUrl"
                     :query-layer-definition="{
                         name: 'query_layer',
                         title: 'Occurrence Reports',
                         default: false,
                         can_edit: true,
+                        api_url: ocrApiUrl,
+                        ids: occurrenceReportIds,
                     }"
                     :additional-layers-definitions="[
                         {
@@ -42,6 +41,8 @@
                             default: true,
                             processed: true,
                             can_edit: true,
+                            api_url: occApiUrl,
+                            ids: [occurrence_obj.id],
                         },
                     ]"
                     @crs-select-search="searchForCRS"
@@ -355,8 +356,11 @@ export default {
         tileLayerApiUrl: function () {
             return api_endpoints.tile_layer;
         },
-        proposalApiUrl: function () {
+        ocrApiUrl: function () {
             return api_endpoints.occurrence_report + '/list_for_map/';
+        },
+        occApiUrl: function () {
+            return api_endpoints.occurrence + 'list_for_map/';
         },
         isReadOnly: function(){
             //override for split reports
