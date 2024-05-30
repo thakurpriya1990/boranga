@@ -14,7 +14,7 @@ from django.db.models import Q
 from django.utils import timezone
 import requests
 
-from boranga.components.main.spatial_utils import feature_json_to_geosgeometry
+from boranga.components.spatial.utils import feature_json_to_geosgeometry
 from boranga.components.occurrence.email import (
     send_external_submit_email_notification,
     send_submit_email_notification,

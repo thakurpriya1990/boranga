@@ -28,7 +28,7 @@ from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
-from boranga.components.main.spatial_utils import (
+from boranga.components.spatial.utils import (
     spatially_process_geometry,
     transform_json_geometry,
 )
