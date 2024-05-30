@@ -35,7 +35,7 @@
                     </SpeciesStatus>
                     <SubmitterInformation v-if="conservation_status_obj.submitter_information" :key="reloadcount"
                         ref="submitter_information" id="submitter_information"
-                        :submitter_information="conservation_status_obj.submitter_information" :disabled="is_internal" />
+                        :submitter_information="conservation_status_obj.submitter_information" :disabled="!conservation_status_obj.can_user_edit" />
                 </div>
                 <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
                     <CSDocuments :key="reloadcount" ref="cs_documents" id="csDocuments" :is_internal="is_internal"
