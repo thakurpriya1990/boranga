@@ -31,6 +31,8 @@ from boranga.components.species_and_communities.models import (
     SpeciesUserAction,
     Taxonomy,
     TaxonVernacular,
+    District,
+    Region,
 )
 from boranga.helpers import is_internal, is_species_communities_approver
 from boranga.ledger_api_utils import retrieve_email_user
@@ -1701,3 +1703,15 @@ class CommunityUserActionSerializer(serializers.ModelSerializer):
         email_user = retrieve_email_user(community_user_action.who)
         fullname = email_user.get_full_name()
         return fullname
+
+class DistrictSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = District
+        fields = ('id', 'name', 'code')
+
+
+class RegionSerializer(serializers.ModelSerializer):
+    districts = DistrictSerializer(many=True)
+    class Meta:
+        model = Region
+        fields = ('id', 'name', 'forest_region', 'districts')

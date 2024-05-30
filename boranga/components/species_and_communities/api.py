@@ -106,6 +106,8 @@ from boranga.components.species_and_communities.serializers import (
     SpeciesSerializer,
     SpeciesUserActionSerializer,
     TaxonomySerializer,
+    RegionSerializer,
+    DistrictSerializer,
 )
 from boranga.components.species_and_communities.utils import (
     combine_species_original_submit,
@@ -2784,3 +2786,12 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = District.objects.all().order_by('id')
+    serializer_class = DistrictSerializer
+
+
+class RegionViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Region.objects.order_by('id')
+    serializer_class = RegionSerializer
