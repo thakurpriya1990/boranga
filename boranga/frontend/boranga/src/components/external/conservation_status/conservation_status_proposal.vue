@@ -282,9 +282,6 @@ export default {
             let required_fields = [
                 { 'id': 'wa_legislative_list_id', 'display': 'WA Legislative List' },
                 { 'id': 'wa_priority_list_id', 'display': 'WA Priority List' },
-                { 'id': 'commonwealth_conservation_list', 'display': 'Commonwealth Conservation List' },
-                { 'id': 'international_conservation', 'display': 'International Conservation' },
-                { 'id': 'conservation_criteria', 'display': 'Conservation Criteria' },
             ];
             for (let field of required_fields) {
                 if (this.conservation_status_obj[field.id] != null && this.conservation_status_obj[field.id] != '') {
