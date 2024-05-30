@@ -49,6 +49,7 @@ def update_community_comms_log_filename(instance, filename):
 
 class Region(models.Model):
     name = models.CharField(unique=True, default=None, max_length=200)
+    forest_region = models.BooleanField(default=False)
 
     class Meta:
         app_label = "boranga"
@@ -62,6 +63,7 @@ class District(models.Model):
     name = models.CharField(unique=True, max_length=200)
     code = models.CharField(unique=True, max_length=3, null=True)
     region = models.ForeignKey(Region, on_delete=models.CASCADE , related_name='districts')
+    archive_date = models.DateField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
