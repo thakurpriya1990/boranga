@@ -5,11 +5,12 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import path, re_path
 from ledger_api_client.urls import urlpatterns as ledger_patterns
 from rest_framework import routers
 
 from boranga import views
+from boranga.components.spatial import views as spatial_views
 from boranga.admin import admin
 from boranga.components.conservation_status import api as conservation_status_api
 from boranga.components.history import api as history_api
@@ -395,6 +396,8 @@ urlpatterns = [
         views.InternalOccurrenceReportReferralView.as_view(),
         name="internal-occurrence-report-referral-detail",
     ),
+    # url(f"{settings.BASIC_AUTH_PROXY_PREFIX}(?P<request_path>.*)", spatial_views.mapProxyView),
+    re_path('geoproxy/(?P<request_path>[A-Za-z0-9-]+)/(?P<path>.*)', spatial_views.mapProxyView),
     urls.path("sentry-debug/", trigger_error),
 ] + ledger_patterns
 

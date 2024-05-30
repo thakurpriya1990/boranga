@@ -56,7 +56,7 @@ GROUP_NAME_READONLY_USER = "Read Only Users"
 
 GROUP_NAME_SPECIES_COMMUNITIES_APPROVER = "Species and Communities Approvers"
 
-GROUP_NAME_CHOICES = (
+GROUP_NAME_CHOICES = [
     DJANGO_ADMIN_GROUP,
     GROUP_NAME_CONSERVATION_STATUS_ASSESSOR,
     GROUP_NAME_CONSERVATION_STATUS_APPROVER,
@@ -66,7 +66,11 @@ GROUP_NAME_CHOICES = (
     GROUP_NAME_OCCURRENCE_ASSESSOR,
     GROUP_NAME_READONLY_USER,
     GROUP_NAME_SPECIES_COMMUNITIES_APPROVER,
-)
+]
+
+INTERNAL_GROUPS = [
+    g for g in GROUP_NAME_CHOICES if g != GROUP_NAME_EXTERNAL_CONTRIBUTOR
+]
 
 if env("CONSOLE_EMAIL_BACKEND", False):
     EMAIL_BACKEND = "wagov_utils.components.utils.email_backend.EmailBackend"
@@ -220,7 +224,6 @@ if not VALID_SYSTEMS:
 CRON_CLASSES = [
     "appmonitor_client.cron.CronJobAppMonitorClient",
     "boranga.cron.CronJobFetchNomosTaxonDataDaily",
-    "boranga.cron.CronJobDelistExpiredConservationStatus",
 ]
 
 
@@ -322,6 +325,9 @@ GIS_SERVER_URL = env(
     "GIS_SERVER_URL", "https://kaartdijin-boodja-geoserver.dbca.wa.gov.au/geoserver/ows"
 )
 
+# Proxy prefix for basic authentication
+BASIC_AUTH_PROXY_PREFIX = env("BASIC_AUTH_PROXY_PREFIX", "kb-proxy/")
+
 # ---------- Identifier fields for logging ----------
 
 """ Fields that the logging functions will check for on the instance
@@ -343,6 +349,8 @@ ACTION_DESTROY = "Destroy {} {}"
 # ---------- Cache keys ----------
 
 CACHE_KEY_EPSG_CODES = "epsg-codes-{auth_name}-{pj_type}-{codes}"
+CACHE_KEY_PROXY_LAYER_DATA = "proxy-layer-data-{app_label}-{model_name}"
+CACHE_KEY_PROXY_NODE_DATA = "proxy-node-data-{request_path}"
 
 # ---------- Conservation Change Codes ----------
 
