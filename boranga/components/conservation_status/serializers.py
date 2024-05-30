@@ -18,6 +18,7 @@ from boranga.components.main.serializers import (
     EmailUserSerializer,
 )
 from boranga.components.species_and_communities.models import CommunityTaxonomy
+from boranga.components.users.serializers import SubmitterInformationSerializer
 from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
@@ -526,6 +527,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "assessor_data",
             "approval_level",
             "can_view_recommended",
+            "submitter_information",
         )
 
     def get_readonly(self, obj):
@@ -565,22 +567,17 @@ class ConservationStatusSerializer(BaseConservationStatusSerializer):
     processing_status = serializers.SerializerMethodField(read_only=True)
     review_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
+    submitter_information = SubmitterInformationSerializer(read_only=True)
 
     def get_readonly(self, obj):
         return obj.can_user_view
 
-    # Priya updated as gives error for submitter when resubmit after amendment request
     def get_submitter(self, obj):
-        # if obj.submitter:
-        #     email_user = retrieve_email_user(obj.submitter)
-        #     return email_user.get_full_name()
-        # else:
-        #     return None
         if obj.submitter:
             email_user = retrieve_email_user(obj.submitter)
             return EmailUserSerializer(email_user).data
-        else:
-            return None
+
+        return None
 
 
 class CreateConservationStatusSerializer(BaseConservationStatusSerializer):
@@ -604,7 +601,7 @@ class CreateConservationStatusSerializer(BaseConservationStatusSerializer):
 
 
 class ConservationStatusProposalReferralSerializer(serializers.ModelSerializer):
-    referral_obj = serializers.SerializerMethodField()
+    referral = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
     referral_comment = serializers.SerializerMethodField()
 
@@ -615,7 +612,7 @@ class ConservationStatusProposalReferralSerializer(serializers.ModelSerializer):
     def get_referral_comment(self, obj):
         return obj.referral_comment if obj.referral_comment else ""
 
-    def get_referral_obj(self, obj):
+    def get_referral(self, obj):
         referral_email_user = retrieve_email_user(obj.referral)
         serializer = EmailUserSerializer(referral_email_user)
         return serializer.data
@@ -685,6 +682,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     internal_application = serializers.BooleanField(read_only=True)
     current_conservation_status = CurrentConservationStatusSerializer(read_only=True)
     approver_process = serializers.SerializerMethodField(read_only=True)
+    submitter_information = SubmitterInformationSerializer(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -739,6 +737,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "is_new_contributor",
             "change_code_id",
             "current_conservation_status",
+            "submitter_information",
         )
 
     def get_submitter(self, obj):

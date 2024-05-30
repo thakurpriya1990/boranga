@@ -828,6 +828,24 @@ class OccurrenceReport(RevisionedMixin):
     def latest_referrals(self):
         return self.referrals.all()[: settings.RECENT_REFERRAL_COUNT]
 
+    def assessor_comments_view(self, request):
+        if self.processing_status in [
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+            OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+            OccurrenceReport.PROCESSING_STATUS_APPROVED,
+            OccurrenceReport.PROCESSING_STATUS_DECLINED,
+            OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
+            OccurrenceReport.PROCESSING_STATUS_CLOSED,
+        ]:
+            if OccurrenceReportReferral.objects.filter(
+                occurrence_report=self, referral=request.user.id
+            ).exists():
+                return True
+
+            return is_occurrence_assessor(request) or is_occurrence_approver(request)
+        return False
+
     @transaction.atomic
     def send_referral(self, request, referral_email, referral_text):
         referral_email = referral_email.lower()

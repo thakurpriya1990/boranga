@@ -2,7 +2,7 @@
     <div id="speciesStatus">
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
             <template v-if="!is_external">
-                <CollapsibleComponent component_title="Assessment Comments" ref="assessment-comments" :collapsed="false">
+                <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments" :collapsed="false">
                     <div class="row">
                         <div class="col rounded">
                             <div class="row" v-if="deficiencyVisibility">
@@ -27,13 +27,13 @@
                                 </div>
                             </div>
                             <div v-if="referral_comments_boxes.length > 0">
-                                <div v-for="ref in referral_comments_boxes">
+                                <div>
                                     <div class="row mt-2">
                                         <div class="col ms-3">
                                             <h6 class="text-muted">Referral Comments</h6>
                                         </div>
                                     </div>
-                                    <div class="row mb-3" v-if="ref.box_view">
+                                    <div v-for="ref in referral_comments_boxes" class="row mb-3" v-if="ref.box_view">
                                         <div class="col">
                                             <div class="form-floating m-3 mt-1">
                                                 <textarea v-if='!ref.readonly' :disabled="ref.readonly" :id="ref.name"
@@ -710,12 +710,12 @@ export default {
             var assessor_mode = this.conservation_status_obj.assessor_mode.assessor_level
             if (!this.conservation_status_obj.can_user_edit) {
                 var current_referral_present = false;
-                $.each(this.conservation_status_obj.latest_referrals, (i, v) => {
-                    var referral_name = `comment-field-Referral-${v.referral_obj.email}`;
+                $.each(this.conservation_status_obj.referrals, (i, v) => {
+                    var referral_name = `comment-field-Referral-${v.referral.email}`;
                     var referral_visibility = assessor_mode == 'referral' &&
                         this.conservation_status_obj.assessor_mode.assessor_can_assess &&
-                        this.referral.referral == v.referral_obj.id ? false : true;
-                    var referral_label = `${v.referral_obj.fullname}`;
+                        this.referral.referral == v.referral.id ? false : true;
+                    var referral_label = `${v.referral.fullname}`;
                     var referral_comment_val = `${v.referral_comment}`;
                     this.referral_comments_boxes.push(
                         {
@@ -765,7 +765,9 @@ export default {
     },
     mounted: function () {
         let vm = this;
-        vm.$refs['assessment-comments'].show_warning_icon(false);
+        if(!this.is_external && vm.$refs.assessment_comments){
+            vm.$refs.assessment_comments.show_warning_icon(false);
+        }
         vm.$nextTick(() => {
             vm.initialiseScientificNameLookup();
         });

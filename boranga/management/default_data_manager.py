@@ -6,6 +6,7 @@ from ledger_api_client.managed_models import SystemGroup
 from boranga.components.conservation_status.models import (
     CommonwealthConservationList,
     ConservationChangeCode,
+    ConservationStatus,
     WALegislativeCategory,
     WALegislativeList,
     WAPriorityCategory,
@@ -17,6 +18,12 @@ logger = logging.getLogger(__name__)
 
 class DefaultDataManager:
     def __init__(self):
+        # Make sure all conservation status records have a submitter information
+        for conservation_status in ConservationStatus.objects.filter(
+            submitter_information__isnull=True
+        ):
+            conservation_status.save(no_revision=True)
+
         for group_name in settings.GROUP_NAME_CHOICES:
             try:
                 group, created = SystemGroup.objects.get_or_create(name=group_name)

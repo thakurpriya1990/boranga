@@ -38,6 +38,7 @@ from boranga.components.species_and_communities.models import (
     GroupType,
     Species,
 )
+from boranga.components.users.models import SubmitterInformation
 from boranga.helpers import (
     belongs_to_by_user_id,
     is_conservation_status_approver,
@@ -572,6 +573,13 @@ class ConservationStatus(RevisionedMixin):
     effective_from = models.DateField(null=True, blank=True)
     effective_to = models.DateField(null=True, blank=True)
     submitter = models.IntegerField(null=True)  # EmailUserRO
+    submitter_information = models.OneToOneField(
+        SubmitterInformation,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="conservation_status",
+    )
     lodgement_date = models.DateTimeField(
         blank=True, null=True
     )  # TODO confirm if proposed date is the same or different
@@ -615,7 +623,27 @@ class ConservationStatus(RevisionedMixin):
             self.conservation_status_number = new_conservation_status_id
             self.save(*args, **kwargs)
         else:
+            self.create_submitter_information()
             super().save(*args, **kwargs)
+
+    def create_submitter_information(self):
+        if not self.submitter or self.submitter_information:
+            return
+
+        emailuser = retrieve_email_user(self.submitter)
+        contact_details = ""
+        if emailuser.mobile_number:
+            contact_details += f"Mobile: {emailuser.mobile_number}\r\n"
+        if emailuser.phone_number:
+            contact_details += f"Phone: {emailuser.phone_number}\r\n"
+        if emailuser.email:
+            contact_details += f"Email: {emailuser.email}\r\n"
+        submitter_information = SubmitterInformation.objects.create(
+            email_user=self.submitter,
+            name=emailuser.get_full_name(),
+            contact_details=contact_details,
+        )
+        self.submitter_information = submitter_information
 
     @property
     def reference(self):

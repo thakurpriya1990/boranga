@@ -10,7 +10,6 @@ from ledger_api_client.urls import urlpatterns as ledger_patterns
 from rest_framework import routers
 
 from boranga import views
-from boranga.components.spatial import views as spatial_views
 from boranga.admin import admin
 from boranga.components.conservation_status import api as conservation_status_api
 from boranga.components.history import api as history_api
@@ -18,6 +17,7 @@ from boranga.components.main import api as main_api
 from boranga.components.meetings import api as meeting_api
 from boranga.components.occurrence import api as occurrence_api
 from boranga.components.spatial import api as spatial_api
+from boranga.components.spatial import views as spatial_views
 from boranga.components.species_and_communities import api as species_communities_api
 from boranga.components.users import api as users_api
 from boranga.management.default_data_manager import DefaultDataManager
@@ -162,7 +162,17 @@ router.register(r"tile_layer", spatial_api.TileLayerViewSet, "tile_layer")
 
 api_patterns = [
     url(r"^api/profile$", users_api.GetProfile.as_view(), name="get-profile"),
+    url(
+        r"^api/save_submitter_information$",
+        users_api.SaveSubmitterInformation.as_view(),
+        name="save-submitter-information",
+    ),
     url(r"^api/countries$", users_api.GetCountries.as_view(), name="get-countries"),
+    url(
+        r"^api/submitter_categories$",
+        users_api.GetSubmitterCategories.as_view(),
+        name="get-submitter-categories",
+    ),
     url(
         r"^api/department_users$",
         users_api.DepartmentUserList.as_view(),
@@ -397,7 +407,10 @@ urlpatterns = [
         name="internal-occurrence-report-referral-detail",
     ),
     # url(f"{settings.BASIC_AUTH_PROXY_PREFIX}(?P<request_path>.*)", spatial_views.mapProxyView),
-    re_path('geoproxy/(?P<request_path>[A-Za-z0-9-]+)/(?P<path>.*)', spatial_views.mapProxyView),
+    re_path(
+        "geoproxy/(?P<request_path>[A-Za-z0-9-]+)/(?P<path>.*)",
+        spatial_views.mapProxyView,
+    ),
     urls.path("sentry-debug/", trigger_error),
 ] + ledger_patterns
 

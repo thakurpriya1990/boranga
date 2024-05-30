@@ -1,0 +1,23 @@
+[
+    {
+        "model": "boranga.submittercategory",
+        "pk": 1,
+        "fields": {
+            "name": "Consultant"
+        }
+    },
+    {
+        "model": "boranga.submittercategory",
+        "pk": 2,
+        "fields": {
+            "name": "Citizen Scientist"
+        }
+    },
+    {
+        "model": "boranga.submittercategory",
+        "pk": 3,
+        "fields": {
+            "name": "Researcher"
+        }
+    }
+]
