@@ -423,6 +423,8 @@ const _helper = {
 
             let l = new TileWMS({
                 url: layer.geoserver_url,
+                // TODO: E.g. info tool doesn't work without crossOrigin: 'anonymous', getting
+                // "Failed to execute 'getImageData' on 'CanvasRenderingContext2D': The canvas has been tainted by cross-origin data" at canvas/Layer.js::getImageData
                 // crossOrigin: 'anonymous', // Data for a image tiles can only be retrieved if the source's crossOrigin property is set (https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#getData)
                 params: {
                     FORMAT: 'image/png',
