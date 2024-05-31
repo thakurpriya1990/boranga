@@ -1640,6 +1640,12 @@ class OccurrenceReportGeometry(models.Model):
         return self.area.sq_m / 10000
 
     @property
+    def original_geometry(self):
+        if self.original_geometry_ewkb:
+            return GEOSGeometry(self.original_geometry_ewkb)
+        return None
+
+    @property
     def original_geometry_srid(self):
         if self.original_geometry_ewkb:
             return GEOSGeometry(self.original_geometry_ewkb).srid
@@ -3319,6 +3325,12 @@ class OccurrenceGeometry(models.Model):
         if not hasattr(self, "area") or not self.area:
             return None
         return self.area.sq_m / 10000
+
+    @property
+    def original_geometry(self):
+        if self.original_geometry_ewkb:
+            return GEOSGeometry(self.original_geometry_ewkb)
+        return None
 
     @property
     def original_geometry_srid(self):

@@ -28,7 +28,8 @@ from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
-from boranga.components.main.spatial_utils import (
+from boranga.components.spatial.utils import (
+    save_geometry,
     spatially_process_geometry,
     transform_json_geometry,
 )
@@ -149,8 +150,6 @@ from boranga.components.occurrence.serializers import (
 from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
     process_shapefile_document,
-    save_ocr_geometry,
-    save_occ_geometry,
     validate_map_files,
 )
 from boranga.components.species_and_communities.models import (
@@ -1293,7 +1292,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         # ocr geometry data to save seperately
         geometry_data = request.data.get("ocr_geometry")
         if geometry_data:
-            save_ocr_geometry(request, ocr_instance, geometry_data)
+            save_geometry(request, ocr_instance, geometry_data, "occurrence_report")
 
         # print(request.data.get('geojson_polygon'))
         # polygon = request.data.get('geojson_polygon')
@@ -1760,7 +1759,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         # ocr geometry data to save seperately
         geometry_data = proposal_data.get("ocr_geometry", None)
         if geometry_data:
-            save_ocr_geometry(request, instance, geometry_data)
+            save_geometry(request, instance, geometry_data, "occurrence_report")
 
         serializer = SaveOccurrenceReportSerializer(
             instance, data=proposal_data, partial=True
@@ -3917,7 +3916,7 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # occ geometry data to save seperately
         geometry_data = request_data.get("occ_geometry", None)
         if geometry_data:
-            save_occ_geometry(request, instance, geometry_data)
+            save_geometry(request, instance, geometry_data, "occurrence")
 
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -3981,7 +3980,6 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         detail=True,
     )
     def update_location_details(self, request, *args, **kwargs):
-        
         self.is_authorised_to_update()
         occ_instance = self.get_object()
 
@@ -3992,7 +3990,7 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # occ geometry data to save seperately
         geometry_data = request.data.get("occ_geometry")
         if geometry_data:
-            save_occ_geometry(request, occ_instance, geometry_data)
+            save_geometry(request, occ_instance, geometry_data, "occurrence")
 
         # the request.data is only the habitat composition data thats been sent from front end
         location_data = request.data.get("location")
