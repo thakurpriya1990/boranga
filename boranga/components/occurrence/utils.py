@@ -13,7 +13,6 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-import requests
 
 from boranga.components.spatial.utils import feature_json_to_geosgeometry
 from boranga.components.occurrence.email import (
