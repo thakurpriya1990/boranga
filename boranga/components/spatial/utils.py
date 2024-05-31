@@ -1,4 +1,6 @@
 import logging
+import re
+
 from django.apps import apps
 from django.db.models import Q
 from django.core.cache import cache
@@ -6,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_exempt
 
 from boranga import settings
-from boranga.components.spatial.models import Proxy
+from boranga.components.spatial.models import Proxy, TileLayer
 from boranga.helpers import is_internal
 
 from rest_framework import serializers
@@ -15,18 +17,67 @@ import sys
 import json
 import geojson
 
-from django.contrib.gis.geos import GEOSGeometry
-from shapely.geometry import Point, MultiPoint, Polygon, MultiPolygon, shape, mapping
+from django.contrib.gis.geos import GEOSGeometry, Polygon
+
+# from shapely.geometry import Point, MultiPoint, Polygon, MultiPolygon, shape, mapping
+import shapely.geometry as shp
+from shapely import wkt
 from shapely.ops import transform, unary_union, voronoi_diagram
 
 import numpy as np
 
 from itertools import combinations
 
+import requests
+
 logger = logging.getLogger(__name__)
 
 # Albers Equal Area projection string for Western Australia
 aea_wa_string = "+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+
+
+def invert_xy_coordinates(geometries):
+    geometries = [transform(lambda x, y: (y, x), wkt.loads(p.wkt)) for p in geometries]
+    geometries = [GEOSGeometry.from_ewkt(p.wkt) for p in geometries]
+
+    return geometries
+
+
+def intersect_geometry_with_layer(geometry, intersect_layer):
+    geoserver_url = intersect_layer.geoserver_url
+    intersect_layer_name = intersect_layer.layer_name
+    invert_xy = intersect_layer.invert_xy
+
+    if invert_xy:
+        test_geom = invert_xy_coordinates([geometry])[0]
+
+    params = {
+        "service": "WFS",
+        "version": "2.0.0",
+        "request": "GetFeature",
+        "typeName": f"{intersect_layer_name}",
+        "maxFeatures": "5000",
+        "srsName": "EPSG:4326",  # using the default projection for open layers and geodjango
+        "outputFormat": "application/json",
+        "propertyName": "SHAPE",
+        "CQL_FILTER": f"INTERSECTS(SHAPE, {test_geom.wkt})",
+    }
+
+    request_path = (
+        re.match(r"^\/geoproxy\/(?P<request_path>[\w-]+)/.*$", geoserver_url.url)
+        .groupdict()
+        .get("request_path", None)
+    )
+    if request_path:
+        proxy = Proxy.objects.get(request_path=request_path)
+        url = proxy.proxy_url
+        auth_name = proxy.username
+        auth_password = proxy.password
+        res = requests.post(url + "wfs", params=params, auth=(auth_name, auth_password))
+    else:
+        res = requests.post(geoserver_url.url, params=params)
+
+    return res.json()
 
 
 def save_geometry(
@@ -68,9 +119,7 @@ def save_geometry(
     if (
         0 == len(geometry["features"])
         and 0
-        == InstanceGeometry.objects.filter(
-            **{instance_fk_field_name: instance}
-        ).count()
+        == InstanceGeometry.objects.filter(**{instance_fk_field_name: instance}).count()
     ):
         # No feature to save and no feature to delete
         logger.warn(f"{instance_model_name} geometry has no features to save or delete")
@@ -115,9 +164,23 @@ def save_geometry(
                 f"{instance_fk_field_name}_id": instance.id,
                 "geometry": geom[0],
                 "original_geometry_ewkb": geom[1].ewkb,
-                # TODO: Add intersects condition
-                # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
             }
+
+            # TODO: Hardcoded. Possibly pass in via fn parameter whether to intersect and with what
+            if instance_fk_field_name == "occurrence":
+                intersect_layer = TileLayer.objects.get(
+                    is_tenure_intersects_query_layer=True
+                )
+                data = intersect_geometry_with_layer(geom[0], intersect_layer)
+                totalFeatures = data.get("totalFeatures")
+                logger.info(
+                    f"Geometry {geom[0]} intersects with {totalFeatures} features from {intersect_layer.layer_name}"
+                )
+
+                geometry_data["intersects"] = totalFeatures > 0
+            else:
+                logger.info("No intersect layer specified")
+
             if feature.get("id"):
                 logger.info(
                     f"Updating existing {instance_model_name} geometry: {feature.get('id')} for: {instance}"
@@ -170,7 +233,7 @@ def wkb_to_geojson(wkb):
 
     geos_geometry = GEOSGeometry(wkb)
     shapely_geometry = loads(geos_geometry.wkt)
-    geo_json = mapping(shapely_geometry)
+    geo_json = shp.mapping(shapely_geometry)
     geo_json["properties"] = {"srid": geos_geometry.srid}
 
     return geo_json
@@ -187,8 +250,8 @@ def feature_json_to_geosgeometry(feature, srid=4326):
         geo_json = feature
     else:
         # Convert feature to geojson
-        geo_json = mapping(geojson.loads(json.dumps(feature)))
-    geom_shape = shape(geo_json.get("geometry"))
+        geo_json = shp.mapping(geojson.loads(json.dumps(feature)))
+    geom_shape = shp.shape(geo_json.get("geometry"))
 
     return GEOSGeometry(geom_shape.wkt, srid=srid)
 
@@ -247,7 +310,7 @@ def projection_aea_wa_to_4326():
 
 
 def polygon_points(polygon):
-    return [Point(p) for p in polygon.exterior.coords]
+    return [shp.Point(p) for p in polygon.exterior.coords]
 
 
 def buffer_point_m(point, distance):
@@ -258,17 +321,17 @@ def buffer_point_m(point, distance):
 def buffer_polygon_m(polygon, distance):
     # Transform the polygon exterior points to AEA WA
     linear_ring = polygon.exterior_ring.coords
-    pnts = [Point(p) for p in linear_ring]
+    pnts = [shp.Point(p) for p in linear_ring]
     pnts_transformed = [transform(projection_4326_to_aea_wa(), p) for p in pnts]
 
     # Create a polygon from the the transformed points and buffer it
-    plg_buffered = Polygon(pnts_transformed).buffer(distance)
+    plg_buffered = shp.Polygon(pnts_transformed).buffer(distance)
 
     # Transform the buffered polygon's exterior points back to 4326
     xy = plg_buffered.exterior.coords.xy
-    plg_buffered_pnts = [Point(p) for p in list(zip(xy[0], xy[1]))]
+    plg_buffered_pnts = [shp.Point(p) for p in list(zip(xy[0], xy[1]))]
 
-    return Polygon(
+    return shp.Polygon(
         [transform(projection_aea_wa_to_4326(), p) for p in plg_buffered_pnts]
     )
 
@@ -280,7 +343,7 @@ def buffer_geometries(geoms, distance, unit):
 
             if geom.dims == 0:
                 # A point
-                pnt = Point(geom)
+                pnt = shp.Point(geom)
                 buffer_geom = buffer_point_m(pnt, distance)
             elif geom.dims == 1:
                 raise serializers.ValidationError(
@@ -303,7 +366,7 @@ def buffer_geometries(geoms, distance, unit):
 
 
 def convex_hull(geoms, *args, **kwargs):
-    convex_hull = MultiPoint(geoms).convex_hull
+    convex_hull = shp.MultiPoint(geoms).convex_hull
     geom = GEOSGeometry(convex_hull.wkt)
 
     return json.dumps(feature_collection([geom]))
@@ -322,7 +385,7 @@ def intersect_geometries(geoms, *args, **kwargs):
         )
 
     intersection = unary_union(
-        MultiPolygon([a.intersection(b) for a, b in combinations(geoms, 2)])
+        shp.MultiPolygon([a.intersection(b) for a, b in combinations(geoms, 2)])
     )
 
     geom = GEOSGeometry(intersection.wkt)
@@ -333,7 +396,7 @@ def intersect_geometries(geoms, *args, **kwargs):
 def union_geometries(geoms, *args, **kwargs):
     """Calculates the union of the input geometries."""
 
-    mp = MultiPolygon(geoms)
+    mp = shp.MultiPolygon(geoms)
     unary_union_geoms = unary_union(mp)
     union_geom = GEOSGeometry(unary_union_geoms.wkt)
 
@@ -343,9 +406,9 @@ def union_geometries(geoms, *args, **kwargs):
 def voronoi(geoms, *args, **kwargs):
     """Calculates the Voronoi diagram of the input geometries."""
 
-    mp = MultiPoint(geoms)
+    mp = shp.MultiPoint(geoms)
     voronoi = voronoi_diagram(mp)
-    voronoi_geom = GEOSGeometry(MultiPolygon(voronoi).wkt)
+    voronoi_geom = GEOSGeometry(shp.MultiPolygon(voronoi).wkt)
 
     return json.dumps(feature_collection([voronoi_geom]))
 
@@ -364,7 +427,7 @@ def centroid(geoms, *args, **kwargs):
                 "Centroid operation requires Polygon or MultiPolygon geometries"
             )
 
-    centroid = MultiPolygon(polygons).centroid
+    centroid = shp.MultiPolygon(polygons).centroid
     geom = GEOSGeometry(centroid.wkt)
 
     return json.dumps(feature_collection([geom]))
@@ -372,7 +435,7 @@ def centroid(geoms, *args, **kwargs):
 
 def mean_center_point(geoms):
     # the mean of the input coordinates (see: https://shapely.readthedocs.io/en/stable/reference/shapely.centroid.html)
-    return MultiPoint(geoms).centroid
+    return shp.MultiPoint(geoms).centroid
 
 
 def mean_center(geoms, *args, **kwargs):
