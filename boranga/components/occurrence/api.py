@@ -29,6 +29,7 @@ from boranga.components.conservation_status.serializers import SendReferralSeria
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.spatial.utils import (
+    save_geometry,
     spatially_process_geometry,
     transform_json_geometry,
 )
@@ -149,7 +150,6 @@ from boranga.components.occurrence.serializers import (
 from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
     process_shapefile_document,
-    save_geometry,
     validate_map_files,
 )
 from boranga.components.species_and_communities.models import (

@@ -1,6 +1,9 @@
+import logging
 from django.apps import apps
-from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.views.decorators.csrf import csrf_exempt
 
 from boranga import settings
 from boranga.components.spatial.models import Proxy
@@ -20,8 +23,146 @@ import numpy as np
 
 from itertools import combinations
 
+logger = logging.getLogger(__name__)
+
 # Albers Equal Area projection string for Western Australia
 aea_wa_string = "+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+
+
+def save_geometry(
+    request,
+    instance,
+    geometry_data,
+    instance_fk_field_name=None,
+    component="occurrence",
+    app_label="boranga",
+):
+    """
+    Save geometry data to the database for an instance of a model.
+    Args:
+        request: The request object
+        instance: The instance of the model to save the geometry for
+        geometry_data: The geometry data to save
+        instance_fk_field_name: The name of the foreign key field on the geometry model
+        component: The component name
+        app_label: The app label
+    """
+
+    instance_model_name = instance._meta.model.__name__
+
+    if not geometry_data:
+        logger.warn(f"No {instance_model_name} geometry to save")
+        return
+
+    InstanceGeometry = apps.get_model(
+        app_label=app_label, model_name=f"{instance_model_name}Geometry"
+    )
+    InstanceGeometrySaveSerializer = getattr(
+        sys.modules[f"boranga.components.{component}.serializers"],
+        f"{instance_model_name}GeometrySaveSerializer",
+    )
+    if instance_fk_field_name is None:
+        instance_fk_field_name = instance_model_name.lower()
+
+    geometry = json.loads(geometry_data)
+    if (
+        0 == len(geometry["features"])
+        and 0
+        == InstanceGeometry.objects.filter(
+            **{instance_fk_field_name: instance}
+        ).count()
+    ):
+        # No feature to save and no feature to delete
+        logger.warn(f"{instance_model_name} geometry has no features to save or delete")
+        return
+
+    action = request.data.get("action", None)
+
+    geometry_ids = []
+    for feature in geometry.get("features"):
+        supported_geometry_types = ["MultiPolygon", "Polygon", "MultiPoint", "Point"]
+        geometry_type = feature.get("geometry").get("type")
+        # Check if feature is of a supported type, continue if not
+        if geometry_type not in supported_geometry_types:
+            logger.warn(
+                f"{instance_model_name}: {instance} contains a feature that is not a "
+                f"{' or '.join(supported_geometry_types)}: {feature}"
+            )
+            continue
+
+        logger.info(
+            f"Processing {instance_model_name} {instance} geometry feature type: {geometry_type}"
+        )
+
+        geom_4326 = feature_json_to_geosgeometry(feature)
+
+        original_geometry = feature.get("properties", {}).get("original_geometry")
+        srid_original = original_geometry.get("properties", {}).get("srid", 4326)
+        if not srid_original:
+            raise ValidationError(
+                f"Geometry must have an SRID set: {original_geometry.get('coordinates', [])}"
+            )
+
+        if not original_geometry.get("type", None):
+            original_geometry["type"] = geometry_type
+        feature_json = {"type": "Feature", "geometry": original_geometry}
+        geom_original = feature_json_to_geosgeometry(feature_json, srid_original)
+
+        geoms = [(geom_4326, geom_original)]
+
+        for geom in geoms:
+            geometry_data = {
+                f"{instance_fk_field_name}_id": instance.id,
+                "geometry": geom[0],
+                "original_geometry_ewkb": geom[1].ewkb,
+                # TODO: Add intersects condition
+                # "intersects": True,  # probably redunant now that we are not allowing non-intersecting geometries
+            }
+            if feature.get("id"):
+                logger.info(
+                    f"Updating existing {instance_model_name} geometry: {feature.get('id')} for: {instance}"
+                )
+                try:
+                    geometry = InstanceGeometry.objects.get(id=feature.get("id"))
+                except InstanceGeometry.DoesNotExist:
+                    logger.warn(
+                        f"{instance_model_name} geometry does not exist: {feature.get('id')}"
+                    )
+                    continue
+                geometry_data["drawn_by"] = geometry.drawn_by
+                geometry_data["locked"] = (
+                    action in ["submit"]
+                    and geometry.drawn_by == request.user.id
+                    or geometry.locked
+                )
+                serializer = InstanceGeometrySaveSerializer(
+                    geometry, data=geometry_data
+                )
+            else:
+                logger.info(
+                    f"Creating new geometry for {instance_model_name}: {instance}"
+                )
+                geometry_data["drawn_by"] = request.user.id
+                geometry_data["locked"] = action in ["submit"]
+                serializer = InstanceGeometrySaveSerializer(data=geometry_data)
+
+            serializer.is_valid(raise_exception=True)
+            geometry_instance = serializer.save()
+            logger.info(f"Saved {instance_model_name} geometry: {geometry_instance}")
+            geometry_ids.append(geometry_instance.id)
+
+    # Remove any ocr geometries from the db that are no longer in the ocr_geometry that was submitted
+    # Prevent deletion of polygons that are locked after status change (e.g. after submit)
+    # or have been drawn by another user
+    deleted_geometries = (
+        InstanceGeometry.objects.filter(**{instance_fk_field_name: instance})
+        .exclude(Q(id__in=geometry_ids) | Q(locked=True) | ~Q(drawn_by=request.user.id))
+        .delete()
+    )
+    if deleted_geometries[0] > 0:
+        logger.info(
+            f"Deleted {instance_model_name} geometries: {deleted_geometries} for {instance}"
+        )
 
 
 def wkb_to_geojson(wkb):
@@ -258,7 +399,6 @@ def standard_distance(geoms, *args, **kwargs):
     std = np.sqrt(np.sum(X) / n + np.sum(Y) / n)
 
     return buffer_geometries([GEOSGeometry(mean.wkt)], std, "deg")
-
 
 
 def proxy_object(request_path):
