@@ -25,13 +25,24 @@ export function layerAtEventPixel(map_component, evt) {
     const layer_at_pixel = [];
     const layers = [];
     map_component.map.getLayers().forEach((layer) => {
+        let lyrs;
         if (typeof layer.getLayers === 'function') {
-            layers.concat(layer.getLayersArray());
+            lyrs = layer.getLayersArray();
         } else {
-            layers.push(layer);
+            lyrs = [layer];
         }
+        // layers = layers.concat(lyrs);
+        lyrs.forEach((lyr) => {
+            const isBackgroundLayer =
+                lyr.get('is_satellite_background') ||
+                lyr.get('is_streets_background');
+            if (lyr.getVisible() && !isBackgroundLayer) {
+                layers.push(lyr);
+            }
+        });
     }, layers);
 
+    // TODO: At this point, vector layers are also included in the layers array. Is that useful?
     layers.forEach((layer) => {
         if (!map_component.informing) {
             return;
@@ -426,7 +437,7 @@ const _helper = {
                 layer.is_satellite_background || layer.is_streets_background;
 
             let tileLayer = new TileLayer({
-                name: layer.Name,
+                name: layer.layer_name,
                 // abstract: layer.Abstract.trim(),
                 title: layer.display_title.trim(),
                 visible: layer.visible,
