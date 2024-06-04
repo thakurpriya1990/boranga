@@ -105,26 +105,6 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Region:</label>
-                        <select class="form-select" v-model="filterCSFloraRegion" @change="filterDistrict($event)">
-                            <option value="all">All</option>
-                            <option v-for="region in region_list" :value="region.id" v-bind:key="region.id">
-                                {{ region.name }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">District:</label>
-                        <select class="form-select" v-model="filterCSFloraDistrict">
-                            <option value="all">All</option>
-                            <option v-for="district in filtered_district_list" :value="district.id">{{ district.name }}
-                            </option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
                     <div class="form-group" id="select_assessor">
                         <label for="cs_assessor_lookup">Assessor:</label>
                         <select id="cs_assessor_lookup" name="cs_assessor_lookup" ref="cs_assessor_lookup"
@@ -440,10 +420,6 @@ export default {
             wa_legislative_categories: [],
             wa_priority_lists: [],
             wa_priority_categories: [],
-            filterRegionDistrict: {},
-            region_list: [],
-            district_list: [],
-            filtered_district_list: [],
 
             // filtering options
             external_status: [
@@ -640,11 +616,11 @@ export default {
         datatable_headers: function () {
             if (this.is_external) {
                 return ['Number', 'Species', 'Scientific Name', 'Common Name', 'WA Priority List',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Status', 'Action']
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Status', 'Action']
             }
             if (this.is_internal) {
                 return ['Number', 'Species', 'Scientific Name', 'Common Name', 'WA Priority List',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Status', 'Action']
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -815,38 +791,6 @@ export default {
                 name: "processing_status",
             }
         },
-        column_region: function () {
-            return {
-                data: "region",
-                orderable: true,
-                searchable: true, // handles by filter_queryset override method
-                visible: true,
-                'render': function (data, type, full) {
-                    if (full.region) {
-                        return full.region
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "species__region__name",
-            }
-        },
-        column_district: function () {
-            return {
-                data: "district",
-                orderable: true,
-                searchable: true, // handles by filter_queryset override method
-                visible: true,
-                'render': function (data, type, full) {
-                    if (full.district) {
-                        return full.district
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "species__district__name",
-            }
-        },
         column_effective_from_date: function () {
             return {
                 data: "effective_from_date",
@@ -970,8 +914,6 @@ export default {
                     vm.column_wa_legislative_category,
                     vm.column_commonwealth_conservation_list,
                     vm.column_international_conservation,
-                    vm.column_region,
-                    vm.column_district,
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
                     vm.column_review_due_date,
@@ -994,8 +936,6 @@ export default {
                     vm.column_wa_legislative_category,
                     vm.column_commonwealth_conservation_list,
                     vm.column_international_conservation,
-                    vm.column_region,
-                    vm.column_district,
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
                     vm.column_review_due_date,
@@ -1046,8 +986,6 @@ export default {
                         d.filter_wa_priority_category = vm.filterCSFloraWAPriorityCategory;
                         d.filter_commonwealth_relevance = vm.filterCSFloraCommonwealthRelevance;
                         d.filter_international_relevance = vm.filterCSFloraInternationalRelevance;
-                        d.filter_region = vm.filterCSFloraRegion;
-                        d.filter_district = vm.filterCSFloraDistrict;
                         d.filter_assessor = vm.filterCSFloraAssessor;
                         d.filter_submitter = vm.filterCSFloraSubmitter;
                         d.filter_application_status = vm.filterCSFloraApplicationStatus;
@@ -1360,36 +1298,12 @@ export default {
                 vm.wa_legislative_categories = vm.filterListsSpecies.wa_legislative_categories;
                 vm.wa_priority_lists = vm.filterListsSpecies.wa_priority_lists;
                 vm.wa_priority_categories = vm.filterListsSpecies.wa_priority_categories;
-                vm.filterDistrict();
                 vm.processing_statuses = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());
                 });
             }, (error) => {
                 console.log(error);
             })
-            vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
-                vm.filterRegionDistrict = response.body;
-                vm.region_list = vm.filterRegionDistrict.region_list;
-                vm.district_list = vm.filterRegionDistrict.district_list;
-            }, (error) => {
-                console.log(error);
-            })
-        },
-        //-------filter district dropdown dependent on region selected
-        filterDistrict: function (event) {
-            this.$nextTick(() => {
-                if (event) {
-                    this.filterCSFloraDistrict = 'all'; //-----to remove the previous selection
-                }
-                this.filtered_district_list = [];
-                //---filter districts as per region selected
-                for (let choice of this.district_list) {
-                    if (choice.region_id.toString() === this.filterCSFloraRegion.toString()) {
-                        this.filtered_district_list.push(choice);
-                    }
-
-                }
-            });
         },
         createFloraConservationStatus: async function () {
             let newFloraCSId = null
@@ -1596,26 +1510,6 @@ export default {
                         "regex": "false"
                     }
                 },
-                "10": {
-                    "data": "district",
-                    "name": "district__name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "false"
-                },
-                "11": {
-                    "data": "region",
-                    "name": "region__name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "false"
-                }
             };
 
             const object_load = {
@@ -1634,8 +1528,6 @@ export default {
                 filter_application_status: vm.filterCSFloraApplicationStatus,
                 filter_assessor: vm.filterCSFloraAssessor,
                 filter_submitter: vm.filterCSFloraSubmitter,
-                filter_region: vm.filterCSFloraRegion,
-                filter_district: vm.filterCSFloraDistrict,
                 filter_from_effective_from_date: vm.filterCSFromFloraEffectiveFromDate,
                 filter_to_effective_from_date: vm.filterCSToFloraEffectiveFromDate,
                 filter_from_effective_to_date: vm.filterCSFromFloraEffectiveToDate,
