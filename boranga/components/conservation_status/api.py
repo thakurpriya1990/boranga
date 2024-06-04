@@ -569,7 +569,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def species_cs_internal_export(self, request, *args, **kwargs):
-
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
         export_format = request.POST.get("export_format")
@@ -580,8 +579,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "family",
             "genus",
             "phylogenetic_group",
-            "region",
-            "district",
             "conservation_list",
             "conservation_category",
             "processing_status",
@@ -622,8 +619,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Family",
             "Genera",
             "Phylo Group",
-            "Region",
-            "District",
             "Processing Status",
             "Effective From Date",
             "Effective To Date",
@@ -634,8 +629,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Species",
             "Scientific Name",
             "Common Name",
-            "Region",
-            "District",
             "Effective From Date",
             "Effective To Date",
             "Family",
