@@ -3263,7 +3263,12 @@ class OccurrenceGeometry(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence)  # TODO: is the most appropriate?
+        wkt_ellipsis = (
+            (self.geometry.wkt[:85] + "..")
+            if len(self.geometry.wkt) > 75
+            else self.geometry.wkt
+        )
+        return f"{self.occurrence} Geometry: {wkt_ellipsis}"
 
     def save(self, *args, **kwargs):
         if self.occurrence.group_type.name == GroupType.GROUP_TYPE_FAUNA and type(
