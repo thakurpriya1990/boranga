@@ -3837,6 +3837,57 @@ class OCRExternalRefereeInvite(models.Model):
         return f"{self.first_name} {self.last_name}"
 
 
+class OccurrenceTenurePurpose(models.Model):
+    purpose = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        app_label = "boranga"
+
+
+class OccurrenceTenure(models.Model):
+    STATUS_CHOICES = (("current", "Current"), ("historical", "Historical"))
+
+    status = models.CharField(
+        max_length=100, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0]
+    )
+    occurrence_geometry = models.ForeignKey(
+        OccurrenceGeometry, related_name="occurrence_tenures", on_delete=models.CASCADE
+    )
+
+    tenure_area_id = models.CharField(
+        max_length=100, blank=True, null=True
+    )  # E.g. CPT_CADASTRE_SCDB.314159265
+    owner_name = models.CharField(max_length=255, blank=True, null=True)
+    owner_count = models.IntegerField(blank=True, null=True)
+    # vesting = models.TBD
+
+    purpose = models.ForeignKey(
+        OccurrenceTenurePurpose,
+        related_name="occurrence_tenures",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+    comments = models.TextField(blank=True, null=True)
+    significant_to_occurrence = models.BooleanField(
+        null=True, blank=True, default=False
+    )
+
+    class Meta:
+        app_label = "boranga"
+        unique_together = ("occurrence_geometry", "tenure_area_id")
+
+    @property
+    def typename(self):
+        # Should relate to the geoserver table name
+        return "CPT_CADASTRE_SCDB"
+
+    @property
+    def featureid(self):
+        # TODO: string split
+        return self.tenure_area_id
+
+
 # Occurrence Report Document
 reversion.register(OccurrenceReportDocument)
 
