@@ -97,8 +97,8 @@
                                                 <tbody>
                                                     <tr v-for="r in conservation_status_obj.latest_referrals">
                                                         <td class="truncate-name">
-                                                            {{ r.referral_obj.first_name }} {{
-                                                                r.referral_obj.last_name }}
+                                                            {{ r.referral.first_name }} {{
+                                                                r.referral.last_name }}
                                                         </td>
                                                         <td>
                                                             {{ r.processing_status }}
@@ -108,7 +108,7 @@
                                                                 <a v-if="canLimitedAction" role="button"
                                                                     data-bs-toggle="popover" data-bs-trigger="hover"
                                                                     :data-bs-content="'Send a reminder to ' +
-                                                                        r.referral_obj['fullname']
+                                                                        r.referral['fullname']
                                                                         " data-bs-placement="bottom"
                                                                     data-bs-container="body"
                                                                     @click.prevent="remindReferral(r)"><i
@@ -117,7 +117,7 @@
                                                                 </a>
                                                                 <a role="button" data-bs-toggle="popover"
                                                                     data-bs-trigger="hover" :data-bs-content="'Recall the referral request sent to ' +
-                                                                        r.referral_obj['fullname']
+                                                                        r.referral['fullname']
                                                                         " data-bs-placement="bottom"
                                                                     data-bs-container="body"
                                                                     @click.prevent="recallReferral(r)"><i
@@ -129,7 +129,7 @@
                                                                 <template v-if="canLimitedAction"><a role="button"
                                                                         data-bs-toggle="popover" data-bs-trigger="hover"
                                                                         :data-bs-content="'Resend this referral request to ' +
-                                                                            r.referral_obj['fullname']
+                                                                            r.referral['fullname']
                                                                             " data-bs-container="body"
                                                                         @click.prevent="resendReferral(r)"><i
                                                                             class="fa fa-envelope text-primary"
@@ -787,7 +787,7 @@ export default {
             let vm = this;
             let blank_fields = []
             if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna') {
-                if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == '') {
+                if (vm.conservation_status_obj.species_taxonomy_id == null || vm.conservation_status_obj.species_taxonomy_id == '') {
                     blank_fields.push(' Scientific Name is missing')
                 }
             }

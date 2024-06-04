@@ -3,12 +3,12 @@ from django.contrib import admin
 from boranga.components.users import models
 
 
-class UserCategoryAdmin(admin.ModelAdmin):
+class SubmitterCategoryAdmin(admin.ModelAdmin):
     list_display = ("name",)
 
 
-class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("email_user", "organisation", "position", "user_category")
+class SubmitterInformationAdmin(admin.ModelAdmin):
+    list_display = ("name", "organisation", "position", "submitter_category")
 
 
 class ExternalContributorBlacklistAdmin(admin.ModelAdmin):
@@ -21,8 +21,8 @@ class ExternalContributorBlacklistAdmin(admin.ModelAdmin):
         return actions
 
 
-admin.site.register(models.UserCategory, UserCategoryAdmin)
-admin.site.register(models.Profile, ProfileAdmin)
+admin.site.register(models.SubmitterCategory, SubmitterCategoryAdmin)
+admin.site.register(models.SubmitterInformation, SubmitterInformationAdmin)
 admin.site.register(
     models.ExternalContributorBlacklist, ExternalContributorBlacklistAdmin
 )

@@ -5,86 +5,13 @@
             :form-collapse="false"
             label="Location"
             Index="occurrence_report_location"
-            :is-show-comment="isShowComment"
-            :has_comment_value="has_comment_value"
-            :display-comment-section="!is_external"
-            @toggleComment="toggleComment($event)"
         >
-            <div v-if="!is_external">
-                <div v-show="isShowComment">
-                    <!-- Assessor Deficiencies and comment box -->
-                    <div v-if="deficiencyVisibility" class="row mb-3">
-                        <label for="" class="col-sm-4 control-label"
-                            >Deficiencies:</label
-                        >
-                        <div class="col-sm-8">
-                            <textarea
-                                id="assessor_deficiencies"
-                                v-model="occurrence_report_obj.deficiency_data"
-                                :disabled="deficiency_readonly"
-                                class="form-control"
-                                rows="3"
-                                placeholder=""
-                            />
-                        </div>
-                    </div>
-                    <div v-if="assessorCommentVisibility" class="row mb-3">
-                        <label for="" class="col-sm-4 control-label"
-                            >Assessor:</label
-                        >
-                        <div class="col-sm-8">
-                            <textarea
-                                id="assessor_comment"
-                                v-model="occurrence_report_obj.assessor_data"
-                                :disabled="assessor_comment_readonly"
-                                class="form-control"
-                                rows="3"
-                                placeholder=""
-                            />
-                        </div>
-                    </div>
-                    <!-- --- -->
-
-                    <!-- Assessor Deficiencies and comment box -->
-                    <div v-if="referral_comments_boxes.length > 0">
-                        <div v-for="ref in referral_comments_boxes" :key="ref">
-                            <div v-if="ref.box_view" class="row mb-3">
-                                <label for="" class="col-sm-4 control-label"
-                                    >{{ ref.label }}:</label
-                                >
-                                <div class="col-sm-8">
-                                    <textarea
-                                        v-if="!ref.readonly"
-                                        v-model="referral.referral_comment"
-                                        :disabled="ref.readonly"
-                                        :name="ref.name"
-                                        class="form-control"
-                                        rows="3"
-                                        placeholder=""
-                                    />
-                                    <textarea
-                                        v-else
-                                        :disabled="ref.readonly"
-                                        :name="ref.name"
-                                        :value="ref.value"
-                                        class="form-control"
-                                        rows=""
-                                        placeholder=""
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!--  -->
             <div class="row mb-3">
                 <MapComponent
                     ref="component_map"
                     :key="componentMapKey"
                     class="me-3"
                     :context="occurrence_report_obj"
-                    :proposal-ids="[occurrence_report_obj.id]"
                     :is_external="is_external"
                     :point-features-supported="true"
                     :polygon-features-supported="isFauna == false"
@@ -100,12 +27,13 @@
                     :selectable="true"
                     :coordinate-reference-systems="coordinateReferenceSystems"
                     :tile-layer-api-url="tileLayerApiUrl"
-                    :proposal-api-url="proposalApiUrl"
                     :query-layer-definition="{
                         name: 'query_layer',
                         title: 'Occurrence Report',
                         default: true,
                         can_edit: true,
+                        api_url: proposalApiUrl,
+                        ids: [occurrence_report_obj.id],
                     }"
                     @validate-feature="validateFeature.bind(this)()"
                     @refreshFromResponse="refreshFromResponse"
@@ -127,7 +55,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">District:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" 
+                    <select :disabled="isReadOnly" class="form-select"
                         v-model="occurrence_report_obj.location.district_id">
                         <option v-for="option in filtered_district_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}
@@ -211,7 +139,7 @@
                     <label for="newOccurrenceNo">No</label>
                 </div>
             </div>
-            
+
             <div class="row mb-3">
                 <label class="col-sm-3 control-label">Mapped Boundary</label>
                 <div class="col-sm-1">
@@ -235,7 +163,7 @@
                     <label for="mapBoundaryNo">No</label>
                 </div>
             </div>
-            
+
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Datum:</label>
                 <div class="col-sm-9">
@@ -430,7 +358,6 @@ export default {
                     ? true
                     : false,
             //----list of values dictionary
-            referral_comments_boxes: [],
 
             region_list: [],
             district_list: [],
@@ -477,22 +404,6 @@ export default {
             } else {
                 return false;
             }
-        },
-        has_comment_value: function () {
-            let has_value = false;
-            // TODO need to add assessor comment value as well
-            for (let i = 0; i < this.referral_comments_boxes.length; i++) {
-                if (Object.hasOwn(this.referral_comments_boxes[i], 'value')) {
-                    if (
-                        this.referral_comments_boxes[i].value != null &&
-                        this.referral_comments_boxes[i].value != undefined &&
-                        this.referral_comments_boxes[i].value != ''
-                    ) {
-                        has_value = true;
-                    }
-                }
-            }
-            return has_value;
         },
         isReadOnly: function(){
                 //override for split reports
@@ -552,9 +463,6 @@ export default {
                     id: null,
                     name: null,
                 });
-                if (!vm.is_external) {
-                    this.generateReferralCommentBoxes();
-                }
             })
             .catch((error) => {
                 console.error('Error fetching location values list:', error);
@@ -596,35 +504,6 @@ export default {
                     }
                 }
             });
-        },
-        generateReferralCommentBoxes: function () {
-            var box_visibility =
-                this.occurrence_report_obj.assessor_mode.assessor_box_view;
-            var assessor_mode =
-                this.occurrence_report_obj.assessor_mode.assessor_level;
-            if (!this.occurrence_report_obj.can_user_edit) {
-                // eslint-disable-next-line no-unused-vars
-                let current_referral_present = false;
-                $.each(this.occurrence_report_obj.latest_referrals, (i, v) => {
-                    var referral_name = `comment-field-Referral-${v.referral_obj.email}`;
-                    var referral_visibility =
-                        assessor_mode == 'referral' &&
-                        this.occurrence_report_obj.assessor_mode
-                            .assessor_can_assess &&
-                        this.referral.referral == v.referral_obj.id
-                            ? false
-                            : true;
-                    var referral_label = `${v.referral_obj.fullname}`;
-                    var referral_comment_val = `${v.referral_comment}`;
-                    this.referral_comments_boxes.push({
-                        box_view: box_visibility,
-                        name: referral_name,
-                        label: referral_label,
-                        readonly: referral_visibility,
-                        value: referral_comment_val,
-                    });
-                });
-            }
         },
         eventListeners: function () {
             // eslint-disable-next-line no-unused-vars

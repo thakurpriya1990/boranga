@@ -21,6 +21,8 @@ class TileLayerModelForm(forms.ModelForm):
             "min_zoom": "The minimum zoom level at which the layer is visible",
             "max_zoom": "The maximum zoom level at which the layer is visible",
             "active": "Whether the layer is disabled and won't be used by the map component",
+            "invert_xy": "Whether to invert the X and Y coordinates on when querying the layer",
+            "is_tenure_intersects_query_layer": "Whether the layer is used for querying tenure intersects",
         }
 
 
@@ -118,6 +120,8 @@ class TileLayerAdmin(admin.ModelAdmin):
         "is_internal",
         "visible",
         "active",
+        "invert_xy",
+        "is_tenure_intersects_query_layer",
     )
     search_fields = ("display_title", "layer_name", "layer_title", "geoserver_url__url")
     ordering = ("display_title", "layer_name")
@@ -147,6 +151,8 @@ class TileLayerAdmin(admin.ModelAdmin):
                     "min_zoom",
                     "max_zoom",
                     "active",
+                    "invert_xy",
+                    "is_tenure_intersects_query_layer",
                 )
             },
         ),

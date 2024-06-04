@@ -18,6 +18,7 @@ from boranga.components.main.serializers import (
     EmailUserSerializer,
 )
 from boranga.components.species_and_communities.models import CommunityTaxonomy
+from boranga.components.users.serializers import SubmitterInformationSerializer
 from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
@@ -70,7 +71,9 @@ class CommunityConservationStatusSerializer(serializers.ModelSerializer):
 
 
 class ListConservationStatusSerializer(serializers.ModelSerializer):
-    scientific_name = serializers.SerializerMethodField()
+    scientific_name = serializers.CharField(
+        source="species_taxonomy.scientific_name", allow_null=True
+    )
     community_name = serializers.SerializerMethodField()
     # TODO: Add new conservation status lists/catories
     customer_status = serializers.CharField(source="get_customer_status_display")
@@ -103,12 +106,6 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
             "is_new_contributor",
         )
 
-    def get_scientific_name(self, obj):
-        if obj.species:
-            if obj.species.taxonomy:
-                return obj.species.taxonomy.scientific_name
-        return ""
-
     def get_community_name(self, obj):
         if obj.community:
             try:
@@ -125,7 +122,9 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
 class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField()
     species_number = serializers.SerializerMethodField()
-    scientific_name = serializers.SerializerMethodField()
+    scientific_name = serializers.CharField(
+        source="species_taxonomy.scientific_name", allow_null=True
+    )
     common_name = serializers.SerializerMethodField()
     family = serializers.SerializerMethodField()
     genus = serializers.SerializerMethodField()
@@ -232,12 +231,6 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     def get_species_number(self, obj):
         if obj.species:
             return obj.species.species_number
-        return ""
-
-    def get_scientific_name(self, obj):
-        if obj.species:
-            if obj.species.taxonomy:
-                return obj.species.taxonomy.scientific_name
         return ""
 
     def get_common_name(self, obj):
@@ -487,6 +480,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "id",
             "group_type",
             "group_type_id",
+            "species_taxonomy_id",
             "species_id",
             "community_id",
             "conservation_status_number",
@@ -526,6 +520,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "assessor_data",
             "approval_level",
             "can_view_recommended",
+            "submitter_information",
         )
 
     def get_readonly(self, obj):
@@ -565,22 +560,17 @@ class ConservationStatusSerializer(BaseConservationStatusSerializer):
     processing_status = serializers.SerializerMethodField(read_only=True)
     review_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
+    submitter_information = SubmitterInformationSerializer(read_only=True)
 
     def get_readonly(self, obj):
         return obj.can_user_view
 
-    # Priya updated as gives error for submitter when resubmit after amendment request
     def get_submitter(self, obj):
-        # if obj.submitter:
-        #     email_user = retrieve_email_user(obj.submitter)
-        #     return email_user.get_full_name()
-        # else:
-        #     return None
         if obj.submitter:
             email_user = retrieve_email_user(obj.submitter)
             return EmailUserSerializer(email_user).data
-        else:
-            return None
+
+        return None
 
 
 class CreateConservationStatusSerializer(BaseConservationStatusSerializer):
@@ -604,7 +594,7 @@ class CreateConservationStatusSerializer(BaseConservationStatusSerializer):
 
 
 class ConservationStatusProposalReferralSerializer(serializers.ModelSerializer):
-    referral_obj = serializers.SerializerMethodField()
+    referral = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
     referral_comment = serializers.SerializerMethodField()
 
@@ -615,7 +605,7 @@ class ConservationStatusProposalReferralSerializer(serializers.ModelSerializer):
     def get_referral_comment(self, obj):
         return obj.referral_comment if obj.referral_comment else ""
 
-    def get_referral_obj(self, obj):
+    def get_referral(self, obj):
         referral_email_user = retrieve_email_user(obj.referral)
         serializer = EmailUserSerializer(referral_email_user)
         return serializer.data
@@ -685,6 +675,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     internal_application = serializers.BooleanField(read_only=True)
     current_conservation_status = CurrentConservationStatusSerializer(read_only=True)
     approver_process = serializers.SerializerMethodField(read_only=True)
+    submitter_information = SubmitterInformationSerializer(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -692,6 +683,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "id",
             "group_type",
             "group_type_id",
+            "species_taxonomy_id",
             "species_id",
             "community_id",
             "conservation_status_number",
@@ -739,6 +731,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "is_new_contributor",
             "change_code_id",
             "current_conservation_status",
+            "submitter_information",
         )
 
     def get_submitter(self, obj):
@@ -892,9 +885,7 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
 
 
 class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
-    species_id = serializers.IntegerField(
-        required=False, allow_null=True, write_only=True
-    )
+    species_taxonomy_id = serializers.IntegerField(required=True, write_only=True)
 
     wa_legislative_list_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
@@ -936,7 +927,7 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
         fields = (
             "id",
             "application_type",
-            "species_id",
+            "species_taxonomy_id",
             "wa_legislative_list_id",
             "wa_legislative_category_id",
             "wa_priority_list_id",

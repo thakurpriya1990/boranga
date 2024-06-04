@@ -4,20 +4,25 @@ from django.core.cache import cache
 from django.db import transaction
 from django.db.models import CharField, Value
 from django.db.models.functions import Concat
+from django.shortcuts import get_object_or_404
 from django_countries import countries
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import filters, generics, mixins, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from boranga.components.main.utils import retrieve_department_users
+from boranga.components.users.models import SubmitterCategory, SubmitterInformation
 from boranga.components.users.serializers import (
     EmailUserActionSerializer,
     EmailUserCommsSerializer,
     EmailUserLogEntrySerializer,
+    SubmitterCategorySerializer,
+    SubmitterInformationSerializer,
     UserFilterSerializer,
     UserSerializer,
 )
@@ -59,6 +64,35 @@ class GetProfile(views.APIView):
 
     def get(self, request, format=None):
         serializer = UserSerializer(request.user, context={"request": request})
+        return Response(serializer.data)
+
+
+class GetSubmitterCategories(views.APIView):
+    renderer_classes = [
+        JSONRenderer,
+    ]
+
+    def get(self, request, format=None):
+        submitter_categories = SubmitterCategory.objects.all()
+        serializer = SubmitterCategorySerializer(submitter_categories, many=True)
+        return Response(serializer.data)
+
+
+class SaveSubmitterInformation(views.APIView):
+    renderer_classes = [
+        JSONRenderer,
+    ]
+
+    def put(self, request, format=None):
+        instance = get_object_or_404(SubmitterInformation, pk=request.data["id"])
+        if not instance.email_user == request.user.id:
+            raise PermissionDenied("You do not have permission to perform this action.")
+
+        serializer = SubmitterInformationSerializer(
+            instance=instance, data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data)
 
 

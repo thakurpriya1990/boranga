@@ -4,6 +4,7 @@ from datetime import datetime, time
 from io import BytesIO
 
 import pandas as pd
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import CharField, Q, Value
 from django.db.models.functions import Concat
@@ -23,10 +24,12 @@ from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 
+from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
-from boranga.components.main.spatial_utils import (
+from boranga.components.spatial.utils import (
+    save_geometry,
     spatially_process_geometry,
     transform_json_geometry,
 )
@@ -100,6 +103,7 @@ from boranga.components.occurrence.serializers import (
     ListInternalOccurrenceReportSerializer,
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
+    ListOCCMinimalSerializer,
     ListOCRReportMinimalSerializer,
     OCCConservationThreatSerializer,
     OccurrenceDocumentSerializer,
@@ -146,8 +150,6 @@ from boranga.components.occurrence.serializers import (
 from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
     process_shapefile_document,
-    save_ocr_geometry,
-    save_occ_geometry,
     validate_map_files,
 )
 from boranga.components.species_and_communities.models import (
@@ -1290,7 +1292,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         # ocr geometry data to save seperately
         geometry_data = request.data.get("ocr_geometry")
         if geometry_data:
-            save_ocr_geometry(request, ocr_instance, geometry_data)
+            save_geometry(request, ocr_instance, geometry_data, "occurrence_report")
 
         # print(request.data.get('geojson_polygon'))
         # polygon = request.data.get('geojson_polygon')
@@ -1587,7 +1589,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
     @list_route(methods=["GET"], detail=False)
     def list_for_map(self, request, *args, **kwargs):
         """Returns the proposals for the map"""
-        proposal_ids = [
+        occurrence_report_ids = [
             int(id)
             for id in request.query_params.get("proposal_ids", "").split(",")
             if id.lstrip("-").isnumeric()
@@ -1595,9 +1597,8 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         # application_type = request.query_params.get("application_type", None)
         # processing_status = request.query_params.get("processing_status", None)
 
-        # cache_key = settings.CACHE_KEY_MAP_PROPOSALS
-        # qs = cache.get(cache_key)
-        # priya added qs=None as we don't have cache data yet
+        cache_key = settings.CACHE_KEY_MAP_OCCURRENCE_REPORTS
+        qs = cache.get(cache_key)
         qs = None
         if qs is None:
             qs = (
@@ -1605,10 +1606,10 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
                 .exclude(ocr_geometry__isnull=True)
                 .prefetch_related("ocr_geometry")
             )
-            # cache.set(cache_key, qs, settings.CACHE_TIMEOUT_2_HOURS)
+            cache.set(cache_key, qs, settings.CACHE_TIMEOUT_2_HOURS)
 
-        if len(proposal_ids) > 0:
-            qs = qs.filter(id__in=proposal_ids)
+        if len(occurrence_report_ids) > 0:
+            qs = qs.filter(id__in=occurrence_report_ids)
 
         # if (
         #     application_type
@@ -1758,7 +1759,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         # ocr geometry data to save seperately
         geometry_data = proposal_data.get("ocr_geometry", None)
         if geometry_data:
-            save_ocr_geometry(request, instance, geometry_data)
+            save_geometry(request, instance, geometry_data, "occurrence_report")
 
         serializer = SaveOccurrenceReportSerializer(
             instance, data=proposal_data, partial=True
@@ -3915,7 +3916,7 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # occ geometry data to save seperately
         geometry_data = request_data.get("occ_geometry", None)
         if geometry_data:
-            save_occ_geometry(request, instance, geometry_data)
+            save_geometry(request, instance, geometry_data, "occurrence")
 
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -3979,7 +3980,6 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         detail=True,
     )
     def update_location_details(self, request, *args, **kwargs):
-        
         self.is_authorised_to_update()
         occ_instance = self.get_object()
 
@@ -3990,7 +3990,7 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # occ geometry data to save seperately
         geometry_data = request.data.get("occ_geometry")
         if geometry_data:
-            save_occ_geometry(request, occ_instance, geometry_data)
+            save_geometry(request, occ_instance, geometry_data, "occurrence")
 
         # the request.data is only the habitat composition data thats been sent from front end
         location_data = request.data.get("location")
@@ -4487,6 +4487,33 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
+
+    @list_route(methods=["GET"], detail=False)
+    def list_for_map(self, request, *args, **kwargs):
+        request.query_params
+        occurrence_ids = [
+            int(id)
+            for id in request.query_params.get("proposal_ids", "").split(",")
+            if id.lstrip("-").isnumeric()
+        ]
+
+        cache_key = settings.CACHE_KEY_MAP_OCCURRENCES
+        qs = cache.get(cache_key)
+        if qs is None:
+            qs = (
+                self.get_queryset()
+                .exclude(occ_geometry__isnull=True)
+                .prefetch_related("occ_geometry")
+            )
+            cache.set(cache_key, qs, settings.CACHE_TIMEOUT_2_HOURS)
+
+        if len(occurrence_ids) > 0:
+            qs = qs.filter(id__in=occurrence_ids)
+
+        serializer = ListOCCMinimalSerializer(
+            qs, context={"request": request}, many=True
+        )
+        return Response(serializer.data)
 
 
 class OccurrenceReportReferralViewSet(

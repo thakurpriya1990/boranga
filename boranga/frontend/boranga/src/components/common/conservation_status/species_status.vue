@@ -2,7 +2,8 @@
     <div id="speciesStatus">
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
             <template v-if="!is_external">
-                <CollapsibleComponent component_title="Assessment Comments" ref="assessment-comments" :collapsed="false">
+                <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments"
+                    :collapsed="false">
                     <div class="row">
                         <div class="col rounded">
                             <div class="row" v-if="deficiencyVisibility">
@@ -27,13 +28,13 @@
                                 </div>
                             </div>
                             <div v-if="referral_comments_boxes.length > 0">
-                                <div v-for="ref in referral_comments_boxes">
+                                <div>
                                     <div class="row mt-2">
                                         <div class="col ms-3">
                                             <h6 class="text-muted">Referral Comments</h6>
                                         </div>
                                     </div>
-                                    <div class="row mb-3" v-if="ref.box_view">
+                                    <div v-for="ref in referral_comments_boxes" class="row mb-3" v-if="ref.box_view">
                                         <div class="col">
                                             <div class="form-floating m-3 mt-1">
                                                 <textarea v-if='!ref.readonly' :disabled="ref.readonly" :id="ref.name"
@@ -516,11 +517,11 @@ export default {
     computed: {
         show_administrative_information: function () {
             return !this.is_external &&
-                this.conservation_status_obj.species_id &&
+                this.conservation_status_obj.species_taxonomy_id &&
                 this.conservation_status_obj.processing_status != "Draft";
         },
         show_proposed_conservation_status: function () {
-            return this.conservation_status_obj.species_id;
+            return this.conservation_status_obj.species_taxonomy_id;
         },
         show_listing_and_review_date: function () {
             return this.conservation_status_obj.listing_date ||
@@ -609,22 +610,20 @@ export default {
                             term: params.term,
                             type: 'public',
                             group_type_id: vm.conservation_status_obj.group_type_id,
-                            has_species: true,
                         }
                         return query;
                     },
                 },
             }).
                 on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.conservation_status_obj.species_id = e.params.data.species_id
-                    vm.species_display = e.params.data.text;
-                    vm.taxon_previous_name = e.params.data.taxon_previous_name;
+                    let data = e.params.data;
+                    vm.conservation_status_obj.species_taxonomy_id = data.id
+                    vm.species_display = data.text;
+                    vm.taxon_previous_name = data.taxon_previous_name;
                 }).
                 on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
-                    vm.conservation_status_obj.species_id = null
+                    vm.conservation_status_obj.species_taxonomy_id = null
                     vm.species_display = '';
                     vm.taxon_previous_name = '';
                 }).
@@ -633,7 +632,7 @@ export default {
                     // move focus to select2 field
                     searchField[0].focus();
                 });
-            if (!vm.conservation_status_obj.species_id) {
+            if (!vm.conservation_status_obj.species_taxonomy_id) {
                 vm.$nextTick(() => {
                     $(vm.$refs[vm.scientific_name_lookup]).select2('open');
                 });
@@ -641,25 +640,16 @@ export default {
         },
         getSpeciesDisplay: function () {
             let vm = this;
-            if (vm.conservation_status_obj.species_id != null) {
-                    let species_display_url = api_endpoints.species_display +
-                    "?species_id=" + vm.conservation_status_obj.species_id
-                    vm.$http.get(species_display_url).then(
+            if (vm.conservation_status_obj.species_taxonomy_id != null) {
+                let species_display_url = api_endpoints.species_display + "?taxon_id=" + vm.conservation_status_obj.species_taxonomy_id
+                vm.$http.get(species_display_url).then(
                     (response) => {
                         var newOption = new Option(response.body.name, response.body.id, false, true);
-                        $('#'+ vm.scientific_name_lookup).append(newOption);
+                        $('#' + vm.scientific_name_lookup).append(newOption);
                         vm.species_display = response.body.name
                         vm.taxon_previous_name = response.body.taxon_previous_name
                     })
-                }
-            //for (let choice of vm.species_list) {
-            //    if (choice.id === vm.conservation_status_obj.species_id) {
-            //        var newOption = new Option(choice.name, choice.id, false, true);
-            //        $('#' + vm.scientific_name_lookup).append(newOption);
-            //        vm.species_display = choice.name;
-            //        vm.taxon_previous_name = choice.taxon_previous_name;
-            //    }
-            //}
+            }
         },
         filterWALegislativeCategories: function (event) {
             this.$nextTick(() => {
@@ -710,12 +700,12 @@ export default {
             var assessor_mode = this.conservation_status_obj.assessor_mode.assessor_level
             if (!this.conservation_status_obj.can_user_edit) {
                 var current_referral_present = false;
-                $.each(this.conservation_status_obj.latest_referrals, (i, v) => {
-                    var referral_name = `comment-field-Referral-${v.referral_obj.email}`;
+                $.each(this.conservation_status_obj.referrals, (i, v) => {
+                    var referral_name = `comment-field-Referral-${v.referral.email}`;
                     var referral_visibility = assessor_mode == 'referral' &&
                         this.conservation_status_obj.assessor_mode.assessor_can_assess &&
-                        this.referral.referral == v.referral_obj.id ? false : true;
-                    var referral_label = `${v.referral_obj.fullname}`;
+                        this.referral.referral == v.referral.id ? false : true;
+                    var referral_label = `${v.referral.fullname}`;
                     var referral_comment_val = `${v.referral_comment}`;
                     this.referral_comments_boxes.push(
                         {
@@ -765,7 +755,9 @@ export default {
     },
     mounted: function () {
         let vm = this;
-        vm.$refs['assessment-comments'].show_warning_icon(false);
+        if (!this.is_external && vm.$refs.assessment_comments) {
+            vm.$refs.assessment_comments.show_warning_icon(false);
+        }
         vm.$nextTick(() => {
             vm.initialiseScientificNameLookup();
         });

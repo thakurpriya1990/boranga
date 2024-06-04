@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
 from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -293,6 +294,8 @@ class OccurrenceReport(RevisionedMixin):
         return str(self.occurrence_report_number)  # TODO: is the most appropriate?
 
     def save(self, *args, **kwargs):
+        # Clear the cache
+        cache.delete(settings.CACHE_KEY_MAP_OCCURRENCE_REPORTS)
         if self.occurrence_report_number == "":
             force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
@@ -827,6 +830,24 @@ class OccurrenceReport(RevisionedMixin):
     @property
     def latest_referrals(self):
         return self.referrals.all()[: settings.RECENT_REFERRAL_COUNT]
+
+    def assessor_comments_view(self, request):
+        if self.processing_status in [
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+            OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+            OccurrenceReport.PROCESSING_STATUS_APPROVED,
+            OccurrenceReport.PROCESSING_STATUS_DECLINED,
+            OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
+            OccurrenceReport.PROCESSING_STATUS_CLOSED,
+        ]:
+            if OccurrenceReportReferral.objects.filter(
+                occurrence_report=self, referral=request.user.id
+            ).exists():
+                return True
+
+            return is_occurrence_assessor(request) or is_occurrence_approver(request)
+        return False
 
     @transaction.atomic
     def send_referral(self, request, referral_email, referral_text):
@@ -1617,6 +1638,12 @@ class OccurrenceReportGeometry(models.Model):
         if not hasattr(self, "area") or not self.area:
             return None
         return self.area.sq_m / 10000
+
+    @property
+    def original_geometry(self):
+        if self.original_geometry_ewkb:
+            return GEOSGeometry(self.original_geometry_ewkb)
+        return None
 
     @property
     def original_geometry_srid(self):
@@ -2791,6 +2818,8 @@ class Occurrence(RevisionedMixin):
         app_label = "boranga"
 
     def save(self, *args, **kwargs):
+        # Clear the cache
+        cache.delete(settings.CACHE_KEY_MAP_OCCURRENCES)
         if self.occurrence_number == "":
             force_insert = kwargs.pop("force_insert", False)
             super().save(no_revision=True, force_insert=force_insert)
@@ -3296,6 +3325,12 @@ class OccurrenceGeometry(models.Model):
         if not hasattr(self, "area") or not self.area:
             return None
         return self.area.sq_m / 10000
+
+    @property
+    def original_geometry(self):
+        if self.original_geometry_ewkb:
+            return GEOSGeometry(self.original_geometry_ewkb)
+        return None
 
     @property
     def original_geometry_srid(self):

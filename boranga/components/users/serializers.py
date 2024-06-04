@@ -9,7 +9,12 @@ from boranga.components.main.models import (
     Document,
     UserSystemSettings,
 )
-from boranga.components.users.models import EmailUserAction, EmailUserLogEntry
+from boranga.components.users.models import (
+    EmailUserAction,
+    EmailUserLogEntry,
+    SubmitterCategory,
+    SubmitterInformation,
+)
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -197,3 +202,15 @@ class EmailUserLogEntrySerializer(CommunicationLogEntrySerializer):
 
     def get_documents(self, obj):
         return [[d.name, d._file.url] for d in obj.documents.all()]
+
+
+class SubmitterCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubmitterCategory
+        fields = ("id", "name")
+
+
+class SubmitterInformationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubmitterInformation
+        fields = "__all__"

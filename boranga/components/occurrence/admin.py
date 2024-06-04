@@ -13,6 +13,8 @@ from boranga.components.occurrence.models import (
     LocationAccuracy,
     ObservationMethod,
     Occurrence,
+    OccurrenceGeometry,
+    OccurrenceReportGeometry,
     OccurrenceSource,
     OccurrenceReport,
     PermitType,
@@ -30,6 +32,67 @@ from boranga.components.occurrence.models import (
     SoilType,
     WildStatus,
 )
+
+
+class OccurrenceReportGeometryInline(admin.StackedInline):
+    model = OccurrenceReportGeometry
+    extra = 0
+    verbose_name = "Occurrence Report Geometry"
+    verbose_name_plural = "Occurrence Report Geometries"
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "geometry",
+                    "original_geometry",
+                    "intersects",
+                    "copied_from",
+                    "drawn_by",
+                    "locked",
+                )
+            },
+        ),
+    )
+
+    readonly_fields = ["original_geometry"]
+
+
+class OccurrenceGeometryInline(admin.StackedInline):
+    model = OccurrenceGeometry
+    extra = 0
+    verbose_name = "Occurrence Geometry"
+    verbose_name_plural = "Occurrence Geometries"
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "geometry",
+                    "original_geometry",
+                    "intersects",
+                    "copied_from",
+                    "drawn_by",
+                    "locked",
+                )
+            },
+        ),
+    )
+
+    readonly_fields = ["original_geometry"]
+
+
+@admin.register(OccurrenceReport)
+class OccurrenceAdmin(admin.ModelAdmin):
+    inlines = [OccurrenceReportGeometryInline]
+
+
+@admin.register(Occurrence)
+class OccurrenceAdmin(admin.ModelAdmin):
+    inlines = [OccurrenceGeometryInline]
+
 
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm)
@@ -56,7 +119,5 @@ admin.site.register(PermitType)
 admin.site.register(Datum)
 admin.site.register(CoordinationSource)
 admin.site.register(LocationAccuracy)
-admin.site.register(OccurrenceReport)
 admin.site.register(OccurrenceSource)
-admin.site.register(Occurrence)
 admin.site.register(WildStatus)

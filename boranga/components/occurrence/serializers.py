@@ -9,12 +9,10 @@ from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
 )
-from boranga.components.main.spatial_utils import wkb_to_geojson
+from boranga.components.spatial.utils import wkb_to_geojson
 from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
     LandForm,
-    OCRLocation,
-    OCCLocation,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
@@ -22,6 +20,7 @@ from boranga.components.occurrence.models import (
     OCCHabitatComposition,
     OCCHabitatCondition,
     OCCIdentification,
+    OCCLocation,
     OCCObservationDetail,
     OCCObserverDetail,
     OCCPlantCount,
@@ -48,6 +47,7 @@ from boranga.components.occurrence.models import (
     OCRHabitatComposition,
     OCRHabitatCondition,
     OCRIdentification,
+    OCRLocation,
     OCRObservationDetail,
     OCRObserverDetail,
     OCRPlantCount,
@@ -56,7 +56,7 @@ from boranga.components.occurrence.models import (
     ReproductiveMaturity,
     SecondarySign,
 )
-from boranga.components.species_and_communities.models import CommunityTaxonomy, Taxonomy
+from boranga.components.species_and_communities.models import CommunityTaxonomy
 from boranga.helpers import (
     is_internal,
     is_new_external_contributor,
@@ -1065,6 +1065,7 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
 
 class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
     referral = serializers.SerializerMethodField()
+    referral_comment = serializers.SerializerMethodField()
     referral_status = serializers.CharField(source="get_processing_status_display")
 
     class Meta:
@@ -1073,6 +1074,9 @@ class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
 
     def get_referral(self, obj):
         return EmailUserSerializer(retrieve_email_user(obj.referral)).data
+
+    def get_referral_comment(self, obj):
+        return obj.referral_comment if obj.referral_comment else ""
 
 
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
@@ -1224,6 +1228,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "assessor_mode": True,
             "has_assessor_mode": obj.has_assessor_mode(request),
             "has_unlocked_mode": obj.has_unlocked_mode(request),
+            "assessor_box_view": obj.assessor_comments_view(request),
             "assessor_can_assess": obj.can_assess(request),
             "assessor_level": "assessor",
         }
@@ -1983,9 +1988,9 @@ class ProposeApproveSerializer(serializers.Serializer):
 
 
 class SaveOccurrenceSerializer(serializers.ModelSerializer):
-    #species_id = serializers.IntegerField(
+    # species_id = serializers.IntegerField(
     #    required=False, allow_null=True, write_only=True
-    #)
+    # )
     species_taxonomy_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
@@ -2000,7 +2005,7 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
             "wild_status",
             "occurrence_source",
             "comment",
-            #"species_id",
+            # "species_id",
             "species_taxonomy_id",
             "community_id",
             "species",
@@ -2476,6 +2481,7 @@ class SaveOCCIdentificationSerializer(serializers.ModelSerializer):
             "identification_comment",
         )
 
+
 class OCCLocationSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -2496,6 +2502,7 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             "district_id",
             "locality",
         )
+
 
 class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)
@@ -2545,15 +2552,16 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
         else:
             return None
 
+
 class ListOCCMinimalSerializer(serializers.ModelSerializer):
     occ_geometry = OccurrenceGeometrySerializer(many=True, read_only=True)
     label = serializers.SerializerMethodField(read_only=True)
     processing_status_display = serializers.CharField(
         read_only=True, source="get_processing_status_display"
     )
-    lodgement_date_display = serializers.DateTimeField(
-        read_only=True, format="%d/%m/%Y", source="lodgement_date"
-    )
+    # lodgement_date_display = serializers.DateTimeField(
+    #     read_only=True, format="%d/%m/%Y", source="lodgement_date"
+    # )
     details_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -2565,8 +2573,8 @@ class ListOCCMinimalSerializer(serializers.ModelSerializer):
             "processing_status",
             "processing_status_display",
             "occ_geometry",
-            "lodgement_date",
-            "lodgement_date_display",
+            # "lodgement_date",
+            # "lodgement_date_display",
             "details_url",
         )
 
@@ -2577,28 +2585,26 @@ class ListOCCMinimalSerializer(serializers.ModelSerializer):
         request = self.context["request"]
 
         if request.user.is_authenticated:
+            # TODO: Don't have these url names yet
             if is_internal(request):
-                return reverse(
-                    "internal-occurrence-detail",
-                    kwargs={"occurrence_pk": obj.id},
-                )
+                return f"{obj.id}"
+                # return reverse(
+                #     "internal-occurrence-detail",
+                #     kwargs={"occurrence_pk": obj.id},
+                # )
             else:
-                return reverse(
-                    "external-occurrence-detail",
-                    kwargs={"occurrence_pk": obj.id},
-                )
+                return None
+                # return reverse(
+                #     "external-occurrence-detail",
+                #     kwargs={"occurrence_pk": obj.id},
+                # )
 
         return None
 
 
-
 class SaveOCCLocationSerializer(serializers.ModelSerializer):
-    region_id = serializers.IntegerField(
-        required=False, allow_null=True
-    )
-    district_id = serializers.IntegerField(
-        required=False, allow_null=True
-    )
+    region_id = serializers.IntegerField(required=False, allow_null=True)
+    district_id = serializers.IntegerField(required=False, allow_null=True)
     occurrence_id = serializers.IntegerField(required=False, allow_null=True)
     datum_id = serializers.IntegerField(required=False, allow_null=True)
     coordination_source_id = serializers.IntegerField(required=False, allow_null=True)
@@ -2622,6 +2628,7 @@ class SaveOCCLocationSerializer(serializers.ModelSerializer):
             "district_id",
             "locality",
         )
+
 
 class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)
