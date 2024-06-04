@@ -249,11 +249,11 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         filter_scientific_name = request.POST.get("filter_scientific_name")
         if queryset.model is ConservationStatus:
             if filter_scientific_name and not filter_scientific_name.lower() == "all":
-                queryset = queryset.filter(species__taxonomy__id=filter_scientific_name)
+                queryset = queryset.filter(species_taxonomy=filter_scientific_name)
         elif queryset.model is ConservationStatusReferral:
             if filter_scientific_name and not filter_scientific_name.lower() == "all":
                 queryset = queryset.filter(
-                    conservation_status__species__taxonomy__id=filter_scientific_name
+                    conservation_status__species_taxonomy=filter_scientific_name
                 )
 
         filter_common_name = request.POST.get("filter_common_name")
@@ -1298,7 +1298,7 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
         # filter_scientific_name is the species_id
         filter_scientific_name = request.GET.get("filter_scientific_name")
         if filter_scientific_name and not filter_scientific_name.lower() == "all":
-            queryset = queryset.filter(species=filter_scientific_name)
+            queryset = queryset.filter(species_taxonomy=filter_scientific_name)
 
         # filter_community_name is the community_id
         filter_community_name = request.GET.get("filter_community_name")

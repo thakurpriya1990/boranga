@@ -787,7 +787,7 @@ export default {
             let vm = this;
             let blank_fields = []
             if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna') {
-                if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == '') {
+                if (vm.conservation_status_obj.species_taxonomy_id == null || vm.conservation_status_obj.species_taxonomy_id == '') {
                     blank_fields.push(' Scientific Name is missing')
                 }
             }

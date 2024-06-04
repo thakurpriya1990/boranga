@@ -2,7 +2,8 @@
     <div id="speciesStatus">
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
             <template v-if="!is_external">
-                <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments" :collapsed="false">
+                <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments"
+                    :collapsed="false">
                     <div class="row">
                         <div class="col rounded">
                             <div class="row" v-if="deficiencyVisibility">
@@ -516,11 +517,11 @@ export default {
     computed: {
         show_administrative_information: function () {
             return !this.is_external &&
-                this.conservation_status_obj.species_id &&
+                this.conservation_status_obj.species_taxonomy_id &&
                 this.conservation_status_obj.processing_status != "Draft";
         },
         show_proposed_conservation_status: function () {
-            return this.conservation_status_obj.species_id;
+            return this.conservation_status_obj.species_taxonomy_id;
         },
         show_listing_and_review_date: function () {
             return this.conservation_status_obj.listing_date ||
@@ -609,22 +610,20 @@ export default {
                             term: params.term,
                             type: 'public',
                             group_type_id: vm.conservation_status_obj.group_type_id,
-                            has_species: true,
                         }
                         return query;
                     },
                 },
             }).
                 on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.conservation_status_obj.species_id = e.params.data.species_id
-                    vm.species_display = e.params.data.text;
-                    vm.taxon_previous_name = e.params.data.taxon_previous_name;
+                    let data = e.params.data;
+                    vm.conservation_status_obj.species_taxonomy_id = data.id
+                    vm.species_display = data.text;
+                    vm.taxon_previous_name = data.taxon_previous_name;
                 }).
                 on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
-                    vm.conservation_status_obj.species_id = null
+                    vm.conservation_status_obj.species_taxonomy_id = null
                     vm.species_display = '';
                     vm.taxon_previous_name = '';
                 }).
@@ -633,7 +632,7 @@ export default {
                     // move focus to select2 field
                     searchField[0].focus();
                 });
-            if (!vm.conservation_status_obj.species_id) {
+            if (!vm.conservation_status_obj.species_taxonomy_id) {
                 vm.$nextTick(() => {
                     $(vm.$refs[vm.scientific_name_lookup]).select2('open');
                 });
@@ -641,25 +640,16 @@ export default {
         },
         getSpeciesDisplay: function () {
             let vm = this;
-            if (vm.conservation_status_obj.species_id != null) {
-                    let species_display_url = api_endpoints.species_display +
-                    "?species_id=" + vm.conservation_status_obj.species_id
-                    vm.$http.get(species_display_url).then(
+            if (vm.conservation_status_obj.species_taxonomy_id != null) {
+                let species_display_url = api_endpoints.species_display + "?taxon_id=" + vm.conservation_status_obj.species_taxonomy_id
+                vm.$http.get(species_display_url).then(
                     (response) => {
                         var newOption = new Option(response.body.name, response.body.id, false, true);
-                        $('#'+ vm.scientific_name_lookup).append(newOption);
+                        $('#' + vm.scientific_name_lookup).append(newOption);
                         vm.species_display = response.body.name
                         vm.taxon_previous_name = response.body.taxon_previous_name
                     })
-                }
-            //for (let choice of vm.species_list) {
-            //    if (choice.id === vm.conservation_status_obj.species_id) {
-            //        var newOption = new Option(choice.name, choice.id, false, true);
-            //        $('#' + vm.scientific_name_lookup).append(newOption);
-            //        vm.species_display = choice.name;
-            //        vm.taxon_previous_name = choice.taxon_previous_name;
-            //    }
-            //}
+            }
         },
         filterWALegislativeCategories: function (event) {
             this.$nextTick(() => {
@@ -765,7 +755,7 @@ export default {
     },
     mounted: function () {
         let vm = this;
-        if(!this.is_external && vm.$refs.assessment_comments){
+        if (!this.is_external && vm.$refs.assessment_comments) {
             vm.$refs.assessment_comments.show_warning_icon(false);
         }
         vm.$nextTick(() => {

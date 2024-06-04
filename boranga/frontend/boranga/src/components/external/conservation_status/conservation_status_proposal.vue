@@ -308,7 +308,7 @@ export default {
             let vm = this;
             let blank_fields = []
             if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna') {
-                if (vm.conservation_status_obj.species_id == null || vm.conservation_status_obj.species_id == '') {
+                if (vm.conservation_status_obj.species_taxonomy_id == null || vm.conservation_status_obj.species_taxonomy_id == '') {
                     blank_fields.push(' Scientific Name is required')
                 }
             }
@@ -320,7 +320,7 @@ export default {
             if(!vm.conservation_status_obj.submitter_information.submitter_category){
                 blank_fields.push(' Please select a submitter category')
             }
-            if (check_action == "submit" && (vm.conservation_status_obj.species_id || vm.conservation_status_obj.community_id)) {
+            if (check_action == "submit" && (vm.conservation_status_obj.species_taxonomy_id || vm.conservation_status_obj.community_id)) {
                 vm.validateConservationStatusListsCategories(blank_fields)
                 if (vm.conservation_status_obj.comment == null || vm.conservation_status_obj.comment == '') {
                     blank_fields.push(' Please enter some comments regarding your conservation status proposal.')
