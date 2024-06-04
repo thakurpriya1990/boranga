@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_exempt
 
 from boranga import settings
+from boranga.components.occurrence.models import OccurrenceTenure
 from boranga.components.spatial.models import Proxy, TileLayer
 from boranga.helpers import is_internal
 
@@ -86,6 +87,26 @@ def intersect_geometry_with_layer(geometry, intersect_layer, geometry_name="SHAP
     return res.json()
 
 
+def populate_occurrence_tenure_data(instance, features):
+    for feature in features:
+        feature_id = feature.get("id", None)
+        owner_name = feature.get("properties", {}).get("CAD_OWNER_NAME", None)
+        owner_count = feature.get("properties", {}).get("CAD_OWNER_COUNT", None)
+
+        if not feature_id:
+            logger.warn(f"Feature does not have an ID: {feature}")
+            continue
+
+        occurrence_tenure, created = OccurrenceTenure.objects.get_or_create(
+            occurrence_geometry=instance,
+            tenure_area_id=feature_id,
+            defaults={"owner_name": owner_name, "owner_count": owner_count},
+        )
+
+        if created:
+            logger.info(f"Created OccurrenceTenure: {occurrence_tenure}")
+
+
 def save_geometry(
     request,
     instance,
@@ -133,7 +154,8 @@ def save_geometry(
 
     action = request.data.get("action", None)
 
-    geometry_ids = []
+    # geometry_ids = []
+    geometry_id_intersect_data = {}
     for feature in geometry.get("features"):
         supported_geometry_types = ["MultiPolygon", "Polygon", "MultiPoint", "Point"]
         geometry_type = feature.get("geometry").get("type")
@@ -172,13 +194,14 @@ def save_geometry(
                 "original_geometry_ewkb": geom[1].ewkb,
             }
 
+            intersect_data = {}
             # TODO: Hardcoded. Possibly pass in via fn parameter whether to intersect and with what
             if instance_fk_field_name == "occurrence":
                 intersect_layer = TileLayer.objects.get(
                     is_tenure_intersects_query_layer=True
                 )
-                data = intersect_geometry_with_layer(geom[0], intersect_layer)
-                totalFeatures = data.get("totalFeatures")
+                intersect_data = intersect_geometry_with_layer(geom[0], intersect_layer)
+                totalFeatures = intersect_data.get("totalFeatures")
                 logger.info(
                     f"Geometry {geom[0]} intersects with {totalFeatures} features from {intersect_layer.layer_name}"
                 )
@@ -218,11 +241,13 @@ def save_geometry(
             serializer.is_valid(raise_exception=True)
             geometry_instance = serializer.save()
             logger.info(f"Saved {instance_model_name} geometry: {geometry_instance}")
-            geometry_ids.append(geometry_instance.id)
+            # geometry_ids.append(geometry_instance.id)
+            geometry_id_intersect_data[geometry_instance.id] = intersect_data
 
     # Remove any ocr geometries from the db that are no longer in the ocr_geometry that was submitted
     # Prevent deletion of polygons that are locked after status change (e.g. after submit)
     # or have been drawn by another user
+    geometry_ids = list(geometry_id_intersect_data.keys())
     deleted_geometries = (
         InstanceGeometry.objects.filter(**{instance_fk_field_name: instance})
         .exclude(Q(id__in=geometry_ids) | Q(locked=True) | ~Q(drawn_by=request.user.id))
@@ -232,6 +257,8 @@ def save_geometry(
         logger.info(
             f"Deleted {instance_model_name} geometries: {deleted_geometries} for {instance}"
         )
+
+    return geometry_id_intersect_data
 
 
 def wkb_to_geojson(wkb):
