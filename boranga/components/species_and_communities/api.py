@@ -292,12 +292,10 @@ class GetScientificName(views.APIView):
             #else:
             qs = taxonomy_data_cache
             if has_species:
-                #TODO this should be temporary, for until the name lookup change has been applied to both OCR/OCC and CS
                 qs = qs.exclude(species=None)
 
             if species_profile:
-                #TODO review if how taxonomy is handled (one to one with species) is changed
-                qs = qs.filter(species=None) #if changed, consider status when filtering
+                qs = qs.filter(species=None)
 
             qs = qs.filter(
                 scientific_name__icontains=search_term,

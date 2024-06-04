@@ -212,14 +212,6 @@ class OccurrenceReport(RevisionedMixin):
         default=APPLICATION_TYPE_CHOICES[0][0],
     )
 
-    species_taxonomy = models.ForeignKey(
-        Taxonomy,
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
-        related_name="occurrence_reports",
-    )
-
     # species related occurrence
     species = models.ForeignKey(
         Species,
@@ -303,16 +295,7 @@ class OccurrenceReport(RevisionedMixin):
             self.occurrence_report_number = new_occurrence_report_id
             self.save(*args, **kwargs)
         else:
-            self.species = (
-                self.get_taxonomy_species()
-            )  # on save, checks if taxon has species and sets accordingly
             super().save(*args, **kwargs)
-
-    def get_taxonomy_species(self):
-        if self.species_taxonomy and hasattr(self.species_taxonomy, "species"):
-            return self.species_taxonomy.species
-        else:
-            return None
 
     @property
     def reference(self):
@@ -2741,14 +2724,6 @@ class Occurrence(RevisionedMixin):
         GroupType, on_delete=models.PROTECT, null=True, blank=True
     )
 
-    species_taxonomy = models.ForeignKey(
-        Taxonomy,
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
-        related_name="occurrences",
-    )
-
     species = models.ForeignKey(
         Species,
         on_delete=models.PROTECT,
@@ -2826,16 +2801,7 @@ class Occurrence(RevisionedMixin):
             self.occurrence_number = f"OCC{str(self.pk)}"
             self.save(*args, **kwargs)
         else:
-            self.species = (
-                self.get_taxonomy_species()
-            )  # on save, checks if taxon has species and sets accordingly
             super().save(*args, **kwargs)
-
-    def get_taxonomy_species(self):
-        if self.species_taxonomy and hasattr(self.species_taxonomy, "species"):
-            return self.species_taxonomy.species
-        else:
-            return None
 
     def __str__(self):
         if self.species:
@@ -3878,7 +3844,7 @@ reversion.register(OccurrenceReportDocument)
 reversion.register(OCRConservationThreat)
 
 # Occurrence Report
-reversion.register(OccurrenceReport, follow=["species_taxonomy", "community"])
+reversion.register(OccurrenceReport, follow=["species", "community"])
 
 # Occurrence Document
 reversion.register(OccurrenceDocument)
