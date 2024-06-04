@@ -3844,6 +3844,11 @@ class OccurrenceTenurePurpose(models.Model):
         app_label = "boranga"
 
 
+def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
+    sub_objs.update(status="historical")
+    collector.add_field_update(field, None, sub_objs)
+
+
 class OccurrenceTenure(models.Model):
     STATUS_CHOICES = (("current", "Current"), ("historical", "Historical"))
 
@@ -3851,7 +3856,11 @@ class OccurrenceTenure(models.Model):
         max_length=100, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0]
     )
     occurrence_geometry = models.ForeignKey(
-        OccurrenceGeometry, related_name="occurrence_tenures", on_delete=models.CASCADE
+        OccurrenceGeometry,
+        related_name="occurrence_tenures",
+        blank=True,
+        null=True,
+        on_delete=SET_NULL_AND_HISTORICAL,
     )
 
     tenure_area_id = models.CharField(
@@ -3875,7 +3884,11 @@ class OccurrenceTenure(models.Model):
 
     class Meta:
         app_label = "boranga"
-        unique_together = ("occurrence_geometry", "tenure_area_id")
+        unique_together = ("occurrence_geometry", "tenure_area_id", "status")
+
+    def __str__(self):
+        owner_name_display = f": {self.owner_name}" if self.owner_name.strip() else ""
+        return f"Tenure Area {self.tenure_area_id}{owner_name_display} [{self.get_status_display()}]"
 
     @property
     def typename(self):
