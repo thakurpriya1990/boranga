@@ -1363,12 +1363,18 @@ class ProposedDeclineSerializer(serializers.Serializer):
 
 
 class ProposedApprovalSerializer(serializers.Serializer):
-    # effective_from_date = serializers.DateField(input_formats=['%d/%m/%Y'])
-    # effective_to_date = serializers.DateField(input_formats=['%d/%m/%Y'])
     effective_from_date = serializers.DateField()
-    effective_to_date = serializers.DateField()
+    effective_to_date = serializers.DateField(required=False)
     details = serializers.CharField()
     cc_email = serializers.CharField(required=False, allow_null=True)
+
+    def validate_effective_to_date(self, value):
+        effective_from_date = self.initial_data.get("effective_from_date")
+        if effective_from_date and value < effective_from_date:
+            raise serializers.ValidationError(
+                "Effective to date must be greater than effective from date."
+            )
+        return value
 
 
 class ConservationStatusDocumentSerializer(serializers.ModelSerializer):
