@@ -480,7 +480,9 @@ export default {
     },
     mounted: function () {
         let vm = this;
-        vm.$refs.assessment_comments.show_warning_icon(false);
+        if(!vm.is_external && vm.$refs.assessment_comments){
+            vm.$refs.assessment_comments.show_warning_icon(false);
+        }
         this.$nextTick(() => {
             vm.eventListeners();
             vm.initialiseScientificNameLookup();
