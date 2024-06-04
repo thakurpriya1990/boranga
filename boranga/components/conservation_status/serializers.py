@@ -145,8 +145,6 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
         source="commonwealth_conservation_list.code", allow_null=True
     )
     processing_status = serializers.CharField(source="get_processing_status_display")
-    region = serializers.SerializerMethodField()
-    district = serializers.SerializerMethodField()
     assessor_process = serializers.SerializerMethodField(read_only=True)
     approver_process = serializers.SerializerMethodField(read_only=True)
     assessor_edit = serializers.SerializerMethodField(read_only=True)
@@ -154,6 +152,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     effective_from_date = serializers.SerializerMethodField()
     effective_to_date = serializers.SerializerMethodField()
     is_new_contributor = serializers.SerializerMethodField()
+    change_code = serializers.CharField(source="change_code__name", read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -167,8 +166,6 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "family",
             "genus",
             "phylogenetic_group",
-            "region",
-            "district",
             "wa_priority_list",
             "wa_priority_category",
             "wa_legislative_list",
@@ -188,6 +185,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "effective_to_date",
             "is_new_contributor",
             "review_due_date",
+            "change_code",
         )
         datatables_always_serialize = (
             "id",
@@ -199,8 +197,6 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "family",
             "genus",
             "phylogenetic_group",
-            "region",
-            "district",
             "wa_priority_list",
             "wa_priority_category",
             "wa_legislative_list",
@@ -262,12 +258,6 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                 )
         return ""
 
-    def get_region(self, obj):
-        if obj.species:
-            if obj.species.region:
-                return obj.species.region.name
-        return ""
-
     def get_effective_from_date(self, obj):
         try:
             approval = ConservationStatusIssuanceApprovalDetails.objects.get(
@@ -287,12 +277,6 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                 return approval.effective_to_date
         except ConservationStatusIssuanceApprovalDetails.DoesNotExist:
             return ""
-
-    def get_district(self, obj):
-        if obj.species:
-            if obj.species.district:
-                return obj.species.district.name
-        return ""
 
     def get_assessor_process(self, obj):
         # Check if currently logged in user has access to process the proposal
