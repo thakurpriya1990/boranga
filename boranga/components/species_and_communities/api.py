@@ -188,6 +188,8 @@ class GetScientificName(views.APIView):
         group_type_id = request.GET.get("group_type_id", "")
         # identifies the request as for a species profile - we exclude those taxonomies already taken
         species_profile = request.GET.get("species_profile", False)
+        # identifies the request as for a species profile dependent record - we only include those taxonomies in use
+        has_species = request.GET.get("has_species", False)
 
         if not search_term:
             return Response({"results": []})
@@ -198,8 +200,10 @@ class GetScientificName(views.APIView):
             cache.set(settings.CACHE_KEY_TAXONOMIES, taxonomies, 86400)
 
         if species_profile:
-            # TODO review if how taxonomy is handled (one to one with species) is changed
             taxonomies = taxonomies.filter(species=None)
+
+        if has_species:
+            taxonomies = taxonomies.exclude(species=None)
 
         taxonomies = taxonomies.filter(
             scientific_name__icontains=search_term,

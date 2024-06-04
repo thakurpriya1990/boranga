@@ -266,6 +266,9 @@ export default {
     methods: {
         save: async function () {
             let vm = this;
+
+            console.log(vm.occurrence);
+
             var missing_data = vm.can_submit("");
             vm.isSaved = false;
             if (missing_data != true) {
@@ -361,7 +364,7 @@ export default {
             let vm = this;
             let blank_fields = []
             if (vm.occurrence.group_type == 'flora' || vm.occurrence.group_type == 'fauna') {
-                if (vm.occurrence.species_taxonomy_id == null || vm.occurrence.species_taxonomy_id == '') {
+                if (vm.occurrence.species == null || vm.occurrence.species == '') {
                     blank_fields.push('Scientific Name is missing')
                 }
             }

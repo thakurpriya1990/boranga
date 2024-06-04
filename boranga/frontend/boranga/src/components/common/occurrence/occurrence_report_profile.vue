@@ -60,20 +60,7 @@
             <div v-show="!isCommunity">
 
                 <div class="row mb-3">
-                    <label for="" class="col-sm-3 control-label">Scientific Name (S&C):</label>
-                    <div class="col-sm-6">
-                        <textarea id="species_name" v-model="species_name" disabled class="form-control" rows="1"
-                            placeholder="" />
-                    </div>
-                    <div v-if="species_name" class="col-sm-3">
-                        <a :href="`/internal/species_communities/${occurrence_report_obj.species_id}?group_type_name=${occurrence_report_obj.group_type}`"
-                            target="_blank"><i class="bi bi-box-arrow-up-right"></i></a>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <label v-if="is_external" for="" class="col-sm-3 control-label">Scientific Name:</label>
-                    <label v-else for="" class="col-sm-3 control-label">Scientific Name (Taxon):</label>
+                    <label for="" class="col-sm-3 control-label">Scientific Name:</label>
                     <div :id="select_scientific_name" class="col-sm-9">
                         <select :id="scientific_name_lookup" :ref="scientific_name_lookup" :disabled="isReadOnly"
                             :name="scientific_name_lookup" class="form-control" />
@@ -179,7 +166,6 @@ export default {
                     : false,
             species_list: [],
             species_display: '',
-            species_name: '',
             community_display: '',
             taxon_previous_name: '',
             referral_comments_boxes: [],
@@ -191,15 +177,6 @@ export default {
         CollapsibleComponent
     },
     watch: {
-        occurrence_report_obj: function () {
-            let vm = this;
-            if (!vm.is_external && !vm.isCommunity) {
-                //this.getSpeciesDisplay();
-                this.getSpeciesName();
-            }// else {
-            //    this.getCommunityDisplay();
-            //}
-        }
     },
     methods: {
         initialiseScientificNameLookup: function () {
@@ -220,9 +197,7 @@ export default {
                                 type: 'public',
                                 group_type_id:
                                     vm.occurrence_report_obj.group_type_id,
-                                cs_species: true,
-                                cs_species_status:
-                                    vm.occurrence_report_obj.processing_status,
+                                has_species: true,
                             };
                             return query;
                         },
@@ -236,14 +211,14 @@ export default {
                     // eslint-disable-next-line no-unused-vars
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    vm.occurrence_report_obj.species_taxonomy_id = data;
+                    vm.occurrence_report_obj.species_id = e.params.data.species_id;
                     vm.species_display = e.params.data.text;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
                 })
                 .on('select2:unselect', function (e) {
                     // eslint-disable-next-line no-unused-vars
                     var selected = $(e.currentTarget);
-                    vm.occurrence_report_obj.species_taxonomy_id = null;
+                    vm.occurrence_report_obj.species_id = null;
                     vm.species_display = '';
                     vm.taxon_previous_name = '';
                 })
@@ -260,9 +235,9 @@ export default {
         },
         getSpeciesDisplay: function () {
             let vm = this;
-            if (vm.occurrence_report_obj.species_taxonomy_id != null) {
+            if (vm.occurrence_report_obj.species_id != null) {
                 let species_display_url = api_endpoints.species_display +
-                    "?taxon_id=" + vm.occurrence_report_obj.species_taxonomy_id
+                    "?species_id=" + vm.occurrence_report_obj.species_id
                 vm.$http.get(species_display_url).then(
                     (response) => {
                         var newOption = new Option(response.body.name, response.body.id, false, true);
@@ -272,7 +247,7 @@ export default {
                     })
             }
             /*for (let choice of vm.species_list) {
-                if (choice.id === vm.occurrence_report_obj.species_taxonomy_id) {
+                if (choice.id === vm.occurrence_report_obj.species_id) {
                     const newOption = new Option(
                         choice.name,
                         choice.id,
@@ -284,19 +259,6 @@ export default {
                     vm.taxon_previous_name = choice.taxon_previous_name;
                 }
             }*/
-        },
-        getSpeciesName: function () {
-            let vm = this;
-            if (vm.occurrence_report_obj.species_id != null) {
-                let species_display_url = api_endpoints.species_display +
-                    "?species_id=" + vm.occurrence_report_obj.species_id
-                vm.$http.get(species_display_url).then(
-                    (response) => {
-                        vm.species_name = response.body.name
-                    })
-            } else {
-                vm.species_name = "";
-            }
         },
         initialiseCommunityNameLookup: function () {
             let vm = this;
@@ -449,9 +411,6 @@ export default {
                 //vm.species_list = vm.cs_profile_dict.species_list;
                 if (!vm.isCommunity) {
                     this.getSpeciesDisplay();
-                    if (!vm.is_external) {
-                        this.getSpeciesName();
-                    }
                 }
                 else {
                     //vm.community_list = vm.cs_profile_dict.community_list;

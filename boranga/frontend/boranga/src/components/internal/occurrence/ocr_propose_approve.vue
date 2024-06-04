@@ -117,7 +117,7 @@ export default {
             if (value) {
                 if (this.occurrence !== null && this.occurrence.id !== undefined &&
                     (
-                        (this.occurrence_report.species_taxonomy_id !== null && this.occurrence_report.species_taxonomy_id === this.occurrence.species_taxonomy_id) ||
+                        (this.occurrence_report.species_id !== null && this.occurrence_report.species_id === this.occurrence.species) ||
                         (this.occurrence_report.community_id !== null && this.occurrence_report.community_id === this.occurrence.community)
                     )
                 ) {

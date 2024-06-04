@@ -71,11 +71,10 @@ logger = logging.getLogger("boranga")
 class OccurrenceSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source="get_processing_status_display")
     scientific_name = serializers.CharField(
-        source="species_taxonomy.scientific_name", allow_null=True
+        source="species.taxonomy.scientific_name", allow_null=True
     )
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
     group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
-    species_taxonomy_id = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField()
 
     location = serializers.SerializerMethodField()
@@ -95,10 +94,6 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Occurrence
         fields = "__all__"
-
-    def get_species_taxonomy_id(self, obj):
-        if obj.species_taxonomy:
-            return obj.species_taxonomy.id
 
     def get_processing_status(self, obj):
         return obj.get_processing_status_display()
@@ -227,8 +222,9 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
         return ""
 
     def get_scientific_name(self, obj):
-        if obj.species_taxonomy:
-            return obj.species_taxonomy.scientific_name
+        if obj.species:
+            if obj.species.taxonomy:
+                return obj.species.taxonomy.scientific_name
         return ""
 
     def get_community_name(self, obj):
@@ -314,9 +310,8 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         )
 
     def get_scientific_name(self, obj):
-        if obj.species_taxonomy:
-            return obj.species_taxonomy.scientific_name
-        return ""
+        if obj.species and obj.species.taxonomy:
+                return obj.species.taxonomy.scientific_name
 
     def get_community_name(self, obj):
         if obj.community:
@@ -861,7 +856,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "group_type",
             "group_type_id",
             "species_id",
-            "species_taxonomy_id",
             "community_id",
             "occurrence_report_number",
             "reported_date",
@@ -1106,7 +1100,6 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "id",
             "group_type",
             "group_type_id",
-            "species_taxonomy_id",
             "species_id",
             "community_id",
             "occurrence_report_number",
@@ -1550,7 +1543,7 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
 
 
 class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
-    species_taxonomy_id = serializers.IntegerField(
+    species_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
     community_id = serializers.IntegerField(
@@ -1565,7 +1558,7 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         fields = (
             "id",
             "group_type",
-            "species_taxonomy_id",
+            "species_id",
             "community_id",
             "lodgement_date",
             "reported_date",
@@ -1988,11 +1981,8 @@ class ProposeApproveSerializer(serializers.Serializer):
 
 
 class SaveOccurrenceSerializer(serializers.ModelSerializer):
-    # species_id = serializers.IntegerField(
-    #    required=False, allow_null=True, write_only=True
-    # )
-    species_taxonomy_id = serializers.IntegerField(
-        required=False, allow_null=True, write_only=True
+    species_id = serializers.IntegerField(
+       required=False, allow_null=True, write_only=True
     )
     community_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
@@ -2005,8 +1995,7 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
             "wild_status",
             "occurrence_source",
             "comment",
-            # "species_id",
-            "species_taxonomy_id",
+            "species_id",
             "community_id",
             "species",
             "community",
