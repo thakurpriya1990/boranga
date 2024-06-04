@@ -294,6 +294,16 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
                     conservation_status__species__taxonomy__genera_id=filter_genus
                 )
 
+        filter_change_code = request.POST.get("filter_change_code")
+        if queryset.model is ConservationStatus:
+            if filter_change_code and not filter_change_code.lower() == "all":
+                queryset = queryset.filter(change_code__id=filter_change_code)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_change_code and not filter_change_code.lower() == "all":
+                queryset = queryset.filter(
+                    conservation_status__change_code__id=filter_change_code
+                )
+
         filter_wa_legislative_list = request.POST.get("filter_wa_legislative_list")
         if (
             filter_wa_legislative_list

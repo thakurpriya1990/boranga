@@ -40,6 +40,15 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
+                        <label for="change-type">Change Type:</label>
+                        <select id="change-type" class="form-select" v-model="filterCSFloraChangeCode">
+                            <option value="all">All</option>
+                            <option v-for="change_code in change_codes" :value="change_code.id">{{ change_code.code }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
                         <label for="wa-legislative-list">WA Legislative List:</label>
                         <select id="wa-legislative-list" class="form-select" v-model="filterCSFloraWALegislativeList">
                             <option value="all">All</option>
@@ -244,6 +253,11 @@ export default {
             required: false,
             default: 'filterCSFloraGenus',
         },
+        filterCSFloraChangeCode_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFloraChangeCode',
+        },
         filterCSFloraWALegislativeList_cache: {
             type: String,
             required: false,
@@ -339,6 +353,9 @@ export default {
             filterCSFloraGenus: sessionStorage.getItem(this.filterCSFloraGenus_cache) ?
                 sessionStorage.getItem(this.filterCSFloraGenus_cache) : 'all',
 
+            filterCSFloraChangeCode: sessionStorage.getItem(this.filterCSFloraChangeCode_cache) ?
+                sessionStorage.getItem(this.filterCSFloraChangeCode_cache) : 'all',
+
             filterCSFloraWALegislativeList: sessionStorage.getItem(this.filterCSFloraWALegislativeList_cache) ?
                 sessionStorage.getItem(this.filterCSFloraWALegislativeList_cache) : 'all',
 
@@ -383,6 +400,7 @@ export default {
             scientific_name_list: [],
             common_name_list: [],
             family_list: [],
+            change_codes: [],
             wa_legislative_lists: [],
             wa_legislative_categories: [],
             wa_priority_categories: [],
@@ -441,6 +459,11 @@ export default {
             let vm = this;
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraGenus_cache, vm.filterCSFloraGenus);
+        },
+        filterCSFloraChangeCode: function () {
+            let vm = this;
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFloraChangeCode_cache, vm.filterCSFloraChangeCode);
         },
         filterCSFloraWALegislativeList: function () {
             let vm = this;
@@ -526,6 +549,7 @@ export default {
                 this.filterCSFloraPhylogeneticGroup === 'all' &&
                 this.filterCSFloraFamily === 'all' &&
                 this.filterCSFloraGenus === 'all' &&
+                this.filterCSFloraChangeCode ==='all' &&
                 this.filterCSFloraWALegislativeList === 'all' &&
                 this.filterCSFloraWALegislativeCategory === 'all' &&
                 this.filterCSFloraWAPriorityCategory === 'all' &&
@@ -622,7 +646,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                name: "species__taxonomy__scientific_name",
+                name: "species_taxonomy__scientific_name",
             }
         },
         column_common_name: function () {
@@ -635,7 +659,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                name: "species__taxonomy__vernaculars__vernacular_name",
+                name: "species_taxonomy__vernaculars__vernacular_name",
             }
         },
         column_family: function () {
@@ -648,7 +672,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                name: "species__taxonomy__family_name",
+                name: "species_taxonomy__family_name",
             }
         },
         column_genera: function () {
@@ -661,7 +685,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                name: "species__taxonomy__genera_name",
+                name: "species_taxonomy__genera_name",
             }
         },
         column_phylo_group: function () {
@@ -670,7 +694,7 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: "species__taxonomy__phylo_group",
+                name: "species_taxonomy__phylo_group",
                 render: function (data, type, full) {
                     let html = '';
                     if(full.phylogenetic_group){
@@ -757,7 +781,6 @@ export default {
                     if (full.processing_status) {
                         return full.processing_status;
                     }
-                    // Should not reach here
                     return ''
                 },
                 name: "processing_status",
@@ -767,32 +790,31 @@ export default {
             return {
                 data: "effective_from_date",
                 orderable: true,
-                searchable: true, // handles by filter_queryset override method
+                searchable: true,
                 visible: true,
                 'render': function (data, type, full) {
                     if (full.effective_from_date) {
                         return full.effective_from_date
                     }
-                    // Should not reach here
                     return ''
                 },
-                name: "conservationstatusissuanceapprovaldetails__effective_from_date",
+                name: "effective_from_date",
             }
         },
         column_effective_to_date: function () {
             return {
                 data: "effective_to_date",
                 orderable: true,
-                searchable: true, // handles by filter_queryset override method
+                searchable: true,
                 visible: true,
                 'render': function (data, type, full) {
                     if (full.effective_to_date) {
                         return full.effective_to_date
                     }
-                    // Should not reach here
+
                     return ''
                 },
-                name: "conservationstatusissuanceapprovaldetails__effective_to_date",
+                name: "effective_to_date",
             }
         },
         column_review_due_date: function () {
@@ -956,6 +978,7 @@ export default {
                         d.filter_phylogenetic_group = vm.filterCSFloraPhylogeneticGroup;
                         d.filter_family = vm.filterCSFloraFamily;
                         d.filter_genus = vm.filterCSFloraGenus;
+                        d.filter_change_code = vm.filterCSFloraChangeCode;
                         d.filter_wa_legislative_list = vm.filterCSFloraWALegislativeList;
                         d.filter_wa_legislative_category = vm.filterCSFloraWALegislativeCategory;
                         d.filter_wa_priority_category = vm.filterCSFloraWAPriorityCategory;
@@ -1275,6 +1298,7 @@ export default {
                 vm.processing_statuses = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());
                 });
+                vm.change_codes = vm.filterListsSpecies.change_codes;
             }, (error) => {
                 console.log(error);
             })
@@ -1493,6 +1517,7 @@ export default {
                 filter_common_name: vm.filterCSFloraCommonName,
                 filter_family: vm.filterCSFloraFamily,
                 filter_genus: vm.filterCSFloraGenus,
+                filter_change_code: vm.filterCSFloraChangeCode,
                 filter_wa_legislative_list: vm.filterCSFloraWALegislativeList,
                 filter_wa_legislative_category: vm.filterCSFloraWALegislativeCategory,
                 filter_wa_priority_category: vm.filterCSFloraWAPriorityCategory,
