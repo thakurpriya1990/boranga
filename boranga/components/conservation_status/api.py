@@ -335,17 +335,6 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
                     conservation_status__wa_legislative_category=filter_wa_legislative_category
                 )
 
-        filter_wa_priority_list = request.POST.get("filter_wa_priority_list")
-        if filter_wa_priority_list and not filter_wa_priority_list.lower() == "all":
-            if queryset.model is ConservationStatus:
-                queryset = queryset.filter(
-                    wa_priority_list=filter_wa_priority_list
-                ).distinct()
-            elif queryset.model is ConservationStatusReferral:
-                queryset = queryset.filter(
-                    conservation_status__wa_priority_list=filter_wa_priority_list
-                )
-
         filter_wa_priority_category = request.POST.get("filter_wa_priority_category")
         if (
             filter_wa_priority_category
@@ -380,26 +369,6 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.exclude(
                     conservation_status__international_conservation__isnull=True
-                )
-
-        filter_region = request.POST.get("filter_region")
-        if queryset.model is ConservationStatus:
-            if filter_region and not filter_region.lower() == "all":
-                queryset = queryset.filter(species__region=filter_region)
-        elif queryset.model is ConservationStatusReferral:
-            if filter_region and not filter_region.lower() == "all":
-                queryset = queryset.filter(
-                    conservation_status__species__region=filter_region
-                )
-
-        filter_district = request.POST.get("filter_district")
-        if queryset.model is ConservationStatus:
-            if filter_district and not filter_district.lower() == "all":
-                queryset = queryset.filter(species__district=filter_district)
-        elif queryset.model is ConservationStatusReferral:
-            if filter_district and not filter_district.lower() == "all":
-                queryset = queryset.filter(
-                    conservation_status__species__district=filter_district
                 )
 
         filter_from_effective_from_date = request.POST.get(
