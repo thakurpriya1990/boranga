@@ -697,7 +697,7 @@ export default {
             return {
                 data: "family",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 'render': function (value, type) {
                     let result = helpers.dtPopover(value, 30, 'hover');
@@ -710,7 +710,7 @@ export default {
             return {
                 data: "genus",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 'render': function (value, type) {
                     let result = helpers.dtPopover(value, 30, 'hover');
@@ -723,9 +723,9 @@ export default {
             return {
                 data: "phylogenetic_group",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
-                name: "species_taxonomy__phylo_group",
+                name: "species_taxonomy__phylogenetic_group",
                 render: function (data, type, full) {
                     let html = '';
                     if (full.phylogenetic_group) {
@@ -741,7 +741,7 @@ export default {
             return {
                 data: "change_code",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 name: "change_code__code",
             }
@@ -750,7 +750,7 @@ export default {
             return {
                 data: "wa_priority_list",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 name: "wa_priority_list__code",
             }
@@ -759,7 +759,7 @@ export default {
             return {
                 data: "wa_priority_category",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 name: "wa_priority_category__code",
             }
@@ -768,7 +768,7 @@ export default {
             return {
                 data: "wa_legislative_list",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 name: "wa_legislative_list__code",
             }
@@ -777,7 +777,7 @@ export default {
             return {
                 data: "wa_legislative_category",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 name: "wa_legislative_category__code",
             }
@@ -786,7 +786,7 @@ export default {
             return {
                 data: "commonwealth_conservation_list",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 name: "commonwealth_conservation_list",
             }
@@ -814,7 +814,7 @@ export default {
             return {
                 data: "submitter_category",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 name: "submitter_information__submitter_category__name",
             }
@@ -841,7 +841,7 @@ export default {
                 // 9. Workflow Status
                 data: "processing_status",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
                     if (full.processing_status) {
@@ -856,7 +856,7 @@ export default {
             return {
                 data: "effective_from_date",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
                     if (full.effective_from_date) {
@@ -871,7 +871,7 @@ export default {
             return {
                 data: "effective_to_date",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
                     if (full.effective_to_date) {
@@ -887,7 +887,7 @@ export default {
             return {
                 data: "review_due_date",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
             }
         },
