@@ -355,7 +355,7 @@ export default {
                 sessionStorage.getItem(this.filterCSFloraInternationalRelevance_cache) : "false",
 
             filterCSFloraApplicationStatus: sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) : 'all',
+                sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) : 'approved',
 
             filterCSFloraAssessor: sessionStorage.getItem(this.filterCSFloraAssessor_cache) ?
                 sessionStorage.getItem(this.filterCSFloraAssessor_cache) : 'all',
@@ -533,7 +533,7 @@ export default {
                 this.filterCSFloraInternationalRelevance === 'false' &&
                 this.filterCSFloraAssessor === 'all' &&
                 this.filterCSFloraSubmitter === 'all' &&
-                this.filterCSFloraApplicationStatus === 'all' &&
+                this.filterCSFloraApplicationStatus === 'approved' &&
                 this.filterCSFromFloraEffectiveFromDate === '' &&
                 this.filterCSToFloraEffectiveFromDate === '' &&
                 this.filterCSFromFloraEffectiveToDate === '' &&
