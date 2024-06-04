@@ -298,7 +298,7 @@ class ConservationChangeCode(models.Model):
 
     @classmethod
     def get_filter_list(cls):
-        return list(cls.objects.values_list("id", "code"))
+        return list(cls.objects.values("id", "code"))
 
 
 class IUCNVersion(models.Model):
