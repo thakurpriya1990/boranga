@@ -1420,6 +1420,7 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def species_save(self, request, *args, **kwargs):
         instance = self.get_object()
         request_data = request.data
+        print("********************{}".format(request_data))
         if request_data["submitter"]:
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
         if request_data.get("distribution"):

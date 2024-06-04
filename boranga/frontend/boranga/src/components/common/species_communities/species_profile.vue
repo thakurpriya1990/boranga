@@ -82,7 +82,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" @change="chainedSelectDistricts(species_community.region_id)"
+                    <select :disabled="isReadOnly" class="form-select" @change="chainedSelectDistricts(species_community.region_id,$event)"
                         v-model="species_community.region_id">
                         <option value="">Select region</option>
                         <option v-for="option in region_list" :value="option.value" v-bind:key="option.value">
@@ -1366,6 +1366,9 @@ export default {
                         this.region_list.push( {text: vm.api_regions[i].name, value: vm.api_regions[i].id, districts: vm.api_regions[i].districts} );
                     }
                     // vm.setProposalData2(this.regions);
+                    if(vm.species_community.region_id){
+                        vm.chainedSelectDistricts(vm.species_community.region_id);
+                    }
             },(error) => {
                 console.log(error);
             })
@@ -1379,8 +1382,13 @@ export default {
             }
             return [];
         },
-        chainedSelectDistricts: function(region_id){
+        chainedSelectDistricts: function(region_id,event){
             let vm = this;
+            if (event) {
+                alert(1)
+                vm.species_community.district_id = null; //-----to remove the previous selection
+                alert(vm.species_community.district_id)
+            }
             vm.district_list = [];
             if(region_id){
                 var api_districts = this.searchList(region_id, vm.region_list).districts;
