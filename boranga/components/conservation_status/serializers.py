@@ -184,6 +184,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "wa_legislative_category",
             "commonwealth_conservation_list",
             "international_conservation",
+            "conservation_criteria",
             "processing_status",
             "customer_status",
             "can_user_edit",
