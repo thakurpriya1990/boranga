@@ -43,11 +43,12 @@ def invert_xy_coordinates(geometries):
     return geometries
 
 
-def intersect_geometry_with_layer(geometry, intersect_layer):
+def intersect_geometry_with_layer(geometry, intersect_layer, geometry_name="SHAPE"):
     geoserver_url = intersect_layer.geoserver_url
     intersect_layer_name = intersect_layer.layer_name
     invert_xy = intersect_layer.invert_xy
 
+    test_geom = geometry
     if invert_xy:
         test_geom = invert_xy_coordinates([geometry])[0]
 
@@ -59,8 +60,8 @@ def intersect_geometry_with_layer(geometry, intersect_layer):
         "maxFeatures": "5000",
         "srsName": "EPSG:4326",  # using the default projection for open layers and geodjango
         "outputFormat": "application/json",
-        "propertyName": "SHAPE",
-        "CQL_FILTER": f"INTERSECTS(SHAPE, {test_geom.wkt})",
+        "propertyName": f"{geometry_name},CAD_OWNER_NAME,CAD_OWNER_COUNT",
+        "CQL_FILTER": f"INTERSECTS({geometry_name}, {test_geom.wkt})",
     }
 
     request_path = (
@@ -76,6 +77,11 @@ def intersect_geometry_with_layer(geometry, intersect_layer):
         res = requests.post(url + "wfs", params=params, auth=(auth_name, auth_password))
     else:
         res = requests.post(geoserver_url.url, params=params)
+
+    if res.reason != "OK":
+        raise serializers.ValidationError(
+            f"Failed to intersect geometry with layer {intersect_layer_name}. Reason: {res.reason}"
+        )
 
     return res.json()
 
