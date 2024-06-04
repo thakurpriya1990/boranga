@@ -69,6 +69,7 @@ from boranga.components.species_and_communities.models import (
     Taxonomy,
     TaxonVernacular,
 )
+from boranga.components.users.models import SubmitterCategory
 from boranga.helpers import is_external_contributor, is_internal
 
 logger = logging.getLogger(__name__)
@@ -207,6 +208,7 @@ class GetCSProfileDict(views.APIView):
             ),
             "iucn_version_list": iucn_version_list,
             "change_code_list": ConservationChangeCode.get_filter_list(),
+            "submitter_categories": SubmitterCategory.get_filter_list(),
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
