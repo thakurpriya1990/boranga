@@ -43,7 +43,8 @@
                         <label for="change-type">Change Type:</label>
                         <select id="change-type" class="form-select" v-model="filterCSFloraChangeCode">
                             <option value="all">All</option>
-                            <option v-for="change_code in change_codes" :value="change_code.id">{{ change_code.code }}</option>
+                            <option v-for="change_code in change_codes" :value="change_code.id">{{ change_code.code }}
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -100,7 +101,8 @@
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSFloraApplicationStatus">
                             <option value="all">All</option>
-                            <option v-for="status in processing_statuses" :value="status.value">{{ status.name }}</option>
+                            <option v-for="status in processing_statuses" :value="status.value">{{ status.name }}
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -116,6 +118,16 @@
                         <label for="cs_submitter_lookup">Submitter:</label>
                         <select id="cs_submitter_lookup" name="cs_submitter_lookup" ref="cs_submitter_lookup"
                             class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="submitter-category">Submitter Category:</label>
+                        <select id="submitter-category" class="form-select" v-model="filterCSFloraSubmitterCategory">
+                            <option value="all">All</option>
+                            <option v-for="submitter_category in submitter_categories" :value="submitter_category.id">{{ submitter_category.name }}
+                            </option>
+                        </select>
                     </div>
                 </div>
                 <div class="col-md-6" v-show="!is_for_agenda">
@@ -293,6 +305,11 @@ export default {
             required: false,
             default: 'filterCSFloraSubmitter',
         },
+        filterCSFloraSubmitterCategory_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFloraSubmitterCategory',
+        },
         filterCSFloraApplicationStatus_cache: {
             type: String,
             required: false,
@@ -380,6 +397,9 @@ export default {
             filterCSFloraSubmitter: sessionStorage.getItem(this.filterCSFloraSubmitter_cache) ?
                 sessionStorage.getItem(this.filterCSFloraSubmitter_cache) : 'all',
 
+            filterCSFloraSubmitterCategory: sessionStorage.getItem(this.filterCSFloraSubmitterCategory_cache) ?
+                sessionStorage.getItem(this.filterCSFloraSubmitterCategory_cache) : 'all',
+
             filterCSFromFloraEffectiveFromDate: sessionStorage.getItem(this.filterCSFromFloraEffectiveFromDate_cache) ?
                 sessionStorage.getItem(this.filterCSFromFloraEffectiveFromDate_cache) : '',
             filterCSToFloraEffectiveFromDate: sessionStorage.getItem(this.filterCSToFloraEffectiveFromDate_cache) ?
@@ -401,6 +421,7 @@ export default {
             common_name_list: [],
             family_list: [],
             change_codes: [],
+            submitter_categories: [],
             wa_legislative_lists: [],
             wa_legislative_categories: [],
             wa_priority_categories: [],
@@ -419,7 +440,7 @@ export default {
                 { value: 'with_assessor', name: 'With Assessor' },
                 { value: 'with_approver', name: 'With Approver' },
                 { value: 'ready_for_agenda', name: 'Ready For Agenda' },
-                { value: 'closed', name: 'DeListed'},
+                { value: 'closed', name: 'DeListed' },
                 { value: 'with_referral', name: 'With Referral' },
                 { value: 'approved', name: 'Approved' },
                 { value: 'declined', name: 'Declined' },
@@ -500,6 +521,11 @@ export default {
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraSubmitter_cache, vm.filterCSFloraSubmitter);
         },
+        filterCSFloraSubmitterCategory: function () {
+            let vm = this;
+            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFloraSubmitterCategory_cache, vm.filterCSFloraSubmitterCategory);
+        },
         filterCSFromFloraEffectiveFromDate: function () {
             let vm = this;
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
@@ -549,7 +575,7 @@ export default {
                 this.filterCSFloraPhylogeneticGroup === 'all' &&
                 this.filterCSFloraFamily === 'all' &&
                 this.filterCSFloraGenus === 'all' &&
-                this.filterCSFloraChangeCode ==='all' &&
+                this.filterCSFloraChangeCode === 'all' &&
                 this.filterCSFloraWALegislativeList === 'all' &&
                 this.filterCSFloraWALegislativeCategory === 'all' &&
                 this.filterCSFloraWAPriorityCategory === 'all' &&
@@ -557,6 +583,7 @@ export default {
                 this.filterCSFloraInternationalRelevance === 'false' &&
                 this.filterCSFloraAssessor === 'all' &&
                 this.filterCSFloraSubmitter === 'all' &&
+                this.filterCSFloraSubmitterCategory === 'all' &&
                 this.filterCSFloraApplicationStatus === 'approved' &&
                 this.filterCSFromFloraEffectiveFromDate === '' &&
                 this.filterCSToFloraEffectiveFromDate === '' &&
@@ -588,11 +615,15 @@ export default {
         datatable_headers: function () {
             if (this.is_external) {
                 return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Phylo Group(s)', 'Change Type', 'WA Priority List',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Status', 'Action']
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
+                    'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
+                    'Status', 'Action']
             }
             if (this.is_internal) {
                 return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Phylo Group(s)', 'Change Type', 'WA Priority List',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Status', 'Action']
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
+                    'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
+                    'Status', 'Action']
             }
         },
         column_id: function () {
@@ -697,7 +728,7 @@ export default {
                 name: "species_taxonomy__phylo_group",
                 render: function (data, type, full) {
                     let html = '';
-                    if(full.phylogenetic_group){
+                    if (full.phylogenetic_group) {
                         for (let i = 0; i < full.phylogenetic_group.length; i++) {
                             html += `<span class="badge bg-primary">${full.phylogenetic_group[i]}</span>`
                         }
@@ -770,6 +801,41 @@ export default {
                     name: "international_conservation",
                 }
             },
+        column_submitter_name: function () {
+            return {
+                data: "submitter_name",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "submitter_information__name",
+            }
+        },
+        column_submitter_category: function () {
+            return {
+                data: "submitter_category",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "submitter_information__submitter_category__name",
+            }
+        },
+        column_submitter_organisation: function () {
+            return {
+                data: "submitter_organisation",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "submitter_information__organisation",
+            }
+        },
+        column_assessor_name: function () {
+            return {
+                data: "assessor_name",
+                orderable: true,
+                searchable: false,
+                visible: true,
+            }
+        },
         column_status: function () {
             return {
                 // 9. Workflow Status
@@ -912,6 +978,10 @@ export default {
                     vm.column_wa_legislative_category,
                     vm.column_commonwealth_conservation_list,
                     vm.column_international_conservation,
+                    vm.column_submitter_name,
+                    vm.column_submitter_category,
+                    vm.column_submitter_organisation,
+                    vm.column_assessor_name,
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
                     vm.column_review_due_date,
@@ -936,6 +1006,10 @@ export default {
                     vm.column_wa_legislative_category,
                     vm.column_commonwealth_conservation_list,
                     vm.column_international_conservation,
+                    vm.column_submitter_name,
+                    vm.column_submitter_category,
+                    vm.column_submitter_organisation,
+                    vm.column_assessor_name,
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
                     vm.column_review_due_date,
@@ -986,6 +1060,7 @@ export default {
                         d.filter_international_relevance = vm.filterCSFloraInternationalRelevance;
                         d.filter_assessor = vm.filterCSFloraAssessor;
                         d.filter_submitter = vm.filterCSFloraSubmitter;
+                        d.filter_submitter_category = vm.filterCSFloraSubmitterCategory;
                         d.filter_application_status = vm.filterCSFloraApplicationStatus;
                         d.filter_from_effective_from_date = vm.filterCSFromFloraEffectiveFromDate;
                         d.filter_to_effective_from_date = vm.filterCSToFloraEffectiveFromDate;
@@ -1299,6 +1374,7 @@ export default {
                     return a.name.trim().localeCompare(b.name.trim());
                 });
                 vm.change_codes = vm.filterListsSpecies.change_codes;
+                vm.submitter_categories = vm.filterListsSpecies.submitter_categories;
             }, (error) => {
                 console.log(error);
             })
@@ -1526,6 +1602,7 @@ export default {
                 filter_application_status: vm.filterCSFloraApplicationStatus,
                 filter_assessor: vm.filterCSFloraAssessor,
                 filter_submitter: vm.filterCSFloraSubmitter,
+                filter_submitter_category: vm.filterCSFloraSubmitterCategory,
                 filter_from_effective_from_date: vm.filterCSFromFloraEffectiveFromDate,
                 filter_to_effective_from_date: vm.filterCSToFloraEffectiveFromDate,
                 filter_from_effective_to_date: vm.filterCSFromFloraEffectiveToDate,

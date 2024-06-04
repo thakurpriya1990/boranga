@@ -473,6 +473,24 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
                     conservation_status__submitter=filter_submitter
                 )
 
+        filter_submitter_category = request.POST.get("filter_submitter_category")
+        if queryset.model is ConservationStatus:
+            if (
+                filter_submitter_category
+                and not filter_submitter_category.lower() == "all"
+            ):
+                queryset = queryset.filter(
+                    submitter_information__submitter_category__id=filter_submitter_category
+                )
+        elif queryset.model is ConservationStatusReferral:
+            if (
+                filter_submitter_category
+                and not filter_submitter_category.lower() == "all"
+            ):
+                queryset = queryset.filter(
+                    conservation_status__submitter_information__submitter_category__id=filter_submitter_category
+                )
+
         fields = self.get_fields(request)
         ordering = self.get_ordering(request, view, fields)
         queryset = queryset.order_by(*ordering)
