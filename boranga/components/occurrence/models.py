@@ -673,8 +673,40 @@ class OccurrenceReport(RevisionedMixin):
 
         send_decline_email_notification(reason, request, self)
 
+    def validate_submit(self):
+        missing_values = []
+
+        if not self.observation_date:
+            missing_values.append("Observation Date")
+
+        if self.observer_detail.count() < 1:
+            missing_values.append("Observer Details")
+
+        if not self.location or not self.location.location_description:
+            missing_values.append("Location Description")
+
+        if self.ocr_geometry.count() < 1:
+            missing_values.append("Location")
+
+        #TODO tenure
+
+        if missing_values:
+            raise ValidationError(
+                "Cannot submit this report due to missing values: " + ", ".join(missing_values)
+            )
+        
+    def validate_propose_approve(self):
+        self.validate_submit()
+        if not self.location or not self.location.location_accuracy:
+            raise ValidationError(
+                "Cannot submit this report due to missing values: Location Accuracy/Certainty"
+            )
+
     @transaction.atomic
     def propose_approve(self, request, validated_data):
+
+        self.validate_propose_approve()
+
         if not self.can_assess(request):
             raise exceptions.OccurrenceReportNotAuthorized()
 
@@ -1502,7 +1534,7 @@ class OCRLocation(models.Model):
     )
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
-    new_occurrence = models.BooleanField(null=True, blank=True)
+    new_occurrence = models.BooleanField(null=True, blank=True) #TODO what is this for? is it needed?
     boundary = models.IntegerField(null=True, blank=True, default=0)
     mapped_boundary = models.BooleanField(null=True, blank=True)
     buffer_radius = models.IntegerField(null=True, blank=True, default=0)

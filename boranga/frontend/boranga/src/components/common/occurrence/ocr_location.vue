@@ -116,7 +116,7 @@
                     />
                 </div>
             </div>
-            <div class="row mb-3">
+            <!--<div class="row mb-3">
                 <label class="col-sm-3 control-label">New Occurrence</label>
                 <div class="col-sm-1">
                     <input
@@ -138,7 +138,7 @@
                     />&nbsp;
                     <label for="newOccurrenceNo">No</label>
                 </div>
-            </div>
+            </div>-->
 
             <div class="row mb-3">
                 <label class="col-sm-3 control-label">Mapped Boundary</label>
