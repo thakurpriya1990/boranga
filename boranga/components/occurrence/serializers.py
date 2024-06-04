@@ -76,7 +76,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
     group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
     can_user_edit = serializers.SerializerMethodField()
-
+    submitter = serializers.SerializerMethodField()
     location = serializers.SerializerMethodField()
     habitat_composition = serializers.SerializerMethodField()
     habitat_condition = serializers.SerializerMethodField()
@@ -101,6 +101,13 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     def get_can_user_edit(self, obj):
         request = self.context["request"]
         return obj.can_user_edit(request)
+    
+    def get_submitter(self, obj):
+        if obj.submitter:
+            email_user = retrieve_email_user(obj.submitter)
+            return EmailUserSerializer(email_user).data
+        else:
+            return None
 
     def get_location(self, obj):
         try:

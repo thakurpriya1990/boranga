@@ -3444,7 +3444,8 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         if (
             not is_occurrence_approver(self.request)
-            and instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+            and (instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE or
+            instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT)
         ):
             raise serializers.ValidationError(
                 "User not authorised to update Occurrence"
@@ -3514,6 +3515,18 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         serialized_obj = CreateOccurrenceSerializer(new_instance)
         return Response(serialized_obj.data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def activate(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
+        instance = self.get_object()
+        instance.activate(request)
+        return redirect(reverse("internal"))
 
     @detail_route(
         methods=[

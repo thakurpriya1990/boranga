@@ -2795,6 +2795,7 @@ class Occurrence(RevisionedMixin):
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     updated_date = models.DateTimeField(auto_now=True, null=False, blank=False)
 
+    PROCESSING_STATUS_DRAFT = "draft"
     PROCESSING_STATUS_ACTIVE = "active"
     PROCESSING_STATUS_LOCKED = "locked"
     PROCESSING_STATUS_SPLIT = "split"
@@ -2802,6 +2803,7 @@ class Occurrence(RevisionedMixin):
     PROCESSING_STATUS_HISTORICAL = "historical"
     PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_CHOICES = (
+        (PROCESSING_STATUS_DRAFT, "Draft"),
         (PROCESSING_STATUS_ACTIVE, "Active"),
         (PROCESSING_STATUS_LOCKED, "Locked"),
         (PROCESSING_STATUS_SPLIT, "Split"),
@@ -2813,7 +2815,7 @@ class Occurrence(RevisionedMixin):
         "Processing Status",
         max_length=30,
         choices=PROCESSING_STATUS_CHOICES,
-        default=PROCESSING_STATUS_ACTIVE,
+        default=PROCESSING_STATUS_DRAFT,
     )
 
     class Meta:
@@ -2847,6 +2849,14 @@ class Occurrence(RevisionedMixin):
     def number_of_reports(self):
         return self.occurrence_report_count
 
+    def activate(self,request):
+        if (
+            is_occurrence_approver(request)
+            and self.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+        ):
+            self.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
+            self.save(version_user=request.user)
+
     def lock(self, request):
         if (
             is_occurrence_approver(request)
@@ -2874,8 +2884,7 @@ class Occurrence(RevisionedMixin):
     # if this function is called and the OCC has no associated OCRs, discard it
     def check_ocr_count_for_discard(self, request):
         discardable = [
-            Occurrence.PROCESSING_STATUS_ACTIVE,
-            Occurrence.PROCESSING_STATUS_LOCKED,
+            Occurrence.PROCESSING_STATUS_DRAFT
         ]
         if (
             self.processing_status in discardable
@@ -2889,6 +2898,7 @@ class Occurrence(RevisionedMixin):
     def can_user_edit(self, request):
         user_editable_state = [
             "active",
+            "draft",
         ]
         if self.processing_status not in user_editable_state:
             return False
