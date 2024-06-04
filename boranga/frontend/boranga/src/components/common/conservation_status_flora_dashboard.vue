@@ -563,11 +563,11 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name',
+                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'WA Priority List',
                     'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Status', 'Action']
             }
             if (this.is_internal) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name',
+                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'WA Priority List',
                     'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Status', 'Action']
             }
         },
