@@ -152,7 +152,9 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     effective_from_date = serializers.SerializerMethodField()
     effective_to_date = serializers.SerializerMethodField()
     is_new_contributor = serializers.SerializerMethodField()
-    change_code = serializers.CharField(source="change_code__name", read_only=True)
+    change_code = serializers.CharField(
+        source="change_code.code", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = ConservationStatus
@@ -214,6 +216,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "effective_from_date",
             "effective_to_date",
             "is_new_contributor",
+            "change_code",
         )
 
     def get_group_type(self, obj):

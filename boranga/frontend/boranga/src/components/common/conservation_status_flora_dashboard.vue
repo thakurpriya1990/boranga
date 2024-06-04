@@ -564,11 +564,11 @@ export default {
         datatable_headers: function () {
             if (this.is_external) {
                 return ['Number', 'Species', 'Scientific Name', 'Common Name', 'WA Priority List',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Phylo Group(s)', 'Status', 'Action']
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Phylo Group(s)', 'Change Code', 'Status', 'Action']
             }
             if (this.is_internal) {
                 return ['Number', 'Species', 'Scientific Name', 'Common Name', 'WA Priority List',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Phylo Group(s)', 'Status', 'Action']
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Phylo Group(s)', 'Change Code', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -680,6 +680,15 @@ export default {
                     }
                     return html
                 }
+            }
+        },
+        column_change_code: function () {
+            return {
+                data: "change_code",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "change_code__code",
             }
         },
         column_wa_priority_list: function () {
@@ -883,6 +892,7 @@ export default {
                     vm.column_family,
                     vm.column_genera,
                     vm.column_phylo_group,
+                    vm.column_change_code,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -906,6 +916,7 @@ export default {
                     vm.column_family,
                     vm.column_genera,
                     vm.column_phylo_group,
+                    vm.column_change_code,
                     vm.column_status,
                     vm.column_action,
                 ]
