@@ -60,15 +60,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="wa-priority-list">WA Priority List:</label>
-                        <select id="wa-priority-list" class="form-select" v-model="filterCSFloraWAPriorityList">
-                            <option value="all">All</option>
-                            <option v-for="list in wa_priority_lists" :value="list.id">{{ list.code }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
                         <label for="wa-priority-category">WA Priority Category:</label>
                         <select id="wa-priority-category" class="form-select" v-model="filterCSFloraWAPriorityCategory">
                             <option value="all">All</option>
@@ -263,11 +254,6 @@ export default {
             required: false,
             default: 'filterCSFloraWALegislativeCategory',
         },
-        filterCSFloraWAPriorityList_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSFloraWAPriorityList',
-        },
         filterCSFloraWAPriorityCategory_cache: {
             type: String,
             required: false,
@@ -282,16 +268,6 @@ export default {
             type: String,
             required: false,
             default: 'filterCSFloraInternationalRelevance',
-        },
-        filterCSFloraRegion_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSFloraRegion',
-        },
-        filterCSFloraDistrict_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSFloraDistrict',
         },
         filterCSFloraAssessor_cache: {
             type: String,
@@ -369,9 +345,6 @@ export default {
             filterCSFloraWALegislativeCategory: sessionStorage.getItem(this.filterCSFloraWALegislativeCategory_cache) ?
                 sessionStorage.getItem(this.filterCSFloraWALegislativeCategory_cache) : 'all',
 
-            filterCSFloraWAPriorityList: sessionStorage.getItem(this.filterCSFloraWAPriorityList_cache) ?
-                sessionStorage.getItem(this.filterCSFloraWAPriorityList_cache) : 'all',
-
             filterCSFloraWAPriorityCategory: sessionStorage.getItem(this.filterCSFloraWAPriorityCategory_cache) ?
                 sessionStorage.getItem(this.filterCSFloraWAPriorityCategory_cache) : 'all',
 
@@ -380,12 +353,6 @@ export default {
 
             filterCSFloraInternationalRelevance: sessionStorage.getItem(this.filterCSFloraInternationalRelevance_cache) ?
                 sessionStorage.getItem(this.filterCSFloraInternationalRelevance_cache) : "false",
-
-            filterCSFloraRegion: sessionStorage.getItem(this.filterCSFloraRegion_cache) ?
-                sessionStorage.getItem(this.filterCSFloraRegion_cache) : 'all',
-
-            filterCSFloraDistrict: sessionStorage.getItem(this.filterCSFloraDistrict_cache) ?
-                sessionStorage.getItem(this.filterCSFloraDistrict_cache) : 'all',
 
             filterCSFloraApplicationStatus: sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) ?
                 sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) : 'all',
@@ -418,7 +385,6 @@ export default {
             family_list: [],
             wa_legislative_lists: [],
             wa_legislative_categories: [],
-            wa_priority_lists: [],
             wa_priority_categories: [],
 
             // filtering options
@@ -486,11 +452,6 @@ export default {
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraWALegislativeCategory_cache, vm.filterCSFloraWALegislativeCategory);
         },
-        filterCSFloraWAPriorityList: function () {
-            let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFloraWAPriorityList_cache, vm.filterCSFloraWAPriorityList);
-        },
         filterCSFloraWAPriorityCategory: function () {
             let vm = this;
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
@@ -505,16 +466,6 @@ export default {
             let vm = this;
             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFloraInternationalRelevance_cache, vm.filterCSFloraInternationalRelevance);
-        },
-        filterCSFloraRegion: function () {
-            let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFloraRegion_cache, vm.filterCSFloraRegion);
-        },
-        filterCSFloraDistrict: function () {
-            let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFloraDistrict_cache, vm.filterCSFloraDistrict);
         },
         filterCSFloraAssessor: function () {
             let vm = this;
@@ -577,12 +528,9 @@ export default {
                 this.filterCSFloraGenus === 'all' &&
                 this.filterCSFloraWALegislativeList === 'all' &&
                 this.filterCSFloraWALegislativeCategory === 'all' &&
-                this.filterCSFloraWAPriorityList === 'all' &&
                 this.filterCSFloraWAPriorityCategory === 'all' &&
                 this.filterCSFloraCommonwealthRelevance === 'false' &&
                 this.filterCSFloraInternationalRelevance === 'false' &&
-                this.filterCSFloraRegion === 'all' &&
-                this.filterCSFloraDistrict === 'all' &&
                 this.filterCSFloraAssessor === 'all' &&
                 this.filterCSFloraSubmitter === 'all' &&
                 this.filterCSFloraApplicationStatus === 'all' &&
@@ -687,7 +635,6 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                //'createdCell': helpers.dtPopoverCellFn,
                 name: "species__taxonomy__vernaculars__vernacular_name",
             }
         },
@@ -701,7 +648,6 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                //'createdCell': helpers.dtPopoverCellFn,
                 name: "species__taxonomy__family_name",
             }
         },
@@ -715,7 +661,6 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                //'createdCell': helpers.dtPopoverCellFn,
                 name: "species__taxonomy__genera_name",
             }
         },
@@ -982,7 +927,6 @@ export default {
                         d.filter_genus = vm.filterCSFloraGenus;
                         d.filter_wa_legislative_list = vm.filterCSFloraWALegislativeList;
                         d.filter_wa_legislative_category = vm.filterCSFloraWALegislativeCategory;
-                        d.filter_wa_priority_list = vm.filterCSFloraWAPriorityList;
                         d.filter_wa_priority_category = vm.filterCSFloraWAPriorityCategory;
                         d.filter_commonwealth_relevance = vm.filterCSFloraCommonwealthRelevance;
                         d.filter_international_relevance = vm.filterCSFloraInternationalRelevance;
@@ -1521,7 +1465,6 @@ export default {
                 filter_genus: vm.filterCSFloraGenus,
                 filter_wa_legislative_list: vm.filterCSFloraWALegislativeList,
                 filter_wa_legislative_category: vm.filterCSFloraWALegislativeCategory,
-                filter_wa_priority_list: vm.filterCSFloraWAPriorityList,
                 filter_wa_priority_category: vm.filterCSFloraWAPriorityCategory,
                 filter_commonwealth_relevance: vm.filterCSFloraCommonwealthRelevance,
                 filter_international_relevance: vm.filterCSFloraInternationalRelevance,
