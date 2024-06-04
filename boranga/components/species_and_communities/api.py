@@ -26,6 +26,7 @@ from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 
 from boranga.components.conservation_status.models import (
     CommonwealthConservationList,
+    ConservationChangeCode,
     ConservationStatus,
     ConservationStatusUserAction,
     WALegislativeCategory,
@@ -114,6 +115,7 @@ from boranga.components.species_and_communities.utils import (
     rename_species_original_submit,
     species_form_submit,
 )
+from boranga.components.users.models import SubmitterCategory
 from boranga.helpers import is_customer, is_internal
 
 logger = logging.getLogger(__name__)
@@ -455,6 +457,8 @@ class GetSpeciesFilterDict(views.APIView):
             "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
                 group_type
             ),
+            "change_codes": ConservationChangeCode.get_filter_list(),
+            "submitter_categories": SubmitterCategory.get_filter_list(),
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")

@@ -21,6 +21,10 @@ class SubmitterCategory(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    @classmethod
+    def get_filter_list(cls):
+        return list(cls.objects.all().values("id", "name"))
+
 
 class SubmitterInformation(models.Model):
     email_user = models.IntegerField(blank=True, null=True)
