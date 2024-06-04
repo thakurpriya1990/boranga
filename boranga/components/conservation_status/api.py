@@ -191,17 +191,6 @@ class GetCSProfileDict(views.APIView):
                             "code": option.code,
                         }
                     )
-        change_code_list = []
-        if group_type:
-            codes = ConservationChangeCode.objects.filter()
-            if group_type:
-                for option in codes:
-                    change_code_list.append(
-                        {
-                            "id": option.id,
-                            "code": option.code,
-                        }
-                    )
         res_json = {
             # "species_list": species_list,
             # "community_list": community_list,
@@ -217,7 +206,7 @@ class GetCSProfileDict(views.APIView):
                 group_type
             ),
             "iucn_version_list": iucn_version_list,
-            "change_code_list": change_code_list,
+            "change_code_list": ConservationChangeCode.get_filter_list(),
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
