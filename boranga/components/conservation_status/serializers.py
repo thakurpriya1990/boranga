@@ -155,6 +155,16 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     change_code = serializers.CharField(
         source="change_code.code", read_only=True, allow_null=True
     )
+    submitter_name = serializers.CharField(
+        source="submitter_information.name", allow_null=True
+    )
+    submitter_category = serializers.CharField(
+        source="submitter_information.submitter_category.name", allow_null=True
+    )
+    submitter_organisation = serializers.CharField(
+        source="submitter_information.organisation", allow_null=True
+    )
+    assessor_name = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatus
@@ -187,7 +197,12 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "effective_to_date",
             "is_new_contributor",
             "review_due_date",
+            "listing_date",
             "change_code",
+            "submitter_name",
+            "submitter_category",
+            "submitter_organisation",
+            "assessor_name",
         )
         datatables_always_serialize = (
             "id",
@@ -217,6 +232,10 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "effective_to_date",
             "is_new_contributor",
             "change_code",
+            "submitter_name",
+            "submitter_category",
+            "submitter_organisation",
+            "assessor_name",
         )
 
     def get_group_type(self, obj):
@@ -309,6 +328,12 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_is_new_contributor(self, obj):
         return is_new_external_contributor(obj.submitter)
+
+    def get_assessor_name(self, obj):
+        if obj.assigned_officer:
+            email_user = retrieve_email_user(obj.assigned_officer)
+            return email_user.get_full_name()
+        return ""
 
 
 class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
