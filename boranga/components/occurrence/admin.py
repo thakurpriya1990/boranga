@@ -17,6 +17,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportGeometry,
     OccurrenceSource,
     OccurrenceReport,
+    OccurrenceTenure,
     PermitType,
     PlantCondition,
     PlantCountAccuracy,
@@ -92,6 +93,12 @@ class OccurrenceAdmin(admin.ModelAdmin):
 @admin.register(Occurrence)
 class OccurrenceAdmin(admin.ModelAdmin):
     inlines = [OccurrenceGeometryInline]
+
+@admin.register(OccurrenceTenure)
+class OccurrenceTenureAdmin(admin.ModelAdmin):
+    pass
+
+
 
 
 # Each of the following models will be available to Django Admin.
