@@ -164,7 +164,7 @@
                 </div>
             </div>
 
-            <div class="row mb-3">
+            <!--<div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Datum:</label>
                 <div class="col-sm-9">
                     <VueSelect
@@ -200,7 +200,7 @@
                         placeholder=""
                     />
                 </div>
-            </div>
+            </div>-->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
                     >Coordination Source:</label
@@ -225,7 +225,7 @@
                 </div>
             </div>
 
-            <div v-if="canAssess" class="row mb-3">
+            <!--<div v-if="canAssess" class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
                     >Boundary(m) :</label
                 >
@@ -256,7 +256,7 @@
                         min="0"
                     />
                 </div>
-            </div>
+            </div>-->
             <div v-if="canAssess" class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
                     >Location Accuracy/Certainty:</label
