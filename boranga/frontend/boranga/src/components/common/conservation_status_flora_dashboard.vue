@@ -564,11 +564,11 @@ export default {
         datatable_headers: function () {
             if (this.is_external) {
                 return ['Number', 'Species', 'Scientific Name', 'Common Name', 'WA Priority List',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Status', 'Action']
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Phylo Group(s)', 'Status', 'Action']
             }
             if (this.is_internal) {
                 return ['Number', 'Species', 'Scientific Name', 'Common Name', 'WA Priority List',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Status', 'Action']
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Phylo Group(s)', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -662,6 +662,24 @@ export default {
                     return type == 'export' ? value : result;
                 },
                 name: "species__taxonomy__genera_name",
+            }
+        },
+        column_phylo_group: function () {
+            return {
+                data: "phylogenetic_group",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "species__taxonomy__phylo_group",
+                render: function (data, type, full) {
+                    let html = '';
+                    if(full.phylogenetic_group){
+                        for (let i = 0; i < full.phylogenetic_group.length; i++) {
+                            html += `<span class="badge bg-primary">${full.phylogenetic_group[i]}</span>`
+                        }
+                    }
+                    return html
+                }
             }
         },
         column_wa_priority_list: function () {
@@ -864,6 +882,7 @@ export default {
                     vm.column_review_due_date,
                     vm.column_family,
                     vm.column_genera,
+                    vm.column_phylo_group,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -886,6 +905,7 @@ export default {
                     vm.column_review_due_date,
                     vm.column_family,
                     vm.column_genera,
+                    vm.column_phylo_group,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -958,7 +978,6 @@ export default {
                 },
             }
         }
-
     },
     methods: {
         historyDocument: function (id, list, species) {
