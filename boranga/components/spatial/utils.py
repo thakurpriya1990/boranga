@@ -197,16 +197,24 @@ def save_geometry(
             intersect_data = {}
             # TODO: Hardcoded. Possibly pass in via fn parameter whether to intersect and with what
             if instance_fk_field_name == "occurrence":
-                intersect_layer = TileLayer.objects.get(
-                    is_tenure_intersects_query_layer=True
-                )
-                intersect_data = intersect_geometry_with_layer(geom[0], intersect_layer)
-                totalFeatures = intersect_data.get("totalFeatures")
-                logger.info(
-                    f"Geometry {geom[0]} intersects with {totalFeatures} features from {intersect_layer.layer_name}"
-                )
+                try:
+                    intersect_layer = TileLayer.objects.get(
+                        is_tenure_intersects_query_layer=True
+                    )
+                except TileLayer.DoesNotExist:
+                    logger.info("No tenure intersects query layer specified")
+                    intersect_layer = None
+                except TileLayer.MultipleObjectsReturned:
+                    logger.warn("Multiple tenure intersects query layers found")
+                    intersect_layer = None
+                else:
+                    intersect_data = intersect_geometry_with_layer(geom[0], intersect_layer)
+                    totalFeatures = intersect_data.get("totalFeatures")
+                    logger.info(
+                        f"Geometry {geom[0]} intersects with {totalFeatures} features from {intersect_layer.layer_name}"
+                    )
 
-                geometry_data["intersects"] = totalFeatures > 0
+                    geometry_data["intersects"] = totalFeatures > 0
             else:
                 logger.info("No intersect layer specified")
 
