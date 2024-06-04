@@ -1,4 +1,5 @@
 from django.contrib.gis import admin
+import nested_admin
 
 from boranga.components.occurrence.models import (
     AnimalHealth,
@@ -35,6 +36,37 @@ from boranga.components.occurrence.models import (
 )
 
 
+@admin.register(OccurrenceTenure)
+class OccurrenceTenureAdmin(admin.ModelAdmin):
+    pass
+
+
+class OccurrenceTenureInline(nested_admin.NestedTabularInline):
+    model = OccurrenceTenure
+    extra = 0
+    verbose_name = "Occurrence Geometry Tenure Area"
+    verbose_name_plural = "Occurrence Geometry Tenure Areas"
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "tenure_area_id",
+                    "status",
+                    "owner_name",
+                    "owner_count",
+                    "purpose",
+                    "significant_to_occurrence",
+                    "comments",
+                )
+            },
+        ),
+    )
+
+    readonly_fields = ["tenure_area_id"]
+
+
 class OccurrenceReportGeometryInline(admin.StackedInline):
     model = OccurrenceReportGeometry
     extra = 0
@@ -60,7 +92,7 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
     readonly_fields = ["original_geometry"]
 
 
-class OccurrenceGeometryInline(admin.StackedInline):
+class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
     model = OccurrenceGeometry
     extra = 0
     verbose_name = "Occurrence Geometry"
@@ -84,21 +116,17 @@ class OccurrenceGeometryInline(admin.StackedInline):
 
     readonly_fields = ["original_geometry"]
 
+    inlines = [OccurrenceTenureInline]
+
 
 @admin.register(OccurrenceReport)
-class OccurrenceAdmin(admin.ModelAdmin):
+class OccurrenceReportAdmin(admin.ModelAdmin):
     inlines = [OccurrenceReportGeometryInline]
 
 
 @admin.register(Occurrence)
-class OccurrenceAdmin(admin.ModelAdmin):
+class OccurrenceAdmin(nested_admin.NestedModelAdmin):
     inlines = [OccurrenceGeometryInline]
-
-@admin.register(OccurrenceTenure)
-class OccurrenceTenureAdmin(admin.ModelAdmin):
-    pass
-
-
 
 
 # Each of the following models will be available to Django Admin.

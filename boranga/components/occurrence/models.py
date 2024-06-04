@@ -3892,7 +3892,8 @@ class OccurrenceTenure(models.Model):
         unique_together = ("occurrence_geometry", "tenure_area_id", "status")
 
     def __str__(self):
-        owner_name_display = f": {self.owner_name}" if self.owner_name.strip() else ""
+        owner_name = self.owner_name.strip() if self.owner_name else None
+        owner_name_display = f": {self.owner_name}" if owner_name else ""
         return f"Tenure Area {self.tenure_area_id}{owner_name_display} [{self.get_status_display()}]"
 
     @property
