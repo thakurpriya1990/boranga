@@ -587,12 +587,12 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'WA Priority List',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Phylo Group(s)', 'Change Code', 'Status', 'Action']
+                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Phylo Group(s)', 'Change Type', 'WA Priority List',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Status', 'Action']
             }
             if (this.is_internal) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'WA Priority List',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Family', 'Genera', 'Phylo Group(s)', 'Change Code', 'Status', 'Action']
+                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Phylo Group(s)', 'Change Type', 'WA Priority List',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation', 'Effective From Date', 'Effective To Date', 'Review Due Date', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -902,6 +902,10 @@ export default {
                     vm.column_species_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
+                    vm.column_family,
+                    vm.column_genera,
+                    vm.column_phylo_group,
+                    vm.column_change_code,
                     vm.column_wa_priority_list,
                     vm.column_wa_priority_category,
                     vm.column_wa_legislative_list,
@@ -911,10 +915,6 @@ export default {
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
                     vm.column_review_due_date,
-                    vm.column_family,
-                    vm.column_genera,
-                    vm.column_phylo_group,
-                    vm.column_change_code,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -926,6 +926,10 @@ export default {
                     vm.column_species_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
+                    vm.column_family,
+                    vm.column_genera,
+                    vm.column_phylo_group,
+                    vm.column_change_code,
                     vm.column_wa_priority_list,
                     vm.column_wa_priority_category,
                     vm.column_wa_legislative_list,
@@ -935,10 +939,6 @@ export default {
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
                     vm.column_review_due_date,
-                    vm.column_family,
-                    vm.column_genera,
-                    vm.column_phylo_group,
-                    vm.column_change_code,
                     vm.column_status,
                     vm.column_action,
                 ]
