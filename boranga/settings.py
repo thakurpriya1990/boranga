@@ -347,10 +347,19 @@ ACTION_UPDATE = "Update {} {}"
 ACTION_DESTROY = "Destroy {} {}"
 
 # ---------- Cache keys ----------
+CACHE_TIMEOUT_5_SECONDS = 5
+CACHE_TIMEOUT_10_SECONDS = 10
+CACHE_TIMEOUT_1_MINUTE = 60
+CACHE_TIMEOUT_5_MINUTES = 60 * 5
+CACHE_TIMEOUT_2_HOURS = 60 * 60 * 2
+CACHE_TIMEOUT_24_HOURS = 60 * 60 * 24
+CACHE_TIMEOUT_NEVER = None
 
 CACHE_KEY_EPSG_CODES = "epsg-codes-{auth_name}-{pj_type}-{codes}"
 CACHE_KEY_PROXY_LAYER_DATA = "proxy-layer-data-{app_label}-{model_name}"
 CACHE_KEY_PROXY_NODE_DATA = "proxy-node-data-{request_path}"
+CACHE_KEY_MAP_OCCURRENCES = "map-occurrences"
+CACHE_KEY_MAP_OCCURRENCE_REPORTS = "map-occurrence-reports"
 CACHE_KEY_TAXONOMIES = "taxonomies"
 
 # ---------- Conservation Change Codes ----------

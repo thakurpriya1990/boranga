@@ -64,6 +64,12 @@ class TileLayer(models.Model):
         null=False,
         blank=False,
     )  # Maximum zoom level at which the layer is visible
+    is_tenure_intersects_query_layer = models.BooleanField(
+        default=False
+    )  # Whether the layer is used for querying tenure intersects
+    invert_xy = models.BooleanField(
+        default=False
+    )  # Whether the x and y coordinates should be inverted
 
     class Meta:
         app_label = "boranga"
