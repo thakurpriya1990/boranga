@@ -704,7 +704,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
                 )
                 return BasicConservationStatusSerializer(qs, context=self.context).data
             except ConservationStatus.DoesNotExist:
-                return BasicConservationStatusSerializer(context=self.context).data
+                return None
         else:
             return None
 
