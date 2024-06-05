@@ -69,6 +69,7 @@ from boranga.components.species_and_communities.models import (
     Taxonomy,
     TaxonVernacular,
 )
+from boranga.components.users.models import SubmitterCategory
 from boranga.helpers import is_external_contributor, is_internal
 
 logger = logging.getLogger(__name__)
@@ -192,17 +193,6 @@ class GetCSProfileDict(views.APIView):
                             "code": option.code,
                         }
                     )
-        change_code_list = []
-        if group_type:
-            codes = ConservationChangeCode.objects.filter()
-            if group_type:
-                for option in codes:
-                    change_code_list.append(
-                        {
-                            "id": option.id,
-                            "code": option.code,
-                        }
-                    )
         res_json = {
             # "species_list": species_list,
             # "community_list": community_list,
@@ -218,7 +208,8 @@ class GetCSProfileDict(views.APIView):
                 group_type
             ),
             "iucn_version_list": iucn_version_list,
-            "change_code_list": change_code_list,
+            "change_code_list": ConservationChangeCode.get_filter_list(),
+            "submitter_categories": SubmitterCategory.get_filter_list(),
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
@@ -306,6 +297,16 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
                     conservation_status__species__taxonomy__genera_id=filter_genus
                 )
 
+        filter_change_code = request.POST.get("filter_change_code")
+        if queryset.model is ConservationStatus:
+            if filter_change_code and not filter_change_code.lower() == "all":
+                queryset = queryset.filter(change_code__id=filter_change_code)
+        elif queryset.model is ConservationStatusReferral:
+            if filter_change_code and not filter_change_code.lower() == "all":
+                queryset = queryset.filter(
+                    conservation_status__change_code__id=filter_change_code
+                )
+
         filter_wa_legislative_list = request.POST.get("filter_wa_legislative_list")
         if (
             filter_wa_legislative_list
@@ -334,17 +335,6 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.filter(
                     conservation_status__wa_legislative_category=filter_wa_legislative_category
-                )
-
-        filter_wa_priority_list = request.POST.get("filter_wa_priority_list")
-        if filter_wa_priority_list and not filter_wa_priority_list.lower() == "all":
-            if queryset.model is ConservationStatus:
-                queryset = queryset.filter(
-                    wa_priority_list=filter_wa_priority_list
-                ).distinct()
-            elif queryset.model is ConservationStatusReferral:
-                queryset = queryset.filter(
-                    conservation_status__wa_priority_list=filter_wa_priority_list
                 )
 
         filter_wa_priority_category = request.POST.get("filter_wa_priority_category")
@@ -381,26 +371,6 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.exclude(
                     conservation_status__international_conservation__isnull=True
-                )
-
-        filter_region = request.POST.get("filter_region")
-        if queryset.model is ConservationStatus:
-            if filter_region and not filter_region.lower() == "all":
-                queryset = queryset.filter(species__region=filter_region)
-        elif queryset.model is ConservationStatusReferral:
-            if filter_region and not filter_region.lower() == "all":
-                queryset = queryset.filter(
-                    conservation_status__species__region=filter_region
-                )
-
-        filter_district = request.POST.get("filter_district")
-        if queryset.model is ConservationStatus:
-            if filter_district and not filter_district.lower() == "all":
-                queryset = queryset.filter(species__district=filter_district)
-        elif queryset.model is ConservationStatusReferral:
-            if filter_district and not filter_district.lower() == "all":
-                queryset = queryset.filter(
-                    conservation_status__species__district=filter_district
                 )
 
         filter_from_effective_from_date = request.POST.get(
@@ -504,6 +474,24 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
                     conservation_status__submitter=filter_submitter
                 )
 
+        filter_submitter_category = request.POST.get("filter_submitter_category")
+        if queryset.model is ConservationStatus:
+            if (
+                filter_submitter_category
+                and not filter_submitter_category.lower() == "all"
+            ):
+                queryset = queryset.filter(
+                    submitter_information__submitter_category__id=filter_submitter_category
+                )
+        elif queryset.model is ConservationStatusReferral:
+            if (
+                filter_submitter_category
+                and not filter_submitter_category.lower() == "all"
+            ):
+                queryset = queryset.filter(
+                    conservation_status__submitter_information__submitter_category__id=filter_submitter_category
+                )
+
         fields = self.get_fields(request)
         ordering = self.get_ordering(request, view, fields)
         queryset = queryset.order_by(*ordering)
@@ -582,7 +570,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def species_cs_internal_export(self, request, *args, **kwargs):
-
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
         export_format = request.POST.get("export_format")
@@ -593,8 +580,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "family",
             "genus",
             "phylogenetic_group",
-            "region",
-            "district",
             "conservation_list",
             "conservation_category",
             "processing_status",
@@ -635,8 +620,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Family",
             "Genera",
             "Phylo Group",
-            "Region",
-            "District",
             "Processing Status",
             "Effective From Date",
             "Effective To Date",
@@ -647,8 +630,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Species",
             "Scientific Name",
             "Common Name",
-            "Region",
-            "District",
             "Effective From Date",
             "Effective To Date",
             "Family",

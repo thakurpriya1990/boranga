@@ -118,6 +118,7 @@ INSTALLED_APPS += [
     "appmonitor_client",
     "reversion",
     "reversion_compare",
+    "nested_admin",
 ]
 
 ADD_REVERSION_ADMIN = True

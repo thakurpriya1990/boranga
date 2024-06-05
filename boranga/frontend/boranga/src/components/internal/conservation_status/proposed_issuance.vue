@@ -31,11 +31,8 @@
                                     <div class="col-sm-8">
                                         <div class="input-group date" style="width: 70%;">
                                             <input type="date" class="form-control" ref="due_date"
-                                                placeholder="DD/MM/YYYY" v-model="approval.effective_to_date"
-                                                @change="validateEffectiveToDate($event)">
+                                                placeholder="DD/MM/YYYY" v-model="approval.effective_to_date">
                                         </div>
-                                        <small style="color: red;" v-show="showtoDateError">This field is
-                                            required</small>
                                     </div>
                                 </div>
                             </div>
@@ -249,16 +246,6 @@ export default {
                 vm.showstartDateError = false;
             }
         },
-        validateEffectiveToDate: function (event) {
-            let vm = this;
-            const value = event.target.value;
-            if (!value) {
-                vm.showtoDateError = true;
-            }
-            else {
-                vm.showtoDateError = false;
-            }
-        },
         validateDetails: function (event) {
             let vm = this;
             const value = event.target.value;
@@ -274,10 +261,6 @@ export default {
             let hasError = false;
             if (!vm.approval.effective_from_date) {
                 vm.showstartDateError = true;
-                hasError = true;
-            }
-            if (!vm.approval.effective_to_date) {
-                vm.showtoDateError = true;
                 hasError = true;
             }
             if (!vm.approval.details || vm.approval.details == "") {
