@@ -30,11 +30,9 @@ from boranga.ledger_api_utils import retrieve_email_user
 logger = logging.getLogger("boranga")
 
 
-# Serializer used for species form
-class SpeciesConservationStatusSerializer(serializers.ModelSerializer):
-    wa_legislative_list = serializers.CharField(
-        source="wa_legislative_list.code", allow_null=True
-    )
+# Serializer used for species and communities forms
+class BasicConservationStatusSerializer(serializers.ModelSerializer):
+    wa_legislative_list = serializers.CharField(source="wa_legislative_list.code")
     wa_legislative_category = serializers.CharField(
         source="wa_legislative_category.code", allow_null=True
     )
@@ -44,6 +42,7 @@ class SpeciesConservationStatusSerializer(serializers.ModelSerializer):
     commonwealth_conservation_list = serializers.CharField(
         source="commonwealth_conservation_list.code", allow_null=True
     )
+    under_review = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatus
@@ -56,28 +55,29 @@ class SpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "commonwealth_conservation_list",
             "international_conservation",
             "conservation_criteria",
+            "under_review",
         )
         read_only_fields = fields
 
+    def get_under_review(self, obj):
+        under_review_statuses = [
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+        ]
+        request = self.context["request"]
+        if is_conservation_status_assessor(request) or is_conservation_status_approver(
+            request
+        ):
+            under_review_statuses.append(
+                ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
+            )
+            under_review_statuses.append(
+                ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
+            )
 
-# Serializer used for community form
-class CommunityConservationStatusSerializer(serializers.ModelSerializer):
-    conservation_status = serializers.SerializerMethodField()
-    # TODO: Add new conservation status lists/catories
-
-    class Meta:
-        model = ConservationStatus
-        fields = (
-            "id",
-            "conservation_status_number",
-            "community",
-            "conservation_status",
-            "conservation_criteria",
-        )
-
-    def get_conservation_status(self, obj):
-        # TODO: Implement based on new conservation categories
-        return "TODO"
+        return ConservationStatus.objects.filter(
+            species_taxonomy=obj.species_taxonomy,
+            processing_status__in=under_review_statuses,
+        ).exists()
 
 
 class ListConservationStatusSerializer(serializers.ModelSerializer):
