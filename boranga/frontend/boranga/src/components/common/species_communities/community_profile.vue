@@ -168,39 +168,8 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection v-if="conservation_status_public || is_internal" :formCollapse="false" label="Conservation Status" :Index="conservationStatusBody">
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Conservation List</label>
-                <div class="col-sm-9">
-                    <input disabled class="form-control" id="conservation_list"
-                        v-model="species_community.conservation_status.conservation_list" />
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Conservation Category</label>
-                <div class="col-sm-9">
-                    <input disabled class="form-control" id="conservation_category"
-                        v-model="species_community.conservation_status.conservation_category" />
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Conservation Criteria</label>
-                <div class="col-sm-9">
-                    <textarea disabled class="form-control" rows=2 id="conservation_criteria"
-                        v-model="species_community.conservation_status.conservation_criteria" />
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-6 control-label">Is there a Conservation Status proposal under
-                    review?</label>
-                <div class="col-sm-6">
-                    <label class="me-2">Yes</label><input disabled type="radio"
-                        :checked="species_community.conservation_status_under_review" class="form-check-input me-2">
-                    <label class="me-2">No</label><input disabled type="radio"
-                        :checked="!species_community.conservation_status_under_review" class="form-check-input me-2">
-                </div>
-            </div>
-        </FormSection>
+        <BasicConservationStatus v-if="species_community.conservation_status && (conservation_status_public || is_internal)"
+            :conservation_status="species_community.conservation_status" :is_internal="is_internal" />
         <FormSection v-if="conservation_attributes_public || is_internal" :formCollapse="false" label="Conservation Attributes" Index="conservation_attributes">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Pollinator Information:</label>
@@ -421,6 +390,8 @@
 <script>
 import Vue from 'vue';
 import FormSection from '@/components/forms/section_toggle.vue';
+import BasicConservationStatus from './basic_conservation_status.vue';
+
 import {
     api_endpoints,
     helpers
@@ -465,6 +436,7 @@ export default {
     },
     components: {
         FormSection,
+        BasicConservationStatus
     },
     computed: {
         distribution_public: function () {
@@ -851,7 +823,7 @@ export default {
                     vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
                 }
             }
-            if (vm.species_community.conservation_attributes) { 
+            if (vm.species_community.conservation_attributes) {
                 if(vm.species_community.conservation_attributes.minimum_fire_interval_to != null &&
                     vm.species_community.conservation_attributes.minimum_fire_interval_to != "" &&
                         vm.species_community.conservation_attributes.minimum_fire_interval_to != undefined)
