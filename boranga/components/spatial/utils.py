@@ -130,7 +130,7 @@ def save_geometry(
 
     if not geometry_data:
         logger.warn(f"No {instance_model_name} geometry to save")
-        return
+        return {}
 
     InstanceGeometry = apps.get_model(
         app_label=app_label, model_name=f"{instance_model_name}Geometry"
@@ -150,7 +150,7 @@ def save_geometry(
     ):
         # No feature to save and no feature to delete
         logger.warn(f"{instance_model_name} geometry has no features to save or delete")
-        return
+        return {}
 
     action = request.data.get("action", None)
 
