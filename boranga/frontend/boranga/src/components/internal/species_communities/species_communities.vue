@@ -2,7 +2,6 @@
     <div v-if="species_community" class="container" id="internalSpeciesCommunity">
         <div class="row" style="padding-bottom: 50px;">
             <h3>{{ display_group_type }} {{ display_number }} - {{ display_name }}</h3>
-            <h4>{{ species_community.conservation_status.conservation_category }}</h4>
             <div v-if="!comparing" class="col-md-3">
                 <!-- TODO -->
                 <template>
@@ -178,7 +177,7 @@
             @refreshFromResponse="refreshFromResponse" />
         <SpeciesRename ref="species_rename" :species_community_original="species_community" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
-        <MakePublic ref="make_public" :species_community="species_community" :species_community_original="species_community_original" 
+        <MakePublic ref="make_public" :species_community="species_community" :species_community_original="species_community_original"
             :is_internal="true" @refreshFromResponse="refreshFromResponse" />
     </div>
 </template>
@@ -573,7 +572,7 @@ export default {
                 //remove publishing status for check as it is handled separately
                 let sc_no_ps = helpers.copyObject(vm.species_community);
                 let sco_no_ps = helpers.copyObject(vm.species_community_original);
-                
+
                 sc_no_ps.publishing_status = undefined;
                 sco_no_ps.publishing_status = undefined;
 
@@ -819,7 +818,7 @@ export default {
             } else {
                 vm.species_community.publishing_status.species_public = false;
             }
-            let data = JSON.stringify(vm.species_community.publishing_status)           
+            let data = JSON.stringify(vm.species_community.publishing_status)
             vm.$http.post(helpers.add_endpoint_json(endpoint,(vm.species_community.id+'/update_publishing_status')),data,{
                 emulateJSON:true
             }).then((response) => {
