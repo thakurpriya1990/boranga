@@ -47,26 +47,6 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Region:</label>
-                        <select class="form-select" v-model="filterCSFaunaRegion" @change="filterDistrict($event)">
-                            <option value="all">All</option>
-                            <option v-for="region in region_list" :value="region.id" v-bind:key="region.id">
-                                {{ region.name }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">District:</label>
-                        <select class="form-select" v-model="filterCSFaunaDistrict">
-                            <option value="all">All</option>
-                            <option v-for="district in filtered_district_list" :value="district.id">{{ district.name }}
-                            </option>
-                        </select>
-                    </div>
-                </div>
                 <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Effective From Date Range:</label>
@@ -208,16 +188,6 @@ export default {
             required: false,
             default: 'filterCSFaunaConservationCategory',
         },
-        filterCSFaunaRegion_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSFaunaRegion',
-        },
-        filterCSFaunaDistrict_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSFaunaDistrict',
-        },
         filterCSFaunaApplicationStatus_cache: {
             type: String,
             required: false,
@@ -274,12 +244,6 @@ export default {
             filterCSFaunaConservationCategory: sessionStorage.getItem(this.filterCSFaunaConservationCategory_cache) ?
                 sessionStorage.getItem(this.filterCSFaunaConservationCategory_cache) : 'all',
 
-            filterCSFaunaRegion: sessionStorage.getItem(this.filterCSFaunaRegion_cache) ?
-                sessionStorage.getItem(this.filterCSFaunaRegion_cache) : 'all',
-
-            filterCSFaunaDistrict: sessionStorage.getItem(this.filterCSFaunaDistrict_cache) ?
-                sessionStorage.getItem(this.filterCSFaunaDistrict_cache) : 'all',
-
             filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
                 sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'all',
 
@@ -299,10 +263,6 @@ export default {
             common_name_list: [],
             family_list: [],
             phylogenetic_group_list: [],
-            filterRegionDistrict: {},
-            region_list: [],
-            district_list: [],
-            filtered_district_list: [],
 
             // filtering options
             external_status: [
@@ -370,16 +330,6 @@ export default {
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaConservationCategory_cache, vm.filterCSFaunaConservationCategory);
         },
-        filterCSFaunaRegion: function () {
-            let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaRegion_cache, vm.filterCSFaunaRegion);
-        },
-        filterCSFaunaDistrict: function () {
-            let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaDistrict_cache, vm.filterCSFaunaDistrict);
-        },
         filterCSFromFaunaEffectiveFromDate: function(){
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
@@ -421,8 +371,6 @@ export default {
                 this.filterCSFaunaGenus === 'all' &&
                 this.filterCSFaunaConservationList === 'all' &&
                 this.filterCSFaunaConservationCategory === 'all' &&
-                this.filterCSFaunaRegion === 'all' &&
-                this.filterCSFaunaDistrict === 'all' &&
                 this.filterCSFaunaApplicationStatus === 'all' &&
                 this.filterCSFromFaunaEffectiveFromDate === '' &&
                 this.filterCSToFaunaEffectiveFromDate === '' &&
@@ -451,10 +399,10 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
+                return ['Number', 'Species', 'Scientific Name', 'Common Name','Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
             }
             if (this.is_internal) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Region', 'District', 'Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
+                return ['Number', 'Species', 'Scientific Name', 'Common Name','Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -570,38 +518,6 @@ export default {
                 name: "processing_status",
             }
         },
-        column_region: function () {
-            return {
-                data: "region",
-                orderable: true,
-                searchable: false, // handles by filter_queryset override method
-                visible: true,
-                'render': function (data, type, full) {
-                    if (full.region) {
-                        return full.region
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "species__region__name",
-            }
-        },
-        column_district: function () {
-            return {
-                data: "district",
-                orderable: true,
-                searchable: false, // handles by filter_queryset override method
-                visible: true,
-                'render': function (data, type, full) {
-                    if (full.district) {
-                        return full.district
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "species__district__name",
-            }
-        },
         column_effective_from_date: function () {
             return {
                 data: "effective_from_date",
@@ -712,8 +628,6 @@ export default {
                     vm.column_species_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
-                    vm.column_region,
-                    vm.column_district,
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
                     vm.column_family,
@@ -729,8 +643,6 @@ export default {
                     vm.column_species_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
-                    vm.column_region,
-                    vm.column_district,
                     vm.column_effective_from_date,
                     vm.column_effective_to_date,
                     vm.column_family,
@@ -776,8 +688,6 @@ export default {
                         d.filter_genus = vm.filterCSFaunaGenus;
                         d.filter_conservation_list = vm.filterCSFaunaConservationList;
                         d.filter_conservation_category = vm.filterCSFaunaConservationCategory;
-                        d.filter_region = vm.filterCSFaunaRegion;
-                        d.filter_district = vm.filterCSFaunaDistrict;
                         d.filter_application_status = vm.filterCSFaunaApplicationStatus;
                         d.filter_from_effective_from_date = vm.filterCSFromFaunaEffectiveFromDate;
                         d.filter_to_effective_from_date = vm.filterCSToFaunaEffectiveFromDate;
@@ -1022,36 +932,12 @@ export default {
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
                 vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
-                vm.filterDistrict();
                 vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());
                 });
             }, (error) => {
                 console.log(error);
             })
-            vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
-                vm.filterRegionDistrict = response.body;
-                vm.region_list = vm.filterRegionDistrict.region_list;
-                vm.district_list = vm.filterRegionDistrict.district_list;
-            }, (error) => {
-                console.log(error);
-            })
-        },
-        //-------filter district dropdown dependent on region selected
-        filterDistrict: function (event) {
-            this.$nextTick(() => {
-                if (event) {
-                    this.filterCSFaunaDistrict = 'all'; //-----to remove the previous selection
-                }
-                this.filtered_district_list = [];
-                //---filter districts as per region selected
-                for (let choice of this.district_list) {
-                    if (choice.region_id.toString() === this.filterCSFaunaRegion.toString()) {
-                        this.filtered_district_list.push(choice);
-                    }
-
-                }
-            });
         },
         createFaunaConservationStatus: async function () {
             let newFaunaCSId = null
@@ -1257,26 +1143,6 @@ export default {
                         "regex": "false"
                     }
                 },
-                "10": {
-                    "data": "district",
-                    "name": "district__name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "false"
-                },
-                "11": {
-                    "data": "region",
-                    "name": "region__name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "false"
-                }
             };
 
             const object_load = {
@@ -1290,8 +1156,6 @@ export default {
                 filter_conservation_list: vm.filterCSFaunaConservationList,
                 filter_conservation_category: vm.filterCSFaunaConservationCategory,
                 filter_application_status: vm.filterCSFaunaApplicationStatus,
-                filter_region: vm.filterCSFaunaRegion,
-                filter_district: vm.filterCSFaunaDistrict,
                 filter_from_effective_from_date: vm.filterCSFromFaunaEffectiveFromDate,
                 filter_to_effective_from_date: vm.filterCSToFaunaEffectiveFromDate,
                 filter_effective_to_date: vm.filterCSFromFaunaEffectiveToDate,
