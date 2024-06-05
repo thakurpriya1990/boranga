@@ -1042,7 +1042,7 @@
                 </div>
 
                 <!-- Overlay popup bubble when clicking a DBCA layer feature -->
-                <!-- <div id="popup" class="ol-popup overlay-feature-popup">
+                <div id="popup" class="ol-popup overlay-feature-popup">
                     <template v-if="overlayFeatureInfo">
                         <div class="toast-header">
                             <img src="" class="rounded me-2" alt="" />
@@ -1068,55 +1068,21 @@
                                 style="width: 100%; z-index: 9999"
                                 class="table table-sm"
                             >
-                                <tbody>
-                                    <tr>
-                                        <th scope="row">Identifier</th>
-                                        <td>
-                                            {{
-                                                overlayFeatureInfo.leg_identifier
-                                            }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Vesting</th>
-                                        <td>
-                                            {{ overlayFeatureInfo.leg_vesting }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Legal Act</th>
-                                        <td>
-                                            {{ overlayFeatureInfo.leg_act }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Tenure</th>
-                                        <td>
-                                            {{ overlayFeatureInfo.leg_tenure }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Category</th>
-                                        <td>
-                                            {{ overlayFeatureInfo.category }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Area (ha)</th>
-                                        <td>
-                                            {{
-                                                (
-                                                    overlayFeatureInfo.leg_poly_area +
-                                                    Number.EPSILON
-                                                ).toFixed(1)
-                                            }}
-                                        </td>
+                                <tbody
+                                    v-for="[key, value] in Object.entries(
+                                        overlayFeatureInfo
+                                    )"
+                                    :key="key + value"
+                                >
+                                    <tr v-if="key != 'geometry'">
+                                        <th scope="row">{{ key }}</th>
+                                        <td>{{ value }}</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </template>
-                </div> -->
+                </div>
                 <!-- <BootstrapSpinner
                     v-if="
                         redirectingToModelDetails ||
@@ -1280,6 +1246,7 @@ import {
     set_mode,
     // validateFeature,
     layerAtEventPixel,
+    queryLayerAtPoint,
 } from '@/components/common/map_functions.js';
 import shp, { combine, parseShp, parseDbf } from 'shpjs';
 import SelectFilter from '@/components/common/SelectFilter.vue';
@@ -1412,21 +1379,22 @@ export default {
          * A dictionary of query parameters to pass to the WFS geoserver
          * The parent component needs to add the `cql_filter` parameter to filter the features by a spatial opration
          */
-        // owsQuery: {
-        //     type: Object,
-        //     required: false,
-        //     default: () => {
-        //         return {
-        //             version: '1.0.0', // WFS version
-        //             landwater: {
-        //                 typeName: 'public:dbca_legislated_lands_and_waters',
-        //                 srsName: 'EPSG:4326',
-        //                 propertyName: 'wkb_geometry', // Default to query for feature geometries only
-        //                 geometry: 'wkb_geometry', // Geometry name (not `the_geom`)
-        //             },
-        //         };
-        //     },
-        // },
+        owsQuery: {
+            type: Object,
+            required: false,
+            default: () => {
+                return {
+                    // typeName
+                    'kaartdijin-boodja-public:DFA_FMP_tenure': {
+                        version: '2.0.0', // WFS version
+                        // typeName: 'public:dbca_legislated_lands_and_waters',
+                        srsName: 'EPSG:4326',
+                        propertyName: 'Shape', // Default to query for feature geometries only
+                        geometry: 'Shape', // Geometry name (not `the_geom`)
+                    },
+                };
+            },
+        },
         /**
          * Whether the map supports drawing of polygons
          */
@@ -3777,41 +3745,40 @@ export default {
             }
             // TODO:
             // Lets ol display a popup with clicked feature properties
-            // map_component.map.on('singleclick', function (evt) {
-            //     if (map_component.mode !== 'info') {
-            //         return;
-            //     }
-            //     let coordinate = evt.coordinate;
-            //     layerAtEventPixel(map_component, evt).forEach((lyr) => {
-            //         if (lyr.values_.name === tileLayer.values_.name) {
-            //             console.log('Clicked on tile layer', lyr);
+            vm.map.on('singleclick', function (evt) {
+                if (vm.mode !== 'info') {
+                    return;
+                }
+                let coordinate = evt.coordinate;
+                layerAtEventPixel(vm, evt).forEach((lyr) => {
+                    // if (lyr.values_.name === tileLayer.values_.name) {
+                    console.log('Clicked on tile layer', lyr);
 
-            //             let point = `POINT (${coordinate.join(' ')})`;
-            //             let query_str = _helper.geoserverQuery.bind(this)(
-            //                 point,
-            //                 map_component
-            //             );
+                    queryLayerAtPoint(vm, lyr, coordinate);
 
-            //             _helper
-            //                 .validateFeatureQuery(query_str)
-            //                 .then(async (features) => {
-            //                     if (features.length === 0) {
-            //                         console.warn(
-            //                             'No features found at this location.'
-            //                         );
-            //                         map_component.overlay(undefined);
-            //                     } else {
-            //                         console.log('Feature', features);
-            //                         map_component.overlay(
-            //                             coordinate,
-            //                             features[0]
-            //                         );
-            //                     }
-            //                     map_component.errorMessageProperty(null);
-            //                 });
-            //         }
-            //     });
-            // });
+                    // let point = `POINT (${coordinate.join(' ')})`;
+                    // let query_str = _helper.geoserverQuery.bind(this)(
+                    //     point,
+                    //     vm
+                    // );
+
+                    // _helper
+                    //     .validateFeatureQuery(query_str)
+                    //     .then(async (features) => {
+                    //         if (features.length === 0) {
+                    //             console.warn(
+                    //                 'No features found at this location.'
+                    //             );
+                    //             vm.overlay(undefined);
+                    //         } else {
+                    //             console.log('Feature', features);
+                    //             vm.overlay(coordinate, features[0]);
+                    //         }
+                    //         vm.errorMessageProperty(null);
+                    //     });
+                    // }
+                });
+            });
         },
         onDrawEnd: function (feature) {
             let vm = this;
@@ -3995,6 +3962,11 @@ export default {
          */
         queryParamsDict: function (layerStr) {
             let vm = this;
+
+            if (!vm.owsQuery) {
+                console.error('OWS query defintion not found');
+                return {};
+            }
 
             if (!(layerStr in vm.owsQuery)) {
                 console.error(`Layer ${layerStr} not found in OWS query`);
