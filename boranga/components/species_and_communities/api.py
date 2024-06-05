@@ -692,49 +692,49 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
         # filter_group_type
-        filter_group_type = request.GET.get("filter_group_type")
+        filter_group_type = request.POST.get("filter_group_type")
         if filter_group_type:
             queryset = queryset.filter(group_type__name=filter_group_type)
         # filter_scientific_name
-        filter_scientific_name = request.GET.get("filter_scientific_name")
+        filter_scientific_name = request.POST.get("filter_scientific_name")
         if filter_scientific_name and not filter_scientific_name.lower() == "all":
             queryset = queryset.filter(taxonomy=filter_scientific_name)
 
-        filter_common_name = request.GET.get("filter_common_name")
+        filter_common_name = request.POST.get("filter_common_name")
         if filter_common_name and not filter_common_name.lower() == "all":
             queryset = queryset.filter(taxonomy__vernaculars__id=filter_common_name)
 
-        filter_phylogenetic_group = request.GET.get("filter_phylogenetic_group")
+        filter_phylogenetic_group = request.POST.get("filter_phylogenetic_group")
         if filter_phylogenetic_group and not filter_phylogenetic_group.lower() == "all":
             queryset = queryset.filter(
                 taxonomy__informal_groups__classification_system_fk_id=filter_phylogenetic_group
             )
 
-        filter_family = request.GET.get("filter_family")
+        filter_family = request.POST.get("filter_family")
         if filter_family and not filter_family.lower() == "all":
             queryset = queryset.filter(taxonomy__family_id=filter_family)
 
-        filter_genus = request.GET.get("filter_genus")
+        filter_genus = request.POST.get("filter_genus")
         if filter_genus and not filter_genus.lower() == "all":
             queryset = queryset.filter(taxonomy__genera_id=filter_genus)
 
-        filter_name_status = request.GET.get("filter_name_status")
+        filter_name_status = request.POST.get("filter_name_status")
         if filter_name_status and not filter_name_status.lower() == "all":
             queryset = queryset.filter(taxonomy__name_currency=filter_name_status)
 
-        filter_application_status = request.GET.get("filter_application_status")
+        filter_application_status = request.POST.get("filter_application_status")
         if filter_application_status and not filter_application_status.lower() == "all":
             queryset = queryset.filter(processing_status=filter_application_status)
 
-        filter_region = request.GET.get("filter_region")
+        filter_region = request.POST.get("filter_region")
         if filter_region and not filter_region.lower() == "all":
             queryset = queryset.filter(region=filter_region)
 
-        filter_district = request.GET.get("filter_district")
+        filter_district = request.POST.get("filter_district")
         if filter_district and not filter_district.lower() == "all":
             queryset = queryset.filter(district=filter_district)
 
-        filter_wa_legislative_list = request.GET.get("filter_wa_legislative_list")
+        filter_wa_legislative_list = request.POST.get("filter_wa_legislative_list")
         if (
             filter_wa_legislative_list
             and not filter_wa_legislative_list.lower() == "all"
@@ -744,7 +744,7 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
                 conservation_status__wa_legislative_list_id=filter_wa_legislative_list,
             ).distinct()
 
-        filter_wa_legislative_category = request.GET.get(
+        filter_wa_legislative_category = request.POST.get(
             "filter_wa_legislative_category"
         )
         if (
@@ -756,7 +756,7 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
                 conservation_status__wa_legislative_category_id=filter_wa_legislative_category,
             ).distinct()
 
-        filter_wa_priority_category = request.GET.get("filter_wa_priority_category")
+        filter_wa_priority_category = request.POST.get("filter_wa_priority_category")
         if (
             filter_wa_priority_category
             and not filter_wa_priority_category.lower() == "all"
@@ -766,13 +766,15 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
                 conservation_status__wa_priority_category_id=filter_wa_priority_category,
             ).distinct()
 
-        filter_commonwealth_relevance = request.GET.get("filter_commonwealth_relevance")
+        filter_commonwealth_relevance = request.POST.get(
+            "filter_commonwealth_relevance"
+        )
         if filter_commonwealth_relevance == "true":
             queryset = queryset.filter(
                 conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
             ).exclude(conservation_status__commonwealth_conservation_list__isnull=True)
 
-        filter_international_relevance = request.GET.get(
+        filter_international_relevance = request.POST.get(
             "filter_international_relevance"
         )
         if filter_international_relevance == "true":
@@ -780,7 +782,7 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
                 conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
             ).exclude(conservation_status__international_conservation__isnull=True)
 
-        filter_conservation_criteria = request.GET.get("filter_conservation_criteria")
+        filter_conservation_criteria = request.POST.get("filter_conservation_criteria")
         if filter_conservation_criteria:
             queryset = queryset.filter(
                 conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
@@ -817,9 +819,7 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         return qs
 
     @list_route(
-        methods=[
-            "GET",
-        ],
+        methods=["GET", "POST"],
         detail=False,
     )
     def species_internal(self, request, *args, **kwargs):
@@ -834,9 +834,7 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         return self.paginator.get_paginated_response(serializer.data)
 
     @list_route(
-        methods=[
-            "GET",
-        ],
+        methods=["GET", "POST"],
         detail=False,
     )
     def species_external(self, request, *args, **kwargs):
