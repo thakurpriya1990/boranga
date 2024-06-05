@@ -32,22 +32,32 @@ logger = logging.getLogger("boranga")
 
 # Serializer used for species form
 class SpeciesConservationStatusSerializer(serializers.ModelSerializer):
-    conservation_status = serializers.SerializerMethodField()
-    # TODO: Add new conservation status lists/catories
+    wa_legislative_list = serializers.CharField(
+        source="wa_legislative_list.code", allow_null=True
+    )
+    wa_legislative_category = serializers.CharField(
+        source="wa_legislative_category.code", allow_null=True
+    )
+    wa_priority_category = serializers.CharField(
+        source="wa_priority_category.code", allow_null=True
+    )
+    commonwealth_conservation_list = serializers.CharField(
+        source="commonwealth_conservation_list.code", allow_null=True
+    )
 
     class Meta:
         model = ConservationStatus
         fields = (
             "id",
             "conservation_status_number",
-            "species",
-            "conservation_status",
+            "wa_legislative_list",
+            "wa_legislative_category",
+            "wa_priority_category",
+            "commonwealth_conservation_list",
+            "international_conservation",
             "conservation_criteria",
         )
-
-    def get_conservation_status(self, obj):
-        # TODO: Implement based on new conservation categories
-        return "TODO"
+        read_only_fields = fields
 
 
 # Serializer used for community form
