@@ -722,21 +722,6 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         if filter_name_status and not filter_name_status.lower() == "all":
             queryset = queryset.filter(taxonomy__name_currency=filter_name_status)
 
-        filter_conservation_list = request.GET.get("filter_conservation_list")
-        if filter_conservation_list and not filter_conservation_list.lower() == "all":
-            queryset = queryset.filter(
-                conservation_status__conservation_list=filter_conservation_list
-            ).distinct()
-
-        filter_conservation_category = request.GET.get("filter_conservation_category")
-        if (
-            filter_conservation_category
-            and not filter_conservation_category.lower() == "all"
-        ):
-            queryset = queryset.filter(
-                conservation_status__conservation_category=filter_conservation_category
-            ).distinct()
-
         filter_application_status = request.GET.get("filter_application_status")
         if filter_application_status and not filter_application_status.lower() == "all":
             queryset = queryset.filter(processing_status=filter_application_status)
@@ -748,6 +733,59 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         filter_district = request.GET.get("filter_district")
         if filter_district and not filter_district.lower() == "all":
             queryset = queryset.filter(district=filter_district)
+
+        filter_wa_legislative_list = request.GET.get("filter_wa_legislative_list")
+        if (
+            filter_wa_legislative_list
+            and not filter_wa_legislative_list.lower() == "all"
+        ):
+            queryset = queryset.filter(
+                conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+                conservation_status__wa_legislative_list_id=filter_wa_legislative_list,
+            ).distinct()
+
+        filter_wa_legislative_category = request.GET.get(
+            "filter_wa_legislative_category"
+        )
+        if (
+            filter_wa_legislative_category
+            and not filter_wa_legislative_category.lower() == "all"
+        ):
+            queryset = queryset.filter(
+                conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+                conservation_status__wa_legislative_category_id=filter_wa_legislative_category,
+            ).distinct()
+
+        filter_wa_priority_category = request.GET.get("filter_wa_priority_category")
+        if (
+            filter_wa_priority_category
+            and not filter_wa_priority_category.lower() == "all"
+        ):
+            queryset = queryset.filter(
+                conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+                conservation_status__wa_priority_category_id=filter_wa_priority_category,
+            ).distinct()
+
+        filter_commonwealth_relevance = request.GET.get("filter_commonwealth_relevance")
+        if filter_commonwealth_relevance == "true":
+            queryset = queryset.filter(
+                conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ).exclude(conservation_status__commonwealth_conservation_list__isnull=True)
+
+        filter_international_relevance = request.GET.get(
+            "filter_international_relevance"
+        )
+        if filter_international_relevance == "true":
+            queryset = queryset.filter(
+                conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ).exclude(conservation_status__international_conservation__isnull=True)
+
+        filter_conservation_criteria = request.GET.get("filter_conservation_criteria")
+        if filter_conservation_criteria:
+            queryset = queryset.filter(
+                conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+                conservation_status__conservation_criteria__icontains=filter_conservation_criteria,
+            )
 
         fields = self.get_fields(request)
         ordering = self.get_ordering(request, view, fields)

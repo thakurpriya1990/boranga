@@ -52,6 +52,12 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     user_process = serializers.SerializerMethodField(read_only=True)
     can_user_edit = serializers.SerializerMethodField()
     publishing_status = serializers.SerializerMethodField()
+    wa_legislative_list = serializers.SerializerMethodField()
+    wa_legislative_category = serializers.SerializerMethodField()
+    wa_priority_category = serializers.SerializerMethodField()
+    commonwealth_conservation_list = serializers.SerializerMethodField()
+    international_conservation = serializers.SerializerMethodField()
+    conservation_criteria = serializers.SerializerMethodField()
 
     class Meta:
         model = Species
@@ -72,6 +78,12 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "user_process",
             "comment",
             "publishing_status",
+            "wa_legislative_list",
+            "wa_legislative_category",
+            "wa_priority_category",
+            "commonwealth_conservation_list",
+            "international_conservation",
+            "conservation_criteria",
         )
         datatables_always_serialize = (
             "id",
@@ -90,6 +102,12 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "user_process",
             "comment",
             "publishing_status",
+            "wa_legislative_list",
+            "wa_legislative_category",
+            "wa_priority_category",
+            "commonwealth_conservation_list",
+            "international_conservation",
+            "conservation_criteria",
         )
 
     def get_group_type(self, obj):
@@ -159,6 +177,47 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             return SpeciesPublishingStatusSerializer(ps_instance).data
         except SpeciesPublishingStatus.DoesNotExist:
             return SpeciesPublishingStatusSerializer().data
+
+    def approved_conservation_status(self, obj):
+        return obj.conservation_status.filter(
+            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
+        ).first()
+
+    def get_wa_legislative_list(self, obj):
+        conservation_status = self.approved_conservation_status(obj)
+        if conservation_status and conservation_status.wa_legislative_list:
+            return conservation_status.wa_legislative_list.code
+        return ""
+
+    def get_wa_legislative_category(self, obj):
+        conservation_status = self.approved_conservation_status(obj)
+        if conservation_status and conservation_status.wa_legislative_category:
+            return conservation_status.wa_legislative_category.code
+        return ""
+
+    def get_wa_priority_category(self, obj):
+        conservation_status = self.approved_conservation_status(obj)
+        if conservation_status and conservation_status.wa_priority_category:
+            return conservation_status.wa_priority_category.code
+        return ""
+
+    def get_commonwealth_conservation_list(self, obj):
+        conservation_status = self.approved_conservation_status(obj)
+        if conservation_status and conservation_status.commonwealth_conservation_list:
+            return conservation_status.commonwealth_conservation_list.code
+        return ""
+
+    def get_international_conservation(self, obj):
+        conservation_status = self.approved_conservation_status(obj)
+        if conservation_status and conservation_status.international_conservation:
+            return conservation_status.international_conservation
+        return ""
+
+    def get_conservation_criteria(self, obj):
+        conservation_status = self.approved_conservation_status(obj)
+        if conservation_status and conservation_status.conservation_criteria:
+            return conservation_status.conservation_criteria
+        return ""
 
 
 class ListCommunitiesSerializer(serializers.ModelSerializer):
@@ -286,7 +345,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
         )
 
     def get_species_id(self, obj):
-        if hasattr(obj,"species"):
+        if hasattr(obj, "species"):
             return obj.species.id
 
     def get_text(self, obj):
@@ -788,6 +847,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
     current_assessor = serializers.SerializerMethodField()
     user_edit_mode = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField()
+    wa_legislative_list = serializers.SerializerMethodField()
 
     class Meta:
         model = Species
@@ -819,6 +879,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "conservation_plan_exists",
             "conservation_plan_reference",
             "comment",
+            "wa_legislative_list",
         )
 
     def get_submitter(self, obj):
@@ -851,6 +912,17 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
         # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
         return obj.has_user_edit_mode(request)
+
+    def get_wa_legislative_list(self, obj):
+        if obj.conservation_status.filter(
+            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
+        ).exists():
+            conservation_status = obj.conservation_status.filter(
+                processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
+            ).first()
+            if conservation_status.wa_legislative_list:
+                return conservation_status.wa_legislative_list
+        return None
 
 
 class CommunityDistributionSerializer(serializers.ModelSerializer):
