@@ -726,14 +726,6 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         if filter_application_status and not filter_application_status.lower() == "all":
             queryset = queryset.filter(processing_status=filter_application_status)
 
-        filter_region = request.POST.get("filter_region")
-        if filter_region and not filter_region.lower() == "all":
-            queryset = queryset.filter(region=filter_region)
-
-        filter_district = request.POST.get("filter_district")
-        if filter_district and not filter_district.lower() == "all":
-            queryset = queryset.filter(district=filter_district)
-
         filter_wa_legislative_list = request.POST.get("filter_wa_legislative_list")
         if (
             filter_wa_legislative_list
