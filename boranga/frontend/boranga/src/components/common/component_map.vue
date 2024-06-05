@@ -1387,10 +1387,15 @@ export default {
                     // typeName
                     'kaartdijin-boodja-public:DFA_FMP_tenure': {
                         version: '2.0.0', // WFS version
-                        // typeName: 'public:dbca_legislated_lands_and_waters',
                         srsName: 'EPSG:4326',
                         propertyName: 'Shape', // Default to query for feature geometries only
                         geometry: 'Shape', // Geometry name (not `the_geom`)
+                    },
+                    CPT_CADASTRE_SCDB: {
+                        version: '2.0.0', // WFS version
+                        srsName: 'EPSG:4326',
+                        propertyName: 'SHAPE', // Default to query for feature geometries only
+                        geometry: 'SHAPE', // Geometry name (not `the_geom`)
                     },
                 };
             },

@@ -152,6 +152,11 @@ export async function queryLayerAtPoint(map_component, layer, coordinate) {
         layer
     );
 
+    if (query_str === undefined) {
+        console.warn('A query string could not be created.');
+        return;
+    }
+
     _helper.validateFeatureQuery(query_str).then(async (features) => {
         if (features.length === 0) {
             console.warn('No features found at this location.');
