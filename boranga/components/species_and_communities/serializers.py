@@ -847,7 +847,6 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
     current_assessor = serializers.SerializerMethodField()
     user_edit_mode = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField()
-    wa_legislative_list = serializers.SerializerMethodField()
 
     class Meta:
         model = Species
@@ -879,7 +878,6 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "conservation_plan_exists",
             "conservation_plan_reference",
             "comment",
-            "wa_legislative_list",
         )
 
     def get_submitter(self, obj):
@@ -912,17 +910,6 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
         # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
         return obj.has_user_edit_mode(request)
-
-    def get_wa_legislative_list(self, obj):
-        if obj.conservation_status.filter(
-            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
-        ).exists():
-            conservation_status = obj.conservation_status.filter(
-                processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
-            ).first()
-            if conservation_status.wa_legislative_list:
-                return conservation_status.wa_legislative_list
-        return None
 
 
 class CommunityDistributionSerializer(serializers.ModelSerializer):
