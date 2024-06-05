@@ -3890,6 +3890,8 @@ class OccurrenceTenure(models.Model):
     class Meta:
         app_label = "boranga"
         unique_together = ("occurrence_geometry", "tenure_area_id", "status")
+        verbose_name = "Occurrence Tenure"
+        verbose_name_plural = "Occurrence Tenures"
 
     def __str__(self):
         owner_name = self.owner_name.strip() if self.owner_name else None
