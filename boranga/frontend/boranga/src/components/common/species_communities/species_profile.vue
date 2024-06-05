@@ -2,85 +2,86 @@
     <div id="species">
         <FormSection :formCollapse="false" label="Taxonomy" :Index="taxonBody">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Scientific Name:</label>
+                <label for="" class="col-sm-3 col-form-label">Scientific Name:</label>
                 <div class="col-sm-9" :id="select_scientific_name">
                     <select :disabled="rename_species ? false : isReadOnly" :id="scientific_name_lookup"
-                        :name="scientific_name_lookup" :ref="scientific_name_lookup" class="form-control" />
+                        :name="scientific_name_lookup" :ref="scientific_name_lookup" class="form-select" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"></label>
+                <label for="" class="col-sm-3 col-form-label"></label>
                 <div class="col-sm-9">
                     <textarea disabled class="form-control" rows=2 id="species_display" v-model="species_display" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Common Name:</label>
+                <label for="" class="col-sm-3 col-form-label">Common Name:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="true" class="form-control" rows="2" id="common_name" placeholder=""
                         v-model="common_name" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Taxon Name ID:</label>
+                <label for="" class="col-sm-3 col-form-label">Taxon Name ID:</label>
                 <div class="col-sm-9">
                     <input :disabled="true" type="text" class="form-control" id="taxon_name_id" placeholder=""
                         v-model="taxon_name_id" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Previous Name:</label>
+                <label for="" class="col-sm-3 col-form-label">Previous Name:</label>
                 <div class="col-sm-9">
                     <input :disabled="true" type="text" class="form-control" id="previous_name" placeholder=""
                         v-model="taxon_previous_name" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Phylogenetic Group:</label>
+                <label for="" class="col-sm-3 col-form-label">Phylogenetic Group:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="true" class="form-control" rows="1" id="phylogenetic_group" placeholder=""
                         v-model="phylogenetic_group" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Family:</label>
+                <label for="" class="col-sm-3 col-form-label">Family:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="true" rows="1" class="form-control" id="family" placeholder=""
                         v-model="family" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Genus:</label>
+                <label for="" class="col-sm-3 col-form-label">Genus:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="true" rows="1" class="form-control" id="genus" placeholder=""
                         v-model="genus" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Name Authority:</label>
+                <label for="" class="col-sm-3 col-form-label">Name Authority:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="true" rows="1" class="form-control" id="name_authority" placeholder=""
                         v-model="name_authority" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">NOMOS names comments:</label>
+                <label for="" class="col-sm-3 col-form-label">NOMOS names comments:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="true" class="form-control" rows="3" id="name_comments" placeholder=""
                         v-model="name_comments" />
                 </div>
             </div>
         </FormSection>
-        <FormSection v-if="distribution_public || is_internal" :formCollapse="false" label="Distribution" :Index="distributionBody">
+        <FormSection v-if="distribution_public || is_internal" :formCollapse="false" label="Distribution"
+            :Index="distributionBody">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Distribution:</label>
+                <label for="" class="col-sm-3 col-form-label">Distribution:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" class="form-control" rows="1" id="distribution" placeholder=""
                         v-model="species_community.distribution.distribution" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Region:</label>
+                <label for="" class="col-sm-3 col-form-label">Region:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" @change="filterDistrict($event)"
                         v-model="species_community.region_id">
@@ -91,7 +92,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">District:</label>
+                <label for="" class="col-sm-3 col-form-label">District:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="species_community.district_id">
                         <option v-for="option in filtered_district_list" :value="option.id" v-bind:key="option.id">
@@ -101,122 +102,117 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Number of Occurrences:</label>
+                <label for="" class="col-sm-3 col-form-label">Number of Occurrences:</label>
                 <div class="col-sm-6">
                     <input :disabled="isNOOReadOnly" type="number" class="form-control" id="no_of_occurrences"
                         placeholder="" v-model="species_community.distribution.number_of_occurrences" />
                 </div>
                 <div class="col-sm-3">
-                    <input :disabled="isReadOnly" type="radio" value="true" class="form-check-input" id="noo_auto"
-                        @click="switchNOO('true')" v-model="species_community.distribution.noo_auto">
-                    <label>auto</label>
-                    <input :disabled="isReadOnly" type="radio" value="false" @click="switchNOO('false')"
-                        class="form-check-input" id="noo_manual" v-model="species_community.distribution.noo_auto">
-                    <label>manual</label>
+                    <div class="form-check form-check-inline">
+                        <input :disabled="isReadOnly" type="radio" value="true" class="form-check-input" id="noo_auto"
+                            @click="switchNOO('true')" v-model="species_community.distribution.noo_auto">
+                        <label>auto</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input :disabled="isReadOnly" type="radio" value="false" @click="switchNOO('false')"
+                            class="form-check-input" id="noo_manual" v-model="species_community.distribution.noo_auto">
+                        <label>manual</label>
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Extent of Occurrence (km2):</label>
+                <label for="" class="col-sm-3 col-form-label">Extent of Occurrence (km2):</label>
                 <div class="col-sm-6">
                     <input :disabled="isEOOReadOnly" type="number" class="form-control" id="extent_of_occurrence"
                         placeholder="" v-model="species_community.distribution.extent_of_occurrences" />
                 </div>
                 <div class="col-sm-3">
-                    <input :disabled="isReadOnly" type="radio" value="true" class="form-check-input" id="eoo_auto"
-                        @click="switchEOO('true')" v-model="species_community.distribution.eoo_auto">
-                    <label>auto</label>
-                    <input :disabled="isReadOnly" type="radio" value="false" class="form-check-input" id="eoo_manual"
-                        @click="switchEOO('false')" v-model="species_community.distribution.eoo_auto">
-                    <label>manual</label>
+                    <div class="form-check form-check-inline">
+                        <input :disabled="isReadOnly" type="radio" value="true" class="form-check-input" id="eoo_auto"
+                            @click="switchEOO('true')" v-model="species_community.distribution.eoo_auto">
+                        <label>auto</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input :disabled="isReadOnly" type="radio" value="false" class="form-check-input"
+                            id="eoo_manual" @click="switchEOO('false')"
+                            v-model="species_community.distribution.eoo_auto">
+                        <label>manual</label>
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Area of Occupancy<br>(2km x 2km):</label>
+                <label for="" class="col-sm-3 col-form-label">Area of Occupancy<br>(2km x 2km):</label>
                 <div class="col-sm-6">
                     <input :disabled="isAOOReadOnly" type="number" class="form-control" id="area_of_occupany"
                         placeholder="" v-model="species_community.distribution.area_of_occupancy" />
                 </div>
                 <div class="col-sm-3">
-                    <input :disabled="isReadOnly" type="radio" value="true" class="form-check-input" id="aoo_auto"
-                        @click="switchAOO('true')" v-model="species_community.distribution.aoo_auto">
-                    <label>auto</label>
-                    <input :disabled="isReadOnly" type="radio" value="false" class="form-check-input" id="aoo_manual"
-                        @click="switchAOO('false')" v-model="species_community.distribution.aoo_auto">
-                    <label>manual</label>
+                    <div class="form-check form-check-inline">
+                        <input :disabled="isReadOnly" type="radio" value="true" class="form-check-input" id="aoo_auto"
+                            @click="switchAOO('true')" v-model="species_community.distribution.aoo_auto">
+                        <label>auto</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input :disabled="isReadOnly" type="radio" value="false" class="form-check-input"
+                            id="aoo_manual" @click="switchAOO('false')"
+                            v-model="species_community.distribution.aoo_auto">
+                        <label>manual</label>
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Area of Occupancy Actual<br>(km2):</label>
+                <label for="" class="col-sm-3 col-form-label">Area of Occupancy Actual<br>(km2):</label>
                 <div class="col-sm-6">
                     <input :disabled="isAOOActualReadOnly" type="number" step="any" class="form-control"
                         id="area_of_occupancy_actual" placeholder=""
                         v-model="species_community.distribution.area_of_occupancy_actual" />
                 </div>
                 <div class="col-sm-3">
-                    <input :disabled="isReadOnly" type="radio" value="true" class="form-check-input"
-                        id="aoo_actual_auto" @click="switchAOOActual('true')"
-                        v-model="species_community.distribution.aoo_actual_auto">
-                    <label>auto</label>
-                    <input :disabled="isReadOnly" type="radio" value="false" class="form-check-input"
-                        id="aoo_actual_manual" @click="switchAOOActual('false')"
-                        v-model="species_community.distribution.aoo_actual_auto">
-                    <label>manual</label>
+                    <div class="form-check form-check-inline">
+                        <input :disabled="isReadOnly" type="radio" value="true" class="form-check-input"
+                            id="aoo_actual_auto" @click="switchAOOActual('true')"
+                            v-model="species_community.distribution.aoo_actual_auto">
+                        <label>auto</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input :disabled="isReadOnly" type="radio" value="false" class="form-check-input"
+                            id="aoo_actual_manual" @click="switchAOOActual('false')"
+                            v-model="species_community.distribution.aoo_actual_auto">
+                        <label>manual</label>
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Number of IUCN Locations:</label>
+                <label for="" class="col-sm-3 col-form-label">Number of IUCN Locations:</label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="no_of_iucn_locations"
                         placeholder="" v-model="species_community.distribution.number_of_iucn_locations" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Number of IUCN Sub-populations:</label>
+                <label for="" class="col-sm-3 col-form-label">Number of IUCN Sub-populations:</label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="number_of_iucn_subpopulations"
                         placeholder="" v-model="species_community.distribution.number_of_iucn_subpopulations" />
                 </div>
             </div>
         </FormSection>
-        <FormSection v-if="conservation_status_public || is_internal" :formCollapse="false" label="Conservation Status" :Index="conservationStatusBody">
+        <BasicConservationStatus
+            v-if="species_community.conservation_status && (conservation_status_public || is_internal)"
+            :conservation_status="species_community.conservation_status" :is_internal="is_internal" />
+        <FormSection v-if="conservation_attributes_public || is_internal" :formCollapse="false"
+            label="Conservation Attributes" :Index="conservationBody">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Conservation List</label>
-                <div class="col-sm-9">
-                    <input disabled class="form-control" id="conservation_list" v-model="conservation_list" />
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Conservation Category</label>
-                <div class="col-sm-9">
-                    <input disabled class="form-control" id="conservation_category" v-model="conservation_category" />
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Conservation Criteria</label>
-                <div class="col-sm-9">
-                    <textarea disabled class="form-control" rows=2 id="conservation_criteria" v-model="conservation_criteria" />
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-6 control-label">Is there a Conservation Status proposal under review?</label>
-                <div class="col-sm-6">
-                    <label class="me-2">Yes</label><input disabled type="radio" :checked="conservation_status_under_review" class="form-check-input me-2">
-                    <label class="me-2">No</label><input disabled type="radio" :checked="!conservation_status_under_review" class="form-check-input me-2">
-                </div>
-            </div>
-        </FormSection>
-        <FormSection v-if="conservation_attributes_public || is_internal" :formCollapse="false" label="Conservation Attributes" :Index="conservationBody">
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Habitat/Growth Form:</label>
+                <label for="" class="col-sm-3 col-form-label">Habitat/Growth Form:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" id="habitat_growth_form"
                         placeholder="" v-model="species_community.conservation_attributes.habitat_growth_form" />
                 </div>
             </div>
             <div class="row mb-3" v-show="!isFauna">
-                <label for="" class="col-sm-3 control-label">Flowering Period:</label>
+                <label for="" class="col-sm-3 col-form-label">Flowering Period:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" style="width:100%;" class="form-select input-sm" multiple
+                    <select :disabled="isReadOnly" style="width:100%;" class="form-select" multiple
                         ref="flowering_period_select"
                         v-model="species_community.conservation_attributes.flowering_period">
                         <option v-for="option in period_list" :value="option.id" :key="option.id">
@@ -226,9 +222,9 @@
                 </div>
             </div>
             <div class="row mb-3" v-show="!isFauna">
-                <label for="" class="col-sm-3 control-label">Fruiting Period:</label>
+                <label for="" class="col-sm-3 col-form-label">Fruiting Period:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" style="width:100%;" class="form-select input-sm" multiple
+                    <select :disabled="isReadOnly" style="width:100%;" class="form-select" multiple
                         ref="fruiting_period_select"
                         v-model="species_community.conservation_attributes.fruiting_period">
                         <option v-for="option in period_list" :value="option.id" :key="option.id">
@@ -238,7 +234,7 @@
                 </div>
             </div>
             <div class="row mb-3" v-show="!isFauna">
-                <label for="" class="col-sm-3 control-label">Flora Recruitment Type:</label>
+                <label for="" class="col-sm-3 col-form-label">Flora Recruitment Type:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select"
                         v-model="species_community.conservation_attributes.flora_recruitment_type_id">
@@ -249,21 +245,21 @@
                 </div>
             </div>
             <div class="row mb-3" v-show="!isFauna">
-                <label for="" class="col-sm-3 control-label">Flora Recruitment Notes:</label>
+                <label for="" class="col-sm-3 col-form-label">Flora Recruitment Notes:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" id="recruitment_notes"
                         placeholder="" v-model="species_community.conservation_attributes.flora_recruitment_notes" />
                 </div>
             </div>
             <div class="row mb-3" v-show="!isFauna">
-                <label for="" class="col-sm-3 control-label">Seed Viability and Germination Info:</label>
+                <label for="" class="col-sm-3 col-form-label">Seed Viability and Germination Info:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" placeholder=""
                         v-model="species_community.conservation_attributes.seed_viability_germination_info" />
                 </div>
             </div>
             <div class="row mb-3" v-show="!isFauna">
-                <label for="" class="col-sm-3 control-label">Root Morphology:</label>
+                <label for="" class="col-sm-3 col-form-label">Root Morphology:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select"
                         v-model="species_community.conservation_attributes.root_morphology_id">
@@ -274,16 +270,16 @@
                 </div>
             </div>
             <div class="row mb-3" v-show="!isFauna">
-                <label for="" class="col-sm-3 control-label">Pollinator Information:</label>
+                <label for="" class="col-sm-3 col-form-label">Pollinator Information:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" placeholder=""
                         v-model="species_community.conservation_attributes.pollinator_information" />
                 </div>
             </div>
             <div class="row mb-3" v-show="isFauna">
-                <label for="" class="col-sm-3 control-label">Breeding Period:</label>
+                <label for="" class="col-sm-3 col-form-label">Breeding Period:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" style="width:100%;" class="form-select input-sm" multiple
+                    <select :disabled="isReadOnly" style="width:100%;" class="form-select" multiple
                         ref="breeding_period_select"
                         v-model="species_community.conservation_attributes.breeding_period">
                         <option v-for="option in period_list" :value="option.id" :key="option.id">
@@ -293,14 +289,14 @@
                 </div>
             </div>
             <div class="row mb-3" v-show="isFauna">
-                <label for="" class="col-sm-3 control-label">Fauna Breeding:</label>
+                <label for="" class="col-sm-3 col-form-label">Fauna Breeding:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" placeholder=""
                         v-model="species_community.conservation_attributes.fauna_breeding" />
                 </div>
             </div>
             <div class="row mb-3" v-show="isFauna">
-                <label for="" class="col-sm-3 control-label">Fauna Reproductive capacity:</label>
+                <label for="" class="col-sm-3 col-form-label">Fauna Reproductive capacity:</label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="fauna_reproductive_capacity"
                         placeholder=""
@@ -308,250 +304,254 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Time to Maturity:</label>
-                <div class="col-sm-3">
-                    <input class="form-check-input" type="checkbox" name="time_to_maturity_range"
-                        id="time_to_maturity_range" v-model="time_to_maturity_range" :disabled="isReadOnly"
-                        @change="handleTimeToMaturityRange()" />
-                    <label for="" class="control-label">Range</label>
+                <label for="" class="col-sm-3 col-form-label">Time to Maturity:</label>
+                <div class="col-sm-3 d-flex align-items-center">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="time_to_maturity_range"
+                            id="time_to_maturity_range" v-model="time_to_maturity_range" :disabled="isReadOnly"
+                            @change="handleTimeToMaturityRange()" />
+                        <label for="" class="form-check-label">Range</label>
+                    </div>
                 </div>
-                <label for="" class="col-sm-6 control-label" style="color: red;">{{ errors.time_to_maturity_error
+                <label for="" class="col-sm-6 col-form-label" style="color: red;">{{ errors.time_to_maturity_error
                     }}</label>
             </div>
             <div class="row mb-3" v-if="!time_to_maturity_range">
-                <label for="" class="col-sm-3 control-label"></label>
-                <div class="col-sm-3 interval-margin">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="time_to_maturity_from"
-                        placeholder=""
-                        @change="validateRange('time_to_maturity_from', 'time_to_maturity_to', 'time_to_maturity_choice', 'time_to_maturity_error')"
-                        v-model="species_community.conservation_attributes.time_to_maturity_from" />
-                </div>
-                <div class="col-sm-2 interval-range-true-choice">
-                    <select :disabled="isReadOnly" class="form-select"
-                        @change="validateRange('time_to_maturity_from', 'time_to_maturity_to', 'time_to_maturity_choice', 'time_to_maturity_error')"
-                        v-model="species_community.conservation_attributes.time_to_maturity_choice">
-                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                <label for="" class="col-sm-3 col-form-label"></label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="time_to_maturity_from"
+                            placeholder=""
+                            @change="validateRange('time_to_maturity_from', 'time_to_maturity_to', 'time_to_maturity_choice', 'time_to_maturity_error')"
+                            v-model="species_community.conservation_attributes.time_to_maturity_from" />
+                        <select :disabled="isReadOnly" class="form-select"
+                            @change="validateRange('time_to_maturity_from', 'time_to_maturity_to', 'time_to_maturity_choice', 'time_to_maturity_error')"
+                            v-model="species_community.conservation_attributes.time_to_maturity_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
                 <div class="col-sm-4">
-                    <label for="" class="control-label">{{
-                        intervalMonthsComputed('time_to_maturity_from','time_to_maturity_choice') }}</label>
+                    <label for="" class="col-form-label">{{
+                        intervalMonthsComputed('time_to_maturity_from', 'time_to_maturity_choice') }}</label>
                 </div>
             </div>
             <div class="row mb-3" v-else>
-                <label for="" class="col-sm-3 control-label"></label>
-                <label for="" class="col-sm-2 control-label">From:</label>
-                <div class="col-sm-2 interval-range-true-input">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="time_to_maturity_from"
-                        placeholder=""
-                        @change="validateRange('time_to_maturity_from', 'time_to_maturity_to', 'time_to_maturity_choice', 'time_to_maturity_error')"
-                        v-model="species_community.conservation_attributes.time_to_maturity_from" />
-                </div>
-                <label for="" class="col-sm-2 control-label">To:</label>
-                <div class="col-sm-2 interval-range-true-input">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="time_to_maturity_to"
-                        placeholder=""
-                        @change="validateRange('time_to_maturity_from', 'time_to_maturity_to', 'time_to_maturity_choice', 'time_to_maturity_error')"
-                        v-model="species_community.conservation_attributes.time_to_maturity_to" />
-                </div>
-                <div class="col-sm-2 interval-range-true-choice">
-                    <select :disabled="isReadOnly" class="form-select"
-                        @change="validateRange('time_to_maturity_from', 'time_to_maturity_to', 'time_to_maturity_choice', 'time_to_maturity_error')"
-                        v-model="species_community.conservation_attributes.time_to_maturity_choice">
-                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                <div class="col-sm-3"></div>
+                <div class="col-sm-7">
+                    <div class="input-group">
+                        <label class="input-group-text" for="time_to_maturity_from">From:</label>
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="time_to_maturity_from"
+                            placeholder=""
+                            @change="validateRange('time_to_maturity_from', 'time_to_maturity_to', 'time_to_maturity_choice', 'time_to_maturity_error')"
+                            v-model="species_community.conservation_attributes.time_to_maturity_from" />
+                        <label class="input-group-text" for="time_to_maturity_to">To:</label>
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="time_to_maturity_to"
+                            placeholder=""
+                            @change="validateRange('time_to_maturity_from', 'time_to_maturity_to', 'time_to_maturity_choice', 'time_to_maturity_error')"
+                            v-model="species_community.conservation_attributes.time_to_maturity_to" />
+
+                        <select :disabled="isReadOnly" class="form-select"
+                            @change="validateRange('time_to_maturity_from', 'time_to_maturity_to', 'time_to_maturity_choice', 'time_to_maturity_error')"
+                            v-model="species_community.conservation_attributes.time_to_maturity_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Generation Length:</label>
-                <div class="col-sm-3">
-                    <input class="form-check-input" type="checkbox" name="generation_length_range"
-                        id="generation_length_range" v-model="generation_length_range" :disabled="isReadOnly"
-                        @change="handleGenerationLengthRange()" />
-                    <label for="" class="control-label">Range</label>
+                <label for="" class="col-sm-3 col-form-label">Generation Length:</label>
+                <div class="col-sm-3 d-flex align-items-center">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="generation_length_range"
+                            id="generation_length_range" v-model="generation_length_range" :disabled="isReadOnly"
+                            @change="handleGenerationLengthRange()" />
+                        <label for="" class="form-check-label">Range</label>
+                    </div>
                 </div>
-                <label for="" class="col-sm-6 control-label" style="color: red;">{{ errors.generation_length_error
+                <label for="" class="col-sm-6 col-form-label" style="color: red;">{{ errors.generation_length_error
                     }}</label>
             </div>
             <div class="row mb-3" v-if="!generation_length_range">
-                <label for="" class="col-sm-3 control-label"></label>
-                <div class="col-sm-3 interval-margin">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="generation_length_from"
-                        placeholder=""
-                        @change="validateRange('generation_length_from', 'generation_length_to', 'generation_length_choice', 'generation_length_error')"
-                        v-model="species_community.conservation_attributes.generation_length_from" />
-                </div>
-                <div class="col-sm-2 interval-range-true-choice">
-                    <select :disabled="isReadOnly" class="form-select"
-                        @change="validateRange('generation_length_from', 'generation_length_to', 'generation_length_choice', 'generation_length_error')"
-                        v-model="species_community.conservation_attributes.generation_length_choice">
-                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                <label for="" class="col-sm-3 col-form-label"></label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="generation_length_from"
+                            placeholder=""
+                            @change="validateRange('generation_length_from', 'generation_length_to', 'generation_length_choice', 'generation_length_error')"
+                            v-model="species_community.conservation_attributes.generation_length_from" />
+                        <select :disabled="isReadOnly" class="form-select"
+                            @change="validateRange('generation_length_from', 'generation_length_to', 'generation_length_choice', 'generation_length_error')"
+                            v-model="species_community.conservation_attributes.generation_length_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
                 <div class="col-sm-4">
-                    <label for="" class="control-label">{{
-                        intervalMonthsComputed('generation_length_from','generation_length_choice') }}</label>
+                    <label for="" class="col-form-label">{{
+                        intervalMonthsComputed('generation_length_from', 'generation_length_choice') }}</label>
                 </div>
             </div>
             <div class="row mb-3" v-else>
-                <label for="" class="col-sm-3 control-label"></label>
-                <label for="" class="col-sm-2 control-label">From:</label>
-                <div class="col-sm-2 interval-range-true-input">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="generation_length_from"
-                        placeholder=""
-                        @change="validateRange('generation_length_from', 'generation_length_to', 'generation_length_choice', 'generation_length_error')"
-                        v-model="species_community.conservation_attributes.generation_length_from" />
-                </div>
-                <label for="" class="col-sm-2 control-label">To:</label>
-                <div class="col-sm-2 interval-range-true-input">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="generation_length_to"
-                        placeholder=""
-                        @change="validateRange('generation_length_from', 'generation_length_to', 'generation_length_choice', 'generation_length_error')"
-                        v-model="species_community.conservation_attributes.generation_length_to" />
-                </div>
-                <div class="col-sm-2 interval-range-true-choice">
-                    <select :disabled="isReadOnly" class="form-select"
-                        @change="validateRange('generation_length_from', 'generation_length_to', 'generation_length_choice', 'generation_length_error')"
-                        v-model="species_community.conservation_attributes.generation_length_choice">
-                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                <div class="col-sm-3"></div>
+                <div class="col-sm-7">
+                    <div class="input-group">
+                        <label class="input-group-text" for="generation_length_from">From:</label>
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="generation_length_from"
+                            placeholder=""
+                            @change="validateRange('generation_length_from', 'generation_length_to', 'generation_length_choice', 'generation_length_error')"
+                            v-model="species_community.conservation_attributes.generation_length_from" />
+                        <label class="input-group-text" for="generation_length_to">To:</label>
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="generation_length_to"
+                            placeholder=""
+                            @change="validateRange('generation_length_from', 'generation_length_to', 'generation_length_choice', 'generation_length_error')"
+                            v-model="species_community.conservation_attributes.generation_length_to" />
+                        <select :disabled="isReadOnly" class="form-select"
+                            @change="validateRange('generation_length_from', 'generation_length_to', 'generation_length_choice', 'generation_length_error')"
+                            v-model="species_community.conservation_attributes.generation_length_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Average Lifespan:</label>
-                <div class="col-sm-3">
-                    <input class="form-check-input" type="checkbox" name="average_lifespan_range"
-                        id="average_lifespan_range" v-model="average_lifespan_range" :disabled="isReadOnly"
-                        @change="handleAverageLifespanRange()" />
-                    <label for="" class="control-label">Range</label>
+                <label for="" class="col-sm-3 col-form-label">Average Lifespan:</label>
+                <div class="col-sm-3 d-flex align-items-center">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="average_lifespan_range"
+                            id="average_lifespan_range" v-model="average_lifespan_range" :disabled="isReadOnly"
+                            @change="handleAverageLifespanRange()" />
+                        <label for="" class="form-check-label">Range</label>
+                    </div>
                 </div>
-                <label for="" class="col-sm-6 control-label" style="color: red;">{{ errors.average_lifespan_error
+                <label for="" class="col-sm-6 col-form-label" style="color: red;">{{
+                    errors.average_lifespan_error
                     }}</label>
             </div>
             <div class="row mb-3" v-if="!average_lifespan_range">
-                <label for="" class="col-sm-3 control-label"></label>
-                <div class="col-sm-3 interval-margin">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="average_lifespan_from"
-                        placeholder=""
-                        @change="validateRange('average_lifespan_from', 'average_lifespan_to', 'average_lifespan_choice', 'average_lifespan_error')"
-                        v-model="species_community.conservation_attributes.average_lifespan_from" />
-                </div>
-                <div class="col-sm-2 interval-range-true-choice">
-                    <select :disabled="isReadOnly" class="form-select"
-                        @change="validateRange('average_lifespan_from', 'average_lifespan_to', 'average_lifespan_choice', 'average_lifespan_error')"
-                        v-model="species_community.conservation_attributes.average_lifespan_choice">
-                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                <label for="" class="col-sm-3 col-form-label"></label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="average_lifespan_from"
+                            placeholder=""
+                            @change="validateRange('average_lifespan_from', 'average_lifespan_to', 'average_lifespan_choice', 'average_lifespan_error')"
+                            v-model="species_community.conservation_attributes.average_lifespan_from" />
+                        <select :disabled="isReadOnly" class="form-select"
+                            @change="validateRange('average_lifespan_from', 'average_lifespan_to', 'average_lifespan_choice', 'average_lifespan_error')"
+                            v-model="species_community.conservation_attributes.average_lifespan_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
                 <div class="col-sm-4">
-                    <label for="" class="control-label">{{
-                        intervalMonthsComputed('average_lifespan_from','average_lifespan_choice') }}</label>
+                    <label for="" class="col-form-label">{{
+                        intervalMonthsComputed('average_lifespan_from', 'average_lifespan_choice') }}</label>
                 </div>
             </div>
             <div class="row mb-3" v-else>
-                <label for="" class="col-sm-3 control-label"></label>
-                <label for="" class="col-sm-2 control-label">From:</label>
-                <div class="col-sm-2 interval-range-true-input">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="average_lifespan_from"
-                        placeholder=""
-                        @change="validateRange('average_lifespan_from', 'average_lifespan_to', 'average_lifespan_choice', 'average_lifespan_error')"
-                        v-model="species_community.conservation_attributes.average_lifespan_from" />
-                </div>
-                <label for="" class="col-sm-2 control-label">To:</label>
-                <div class="col-sm-2 interval-range-true-input">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="average_lifespan_to"
-                        placeholder=""
-                        @change="validateRange('average_lifespan_from', 'average_lifespan_to', 'average_lifespan_choice', 'average_lifespan_error')"
-                        v-model="species_community.conservation_attributes.average_lifespan_to" />
-                </div>
-                <div class="col-sm-2 interval-range-true-choice">
-                    <select :disabled="isReadOnly" class="form-select"
-                        @change="validateRange('average_lifespan_from', 'average_lifespan_to', 'average_lifespan_choice', 'average_lifespan_error')"
-                        v-model="species_community.conservation_attributes.average_lifespan_choice">
-                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                <div class="col-sm-3"></div>
+                <div class="col-sm-7">
+                    <div class="input-group">
+                        <label class="input-group-text" for="average_lifespan_from">From:</label>
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="average_lifespan_from"
+                            placeholder=""
+                            @change="validateRange('average_lifespan_from', 'average_lifespan_to', 'average_lifespan_choice', 'average_lifespan_error')"
+                            v-model="species_community.conservation_attributes.average_lifespan_from" />
+                        <label class="input-group-text" for="average_lifespan_to">To:</label>
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="average_lifespan_to"
+                            placeholder=""
+                            @change="validateRange('average_lifespan_from', 'average_lifespan_to', 'average_lifespan_choice', 'average_lifespan_error')"
+                            v-model="species_community.conservation_attributes.average_lifespan_to" />
+                        <select :disabled="isReadOnly" class="form-select"
+                            @change="validateRange('average_lifespan_from', 'average_lifespan_to', 'average_lifespan_choice', 'average_lifespan_error')"
+                            v-model="species_community.conservation_attributes.average_lifespan_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Minimum Fire Interval:</label>
-                <div class="col-sm-3">
-                    <input class="form-check-input" type="checkbox" name="minimum_fire_interval_range"
-                        id="minimum_fire_interval_range" v-model="minimum_fire_interval_range" :disabled="isReadOnly"
-                        @change="handleMinimumFireIntervalRange()" />
-                    <label for="" class="control-label">Range</label>
+                <label for="" class="col-sm-3 col-form-label">Minimum Fire Interval:</label>
+                <div class="col-sm-3 d-flex align-items-center">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="minimum_fire_interval_range"
+                            id="minimum_fire_interval_range" v-model="minimum_fire_interval_range"
+                            :disabled="isReadOnly" @change="handleMinimumFireIntervalRange()" />
+                        <label for="" class="form-check-label">Range</label>
+                    </div>
                 </div>
-                <label for="" class="col-sm-6 control-label" style="color: red;">{{ errors.minimum_fire_interval_error
+                <label for="" class="col-sm-6 col-form-label" style="color: red;">{{
+                    errors.minimum_fire_interval_error
                     }}</label>
             </div>
             <div class="row mb-3" v-if="!minimum_fire_interval_range">
-                <label for="" class="col-sm-3 control-label"></label>
-                <div class="col-sm-3 interval-margin">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_from"
-                        placeholder=""
-                        @change="validateRange('minimum_fire_interval_from', 'minimum_fire_interval_to', 'minimum_fire_interval_choice', 'minimum_fire_interval_error')"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
-                </div>
-                <div class="col-sm-2 interval-range-true-choice">
-                    <select :disabled="isReadOnly" class="form-select"
-                        @change="validateRange('minimum_fire_interval_from', 'minimum_fire_interval_to', 'minimum_fire_interval_choice', 'minimum_fire_interval_error')"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
-                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                <label for="" class="col-sm-3 col-form-label"></label>
+                <div class="col-sm-4 d-flex align-items-center">
+                    <div class="input-group">
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_from"
+                            placeholder=""
+                            @change="validateRange('minimum_fire_interval_from', 'minimum_fire_interval_to', 'minimum_fire_interval_choice', 'minimum_fire_interval_error')"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
+                        <select :disabled="isReadOnly" class="form-select"
+                            @change="validateRange('minimum_fire_interval_from', 'minimum_fire_interval_to', 'minimum_fire_interval_choice', 'minimum_fire_interval_error')"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
                 <div class="col-sm-4">
-                    <label for="" class="control-label">{{
-                        intervalMonthsComputed('minimum_fire_interval_from','minimum_fire_interval_choice')}}</label>
+                    <label for="" class="col-form-label">{{
+                        intervalMonthsComputed('minimum_fire_interval_from', 'minimum_fire_interval_choice')
+                        }}</label>
                 </div>
             </div>
             <div class="row mb-3" v-else>
-                <label for="" class="col-sm-3 control-label"></label>
-                <label for="" class="col-sm-2 control-label">From:</label>
-                <div class="col-sm-2 interval-range-true-input">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_from"
-                        placeholder=""
-                        @change="validateRange('minimum_fire_interval_from', 'minimum_fire_interval_to', 'minimum_fire_interval_choice', 'minimum_fire_interval_error')"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
-                </div>
-                <label for="" class="col-sm-2 control-label">To:</label>
-                <div class="col-sm-2 interval-range-true-input">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_to"
-                        placeholder=""
-                        @change="validateRange('minimum_fire_interval_from', 'minimum_fire_interval_to', 'minimum_fire_interval_choice', 'minimum_fire_interval_error')"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_to" />
-                </div>
-                <div class="col-sm-2 interval-range-true-choice">
-                    <select :disabled="isReadOnly" class="form-select"
-                        @change="validateRange('minimum_fire_interval_from', 'minimum_fire_interval_to', 'minimum_fire_interval_choice', 'minimum_fire_interval_error')"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
-                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                <label for="" class="col-sm-3 col-form-label"></label>
+                <div class="col-sm-7 d-flex align-items-center">
+                    <div class="input-group">
+                        <label class="input-group-text" for="minimum_fire_interval_from">From:</label>
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_from"
+                            placeholder=""
+                            @change="validateRange('minimum_fire_interval_from', 'minimum_fire_interval_to', 'minimum_fire_interval_choice', 'minimum_fire_interval_error')"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
+                            <label class="input-group-text" for="minimum_fire_interval_to">To:</label>
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_to"
+                            placeholder=""
+                            @change="validateRange('minimum_fire_interval_from', 'minimum_fire_interval_to', 'minimum_fire_interval_choice', 'minimum_fire_interval_error')"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_to" />
+                        <select :disabled="isReadOnly" class="form-select"
+                            @change="validateRange('minimum_fire_interval_from', 'minimum_fire_interval_to', 'minimum_fire_interval_choice', 'minimum_fire_interval_error')"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Response to Fire:</label>
+                <label for="" class="col-sm-3 col-form-label">Response to Fire:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" id="response_to_fire"
                         placeholder="" v-model="species_community.conservation_attributes.response_to_fire" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Post Fire Habitat Interactions:</label>
+                <label for="" class="col-sm-3 col-form-label">Post Fire Habitat Interactions:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select"
                         v-model="species_community.conservation_attributes.post_fire_habitat_interaction_id">
@@ -563,56 +563,56 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Response to Disturbance:</label>
+                <label for="" class="col-sm-3 col-form-label">Response to Disturbance:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" id="response_to_disturbance"
                         placeholder="" v-model="species_community.conservation_attributes.response_to_disturbance" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Habitat:</label>
+                <label for="" class="col-sm-3 col-form-label">Habitat:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" id="habitat" placeholder=""
                         v-model="species_community.conservation_attributes.habitat" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Hydrology:</label>
+                <label for="" class="col-sm-3 col-form-label">Hydrology:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" id="hydrology" placeholder=""
                         v-model="species_community.conservation_attributes.hydrology" />
                 </div>
             </div>
             <div class="row mb-3" v-show="isFauna">
-                <label for="" class="col-sm-3 control-label">Diet and Food Source:</label>
+                <label for="" class="col-sm-3 col-form-label">Diet and Food Source:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" id="diet_food_source"
                         placeholder="" v-model="species_community.conservation_attributes.diet_and_food_source" />
                 </div>
             </div>
             <div class="row mb-3" v-show="isFauna">
-                <label for="" class="col-sm-3 control-label">Home Range:</label>
+                <label for="" class="col-sm-3 col-form-label">Home Range:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" id="home_range" placeholder=""
                         v-model="species_community.conservation_attributes.home_range" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Research Requirements:</label>
+                <label for="" class="col-sm-3 col-form-label">Research Requirements:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" id="research_requirements"
                         placeholder="" v-model="species_community.conservation_attributes.research_requirements" />
                 </div>
             </div>
             <div class="row mb-3" v-show="!isFauna">
-                <label for="" class="col-sm-3 control-label">Response to Dieback:</label>
+                <label for="" class="col-sm-3 col-form-label">Response to Dieback:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" id="response_to_dieback"
                         placeholder="" v-model="species_community.conservation_attributes.response_to_dieback" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Other relevant diseases:</label>
+                <label for="" class="col-sm-3 col-form-label">Other relevant diseases:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" class="form-control" id="other_relevant_diseases"
                         placeholder="" v-model="species_community.conservation_attributes.other_relevant_diseases" />
@@ -621,14 +621,14 @@
         </FormSection>
         <FormSection v-if="is_internal" :formCollapse="false" label="General" :Index="generalBody">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
+                <label for="" class="col-sm-3 col-form-label">Department File Numbers:</label>
                 <div v-if="distribution_public" class="col-sm-9">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="department_file_numbers"
                         placeholder="" v-model="species_community.distribution.department_file_numbers" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Last data curation date: </label>
+                <label for="" class="col-sm-3 col-form-label">Last data curation date: </label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="date" class="form-control" name="last_data_curration_date"
                         ref="last_data_curration_date" @change="checkDate()"
@@ -636,18 +636,20 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="conservation_plan_exists" class="col-sm-3 control-label">Conservation Plan Exists: </label>
+                <label for="conservation_plan_exists" class="col-sm-3 col-form-label">Conservation Plan Exists: </label>
                 <div class="col-sm-9">
                     <label for="conservation_plan_exists" class="me-2">No</label>
                     <input :disabled="isReadOnly" type="radio" :value="false" class="form-check-input me-2"
                         id="conservation_plan_exists" v-model="species_community.conservation_plan_exists">
                     <label for="conservation_plan_exists" class="me-2">Yes</label>
                     <input :disabled="isReadOnly" type="radio" :value="true" class="form-check-input"
-                        id="conservation_plan_exists" v-model="species_community.conservation_plan_exists" @change="focusConservationPlanReference">
+                        id="conservation_plan_exists" v-model="species_community.conservation_plan_exists"
+                        @change="focusConservationPlanReference">
                 </div>
             </div>
             <div v-if="species_community.conservation_plan_exists" class="row mb-3">
-                <label for="conservation_plan_reference" class="col-sm-3 control-label">Conservation Plan Reference / Location: </label>
+                <label for="conservation_plan_reference" class="col-sm-3 col-form-label">Conservation Plan Reference /
+                    Location: </label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="text" class="form-control" name="conservation_plan_reference"
                         ref="conservation_plan_reference" @change="checkDate()"
@@ -655,7 +657,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Comment:</label>
+                <label for="" class="col-sm-3 col-form-label">Comment:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
                         v-model="species_community.comment" />
@@ -664,53 +666,82 @@
         </FormSection>
         <FormSection v-if="is_internal" :formCollapse="false" label="Publishing" Index="publishing">
             <div class="row mb-3">
-                <label for="distribution_publishing" class="col-sm-3 control-label">Distribution: </label>
+                <label for="distribution_publishing" class="col-sm-3 col-form-label">Distribution: </label>
                 <div class="col-sm-9">
-                    <label for="distribution_publishing" class="me-2">Private</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
-                        id="distribution_publishing" v-model="species_community.publishing_status.distribution_public">
-                    <label for="distribution_publishing" class="me-2">Public</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
-                        id="distribution_publishing" v-model="species_community.publishing_status.distribution_public">
+                    <div class="form-check form-check-inline">
+                        <label for="distribution_publishing">Private</label>
+                        <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false"
+                            class="form-check-input me-2" id="distribution_publishing"
+                            v-model="species_community.publishing_status.distribution_public">
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <label for="distribution_publishing">Public</label>
+                        <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true"
+                            class="form-check-input" id="distribution_publishing"
+                            v-model="species_community.publishing_status.distribution_public">
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="conservation_status_publishing" class="col-sm-3 control-label">Conservation Status: </label>
+                <label for="conservation_status_publishing" class="col-sm-3 col-form-label">Conservation Status:
+                </label>
                 <div class="col-sm-9">
-                    <label for="conservation_status_publishing" class="me-2">Private</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
-                        id="conservation_status_publishing" v-model="species_community.publishing_status.conservation_status_public">
-                    <label for="conservation_status_publishing" class="me-2">Public</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
-                        id="conservation_status_publishing" v-model="species_community.publishing_status.conservation_status_public">
+                    <div class="form-check form-check-inline">
+                        <label for="conservation_status_publishing">Private</label>
+                        <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false"
+                            class="form-check-input me-2" id="conservation_status_publishing"
+                            v-model="species_community.publishing_status.conservation_status_public">
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <label for="conservation_status_publishing">Public</label>
+                        <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true"
+                            class="form-check-input" id="conservation_status_publishing"
+                            v-model="species_community.publishing_status.conservation_status_public">
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="conservation_attributes_publishing" class="col-sm-3 control-label">Conservation Attributes: </label>
+                <label for="conservation_attributes_publishing" class="col-sm-3 col-form-label">Conservation Attributes:
+                </label>
                 <div class="col-sm-9">
-                    <label for="conservation_attributes_publishing" class="me-2">Private</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
-                        id="conservation_attributes_publishing" v-model="species_community.publishing_status.conservation_attributes_public">
-                    <label for="conservation_attributes_publishing" class="me-2">Public</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
-                        id="conservation_attributes_publishing" v-model="species_community.publishing_status.conservation_attributes_public">
+                    <div class="form-check form-check-inline">
+                        <label for="conservation_attributes_publishing">Private</label>
+                        <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false"
+                            class="form-check-input me-2" id="conservation_attributes_publishing"
+                            v-model="species_community.publishing_status.conservation_attributes_public">
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <label for="conservation_attributes_publishing">Public</label>
+                        <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true"
+                            class="form-check-input" id="conservation_attributes_publishing"
+                            v-model="species_community.publishing_status.conservation_attributes_public">
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="threats_publishing" class="col-sm-3 control-label">Threats: </label>
+                <label for="threats_publishing" class="col-sm-3 col-form-label">Threats: </label>
                 <div class="col-sm-9">
-                    <label for="threats_publishing" class="me-2">Private</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
-                        id="threats_publishing" v-model="species_community.publishing_status.threats_public">
-                    <label for="threats_publishing" class="me-2">Public</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
-                        id="threats_publishing" v-model="species_community.publishing_status.threats_public">
+                    <div class="form-check form-check-inline">
+                        <label for="threats_publishing">Private</label>
+                        <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false"
+                            class="form-check-input me-2" id="threats_publishing"
+                            v-model="species_community.publishing_status.threats_public">
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <label for="threats_publishing">Public</label>
+                        <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true"
+                            class="form-check-input" id="threats_publishing"
+                            v-model="species_community.publishing_status.threats_public">
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
-                    <button v-if="!updatingPublishing" :disabled="isReadOnly || !isPublic || !isActive" class="btn btn-primary btn-sm float-end" @click.prevent="updatePublishingDetails()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                    <button v-if="!updatingPublishing" :disabled="isReadOnly || !isPublic || !isActive"
+                        class="btn btn-primary btn-sm float-end"
+                        @click.prevent="updatePublishingDetails()">Update</button>
+                    <button v-else disabled class="float-end btn btn-primary"><i
+                            class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
         </FormSection>
@@ -720,12 +751,13 @@
 <script>
 import Vue from 'vue';
 import FormSection from '@/components/forms/section_toggle.vue';
+import BasicConservationStatus from './basic_conservation_status.vue';
 import {
     api_endpoints,
     helpers
 }
 
-from '@/utils/hooks'
+    from '@/utils/hooks'
 export default {
     name: 'Species',
     props: {
@@ -787,7 +819,6 @@ export default {
             conservation_category: '',
             conservation_list: '',
             conservation_criteria: '',
-            conservation_status_under_review: false,
             common_name: null,
             taxon_name_id: null,
             taxon_previous_name: null,
@@ -826,15 +857,16 @@ export default {
     },
     components: {
         FormSection,
+        BasicConservationStatus
     },
     computed: {
         distribution_public: function () {
             return this.isPublic && this.species_community.publishing_status.distribution_public;
         },
-        conservation_status_public: function() {
+        conservation_status_public: function () {
             return this.isPublic && this.species_community.publishing_status.conservation_status_public;
         },
-        conservation_attributes_public: function() {
+        conservation_attributes_public: function () {
             return this.isPublic && this.species_community.publishing_status.conservation_attributes_public;
         },
         isReadOnly: function () {
@@ -923,8 +955,8 @@ export default {
     methods: {
         updatePublishing(data) {
             let vm = this;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.species,(vm.species_community.id+'/update_publishing_status')),data,{
-                emulateJSON:true
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.species, (vm.species_community.id + '/update_publishing_status')), data, {
+                emulateJSON: true
             }).then((response) => {
                 vm.updatingPublishing = false;
                 vm.species_community.publishing_status = response.body;
@@ -933,31 +965,31 @@ export default {
                     title: 'Saved',
                     text: 'Publishing settings have been updated',
                     icon: 'success',
-                    confirmButtonColor:'#226fbb',
+                    confirmButtonColor: '#226fbb',
 
                 });
             }, (error) => {
-                var text= helpers.apiVueResourceError(error);
+                var text = helpers.apiVueResourceError(error);
                 swal.fire({
                     title: 'Error',
-                    text: 'Publishing settings cannot be updated because of the following error: '+text,
+                    text: 'Publishing settings cannot be updated because of the following error: ' + text,
                     icon: 'error',
-                    confirmButtonColor:'#226fbb',
+                    confirmButtonColor: '#226fbb',
                 });
                 vm.updatingPublishing = false;
             });
         },
-        updatePublishingDetails: function() {
+        updatePublishingDetails: function () {
             let vm = this;
             vm.updatingPublishing = true;
             //if not already public, we make it public (notify user first)
             //but only if it is active
-            if (helpers.checkForChange(vm.species_community_original.publishing_status,vm.species_community.publishing_status)) {
+            if (helpers.checkForChange(vm.species_community_original.publishing_status, vm.species_community.publishing_status)) {
                 swal.fire({
                     title: 'Error',
                     text: 'No changes made',
                     icon: 'error',
-                    confirmButtonColor:'#226fbb',
+                    confirmButtonColor: '#226fbb',
                 });
                 vm.updatingPublishing = false;
             }
@@ -970,7 +1002,7 @@ export default {
                     title: 'Error',
                     text: 'Record not active and cannot be made public',
                     icon: 'error',
-                    confirmButtonColor:'#226fbb',
+                    confirmButtonColor: '#226fbb',
                 });
                 vm.updatingPublishing = false;
             }
@@ -1197,7 +1229,6 @@ export default {
                         vm.conservation_category = e.params.data.conservation_status.conservation_category;
                         vm.conservation_list = e.params.data.conservation_status.conservation_list;
                         vm.conservation_criteria = e.params.data.conservation_status.conservation_criteria;
-                        vm.conservation_status_under_review = e.params.data.conservation_status_under_review;
                     }
                     vm.common_name = e.params.data.common_name;
                     vm.taxon_name_id = e.params.data.taxon_name_id;
@@ -1217,14 +1248,13 @@ export default {
                     vm.conservation_category = '';
                     vm.conservation_criteria = '';
                     vm.conservation_list = '';
-                    vm.conservation_status_under_review = false;
                     vm.common_name = '';
                     vm.taxon_name_id = '';
                     vm.taxon_previous_name = '';
                     vm.phylogenetic_group = '';
                     vm.family = '',
-                    vm.genus = '',
-                    vm.name_authority = '';
+                        vm.genus = '',
+                        vm.name_authority = '';
                     vm.name_comments = '';
                 }).
                 on("select2:open", function (e) {
@@ -1245,7 +1275,6 @@ export default {
                 if (vm.species_community.conservation_status) {
                     vm.conservation_category = vm.species_community.conservation_status.conservation_category;
                     vm.conservation_list = vm.species_community.conservation_status.conservation_list;
-                    vm.conservation_status_under_review = vm.species_community.conservation_status_under_review;
                 }
                 vm.common_name = vm.species_community.taxonomy_details.common_name;
                 vm.taxon_name_id = vm.species_community.taxonomy_details.taxon_name_id;
@@ -1373,7 +1402,7 @@ export default {
                 vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
             }
         }
-        if (vm.species_community.conservation_attributes) { 
+        if (vm.species_community.conservation_attributes) {
             if (vm.species_community.conservation_attributes.minimum_fire_interval_to != null &&
                 vm.species_community.conservation_attributes.minimum_fire_interval_to != "" &&
                 vm.species_community.conservation_attributes.minimum_fire_interval_to != undefined) {
@@ -1437,10 +1466,6 @@ export default {
 </script>
 
 <style lang="css" scoped>
-/*ul, li {
-        zoom:1;
-        display: inline;
-    }*/
 fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;
@@ -1455,28 +1480,5 @@ legend.scheduler-border {
     padding: 0 10px;
     /* To give a bit of padding on the left and right */
     border-bottom: none;
-}
-
-input[type=text],
-select {
-    width: 100%;
-    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
-}
-
-input[type=number] {
-    width: 50%;
-}
-
-.interval-margin {
-    margin-right: -100px;
-}
-
-.interval-range-true-input {
-    width: 20%;
-    margin-left: -80px;
-}
-
-.interval-range-true-choice {
-    width: 20%;
 }
 </style>
