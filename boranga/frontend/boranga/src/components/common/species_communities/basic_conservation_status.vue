@@ -35,7 +35,8 @@
                     </div>
                 </div>
                 <div class="row mb-3" v-if="conservation_status.commonwealth_conservation_list">
-                    <label for="commonwealth_conservation_list" class="col-sm-4 col-form-label">Commonwealth Conservation
+                    <label for="commonwealth_conservation_list" class="col-sm-4 col-form-label">Commonwealth
+                        Conservation
                         List</label>
                     <div class="col-sm-8">
                         <input class="form-control" id="commonwealth_conservation_list"
@@ -58,13 +59,13 @@
                     </div>
                 </div>
                 <div class="row mt-3 mb-1">
-                    <label for="" class="col-sm-6 col-form-label">Is there a Conservation Status proposal under
+                    <label for="" class="col-sm-4 col-form-label">Conservation Status under
                         review?</label>
-                    <div class="col-sm-6">
-                        <label class="me-2">Yes</label><input disabled type="radio"
-                            :checked="conservation_status_under_review" class="form-check-input me-2">
-                        <label class="me-2">No</label><input disabled type="radio"
-                            :checked="!conservation_status_under_review" class="form-check-input me-2">
+                    <div class="col-sm-8 d-flex align-items-center">
+                        <template v-if="conservation_status.under_review">Yes</template>
+                        <template v-else>
+                            No
+                        </template>
                     </div>
                 </div>
             </fieldset>
