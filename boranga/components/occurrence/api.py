@@ -29,6 +29,7 @@ from boranga.components.conservation_status.serializers import SendReferralSeria
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.spatial.utils import (
+    populate_occurrence_tenure_data,
     save_geometry,
     spatially_process_geometry,
     transform_json_geometry,
@@ -58,6 +59,7 @@ from boranga.components.occurrence.models import (
     OCCPlantCount,
     Occurrence,
     OccurrenceDocument,
+    OccurrenceGeometry,
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
@@ -3929,7 +3931,14 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # occ geometry data to save seperately
         geometry_data = request_data.get("occ_geometry", None)
         if geometry_data:
-            save_geometry(request, instance, geometry_data, "occurrence")
+            intersect_data = save_geometry(
+                request, instance, geometry_data, "occurrence"
+            )
+            for key, value in intersect_data.items():
+                occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
+                populate_occurrence_tenure_data(
+                    occurrence_geometry, value.get("features", [])
+                )
 
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -4003,7 +4012,14 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # occ geometry data to save seperately
         geometry_data = request.data.get("occ_geometry")
         if geometry_data:
-            save_geometry(request, occ_instance, geometry_data, "occurrence")
+            intersect_data = save_geometry(
+                request, occ_instance, geometry_data, "occurrence"
+            )
+            for key, value in intersect_data.items():
+                occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
+                populate_occurrence_tenure_data(
+                    occurrence_geometry, value.get("features", [])
+                )
 
         # the request.data is only the habitat composition data thats been sent from front end
         location_data = request.data.get("location")
