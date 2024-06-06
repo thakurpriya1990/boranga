@@ -4,7 +4,7 @@
             <div v-if="!cs_proposal_readonly">
                 <div v-if="hasAmendmentRequest" class="row">
                     <div class="col-lg-12 pull-right">
-                        <FormSection :formCollapse="true" label="An amendment has been requested for this Application"
+                        <FormSection :formCollapse="false" label="An amendment has been requested for this Application"
                             Index="amendment_request" customColor="red">
                             <div v-for="a in amendment_request">
                                 <p>Reason: {{ a.reason }}</p>
