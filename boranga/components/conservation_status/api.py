@@ -1784,7 +1784,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         qs = qs.exclude(
             input_name="conservation_status_approval_doc"
         )  # TODO do we need/not to show approval doc in cs documents tab
-        if is_external_contributor(request):
+        if not is_internal(request) and is_external_contributor(request):
             qs = qs.filter(
                 conservation_status__submitter=self.request.user.id,
                 visible=True,
