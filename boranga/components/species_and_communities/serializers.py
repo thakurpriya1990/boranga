@@ -30,6 +30,8 @@ from boranga.components.species_and_communities.models import (
     SpeciesUserAction,
     Taxonomy,
     TaxonVernacular,
+    District,
+    Region,
 )
 from boranga.helpers import is_internal, is_species_communities_approver
 from boranga.ledger_api_utils import retrieve_email_user
@@ -646,6 +648,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     distribution = serializers.SerializerMethodField()
     publishing_status = serializers.SerializerMethodField()
     image_doc = serializers.SerializerMethodField()
+    regions = serializers.SerializerMethodField()
 
     class Meta:
         model = Species
@@ -661,6 +664,9 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
             "distribution",
             "region_id",
             "district_id",
+            "regions",
+            # "species_regions",
+            "districts",
             "last_data_curration_date",
             "image_doc",
             "processing_status",
@@ -680,6 +686,9 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
     def get_group_type(self, obj):
         return obj.group_type.name
+    
+    def get_regions(self,obj):
+        return [r.id for r in obj.regions.all()]
 
     # TODO not used on the form yet as gives error for new species as taxonomy = null
     def get_taxonomy_details(self, obj):
@@ -756,6 +765,23 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
     def get_processing_status(self, obj):
         return obj.get_processing_status_display()
+    
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.fields["species_regions"] = serializers.MultipleChoiceField(
+    #         choices=[
+    #             (region_instance.id, region_instance.name)
+    #             for region_instance in Region.objects.all()
+    #         ],
+    #         allow_blank=False,
+    #     )
+        # self.fields["districts"] = serializers.MultipleChoiceField(
+        #     choices=[
+        #         (district_instance.id, district_instance.name)
+        #         for district_instance in District.objects.all()
+        #     ],
+        #     allow_blank=False,
+        # )
 
 
 class SpeciesSerializer(BaseSpeciesSerializer):
@@ -777,6 +803,9 @@ class SpeciesSerializer(BaseSpeciesSerializer):
             "distribution",
             "region_id",
             "district_id",
+            "regions",
+            # "species_regions",
+            "districts",
             "image_doc",
             "processing_status",
             "readonly",
@@ -824,6 +853,9 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "publishing_status",
             "region_id",
             "district_id",
+            "regions",
+            # "species_regions",
+            "districts",
             "last_data_curration_date",
             "image_doc",
             "processing_status",
@@ -1324,6 +1356,12 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
     taxonomy_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
+    # species_regions = serializers.MultipleChoiceField(
+    #     choices=[], allow_null=True, allow_blank=True, required=False
+    # )
+    # districts = serializers.MultipleChoiceField(
+    #     choices=[], allow_null=True, allow_blank=True, required=False
+    # )
 
     class Meta:
         model = Species
@@ -1333,6 +1371,9 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
             "taxonomy_id",
             "region_id",
             "district_id",
+            "regions",
+            # "species_regions",
+            # "districts",
             "last_data_curration_date",
             "submitter",
             "readonly",
@@ -1343,6 +1384,16 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
             "conservation_plan_reference",
         )
         read_only_fields = ("id", "group_type")
+    
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.fields["species_regions"] = serializers.MultipleChoiceField(
+    #         choices=[
+    #             (region_instance.id, region_instance.name)
+    #             for region_instance in Region.objects.all()
+    #         ],
+    #         allow_blank=False,
+    #     )
 
 
 class CreateSpeciesSerializer(BaseSpeciesSerializer):
@@ -1703,3 +1754,15 @@ class CommunityUserActionSerializer(serializers.ModelSerializer):
         email_user = retrieve_email_user(community_user_action.who)
         fullname = email_user.get_full_name()
         return fullname
+
+class DistrictSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = District
+        fields = ('id', 'name', 'code')
+
+
+class RegionSerializer(serializers.ModelSerializer):
+    districts = DistrictSerializer(many=True)
+    class Meta:
+        model = Region
+        fields = ('id', 'name', 'forest_region', 'districts')
