@@ -1436,6 +1436,7 @@ class ConservationStatusDocumentSerializer(serializers.ModelSerializer):
             "document_sub_category",
             "document_sub_category_name",
             "visible",
+            "can_submitter_access",
         )
         read_only_fields = ("id", "document_number")
 
@@ -1479,3 +1480,13 @@ class SaveConservationStatusDocumentSerializer(serializers.ModelSerializer):
                     setattr(instance, field_name, validated_data[field_name])
             instance.save(*args, **kwargs)
             return instance
+
+
+class InternalSaveConservationStatusDocumentSerializer(
+    SaveConservationStatusDocumentSerializer
+):
+    class Meta:
+        model = ConservationStatusDocument
+        fields = SaveConservationStatusDocumentSerializer.Meta.fields + (
+            "can_submitter_access",
+        )
