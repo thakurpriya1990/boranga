@@ -1569,7 +1569,7 @@ class ConservationStatus(RevisionedMixin):
                 "member of the conservation status approver group"
             )
 
-        self.processing_status = ConservationStatus.PROCESSING_STATUS_CLOSED
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_DELISTED
         self.save()
 
         # Log proposal action
