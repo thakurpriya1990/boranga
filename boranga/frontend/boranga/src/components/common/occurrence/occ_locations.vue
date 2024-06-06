@@ -193,7 +193,7 @@
             </div>-->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
-                    >Location Accuracy/Certainty:</label
+                    >Location Accuracy:</label
                 >
                 <div class="col-sm-9">
                     <select

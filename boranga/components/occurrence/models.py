@@ -697,9 +697,18 @@ class OccurrenceReport(RevisionedMixin):
         
     def validate_propose_approve(self):
         self.validate_submit()
+
+        missing_values = []
+
+        if not self.identification or not self.identification.identification_certainty:
+            missing_values.append("Identification Certainty")
+
         if not self.location or not self.location.location_accuracy:
+            missing_values.append("Location Accuracy")
+
+        if missing_values:
             raise ValidationError(
-                "Cannot submit this report due to missing values: Location Accuracy/Certainty"
+                "Cannot submit this report due to missing values: " + ", ".join(missing_values)
             )
 
     @transaction.atomic
@@ -2869,8 +2878,11 @@ class Occurrence(RevisionedMixin):
 
         #TODO tenure
 
+        if not self.identification or not self.identification.identification_certainty:
+            missing_values.append("Identification Certainty")
+
         if not self.location or not self.location.location_accuracy:
-            missing_values.append("Location Accuracy/Certainty")
+            missing_values.append("Location Accuracy")
 
         if missing_values:
             raise ValidationError(
