@@ -108,6 +108,8 @@ from boranga.components.species_and_communities.serializers import (
     SpeciesSerializer,
     SpeciesUserActionSerializer,
     TaxonomySerializer,
+    RegionSerializer,
+    DistrictSerializer,
 )
 from boranga.components.species_and_communities.utils import (
     combine_species_original_submit,
@@ -120,6 +122,10 @@ from boranga.helpers import is_customer, is_internal
 
 logger = logging.getLogger(__name__)
 
+
+class SetEncoder(json.JSONEncoder):
+    def default(self, obj):
+        return list(obj)
 
 class GetGroupTypeDict(views.APIView):
     def get(self, request, format=None):
@@ -1265,7 +1271,7 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = InternalSpeciesSerializer(instance, context={"request": request})
 
         res_json = {"species_obj": serializer.data}
-        res_json = json.dumps(res_json)
+        res_json = json.dumps(res_json, cls=SetEncoder)
         return HttpResponse(res_json, content_type="application/json")
         # return Response(d)
 
@@ -1348,6 +1354,14 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         request_data = request.data
         if request_data["submitter"]:
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
+
+        if(request_data.get('regions')):
+                    regions = request_data.get('regions')
+                    instance.regions.clear()  # first clear all the species set relatedM:M to community instance
+                    for r in regions:
+                        reg = Region.objects.get(pk=r)
+                        instance.regions.add(reg)
+        
         if request_data.get("distribution"):
             distribution_instance, created = SpeciesDistribution.objects.get_or_create(
                 species=instance
@@ -1376,7 +1390,6 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         )
         publishing_status_instance.species_public = False
         publishing_status_instance.save()
-
         serializer = SaveSpeciesSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
@@ -2712,3 +2725,12 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = District.objects.all().order_by('id')
+    serializer_class = DistrictSerializer
+
+
+class RegionViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Region.objects.order_by('id')
+    serializer_class = RegionSerializer
