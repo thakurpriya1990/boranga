@@ -13,6 +13,7 @@ from django.views.generic.base import TemplateView
 from boranga.components.conservation_status.mixins import ReferralOwnerMixin
 from boranga.components.conservation_status.models import (
     ConservationStatus,
+    ConservationStatusDocument,
     ConservationStatusReferral,
 )
 from boranga.components.meetings.models import Meeting
@@ -22,15 +23,15 @@ from boranga.forms import LoginForm
 from boranga.helpers import (
     is_conservation_status_assessor,
     is_conservation_status_referee,
-    is_customer,
     is_django_admin,
+    is_external_contributor,
     is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
     is_species_communities_approver,
 )
 
-logger = logging.getLogger("payment_checkout")
+logger = logging.getLogger(__name__)
 
 
 class InternalView(UserPassesTestMixin, TemplateView):
@@ -259,7 +260,7 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
         )
-    elif is_customer(request):
+    elif is_external_contributor(request):
         allowed_paths = ["documents"]
         path = request.path
         user = request.user
@@ -295,6 +296,17 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
             or is_conservation_status_assessor(request)
         )
 
+    if is_external_contributor(request):
+        # TODO: Would be nice if the document id was included in the upload path to simplify this query
+        file_name = get_file_name_from_path(request.path)
+        return ConservationStatusDocument.objects.filter(
+            visible=True,
+            can_submitter_access=True,
+            conservation_status__submitter=request.user.id,
+            conservation_status_id=document_id,
+            _file=file_name,
+        ).exists()
+
     return False
 
 
@@ -314,6 +326,11 @@ def get_file_path_id(check_str, file_path):
         return False
 
 
+def get_file_name_from_path(file_path):
+    file_name_path_split = file_path.split("/private-media/")
+    return file_name_path_split[-1]
+
+
 def is_authorised_to_access_document(request):
     # occurrence reports
     or_document_id = get_file_path_id("occurrence_report", request.path)
@@ -328,6 +345,7 @@ def is_authorised_to_access_document(request):
         return is_authorised_to_access_occurrence_document(request, o_document_id)
 
     # conservation status
+    # TODO: This 'document id' is actually the conservation status id. Consider renaming these variables
     cs_document_id = get_file_path_id("conservation_status", request.path)
     if cs_document_id:
         return is_authorised_to_access_conservation_status_document(
