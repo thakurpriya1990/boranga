@@ -13,6 +13,7 @@ from boranga.components.spatial.utils import wkb_to_geojson
 from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
     LandForm,
+    GeometryType,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
@@ -580,6 +581,8 @@ class OCRLocationSerializer(serializers.ModelSerializer):
     # observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     # geojson_point = serializers.SerializerMethodField()
     # geojson_polygon = serializers.SerializerMethodField()
+    has_boundary = serializers.SerializerMethodField()
+    has_points = serializers.SerializerMethodField()
 
     class Meta:
         model = OCRLocation
@@ -602,7 +605,15 @@ class OCRLocationSerializer(serializers.ModelSerializer):
             "locality",
             # 'geojson_point',
             # 'geojson_polygon',
+            "has_boundary",
+            "has_points",
         )
+
+    def get_has_boundary(self, obj):
+        return obj.occurrence_report.ocr_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POLYGON").exists()
+
+    def get_has_points(self, obj):
+        return obj.occurrence_report.ocr_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POINT").exists()
 
     # def get_geojson_point(self,obj):
     #     if(obj.geojson_point):
@@ -2479,6 +2490,8 @@ class SaveOCCIdentificationSerializer(serializers.ModelSerializer):
 
 
 class OCCLocationSerializer(serializers.ModelSerializer):
+    has_boundary = serializers.SerializerMethodField()
+    has_points = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCLocation
@@ -2497,8 +2510,15 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             "region_id",
             "district_id",
             "locality",
+            "has_boundary",
+            "has_points",
         )
 
+    def get_has_boundary(self, obj):
+        return obj.occurrence.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POLYGON").exists()
+
+    def get_has_points(self, obj):
+        return obj.occurrence.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POINT").exists()
 
 class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)

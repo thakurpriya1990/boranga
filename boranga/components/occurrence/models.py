@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
-from django.db.models import Count
+from django.db.models import Count, CharField, Func
 from django.db.models.functions import Cast
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -3277,6 +3277,9 @@ class OccurrenceGeometryManager(models.Manager):
             )
         )
 
+class GeometryType(Func):
+    function = 'GeometryType'
+    output_field = CharField()
 
 class OccurrenceGeometry(models.Model):
     objects = OccurrenceGeometryManager()
