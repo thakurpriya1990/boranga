@@ -3,33 +3,34 @@ import re
 
 from django.apps import apps
 from django.db.models import Q
+from django.contrib.gis.geos import GEOSGeometry
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.http import Http404, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from boranga import settings
 from boranga.components.occurrence.models import OccurrenceTenure
 from boranga.components.spatial.models import Proxy, TileLayer
 from boranga.helpers import is_internal
+from wagov_utils.components.proxy.views import proxy_view
 
 from rest_framework import serializers
 
 import sys
 import json
 import geojson
+import base64
+import requests
+import urllib.parse
+from itertools import combinations
 
-from django.contrib.gis.geos import GEOSGeometry, Polygon
-
-# from shapely.geometry import Point, MultiPoint, Polygon, MultiPolygon, shape, mapping
 import shapely.geometry as shp
 from shapely import wkt
 from shapely.ops import transform, unary_union, voronoi_diagram
 
 import numpy as np
 
-from itertools import combinations
-
-import requests
 
 logger = logging.getLogger(__name__)
 
@@ -71,11 +72,22 @@ def intersect_geometry_with_layer(geometry, intersect_layer, geometry_name="SHAP
         .get("request_path", None)
     )
     if request_path:
-        proxy = Proxy.objects.get(request_path=request_path)
-        url = proxy.proxy_url
-        auth_name = proxy.username
-        auth_password = proxy.password
-        res = requests.post(url + "wfs", params=params, auth=(auth_name, auth_password))
+        try:
+            proxy = Proxy.objects.get(active=True, request_path=request_path)
+        except Proxy.DoesNotExist:
+            intersect = (
+                "intersect " if intersect_layer.is_tenure_intersects_query_layer else ""
+            )
+            raise Http404(
+                f"No active Proxy entry found for {request_path} for {intersect}layer {intersect_layer.display_title}"
+            )
+        else:
+            url = proxy.proxy_url
+            auth_name = proxy.username
+            auth_password = proxy.password
+            res = requests.post(
+                url + "wfs", params=params, auth=(auth_name, auth_password)
+            )
     else:
         res = requests.post(geoserver_url.url, params=params)
 
@@ -208,7 +220,9 @@ def save_geometry(
                     logger.warn("Multiple tenure intersects query layers found")
                     intersect_layer = None
                 else:
-                    intersect_data = intersect_geometry_with_layer(geom[0], intersect_layer)
+                    intersect_data = intersect_geometry_with_layer(
+                        geom[0], intersect_layer
+                    )
                     totalFeatures = intersect_data.get("totalFeatures")
                     logger.info(
                         f"Geometry {geom[0]} intersects with {totalFeatures} features from {intersect_layer.layer_name}"
@@ -558,86 +572,87 @@ def get_proxy_cache(app_label, model_name):
 
 @csrf_exempt
 def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
-    from django.http import HttpResponse
-    from django.core.cache import cache
-    from wagov_utils.components.proxy.views import proxy_view
-    import base64
-    import json
+    if not request.user.is_authenticated:
+        return
 
-    if request.user.is_authenticated:
-        proxy_cache = None
-        proxy_response = None
-        proxy_response_content = None
-        base64_json = {}
-        query_string_remote_url = remoteurl + "?" + queryString
+    proxy_cache = None
+    proxy_response = None
+    proxy_response_content = None
+    base64_json = {}
+    query_string_remote_url = remoteurl + "?" + queryString
 
-        cache_times_strings = get_proxy_cache("boranga", "tilelayer")
-        if is_internal(request):
-            cache_times_strings = [
-                cts for cts in cache_times_strings if cts["is_internal"] is True
-            ]
-        else:
-            cache_times_strings = [
-                cts for cts in cache_times_strings if cts["is_external"] is True
-            ]
+    cache_times_strings = get_proxy_cache("boranga", "tilelayer")
+    if is_internal(request):
+        cache_times_strings = [
+            cts for cts in cache_times_strings if cts["is_internal"] is True
+        ]
+    else:
+        cache_times_strings = [
+            cts for cts in cache_times_strings if cts["is_external"] is True
+        ]
 
-        CACHE_EXPIRY = 300
-        layer_allowed = False
+    CACHE_EXPIRY = 300
+    layer_allowed = False
 
-        proxy_cache = cache.get(query_string_remote_url)
-        query_string_remote_url_new = query_string_remote_url.replace("%3A", ":")
-        for cts in cache_times_strings:
-            layer_name = cts["layer_name"].split(":")[-1]
-            if layer_name in query_string_remote_url:
-                CACHE_EXPIRY = cts["cache_expiry"]
+    proxy_cache = cache.get(query_string_remote_url)
 
-            if (
-                "?layer=" + cts["layer_name"] in query_string_remote_url_new
-                or "&LAYERS=" + cts["layer_name"] in query_string_remote_url_new
-            ):
-                layer_allowed = True
-        if layer_allowed is True:
-            if proxy_cache is None:
+    # A dictionary of query string parameters with the keys in lowercase
+    params = urllib.parse.parse_qs(queryString)
+    params = {k.lower(): v for k, v in params.items()}
+
+    if "GetMap" in params.get("request", []):
+        # GetMap request for tile rendering
+        layers = params.get("layers", [])
+    elif "GetFeature" in params.get("request", []):
+        # GetFeature request for feature querying
+        layers = params.get("typename", [])
+    else:
+        # Note: possibly add support for other request types if needed, like GetFeatureInfo, GetCapabilities
+        raise Http404(f"Request {params.get('request')} not supported")
+
+    if any(
+        cts["layer_name"].split(":")[-1] in layers for cts in cache_times_strings
+    ):
+        layer_allowed = True
+
+    if layer_allowed is True:
+        if proxy_cache is None:
+            auth_details = None
+            if auth_user is None and auth_password is None:
                 auth_details = None
-                if auth_user is None and auth_password is None:
-                    auth_details = None
-                else:
-                    auth_details = {"user": auth_user, "password": auth_password}
-                proxy_response = proxy_view(request, remoteurl, basic_auth=auth_details)
-
-                # if not is_internal(request):
-                #     raise ValidationError("User is not an internal user")
-
-                proxy_response_content_encoded = base64.b64encode(
-                    proxy_response.content
-                )
-                base64_json = {
-                    "status_code": proxy_response.status_code,
-                    "content_type": proxy_response.headers["content-type"],
-                    "content": proxy_response_content_encoded.decode("utf-8"),
-                    "cache_expiry": CACHE_EXPIRY,
-                }
-                if proxy_response.status_code == 200:
-                    cache.set(
-                        query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY
-                    )
-                else:
-                    cache.set(query_string_remote_url, json.dumps(base64_json), 15)
             else:
-                base64_json = json.loads(proxy_cache)
-            proxy_response_content = base64.b64decode(base64_json["content"].encode())
-            http_response = HttpResponse(
-                proxy_response_content,
-                content_type=base64_json["content_type"],
-                status=base64_json["status_code"],
+                auth_details = {"user": auth_user, "password": auth_password}
+            proxy_response = proxy_view(request, remoteurl, basic_auth=auth_details)
+
+            proxy_response_content_encoded = base64.b64encode(
+                proxy_response.content
             )
-            http_response["Django-Cache-Expiry"] = (
-                str(base64_json["cache_expiry"]) + " seconds"
-            )
-            return http_response
+            base64_json = {
+                "status_code": proxy_response.status_code,
+                "content_type": proxy_response.headers["content-type"],
+                "content": proxy_response_content_encoded.decode("utf-8"),
+                "cache_expiry": CACHE_EXPIRY,
+            }
+            if proxy_response.status_code == 200:
+                cache.set(
+                    query_string_remote_url, json.dumps(base64_json), CACHE_EXPIRY
+                )
+            else:
+                cache.set(query_string_remote_url, json.dumps(base64_json), 15)
         else:
-            http_response = HttpResponse(
-                "Access Denied", content_type="text/html", status=401
-            )
-            return http_response
-    return
+            base64_json = json.loads(proxy_cache)
+        proxy_response_content = base64.b64decode(base64_json["content"].encode())
+        http_response = HttpResponse(
+            proxy_response_content,
+            content_type=base64_json["content_type"],
+            status=base64_json["status_code"],
+        )
+        http_response["Django-Cache-Expiry"] = (
+            str(base64_json["cache_expiry"]) + " seconds"
+        )
+        return http_response
+    else:
+        http_response = HttpResponse(
+            "Access Denied", content_type="text/html", status=401
+        )
+        return http_response
