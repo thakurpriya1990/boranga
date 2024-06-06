@@ -3934,11 +3934,12 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             intersect_data = save_geometry(
                 request, instance, geometry_data, "occurrence"
             )
-            for key, value in intersect_data.items():
-                occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
-                populate_occurrence_tenure_data(
-                    occurrence_geometry, value.get("features", [])
-                )
+            if intersect_data:
+                for key, value in intersect_data.items():
+                    occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
+                    populate_occurrence_tenure_data(
+                        occurrence_geometry, value.get("features", [])
+                    )
 
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -4015,11 +4016,12 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             intersect_data = save_geometry(
                 request, occ_instance, geometry_data, "occurrence"
             )
-            for key, value in intersect_data.items():
-                occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
-                populate_occurrence_tenure_data(
-                    occurrence_geometry, value.get("features", [])
-                )
+            if intersect_data:
+                for key, value in intersect_data.items():
+                    occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
+                    populate_occurrence_tenure_data(
+                        occurrence_geometry, value.get("features", [])
+                    )
 
         # the request.data is only the habitat composition data thats been sent from front end
         location_data = request.data.get("location")

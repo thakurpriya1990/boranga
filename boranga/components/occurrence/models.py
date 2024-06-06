@@ -2849,7 +2849,36 @@ class Occurrence(RevisionedMixin):
     def number_of_reports(self):
         return self.occurrence_report_count
 
+    def validate_activate(self):
+        missing_values = []
+
+        occ_points = self.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POINT")
+        occ_boundaries = self.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POLYGON")
+
+        if (self.group_type.name in [GroupType.GROUP_TYPE_FLORA,GroupType.GROUP_TYPE_COMMUNITY] 
+            and not self.occurrence_name):
+            missing_values.append("Occurrence Name")
+
+        if (self.group_type.name in [GroupType.GROUP_TYPE_FLORA,GroupType.GROUP_TYPE_COMMUNITY] 
+            and not occ_boundaries.exists()):
+            missing_values.append("Boundary on Map")
+
+        if (self.group_type.name == GroupType.GROUP_TYPE_FAUNA
+            and not occ_points.exists()):
+            missing_values.append("Point on Map")
+
+        #TODO tenure
+
+        if not self.location or not self.location.location_accuracy:
+            missing_values.append("Location Accuracy/Certainty")
+
+        if missing_values:
+            raise ValidationError(
+                "Cannot activate this occurrence due to missing values: " + ", ".join(missing_values)
+            )
+
     def activate(self,request):
+        self.validate_activate()
         if (
             is_occurrence_approver(request)
             and self.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
