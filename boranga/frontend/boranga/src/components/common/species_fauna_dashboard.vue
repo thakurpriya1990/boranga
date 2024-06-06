@@ -52,7 +52,7 @@
                             class="form-control" />
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div v-if="is_internal" class="col-md-3">
                     <div class="form-group">
                         <label for="">Name Status:</label>
                         <select class="form-select" v-model="filterFaunaNameStatus">
