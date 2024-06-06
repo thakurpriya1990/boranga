@@ -3,7 +3,7 @@
         <FormSection :formCollapse="false" label="Documents" Index="documents">
             <small style="color: red;"><br>(Do not upload Management or Recovery Plans here)</small>
             <form class="form-horizontal" action="index.html" method="post">
-                <div v-if="show_add_document" class="col-sm-12">
+                <div v-if="show_document_actions" class="col-sm-12">
                     <div class="text-end">
                         <button type="button" class="btn btn-primary mb-2 " @click.prevent="newDocument">
                             <i class="fa-solid fa-circle-plus"></i>
@@ -190,12 +190,17 @@ export default {
                         mRender: function (data, type, full) {
                             let links = '';
                             if (full.visible) {
-                                links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
-                                links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
-                                links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
+                                if(vm.show_document_actions){
+                                    links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
+                                    links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
+                                }
                             }
                             else {
-                                links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
+                                if(vm.show_document_actions){
+                                    links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
+                                }
+                            }
+                            if(vm.show_document_actions && vm.is_internal){
                                 links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                             }
                             return links;
@@ -224,9 +229,9 @@ export default {
         ConservationStatusDocumentHistory,
     },
     computed: {
-        show_add_document: function () {
+        show_document_actions: function () {
             if(!this.is_internal) {
-                return true;
+                return this.conservation_status_obj.can_user_edit;
             }
             return this.conservation_status_obj.assessor_mode.assessor_can_assess;
         }
