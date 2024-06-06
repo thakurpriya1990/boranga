@@ -463,3 +463,8 @@ COMMONWEALTH_CONSERVATION_LIST_EPBC = {
 }
 
 COMMONWEALTH_CONSERVATION_LISTS = [COMMONWEALTH_CONSERVATION_LIST_EPBC]
+
+# This is needed so that the chmod is not called in django/core/files/storage.py
+# (_save method of FileSystemStorage class)
+# As it causes a permission exception when using azure network drives
+FILE_UPLOAD_PERMISSIONS = None
