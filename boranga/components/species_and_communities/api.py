@@ -1176,12 +1176,11 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
         if is_internal(self.request):  # user.is_authenticated():
             qs = Community.objects.all()
             return qs
-        elif is_customer(self.request):
+        else:
             qs = Community.objects.filter(
                 processing_status=Species.PROCESSING_STATUS_ACTIVE
             ).filter(community_publishing_status__community_public=True)
             return qs
-        return Community.objects.none()
 
     @detail_route(
         methods=[
@@ -1215,12 +1214,11 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
         if is_internal(self.request):  # user.is_authenticated():
             qs = Species.objects.all()
             return qs
-        elif is_customer(self.request):
+        else:
             qs = Species.objects.filter(
                 processing_status=Species.PROCESSING_STATUS_ACTIVE
             ).filter(species_publishing_status__species_public=True)
             return qs
-        return Species.objects.none()
 
     @detail_route(
         methods=[
