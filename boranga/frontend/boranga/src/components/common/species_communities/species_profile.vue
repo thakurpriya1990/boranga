@@ -82,10 +82,13 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" @change="chainedSelectDistricts(species_community.region_id,$event)"
-                        v-model="species_community.region_id">
-                        <option value="">Select region</option>
-                        <option v-for="option in region_list" :value="option.value" v-bind:key="option.value">
+                    <select :disabled="isReadOnly" 
+                        class="form-select" 
+                        v-model="species_community.region_id"
+                        @change="chainedSelectDistricts(species_community.region_id)">
+                        <!-- ref="regions_select"> -->
+                        <option value="" selected disabled>Select region</option>
+                        <option v-for="option in region_list" :value="option.value" :key="option.value">
                             {{ option.text }}
                         </option>
                     </select>
@@ -95,7 +98,7 @@
                 <label for="" class="col-sm-3 control-label">District:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="species_community.district_id">
-                        <option value="">Select district</option>
+                        <option value="" selected disabled>Select district</option>
                         <option v-for="option in district_list" :value="option.value" v-bind:key="option.value">
                             {{ option.text }}
                         </option>
@@ -1385,9 +1388,7 @@ export default {
         chainedSelectDistricts: function(region_id,event){
             let vm = this;
             if (event) {
-                alert(1)
                 vm.species_community.district_id = null; //-----to remove the previous selection
-                alert(vm.species_community.district_id)
             }
             vm.district_list = [];
             if(region_id){
@@ -1398,6 +1399,23 @@ export default {
                     }
                 }
             }
+        },
+        initialiseRegionSelect: function(){
+            let vm = this;
+            $(vm.$refs.regions_select).select2({
+                "theme": "bootstrap-5",
+                allowClear: true,
+                multiple: true,
+                placeholder:"Select Region",
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                vm.species_community.regions = selected.val();
+            }).
+            on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                vm.species_community.regions = selected.val();
+            });
         },
     },
     created: async function () {
@@ -1477,6 +1495,7 @@ export default {
         vm.eventListeners();
         vm.initialiseScientificNameLookup();
         vm.loadTaxonomydetails();
+        vm.initialiseRegionSelect();
     }
 }
 </script>

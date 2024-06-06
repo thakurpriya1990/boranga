@@ -121,6 +121,10 @@ from boranga.helpers import is_customer, is_internal
 logger = logging.getLogger(__name__)
 
 
+class SetEncoder(json.JSONEncoder):
+    def default(self, obj):
+        return list(obj)
+
 class GetGroupTypeDict(views.APIView):
     def get(self, request, format=None):
         group_type_list = []
@@ -1231,7 +1235,7 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = InternalSpeciesSerializer(instance, context={"request": request})
 
         res_json = {"species_obj": serializer.data}
-        res_json = json.dumps(res_json)
+        res_json = json.dumps(res_json, cls=SetEncoder)
         return HttpResponse(res_json, content_type="application/json")
         # return Response(d)
 
@@ -1312,9 +1316,16 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def species_save(self, request, *args, **kwargs):
         instance = self.get_object()
         request_data = request.data
-        print("********************{}".format(request_data))
         if request_data["submitter"]:
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
+
+        if(request_data.get('regions')):
+                    regions = request_data.get('regions')
+                    instance.regions.clear()  # first clear all the species set relatedM:M to community instance
+                    for r in regions:
+                        reg = Region.objects.get(pk=r)
+                        instance.regions.add(reg)
+        
         if request_data.get("distribution"):
             distribution_instance, created = SpeciesDistribution.objects.get_or_create(
                 species=instance
@@ -1343,7 +1354,6 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         )
         publishing_status_instance.species_public = False
         publishing_status_instance.save()
-
         serializer = SaveSpeciesSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
