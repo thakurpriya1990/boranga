@@ -296,6 +296,10 @@ class ConservationChangeCode(models.Model):
     def get_delisted_change_code(cls):
         return cls.objects.get(code=settings.CONSERVATION_CHANGE_CODE_DELIST)
 
+    @classmethod
+    def get_filter_list(cls):
+        return list(cls.objects.values("id", "code"))
+
 
 class IUCNVersion(models.Model):
     """

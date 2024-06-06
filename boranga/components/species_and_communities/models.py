@@ -421,8 +421,6 @@ class Species(RevisionedMixin):
     species_number = models.CharField(max_length=9, blank=True, default="")
     group_type = models.ForeignKey(GroupType, on_delete=models.CASCADE)
 
-    # TODO currently, if a species profile is forever in draft or made historical,
-    # the taxonomy becomes unusable in other profile while assigned
     taxonomy = models.OneToOneField(
         Taxonomy, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -484,13 +482,6 @@ class Species(RevisionedMixin):
             self.save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
-            if self.taxonomy:
-                for i in self.taxonomy.occurrence_reports.all().union(
-                    self.occurrence_report.all()
-                ):
-                    i.save(no_revision=True)
-                for i in self.taxonomy.occurrences.all().union(self.occurrences.all()):
-                    i.save(no_revision=True)
 
     @property
     def reference(self):

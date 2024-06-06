@@ -212,14 +212,6 @@ class OccurrenceReport(RevisionedMixin):
         default=APPLICATION_TYPE_CHOICES[0][0],
     )
 
-    species_taxonomy = models.ForeignKey(
-        Taxonomy,
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
-        related_name="occurrence_reports",
-    )
-
     # species related occurrence
     species = models.ForeignKey(
         Species,
@@ -303,16 +295,7 @@ class OccurrenceReport(RevisionedMixin):
             self.occurrence_report_number = new_occurrence_report_id
             self.save(*args, **kwargs)
         else:
-            self.species = (
-                self.get_taxonomy_species()
-            )  # on save, checks if taxon has species and sets accordingly
             super().save(*args, **kwargs)
-
-    def get_taxonomy_species(self):
-        if self.species_taxonomy and hasattr(self.species_taxonomy, "species"):
-            return self.species_taxonomy.species
-        else:
-            return None
 
     @property
     def reference(self):
@@ -2741,14 +2724,6 @@ class Occurrence(RevisionedMixin):
         GroupType, on_delete=models.PROTECT, null=True, blank=True
     )
 
-    species_taxonomy = models.ForeignKey(
-        Taxonomy,
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
-        related_name="occurrences",
-    )
-
     species = models.ForeignKey(
         Species,
         on_delete=models.PROTECT,
@@ -2826,16 +2801,7 @@ class Occurrence(RevisionedMixin):
             self.occurrence_number = f"OCC{str(self.pk)}"
             self.save(*args, **kwargs)
         else:
-            self.species = (
-                self.get_taxonomy_species()
-            )  # on save, checks if taxon has species and sets accordingly
             super().save(*args, **kwargs)
-
-    def get_taxonomy_species(self):
-        if self.species_taxonomy and hasattr(self.species_taxonomy, "species"):
-            return self.species_taxonomy.species
-        else:
-            return None
 
     def __str__(self):
         if self.species:
@@ -3297,7 +3263,12 @@ class OccurrenceGeometry(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence)  # TODO: is the most appropriate?
+        wkt_ellipsis = (
+            (self.geometry.wkt[:85] + "..")
+            if len(self.geometry.wkt) > 75
+            else self.geometry.wkt
+        )
+        return f"{self.occurrence} Geometry: {wkt_ellipsis}"
 
     def save(self, *args, **kwargs):
         if self.occurrence.group_type.name == GroupType.GROUP_TYPE_FAUNA and type(
@@ -3871,6 +3842,71 @@ class OCRExternalRefereeInvite(models.Model):
         return f"{self.first_name} {self.last_name}"
 
 
+class OccurrenceTenurePurpose(models.Model):
+    purpose = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        app_label = "boranga"
+
+
+def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
+    sub_objs.update(status="historical")
+    collector.add_field_update(field, None, sub_objs)
+
+
+class OccurrenceTenure(models.Model):
+    STATUS_CHOICES = (("current", "Current"), ("historical", "Historical"))
+
+    status = models.CharField(
+        max_length=100, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0]
+    )
+    occurrence_geometry = models.ForeignKey(
+        OccurrenceGeometry,
+        related_name="occurrence_tenures",
+        blank=True,
+        null=True,
+        on_delete=SET_NULL_AND_HISTORICAL,
+    )
+
+    tenure_area_id = models.CharField(
+        max_length=100, blank=True, null=True
+    )  # E.g. CPT_CADASTRE_SCDB.314159265
+    owner_name = models.CharField(max_length=255, blank=True, null=True)
+    owner_count = models.IntegerField(blank=True, null=True)
+    # vesting = models.TBD
+
+    purpose = models.ForeignKey(
+        OccurrenceTenurePurpose,
+        related_name="occurrence_tenures",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+    comments = models.TextField(blank=True, null=True)
+    significant_to_occurrence = models.BooleanField(
+        null=True, blank=True, default=False
+    )
+
+    class Meta:
+        app_label = "boranga"
+        unique_together = ("occurrence_geometry", "tenure_area_id", "status")
+
+    def __str__(self):
+        owner_name = self.owner_name.strip() if self.owner_name else None
+        owner_name_display = f": {self.owner_name}" if owner_name else ""
+        return f"Tenure Area {self.tenure_area_id}{owner_name_display} [{self.get_status_display()}]"
+
+    @property
+    def typename(self):
+        # Should relate to the geoserver table name
+        return "CPT_CADASTRE_SCDB"
+
+    @property
+    def featureid(self):
+        # TODO: string split
+        return self.tenure_area_id
+
+
 # Occurrence Report Document
 reversion.register(OccurrenceReportDocument)
 
@@ -3878,7 +3914,7 @@ reversion.register(OccurrenceReportDocument)
 reversion.register(OCRConservationThreat)
 
 # Occurrence Report
-reversion.register(OccurrenceReport, follow=["species_taxonomy", "community"])
+reversion.register(OccurrenceReport, follow=["species", "community"])
 
 # Occurrence Document
 reversion.register(OccurrenceDocument)

@@ -30,44 +30,54 @@ from boranga.ledger_api_utils import retrieve_email_user
 logger = logging.getLogger("boranga")
 
 
-# Serializer used for species form
-class SpeciesConservationStatusSerializer(serializers.ModelSerializer):
-    conservation_status = serializers.SerializerMethodField()
-    # TODO: Add new conservation status lists/catories
+# Serializer used for species and communities forms
+class BasicConservationStatusSerializer(serializers.ModelSerializer):
+    wa_legislative_list = serializers.CharField(source="wa_legislative_list.code")
+    wa_legislative_category = serializers.CharField(
+        source="wa_legislative_category.code", allow_null=True
+    )
+    wa_priority_category = serializers.CharField(
+        source="wa_priority_category.code", allow_null=True
+    )
+    commonwealth_conservation_list = serializers.CharField(
+        source="commonwealth_conservation_list.code", allow_null=True
+    )
+    under_review = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatus
         fields = (
             "id",
             "conservation_status_number",
-            "species",
-            "conservation_status",
+            "wa_legislative_list",
+            "wa_legislative_category",
+            "wa_priority_category",
+            "commonwealth_conservation_list",
+            "international_conservation",
             "conservation_criteria",
+            "under_review",
         )
+        read_only_fields = fields
 
-    def get_conservation_status(self, obj):
-        # TODO: Implement based on new conservation categories
-        return "TODO"
+    def get_under_review(self, obj):
+        under_review_statuses = [
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+        ]
+        request = self.context["request"]
+        if is_conservation_status_assessor(request) or is_conservation_status_approver(
+            request
+        ):
+            under_review_statuses.append(
+                ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
+            )
+            under_review_statuses.append(
+                ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
+            )
 
-
-# Serializer used for community form
-class CommunityConservationStatusSerializer(serializers.ModelSerializer):
-    conservation_status = serializers.SerializerMethodField()
-    # TODO: Add new conservation status lists/catories
-
-    class Meta:
-        model = ConservationStatus
-        fields = (
-            "id",
-            "conservation_status_number",
-            "community",
-            "conservation_status",
-            "conservation_criteria",
-        )
-
-    def get_conservation_status(self, obj):
-        # TODO: Implement based on new conservation categories
-        return "TODO"
+        return ConservationStatus.objects.filter(
+            species_taxonomy=obj.species_taxonomy,
+            processing_status__in=under_review_statuses,
+        ).exists()
 
 
 class ListConservationStatusSerializer(serializers.ModelSerializer):
@@ -145,8 +155,6 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
         source="commonwealth_conservation_list.code", allow_null=True
     )
     processing_status = serializers.CharField(source="get_processing_status_display")
-    region = serializers.SerializerMethodField()
-    district = serializers.SerializerMethodField()
     assessor_process = serializers.SerializerMethodField(read_only=True)
     approver_process = serializers.SerializerMethodField(read_only=True)
     assessor_edit = serializers.SerializerMethodField(read_only=True)
@@ -154,6 +162,19 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     effective_from_date = serializers.SerializerMethodField()
     effective_to_date = serializers.SerializerMethodField()
     is_new_contributor = serializers.SerializerMethodField()
+    change_code = serializers.CharField(
+        source="change_code.code", read_only=True, allow_null=True
+    )
+    submitter_name = serializers.CharField(
+        source="submitter_information.name", allow_null=True
+    )
+    submitter_category = serializers.CharField(
+        source="submitter_information.submitter_category.name", allow_null=True
+    )
+    submitter_organisation = serializers.CharField(
+        source="submitter_information.organisation", allow_null=True
+    )
+    assessor_name = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatus
@@ -167,14 +188,13 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "family",
             "genus",
             "phylogenetic_group",
-            "region",
-            "district",
             "wa_priority_list",
             "wa_priority_category",
             "wa_legislative_list",
             "wa_legislative_category",
             "commonwealth_conservation_list",
             "international_conservation",
+            "conservation_criteria",
             "processing_status",
             "customer_status",
             "can_user_edit",
@@ -188,6 +208,12 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "effective_to_date",
             "is_new_contributor",
             "review_due_date",
+            "listing_date",
+            "change_code",
+            "submitter_name",
+            "submitter_category",
+            "submitter_organisation",
+            "assessor_name",
         )
         datatables_always_serialize = (
             "id",
@@ -199,8 +225,6 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "family",
             "genus",
             "phylogenetic_group",
-            "region",
-            "district",
             "wa_priority_list",
             "wa_priority_category",
             "wa_legislative_list",
@@ -218,6 +242,11 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "effective_from_date",
             "effective_to_date",
             "is_new_contributor",
+            "change_code",
+            "submitter_name",
+            "submitter_category",
+            "submitter_organisation",
+            "assessor_name",
         )
 
     def get_group_type(self, obj):
@@ -262,12 +291,6 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                 )
         return ""
 
-    def get_region(self, obj):
-        if obj.species:
-            if obj.species.region:
-                return obj.species.region.name
-        return ""
-
     def get_effective_from_date(self, obj):
         try:
             approval = ConservationStatusIssuanceApprovalDetails.objects.get(
@@ -287,12 +310,6 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                 return approval.effective_to_date
         except ConservationStatusIssuanceApprovalDetails.DoesNotExist:
             return ""
-
-    def get_district(self, obj):
-        if obj.species:
-            if obj.species.district:
-                return obj.species.district.name
-        return ""
 
     def get_assessor_process(self, obj):
         # Check if currently logged in user has access to process the proposal
@@ -322,6 +339,12 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_is_new_contributor(self, obj):
         return is_new_external_contributor(obj.submitter)
+
+    def get_assessor_name(self, obj):
+        if obj.assigned_officer:
+            email_user = retrieve_email_user(obj.assigned_officer)
+            return email_user.get_full_name()
+        return ""
 
 
 class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
@@ -1379,12 +1402,18 @@ class ProposedDeclineSerializer(serializers.Serializer):
 
 
 class ProposedApprovalSerializer(serializers.Serializer):
-    # effective_from_date = serializers.DateField(input_formats=['%d/%m/%Y'])
-    # effective_to_date = serializers.DateField(input_formats=['%d/%m/%Y'])
     effective_from_date = serializers.DateField()
-    effective_to_date = serializers.DateField()
+    effective_to_date = serializers.DateField(required=False)
     details = serializers.CharField()
     cc_email = serializers.CharField(required=False, allow_null=True)
+
+    def validate_effective_to_date(self, value):
+        effective_from_date = self.initial_data.get("effective_from_date")
+        if effective_from_date and value < effective_from_date:
+            raise serializers.ValidationError(
+                "Effective to date must be greater than effective from date."
+            )
+        return value
 
 
 class ConservationStatusDocumentSerializer(serializers.ModelSerializer):
