@@ -44,6 +44,16 @@
                     </div>
                 </div>
                 <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="">Status:</label>
+                            <select class="form-select" v-model="filterThreatStatus">
+                                <option value="all">All</option>
+                                <option v-for="option in threat_status_filter_list" :value="option.id">{{option.name}}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Date Observed From:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observed_from_date" v-model="filterObservedFromDate">
@@ -109,6 +119,7 @@ export default {
                 filterThreatCategory: 'all',
                 filterThreatCurrentImpact: 'all',
                 filterThreatPotentialImpact: 'all',
+                filterThreatStatus: 'all',
                 filterObservedFromDate: '',
                 filterObservedToDate: '',
 
@@ -116,6 +127,11 @@ export default {
                 threat_category_filter_list: [],
                 threat_current_impact_filter_list: [],
                 threat_potential_impact_filter_list: [],
+
+                threat_status_filter_list: [
+                    {id:"active",name:"Active"},
+                    {id:"removed",name:"Removed"},
+                ],
 
                 threats_headers:['Number', 'Original Report','Category', 'Date Observed', 'Threat Agent', 'Comments',
                                 'Current Impact', 'Potential Impact', 'Threat Source','Action'],
@@ -139,6 +155,7 @@ export default {
                             d.filter_threat_category = vm.filterThreatCategory
                             d.filter_threat_current_impact = vm.filterThreatCurrentImpact
                             d.filter_threat_potential_impact = vm.filterThreatPotentialImpact
+                            d.filter_threat_status = vm.filterThreatStatus
                             d.filter_observed_from_date = vm.filterObservedFromDate
                             d.filter_observed_to_date = vm.filterObservedToDate
                         },
@@ -330,6 +347,7 @@ export default {
                 this.filterThreatCategory === 'all' &&
                 this.filterThreatCurrentImpact === 'all' &&
                 this.filterThreatPotentialImpact === 'all' &&
+                this.filterThreatStatus === 'all' &&
                 this.filterObservedFromDate === '' &&
                 this.filterObservedToDate === ''
                 ){
@@ -359,6 +377,10 @@ export default {
                 vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             },
             filterThreatPotentialImpact: function(){
+                let vm = this;
+                vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            },
+            filterThreatStatus: function(){
                 let vm = this;
                 vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
             },

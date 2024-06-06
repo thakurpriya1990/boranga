@@ -85,7 +85,14 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-
+            }
+        },
+        column_observation_date: function(){
+            return {
+                data: 'observation_date',
+                orderable: true,
+                searchable: true,
+                visible: true,
             }
         },
         column_submitter: function(){
@@ -139,6 +146,7 @@ export default {
             let columns = [
                 vm.column_number,
                 vm.column_status,
+                vm.column_observation_date,
                 vm.column_submitter,
                 action,
             ]
@@ -174,6 +182,7 @@ export default {
                 //'id',
                 'Number',
                 'Status',
+                'Observation Date',
                 'Submitter',
                 'Action',
             ]
