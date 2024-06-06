@@ -49,6 +49,7 @@ from boranga.components.conservation_status.serializers import (
     CreateConservationStatusSerializer,
     DTConservationStatusReferralSerializer,
     InternalConservationStatusSerializer,
+    InternalSaveConservationStatusDocumentSerializer,
     ListCommunityConservationStatusSerializer,
     ListConservationStatusSerializer,
     ListSpeciesConservationStatusSerializer,
@@ -2219,10 +2220,18 @@ class ConservationStatusDocumentViewSet(
     serializer_class = ConservationStatusDocumentSerializer
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
-            qs = ConservationStatusDocument.objects.all().order_by("id")
-            return qs
+        if is_internal(self.request):
+            return ConservationStatusDocument.objects.all().order_by("id")
+        if is_external_contributor(self.request):
+            return ConservationStatusDocument.objects.filter(
+                conservation_status__submitter=self.request.user.id,
+                visible=True,
+                can_submitter_access=True,
+            )
         return ConservationStatusDocument.objects.none()
+
+    def get_serializer_class(self):
+        return super().get_serializer_class()
 
     @detail_route(
         methods=[
@@ -2252,18 +2261,23 @@ class ConservationStatusDocumentViewSet(
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = SaveConservationStatusDocumentSerializer(
-            instance, data=json.loads(request.data.get("data"))
-        )
+        data = json.loads(request.data.get("data"))
+        serializer = SaveConservationStatusDocumentSerializer(instance, data=data)
+        if is_internal(self.request):
+            serializer = InternalSaveConservationStatusDocumentSerializer(
+                instance, data=data
+            )
+
         serializer.is_valid(raise_exception=True)
         serializer.save(no_revision=True)
         instance.add_documents(request, version_user=request.user)
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        serializer = SaveConservationStatusDocumentSerializer(
-            data=json.loads(request.data.get("data"))
-        )
+        data = json.loads(request.data.get("data"))
+        serializer = SaveConservationStatusDocumentSerializer(data=data)
+        if is_internal(self.request):
+            serializer = InternalSaveConservationStatusDocumentSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(no_revision=True)
         instance.add_documents(request, version_user=request.user)
