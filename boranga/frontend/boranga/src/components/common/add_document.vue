@@ -26,8 +26,9 @@
                                         <label for="document_sub_category" class="control-label">Sub Category</label>
                                     </div>
                                     <div class="col-sm-6">
-                                        <select id="document_sub_category" ref="document_sub_category" class="form-select"
-                                            v-model="documentObj.document_sub_category" @change="focusDescription">
+                                        <select id="document_sub_category" ref="document_sub_category"
+                                            class="form-select" v-model="documentObj.document_sub_category"
+                                            @change="focusDescription">
                                             <option v-for="sub_category in filteredDocumentSubCategories"
                                                 :value="sub_category.id" v-bind:key="sub_category.id">
                                                 {{ sub_category.name }}
@@ -47,12 +48,32 @@
                                 </div>
                                 <div v-if="documentObj.uploaded_date" class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label for="uploaded_date" class="control-label">Date/Time: </label>
+                                        <label for="uploaded_date" class="control-label">Date/Time</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <input disabled type="datetime-local" class="form-control" id="uploaded_date"
                                             name="uploaded_date" ref="uploaded_date"
                                             v-model="documentObj.uploaded_date" />
+                                    </div>
+                                </div>
+                                <div v-if="showSubmitterCanAccess" class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <label for="can_submitter_access" class="control-label">Submitter Can Access?
+                                        </label>
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <div class="form-check form-check-inline">
+                                            <label for="can_submitter_access_no" class="form-check-label">No</label>
+                                            <input type="radio" class="form-check-input" id="can_submitter_access_no"
+                                                name="can_submitter_access" ref="can_submitter_access_no"
+                                                v-model="documentObj.can_submitter_access" :value="false" />
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <label for="can_submitter_access_yes" class="form-check-label">Yes</label>
+                                            <input type="radio" class="form-check-input" id="can_submitter_access_yes"
+                                                name="can_submitter_access" ref="can_submitter_access_yes"
+                                                v-model="documentObj.can_submitter_access" :value="true" />
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -103,6 +124,10 @@ export default {
             type: String,
             required: true
         },
+        is_internal: {
+            type: Boolean,
+            default: false
+        },
     },
     data: function () {
         let vm = this;
@@ -142,6 +167,9 @@ export default {
             var vm = this;
             return vm.errors;
         },
+        showSubmitterCanAccess: function () {
+            return this.is_internal && Object.hasOwn(this.documentObj, 'can_submitter_access');
+        }
     },
     methods: {
         focusDescription: function () {
@@ -169,7 +197,7 @@ export default {
                         this.filteredDocumentSubCategories.push(choice);
                     }
                 }
-                if(this.$refs['document_sub_category']){
+                if (this.$refs['document_sub_category']) {
                     this.$refs['document_sub_category'].focus();
                 }
             });
