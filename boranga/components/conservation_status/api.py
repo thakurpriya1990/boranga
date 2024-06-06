@@ -16,6 +16,7 @@ from rest_framework import mixins, serializers, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -1783,6 +1784,13 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         qs = qs.exclude(
             input_name="conservation_status_approval_doc"
         )  # TODO do we need/not to show approval doc in cs documents tab
+        if is_external_contributor(request):
+            qs = qs.filter(
+                conservation_status__submitter=self.request.user.id,
+                visible=True,
+                can_submitter_access=True,
+            )
+
         qs = qs.order_by("-uploaded_date")
         serializer = ConservationStatusDocumentSerializer(
             qs, many=True, context={"request": request}
@@ -2274,12 +2282,19 @@ class ConservationStatusDocumentViewSet(
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        if not is_internal(self.request) and not is_external_contributor(self.request):
+            raise PermissionDenied()
+
         data = json.loads(request.data.get("data"))
         serializer = SaveConservationStatusDocumentSerializer(data=data)
         if is_internal(self.request):
             serializer = InternalSaveConservationStatusDocumentSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(no_revision=True)
+        if is_external_contributor(self.request):
+            instance.can_submitter_access = True
+            instance.save()
+
         instance.add_documents(request, version_user=request.user)
         return Response(serializer.data)
 
