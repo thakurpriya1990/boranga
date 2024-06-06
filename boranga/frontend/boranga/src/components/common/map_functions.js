@@ -140,6 +140,7 @@ export async function fetchProposals(
 }
 
 export async function queryLayerAtPoint(map_component, layer, coordinate) {
+    map_component.queryingGeoserver = true;
     let c = [coordinate[0], coordinate[1]];
     if (layer.getProperties().invert_xy) {
         c = [coordinate[1], coordinate[0]];

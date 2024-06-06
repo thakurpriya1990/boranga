@@ -1124,6 +1124,10 @@
                         </div>
                     </template>
                 </div>
+                <!-- TODO: other loading cases -->
+                <div v-if="loadingMap" id="map-spinner" class="text-primary">
+                    <i class="fa fa-2x fa-spinner fa-spin"></i>
+                </div>
                 <!-- <BootstrapSpinner
                     v-if="
                         redirectingToModelDetails ||
@@ -2022,6 +2026,7 @@ export default {
                 }
 
                 console.log('Done fetching map initilisation data');
+                this.loadingMap = false;
             }
         );
 
@@ -2039,13 +2044,14 @@ export default {
 
         this.$nextTick(() => {
             var toastEl = document.getElementById('featureToast');
-            $('#map-spinner').children().css('position', 'static'); // Position spinner in center of map
+            $('#map-spinner').css('position', 'relative'); // Position spinner in center of map
+            $('#map-spinner').css('top', '50%');
+            $('#map-spinner').css('left', '50%');
             vm.featureToast = new bootstrap.Toast(toastEl, { autohide: false });
             if (vm.refreshMapOnMounted) {
                 vm.forceToRefreshMap();
             } else {
                 console.log('Done initializing map (no refresh)');
-                vm.loadingMap = false;
             }
             // Priya calling this event from mounted as its only been triggered from loadMapFeatures() which is coomented at the moment
             // vm.map.dispatchEvent({
@@ -4918,7 +4924,7 @@ export default {
 }
 
 .map-spinner {
-    position: absolute !important;
+    position: relative !important;
 }
 
 .shapefile-row {
