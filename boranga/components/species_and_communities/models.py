@@ -31,71 +31,6 @@ private_storage = FileSystemStorage(
     location=settings.BASE_DIR + "/private-media/", base_url="/private-media/"
 )
 
-DISTRICT_PERTH_HILLS = "PHS"
-DISTRICT_SWAN_COASTAL = "SWC"
-DISTRICT_BLACKWOOD = "BWD"
-DISTRICT_WELLINGTON = "WTN"
-DISTRICT_DONNELLY = "DON"
-DISTRICT_FRANKLAND = "FRK"
-DISTRICT_ALBANY = "ALB"
-DISTRICT_ESPERANCE = "ESP"
-DISTRICT_EAST_KIMBERLEY = "EKM"
-DISTRICT_WEST_KIMBERLEY = "WKM"
-DISTRICT_EXMOUTH = "EXM"
-DISTRICT_PILBARA = "PIL"
-DISTRICT_KALGOORLIE = "KAL"
-DISTRICT_GERALDTON = "GER"
-DISTRICT_MOORA = "MOR"
-DISTRICT_SHARK_BAY = "SHB"
-DISTRICT_GREAT_SOUTHERN = "GSN"
-DISTRICT_CENTRAL_WHEATBELT = "CWB"
-DISTRICT_SOUTHERN_WHEATBELT = "SWB"
-
-DISTRICT_CHOICES = (
-    (DISTRICT_PERTH_HILLS, "Perth Hills"),
-    (DISTRICT_SWAN_COASTAL, "Swan Coastal"),
-    (DISTRICT_BLACKWOOD, "Blackwood"),
-    (DISTRICT_WELLINGTON, "Wellington"),
-    (DISTRICT_DONNELLY, "Donnelly"),
-    (DISTRICT_FRANKLAND, "Frankland"),
-    (DISTRICT_ALBANY, "Albany"),
-    (DISTRICT_ESPERANCE, "Esperance"),
-    (DISTRICT_EAST_KIMBERLEY, "East Kimberley"),
-    (DISTRICT_WEST_KIMBERLEY, "West Kimberley"),
-    (DISTRICT_EXMOUTH, "Exmouth"),
-    (DISTRICT_PILBARA, "Pilbara"),
-    (DISTRICT_KALGOORLIE, "Kalgoorlie"),
-    (DISTRICT_GERALDTON, "Geraldton"),
-    (DISTRICT_MOORA, "Moora"),
-    (DISTRICT_SHARK_BAY, "Shark Bay"),
-    (DISTRICT_GREAT_SOUTHERN, "Great Southern"),
-    (DISTRICT_CENTRAL_WHEATBELT, "Central Wheatbelt"),
-    (DISTRICT_SOUTHERN_WHEATBELT, "Southern Wheatbelt"),
-)
-
-REGION_KIMBERLEY = "kimberley"
-REGION_PILBARA = "pilbara"
-REGION_MIDWEST = "midwest"
-REGION_GOLDFIELDS = "goldfields"
-REGION_SWAN = "swan"
-REGION_WHEATBELT = "wheatbelt"
-REGION_SOUTH_WEST = "southwest"
-REGION_WARREN = "warren"
-REGION_SOUTH_COAST = "southcoast"
-
-REGION_CHOICES = (
-    (REGION_KIMBERLEY, "Kimberley"),
-    (REGION_PILBARA, "Pilbara"),
-    (REGION_MIDWEST, "Midwest"),
-    (REGION_GOLDFIELDS, "Goldfields"),
-    (REGION_SWAN, "Swan"),
-    (REGION_WHEATBELT, "Wheatbelt"),
-    (REGION_SOUTH_WEST, "South West"),
-    (REGION_WARREN, "Warren"),
-    (REGION_SOUTH_COAST, "South Coast"),
-)
-
-
 def update_species_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/species/{instance.species.id}/species_documents/{filename}"
 
@@ -113,7 +48,8 @@ def update_community_comms_log_filename(instance, filename):
 
 
 class Region(models.Model):
-    name = models.CharField(unique=True, default=None, max_length=64)
+    name = models.CharField(unique=True, default=None, max_length=200)
+    forest_region = models.BooleanField(default=False)
 
     class Meta:
         app_label = "boranga"
@@ -124,9 +60,10 @@ class Region(models.Model):
 
 
 class District(models.Model):
-    name = models.CharField(unique=True, max_length=64)
+    name = models.CharField(unique=True, max_length=200)
     code = models.CharField(unique=True, max_length=3, null=True)
-    region = models.ForeignKey(Region, on_delete=models.CASCADE)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE , related_name='districts')
+    archive_date = models.DateField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -499,9 +436,12 @@ class Species(RevisionedMixin):
     region = models.ForeignKey(
         Region, default=None, on_delete=models.CASCADE, null=True, blank=True
     )
+    regions = models.ManyToManyField(Region, null=True, blank=True, related_name="species_regions")
+    # species_regions = MultiSelectField(max_length=250, blank=True, choices=[(r.id, r.name) for r in Region.objects.all()], null=True)
     district = models.ForeignKey(
         District, default=None, on_delete=models.CASCADE, null=True, blank=True
     )
+    districts = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
     last_data_curration_date = models.DateField(blank=True, null=True)
     conservation_plan_exists = models.BooleanField(default=False)
     conservation_plan_reference = models.CharField(

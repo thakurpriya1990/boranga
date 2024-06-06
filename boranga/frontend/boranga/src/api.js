@@ -110,6 +110,7 @@ module.exports = {
     proposals_paginated_internal: "/api/proposal_paginated/proposals_internal/?format=datatables",
     referrals_paginated_internal: "/api/proposal_paginated/referrals_internal/?format=datatables",
     region_district_filter_dict: "/api/region_district_filter_dict",
+    regions:"/api/regions.json",
     scientific_name_lookup_by_groupname: "/api/scientific_name_lookup_by_groupname",
     scientific_name_lookup: "/api/scientific_name_lookup",
     species_agenda_conservation_status_paginated_internal: "/api/species_conservation_status_paginated/agenda_cs_internal/?format=datatables",
