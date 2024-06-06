@@ -1776,7 +1776,7 @@ class ConservationStatusDocument(Document):
         default=False
     )  # after initial submit, document cannot be deleted but can be hidden
     can_submitter_access = models.BooleanField(
-        default=True
+        default=False
     )  # after initial submit, document cannot be deleted but can be hidden
     hidden = models.BooleanField(
         default=False
