@@ -1194,7 +1194,7 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
             raise serializers.ValidationError(
                 "Threats are not publicly visible for this record"
             )
-        qs = instance.community_threats.all()
+        qs = instance.community_threats.filter(visible=True)
         qs = qs.order_by("-date_observed")
 
         filter_backend = ConservationThreatFilterBackend()
@@ -1232,7 +1232,7 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
             raise serializers.ValidationError(
                 "Threats are not publicly visible for this record"
             )
-        qs = instance.species_threats.all()
+        qs = instance.species_threats.filter(visible=True)
         qs = qs.order_by("-date_observed")
 
         filter_backend = ConservationThreatFilterBackend()
@@ -2480,8 +2480,8 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         if is_internal(self.request):  # user.is_authenticated():
             qs = ConservationThreat.objects.all().order_by("id")
             return qs
-        elif is_customer(self.request):
-            qs = ConservationThreat.objects.filter(
+        else:
+            qs = ConservationThreat.objects.filter(visible=True).filter(
                 (
                     Q(species__species_publishing_status__species_public=True)
                     & Q(species__species_publishing_status__threats_public=True)
@@ -2492,7 +2492,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 )
             ).order_by("id")
             return qs
-        return ConservationThreat.objects.none()
 
     def update_publishing_status(self):
 
