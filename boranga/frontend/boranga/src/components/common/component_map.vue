@@ -49,7 +49,11 @@
             style="position: relative"
         >
             <div :id="elem_id" class="map">
-                <div class="basemap-button" title="Toggle background map">
+                <div
+                    v-show="map"
+                    class="basemap-button"
+                    title="Toggle background map"
+                >
                     <img
                         id="basemap_sat"
                         src="../../assets/satellite_icon.jpg"
@@ -61,7 +65,7 @@
                         @click="setBaseLayer('street')"
                     />
                 </div>
-                <div class="optional-layers-wrapper">
+                <div v-show="map" class="optional-layers-wrapper">
                     <div style="position: relative">
                         <transition>
                             <div
@@ -1042,16 +1046,20 @@
                 </div>
 
                 <!-- Overlay popup bubble when clicking a DBCA layer feature -->
-                <div id="popup" class="ol-popup overlay-feature-popup">
+                <div
+                    v-show="map"
+                    id="popup"
+                    class="ol-popup ol-selectable overlay-feature-popup"
+                >
                     <template v-if="overlayFeatureInfo">
                         <div class="toast-header">
                             <img src="" class="rounded me-2" alt="" />
                             <strong class="me-auto">{{
-                                overlayFeatureInfo.leg_name
+                                overlayFeatureInfo.featureId
                             }}</strong>
                             <button
                                 type="button"
-                                class="btn btn-sm btn-light text-nowrap"
+                                class="btn btn-sm btn-light text-nowrap ol-popup-closer"
                                 aria-label="Close Overlay"
                                 @click="overlay(undefined)"
                             >
@@ -1063,23 +1071,56 @@
                                 >
                             </button>
                         </div>
-                        <div id="popup-content toast-body">
-                            <table
-                                style="width: 100%; z-index: 9999"
-                                class="table table-sm"
+                        <p>
+                            <span
+                                ><small>{{
+                                    overlayFeatureInfo.clickedCoordinate
+                                }}</small></span
                             >
-                                <tbody
-                                    v-for="[key, value] in Object.entries(
-                                        overlayFeatureInfo
-                                    )"
-                                    :key="key + value"
+                        </p>
+                        <div id="popup-content toast-body">
+                            <div
+                                class="table-responsive overflow-scroll"
+                                style="max-height: 250px; max-width: 350px"
+                            >
+                                <table
+                                    style="width: 100%; z-index: 9999"
+                                    class="table table-sm"
                                 >
-                                    <tr v-if="key != 'geometry'">
-                                        <th scope="row">{{ key }}</th>
-                                        <td>{{ value }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col">Property</th>
+                                            <th scope="col">Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody
+                                        v-for="[
+                                            property,
+                                            value,
+                                        ] in Object.entries(overlayFeatureInfo)"
+                                        :key="property + value"
+                                    >
+                                        <tr v-if="property != 'geometry'">
+                                            <td scope="row">
+                                                <small>{{ property }}</small>
+                                            </td>
+                                            <td>
+                                                <small>
+                                                    <input
+                                                        v-model="
+                                                            overlayFeatureInfo[
+                                                                property
+                                                            ]
+                                                        "
+                                                        class="form-control form-control-sm ol-textarea"
+                                                        readonly
+                                                    />
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -2972,7 +3013,6 @@ export default {
                     duration: 150,
                 },
             });
-
             this.map = new Map({
                 layers: [baseLayers],
                 overlays: [overlay],
@@ -3756,32 +3796,8 @@ export default {
                 }
                 let coordinate = evt.coordinate;
                 layerAtEventPixel(vm, evt).forEach((lyr) => {
-                    // if (lyr.values_.name === tileLayer.values_.name) {
                     console.log('Clicked on tile layer', lyr);
-
                     queryLayerAtPoint(vm, lyr, coordinate);
-
-                    // let point = `POINT (${coordinate.join(' ')})`;
-                    // let query_str = _helper.geoserverQuery.bind(this)(
-                    //     point,
-                    //     vm
-                    // );
-
-                    // _helper
-                    //     .validateFeatureQuery(query_str)
-                    //     .then(async (features) => {
-                    //         if (features.length === 0) {
-                    //             console.warn(
-                    //                 'No features found at this location.'
-                    //             );
-                    //             vm.overlay(undefined);
-                    //         } else {
-                    //             console.log('Feature', features);
-                    //             vm.overlay(coordinate, features[0]);
-                    //         }
-                    //         vm.errorMessageProperty(null);
-                    //     });
-                    // }
                 });
             });
         },
@@ -4034,8 +4050,12 @@ export default {
                 vm.overlayFeatureInfo = {};
             } else {
                 vm.overlayFeatureInfo = feature.getProperties();
+                vm.overlayFeatureInfo['clickedCoordinate'] = coordinate;
+                vm.overlayFeatureInfo['featureId'] = feature.getId();
             }
-            overlay.setPosition(coordinate);
+            if (overlay) {
+                overlay.setPosition(coordinate);
+            }
 
             return overlay;
         },
@@ -4926,8 +4946,7 @@ export default {
 .input-group-append + small {
     width: 100%;
 }
-</style>
-<style>
+
 .min-width-60 {
     min-width: 60px !important;
 }
@@ -4949,5 +4968,59 @@ export default {
 .svg-green {
     filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(87deg)
         brightness(119%) contrast(119%);
+}
+
+.ol-popup {
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    bottom: 12px;
+    left: -50px;
+    min-width: 280px;
+}
+.ol-popup:after,
+.ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: '';
+    height: 0;
+    width: 0;
+    position: absolute;
+    cursor: pointer;
+    /* pointer-events: none; */
+}
+.ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+}
+.ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+}
+.ol-popup-closer {
+    text-decoration: none;
+    position: absolute;
+    top: 2px;
+    right: 8px;
+}
+/* .ol-popup-closer:after {
+    content: '✖';
+} */
+.ol-textarea {
+    width: fit-content;
+    height: 100%;
+    resize: none;
+    text-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    font-size: 1rem;
+    line-height: 1;
 }
 </style>
