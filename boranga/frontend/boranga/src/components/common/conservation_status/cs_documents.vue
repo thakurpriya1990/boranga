@@ -3,7 +3,7 @@
         <FormSection :formCollapse="false" label="Documents" Index="documents">
             <small style="color: red;"><br>(Do not upload Management or Recovery Plans here)</small>
             <form class="form-horizontal" action="index.html" method="post">
-                <div v-if="conservation_status_obj.assessor_mode.assessor_can_assess" class="col-sm-12">
+                <div v-if="show_add_document" class="col-sm-12">
                     <div class="text-end">
                         <button type="button" class="btn btn-primary mb-2 " @click.prevent="newDocument">
                             <i class="fa-solid fa-circle-plus"></i>
@@ -17,7 +17,7 @@
                 </div>
             </form>
         </FormSection>
-        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="cs_document_url">
+        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="cs_document_url" :is_internal="is_internal">
         </DocumentDetail>
         <div v-if="conservationStatusDocumentHistoryId">
             <ConservationStatusDocumentHistory ref="cs_document_history" :key="conservationStatusDocumentHistoryId"
@@ -45,6 +45,10 @@ export default {
         conservation_status_obj: {
             type: Object,
             required: true
+        },
+        is_internal: {
+            type: Boolean,
+            default: false
         },
     },
     data: function () {
@@ -220,9 +224,12 @@ export default {
         ConservationStatusDocumentHistory,
     },
     computed: {
-    },
-    watch: {
-
+        show_add_document: function () {
+            if(!this.is_internal) {
+                return true;
+            }
+            return this.conservation_status_obj.assessor_mode.assessor_can_assess;
+        }
     },
     methods: {
         newDocument: function () {
