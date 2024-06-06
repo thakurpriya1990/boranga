@@ -34,7 +34,13 @@
                                                     <strong>Action</strong><br />
                                                 </div>
                                             </div>
-                                            <div class="row">
+                                            <div v-if="isDraft" class="row">
+                                                <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="activateOccurrence()">Activate</button><br />
+                                                </div>
+                                            </div>
+                                            <div v-else class="row">
                                                 <div v-if="canLock" class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="lockOccurrence()">Lock</button><br />
@@ -89,38 +95,7 @@
                             <input type='hidden' name="occurrence_id" :value="1"/>
                             <div class="row" style="margin-bottom: 50px">
                                 <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                    <!--TODO check if it is a draft (if occ starting as draft is implemented)-->
-                                    <div v-if="occurrence.can_user_edit && this.$route.query.action == 'edit'" class="container">
-                                        <div class="col-md-12 text-end">
-                                            <button v-if="savingOccurrence"
-                                                class="btn btn-primary me-2 pull-right"
-                                                style="margin-top:5px;" disabled>Save and Continue&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                            <button v-else class="btn btn-primary me-2 ull-right"
-                                                style="margin-top:5px;" @click.prevent="save()"
-                                                :disabled="saveExitOccurrence || submitOccurrence">Save
-                                                and Continue</button>
-
-                                            <button v-if="saveExitOccurrence"
-                                                class="btn btn-primary me-2 pull-right"
-                                                style="margin-top:5px;" disabled>Save and Exit&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                            <button v-else class="btn btn-primary me-2 pull-right"
-                                                style="margin-top:5px;" @click.prevent="save_exit()"
-                                                :disabled="savingOccurrence || submitOccurrence">Save
-                                                and Exit</button>
-
-                                            <!--TODO bring this back once OCC initial status confirmed
-                                                <button v-if="submitOccurrence"
-                                                class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                disabled>Submit&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                            <button v-else class="btn btn-primary pull-right"
-                                                style="margin-top:5px;" @click.prevent="submit()"
-                                                :disbaled="saveExitOccurrence || savingOccurrence">Submit</button>-->
-                                        </div>
-                                    </div>
-                                    <div v-else-if="hasUserEditMode" class="container">
+                                    <div v-if="hasUserEditMode" class="container">
                                         <div class="col-md-12 text-end">
                                             <button v-if="savingOccurrence"
                                                 class="btn btn-primary pull-right" style="margin-top:5px;"
@@ -242,6 +217,9 @@ export default {
         hasUserEditMode: function () {
             // Need to check for approved status as to show 'Save changes' button only when edit and not while view
             return this.occurrence && this.occurrence.can_user_edit ? true : false;
+        },
+        isDraft: function () {
+            return this.occurrence && this.occurrence.processing_status === "Draft" ? true : false;
         },
         canLock: function () {
             return this.occurrence && this.occurrence.processing_status === "Active" ? true : false;
@@ -436,6 +414,27 @@ export default {
             let vm = this;
             vm.original_occurrence = helpers.copyObject(response.body);
             vm.occurrence = helpers.copyObject(response.body);
+        },
+        activateOccurrence: async function () {
+            let vm = this;
+            await vm.$http.post(`/api/occurrence/${this.occurrence.id}/activate.json`).then(res => {
+                swal.fire({
+                    title: "Activated",
+                    text: "Occurrence has been Activated",
+                    icon: "success",
+                    confirmButtonColor: '#226fbb'
+                }).then(async (swalresult) => {
+                    this.$router.go(this.$router.currentRoute);
+                });
+            }, err => {
+                var errorText = helpers.apiVueResourceError(err);
+                swal.fire({
+                    title: 'Activate Error',
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonColor: '#226fbb'
+                });
+            });
         },
         lockOccurrence: async function () {
             let vm = this;

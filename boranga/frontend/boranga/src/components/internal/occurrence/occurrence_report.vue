@@ -698,6 +698,7 @@ export default {
                                 icon: 'error',
                                 confirmButtonColor: '#226fbb'
                             });
+                            vm.submitOccurrenceReport = false;
                         });
                     }
                 }
