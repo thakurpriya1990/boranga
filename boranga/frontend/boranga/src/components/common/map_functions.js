@@ -12,7 +12,7 @@ import { utils } from '@/utils/hooks';
 // const urlKbBase = `${env['gis_server_url']}`;
 
 // Layer to use as map base layer
-export var baselayer_name = 'mapbox-emerald';
+export var baselayer_name = 'mapbox-streets';
 // export var baselayer_name = 'mapbox-dark'
 
 /**
