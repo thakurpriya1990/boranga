@@ -6,7 +6,7 @@
                     <form class="form-horizontal" name="amendForm">
                         <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
                         <div class="col-sm-12">
-                            <div class="row">
+                            <div class="row mb-3">
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
                                         <label class="control-label pull-left"  for="Name">Reason</label>
@@ -16,7 +16,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
+                            <div class="row mb-3">
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
                                         <label class="control-label pull-left"  for="Name">Details</label>
@@ -79,7 +79,7 @@ export default {
                 conservation_status: vm.conservation_status_id,
                 num_files: 0,
                 input_name: 'amendment_request_doc',
-                cs_amendment_request_documents: [], 
+                cs_amendment_request_documents: [],
             },
             reason_choices: {},
             errors: false,
@@ -118,7 +118,7 @@ export default {
             this.errors = false;
             $(this.$refs.reason).val(null).trigger('change');
             $('.has-error').removeClass('has-error');
-            
+
             this.validation_form.resetForm();
         },
         fetchAmendmentChoices: function(){
@@ -177,7 +177,7 @@ export default {
                         vm.amendingProposal = true;
 
                     });
-                
+
 
         },
         addFormValidations: function() {
@@ -185,12 +185,12 @@ export default {
             vm.validation_form = $(vm.form).validate({
                 rules: {
                     reason: "required"
-                    
-                     
+
+
                 },
-                messages: {              
+                messages: {
                     reason: "field is required",
-                                         
+
                 },
                 showErrors: function(errorMap, errorList) {
                     $.each(this.validElements(), function(index, element) {
@@ -215,7 +215,7 @@ export default {
        },
        eventListerners:function () {
             let vm = this;
-            
+
             // Intialise select2
             $(vm.$refs.reason).select2({
                 "theme": "bootstrap-5",
@@ -240,7 +240,7 @@ export default {
         vm.form = document.forms.amendForm;
         vm.fetchAmendmentChoices();
         vm.addFormValidations();
-        this.$nextTick(()=>{  
+        this.$nextTick(()=>{
             vm.eventListerners();
         });
     //console.log(validate);

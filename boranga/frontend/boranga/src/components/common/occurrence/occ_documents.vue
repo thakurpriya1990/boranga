@@ -17,7 +17,7 @@
                 </div>
             </form>
         </FormSection>
-        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="occ_document_url"></DocumentDetail>
+        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="occ_document_url" :is_internal="is_internal"></DocumentDetail>
         <div v-if="occurenceDocumentHistoryId">
             <OccurenceDocumentHistory
                 ref="occ_document_history"

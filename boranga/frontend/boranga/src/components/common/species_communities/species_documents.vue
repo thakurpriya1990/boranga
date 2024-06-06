@@ -17,7 +17,7 @@
                 </div>
             </form>
         </FormSection>
-        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="species_document_url"></DocumentDetail>
+        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="species_document_url" :is_internal="is_internal"></DocumentDetail>
         <div v-if="speciesDocumentHistoryId">
             <SpeciesDocumentHistory
                 ref="species_document_history"
