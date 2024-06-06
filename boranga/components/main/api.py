@@ -3,8 +3,6 @@ import logging
 from django.conf import settings
 from django.core.cache import cache
 from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
 
 from boranga.components.main.models import GlobalSettings
 from boranga.components.main.serializers import (
@@ -156,10 +154,3 @@ def search_datums(search, codes=None):
 
     return datums
 
-
-class DatumSearchMixing:
-    @action(detail=False, methods=["get"], url_path="epsg-code-datums")
-    def get_epsg_code_datums(self, request):
-        search = request.GET.get("search", None)
-
-        return Response(search_datums(search))

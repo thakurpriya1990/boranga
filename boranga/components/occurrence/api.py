@@ -28,6 +28,7 @@ from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
+from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.spatial.utils import (
     populate_occurrence_tenure_data,
     save_geometry,
@@ -664,7 +665,9 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                 return Response(status=400, data="Format not valid")
 
 
-class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+class OccurrenceReportViewSet(
+    viewsets.GenericViewSet, mixins.RetrieveModelMixin, DatumSearchMixin
+):
     queryset = OccurrenceReport.objects.none()
     serializer_class = OccurrenceReportSerializer
     lookup_field = "id"
@@ -3431,7 +3434,9 @@ class GetOccurrenceSource(views.APIView):
         return Response()
 
 
-class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+class OccurrenceViewSet(
+    viewsets.GenericViewSet, mixins.RetrieveModelMixin, DatumSearchMixin
+):
     queryset = Occurrence.objects.none()
     serializer_class = OccurrenceSerializer
     lookup_field = "id"
