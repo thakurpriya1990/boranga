@@ -1,21 +1,18 @@
 import logging
+import re
 
+import pyproj
 from django.conf import settings
 from django.core.cache import cache
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from boranga.components.main.models import GlobalSettings
-from boranga.components.main.serializers import (
-    GlobalSettingsSerializer,
-)
 from boranga import helpers
+from boranga.components.main.models import GlobalSettings
+from boranga.components.main.serializers import GlobalSettingsSerializer
 
-import pyproj
-import re
-
-logger = logging.getLogger("payment_checkout")
+logger = logging.getLogger(__name__)
 
 
 class GlobalSettingsViewSet(viewsets.ReadOnlyModelViewSet):
