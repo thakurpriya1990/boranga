@@ -1490,3 +1490,6 @@ class InternalSaveConservationStatusDocumentSerializer(
         fields = SaveConservationStatusDocumentSerializer.Meta.fields + (
             "can_submitter_access",
         )
+        read_only_fields = (
+            SaveConservationStatusDocumentSerializer.Meta.read_only_fields
+        )
