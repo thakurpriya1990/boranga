@@ -39,7 +39,10 @@ from boranga.components.species_and_communities.models import (
     Species,
     Taxonomy,
 )
-from boranga.components.users.models import SubmitterInformation
+from boranga.components.users.models import (
+    SubmitterInformation,
+    SubmitterInformationModelMixin,
+)
 from boranga.helpers import (
     belongs_to_by_user_id,
     is_conservation_status_approver,
@@ -316,7 +319,7 @@ class IUCNVersion(models.Model):
         return str(self.code)
 
 
-class ConservationStatus(RevisionedMixin):
+class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     """
     Several lists with different attributes
 
@@ -637,28 +640,8 @@ class ConservationStatus(RevisionedMixin):
             self.conservation_status_number = new_conservation_status_id
             self.save(*args, **kwargs)
         else:
-            self.create_submitter_information()
             self.assign_or_create_species()
             super().save(*args, **kwargs)
-
-    def create_submitter_information(self):
-        if not self.submitter or self.submitter_information:
-            return
-
-        emailuser = retrieve_email_user(self.submitter)
-        contact_details = ""
-        if emailuser.mobile_number:
-            contact_details += f"Mobile: {emailuser.mobile_number}\r\n"
-        if emailuser.phone_number:
-            contact_details += f"Phone: {emailuser.phone_number}\r\n"
-        if emailuser.email:
-            contact_details += f"Email: {emailuser.email}\r\n"
-        submitter_information = SubmitterInformation.objects.create(
-            email_user=self.submitter,
-            name=emailuser.get_full_name(),
-            contact_details=contact_details,
-        )
-        self.submitter_information = submitter_information
 
     def assign_or_create_species(self):
         if not self.species_taxonomy or self.species:

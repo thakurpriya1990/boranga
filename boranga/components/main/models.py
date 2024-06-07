@@ -1,3 +1,4 @@
+import logging
 import os
 
 from django.conf import settings
@@ -8,6 +9,8 @@ from reversion.models import Version
 private_storage = FileSystemStorage(
     location=settings.BASE_DIR + "/private-media/", base_url="/private-media/"
 )
+
+logger = logging.getLogger(__name__)
 
 
 class RevisionedMixin(models.Model):

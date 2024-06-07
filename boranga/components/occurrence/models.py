@@ -50,7 +50,10 @@ from boranga.components.species_and_communities.models import (
     ThreatAgent,
     ThreatCategory,
 )
-from boranga.components.users.models import SubmitterInformation
+from boranga.components.users.models import (
+    SubmitterInformation,
+    SubmitterInformationModelMixin,
+)
 from boranga.helpers import (
     clone_model,
     email_in_dept_domains,
@@ -86,7 +89,7 @@ def update_occurrence_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/occurrence/{instance.occurrence.id}/documents/{filename}"
 
 
-class OccurrenceReport(RevisionedMixin):
+class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     """
     Occurrence Report for any particular species or community
 

@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db import models
@@ -5,10 +7,14 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup, SystemGroupPermission
 
 from boranga.components.main.models import CommunicationsLogEntry, Document, UserAction
+from boranga.ledger_api_utils import retrieve_email_user
 
 private_storage = FileSystemStorage(
     location=settings.BASE_DIR + "/private-media/", base_url="/private-media/"
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class SubmitterCategory(models.Model):
@@ -38,6 +44,36 @@ class SubmitterInformation(models.Model):
 
     class Meta:
         app_label = "boranga"
+
+
+class SubmitterInformationModelMixin:
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            return
+        self.create_submitter_information()
+        if not kwargs.get("no_revision", False):
+            kwargs["no_revision"] = True
+
+        super().save(*args, **kwargs)
+
+    def create_submitter_information(self):
+        if not self.submitter or self.submitter_information:
+            return
+
+        emailuser = retrieve_email_user(self.submitter)
+        contact_details = ""
+        if emailuser.mobile_number:
+            contact_details += f"Mobile: {emailuser.mobile_number}\r\n"
+        if emailuser.phone_number:
+            contact_details += f"Phone: {emailuser.phone_number}\r\n"
+        if emailuser.email:
+            contact_details += f"Email: {emailuser.email}\r\n"
+        submitter_information = SubmitterInformation.objects.create(
+            email_user=self.submitter,
+            name=emailuser.get_full_name(),
+            contact_details=contact_details,
+        )
+        self.submitter_information = submitter_information
 
 
 class ExternalContributorBlacklist(models.Model):
