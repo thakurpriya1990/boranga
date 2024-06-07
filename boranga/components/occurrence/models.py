@@ -3937,6 +3937,7 @@ class OccurrenceTenurePurpose(models.Model):
 
 def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
     sub_objs.update(status="historical")
+    # TODO: add historical_occurrence_geometry_ewkb and historical_occurrence to sub_objs.update
     collector.add_field_update(field, None, sub_objs)
 
 
@@ -3953,6 +3954,10 @@ class OccurrenceTenure(models.Model):
         null=True,
         on_delete=SET_NULL_AND_HISTORICAL,
     )
+    historical_occurrence_geometry_ewkb = models.BinaryField(
+        blank=True, null=True, editable=True
+    )  # the geometry after setting the occurrence_geometry to None
+    historical_occurrence = models.IntegerField(blank=True, null=True)
 
     tenure_area_id = models.CharField(
         max_length=100, blank=True, null=True
