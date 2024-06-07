@@ -12,7 +12,7 @@ import { utils } from '@/utils/hooks';
 // const urlKbBase = `${env['gis_server_url']}`;
 
 // Layer to use as map base layer
-export var baselayer_name = 'mapbox-emerald';
+export var baselayer_name = 'mapbox-streets';
 // export var baselayer_name = 'mapbox-dark'
 
 /**
@@ -51,7 +51,7 @@ export function layerAtEventPixel(map_component, evt) {
 
         let data = layer.getData(pixel);
         // Return if no data or the alpha channel in RGBA is zero (transparent)
-        if (!data || data[3] == 0) {
+        if (!data /*|| data[3] == 0*/) {
             return;
         }
         layer_at_pixel.push(layer);
@@ -137,6 +137,37 @@ export async function fetchProposals(
         });
 
     return proposals;
+}
+
+export async function queryLayerAtPoint(map_component, layer, coordinate) {
+    map_component.queryingGeoserver = true;
+    let c = [coordinate[0], coordinate[1]];
+    if (layer.getProperties().invert_xy) {
+        c = [coordinate[1], coordinate[0]];
+    }
+    let point = `POINT (${c.join(' ')})`;
+
+    let query_str = _helper.geoserverQuery.bind(this)(
+        point,
+        map_component,
+        layer
+    );
+
+    if (query_str === undefined) {
+        console.warn('A query string could not be created.');
+        return;
+    }
+
+    _helper.validateFeatureQuery(query_str).then(async (features) => {
+        if (features.length === 0) {
+            console.warn('No features found at this location.');
+            map_component.overlay(undefined);
+        } else {
+            console.log('Feature', features);
+            map_component.overlay(coordinate, features[0]);
+        }
+        map_component.errorMessageProperty(null);
+    });
 }
 
 /**
@@ -365,7 +396,7 @@ const _helper = {
      * @param {Object} map_component The map component
      * @returns A query string for the geoserver
      */
-    geoserverQuery: function (wkt, map_component) {
+    geoserverQuery: function (wkt, map_component, layer) {
         let vm = this;
         if (wkt === undefined) {
             console.warn('No WKT provided');
@@ -375,12 +406,31 @@ const _helper = {
             map_component = vm.$refs.component_map;
         }
         // The geoserver url
-        // TODO: Only changed the env part here, so the url probably doesn't work with the new geoserver
-        let owsUrl = `${env['gis_server_url']}/geoserver/public/ows/?`;
+        const sourceUrl = layer.getSource().getUrls()[0];
+        const owsUrl = `${sourceUrl}?`;
+        const layerName = layer.getProperties().name;
+
         // Create a params dict for the WFS request to the land-water layer
-        let paramsDict = map_component.queryParamsDict('landwater');
-        let geometry_name = map_component.owsQuery.landwater.geometry;
-        paramsDict['CQL_FILTER'] = `INTERSECTS(${geometry_name},${wkt})`;
+        if (!Object.hasOwn(map_component.owsQuery, layerName)) {
+            console.error(
+                `No owsQuery parameters found for layer ${layerName}`
+            );
+            return;
+        }
+        const queryDef = map_component.owsQuery[layerName];
+        const paramsDict = {
+            service: 'WFS',
+            request: 'GetFeature',
+            typeName: `${layer.get('name')}`,
+            maxFeatures: '5000',
+            srsName: `${queryDef.srsName}`,
+            // propertyName: `${kb.propertyName}`,
+            geometry: `${queryDef.geometry}`,
+            outputFormat: 'application/json',
+        };
+        // let paramsDict = map_component.queryParamsDict('landwater');
+        // let geometry_name = map_component.owsQuery.kb.geometry;
+        paramsDict['CQL_FILTER'] = `INTERSECTS(${queryDef.geometry},${wkt})`;
 
         // Turn params dict into a param query string
         let params = new URLSearchParams(paramsDict).toString();
@@ -432,7 +482,7 @@ const _helper = {
                 },
             };
 
-            // Data for a image tiles can only be retrieved if the source's crossOrigin property is set (https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#getData)
+            // Data for an image tiles can only be retrieved if the source's crossOrigin property is set (https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#getData)
             // E.g. info tool doesn't work without crossOrigin: 'anonymous', getting
             // "Failed to execute 'getImageData' on 'CanvasRenderingContext2D': The canvas has been tainted by cross-origin data" at canvas/Layer.js::getImageData
             if (!layer.geoserver_url.startsWith('/geoproxy/')) {
@@ -453,6 +503,7 @@ const _helper = {
                 displayInLayerSwitcher: !isBackgroundLayer,
                 is_satellite_background: layer.is_satellite_background,
                 is_streets_background: layer.is_streets_background,
+                invert_xy: layer.invert_xy,
                 minZoom: layer.min_zoom,
                 maxZoom: layer.max_zoom,
             });

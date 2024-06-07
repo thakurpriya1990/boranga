@@ -13,6 +13,7 @@ from boranga.components.spatial.utils import wkb_to_geojson
 from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
     LandForm,
+    GeometryType,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
@@ -76,7 +77,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
     group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
     can_user_edit = serializers.SerializerMethodField()
-
+    submitter = serializers.SerializerMethodField()
     location = serializers.SerializerMethodField()
     habitat_composition = serializers.SerializerMethodField()
     habitat_condition = serializers.SerializerMethodField()
@@ -101,6 +102,13 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     def get_can_user_edit(self, obj):
         request = self.context["request"]
         return obj.can_user_edit(request)
+    
+    def get_submitter(self, obj):
+        if obj.submitter:
+            email_user = retrieve_email_user(obj.submitter)
+            return EmailUserSerializer(email_user).data
+        else:
+            return None
 
     def get_location(self, obj):
         try:
@@ -262,6 +270,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         source="occurrence.occurrence_number", allow_null=True
     )
     is_new_contributor = serializers.SerializerMethodField()
+    observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
 
     class Meta:
         model = OccurrenceReport
@@ -289,6 +298,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "effective_to",
             "review_due_date",
             "is_new_contributor",
+            "observation_date",
         )
         datatables_always_serialize = (
             "id",
@@ -573,6 +583,8 @@ class OCRLocationSerializer(serializers.ModelSerializer):
     # observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     # geojson_point = serializers.SerializerMethodField()
     # geojson_polygon = serializers.SerializerMethodField()
+    has_boundary = serializers.SerializerMethodField()
+    has_points = serializers.SerializerMethodField()
 
     class Meta:
         model = OCRLocation
@@ -595,7 +607,15 @@ class OCRLocationSerializer(serializers.ModelSerializer):
             "locality",
             # 'geojson_point',
             # 'geojson_polygon',
+            "has_boundary",
+            "has_points",
         )
+
+    def get_has_boundary(self, obj):
+        return obj.occurrence_report.ocr_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POLYGON").exists()
+
+    def get_has_points(self, obj):
+        return obj.occurrence_report.ocr_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POINT").exists()
 
     # def get_geojson_point(self,obj):
     #     if(obj.geojson_point):
@@ -1484,6 +1504,9 @@ class SaveOCRLocationSerializer(serializers.ModelSerializer):
     # observation_date = serializers.DateTimeField(
     #    format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     # )
+    has_boundary = serializers.SerializerMethodField()
+    has_points = serializers.SerializerMethodField()
+
 
     class Meta:
         model = OCRLocation
@@ -1505,7 +1528,15 @@ class SaveOCRLocationSerializer(serializers.ModelSerializer):
             "district_id",
             "locality",
             # 'geojson_polygon',
+            "has_boundary",
+            "has_points",
         )
+
+    def get_has_boundary(self, obj):
+        return obj.occurrence_report.ocr_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POLYGON").exists()
+
+    def get_has_points(self, obj):
+        return obj.occurrence_report.ocr_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POINT").exists()
 
 
 class OCRObserverDetailSerializer(serializers.ModelSerializer):
@@ -2472,6 +2503,8 @@ class SaveOCCIdentificationSerializer(serializers.ModelSerializer):
 
 
 class OCCLocationSerializer(serializers.ModelSerializer):
+    has_boundary = serializers.SerializerMethodField()
+    has_points = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCLocation
@@ -2490,8 +2523,15 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             "region_id",
             "district_id",
             "locality",
+            "has_boundary",
+            "has_points",
         )
 
+    def get_has_boundary(self, obj):
+        return obj.occurrence.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POLYGON").exists()
+
+    def get_has_points(self, obj):
+        return obj.occurrence.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POINT").exists()
 
 class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)
@@ -2598,6 +2638,8 @@ class SaveOCCLocationSerializer(serializers.ModelSerializer):
     datum_id = serializers.IntegerField(required=False, allow_null=True)
     coordination_source_id = serializers.IntegerField(required=False, allow_null=True)
     location_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
+    has_boundary = serializers.SerializerMethodField()
+    has_points = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCLocation
@@ -2616,8 +2658,15 @@ class SaveOCCLocationSerializer(serializers.ModelSerializer):
             "region_id",
             "district_id",
             "locality",
+            "has_boundary",
+            "has_points",
         )
 
+    def get_has_boundary(self, obj):
+        return obj.occurrence.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POLYGON").exists()
+
+    def get_has_points(self, obj):
+        return obj.occurrence.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POINT").exists()
 
 class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)

@@ -103,7 +103,6 @@ INSTALLED_APPS += [
     "boranga.components.conservation_status",
     "boranga.components.users",
     "boranga.components.meetings",
-    "boranga.components.conservation_plan",
     "boranga.components.occurrence",
     "boranga.components.spatial",
     "taggit",
@@ -361,7 +360,6 @@ CACHE_KEY_PROXY_LAYER_DATA = "proxy-layer-data-{app_label}-{model_name}"
 CACHE_KEY_PROXY_NODE_DATA = "proxy-node-data-{request_path}"
 CACHE_KEY_MAP_OCCURRENCES = "map-occurrences"
 CACHE_KEY_MAP_OCCURRENCE_REPORTS = "map-occurrence-reports"
-CACHE_KEY_TAXONOMIES = "taxonomies"
 
 # ---------- Conservation Change Codes ----------
 
@@ -373,6 +371,7 @@ CONSERVATION_CHANGE_CODE_RANK_CHANGE = "Rank Change"
 CONSERVATION_CHANGE_CODE_CATEGORY_CHANGE = "Category Change"
 CONSERVATION_CHANGE_CODE_CRITERIA_CHANGE = "Criteria Change"
 CONSERVATION_CHANGE_CODE_DELIST = "DeList"
+CONSERVATION_CHANGE_CODE_CLOSE = "Close"
 CONSERVATION_CHANGE_CODE_OTHER = "Other"
 
 CONSERVATION_CHANGE_CODES = [
@@ -463,3 +462,8 @@ COMMONWEALTH_CONSERVATION_LIST_EPBC = {
 }
 
 COMMONWEALTH_CONSERVATION_LISTS = [COMMONWEALTH_CONSERVATION_LIST_EPBC]
+
+# This is needed so that the chmod is not called in django/core/files/storage.py
+# (_save method of FileSystemStorage class)
+# As it causes a permission exception when using azure network drives
+FILE_UPLOAD_PERMISSIONS = None

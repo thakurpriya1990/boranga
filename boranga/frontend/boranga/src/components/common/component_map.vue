@@ -49,7 +49,11 @@
             style="position: relative"
         >
             <div :id="elem_id" class="map">
-                <div class="basemap-button" title="Toggle background map">
+                <div
+                    v-show="map"
+                    class="basemap-button"
+                    title="Toggle background map"
+                >
                     <img
                         id="basemap_sat"
                         src="../../assets/satellite_icon.jpg"
@@ -61,7 +65,7 @@
                         @click="setBaseLayer('street')"
                     />
                 </div>
-                <div class="optional-layers-wrapper">
+                <div v-show="map" class="optional-layers-wrapper">
                     <div style="position: relative">
                         <transition>
                             <div
@@ -1042,16 +1046,20 @@
                 </div>
 
                 <!-- Overlay popup bubble when clicking a DBCA layer feature -->
-                <!-- <div id="popup" class="ol-popup overlay-feature-popup">
+                <div
+                    v-show="map"
+                    id="popup"
+                    class="ol-popup ol-selectable overlay-feature-popup"
+                >
                     <template v-if="overlayFeatureInfo">
                         <div class="toast-header">
                             <img src="" class="rounded me-2" alt="" />
                             <strong class="me-auto">{{
-                                overlayFeatureInfo.leg_name
+                                overlayFeatureInfo.featureId
                             }}</strong>
                             <button
                                 type="button"
-                                class="btn btn-sm btn-light text-nowrap"
+                                class="btn btn-sm btn-light text-nowrap ol-popup-closer"
                                 aria-label="Close Overlay"
                                 @click="overlay(undefined)"
                             >
@@ -1063,60 +1071,63 @@
                                 >
                             </button>
                         </div>
-                        <div id="popup-content toast-body">
-                            <table
-                                style="width: 100%; z-index: 9999"
-                                class="table table-sm"
+                        <p>
+                            <span
+                                ><small>{{
+                                    overlayFeatureInfo.clickedCoordinate
+                                }}</small></span
                             >
-                                <tbody>
-                                    <tr>
-                                        <th scope="row">Identifier</th>
-                                        <td>
-                                            {{
-                                                overlayFeatureInfo.leg_identifier
-                                            }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Vesting</th>
-                                        <td>
-                                            {{ overlayFeatureInfo.leg_vesting }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Legal Act</th>
-                                        <td>
-                                            {{ overlayFeatureInfo.leg_act }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Tenure</th>
-                                        <td>
-                                            {{ overlayFeatureInfo.leg_tenure }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Category</th>
-                                        <td>
-                                            {{ overlayFeatureInfo.category }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">Area (ha)</th>
-                                        <td>
-                                            {{
-                                                (
-                                                    overlayFeatureInfo.leg_poly_area +
-                                                    Number.EPSILON
-                                                ).toFixed(1)
-                                            }}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        </p>
+                        <div id="popup-content toast-body">
+                            <div
+                                class="table-responsive overflow-scroll"
+                                style="max-height: 250px; max-width: 350px"
+                            >
+                                <table
+                                    style="width: 100%; z-index: 9999"
+                                    class="table table-sm"
+                                >
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col">Property</th>
+                                            <th scope="col">Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody
+                                        v-for="[
+                                            property,
+                                            value,
+                                        ] in Object.entries(overlayFeatureInfo)"
+                                        :key="property + value"
+                                    >
+                                        <tr v-if="property != 'geometry'">
+                                            <td scope="row">
+                                                <small>{{ property }}</small>
+                                            </td>
+                                            <td>
+                                                <small>
+                                                    <input
+                                                        v-model="
+                                                            overlayFeatureInfo[
+                                                                property
+                                                            ]
+                                                        "
+                                                        class="form-control form-control-sm ol-textarea"
+                                                        readonly
+                                                    />
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </template>
-                </div> -->
+                </div>
+                <!-- TODO: other loading cases -->
+                <div v-show="loadingMap" id="map-spinner" class="text-primary">
+                    <i class="fa fa-4x fa-spinner fa-spin"></i>
+                </div>
                 <!-- <BootstrapSpinner
                     v-if="
                         redirectingToModelDetails ||
@@ -1280,6 +1291,7 @@ import {
     set_mode,
     // validateFeature,
     layerAtEventPixel,
+    queryLayerAtPoint,
 } from '@/components/common/map_functions.js';
 import shp, { combine, parseShp, parseDbf } from 'shpjs';
 import SelectFilter from '@/components/common/SelectFilter.vue';
@@ -1412,21 +1424,27 @@ export default {
          * A dictionary of query parameters to pass to the WFS geoserver
          * The parent component needs to add the `cql_filter` parameter to filter the features by a spatial opration
          */
-        // owsQuery: {
-        //     type: Object,
-        //     required: false,
-        //     default: () => {
-        //         return {
-        //             version: '1.0.0', // WFS version
-        //             landwater: {
-        //                 typeName: 'public:dbca_legislated_lands_and_waters',
-        //                 srsName: 'EPSG:4326',
-        //                 propertyName: 'wkb_geometry', // Default to query for feature geometries only
-        //                 geometry: 'wkb_geometry', // Geometry name (not `the_geom`)
-        //             },
-        //         };
-        //     },
-        // },
+        owsQuery: {
+            type: Object,
+            required: false,
+            default: () => {
+                return {
+                    // typeName
+                    'kaartdijin-boodja-public:DFA_FMP_tenure': {
+                        version: '2.0.0', // WFS version
+                        srsName: 'EPSG:4326',
+                        propertyName: 'Shape', // Default to query for feature geometries only
+                        geometry: 'Shape', // Geometry name (not `the_geom`)
+                    },
+                    CPT_CADASTRE_SCDB: {
+                        version: '2.0.0', // WFS version
+                        srsName: 'EPSG:4326',
+                        propertyName: 'SHAPE', // Default to query for feature geometries only
+                        geometry: 'SHAPE', // Geometry name (not `the_geom`)
+                    },
+                };
+            },
+        },
         /**
          * Whether the map supports drawing of polygons
          */
@@ -2008,6 +2026,7 @@ export default {
                 }
 
                 console.log('Done fetching map initilisation data');
+                this.setLoadingMap(false);
             }
         );
 
@@ -2021,17 +2040,19 @@ export default {
     mounted: function () {
         console.log('mounted()');
         let vm = this;
-        vm.loadingMap = true;
+        vm.setLoadingMap(true);
 
         this.$nextTick(() => {
             var toastEl = document.getElementById('featureToast');
-            $('#map-spinner').children().css('position', 'static'); // Position spinner in center of map
+            $('#map-spinner').css('position', 'absolute'); // Position spinner in center of map
+            $('#map-spinner').css('top', '50%');
+            $('#map-spinner').css('left', '50%');
+            $('#map-spinner').css('zIndex', 9999);
             vm.featureToast = new bootstrap.Toast(toastEl, { autohide: false });
             if (vm.refreshMapOnMounted) {
                 vm.forceToRefreshMap();
             } else {
                 console.log('Done initializing map (no refresh)');
-                vm.loadingMap = false;
             }
             // Priya calling this event from mounted as its only been triggered from loadMapFeatures() which is coomented at the moment
             // vm.map.dispatchEvent({
@@ -2043,6 +2064,9 @@ export default {
         });
     },
     methods: {
+        setLoadingMap(loading=false) {
+            this.loadingMap = loading;
+        },
         /**
          * Returns the euclidean distance between two pixel coordinates
          * @param {Array} p1 a pixel coordinate pair in the form [x1, y1]
@@ -2186,7 +2210,7 @@ export default {
                 console.log('Refreshing map');
                 vm.map.updateSize();
                 // Unset loading map spinner here
-                vm.loadingMap = false;
+                vm.setLoadingMap(false);
             }, timeout);
         },
         addJoint: function (point, styles) {
@@ -2999,7 +3023,6 @@ export default {
                     duration: 150,
                 },
             });
-
             this.map = new Map({
                 layers: [baseLayers],
                 overlays: [overlay],
@@ -3777,41 +3800,16 @@ export default {
             }
             // TODO:
             // Lets ol display a popup with clicked feature properties
-            // map_component.map.on('singleclick', function (evt) {
-            //     if (map_component.mode !== 'info') {
-            //         return;
-            //     }
-            //     let coordinate = evt.coordinate;
-            //     layerAtEventPixel(map_component, evt).forEach((lyr) => {
-            //         if (lyr.values_.name === tileLayer.values_.name) {
-            //             console.log('Clicked on tile layer', lyr);
-
-            //             let point = `POINT (${coordinate.join(' ')})`;
-            //             let query_str = _helper.geoserverQuery.bind(this)(
-            //                 point,
-            //                 map_component
-            //             );
-
-            //             _helper
-            //                 .validateFeatureQuery(query_str)
-            //                 .then(async (features) => {
-            //                     if (features.length === 0) {
-            //                         console.warn(
-            //                             'No features found at this location.'
-            //                         );
-            //                         map_component.overlay(undefined);
-            //                     } else {
-            //                         console.log('Feature', features);
-            //                         map_component.overlay(
-            //                             coordinate,
-            //                             features[0]
-            //                         );
-            //                     }
-            //                     map_component.errorMessageProperty(null);
-            //                 });
-            //         }
-            //     });
-            // });
+            vm.map.on('singleclick', function (evt) {
+                if (vm.mode !== 'info') {
+                    return;
+                }
+                let coordinate = evt.coordinate;
+                layerAtEventPixel(vm, evt).forEach((lyr) => {
+                    console.log('Clicked on tile layer', lyr);
+                    queryLayerAtPoint(vm, lyr, coordinate);
+                });
+            });
         },
         onDrawEnd: function (feature) {
             let vm = this;
@@ -3996,6 +3994,11 @@ export default {
         queryParamsDict: function (layerStr) {
             let vm = this;
 
+            if (!vm.owsQuery) {
+                console.error('OWS query defintion not found');
+                return {};
+            }
+
             if (!(layerStr in vm.owsQuery)) {
                 console.error(`Layer ${layerStr} not found in OWS query`);
                 return {};
@@ -4057,8 +4060,12 @@ export default {
                 vm.overlayFeatureInfo = {};
             } else {
                 vm.overlayFeatureInfo = feature.getProperties();
+                vm.overlayFeatureInfo['clickedCoordinate'] = coordinate;
+                vm.overlayFeatureInfo['featureId'] = feature.getId();
             }
-            overlay.setPosition(coordinate);
+            if (overlay) {
+                overlay.setPosition(coordinate);
+            }
 
             return overlay;
         },
@@ -4921,7 +4928,7 @@ export default {
 }
 
 .map-spinner {
-    position: absolute !important;
+    position: relative;    
 }
 
 .shapefile-row {
@@ -4949,8 +4956,7 @@ export default {
 .input-group-append + small {
     width: 100%;
 }
-</style>
-<style>
+
 .min-width-60 {
     min-width: 60px !important;
 }
@@ -4972,5 +4978,59 @@ export default {
 .svg-green {
     filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(87deg)
         brightness(119%) contrast(119%);
+}
+
+.ol-popup {
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    bottom: 12px;
+    left: -50px;
+    min-width: 280px;
+}
+.ol-popup:after,
+.ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: '';
+    height: 0;
+    width: 0;
+    position: absolute;
+    cursor: pointer;
+    /* pointer-events: none; */
+}
+.ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+}
+.ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+}
+.ol-popup-closer {
+    text-decoration: none;
+    position: absolute;
+    top: 2px;
+    right: 8px;
+}
+/* .ol-popup-closer:after {
+    content: '✖';
+} */
+.ol-textarea {
+    width: fit-content;
+    height: 100%;
+    resize: none;
+    text-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    font-size: 1rem;
+    line-height: 1;
 }
 </style>

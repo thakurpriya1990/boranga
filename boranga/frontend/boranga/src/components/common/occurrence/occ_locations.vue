@@ -128,66 +128,13 @@
             </div>
 
             <div class="row mb-3">
-                <label class="col-sm-3 control-label">Mapped Boundary</label>
-                <div class="col-sm-1">
-                    <input
-                        id="mapBoundaryYes"
-                        v-model="occurrence_obj.location.mapped_boundary"
-                        :disabled="isReadOnly"
-                        type="radio"
-                        value="true"
-                    />&nbsp;
-                    <label for="mapBoundaryYes">Yes</label>
-                </div>
-                <div class="col-sm-1">
-                    <input
-                        id="mapBoundaryNo"
-                        v-model="occurrence_obj.location.mapped_boundary"
-                        :disabled="isReadOnly"
-                        type="radio"
-                        value="false"
-                    />&nbsp;
-                    <label for="mapBoundaryNo">No</label>
+                <label for="" class="col-sm-3 control-label">Map Data Type</label>
+                <div class="col-sm-6">
+                    <label class="me-2">Boundary</label><input disabled type="radio" :checked="occurrence_obj.location.has_boundary" class="form-check-input me-2">
+                    <label class="me-2">Point/s</label><input disabled type="radio" :checked="occurrence_obj.location.has_points" class="form-check-input me-2">
                 </div>
             </div>
-            
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Datum:</label>
-                <div class="col-sm-9">
-                    <VueSelect
-                        v-model="occurrence_obj.location.epsg_code"
-                        :options="datum_list"
-                        :reduce="(option) => option.id"
-                        label="name"
-                        :disabled="isReadOnly"
-                        @search="searchForCRS"
-                    >
-                    </VueSelect>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Point Coordinate :</label
-                >
-                <div class="col-sm-2">
-                    <input
-                        id="point_coord1"
-                        :disabled="isReadOnly"
-                        type="decimal"
-                        class="form-control ocr_number"
-                        placeholder=""
-                    />
-                </div>
-                <div class="col-sm-2">
-                    <input
-                        id="point_coord2"
-                        :disabled="isReadOnly"
-                        type="decimal"
-                        class="form-control ocr_number"
-                        placeholder=""
-                    />
-                </div>
-            </div>
+        
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
                     >Coordination Source:</label
@@ -212,7 +159,7 @@
                 </div>
             </div>
 
-            <div class="row mb-3">
+            <!--<div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
                     >Boundary(m) :</label
                 >
@@ -243,10 +190,10 @@
                         min="0"
                     />
                 </div>
-            </div>
+            </div>-->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
-                    >Location Accuracy/Certainty:</label
+                    >Location Accuracy:</label
                 >
                 <div class="col-sm-9">
                     <select
@@ -509,7 +456,7 @@ export default {
                             vm.$router.go();
                         }
                     });
-                    vm.$refs.component_map.forceToRefreshMap();
+                    vm.incrementComponentMapKey();
                 },
                 (error) => {
                     var text = helpers.apiVueResourceError(error);

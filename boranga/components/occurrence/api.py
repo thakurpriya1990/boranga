@@ -28,6 +28,7 @@ from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
+from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.spatial.utils import (
     populate_occurrence_tenure_data,
     save_geometry,
@@ -664,7 +665,9 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                 return Response(status=400, data="Format not valid")
 
 
-class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+class OccurrenceReportViewSet(
+    viewsets.GenericViewSet, mixins.RetrieveModelMixin, DatumSearchMixin
+):
     queryset = OccurrenceReport.objects.none()
     serializer_class = OccurrenceReportSerializer
     lookup_field = "id"
@@ -1601,7 +1604,7 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
 
         cache_key = settings.CACHE_KEY_MAP_OCCURRENCE_REPORTS
         qs = cache.get(cache_key)
-        qs = None
+
         if qs is None:
             qs = (
                 self.get_queryset()
@@ -3431,7 +3434,9 @@ class GetOccurrenceSource(views.APIView):
         return Response()
 
 
-class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+class OccurrenceViewSet(
+    viewsets.GenericViewSet, mixins.RetrieveModelMixin, DatumSearchMixin
+):
     queryset = Occurrence.objects.none()
     serializer_class = OccurrenceSerializer
     lookup_field = "id"
@@ -3446,7 +3451,8 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         if (
             not is_occurrence_approver(self.request)
-            and instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+            and (instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE or
+            instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT)
         ):
             raise serializers.ValidationError(
                 "User not authorised to update Occurrence"
@@ -3516,6 +3522,18 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         serialized_obj = CreateOccurrenceSerializer(new_instance)
         return Response(serialized_obj.data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def activate(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
+        instance = self.get_object()
+        instance.activate(request)
+        return redirect(reverse("internal"))
 
     @detail_route(
         methods=[
@@ -3921,11 +3939,14 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             intersect_data = save_geometry(
                 request, instance, geometry_data, "occurrence"
             )
-            for key, value in intersect_data.items():
-                occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
-                populate_occurrence_tenure_data(
-                    occurrence_geometry, value.get("features", [])
-                )
+            instance.occ_geometry.all()
+        
+            if intersect_data:
+                for key, value in intersect_data.items():
+                    occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
+                    populate_occurrence_tenure_data(
+                        occurrence_geometry, value.get("features", [])
+                    )
 
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -4002,11 +4023,12 @@ class OccurrenceViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             intersect_data = save_geometry(
                 request, occ_instance, geometry_data, "occurrence"
             )
-            for key, value in intersect_data.items():
-                occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
-                populate_occurrence_tenure_data(
-                    occurrence_geometry, value.get("features", [])
-                )
+            if intersect_data:
+                for key, value in intersect_data.items():
+                    occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
+                    populate_occurrence_tenure_data(
+                        occurrence_geometry, value.get("features", [])
+                    )
 
         # the request.data is only the habitat composition data thats been sent from front end
         location_data = request.data.get("location")

@@ -1,21 +1,16 @@
 import logging
+import re
 
+import pyproj
 from django.conf import settings
 from django.core.cache import cache
 from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
 
-from boranga.components.main.models import GlobalSettings
-from boranga.components.main.serializers import (
-    GlobalSettingsSerializer,
-)
 from boranga import helpers
+from boranga.components.main.models import GlobalSettings
+from boranga.components.main.serializers import GlobalSettingsSerializer
 
-import pyproj
-import re
-
-logger = logging.getLogger("payment_checkout")
+logger = logging.getLogger(__name__)
 
 
 class GlobalSettingsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -28,8 +23,8 @@ class GlobalSettingsViewSet(viewsets.ReadOnlyModelViewSet):
             return qs
 
 
-class UserActionLoggingViewset(viewsets.ModelViewSet):
-    """Class that extends the ModelViewSet to log the common user actions
+class RetrieveActionLoggingViewset:
+    """Mixin to automatically log user actions when a user retrieves an instance.
 
     will scan the instance provided for the fields listed in settings
     use the first one it finds. If it doesn't find one it will raise an AttributeError.
@@ -39,46 +34,12 @@ class UserActionLoggingViewset(viewsets.ModelViewSet):
         instance = self.get_object()
         instance.log_user_action(
             settings.ACTION_VIEW.format(
-                instance._meta.verbose_name.title(),  # pylint: disable=protected-access
+                instance._meta.verbose_name.title(),
                 helpers.get_instance_identifier(instance),
             ),
             request,
         )
         return super().retrieve(request, *args, **kwargs)
-
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        instance = response.data.serializer.instance
-        instance.log_user_action(
-            settings.ACTION_CREATE.format(
-                instance._meta.verbose_name.title(),  # pylint: disable=protected-acces
-                helpers.get_instance_identifier(instance),
-            ),
-            request,
-        )
-        return response
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.log_user_action(
-            settings.ACTION_UPDATE.format(
-                instance._meta.verbose_name.title(),  # pylint: disable=protected-access
-                helpers.get_instance_identifier(instance),
-            ),
-            request,
-        )
-        return super().update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.log_user_action(
-            settings.ACTION_DESTROY.format(
-                instance._meta.verbose_name.title(),  # pylint: disable=protected-access
-                helpers.get_instance_identifier(instance),
-            ),
-            request,
-        )
-        return super().destroy(request, *args, **kwargs)
 
 
 def proj4_string_from_epsg_code(code):
@@ -156,10 +117,3 @@ def search_datums(search, codes=None):
 
     return datums
 
-
-class DatumSearchMixing:
-    @action(detail=False, methods=["get"], url_path="epsg-code-datums")
-    def get_epsg_code_datums(self, request):
-        search = request.GET.get("search", None)
-
-        return Response(search_datums(search))

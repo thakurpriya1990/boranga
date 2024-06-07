@@ -16,7 +16,7 @@
                 </div>
             </form>
         </FormSection>
-        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="minutes_url">
+        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="minutes_url" :is_internal="is_internal">
         </DocumentDetail>
         <div v-if="minutesHistoryId">
             <MinutesHistory ref="minutes_history" :key="minutesHistoryId" :minutes-id="minutesHistoryId"

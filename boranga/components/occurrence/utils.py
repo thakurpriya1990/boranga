@@ -36,6 +36,9 @@ logger = logging.getLogger(__name__)
 
 @transaction.atomic
 def ocr_proposal_submit(ocr_proposal, request):
+
+    ocr_proposal.validate_submit()
+
     if not ocr_proposal.can_user_edit:
         raise ValidationError(
             "You can't submit this report at the moment due to the status or a permission issue"

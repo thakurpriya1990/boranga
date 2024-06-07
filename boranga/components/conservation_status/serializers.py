@@ -725,9 +725,9 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "readonly",
             "lodgement_date",
             "listing_date",
+            "review_due_date",
             "effective_from",
             "effective_to",
-            "review_date",
             "submitter",
             "applicant_type",
             "assigned_officer",
@@ -968,7 +968,7 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
             "comment",
             "lodgement_date",
             "listing_date",
-            "review_date",
+            "review_due_date",
             "applicant_type",
             "submitter",
             "readonly",
@@ -1403,17 +1403,21 @@ class ProposedDeclineSerializer(serializers.Serializer):
 
 class ProposedApprovalSerializer(serializers.Serializer):
     effective_from_date = serializers.DateField()
-    effective_to_date = serializers.DateField(required=False)
+    effective_to_date = serializers.DateField(required=False, allow_null=True)
     details = serializers.CharField()
     cc_email = serializers.CharField(required=False, allow_null=True)
 
-    def validate_effective_to_date(self, value):
-        effective_from_date = self.initial_data.get("effective_from_date")
-        if effective_from_date and value < effective_from_date:
+    def validate(self, data):
+        if (
+            data.get("effective_to_date", None)
+            and data["effective_to_date"] < data["effective_from_date"]
+        ):
             raise serializers.ValidationError(
-                "Effective to date must be greater than effective from date."
+                {
+                    "effective_to_date": "Effective to date must be greater than effective from date."
+                }
             )
-        return value
+        return data
 
 
 class ConservationStatusDocumentSerializer(serializers.ModelSerializer):
@@ -1436,6 +1440,7 @@ class ConservationStatusDocumentSerializer(serializers.ModelSerializer):
             "document_sub_category",
             "document_sub_category_name",
             "visible",
+            "can_submitter_access",
         )
         read_only_fields = ("id", "document_number")
 
@@ -1479,3 +1484,16 @@ class SaveConservationStatusDocumentSerializer(serializers.ModelSerializer):
                     setattr(instance, field_name, validated_data[field_name])
             instance.save(*args, **kwargs)
             return instance
+
+
+class InternalSaveConservationStatusDocumentSerializer(
+    SaveConservationStatusDocumentSerializer
+):
+    class Meta:
+        model = ConservationStatusDocument
+        fields = SaveConservationStatusDocumentSerializer.Meta.fields + (
+            "can_submitter_access",
+        )
+        read_only_fields = (
+            SaveConservationStatusDocumentSerializer.Meta.read_only_fields
+        )

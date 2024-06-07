@@ -1,4 +1,5 @@
 import json
+import logging
 from io import BytesIO
 
 import pandas as pd
@@ -10,7 +11,7 @@ from django.urls import reverse
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import views, viewsets, mixins
+from rest_framework import mixins, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -21,7 +22,6 @@ from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 
 from boranga import helpers
 from boranga.components.conservation_status.models import ConservationStatus
-from boranga.components.main.api import UserActionLoggingViewset
 from boranga.components.meetings.models import (
     AgendaItem,
     Committee,
@@ -45,40 +45,32 @@ from boranga.components.meetings.serializers import (
     SaveMeetingSerializer,
     SaveMinutesSerializer,
 )
-from boranga.helpers import is_internal
+from boranga.helpers import is_conservation_status_approver, is_internal
+
+logger = logging.getLogger(__name__)
 
 
 class MeetingFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
 
-        filter_meeting_type = request.GET.get("meeting_status")
-        if queryset.model is Meeting:
-            if filter_meeting_type:
-                # queryset = queryset.filter(species__group_type__name=filter_group_type)
-                # changed to application_type (ie group_type)
-                queryset = queryset
-
         filter_from_start_date = request.GET.get("filter_from_start_date")
         filter_to_start_date = request.GET.get("filter_to_start_date")
-        print(filter_to_start_date)
         filter_from_end_date = request.GET.get("filter_from_end_date")
         filter_to_end_date = request.GET.get("filter_to_end_date")
-        if queryset.model is Meeting:
-            if filter_from_start_date:
-                queryset = queryset.filter(start_date__gte=filter_from_start_date)
-            if filter_to_start_date:
-                queryset = queryset.filter(start_date__lte=filter_to_start_date)
+        if filter_from_start_date:
+            queryset = queryset.filter(start_date__gte=filter_from_start_date)
+        if filter_to_start_date:
+            queryset = queryset.filter(start_date__lte=filter_to_start_date)
 
-            if filter_from_end_date:
-                queryset = queryset.filter(end_date__gte=filter_from_end_date)
-            if filter_to_end_date:
-                queryset = queryset.filter(end_date__lte=filter_to_end_date)
+        if filter_from_end_date:
+            queryset = queryset.filter(end_date__gte=filter_from_end_date)
+        if filter_to_end_date:
+            queryset = queryset.filter(end_date__lte=filter_to_end_date)
 
         filter_meeting_status = request.GET.get("filter_meeting_status")
         if filter_meeting_status and not filter_meeting_status.lower() == "all":
-            if queryset.model is Meeting:
-                queryset = queryset.filter(processing_status=filter_meeting_status)
+            queryset = queryset.filter(processing_status=filter_meeting_status)
 
         fields = self.get_fields(request)
         ordering = self.get_ordering(request, view, fields)
@@ -86,10 +78,8 @@ class MeetingFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -149,7 +139,6 @@ class MeetingPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             return flattened_dict
 
         flattened_data = [flatten_dict(item) for item in filtered_data]
-        print(flattened_data)
         df = pd.DataFrame(flattened_data)
         new_headings = [
             "Number",
@@ -208,7 +197,7 @@ class MeetingPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                 return Response(status=400, data="Format not valid")
 
 
-class MeetingViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
+class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Meeting.objects.none()
     serializer_class = MeetingSerializer
 
@@ -219,6 +208,11 @@ class MeetingViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         return Meeting.objects.none()
 
     def create(self, request, *args, **kwargs):
+        if not is_conservation_status_approver(request):
+            return Response(
+                {"message": "You do not have permission to create a meeting"},
+                status=403,
+            )
         serializer = CreateMeetingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
@@ -251,6 +245,12 @@ class MeetingViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
     def meeting_save(self, request, *args, **kwargs):
+        if not is_conservation_status_approver(request):
+            return Response(
+                {"message": "You do not have permission to save a meeting"},
+                status=403,
+            )
+
         instance = self.get_object()
         request_data = request.data
         # to resolve error for serializer submitter id as object is received in request
@@ -514,7 +514,7 @@ class GetMeetingDict(views.APIView):
         return HttpResponse(res_json, content_type="application/json")
 
 
-class MinutesViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
+class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Minutes.objects.none()
     serializer_class = MinutesSerializer
 
@@ -592,8 +592,9 @@ class MinutesViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         return Response(serializer.data)
 
 
-#TODO: review - what is this used for and how should it work? Right now selecting a committee does not appear to have any persistent effect
-class CommitteeViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
+# TODO: review - what is this used for and how should it work?
+# Right now selecting a committee does not appear to have any persistent effect
+class CommitteeViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Committee.objects.none()
     serializer_class = None
 
@@ -620,7 +621,7 @@ class CommitteeViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         return Response(serializer.data)
 
 
-class AgendaItemViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
+class AgendaItemViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = AgendaItem.objects.none()
     serializer_class = AgendaItemSerializer
 

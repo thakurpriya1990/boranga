@@ -116,7 +116,7 @@
                     />
                 </div>
             </div>
-            <div class="row mb-3">
+            <!--<div class="row mb-3">
                 <label class="col-sm-3 control-label">New Occurrence</label>
                 <div class="col-sm-1">
                     <input
@@ -138,33 +138,17 @@
                     />&nbsp;
                     <label for="newOccurrenceNo">No</label>
                 </div>
-            </div>
+            </div>-->
 
             <div class="row mb-3">
-                <label class="col-sm-3 control-label">Mapped Boundary</label>
-                <div class="col-sm-1">
-                    <input
-                        id="mapBoundaryYes"
-                        v-model="occurrence_report_obj.location.mapped_boundary"
-                        :disabled="isReadOnly"
-                        type="radio"
-                        value="true"
-                    />&nbsp;
-                    <label for="mapBoundaryYes">Yes</label>
-                </div>
-                <div class="col-sm-1">
-                    <input
-                        id="mapBoundaryNo"
-                        v-model="occurrence_report_obj.location.mapped_boundary"
-                        :disabled="isReadOnly"
-                        type="radio"
-                        value="false"
-                    />&nbsp;
-                    <label for="mapBoundaryNo">No</label>
+                <label for="" class="col-sm-3 control-label">Map Data Type</label>
+                <div class="col-sm-6">
+                    <label class="me-2">Boundary</label><input disabled type="radio" :checked="occurrence_report_obj.location.has_boundary" class="form-check-input me-2">
+                    <label class="me-2">Point/s</label><input disabled type="radio" :checked="occurrence_report_obj.location.has_points" class="form-check-input me-2">
                 </div>
             </div>
 
-            <div class="row mb-3">
+            <!--<div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Datum:</label>
                 <div class="col-sm-9">
                     <VueSelect
@@ -200,7 +184,7 @@
                         placeholder=""
                     />
                 </div>
-            </div>
+            </div>-->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
                     >Coordination Source:</label
@@ -225,7 +209,7 @@
                 </div>
             </div>
 
-            <div v-if="canAssess" class="row mb-3">
+            <!--<div v-if="canAssess" class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
                     >Boundary(m) :</label
                 >
@@ -256,10 +240,10 @@
                         min="0"
                     />
                 </div>
-            </div>
+            </div>-->
             <div v-if="canAssess" class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
-                    >Location Accuracy/Certainty:</label
+                    >Location Accuracy:</label
                 >
                 <div class="col-sm-9">
                     <select

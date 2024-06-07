@@ -16,6 +16,7 @@ from rest_framework import mixins, serializers, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -49,6 +50,7 @@ from boranga.components.conservation_status.serializers import (
     CreateConservationStatusSerializer,
     DTConservationStatusReferralSerializer,
     InternalConservationStatusSerializer,
+    InternalSaveConservationStatusDocumentSerializer,
     ListCommunityConservationStatusSerializer,
     ListConservationStatusSerializer,
     ListSpeciesConservationStatusSerializer,
@@ -1782,6 +1784,13 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         qs = qs.exclude(
             input_name="conservation_status_approval_doc"
         )  # TODO do we need/not to show approval doc in cs documents tab
+        if not is_internal(request) and is_external_contributor(request):
+            qs = qs.filter(
+                conservation_status__submitter=self.request.user.id,
+                visible=True,
+                can_submitter_access=True,
+            )
+
         qs = qs.order_by("-uploaded_date")
         serializer = ConservationStatusDocumentSerializer(
             qs, many=True, context={"request": request}
@@ -2219,10 +2228,18 @@ class ConservationStatusDocumentViewSet(
     serializer_class = ConservationStatusDocumentSerializer
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
-            qs = ConservationStatusDocument.objects.all().order_by("id")
-            return qs
+        if is_internal(self.request):
+            return ConservationStatusDocument.objects.all().order_by("id")
+        if is_external_contributor(self.request):
+            return ConservationStatusDocument.objects.filter(
+                conservation_status__submitter=self.request.user.id,
+                visible=True,
+                can_submitter_access=True,
+            )
         return ConservationStatusDocument.objects.none()
+
+    def get_serializer_class(self):
+        return super().get_serializer_class()
 
     @detail_route(
         methods=[
@@ -2252,20 +2269,32 @@ class ConservationStatusDocumentViewSet(
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = SaveConservationStatusDocumentSerializer(
-            instance, data=json.loads(request.data.get("data"))
-        )
+        data = json.loads(request.data.get("data"))
+        serializer = SaveConservationStatusDocumentSerializer(instance, data=data)
+        if is_internal(self.request):
+            serializer = InternalSaveConservationStatusDocumentSerializer(
+                instance, data=data
+            )
+
         serializer.is_valid(raise_exception=True)
         serializer.save(no_revision=True)
         instance.add_documents(request, version_user=request.user)
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        serializer = SaveConservationStatusDocumentSerializer(
-            data=json.loads(request.data.get("data"))
-        )
+        if not is_internal(self.request) and not is_external_contributor(self.request):
+            raise PermissionDenied()
+
+        data = json.loads(request.data.get("data"))
+        serializer = SaveConservationStatusDocumentSerializer(data=data)
+        if is_internal(self.request):
+            serializer = InternalSaveConservationStatusDocumentSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(no_revision=True)
+        if is_external_contributor(self.request):
+            instance.can_submitter_access = True
+            instance.save()
+
         instance.add_documents(request, version_user=request.user)
         return Response(serializer.data)
 

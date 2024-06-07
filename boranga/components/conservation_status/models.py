@@ -293,8 +293,8 @@ class ConservationChangeCode(models.Model):
         return str(self.code)
 
     @classmethod
-    def get_delisted_change_code(cls):
-        return cls.objects.get(code=settings.CONSERVATION_CHANGE_CODE_DELIST)
+    def get_closed_change_code(cls):
+        return cls.objects.get(code=settings.CONSERVATION_CHANGE_CODE_CLOSE)
 
     @classmethod
     def get_filter_list(cls):
@@ -387,6 +387,7 @@ class ConservationStatus(RevisionedMixin):
     PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_DISCARDED_INTERNALLY = "discarded_internally"
     PROCESSING_STATUS_CLOSED = "closed"
+    PROCESSING_STATUS_DELISTED = "delisted"
     PROCESSING_STATUS_PARTIALLY_APPROVED = "partially_approved"
     PROCESSING_STATUS_PARTIALLY_DECLINED = "partially_declined"
     PROCESSING_STATUS_CHOICES = (
@@ -401,7 +402,8 @@ class ConservationStatus(RevisionedMixin):
         (PROCESSING_STATUS_APPROVED, "Approved"),
         (PROCESSING_STATUS_DECLINED, "Declined"),
         (PROCESSING_STATUS_DISCARDED, "Discarded"),
-        (PROCESSING_STATUS_CLOSED, "DeListed"),
+        (PROCESSING_STATUS_DELISTED, "DeListed"),
+        (PROCESSING_STATUS_CLOSED, "Closed"),
         (PROCESSING_STATUS_PARTIALLY_APPROVED, "Partially Approved"),
         (PROCESSING_STATUS_PARTIALLY_DECLINED, "Partially Declined"),
     )
@@ -576,7 +578,6 @@ class ConservationStatus(RevisionedMixin):
     )
     comment = models.CharField(max_length=512, blank=True, null=True)
     review_due_date = models.DateField(null=True, blank=True)
-    review_date = models.DateField(null=True, blank=True)
     reviewed_by = models.IntegerField(null=True)  # EmailUserRO
     recurrence_pattern = models.SmallIntegerField(
         choices=RECURRENCE_PATTERNS, default=1
@@ -743,6 +744,7 @@ class ConservationStatus(RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_TEMP,
             ConservationStatus.PROCESSING_STATUS_DISCARDED,
             ConservationStatus.PROCESSING_STATUS_CLOSED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
         ]
         return self.processing_status not in officer_view_state
 
@@ -875,6 +877,7 @@ class ConservationStatus(RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
             ConservationStatus.PROCESSING_STATUS_CLOSED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
         ]:
             if ConservationStatusReferral.objects.filter(
                 conservation_status=self, referral=request.user.id
@@ -1377,7 +1380,7 @@ class ConservationStatus(RevisionedMixin):
                 ConservationStatus.PROCESSING_STATUS_CLOSED
             )
             previous_approved_version.change_code = (
-                ConservationChangeCode.get_delisted_change_code()
+                ConservationChangeCode.get_closed_change_code()
             )
             if self.effective_from:
                 previous_approved_version.effective_to = (
@@ -1565,7 +1568,7 @@ class ConservationStatus(RevisionedMixin):
                 "member of the conservation status approver group"
             )
 
-        self.processing_status = ConservationStatus.PROCESSING_STATUS_CLOSED
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_DELISTED
         self.save()
 
         # Log proposal action
@@ -1773,6 +1776,9 @@ class ConservationStatusDocument(Document):
         default=True
     )  # after initial submit prevent document from being deleted
     can_hide = models.BooleanField(
+        default=False
+    )  # after initial submit, document cannot be deleted but can be hidden
+    can_submitter_access = models.BooleanField(
         default=False
     )  # after initial submit, document cannot be deleted but can be hidden
     hidden = models.BooleanField(

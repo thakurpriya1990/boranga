@@ -826,15 +826,6 @@ export default {
                 },
                 initComplete: function () {
                     helpers.enablePopovers();
-
-                    // Only search if either 3 characters are entered or enter key is pressed
-                    var $searchInput = $('div.dataTables_filter input');
-                    $searchInput.unbind('keyup search input');
-                    $searchInput.bind('keypress', (vm.delay(function(e) {
-                        if (this.value.length > 2 || e.which == 13) {
-                            vm.$refs.flora_datatable.vmDataTable.search(this.value).draw();
-                        }
-                    }, 0)));
                 },
             }
         }
