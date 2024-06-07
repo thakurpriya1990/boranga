@@ -3986,13 +3986,22 @@ class OccurrenceTenure(models.Model):
 
     @property
     def typename(self):
-        # Should relate to the geoserver table name
-        return "CPT_CADASTRE_SCDB"
+        # The typeName (layer name) part of the tenure_area_id
+        return self.tenure_area_id.split(".")[0]
 
     @property
     def featureid(self):
-        # TODO: string split
-        return self.tenure_area_id
+        # The featureId part of the tenure_area_id
+        return self.tenure_area_id.split(".")[-1]
+
+    @property
+    def geometry(self):
+        from boranga.components.spatial.utils import wkb_to_geojson
+        return wkb_to_geojson(self.occurrence_geometry.geometry.ewkb)
+
+    @property
+    def occurrence(self):
+        return self.occurrence_geometry.occurrence
 
 
 # Occurrence Report Document
