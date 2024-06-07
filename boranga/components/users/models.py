@@ -57,6 +57,11 @@ class SubmitterInformationModelMixin:
         super().save(*args, **kwargs)
 
     def create_submitter_information(self):
+        if not hasattr(self, "submitter") or not hasattr(self, "submitter_information"):
+            raise AttributeError(
+                "To use SubmitterInformationModelMixin, the model must have a submitter and submitter_information field"
+            )
+
         if not self.submitter or self.submitter_information:
             return
 
