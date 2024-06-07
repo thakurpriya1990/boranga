@@ -373,6 +373,11 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
 
+    land_form = serializers.MultipleChoiceField(
+        choices=[],
+        allow_null=True, allow_blank=True, required=False
+    )
+
     class Meta:
         model = OCRHabitatComposition
         fields = (
@@ -389,6 +394,9 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
             "habitat_notes",
         )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["land_form"].choices = OCRHabitatComposition._meta.get_field("land_form").choices
 
 class OCRHabitatConditionSerializer(serializers.ModelSerializer):
 
@@ -500,6 +508,16 @@ class OCRPlantCountSerializer(serializers.ModelSerializer):
 
 class OCRAnimalObservationSerializer(serializers.ModelSerializer):
 
+    primary_detection_method = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
+    secondary_sign = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
+    reproductive_maturity = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
+
     class Meta:
         model = OCRAnimalObservation
         fields = (
@@ -527,28 +545,9 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["primary_detection_method"] = serializers.MultipleChoiceField(
-            choices=[
-                (primary_det_instance.id, primary_det_instance.name)
-                for primary_det_instance in PrimaryDetectionMethod.objects.all()
-            ],
-            allow_blank=False,
-        )
-        self.fields["secondary_sign"] = serializers.MultipleChoiceField(
-            choices=[
-                (sec_sign_instance.id, sec_sign_instance.name)
-                for sec_sign_instance in SecondarySign.objects.all()
-            ],
-            allow_blank=False,
-        )
-        self.fields["reproductive_maturity"] = serializers.MultipleChoiceField(
-            choices=[
-                (rep_maturity_instance.id, rep_maturity_instance.name)
-                for rep_maturity_instance in ReproductiveMaturity.objects.all()
-            ],
-            allow_blank=False,
-        )
-
+        self.fields["primary_detection_method"].choices = OCRAnimalObservation._meta.get_field("primary_detection_method").choices
+        self.fields["secondary_sign"].choices = OCRAnimalObservation._meta.get_field("secondary_sign").choices
+        self.fields["reproductive_maturity"].choices = OCRAnimalObservation._meta.get_field("reproductive_maturity").choices
 
 class OCRIdentificationSerializer(serializers.ModelSerializer):
 
@@ -1244,7 +1243,7 @@ class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
     land_form = serializers.MultipleChoiceField(
-        choices=OCRHabitatComposition.LANDFORM_CHOICES,
+        choices=[],
         allow_null=True, allow_blank=True, required=False
     )
     rock_type_id = serializers.IntegerField(required=False, allow_null=True)
@@ -1441,18 +1440,9 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["primary_detection_method"].choices = [
-            (primary_det_instance.id, primary_det_instance.name)
-            for primary_det_instance in PrimaryDetectionMethod.objects.all()
-        ]
-        self.fields["secondary_sign"].choices = [
-            (sec_sign_instance.id, sec_sign_instance.name)
-            for sec_sign_instance in SecondarySign.objects.all()
-        ]
-        self.fields["reproductive_maturity"].choices = [
-            (rep_maturity_instance.id, rep_maturity_instance.name)
-            for rep_maturity_instance in ReproductiveMaturity.objects.all()
-        ]
+        self.fields["primary_detection_method"].choices = OCRAnimalObservation._meta.get_field("primary_detection_method").choices
+        self.fields["secondary_sign"].choices = OCRAnimalObservation._meta.get_field("secondary_sign").choices
+        self.fields["reproductive_maturity"].choices = OCRAnimalObservation._meta.get_field("reproductive_maturity").choices
 
 
 class SaveOCRIdentificationSerializer(serializers.ModelSerializer):
@@ -2024,6 +2014,11 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
 
 class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
 
+    land_form = serializers.MultipleChoiceField(
+        choices=[],
+        allow_null=True, allow_blank=True, required=False
+    )
+
     class Meta:
         model = OCCHabitatComposition
         fields = (
@@ -2040,6 +2035,9 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
             "habitat_notes",
         )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["land_form"].choices = OCCHabitatComposition._meta.get_field("land_form").choices
 
 class OCCHabitatConditionSerializer(serializers.ModelSerializer):
 
@@ -2167,6 +2165,16 @@ class OCCPlantCountSerializer(serializers.ModelSerializer):
 
 class OCCAnimalObservationSerializer(serializers.ModelSerializer):
 
+    primary_detection_method = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
+    secondary_sign = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
+    reproductive_maturity = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
+
     class Meta:
         model = OCCAnimalObservation
         fields = (
@@ -2191,31 +2199,12 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "alive_unsure",
             "dead_unsure",
         )
-
+        
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["primary_detection_method"] = serializers.MultipleChoiceField(
-            choices=[
-                (primary_det_instance.id, primary_det_instance.name)
-                for primary_det_instance in PrimaryDetectionMethod.objects.all()
-            ],
-            allow_blank=False,
-        )
-        self.fields["secondary_sign"] = serializers.MultipleChoiceField(
-            choices=[
-                (sec_sign_instance.id, sec_sign_instance.name)
-                for sec_sign_instance in SecondarySign.objects.all()
-            ],
-            allow_blank=False,
-        )
-        self.fields["reproductive_maturity"] = serializers.MultipleChoiceField(
-            choices=[
-                (rep_maturity_instance.id, rep_maturity_instance.name)
-                for rep_maturity_instance in ReproductiveMaturity.objects.all()
-            ],
-            allow_blank=False,
-        )
-
+        self.fields["primary_detection_method"].choices = OCCAnimalObservation._meta.get_field("primary_detection_method").choices
+        self.fields["secondary_sign"].choices = OCCAnimalObservation._meta.get_field("secondary_sign").choices
+        self.fields["reproductive_maturity"].choices = OCCAnimalObservation._meta.get_field("reproductive_maturity").choices
 
 class OCCIdentificationSerializer(serializers.ModelSerializer):
 
@@ -2255,7 +2244,8 @@ class SaveOCCHabitatCompositionSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_id = serializers.IntegerField(required=False, allow_null=True)
     land_form = serializers.MultipleChoiceField(
-        choices=OCCHabitatComposition.LANDFORM_CHOICES
+        choices=[],
+        allow_null=True, allow_blank=True, required=False
     )
     rock_type_id = serializers.IntegerField(required=False, allow_null=True)
     soil_type_id = serializers.IntegerField(required=False, allow_null=True)
@@ -2435,18 +2425,9 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["primary_detection_method"].choices = [
-            (primary_det_instance.id, primary_det_instance.name)
-            for primary_det_instance in PrimaryDetectionMethod.objects.all()
-        ]
-        self.fields["secondary_sign"].choices = [
-            (sec_sign_instance.id, sec_sign_instance.name)
-            for sec_sign_instance in SecondarySign.objects.all()
-        ]
-        self.fields["reproductive_maturity"].choices = [
-            (rep_maturity_instance.id, rep_maturity_instance.name)
-            for rep_maturity_instance in ReproductiveMaturity.objects.all()
-        ]
+        self.fields["primary_detection_method"].choices = OCCAnimalObservation._meta.get_field("primary_detection_method").choices
+        self.fields["secondary_sign"].choices = OCCAnimalObservation._meta.get_field("secondary_sign").choices
+        self.fields["reproductive_maturity"].choices = OCCAnimalObservation._meta.get_field("reproductive_maturity").choices
 
 
 class SaveOCCIdentificationSerializer(serializers.ModelSerializer):
