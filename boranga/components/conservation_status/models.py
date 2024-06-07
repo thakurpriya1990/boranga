@@ -387,6 +387,7 @@ class ConservationStatus(RevisionedMixin):
     PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_DISCARDED_INTERNALLY = "discarded_internally"
     PROCESSING_STATUS_CLOSED = "closed"
+    PROCESSING_STATUS_DELISTED = "delisted"
     PROCESSING_STATUS_PARTIALLY_APPROVED = "partially_approved"
     PROCESSING_STATUS_PARTIALLY_DECLINED = "partially_declined"
     PROCESSING_STATUS_CHOICES = (
@@ -401,7 +402,8 @@ class ConservationStatus(RevisionedMixin):
         (PROCESSING_STATUS_APPROVED, "Approved"),
         (PROCESSING_STATUS_DECLINED, "Declined"),
         (PROCESSING_STATUS_DISCARDED, "Discarded"),
-        (PROCESSING_STATUS_CLOSED, "DeListed"),
+        (PROCESSING_STATUS_DELISTED, "DeListed"),
+        (PROCESSING_STATUS_CLOSED, "Closed"),
         (PROCESSING_STATUS_PARTIALLY_APPROVED, "Partially Approved"),
         (PROCESSING_STATUS_PARTIALLY_DECLINED, "Partially Declined"),
     )
@@ -743,6 +745,7 @@ class ConservationStatus(RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_TEMP,
             ConservationStatus.PROCESSING_STATUS_DISCARDED,
             ConservationStatus.PROCESSING_STATUS_CLOSED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
         ]
         return self.processing_status not in officer_view_state
 
@@ -875,6 +878,7 @@ class ConservationStatus(RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
             ConservationStatus.PROCESSING_STATUS_CLOSED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
         ]:
             if ConservationStatusReferral.objects.filter(
                 conservation_status=self, referral=request.user.id
@@ -1565,7 +1569,7 @@ class ConservationStatus(RevisionedMixin):
                 "member of the conservation status approver group"
             )
 
-        self.processing_status = ConservationStatus.PROCESSING_STATUS_CLOSED
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_DELISTED
         self.save()
 
         # Log proposal action

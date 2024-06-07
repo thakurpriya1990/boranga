@@ -1407,13 +1407,17 @@ class ProposedApprovalSerializer(serializers.Serializer):
     details = serializers.CharField()
     cc_email = serializers.CharField(required=False, allow_null=True)
 
-    def validate_effective_to_date(self, value):
-        effective_from_date = self.initial_data.get("effective_from_date")
-        if effective_from_date and value < effective_from_date:
+    def validate(self, data):
+        if (
+            data["effective_to_date"]
+            and data["effective_to_date"] < data["effective_from_date"]
+        ):
             raise serializers.ValidationError(
-                "Effective to date must be greater than effective from date."
+                {
+                    "effective_to_date": "Effective to date must be greater than effective from date."
+                }
             )
-        return value
+        return data
 
 
 class ConservationStatusDocumentSerializer(serializers.ModelSerializer):
