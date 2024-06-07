@@ -1134,6 +1134,7 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
             "reference",
             "deficiency_data",
             "assessor_data",
+            "change_code_id",
         )
         read_only_fields = ("id",)
 
