@@ -1,5 +1,5 @@
 from django.forms import ValidationError
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from boranga.components.spatial.models import Proxy
@@ -27,4 +27,5 @@ def mapProxyView(request, request_path, path):
         remoteurl = proxy.get("proxy_url") + path
 
     response = process_proxy(request, remoteurl, queryString, auth_user, auth_password)
+
     return response
