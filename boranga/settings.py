@@ -103,7 +103,6 @@ INSTALLED_APPS += [
     "boranga.components.conservation_status",
     "boranga.components.users",
     "boranga.components.meetings",
-    "boranga.components.conservation_plan",
     "boranga.components.occurrence",
     "boranga.components.spatial",
     "taggit",

@@ -125,7 +125,8 @@
                         <label for="submitter-category">Submitter Category:</label>
                         <select id="submitter-category" class="form-select" v-model="filterCSFloraSubmitterCategory">
                             <option value="all">All</option>
-                            <option v-for="submitter_category in submitter_categories" :value="submitter_category.id">{{ submitter_category.name }}
+                            <option v-for="submitter_category in submitter_categories" :value="submitter_category.id">{{
+                                submitter_category.name }}
                             </option>
                         </select>
                     </div>
@@ -181,8 +182,7 @@
             <div v-if="speciesConservationStatusHistoryId">
                 <SpeciesConservationStatusHistory ref="species_conservation_status_history"
                     :key="speciesConservationStatusHistoryId"
-                    :conservation-status-id="speciesConservationStatusHistoryId" :species-id="speciesHistoryId"
-                    :conservation-list-id="listHistoryId" />
+                    :conservation-status-id="speciesConservationStatusHistoryId" :species-id="speciesHistoryId" />
             </div>
         </div>
     </div>
@@ -920,14 +920,14 @@ export default {
                                 links += `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
                                 links += `<a href='#' data-history-conservation-status-species='${full.id}'
                                 data-history-species='${full.species_number}'
-                                data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
+                                >History</a><br>`;
                             }
                             else {
                                 if (full.assessor_process || full.approver_process) {
                                     links += `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
                                     links += `<a href='#' data-history-conservation-status-species='${full.id}'
                                         data-history-species='${full.species_number}'
-                                        data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
+                                        >History</a><br>`;
                                 }
                                 else {
                                     if (full.assessor_edit) {
@@ -936,7 +936,7 @@ export default {
                                     links += `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
                                     links += `<a href='#' data-history-conservation-status-species='${full.id}'
                                     data-history-species='${full.species_number}'
-                                    data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
+                                    >History</a><br>`;
                                 }
                             }
                         }
@@ -1103,9 +1103,8 @@ export default {
         }
     },
     methods: {
-        historyDocument: function (id, list, species) {
+        historyDocument: function (id, species) {
             this.speciesConservationStatusHistoryId = parseInt(id);
-            this.listHistoryId = list ? list : "List not specified";
             this.speciesHistoryId = species ? species : "not specified";
             this.uuid++;
             this.$nextTick(() => {
@@ -1474,9 +1473,8 @@ export default {
             vm.$refs.flora_cs_datatable.vmDataTable.on('click', 'a[data-history-conservation-status-species]', function (e) {
                 e.preventDefault();
                 var id = $(this).attr('data-history-conservation-status-species');
-                var list = $(this).attr('data-history-conservation-list');
                 var species = $(this).attr('data-history-species');
-                vm.historyDocument(id, list, species);
+                vm.historyDocument(id, species);
             });
             vm.$refs.flora_cs_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                 helpers.enablePopovers();

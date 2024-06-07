@@ -578,7 +578,6 @@ class ConservationStatus(RevisionedMixin):
     )
     comment = models.CharField(max_length=512, blank=True, null=True)
     review_due_date = models.DateField(null=True, blank=True)
-    review_date = models.DateField(null=True, blank=True)
     reviewed_by = models.IntegerField(null=True)  # EmailUserRO
     recurrence_pattern = models.SmallIntegerField(
         choices=RECURRENCE_PATTERNS, default=1

@@ -38,39 +38,130 @@
                             class="form-control" />
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="change-type">Change Type:</label>
+                        <select id="change-type" class="form-select" v-model="filterCSFaunaChangeCode">
+                            <option value="all">All</option>
+                            <option v-for="change_code in change_codes" :value="change_code.id">{{ change_code.code }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="wa-legislative-list">WA Legislative List:</label>
+                        <select id="wa-legislative-list" class="form-select" v-model="filterCSFaunaWALegislativeList">
+                            <option value="all">All</option>
+                            <option v-for="list in wa_legislative_lists" :value="list.id">{{ list.code }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="wa-legislative-category">WA Legislative Category:</label>
+                        <select id="wa-legislative-category" class="form-select"
+                            v-model="filterCSFaunaWALegislativeCategory">
+                            <option value="all">All</option>
+                            <option v-for="list in wa_legislative_categories" :value="list.id">{{ list.code }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="wa-priority-category">WA Priority Category:</label>
+                        <select id="wa-priority-category" class="form-select" v-model="filterCSFaunaWAPriorityCategory">
+                            <option value="all">All</option>
+                            <option v-for="list in wa_priority_categories" :value="list.id">{{ list.code }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-check-label" for="commonwealth-relevance">Commonwealth Relevance</label>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" id="commonwealth-relevance"
+                                v-model="filterCSFaunaCommonwealthRelevance" true-value="true" false-value="false">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-check-label" for="international-relevance">International Relevance</label>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" id="international-relevance"
+                                v-model="filterCSFaunaInternationalRelevance" true-value="true" false-value="false">
+                        </div>
+                    </div>
+                </div>
                 <div class="col-md-3" v-show="!is_for_agenda">
                     <div class="form-group">
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSFaunaApplicationStatus">
                             <option value="all">All</option>
-                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
+                            <option v-for="status in processing_statuses" :value="status.value">{{ status.name }}
+                            </option>
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3" v-show="!is_for_agenda">
-                    <div class="form-group">
-                        <label for="">Effective From Date Range:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_from_date" v-model="filterCSFromFaunaEffectiveFromDate">
+                <div class="col-md-3">
+                    <div class="form-group" id="select_assessor">
+                        <label for="cs_assessor_lookup">Assessor:</label>
+                        <select id="cs_assessor_lookup" name="cs_assessor_lookup" ref="cs_assessor_lookup"
+                            class="form-control" />
                     </div>
                 </div>
-                <div class="col-md-3" v-show="!is_for_agenda">
-                    <div class="form-group">
-                        <label for=""></label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date" v-model="filterCSToFaunaEffectiveFromDate">
+                <div class="col-md-3">
+                    <div class="form-group" id="select_submitter">
+                        <label for="cs_submitter_lookup">Submitter:</label>
+                        <select id="cs_submitter_lookup" name="cs_submitter_lookup" ref="cs_submitter_lookup"
+                            class="form-control" />
                     </div>
                 </div>
-
-                <div class="col-md-3" v-show="!is_for_agenda">
+                <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Effective To Date Range:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_to_date" v-model="filterCSFromFaunaEffectiveToDate">
+                        <label for="submitter-category">Submitter Category:</label>
+                        <select id="submitter-category" class="form-select" v-model="filterCSFaunaSubmitterCategory">
+                            <option value="all">All</option>
+                            <option v-for="submitter_category in submitter_categories" :value="submitter_category.id">{{
+                                submitter_category.name }}
+                            </option>
+                        </select>
                     </div>
                 </div>
-
-                <div class="col-md-3" v-show="!is_for_agenda">
-                    <div class="form-group">
-                        <label for=""></label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_to_date" v-model="filterCSToFaunaEffectiveToDate">
+                <div class="col-md-6" v-show="!is_for_agenda">
+                    <label for="" class="form-label px-2">Effective From Date Range:</label>
+                    <div class="input-group px-2 mb-2">
+                        <span class="input-group-text">From </span>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_from_date"
+                            v-model="filterCSFromFaunaEffectiveFromDate">
+                        <span class="input-group-text"> to </span>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date"
+                            v-model="filterCSToFaunaEffectiveFromDate">
+                    </div>
+                </div>
+                <div class="col-md-6" v-show="!is_for_agenda">
+                    <label for="" class="form-label px-2">Effective To Date Range:</label>
+                    <div class="input-group px-2">
+                        <span class="input-group-text">From </span>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_to_date"
+                            v-model="filterCSFromFaunaEffectiveToDate">
+                        <span class="input-group-text"> to </span>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_to_date"
+                            v-model="filterCSToFaunaEffectiveToDate">
+                    </div>
+                </div>
+                <div class="col-md-6" v-show="!is_for_agenda">
+                    <label for="from_review_due_date" class="form-label px-2">Review Due Date Range:</label>
+                    <div class="input-group px-2">
+                        <span class="input-group-text">From </span>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_review_due_date"
+                            v-model="filterCSFromFaunaReviewDueDate">
+                        <span class="input-group-text"> to </span>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_review_due_date"
+                            v-model="filterCSToFaunaReviewDueDate">
                     </div>
                 </div>
             </div>
@@ -98,18 +189,13 @@
     </div>
 </template>
 <script>
-//require('@popperjs/core');
-//import { createPopper } from '@popperjs/core';
-//require('popperjs');
-//require('bootstrap');
 import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
 import SpeciesConservationStatusHistory from '../internal/conservation_status/species_conservation_status_history.vue';
 import Vue from 'vue'
-//require("select2/dist/css/select2.min.css");
-//require("select2-bootstrap-theme/dist/select2-bootstrap.min.css");
+
 import {
     api_endpoints,
     constants,
@@ -178,15 +264,50 @@ export default {
             required: false,
             default: 'filterCSFaunaGenus',
         },
-        filterCSFaunaConservationList_cache: {
+        filterCSFaunaChangeCode_cache: {
             type: String,
             required: false,
-            default: 'filterCSFaunaConservationList',
+            default: 'filterCSFaunaChangeCode',
         },
-        filterCSFaunaConservationCategory_cache: {
+        filterCSFaunaWALegislativeList_cache: {
             type: String,
             required: false,
-            default: 'filterCSFaunaConservationCategory',
+            default: 'filterCSFaunaWALegislativeList',
+        },
+        filterCSFaunaWALegislativeCategory_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaWALegislativeCategory',
+        },
+        filterCSFaunaWAPriorityCategory_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaWAPriorityCategory',
+        },
+        filterCSFaunaCommonwealthRelevance_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaCommonwealthRelevance',
+        },
+        filterCSFaunaInternationalRelevance_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaInternationalRelevance',
+        },
+        filterCSFaunaAssessor_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaAssessor',
+        },
+        filterCSFaunaSubmitter_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaSubmitter',
+        },
+        filterCSFaunaSubmitterCategory_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFaunaSubmitterCategory',
         },
         filterCSFaunaApplicationStatus_cache: {
             type: String,
@@ -213,6 +334,16 @@ export default {
             required: false,
             default: 'filterCSToFaunaEffectiveToDate',
         },
+        filterCSFromFaunaReviewDueDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFromFaunaReviewDueDate',
+        },
+        filterCSToFaunaReviewDueDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSToFaunaReviewDueDate',
+        },
     },
     data() {
         let vm = this;
@@ -238,31 +369,61 @@ export default {
             filterCSFaunaGenus: sessionStorage.getItem(this.filterCSFaunaGenus_cache) ?
                 sessionStorage.getItem(this.filterCSFaunaGenus_cache) : 'all',
 
-            filterCSFaunaConservationList: sessionStorage.getItem(this.filterCSFaunaConservationList_cache) ?
-                sessionStorage.getItem(this.filterCSFaunaConservationList_cache) : 'all',
+            filterCSFaunaChangeCode: sessionStorage.getItem(this.filterCSFaunaChangeCode_cache) ?
+                sessionStorage.getItem(this.filterCSFaunaChangeCode_cache) : 'all',
 
-            filterCSFaunaConservationCategory: sessionStorage.getItem(this.filterCSFaunaConservationCategory_cache) ?
-                sessionStorage.getItem(this.filterCSFaunaConservationCategory_cache) : 'all',
+            filterCSFaunaWALegislativeList: sessionStorage.getItem(this.filterCSFaunaWALegislativeList_cache) ?
+                sessionStorage.getItem(this.filterCSFaunaWALegislativeList_cache) : 'all',
+
+            filterCSFaunaWALegislativeCategory: sessionStorage.getItem(this.filterCSFaunaWALegislativeCategory_cache) ?
+                sessionStorage.getItem(this.filterCSFaunaWALegislativeCategory_cache) : 'all',
+
+            filterCSFaunaWAPriorityCategory: sessionStorage.getItem(this.filterCSFaunaWAPriorityCategory_cache) ?
+                sessionStorage.getItem(this.filterCSFaunaWAPriorityCategory_cache) : 'all',
+
+            filterCSFaunaCommonwealthRelevance: sessionStorage.getItem(this.filterCSFaunaCommonwealthRelevance_cache) ?
+                sessionStorage.getItem(this.filterCSFaunaCommonwealthRelevance_cache) : "false",
+
+            filterCSFaunaInternationalRelevance: sessionStorage.getItem(this.filterCSFaunaInternationalRelevance_cache) ?
+                sessionStorage.getItem(this.filterCSFaunaInternationalRelevance_cache) : "false",
+
+            filterCSFaunaAssessor: sessionStorage.getItem(this.filterCSFaunaAssessor_cache) ?
+                sessionStorage.getItem(this.filterCSFaunaAssessor_cache) : 'all',
+
+            filterCSFaunaSubmitter: sessionStorage.getItem(this.filterCSFaunaSubmitter_cache) ?
+                sessionStorage.getItem(this.filterCSFaunaSubmitter_cache) : 'all',
+
+            filterCSFaunaSubmitterCategory: sessionStorage.getItem(this.filterCSFaunaSubmitterCategory_cache) ?
+                sessionStorage.getItem(this.filterCSFaunaSubmitterCategory_cache) : 'all',
 
             filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'all',
+                sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'approved',
 
             filterCSFromFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) ?
-            sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) : '',
+                sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) : '',
             filterCSToFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCSToFaunaEffectiveFromDate_cache) ?
-            sessionStorage.getItem(this.filterCSToFaunaEffectiveFromDate_cache) : '',
+                sessionStorage.getItem(this.filterCSToFaunaEffectiveFromDate_cache) : '',
 
             filterCSFromFaunaEffectiveToDate: sessionStorage.getItem(this.filterCSFromFaunaEffectiveToDate_cache) ?
-            sessionStorage.getItem(this.filterCSFromFaunaEffectiveToDate_cache) : '',
+                sessionStorage.getItem(this.filterCSFromFaunaEffectiveToDate_cache) : '',
             filterCSToFaunaEffectiveToDate: sessionStorage.getItem(this.filterCSToFaunaEffectiveToDate_cache) ?
-            sessionStorage.getItem(this.filterCSToFaunaEffectiveToDate_cache) : '',
+                sessionStorage.getItem(this.filterCSToFaunaEffectiveToDate_cache) : '',
+
+            filterCSFromFaunaReviewDueDate: sessionStorage.getItem(this.filterCSFromFaunaReviewDueDate_cache) ?
+                sessionStorage.getItem(this.filterCSFromFaunaReviewDueDate_cache) : '',
+            filterCSToFaunaReviewDueDate: sessionStorage.getItem(this.filterCSToFaunaReviewDueDate_cache) ?
+                sessionStorage.getItem(this.filterCSToFaunaReviewDueDate_cache) : '',
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
             scientific_name_list: [],
             common_name_list: [],
             family_list: [],
-            phylogenetic_group_list: [],
+            change_codes: [],
+            submitter_categories: [],
+            wa_legislative_lists: [],
+            wa_legislative_categories: [],
+            wa_priority_categories: [],
 
             // filtering options
             external_status: [
@@ -276,16 +437,16 @@ export default {
             internal_status: [
                 { value: 'draft', name: 'Draft' },
                 { value: 'with_assessor', name: 'With Assessor' },
+                { value: 'with_approver', name: 'With Approver' },
                 { value: 'ready_for_agenda', name: 'Ready For Agenda' },
-                // {value: 'with_approver', name: 'With Approver'},
+                { value: 'closed', name: 'Closed' },
+                { value: 'delisted', name: 'DeListed' },
                 { value: 'with_referral', name: 'With Referral' },
                 { value: 'approved', name: 'Approved' },
                 { value: 'declined', name: 'Declined' },
-                { value: 'discarded', name: 'Discarded' },
-                { value: 'closed', name: 'Closed' },
             ],
 
-            proposal_status: [],
+            processing_statuses: [],
         }
     },
     components: {
@@ -320,35 +481,80 @@ export default {
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaGenus_cache, vm.filterCSFaunaGenus);
         },
-        filterCSFaunaConservationList: function () {
+        filterCSFaunaChangeCode: function () {
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaConservationList_cache, vm.filterCSFaunaConservationList);
+            sessionStorage.setItem(vm.filterCSFaunaChangeCode_cache, vm.filterCSFaunaChangeCode);
         },
-        filterCSFaunaConservationCategory: function () {
+        filterCSFaunaWALegislativeList: function () {
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSFaunaConservationCategory_cache, vm.filterCSFaunaConservationCategory);
+            sessionStorage.setItem(vm.filterCSFaunaWALegislativeList_cache, vm.filterCSFaunaWALegislativeList);
         },
-        filterCSFromFaunaEffectiveFromDate: function(){
+        filterCSFaunaWALegislativeCategory: function () {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFaunaWALegislativeCategory_cache, vm.filterCSFaunaWALegislativeCategory);
+        },
+        filterCSFaunaWAPriorityCategory: function () {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFaunaWAPriorityCategory_cache, vm.filterCSFaunaWAPriorityCategory);
+        },
+        filterCSFaunaCommonwealthRelevance: function () {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFaunaCommonwealthRelevance_cache, vm.filterCSFaunaCommonwealthRelevance);
+        },
+        filterCSFaunaInternationalRelevance: function () {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFaunaInternationalRelevance_cache, vm.filterCSFaunaInternationalRelevance);
+        },
+        filterCSFaunaAssessor: function () {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFaunaAssessor_cache, vm.filterCSFaunaAssessor);
+        },
+        filterCSFaunaSubmitter: function () {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFaunaSubmitter_cache, vm.filterCSFaunaSubmitter);
+        },
+        filterCSFaunaSubmitterCategory: function () {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFaunaSubmitterCategory_cache, vm.filterCSFaunaSubmitterCategory);
+        },
+        filterCSFromFaunaEffectiveFromDate: function () {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFromFaunaEffectiveFromDate_cache, vm.filterCSFromFaunaEffectiveFromDate);
         },
-        filterCSToFaunaEffectiveFromDate: function(){
+        filterCSToFaunaEffectiveFromDate: function () {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSToFaunaEffectiveFromDate_cache, vm.filterCSToFaunaEffectiveFromDate);
         },
-        filterCSFromFaunaEffectiveToDate: function(){
+        filterCSFromFaunaEffectiveToDate: function () {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFromFaunaEffectiveToDate_cache, vm.filterCSFromFaunaEffectiveToDate);
         },
-        filterCSToFaunaEffectiveToDate: function(){
+        filterCSToFaunaEffectiveToDate: function () {
             let vm = this;
-            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSToFaunaEffectiveToDate_cache, vm.filterCSToFaunaEffectiveToDate);
+        },
+        filterCSFromFaunaReviewDueDate: function () {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFromFaunaReviewDueDate_cache, vm.filterCSFromFaunaReviewDueDate);
+        },
+        filterCSToFaunaReviewDueDate: function () {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSToFaunaReviewDueDate_cache, vm.filterCSToFaunaReviewDueDate);
         },
         filterCSFaunaApplicationStatus: function () {
             let vm = this;
@@ -369,13 +575,23 @@ export default {
                 this.filterCSFaunaPhylogeneticGroup === 'all' &&
                 this.filterCSFaunaFamily === 'all' &&
                 this.filterCSFaunaGenus === 'all' &&
-                this.filterCSFaunaConservationList === 'all' &&
-                this.filterCSFaunaConservationCategory === 'all' &&
-                this.filterCSFaunaApplicationStatus === 'all' &&
+                this.filterCSFaunaChangeCode === 'all' &&
+                this.filterCSFaunaWALegislativeList === 'all' &&
+                this.filterCSFaunaWALegislativeCategory === 'all' &&
+                this.filterCSFaunaWAPriorityCategory === 'all' &&
+                this.filterCSFaunaCommonwealthRelevance === 'false' &&
+                this.filterCSFaunaInternationalRelevance === 'false' &&
+                this.filterCSFaunaAssessor === 'all' &&
+                this.filterCSFaunaSubmitter === 'all' &&
+                this.filterCSFaunaSubmitterCategory === 'all' &&
+                this.filterCSFaunaApplicationStatus === 'approved' &&
                 this.filterCSFromFaunaEffectiveFromDate === '' &&
                 this.filterCSToFaunaEffectiveFromDate === '' &&
                 this.filterCSFromFaunaEffectiveToDate === '' &&
-                this.filterCSToFaunaEffectiveToDate === ''){
+                this.filterCSToFaunaEffectiveToDate === '' &&
+                this.filterCSFromFaunaReviewDueDate === '' &&
+                this.filterCSToFaunaReviewDueDate === '') {
+
                 return false
             } else {
                 return true
@@ -399,10 +615,18 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name','Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
+                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Phylo Group(s)', 'Change Type', 'WA Priority List',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
+                    'Conservation Criteria',
+                    'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
+                    'Status', 'Action']
             }
             if (this.is_internal) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name','Effective From Date', 'Effective To Date', 'Family', 'Genera', 'Status', 'Action']
+                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Phylo Group(s)', 'Change Type', 'WA Priority List',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
+                    'Conservation Criteria',
+                    'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
+                    'Status', 'Action']
             }
         },
         column_id: function () {
@@ -469,7 +693,6 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                //'createdCell': helpers.dtPopoverCellFn,
                 name: "species__taxonomy__vernaculars__vernacular_name",
             }
         },
@@ -483,7 +706,6 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                //'createdCell': helpers.dtPopoverCellFn,
                 name: "species__taxonomy__family_name",
             }
         },
@@ -497,8 +719,133 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                //'createdCell': helpers.dtPopoverCellFn,
                 name: "species__taxonomy__genera_name",
+            }
+        },
+        column_phylo_group: function () {
+            return {
+                data: "phylogenetic_group",
+                orderable: true,
+                searchable: false,
+                visible: true,
+                name: "species_taxonomy__phylogenetic_group",
+                render: function (data, type, full) {
+                    let html = '';
+                    if (full.phylogenetic_group) {
+                        for (let i = 0; i < full.phylogenetic_group.length; i++) {
+                            html += `<span class="badge bg-primary">${full.phylogenetic_group[i]}</span>`
+                        }
+                    }
+                    return html
+                }
+            }
+        },
+        column_change_code: function () {
+            return {
+                data: "change_code",
+                orderable: true,
+                searchable: false,
+                visible: true,
+                name: "change_code__code",
+            }
+        },
+        column_wa_priority_list: function () {
+            return {
+                data: "wa_priority_list",
+                orderable: true,
+                searchable: false,
+                visible: true,
+                name: "wa_priority_list__code",
+            }
+        },
+        column_wa_priority_category: function () {
+            return {
+                data: "wa_priority_category",
+                orderable: true,
+                searchable: false,
+                visible: true,
+                name: "wa_priority_category__code",
+            }
+        },
+        column_wa_legislative_list: function () {
+            return {
+                data: "wa_legislative_list",
+                orderable: true,
+                searchable: false,
+                visible: true,
+                name: "wa_legislative_list__code",
+            }
+        },
+        column_wa_legislative_category: function () {
+            return {
+                data: "wa_legislative_category",
+                orderable: true,
+                searchable: false,
+                visible: true,
+                name: "wa_legislative_category__code",
+            }
+        },
+        column_commonwealth_conservation_list: function () {
+            return {
+                data: "commonwealth_conservation_list",
+                orderable: true,
+                searchable: false,
+                visible: true,
+                name: "commonwealth_conservation_list",
+            }
+        },
+        column_international_conservation:
+            function () {
+                return {
+                    data: "international_conservation",
+                    orderable: true,
+                    searchable: true,
+                    visible: true,
+                    name: "international_conservation",
+                }
+            },
+        column_conservation_criteria: function () {
+            return {
+                data: "conservation_criteria",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "conservation_criteria",
+            }
+        },
+        column_submitter_name: function () {
+            return {
+                data: "submitter_name",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "submitter_information__name",
+            }
+        },
+        column_submitter_category: function () {
+            return {
+                data: "submitter_category",
+                orderable: true,
+                searchable: false,
+                visible: true,
+                name: "submitter_information__submitter_category__name",
+            }
+        },
+        column_submitter_organisation: function () {
+            return {
+                data: "submitter_organisation",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "submitter_information__organisation",
+            }
+        },
+        column_assessor_name: function () {
+            return {
+                data: "assessor_name",
+                orderable: true,
+                searchable: false,
+                visible: true,
             }
         },
         column_status: function () {
@@ -512,7 +859,6 @@ export default {
                     if (full.processing_status) {
                         return full.processing_status;
                     }
-                    // Should not reach here
                     return ''
                 },
                 name: "processing_status",
@@ -522,13 +868,12 @@ export default {
             return {
                 data: "effective_from_date",
                 orderable: true,
-                searchable: true, // handles by filter_queryset override method
+                searchable: true,
                 visible: true,
                 'render': function (data, type, full) {
                     if (full.effective_from_date) {
                         return full.effective_from_date
                     }
-                    // Should not reach here
                     return ''
                 },
                 name: "conservationstatusissuanceapprovaldetails__effective_from_date",
@@ -538,16 +883,23 @@ export default {
             return {
                 data: "effective_to_date",
                 orderable: true,
-                searchable: true, // handles by filter_queryset override method
+                searchable: true,
                 visible: true,
                 'render': function (data, type, full) {
                     if (full.effective_to_date) {
                         return full.effective_to_date
                     }
-                    // Should not reach here
                     return ''
                 },
                 name: "conservationstatusissuanceapprovaldetails__effective_to_date",
+            }
+        },
+        column_review_due_date: function () {
+            return {
+                data: "review_due_date",
+                orderable: true,
+                searchable: false,
+                visible: true,
             }
         },
         column_action: function () {
@@ -562,7 +914,6 @@ export default {
                     let links = "";
                     if (vm.is_for_agenda == false) {
                         if (!vm.is_external) {
-                            /*if(vm.check_assessor(full) && full.can_officer_process)*/
                             if (full.internal_user_edit) {
                                 links += `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
                                 links += `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
@@ -628,10 +979,24 @@ export default {
                     vm.column_species_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
-                    vm.column_effective_from_date,
-                    vm.column_effective_to_date,
                     vm.column_family,
                     vm.column_genera,
+                    vm.column_phylo_group,
+                    vm.column_change_code,
+                    vm.column_wa_priority_list,
+                    vm.column_wa_priority_category,
+                    vm.column_wa_legislative_list,
+                    vm.column_wa_legislative_category,
+                    vm.column_commonwealth_conservation_list,
+                    vm.column_international_conservation,
+                    vm.column_conservation_criteria,
+                    vm.column_submitter_name,
+                    vm.column_submitter_category,
+                    vm.column_submitter_organisation,
+                    vm.column_assessor_name,
+                    vm.column_effective_from_date,
+                    vm.column_effective_to_date,
+                    vm.column_review_due_date,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -643,10 +1008,24 @@ export default {
                     vm.column_species_number,
                     vm.column_scientific_name,
                     vm.column_common_name,
-                    vm.column_effective_from_date,
-                    vm.column_effective_to_date,
                     vm.column_family,
                     vm.column_genera,
+                    vm.column_phylo_group,
+                    vm.column_change_code,
+                    vm.column_wa_priority_list,
+                    vm.column_wa_priority_category,
+                    vm.column_wa_legislative_list,
+                    vm.column_wa_legislative_category,
+                    vm.column_commonwealth_conservation_list,
+                    vm.column_international_conservation,
+                    vm.column_conservation_criteria,
+                    vm.column_submitter_name,
+                    vm.column_submitter_category,
+                    vm.column_submitter_organisation,
+                    vm.column_assessor_name,
+                    vm.column_effective_from_date,
+                    vm.column_effective_to_date,
+                    vm.column_review_due_date,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -686,17 +1065,25 @@ export default {
                         d.filter_phylogenetic_group = vm.filterCSFaunaPhylogeneticGroup;
                         d.filter_family = vm.filterCSFaunaFamily;
                         d.filter_genus = vm.filterCSFaunaGenus;
-                        d.filter_conservation_list = vm.filterCSFaunaConservationList;
-                        d.filter_conservation_category = vm.filterCSFaunaConservationCategory;
+                        d.filter_change_code = vm.filterCSFaunaChangeCode;
+                        d.filter_wa_legislative_list = vm.filterCSFaunaWALegislativeList;
+                        d.filter_wa_legislative_category = vm.filterCSFaunaWALegislativeCategory;
+                        d.filter_wa_priority_category = vm.filterCSFaunaWAPriorityCategory;
+                        d.filter_commonwealth_relevance = vm.filterCSFaunaCommonwealthRelevance;
+                        d.filter_international_relevance = vm.filterCSFaunaInternationalRelevance;
+                        d.filter_assessor = vm.filterCSFaunaAssessor;
+                        d.filter_submitter = vm.filterCSFaunaSubmitter;
+                        d.filter_submitter_category = vm.filterCSFaunaSubmitterCategory;
                         d.filter_application_status = vm.filterCSFaunaApplicationStatus;
                         d.filter_from_effective_from_date = vm.filterCSFromFaunaEffectiveFromDate;
                         d.filter_to_effective_from_date = vm.filterCSToFaunaEffectiveFromDate;
                         d.filter_from_effective_to_date = vm.filterCSFromFaunaEffectiveToDate;
                         d.filter_to_effective_to_date = vm.filterCSToFaunaEffectiveToDate;
+                        d.filter_from_review_due_date = vm.filterCSFromFaunaReviewDueDate;
+                        d.filter_to_review_due_date = vm.filterCSToFaunaReviewDueDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
-                //dom: 'lBfrtip',
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
@@ -712,7 +1099,6 @@ export default {
                 },
             }
         }
-
     },
     methods: {
         historyDocument: function (id, list, species) {
@@ -746,10 +1132,6 @@ export default {
                         }
                         return query;
                     },
-                    // results: function (data, page) { // parse the results into the format expected by Select2.
-                    //     // since we are using custom formatting functions we do not need to alter remote JSON data
-                    //     return {results: data};
-                    // },
                 },
             }).
                 on("select2:select", function (e) {
@@ -841,7 +1223,6 @@ export default {
                 }).
                 on("select2:open", function (e) {
                     const searchField = $('[aria-controls="select2-cs_phylo_group_lookup-results"]')
-                    // move focus to select2 field
                     searchField[0].focus();
                 });
         },
@@ -878,9 +1259,7 @@ export default {
                     sessionStorage.setItem("filterCSFaunaFamilyText", '');
                 }).
                 on("select2:open", function (e) {
-                    //const searchField = $(".select2-search__field")
                     const searchField = $('[aria-controls="select2-cs_family_lookup-results"]')
-                    // move focus to select2 field
                     searchField[0].focus();
                 });
         },
@@ -923,6 +1302,71 @@ export default {
                     searchField[0].focus();
                 });
         },
+        initialiseAssessorLookup: function () {
+            let vm = this;
+            $(vm.$refs.cs_assessor_lookup).select2({
+                minimumInputLength: 2,
+                "theme": "bootstrap-5",
+                allowClear: true,
+                placeholder: "Search for Assessor",
+                ajax: {
+                    url: api_endpoints.users_api + '/get_department_users_ledger_id/',
+                    dataType: 'json',
+                    data: function (params) {
+                        var query = {
+                            term: params.term,
+                        }
+                        return query;
+                    },
+                },
+            })
+                .on("select2:select", function (e) {
+                    let data = e.params.data.id;
+                    vm.filterCSFaunaAssessor = data;
+                    sessionStorage.setItem("filterCSFaunaAssessorText", e.params.data.text);
+                })
+                .on("select2:unselect", function (e) {
+                    vm.filterCSFaunaAssessor = 'all';
+                    sessionStorage.setItem("filterCSFaunaAssessorText", '');
+                })
+                .on("select2:open", function (e) {
+                    const searchField = $('[aria-controls="select2-cs_assessor_lookup-results"]')
+                    searchField[0].focus();
+                });
+        },
+        initialiseSubmitterLookup: function () {
+            let vm = this;
+            $(vm.$refs.cs_submitter_lookup).select2({
+                minimumInputLength: 2,
+                "theme": "bootstrap-5",
+                allowClear: true,
+                placeholder: "Search for Submitter",
+                ajax: {
+                    url: api_endpoints.users_api + '/get_users_ledger_id/',
+                    dataType: 'json',
+                    data: function (params) {
+                        var query = {
+                            term: params.term,
+                        }
+                        return query;
+                    },
+                },
+            })
+                .on("select2:select", function (e) {
+                    let data = e.params.data.id;
+                    vm.filterCSFaunaSubmitter = data;
+                    sessionStorage.setItem("filterCSFaunaSubmitterText", e.params.data.text);
+                })
+                .on("select2:unselect", function (e) {
+                    vm.selected_referral = null;
+                    vm.filterCSFaunaSubmitter = 'all';
+                    sessionStorage.setItem("filterCSFaunaSubmitterText", '');
+                })
+                .on("select2:open", function (e) {
+                    const searchField = $('[aria-controls="select2-cs_submitter_lookup-results"]')
+                    searchField[0].focus();
+                });
+        },
         fetchFilterLists: function () {
             let vm = this;
             //large FilterList of Species Values object
@@ -931,10 +1375,16 @@ export default {
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
-                vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
-                vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
+                vm.wa_legislative_lists = vm.filterListsSpecies.wa_legislative_lists;
+                vm.wa_legislative_categories = vm.filterListsSpecies.wa_legislative_categories;
+                vm.wa_priority_lists = vm.filterListsSpecies.wa_priority_lists;
+                vm.wa_priority_categories = vm.filterListsSpecies.wa_priority_categories;
+                vm.processing_statuses = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());
                 });
+                vm.change_codes = vm.filterListsSpecies.change_codes;
+                vm.submitter_categories = vm.filterListsSpecies.submitter_categories;
+
             }, (error) => {
                 console.log(error);
             })
@@ -1153,13 +1603,22 @@ export default {
                 filter_family: vm.filterCSFaunaFamily,
                 filter_phylogenetic_group: vm.filterCSFaunaPhylogeneticGroup,
                 filter_genus: vm.filterCSFaunaGenus,
-                filter_conservation_list: vm.filterCSFaunaConservationList,
-                filter_conservation_category: vm.filterCSFaunaConservationCategory,
+                filter_change_code: vm.filterCSFaunaChangeCode,
+                filter_wa_legislative_list: vm.filterCSFaunaWALegislativeList,
+                filter_wa_legislative_category: vm.filterCSFaunaWALegislativeCategory,
+                filter_wa_priority_category: vm.filterCSFaunaWAPriorityCategory,
+                filter_commonwealth_relevance: vm.filterCSFaunaCommonwealthRelevance,
+                filter_international_relevance: vm.filterCSFaunaInternationalRelevance,
+                filter_assessor: vm.filterCSFaunaAssessor,
+                filter_submitter: vm.filterCSFaunaSubmitter,
+                filter_submitter_category: vm.filterCSFaunaSubmitterCategory,
                 filter_application_status: vm.filterCSFaunaApplicationStatus,
                 filter_from_effective_from_date: vm.filterCSFromFaunaEffectiveFromDate,
                 filter_to_effective_from_date: vm.filterCSToFaunaEffectiveFromDate,
                 filter_effective_to_date: vm.filterCSFromFaunaEffectiveToDate,
                 filter_effective_to_date: vm.filterCSToFaunaEffectiveToDate,
+                filter_from_review_due_date: vm.filterCSFromFaunaReviewDueDate,
+                filter_to_review_due_date: vm.filterCSToFaunaReviewDueDate,
                 is_internal: vm.is_internal,
                 export_format: format
             };
@@ -1190,9 +1649,8 @@ export default {
                         headers: {
                             'X-CSRFToken': helpers.getCookie('csrftoken'),
                         },
-                        url: url+"/",
+                        url: url + "/",
                         data: object_load,
-                        //contentType: "application/vnd.ms-excel",
                         dataType: "binary",
                         xhrFields: {
                             responseType: 'blob'
@@ -1223,7 +1681,7 @@ export default {
                         headers: {
                             'X-CSRFToken': helpers.getCookie('csrftoken'),
                         },
-                        url: url+"/",
+                        url: url + "/",
                         data: object_load,
                         success: function (response, status, request) {
                             var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
@@ -1268,35 +1726,38 @@ export default {
             vm.initialisePhyloGroupLookup();
             vm.initialiseFamilyLookup();
             vm.initialiseGeneraLookup();
-            //vm.initialiseSearch();
+            vm.initialiseAssessorLookup();
+            vm.initialiseSubmitterLookup();
             vm.addEventListeners();
 
             // -- to set the select2 field with the session value if exists onload()
             if (sessionStorage.getItem("filterCSFaunaScientificName") != 'all' && sessionStorage.getItem("filterCSFaunaScientificName") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSFaunaScientificNameText"), vm.filterCSFaunaScientificName, false, true);
                 $('#cs_scientific_name_lookup').append(newOption);
-                //$('#scientific_name_lookup').append(newOption).trigger('change');
             }
             if (sessionStorage.getItem("filterCSFaunaCommonName") != 'all' && sessionStorage.getItem("filterCSFaunaCommonName") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSFaunaCommonNameText"), vm.filterCSFaunaCommonName, false, true);
                 $('#cs_common_name_lookup').append(newOption);
             }
             if (sessionStorage.getItem("filterCSFaunaPhylogeneticGroup") != 'all' && sessionStorage.getItem("filterCSFaunaPhylogeneticGroup") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSFaunaPhylogeneticGroupText"), vm.filterCSFaunaPhylogeneticGroup, false, true);
                 $('#cs_phylo_group_lookup').append(newOption);
             }
             if (sessionStorage.getItem("filterCSFaunaFamily") != 'all' && sessionStorage.getItem("filterCSFaunaFamily") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSFaunaFamilyText"), vm.filterCSFaunaFamily, false, true);
                 $('#cs_family_lookup').append(newOption);
             }
             if (sessionStorage.getItem("filterCSFaunaGenus") != 'all' && sessionStorage.getItem("filterCSFaunaGenus") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSFaunaGenusText"), vm.filterCSFaunaGenus, false, true);
                 $('#cs_genera_lookup').append(newOption);
+            }
+            if (sessionStorage.getItem("filterCSFaunaAssessor") != 'all' && sessionStorage.getItem("filterCSFaunaAssessor") != null) {
+                var newOption = new Option(sessionStorage.getItem("filterCSFaunaAssessorText"), vm.filterCSFaunaAssessor, false, true);
+                $('#cs_assessor_lookup').append(newOption);
+            }
+            if (sessionStorage.getItem("filterCSFaunaSubmitter") != 'all' && sessionStorage.getItem("filterCSFaunaSubmitter") != null) {
+                var newOption = new Option(sessionStorage.getItem("filterCSFaunaSubmitterText"), vm.filterCSFaunaSubmitter, false, true);
+                $('#cs_submitter_lookup').append(newOption);
             }
         });
     }
