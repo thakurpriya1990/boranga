@@ -1604,7 +1604,7 @@ class OccurrenceReportViewSet(
 
         cache_key = settings.CACHE_KEY_MAP_OCCURRENCE_REPORTS
         qs = cache.get(cache_key)
-        qs = None
+
         if qs is None:
             qs = (
                 self.get_queryset()
@@ -3939,6 +3939,8 @@ class OccurrenceViewSet(
             intersect_data = save_geometry(
                 request, instance, geometry_data, "occurrence"
             )
+            instance.occ_geometry.all()
+        
             if intersect_data:
                 for key, value in intersect_data.items():
                     occurrence_geometry = OccurrenceGeometry.objects.get(id=key)

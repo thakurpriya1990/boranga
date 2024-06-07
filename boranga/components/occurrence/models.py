@@ -3937,6 +3937,7 @@ class OccurrenceTenurePurpose(models.Model):
 
 def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
     sub_objs.update(status="historical")
+    # TODO: add historical_occurrence_geometry_ewkb and historical_occurrence to sub_objs.update
     collector.add_field_update(field, None, sub_objs)
 
 
@@ -3953,6 +3954,10 @@ class OccurrenceTenure(models.Model):
         null=True,
         on_delete=SET_NULL_AND_HISTORICAL,
     )
+    historical_occurrence_geometry_ewkb = models.BinaryField(
+        blank=True, null=True, editable=True
+    )  # the geometry after setting the occurrence_geometry to None
+    historical_occurrence = models.IntegerField(blank=True, null=True)
 
     tenure_area_id = models.CharField(
         max_length=100, blank=True, null=True
@@ -3986,13 +3991,24 @@ class OccurrenceTenure(models.Model):
 
     @property
     def typename(self):
-        # Should relate to the geoserver table name
-        return "CPT_CADASTRE_SCDB"
+        # The typeName (layer name) part of the tenure_area_id
+        return self.tenure_area_id.split(".")[0]
 
     @property
     def featureid(self):
-        # TODO: string split
-        return self.tenure_area_id
+        # The featureId part of the tenure_area_id
+        return self.tenure_area_id.split(".")[-1]
+
+    @property
+    def geometry(self):
+        from boranga.components.spatial.utils import wkb_to_geojson
+        # TODO: Draw from historical if historical, else:
+        return wkb_to_geojson(self.occurrence_geometry.geometry.ewkb)
+
+    @property
+    def occurrence(self):
+        # TODO: Draw form historical if historical, else:
+        return self.occurrence_geometry.occurrence
 
 
 # Occurrence Report Document

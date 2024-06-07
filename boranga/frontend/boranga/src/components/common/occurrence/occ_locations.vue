@@ -456,7 +456,7 @@ export default {
                             vm.$router.go();
                         }
                     });
-                    vm.$refs.component_map.forceToRefreshMap();
+                    vm.incrementComponentMapKey();
                 },
                 (error) => {
                     var text = helpers.apiVueResourceError(error);
