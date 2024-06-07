@@ -1403,13 +1403,13 @@ class ProposedDeclineSerializer(serializers.Serializer):
 
 class ProposedApprovalSerializer(serializers.Serializer):
     effective_from_date = serializers.DateField()
-    effective_to_date = serializers.DateField(required=False)
+    effective_to_date = serializers.DateField(required=False, allow_null=True)
     details = serializers.CharField()
     cc_email = serializers.CharField(required=False, allow_null=True)
 
     def validate(self, data):
         if (
-            data["effective_to_date"]
+            data.get("effective_to_date", None)
             and data["effective_to_date"] < data["effective_from_date"]
         ):
             raise serializers.ValidationError(
