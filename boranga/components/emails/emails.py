@@ -1,57 +1,59 @@
 import logging
 import mimetypes
 
-import six
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
-#from django.core.urlresolvers import reverse
-from django.template import loader, Template
+from django.template import Template, loader
 from django.utils.html import strip_tags
-
-# email
-from wagov_utils.components.utils.email import TemplateEmailBase as WAGovUtilsTemplateEmailBase
-
 from ledger_api_client.ledger_models import Document
+from wagov_utils.components.utils.email import (
+    TemplateEmailBase as WAGovUtilsTemplateEmailBase,
+)
 
-logger = logging.getLogger('log')
+logger = logging.getLogger("log")
 
 
 def _render(template, context):
     if isinstance(context, dict):
-        context.update({'settings': settings})
-    if isinstance(template, six.string_types):
+        context.update({"settings": settings})
+    if isinstance(template, str):
         template = Template(template)
     return template.render(context)
 
 
-#def host_reverse(name, args=None, kwargs=None):
- #   return "{}{}".format(settings.DEFAULT_HOST, reverse(name, args=args, kwargs=kwargs))
-
 class TemplateEmailBase(WAGovUtilsTemplateEmailBase):
-    subject = ''
-    html_template = 'boranga/emails/base_email.html'
+    subject = ""
+    html_template = "boranga/emails/base_email.html"
     # txt_template can be None, in this case a 'tag-stripped' version of the html will be sent. (see send)
-    txt_template = 'boranga/emails/base-email.txt'
+    txt_template = "boranga/emails/base-email.txt"
 
     def send_to_user(self, users, context=None):
-        filtered_emails = set(u.email for u in users if hasattr(u, "email"))
+        filtered_emails = {u.email for u in users if hasattr(u, "email")}
         # Loop through users
         for email in filtered_emails:
-            print (email)
+            print(email)
             # Send the email!
             self.send(email, context=context)
 
 
-class OLDTemplateEmailBase(object):
-    subject = ''
-    html_template = 'boranga/emails/base_email.html'
+class OLDTemplateEmailBase:
+    subject = ""
+    html_template = "boranga/emails/base_email.html"
     # txt_template can be None, in this case a 'tag-stripped' version of the html will be sent. (see send)
-    txt_template = 'boranga/emails/base-email.txt'
+    txt_template = "boranga/emails/base-email.txt"
 
     def send_to_user(self, user, context=None):
         return self.send(user.email, context=context)
 
-    def send(self, to_addresses, from_address=None, context=None, attachments=None, cc=None, bcc=None):
+    def send(
+        self,
+        to_addresses,
+        from_address=None,
+        context=None,
+        attachments=None,
+        cc=None,
+        bcc=None,
+    ):
         """
         Send an email using EmailMultiAlternatives with text and html.
         :param to_addresses: a string or a list of addresses
@@ -75,7 +77,7 @@ class OLDTemplateEmailBase(object):
             txt_body = strip_tags(html_body)
 
         # build message
-        if isinstance(to_addresses, six.string_types):
+        if isinstance(to_addresses, str):
             to_addresses = [to_addresses]
         if attachments is None:
             attachments = []
@@ -95,13 +97,20 @@ class OLDTemplateEmailBase(object):
                 _attachments.append((filename, content, mime))
             else:
                 _attachments.append(attachment)
-        msg = EmailMultiAlternatives(self.subject, txt_body, from_email=from_address, to=to_addresses,
-                                     attachments=_attachments, cc=cc, bcc=bcc)
-        msg.attach_alternative(html_body, 'text/html')
+        msg = EmailMultiAlternatives(
+            self.subject,
+            txt_body,
+            from_email=from_address,
+            to=to_addresses,
+            attachments=_attachments,
+            cc=cc,
+            bcc=bcc,
+        )
+        msg.attach_alternative(html_body, "text/html")
         try:
             if not settings.DISABLE_EMAIL:
                 msg.send(fail_silently=False)
             return msg
         except Exception as e:
-            logger.exception("Error while sending email to {}: {}".format(to_addresses, e))
+            logger.exception(f"Error while sending email to {to_addresses}: {e}")
             return None

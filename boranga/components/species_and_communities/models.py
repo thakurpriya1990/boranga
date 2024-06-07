@@ -31,6 +31,7 @@ private_storage = FileSystemStorage(
     location=settings.BASE_DIR + "/private-media/", base_url="/private-media/"
 )
 
+
 def update_species_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/species/{instance.species.id}/species_documents/{filename}"
 
@@ -62,7 +63,9 @@ class Region(models.Model):
 class District(models.Model):
     name = models.CharField(unique=True, max_length=200)
     code = models.CharField(unique=True, max_length=3, null=True)
-    region = models.ForeignKey(Region, on_delete=models.CASCADE , related_name='districts')
+    region = models.ForeignKey(
+        Region, on_delete=models.CASCADE, related_name="districts"
+    )
     archive_date = models.DateField(null=True, blank=True)
 
     class Meta:
@@ -239,7 +242,6 @@ class Taxonomy(models.Model):
         return str(self.scientific_name)  # TODO: is the most appropriate?
 
     def save(self, *args, **kwargs):
-        cache.delete(settings.CACHE_KEY_TAXONOMIES)
         self.full_clean()
         super().save(*args, **kwargs)
 
@@ -436,8 +438,11 @@ class Species(RevisionedMixin):
     region = models.ForeignKey(
         Region, default=None, on_delete=models.CASCADE, null=True, blank=True
     )
-    regions = models.ManyToManyField(Region, null=True, blank=True, related_name="species_regions")
-    # species_regions = MultiSelectField(max_length=250, blank=True, choices=[(r.id, r.name) for r in Region.objects.all()], null=True)
+    regions = models.ManyToManyField(
+        Region, null=True, blank=True, related_name="species_regions"
+    )
+    # species_regions = MultiSelectField(max_length=250, blank=True,
+    # choices=[(r.id, r.name) for r in Region.objects.all()], null=True)
     district = models.ForeignKey(
         District, default=None, on_delete=models.CASCADE, null=True, blank=True
     )

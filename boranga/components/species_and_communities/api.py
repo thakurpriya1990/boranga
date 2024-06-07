@@ -6,7 +6,6 @@ from datetime import datetime
 from io import BytesIO
 
 import pandas as pd
-from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
@@ -86,10 +85,12 @@ from boranga.components.species_and_communities.serializers import (
     ConservationThreatSerializer,
     CreateCommunitySerializer,
     CreateSpeciesSerializer,
+    DistrictSerializer,
     InternalCommunitySerializer,
     InternalSpeciesSerializer,
     ListCommunitiesSerializer,
     ListSpeciesSerializer,
+    RegionSerializer,
     SaveCommunityConservationAttributesSerializer,
     SaveCommunityDistributionSerializer,
     SaveCommunityDocumentSerializer,
@@ -108,8 +109,6 @@ from boranga.components.species_and_communities.serializers import (
     SpeciesSerializer,
     SpeciesUserActionSerializer,
     TaxonomySerializer,
-    RegionSerializer,
-    DistrictSerializer,
 )
 from boranga.components.species_and_communities.utils import (
     combine_species_original_submit,
@@ -126,6 +125,7 @@ logger = logging.getLogger(__name__)
 class SetEncoder(json.JSONEncoder):
     def default(self, obj):
         return list(obj)
+
 
 class GetGroupTypeDict(views.APIView):
     def get(self, request, format=None):
@@ -202,10 +202,7 @@ class GetScientificName(views.APIView):
         if not search_term:
             return Response({"results": []})
 
-        taxonomies = cache.get(settings.CACHE_KEY_TAXONOMIES)
-        if not taxonomies:
-            taxonomies = Taxonomy.objects.all()
-            cache.set(settings.CACHE_KEY_TAXONOMIES, taxonomies, 86400)
+        taxonomies = Taxonomy.objects.all()
 
         if species_profile:
             taxonomies = taxonomies.filter(species=None)
@@ -1355,13 +1352,13 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if request_data["submitter"]:
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
 
-        if(request_data.get('regions')):
-                    regions = request_data.get('regions')
-                    instance.regions.clear()  # first clear all the species set relatedM:M to community instance
-                    for r in regions:
-                        reg = Region.objects.get(pk=r)
-                        instance.regions.add(reg)
-        
+        if request_data.get("regions"):
+            regions = request_data.get("regions")
+            instance.regions.clear()  # first clear all the species set relatedM:M to community instance
+            for r in regions:
+                reg = Region.objects.get(pk=r)
+                instance.regions.add(reg)
+
         if request_data.get("distribution"):
             distribution_instance, created = SpeciesDistribution.objects.get_or_create(
                 species=instance
@@ -2726,11 +2723,12 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
+
 class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = District.objects.all().order_by('id')
+    queryset = District.objects.all().order_by("id")
     serializer_class = DistrictSerializer
 
 
 class RegionViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Region.objects.order_by('id')
+    queryset = Region.objects.order_by("id")
     serializer_class = RegionSerializer

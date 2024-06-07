@@ -54,6 +54,10 @@ export default {
               type: Boolean,
               default: false
             },
+            is_internal:{
+                type: Boolean,
+                default: false
+            },
         },
         data:function () {
             let vm = this;

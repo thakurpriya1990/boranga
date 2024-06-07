@@ -361,7 +361,6 @@ CACHE_KEY_PROXY_LAYER_DATA = "proxy-layer-data-{app_label}-{model_name}"
 CACHE_KEY_PROXY_NODE_DATA = "proxy-node-data-{request_path}"
 CACHE_KEY_MAP_OCCURRENCES = "map-occurrences"
 CACHE_KEY_MAP_OCCURRENCE_REPORTS = "map-occurrence-reports"
-CACHE_KEY_TAXONOMIES = "taxonomies"
 
 # ---------- Conservation Change Codes ----------
 
@@ -373,6 +372,7 @@ CONSERVATION_CHANGE_CODE_RANK_CHANGE = "Rank Change"
 CONSERVATION_CHANGE_CODE_CATEGORY_CHANGE = "Category Change"
 CONSERVATION_CHANGE_CODE_CRITERIA_CHANGE = "Criteria Change"
 CONSERVATION_CHANGE_CODE_DELIST = "DeList"
+CONSERVATION_CHANGE_CODE_CLOSE = "Close"
 CONSERVATION_CHANGE_CODE_OTHER = "Other"
 
 CONSERVATION_CHANGE_CODES = [

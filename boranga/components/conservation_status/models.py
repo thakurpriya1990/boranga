@@ -293,8 +293,8 @@ class ConservationChangeCode(models.Model):
         return str(self.code)
 
     @classmethod
-    def get_delisted_change_code(cls):
-        return cls.objects.get(code=settings.CONSERVATION_CHANGE_CODE_DELIST)
+    def get_closed_change_code(cls):
+        return cls.objects.get(code=settings.CONSERVATION_CHANGE_CODE_CLOSE)
 
     @classmethod
     def get_filter_list(cls):
@@ -1381,7 +1381,7 @@ class ConservationStatus(RevisionedMixin):
                 ConservationStatus.PROCESSING_STATUS_CLOSED
             )
             previous_approved_version.change_code = (
-                ConservationChangeCode.get_delisted_change_code()
+                ConservationChangeCode.get_closed_change_code()
             )
             if self.effective_from:
                 previous_approved_version.effective_to = (
