@@ -334,6 +334,16 @@ export default {
             required: false,
             default: 'filterCSToFaunaEffectiveToDate',
         },
+        filterCSFromFaunaReviewDueDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSFromFaunaReviewDueDate',
+        },
+        filterCSToFaunaReviewDueDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterCSToFaunaReviewDueDate',
+        },
     },
     data() {
         let vm = this;
@@ -398,6 +408,11 @@ export default {
                 sessionStorage.getItem(this.filterCSFromFaunaEffectiveToDate_cache) : '',
             filterCSToFaunaEffectiveToDate: sessionStorage.getItem(this.filterCSToFaunaEffectiveToDate_cache) ?
                 sessionStorage.getItem(this.filterCSToFaunaEffectiveToDate_cache) : '',
+
+            filterCSFromFaunaReviewDueDate: sessionStorage.getItem(this.filterCSFromFaunaReviewDueDate_cache) ?
+                sessionStorage.getItem(this.filterCSFromFaunaReviewDueDate_cache) : '',
+            filterCSToFaunaReviewDueDate: sessionStorage.getItem(this.filterCSToFaunaReviewDueDate_cache) ?
+                sessionStorage.getItem(this.filterCSToFaunaReviewDueDate_cache) : '',
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
@@ -468,47 +483,47 @@ export default {
         },
         filterCSFaunaChangeCode: function () {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaChangeCode_cache, vm.filterCSFaunaChangeCode);
         },
         filterCSFaunaWALegislativeList: function () {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaWALegislativeList_cache, vm.filterCSFaunaWALegislativeList);
         },
         filterCSFaunaWALegislativeCategory: function () {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaWALegislativeCategory_cache, vm.filterCSFaunaWALegislativeCategory);
         },
         filterCSFaunaWAPriorityCategory: function () {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaWAPriorityCategory_cache, vm.filterCSFaunaWAPriorityCategory);
         },
         filterCSFaunaCommonwealthRelevance: function () {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaCommonwealthRelevance_cache, vm.filterCSFaunaCommonwealthRelevance);
         },
         filterCSFaunaInternationalRelevance: function () {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaInternationalRelevance_cache, vm.filterCSFaunaInternationalRelevance);
         },
         filterCSFaunaAssessor: function () {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaAssessor_cache, vm.filterCSFaunaAssessor);
         },
         filterCSFaunaSubmitter: function () {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaSubmitter_cache, vm.filterCSFaunaSubmitter);
         },
         filterCSFaunaSubmitterCategory: function () {
             let vm = this;
-            vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFaunaSubmitterCategory_cache, vm.filterCSFaunaSubmitterCategory);
         },
         filterCSFromFaunaEffectiveFromDate: function () {
@@ -530,6 +545,11 @@ export default {
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSToFaunaEffectiveToDate_cache, vm.filterCSToFaunaEffectiveToDate);
+        },
+        filterCSFromFaunaReviewDueDate: function () {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSFromFaunaReviewDueDate_cache, vm.filterCSFromFaunaReviewDueDate);
         },
         filterCSFaunaApplicationStatus: function () {
             let vm = this;
@@ -563,7 +583,10 @@ export default {
                 this.filterCSFromFaunaEffectiveFromDate === '' &&
                 this.filterCSToFaunaEffectiveFromDate === '' &&
                 this.filterCSFromFaunaEffectiveToDate === '' &&
-                this.filterCSToFaunaEffectiveToDate === '') {
+                this.filterCSToFaunaEffectiveToDate === '' &&
+                this.filterCSFromFaunaReviewDueDate === '' &&
+                this.filterCSToFaunaReviewDueDate === '') {
+
                 return false
             } else {
                 return true
@@ -1051,6 +1074,8 @@ export default {
                         d.filter_to_effective_from_date = vm.filterCSToFaunaEffectiveFromDate;
                         d.filter_from_effective_to_date = vm.filterCSFromFaunaEffectiveToDate;
                         d.filter_to_effective_to_date = vm.filterCSToFaunaEffectiveToDate;
+                        d.filter_from_review_due_date = vm.filterCSFromFaunaReviewDueDate;
+                        d.filter_to_review_due_date = vm.filterCSToFaunaReviewDueDate;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -1587,6 +1612,8 @@ export default {
                 filter_to_effective_from_date: vm.filterCSToFaunaEffectiveFromDate,
                 filter_effective_to_date: vm.filterCSFromFaunaEffectiveToDate,
                 filter_effective_to_date: vm.filterCSToFaunaEffectiveToDate,
+                filter_from_review_due_date: vm.filterCSFromFaunaReviewDueDate,
+                filter_to_review_due_date: vm.filterCSToFaunaReviewDueDate,
                 is_internal: vm.is_internal,
                 export_format: format
             };
