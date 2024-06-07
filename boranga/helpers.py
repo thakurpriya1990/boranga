@@ -47,6 +47,19 @@ def belongs_to(request, group_name, internal_only=False, external_only=False):
     return belongs_to_by_user_id(request.user.id, group_name)
 
 
+def belongs_to_groups(request, group_names: list) -> bool:
+    if not request.user.is_authenticated:
+        return False
+    if request.user.is_superuser:
+        return True
+
+    for group_name in group_names:
+        if belongs_to_by_user_id(request.user.id, group_name):
+            return True
+
+    return False
+
+
 def member_ids(group_name):
     # Centralised member_ids method that includes all superusers (not totally sure we want this yet)
     system_group = SystemGroup.objects.filter(name=group_name).first()
@@ -176,7 +189,9 @@ def is_customer(request):
 
 
 def is_internal(request):
-    return is_departmentUser(request)
+    return is_departmentUser(request) and belongs_to_groups(
+        request, settings.INTERNAL_GROUPS
+    )
 
 
 def get_all_officers():
