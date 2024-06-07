@@ -7,7 +7,6 @@ import ConservationStatus from '../conservation_status/conservation_status.vue'
 import ConservationStatusReferral from '../conservation_status/referral.vue'
 import MeetingsDash from '../meetings/dashboard.vue'
 import Meeting from '../meetings/meeting.vue'
-import ConservationPlansDash from '../conservation_plans/dashboard.vue'
 import OccurrenceDash from '../occurrence/dashboard.vue'
 import Occurrence from '../occurrence/occurrence.vue'
 import OccurrenceReport from '../occurrence/occurrence_report.vue'
@@ -47,11 +46,6 @@ export default
                 name: "internal-meetings"
             },
             {
-                path: 'conservation-plans',
-                component: ConservationPlansDash,
-                name: "internal-conservation_plan-dash"
-            },
-            {
                 path: 'occurrence',
                 component: OccurrenceDash,
                 name: "internal-occurrence-dash"
@@ -70,11 +64,6 @@ export default
                 path: 'search',
                 component: Search,
                 name: "internal-search"
-            },
-            {
-                path: 'conservation-plans',
-                component: ConservationPlansDash,
-                name: "internal-conservation-plans-dash"
             },
             {
                 path: 'users',
