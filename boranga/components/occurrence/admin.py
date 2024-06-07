@@ -187,7 +187,7 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
     )
 
     readonly_fields = ["typename", "featureid", "geometry", "occurrence"]
-
+    list_filter = ("status", "significant_to_occurrence", "purpose")
 
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm)
