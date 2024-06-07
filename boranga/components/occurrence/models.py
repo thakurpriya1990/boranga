@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
-from django.db.models import Count, CharField, Func
+from django.db.models import CharField, Count, Func
 from django.db.models.functions import Cast
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -47,10 +47,10 @@ from boranga.components.species_and_communities.models import (
     PotentialThreatOnset,
     Region,
     Species,
-    Taxonomy,
     ThreatAgent,
     ThreatCategory,
 )
+from boranga.components.users.models import SubmitterInformation
 from boranga.helpers import (
     clone_model,
     email_in_dept_domains,
@@ -244,6 +244,13 @@ class OccurrenceReport(RevisionedMixin):
     reported_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     effective_from = models.DateTimeField(null=True, blank=True)
     effective_to = models.DateTimeField(null=True, blank=True)
+    submitter_information = models.OneToOneField(
+        SubmitterInformation,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="occurrence_report",
+    )
     submitter = models.IntegerField(null=True)  # EmailUserRO
     lodgement_date = models.DateTimeField(
         blank=True, null=True
@@ -688,13 +695,14 @@ class OccurrenceReport(RevisionedMixin):
         if self.ocr_geometry.count() < 1:
             missing_values.append("Location")
 
-        #TODO tenure
+        # TODO tenure
 
         if missing_values:
             raise ValidationError(
-                "Cannot submit this report due to missing values: " + ", ".join(missing_values)
+                "Cannot submit this report due to missing values: "
+                + ", ".join(missing_values)
             )
-        
+
     def validate_propose_approve(self):
         self.validate_submit()
 
@@ -708,7 +716,8 @@ class OccurrenceReport(RevisionedMixin):
 
         if missing_values:
             raise ValidationError(
-                "Cannot submit this report due to missing values: " + ", ".join(missing_values)
+                "Cannot submit this report due to missing values: "
+                + ", ".join(missing_values)
             )
 
     @transaction.atomic
@@ -1543,7 +1552,9 @@ class OCRLocation(models.Model):
     )
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
-    new_occurrence = models.BooleanField(null=True, blank=True) #TODO what is this for? is it needed?
+    new_occurrence = models.BooleanField(
+        null=True, blank=True
+    )  # TODO what is this for? is it needed?
     boundary = models.IntegerField(null=True, blank=True, default=0)
     mapped_boundary = models.BooleanField(null=True, blank=True)
     buffer_radius = models.IntegerField(null=True, blank=True, default=0)
@@ -2861,22 +2872,34 @@ class Occurrence(RevisionedMixin):
     def validate_activate(self):
         missing_values = []
 
-        occ_points = self.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POINT")
-        occ_boundaries = self.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POLYGON")
+        occ_points = self.occ_geometry.annotate(
+            geom_type=GeometryType("geometry")
+        ).filter(geom_type="POINT")
+        occ_boundaries = self.occ_geometry.annotate(
+            geom_type=GeometryType("geometry")
+        ).filter(geom_type="POLYGON")
 
-        if (self.group_type.name in [GroupType.GROUP_TYPE_FLORA,GroupType.GROUP_TYPE_COMMUNITY] 
-            and not self.occurrence_name):
+        if (
+            self.group_type.name
+            in [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_COMMUNITY]
+            and not self.occurrence_name
+        ):
             missing_values.append("Occurrence Name")
 
-        if (self.group_type.name in [GroupType.GROUP_TYPE_FLORA,GroupType.GROUP_TYPE_COMMUNITY] 
-            and not occ_boundaries.exists()):
+        if (
+            self.group_type.name
+            in [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_COMMUNITY]
+            and not occ_boundaries.exists()
+        ):
             missing_values.append("Boundary on Map")
 
-        if (self.group_type.name == GroupType.GROUP_TYPE_FAUNA
-            and not occ_points.exists()):
+        if (
+            self.group_type.name == GroupType.GROUP_TYPE_FAUNA
+            and not occ_points.exists()
+        ):
             missing_values.append("Point on Map")
 
-        #TODO tenure
+        # TODO tenure
 
         if not self.identification or not self.identification.identification_certainty:
             missing_values.append("Identification Certainty")
@@ -2886,10 +2909,11 @@ class Occurrence(RevisionedMixin):
 
         if missing_values:
             raise ValidationError(
-                "Cannot activate this occurrence due to missing values: " + ", ".join(missing_values)
+                "Cannot activate this occurrence due to missing values: "
+                + ", ".join(missing_values)
             )
 
-    def activate(self,request):
+    def activate(self, request):
         self.validate_activate()
         if (
             is_occurrence_approver(request)
@@ -2924,9 +2948,7 @@ class Occurrence(RevisionedMixin):
 
     # if this function is called and the OCC has no associated OCRs, discard it
     def check_ocr_count_for_discard(self, request):
-        discardable = [
-            Occurrence.PROCESSING_STATUS_DRAFT
-        ]
+        discardable = [Occurrence.PROCESSING_STATUS_DRAFT]
         if (
             self.processing_status in discardable
             and is_occurrence_assessor(request)
@@ -3318,9 +3340,11 @@ class OccurrenceGeometryManager(models.Manager):
             )
         )
 
+
 class GeometryType(Func):
-    function = 'GeometryType'
+    function = "GeometryType"
     output_field = CharField()
+
 
 class OccurrenceGeometry(models.Model):
     objects = OccurrenceGeometryManager()
