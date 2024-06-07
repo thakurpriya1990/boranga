@@ -1,24 +1,26 @@
 <template lang="html">
     <div id="section_details">
-        <modal transition="modal fade" @ok="ok()" @cancel="close()" :title="'OCR ' + ocrNumber + ' ' + sectionType" large>
+        <modal transition="modal fade" @ok="ok()" @cancel="close()" :title="'OCR ' + ocrNumber + ' ' + sectionTypeDisplay" large>
             <div class="container-fluid">
                 <div class="row">
-                    <FormSection :formCollapse="false" :label="sectionType">
+                    <FormSection :formCollapse="false" :label="sectionTypeDisplay">
                         <div class="card-body card-collapse">
-                            <div v-for="(value,index) in sectionObj">
+                            <div v-for="(value,index) in sectionObjExpanded">
                                 <div v-if="value && index != 'id' ">  
-                                    <div v-if="typeof value == 'object'" class="row mb-3">
-                                        <div v-for="(o_value,o_index) in value">
+                                    <div v-if="typeof value == 'object'" >
+                                        <div v-for="(o_value,o_index) in value" class="row mb-3">
                                             <label class="col-sm-6 control-label">{{index}}.{{o_index}}:</label>
                                             <div class="col-sm-6">
-                                            <input :disabled="true" type="text" class="form-control" :value=o_value>
+                                                <input :disabled="true" type="text" class="form-control" :value="o_value"/>
                                             </div>
                                         </div>
                                     </div>
-                                    <div v-else class="row mb-3">
-                                        <label class="col-sm-6 control-label">{{index}}:</label>
-                                        <div class="col-sm-6">
-                                        <textarea :disabled="true" type="text" class="form-control">{{value}}</textarea>
+                                    <div v-else>
+                                        <div class="row mb-3">
+                                            <label class="col-sm-6 control-label">{{index}}:</label>
+                                            <div class="col-sm-6">
+                                            <textarea :disabled="true" type="text" class="form-control">{{value}}</textarea>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -38,7 +40,11 @@
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
-import { helpers } from "@/utils/hooks.js"
+import {
+  api_endpoints,
+  helpers
+}
+from '@/utils/hooks'
 export default {
     name: 'SectionModal',
     components: {
@@ -55,6 +61,10 @@ export default {
             type: String,
             required:true,
         },
+        sectionTypeDisplay: {
+            type: String,
+            required:true,
+        },
         ocrNumber: {
             type: String,
             required:true,
@@ -65,6 +75,7 @@ export default {
         return {
             isModalOpen: false,
             form: null,
+            sectionObjExpanded: vm.sectionObj,
         }
     },
     methods: {
@@ -73,6 +84,23 @@ export default {
             this.errors = false;
             $('.has-error').removeClass('has-error');
         },
-    }
+        fetchSectionData: function(){
+            let vm = this;
+            if (vm.sectionObj.occurrence_report_id !== undefined) {
+                vm.$http.get(api_endpoints.lookup_ocr_section_values(vm.sectionType,vm.sectionObj.occurrence_report_id))
+                .then((response) => {
+                    vm.sectionObjExpanded = response.body;         
+                },(error) => {
+                    console.log(error);
+                })
+            }
+        },
+    },
+    mounted: function(){
+        let vm = this;
+        this.$nextTick(() => {
+            vm.fetchSectionData();
+        });
+    },
 }
 </script>

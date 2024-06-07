@@ -1880,7 +1880,10 @@ class OCRHabitatComposition(models.Model):
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?\
-
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._meta.get_field("land_form").choices = tuple(LandForm.objects.values_list("id","name"))
 
 class OCRHabitatCondition(models.Model):
     """
@@ -2405,6 +2408,12 @@ class OCRAnimalObservation(models.Model):
 
     def __str__(self):
         return str(self.occurrence_report)
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._meta.get_field("primary_detection_method").choices = tuple(PrimaryDetectionMethod.objects.values_list("id","name"))
+        self._meta.get_field("reproductive_maturity").choices = tuple(ReproductiveMaturity.objects.values_list("id","name"))
+        self._meta.get_field("secondary_sign").choices = tuple(SecondarySign.objects.values_list("id","name"))
 
 
 class IdentificationCertainty(models.Model):
@@ -3558,6 +3567,10 @@ class OCCHabitatComposition(models.Model):
 
     def __str__(self):
         return str(self.occurrence)  # TODO: is the most appropriate?\
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._meta.get_field("land_form").choices = tuple(LandForm.objects.values_list("id","name"))
 
 
 class OCCHabitatCondition(models.Model):
@@ -3855,6 +3868,12 @@ class OCCAnimalObservation(models.Model):
 
     def __str__(self):
         return str(self.occurrence)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._meta.get_field("primary_detection_method").choices = tuple(PrimaryDetectionMethod.objects.values_list("id","name"))
+        self._meta.get_field("reproductive_maturity").choices = tuple(ReproductiveMaturity.objects.values_list("id","name"))
+        self._meta.get_field("secondary_sign").choices = tuple(SecondarySign.objects.values_list("id","name"))
 
 
 class OCCIdentification(models.Model):
