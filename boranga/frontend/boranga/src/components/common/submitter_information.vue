@@ -74,7 +74,6 @@
 import FormSection from '@/components/forms/section_toggle.vue';
 
 import { api_endpoints } from '@/utils/hooks.js'
-import { readonly } from 'vue';
 
 export default {
     name: 'SubmitterInformation',
