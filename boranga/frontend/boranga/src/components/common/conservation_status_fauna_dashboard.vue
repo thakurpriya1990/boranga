@@ -551,6 +551,11 @@ export default {
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSFromFaunaReviewDueDate_cache, vm.filterCSFromFaunaReviewDueDate);
         },
+        filterCSToFaunaReviewDueDate: function () {
+            let vm = this;
+            vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCSToFaunaReviewDueDate_cache, vm.filterCSToFaunaReviewDueDate);
+        },
         filterCSFaunaApplicationStatus: function () {
             let vm = this;
             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
