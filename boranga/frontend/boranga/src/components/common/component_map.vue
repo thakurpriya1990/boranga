@@ -1125,8 +1125,8 @@
                     </template>
                 </div>
                 <!-- TODO: other loading cases -->
-                <div v-if="loadingMap" id="map-spinner" class="text-primary">
-                    <i class="fa fa-2x fa-spinner fa-spin"></i>
+                <div v-show="loadingMap" id="map-spinner" class="text-primary">
+                    <i class="fa fa-4x fa-spinner fa-spin"></i>
                 </div>
                 <!-- <BootstrapSpinner
                     v-if="
@@ -2026,7 +2026,7 @@ export default {
                 }
 
                 console.log('Done fetching map initilisation data');
-                this.loadingMap = false;
+                this.setLoadingMap(false);
             }
         );
 
@@ -2040,13 +2040,14 @@ export default {
     mounted: function () {
         console.log('mounted()');
         let vm = this;
-        vm.loadingMap = true;
+        vm.setLoadingMap(true);
 
         this.$nextTick(() => {
             var toastEl = document.getElementById('featureToast');
-            $('#map-spinner').css('position', 'relative'); // Position spinner in center of map
+            $('#map-spinner').css('position', 'absolute'); // Position spinner in center of map
             $('#map-spinner').css('top', '50%');
             $('#map-spinner').css('left', '50%');
+            $('#map-spinner').css('zIndex', 9999);
             vm.featureToast = new bootstrap.Toast(toastEl, { autohide: false });
             if (vm.refreshMapOnMounted) {
                 vm.forceToRefreshMap();
@@ -2063,6 +2064,9 @@ export default {
         });
     },
     methods: {
+        setLoadingMap(loading=false) {
+            this.loadingMap = loading;
+        },
         /**
          * Returns the euclidean distance between two pixel coordinates
          * @param {Array} p1 a pixel coordinate pair in the form [x1, y1]
@@ -2206,7 +2210,7 @@ export default {
                 console.log('Refreshing map');
                 vm.map.updateSize();
                 // Unset loading map spinner here
-                vm.loadingMap = false;
+                vm.setLoadingMap(false);
             }, timeout);
         },
         addJoint: function (point, styles) {
@@ -4924,7 +4928,7 @@ export default {
 }
 
 .map-spinner {
-    position: relative !important;
+    position: relative;    
 }
 
 .shapefile-row {

@@ -262,6 +262,7 @@ export default {
 
             // add map geometry to the occurrence
             if (vm.$refs.occurrence.$refs.occ_location.$refs.component_map) {
+                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.loadingMap = true;
                 vm.occurrence.occ_geometry = vm.$refs.occurrence.$refs.occ_location.$refs.component_map.getJSONFeatures();
             }
 
@@ -277,6 +278,8 @@ export default {
                 vm.savingOccurrence = false;
                 vm.isSaved = true;
                 vm.refreshFromResponse(res);
+                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.loadingMap = false;
+                vm.$refs.occurrence.$refs.occ_location.incrementComponentMapKey();
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
