@@ -4002,10 +4002,12 @@ class OccurrenceTenure(models.Model):
     @property
     def geometry(self):
         from boranga.components.spatial.utils import wkb_to_geojson
+        # TODO: Draw from historical if historical, else:
         return wkb_to_geojson(self.occurrence_geometry.geometry.ewkb)
 
     @property
     def occurrence(self):
+        # TODO: Draw form historical if historical, else:
         return self.occurrence_geometry.occurrence
 
 
