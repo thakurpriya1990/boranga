@@ -1271,19 +1271,13 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
         total_count = queryset.count()
 
         filter_group_type = request.GET.get("filter_group_type")
-        # if filter_group_type and filter_group_type == flora or filter_group_type == fauna:
-        #     queryset = queryset.filter(species__group_type__name=filter_group_type)
-        # elif filter_group_type and filter_group_type == community:
-        #     queryset = queryset.filter(community__group_type__name=filter_group_type)
         if filter_group_type and not filter_group_type.lower() == "all":
             queryset = queryset.filter(application_type__name=filter_group_type)
 
-        # filter_scientific_name is the species_id
         filter_scientific_name = request.GET.get("filter_scientific_name")
         if filter_scientific_name and not filter_scientific_name.lower() == "all":
             queryset = queryset.filter(species_taxonomy=filter_scientific_name)
 
-        # filter_community_name is the community_id
         filter_community_name = request.GET.get("filter_community_name")
         if filter_community_name and not filter_community_name.lower() == "all":
             queryset = queryset.filter(community=filter_community_name)
@@ -1305,17 +1299,14 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
         if filter_application_status and not filter_application_status.lower() == "all":
             queryset = queryset.filter(customer_status=filter_application_status)
 
-        # getter = request.query_params.get
         fields = self.get_fields(request)
         ordering = self.get_ordering(request, view, fields)
         queryset = queryset.order_by(*ordering)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -1348,7 +1339,6 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def conservation_status_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
         qs = qs.filter(internal_application=False)
-        # TODO Not Sure but to filter for only WA listed conservation lists for external
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
