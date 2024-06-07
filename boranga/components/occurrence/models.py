@@ -1846,6 +1846,7 @@ class OCRHabitatComposition(models.Model):
     Is:
     - Table
     """
+    LANDFORM_CHOICES = tuple(LandForm.objects.values_list("id","name"))
 
     occurrence_report = models.OneToOneField(
         OccurrenceReport,
@@ -1853,7 +1854,7 @@ class OCRHabitatComposition(models.Model):
         null=True,
         related_name="habitat_composition",
     )
-    land_form = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
+    land_form = MultiSelectField(max_length=250, blank=True, choices=LANDFORM_CHOICES, null=True)
     rock_type = models.ForeignKey(
         RockType, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -1880,7 +1881,10 @@ class OCRHabitatComposition(models.Model):
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?\
-
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._meta.get_field("land_form").choices = tuple(LandForm.objects.values_list("id","name"))
 
 class OCRHabitatCondition(models.Model):
     """
@@ -3525,13 +3529,15 @@ class OCCHabitatComposition(models.Model):
     - Table
     """
 
+    LANDFORM_CHOICES = tuple(LandForm.objects.values_list("id","name"))
+
     occurrence = models.OneToOneField(
         Occurrence,
         on_delete=models.CASCADE,
         null=True,
         related_name="habitat_composition",
     )
-    land_form = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
+    land_form = MultiSelectField(max_length=250, blank=True, choices=LANDFORM_CHOICES, null=True)
     rock_type = models.ForeignKey(
         RockType, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -3558,6 +3564,10 @@ class OCCHabitatComposition(models.Model):
 
     def __str__(self):
         return str(self.occurrence)  # TODO: is the most appropriate?\
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._meta.get_field("land_form").choices = tuple(LandForm.objects.values_list("id","name"))
 
 
 class OCCHabitatCondition(models.Model):

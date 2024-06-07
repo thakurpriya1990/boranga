@@ -25,6 +25,7 @@ from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from multiselectfield import MultiSelectField
+from django.apps import apps
 
 from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
@@ -997,7 +998,17 @@ class OccurrenceReportViewSet(
                         if len(res_json[i.name]) == 1:
                             res_json[i.name] = list(res_json[i.name].values())[0]
                 elif isinstance(i, MultiSelectField):
-                    res_json[i.name] = getattr(section_value,i.name)
+                    if i.choices:
+                        choice_dict = dict(i.choices)
+                        id_list = getattr(section_value,i.name)
+                        values_list = []
+                        for id in id_list:
+                            if id.isdigit() and int(id) in choice_dict:
+                                values_list.append(choice_dict[int(id)])
+                        res_json[i.name] = values_list
+                    else:
+                        res_json[i.name] = getattr(section_value,i.name)
+
                 elif getattr(section_value,i.name) != None:
                     res_json[i.name] = str(getattr(section_value,i.name))
 

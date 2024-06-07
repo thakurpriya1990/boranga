@@ -389,16 +389,6 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
             "habitat_notes",
         )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["land_form"] = serializers.MultipleChoiceField(
-            choices=[
-                (land_form_instance.id, land_form_instance.name)
-                for land_form_instance in LandForm.objects.all()
-            ],
-            allow_blank=False,
-        )
-
 
 class OCRHabitatConditionSerializer(serializers.ModelSerializer):
 
@@ -1254,7 +1244,8 @@ class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
     land_form = serializers.MultipleChoiceField(
-        choices=[], allow_null=True, allow_blank=True, required=False
+        choices=OCRHabitatComposition.LANDFORM_CHOICES,
+        allow_null=True, allow_blank=True, required=False
     )
     rock_type_id = serializers.IntegerField(required=False, allow_null=True)
     soil_type_id = serializers.IntegerField(required=False, allow_null=True)
@@ -1280,11 +1271,7 @@ class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["land_form"].choices = [
-            (land_form_instance.id, land_form_instance.name)
-            for land_form_instance in LandForm.objects.all()
-        ]
-
+        self.fields["land_form"].choices = OCRHabitatComposition._meta.get_field("land_form").choices
 
 class SaveOCRHabitatConditionSerializer(serializers.ModelSerializer):
     # occurrence_report_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
@@ -2053,16 +2040,6 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
             "habitat_notes",
         )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["land_form"] = serializers.MultipleChoiceField(
-            choices=[
-                (land_form_instance.id, land_form_instance.name)
-                for land_form_instance in LandForm.objects.all()
-            ],
-            allow_blank=False,
-        )
-
 
 class OCCHabitatConditionSerializer(serializers.ModelSerializer):
 
@@ -2278,7 +2255,7 @@ class SaveOCCHabitatCompositionSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_id = serializers.IntegerField(required=False, allow_null=True)
     land_form = serializers.MultipleChoiceField(
-        choices=[], allow_null=True, allow_blank=True, required=False
+        choices=OCCHabitatComposition.LANDFORM_CHOICES
     )
     rock_type_id = serializers.IntegerField(required=False, allow_null=True)
     soil_type_id = serializers.IntegerField(required=False, allow_null=True)
@@ -2304,11 +2281,7 @@ class SaveOCCHabitatCompositionSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["land_form"].choices = [
-            (land_form_instance.id, land_form_instance.name)
-            for land_form_instance in LandForm.objects.all()
-        ]
-
+        self.fields["land_form"].choices = OCCHabitatComposition._meta.get_field("land_form").choices
 
 class SaveOCCHabitatConditionSerializer(serializers.ModelSerializer):
     # occurrence_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
