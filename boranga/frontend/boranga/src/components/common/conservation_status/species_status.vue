@@ -123,7 +123,7 @@
                             v-model="conservation_status_obj.listing_date"
                             :disabled="listing_and_review_due_date_disabled" />
                     </div>
-                    <label for="review_due_date" class="col-sm-3 col-form-label">Review Date:</label>
+                    <label for="review_due_date" class="col-sm-3 col-form-label">Review Due Date:</label>
                     <div class="col-sm-3">
                         <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="review_due_date"
                             v-model="conservation_status_obj.review_due_date"
