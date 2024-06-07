@@ -1,4 +1,4 @@
-from django.contrib.gis import admin
+from django.contrib.gis import admin, forms
 import nested_admin
 
 from boranga.components.occurrence.models import (
@@ -34,11 +34,6 @@ from boranga.components.occurrence.models import (
     SoilType,
     WildStatus,
 )
-
-
-@admin.register(OccurrenceTenure)
-class OccurrenceTenureAdmin(admin.ModelAdmin):
-    pass
 
 
 class OccurrenceTenureInline(nested_admin.NestedTabularInline):
@@ -92,8 +87,17 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
     readonly_fields = ["original_geometry"]
 
 
+class OccurrenceGeometryInlineForm(forms.ModelForm):
+    geometry = forms.GeometryField(widget=forms.OSMWidget(attrs={"display_raw": False}))
+
+    class Meta:
+        model = OccurrenceGeometry
+        fields = "__all__"
+
+
 class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
     model = OccurrenceGeometry
+    form = OccurrenceGeometryInlineForm
     extra = 0
     verbose_name = "Occurrence Geometry"
     verbose_name_plural = "Occurrence Geometries"
@@ -127,6 +131,62 @@ class OccurrenceReportAdmin(admin.ModelAdmin):
 @admin.register(Occurrence)
 class OccurrenceAdmin(nested_admin.NestedModelAdmin):
     inlines = [OccurrenceGeometryInline]
+
+
+@admin.register(OccurrenceTenure)
+class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
+    model = OccurrenceTenure
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    (
+                        "status",
+                        "occurrence",
+                        "significant_to_occurrence",
+                        "purpose",
+                        "comments",
+                    ),
+                )
+            },
+        ),
+        (
+            "Cadastre Spatial Identification",
+            {
+                "fields": (
+                    ("tenure_area_id",),
+                    (
+                        "typename",
+                        "featureid",
+                    ),
+                )
+            },
+        ),
+        (
+            "Cadastre Owner Information",
+            {
+                "fields": (
+                    (
+                        "owner_name",
+                        "owner_count",
+                    ),
+                )
+            },
+        ),
+        (
+            "Occurrence Geometry",
+            {
+                "fields": (
+                    "occurrence_geometry",
+                    "geometry",
+                )
+            },
+        ),
+    )
+
+    readonly_fields = ["typename", "featureid", "geometry", "occurrence"]
 
 
 # Each of the following models will be available to Django Admin.
