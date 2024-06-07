@@ -731,6 +731,14 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         filter_application_status = request.POST.get("filter_application_status")
         if filter_application_status and not filter_application_status.lower() == "all":
             queryset = queryset.filter(processing_status=filter_application_status)
+        
+        filter_region = request.POST.get("filter_region")
+        if filter_region and not filter_region.lower() == "all":
+            queryset = queryset.filter(regions__id=filter_region)
+        
+        filter_district = request.POST.get("filter_district")
+        if filter_district and not filter_district.lower() == "all":
+            queryset = queryset.filter(districts__id=filter_district)
 
         filter_wa_legislative_list = request.POST.get("filter_wa_legislative_list")
         if (
@@ -904,9 +912,9 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Common Name",
             "Family",
             "Genera",
-            "Phylo Group",
-            "Region",
-            "District",
+            "Phylo Group(s)",
+            "Region(s)",
+            "District(s)",
             "Processing Status",
         ]
         df.columns = new_headings
@@ -914,11 +922,11 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Number",
             "Scientific Name",
             "Common Name",
-            "Phylo Group",
+            "Phylo Group(s)",
             "Family",
             "Genera",
-            "Region",
-            "District",
+            "Region(s)",
+            "District(s)",
             "Processing Status",
         ]
         df = df[column_order]
