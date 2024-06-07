@@ -1,4 +1,5 @@
 import json
+import logging
 from io import BytesIO
 
 import pandas as pd
@@ -44,40 +45,32 @@ from boranga.components.meetings.serializers import (
     SaveMeetingSerializer,
     SaveMinutesSerializer,
 )
-from boranga.helpers import is_internal
+from boranga.helpers import is_conservation_status_approver, is_internal
+
+logger = logging.getLogger(__name__)
 
 
 class MeetingFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
 
-        filter_meeting_type = request.GET.get("meeting_status")
-        if queryset.model is Meeting:
-            if filter_meeting_type:
-                # queryset = queryset.filter(species__group_type__name=filter_group_type)
-                # changed to application_type (ie group_type)
-                queryset = queryset
-
         filter_from_start_date = request.GET.get("filter_from_start_date")
         filter_to_start_date = request.GET.get("filter_to_start_date")
-        print(filter_to_start_date)
         filter_from_end_date = request.GET.get("filter_from_end_date")
         filter_to_end_date = request.GET.get("filter_to_end_date")
-        if queryset.model is Meeting:
-            if filter_from_start_date:
-                queryset = queryset.filter(start_date__gte=filter_from_start_date)
-            if filter_to_start_date:
-                queryset = queryset.filter(start_date__lte=filter_to_start_date)
+        if filter_from_start_date:
+            queryset = queryset.filter(start_date__gte=filter_from_start_date)
+        if filter_to_start_date:
+            queryset = queryset.filter(start_date__lte=filter_to_start_date)
 
-            if filter_from_end_date:
-                queryset = queryset.filter(end_date__gte=filter_from_end_date)
-            if filter_to_end_date:
-                queryset = queryset.filter(end_date__lte=filter_to_end_date)
+        if filter_from_end_date:
+            queryset = queryset.filter(end_date__gte=filter_from_end_date)
+        if filter_to_end_date:
+            queryset = queryset.filter(end_date__lte=filter_to_end_date)
 
         filter_meeting_status = request.GET.get("filter_meeting_status")
         if filter_meeting_status and not filter_meeting_status.lower() == "all":
-            if queryset.model is Meeting:
-                queryset = queryset.filter(processing_status=filter_meeting_status)
+            queryset = queryset.filter(processing_status=filter_meeting_status)
 
         fields = self.get_fields(request)
         ordering = self.get_ordering(request, view, fields)
@@ -85,10 +78,8 @@ class MeetingFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -148,7 +139,6 @@ class MeetingPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             return flattened_dict
 
         flattened_data = [flatten_dict(item) for item in filtered_data]
-        print(flattened_data)
         df = pd.DataFrame(flattened_data)
         new_headings = [
             "Number",
@@ -218,6 +208,11 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         return Meeting.objects.none()
 
     def create(self, request, *args, **kwargs):
+        if not is_conservation_status_approver(request):
+            return Response(
+                {"message": "You do not have permission to create a meeting"},
+                status=403,
+            )
         serializer = CreateMeetingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
@@ -250,6 +245,12 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
     def meeting_save(self, request, *args, **kwargs):
+        if not is_conservation_status_approver(request):
+            return Response(
+                {"message": "You do not have permission to save a meeting"},
+                status=403,
+            )
+
         instance = self.get_object()
         request_data = request.data
         # to resolve error for serializer submitter id as object is received in request
