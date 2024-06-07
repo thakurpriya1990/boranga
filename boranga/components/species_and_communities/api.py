@@ -1356,11 +1356,18 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
 
         if(request_data.get('regions')):
-                    regions = request_data.get('regions')
-                    instance.regions.clear()  # first clear all the species set relatedM:M to community instance
-                    for r in regions:
-                        reg = Region.objects.get(pk=r)
-                        instance.regions.add(reg)
+            regions = request_data.get('regions')
+            instance.regions.clear()
+            for r in regions:
+                region = Region.objects.get(pk=r)
+                instance.regions.add(region)
+        
+        if(request_data.get('districts')):
+            districts = request_data.get('districts')
+            instance.districts.clear()
+            for d in districts:
+                district = District.objects.get(pk=d)
+                instance.districts.add(district)
         
         if request_data.get("distribution"):
             distribution_instance, created = SpeciesDistribution.objects.get_or_create(

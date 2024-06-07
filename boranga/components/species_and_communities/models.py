@@ -441,7 +441,7 @@ class Species(RevisionedMixin):
     district = models.ForeignKey(
         District, default=None, on_delete=models.CASCADE, null=True, blank=True
     )
-    districts = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
+    districts = models.ManyToManyField(District, null=True, blank=True, related_name="species_districts")
     last_data_curration_date = models.DateField(blank=True, null=True)
     conservation_plan_exists = models.BooleanField(default=False)
     conservation_plan_reference = models.CharField(
