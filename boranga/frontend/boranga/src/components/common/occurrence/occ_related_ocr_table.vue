@@ -15,7 +15,8 @@
             <SectionModal
                 ref="section_modal"
                 :key="sectionOCRId"
-                :sectionType="sectionTypeFormatted"
+                :sectionTypeDisplay="sectionTypeFormatted"
+                :sectionType="section_type"
                 :ocrNumber="sectionOCRId"
                 :sectionObj="sectionObj"
             />

@@ -4,6 +4,7 @@ from datetime import datetime, time
 from io import BytesIO
 
 import pandas as pd
+from django.db import models
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import CharField, Q, Value
@@ -23,6 +24,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
+from multiselectfield import MultiSelectField
 
 from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
@@ -951,6 +953,51 @@ class OccurrenceReportViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
             "drainage_list": drainage_list,
             "intensity_list": intensity_list,
         }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def section_values(self, request, *args, **kwargs):
+
+        section = request.GET.get("section")
+        ocr = self.get_object()
+        res_json = {}
+
+        if hasattr(ocr,section):
+            #print(section)
+            section_value = getattr(ocr,section)
+            section_fields = section_value._meta.get_fields()
+            #print(section_fields)
+
+            for i in section_fields:
+                if (i.name == "id" or i.name == "occurrence_report" or isinstance(i, models.ManyToOneRel)):
+                    continue
+                
+                if isinstance(i, models.ForeignKey):                    
+                    sub_section_value = getattr(section_value,i.name)
+                    if sub_section_value != None:
+                        res_json[i.name] = {}
+                        sub_section_fields = sub_section_value._meta.get_fields()
+                        for j in sub_section_fields:
+                            if (j.name != "id" and 
+                                not isinstance(j, models.ForeignKey) and 
+                                not isinstance(j, models.ManyToOneRel) and
+                                getattr(sub_section_value,j.name) != None):
+                                res_json[i.name][j.name] = str(getattr(sub_section_value,j.name))
+                        #if the num sub section has only one value, assign as section
+                        if len(res_json[i.name]) == 1:
+                            res_json[i.name] = list(res_json[i.name].values())[0]
+                elif isinstance(i, MultiSelectField):
+                    res_json[i.name] = getattr(section_value,i.name)
+                elif getattr(section_value,i.name) != None:
+                    res_json[i.name] = str(getattr(section_value,i.name))
+
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
 

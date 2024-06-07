@@ -261,6 +261,10 @@ module.exports = {
       return `/api/history/boranga/${model}/${id}/`;
     },
 
+    lookup_ocr_section_values: function (model,id) {
+      return `/api/occurrence_report/${id}/section_values/?section=${model}`;
+    },
+
     event: event,
     filming: filming,
     group_type_community: group_type_community,
