@@ -864,8 +864,8 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "family",
             "genus",
             "phylogenetic_group",
-            "region",
-            "district",
+            "regions",
+            "districts",
             "processing_status",
         ]
 

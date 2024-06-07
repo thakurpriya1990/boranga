@@ -658,20 +658,20 @@ export default {
         },
         column_region: function () {
             return {
-                data: "region",
+                data: "regions",
                 orderable: true,
                 searchable: false,
                 visible: true,
-                name: "region__name",
+                name: "regions__name",
             }
         },
         column_district: function () {
             return {
-                data: "district",
+                data: "districts",
                 orderable: true,
                 searchable: false,
                 visible: true,
-                name: "district__name",
+                name: "districts__name",
             }
         },
         column_action: function () {
@@ -1121,8 +1121,8 @@ export default {
                     "searchable": "true"
                 },
                 "10": {
-                    "data": "district",
-                    "name": "district__name",
+                    "data": "districts",
+                    "name": "districts__name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",
@@ -1221,8 +1221,8 @@ export default {
                     "searchable": "true"
                 },
                 "9": {
-                    "data": "region",
-                    "name": "region__name",
+                    "data": "regions",
+                    "name": "regions__name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",

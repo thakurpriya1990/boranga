@@ -47,8 +47,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     genus = serializers.SerializerMethodField()
     phylogenetic_group = serializers.SerializerMethodField()
     # TODO: Add new conservation status lists/catories
-    region = serializers.SerializerMethodField()
-    district = serializers.SerializerMethodField()
+    regions = serializers.SerializerMethodField()
+    districts = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
     user_process = serializers.SerializerMethodField(read_only=True)
     can_user_edit = serializers.SerializerMethodField()
@@ -71,8 +71,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "family",
             "genus",
             "phylogenetic_group",
-            "region",
-            "district",
+            "regions",
+            "districts",
             "processing_status",
             "can_user_edit",
             "can_user_view",
@@ -95,8 +95,8 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "family",
             "genus",
             "phylogenetic_group",
-            "region",
-            "district",
+            "regions",
+            "districts",
             "processing_status",
             "can_user_edit",
             "can_user_view",
@@ -148,14 +148,20 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
                 )
         return ""
 
-    def get_region(self, obj):
-        if obj.region:
-            return obj.region.name
+    def get_regions(self, obj):
+        if obj.regions:
+            regions_list = obj.regions.all().values_list(
+                    "name", flat=True
+                )
+            return ",".join(regions_list)
         return ""
 
-    def get_district(self, obj):
-        if obj.district:
-            return obj.district.name
+    def get_districts(self, obj):
+        if obj.districts:
+            districts_list = obj.districts.all().values_list(
+                    "name", flat=True
+                )
+            return ",".join(districts_list)
         return ""
 
     def get_user_process(self, obj):
