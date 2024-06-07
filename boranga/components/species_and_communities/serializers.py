@@ -668,10 +668,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
             "taxonomy_details",
             "conservation_attributes",
             "distribution",
-            "region_id",
-            "district_id",
             "regions",
-            # "species_regions",
             "districts",
             "last_data_curration_date",
             "image_doc",
@@ -793,10 +790,7 @@ class SpeciesSerializer(BaseSpeciesSerializer):
             "taxonomy_details",
             "conservation_attributes",
             "distribution",
-            "region_id",
-            "district_id",
             "regions",
-            # "species_regions",
             "districts",
             "image_doc",
             "processing_status",
@@ -843,10 +837,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "conservation_attributes",
             "distribution",
             "publishing_status",
-            "region_id",
-            "district_id",
             "regions",
-            # "species_regions",
             "districts",
             "last_data_curration_date",
             "image_doc",
@@ -1339,12 +1330,6 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 
 
 class SaveSpeciesSerializer(BaseSpeciesSerializer):
-    region_id = serializers.IntegerField(
-        required=False, allow_null=True, write_only=True
-    )
-    district_id = serializers.IntegerField(
-        required=False, allow_null=True, write_only=True
-    )
     taxonomy_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
@@ -1355,11 +1340,6 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
             "id",
             "group_type",
             "taxonomy_id",
-            "region_id",
-            "district_id",
-            "regions",
-            # "species_regions",
-            "districts",
             "last_data_curration_date",
             "submitter",
             "readonly",
@@ -1370,16 +1350,6 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
             "conservation_plan_reference",
         )
         read_only_fields = ("id", "group_type")
-    
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     # self.fields["districts"] = serializers.MultipleChoiceField(
-    #     #     choices=[
-    #     #         (district_instance.id, district_instance.name)
-    #     #         for district_instance in District.objects.all()
-    #     #     ],
-    #     #     allow_blank=False,
-    #     # )
 
 
 class CreateSpeciesSerializer(BaseSpeciesSerializer):

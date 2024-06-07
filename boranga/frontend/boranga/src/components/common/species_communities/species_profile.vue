@@ -95,7 +95,7 @@
                     </select>
                 </div>
             </div>
-            <div v-if="species_community.region_id" class="row mb-3">
+            <div v-if="species_community.regions" class="row mb-3">
                 <label for="" class="col-sm-3 col-form-label">District:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" 
@@ -1430,9 +1430,7 @@ export default {
         },
         chainedSelectDistricts: function(regions,event){
             let vm = this;
-            if (event) {
-                vm.species_community.districts = null; //-----to remove the previous selection
-            }
+            vm.species_community.districts = []; //-----to remove the previous selection
             vm.district_list = [];
             if(regions){
                 for(let r of regions){
