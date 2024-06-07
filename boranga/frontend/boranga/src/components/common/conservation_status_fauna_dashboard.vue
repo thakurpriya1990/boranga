@@ -131,15 +131,6 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3" v-show="!is_for_agenda">
-                    <div class="form-group">
-                        <label for="">Status:</label>
-                        <select class="form-select" v-model="filterCSFaunaApplicationStatus">
-                            <option value="all">All</option>
-                            <option v-for="status in processing_statuses" :value="status.value">{{ status.name }}</option>
-                        </select>
-                    </div>
-                </div>
                 <div class="col-md-6" v-show="!is_for_agenda">
                     <label for="" class="form-label px-2">Effective From Date Range:</label>
                     <div class="input-group px-2 mb-2">
@@ -386,9 +377,6 @@ export default {
             filterCSFaunaInternationalRelevance: sessionStorage.getItem(this.filterCSFaunaInternationalRelevance_cache) ?
                 sessionStorage.getItem(this.filterCSFaunaInternationalRelevance_cache) : "false",
 
-            filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'approved',
-
             filterCSFaunaAssessor: sessionStorage.getItem(this.filterCSFaunaAssessor_cache) ?
                 sessionStorage.getItem(this.filterCSFaunaAssessor_cache) : 'all',
 
@@ -398,9 +386,8 @@ export default {
             filterCSFaunaSubmitterCategory: sessionStorage.getItem(this.filterCSFaunaSubmitterCategory_cache) ?
                 sessionStorage.getItem(this.filterCSFaunaSubmitterCategory_cache) : 'all',
 
-
             filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'all',
+                sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'approved',
 
             filterCSFromFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) ?
                 sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) : '',
@@ -572,7 +559,7 @@ export default {
                 this.filterCSFaunaAssessor === 'all' &&
                 this.filterCSFaunaSubmitter === 'all' &&
                 this.filterCSFaunaSubmitterCategory === 'all' &&
-                this.filterCSFaunaApplicationStatus === 'all' &&
+                this.filterCSFaunaApplicationStatus === 'approved' &&
                 this.filterCSFromFaunaEffectiveFromDate === '' &&
                 this.filterCSToFaunaEffectiveFromDate === '' &&
                 this.filterCSFromFaunaEffectiveToDate === '' &&
@@ -1592,10 +1579,10 @@ export default {
                 filter_wa_priority_category: vm.filterCSFaunaWAPriorityCategory,
                 filter_commonwealth_relevance: vm.filterCSFaunaCommonwealthRelevance,
                 filter_international_relevance: vm.filterCSFaunaInternationalRelevance,
-                filter_application_status: vm.filterCSFaunaApplicationStatus,
                 filter_assessor: vm.filterCSFaunaAssessor,
                 filter_submitter: vm.filterCSFaunaSubmitter,
-                filter_submitter_category: vm.filterCSFaunaSubmitterCategory, filter_application_status: vm.filterCSFaunaApplicationStatus,
+                filter_submitter_category: vm.filterCSFaunaSubmitterCategory,
+                filter_application_status: vm.filterCSFaunaApplicationStatus,
                 filter_from_effective_from_date: vm.filterCSFromFaunaEffectiveFromDate,
                 filter_to_effective_from_date: vm.filterCSToFaunaEffectiveFromDate,
                 filter_effective_to_date: vm.filterCSFromFaunaEffectiveToDate,
