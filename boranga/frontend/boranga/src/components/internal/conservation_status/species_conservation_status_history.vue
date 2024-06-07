@@ -3,8 +3,8 @@
         <modal
             transition="modal fade"
             :title="'Conservation Status CS'
-            + conservationStatusId + ' - '
-            + conservationListId + ' - Species '+ speciesId +' - History'"
+            + conservationStatusId
+            + ' - Species '+ speciesId +' - History'"
             :large="true"
             :full="true"
             :showOK="false"
@@ -68,10 +68,6 @@ export default {
         conservationStatusId: {
             type: Number,
             required: true,
-        },
-        conservationListId: {
-            type: String,
-            required: false,
         },
     },
     data: function () {
