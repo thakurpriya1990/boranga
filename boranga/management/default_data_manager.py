@@ -12,6 +12,7 @@ from boranga.components.conservation_status.models import (
     WAPriorityCategory,
     WAPriorityList,
 )
+from boranga.components.occurrence.models import OccurrenceReport
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,11 @@ class DefaultDataManager:
             submitter_information__isnull=True
         ):
             conservation_status.save(no_revision=True)
+        # Make sure all occurrence report records have a submitter information
+        for occurrence_report in OccurrenceReport.objects.filter(
+            submitter_information__isnull=True
+        ):
+            occurrence_report.save(no_revision=True)
 
         for group_name in settings.GROUP_NAME_CHOICES:
             try:
