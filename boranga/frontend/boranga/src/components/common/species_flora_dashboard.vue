@@ -484,7 +484,7 @@ export default {
                 return ['Id', 'Number', 'Scientific Name', 'Common Name', 'Phylo Group(s)', 'Family', 'Genera',
                     'Region', 'District',
                     'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
-                    'International Conservation', 'Conservation Criteria', 'Status', 'Action']
+                    'International Conservation', 'Conservation Criteria', 'Action']
             }
             if (this.is_internal) {
                 return ['Id', 'Number', 'Scientific Name', 'Common Name', 'Phylo Group(s)', 'Family', 'Genera',
