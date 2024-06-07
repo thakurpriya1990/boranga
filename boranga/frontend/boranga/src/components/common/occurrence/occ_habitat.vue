@@ -98,11 +98,11 @@
                 </div>
             </div>
 
-            <RelatedReports 
-        :isReadOnly="isReadOnly"
-                :occurrence_obj=occurrence_obj
-                :section_type="'habitat_composition'"
-                @copyUpdate="copyUpdate"
+        <RelatedReports 
+            :isReadOnly="isReadOnly"
+            :occurrence_obj=occurrence_obj
+            :section_type="'habitat_composition'"
+            @copyUpdate="copyUpdate"
             />
         </FormSection>
         <FormSection :formCollapse="false" label="Habitat Condition" :Index="habitatConditionBody">
@@ -309,7 +309,6 @@ export default {
                 vegetationStructureBody: 'vegetationStructureBody' + vm._uid,
                 fireHistoryBody: 'fireHistoryBody' + vm._uid,
                 associatedSpeciesBody: 'associatedSpeciesBody'+ vm._uid,
-                richTextKey: 0,
                 //---to show fields related to Fauna
                 isFauna: vm.occurrence_obj.group_type==="fauna"?true:false,
                 //----list of values dictionary
@@ -403,11 +402,7 @@ export default {
             copyUpdate: function(object,section) {
                 let vm = this;
                 vm.occurrence_obj[section] = object[section];
-
-                //special handling
-                if (section == "associated_species") {
-                    vm.richTextKey++;
-                }
+                $(vm.$refs.land_form_select).val(vm.occurrence_obj.habitat_composition.land_form).trigger('change.select2');
             },
             updateHabitatCompositionDetails: function() {
                 let vm = this;

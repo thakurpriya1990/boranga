@@ -229,6 +229,12 @@ export default {
         computed: {
         },
         watch:{
+            animal_observation: function (){
+                let vm = this;
+                $(vm.$refs.primary_detection_select).val(vm.animal_observation.primary_detection_method).trigger('change.select2');
+                $(vm.$refs.secondary_sign_select).val(vm.animal_observation.secondary_sign).trigger('change.select2');
+                $(vm.$refs.reproductive_maturity_select).val(vm.animal_observation.reproductive_maturity).trigger('change.select2');
+            }
         },
         methods:{
             eventListeners:function (){
