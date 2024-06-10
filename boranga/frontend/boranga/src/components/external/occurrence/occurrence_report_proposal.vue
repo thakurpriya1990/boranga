@@ -528,7 +528,7 @@ export default {
         },
     },
     created: function () {
-        if (!this.occurrence_report) {
+        if (!this.occurrence_report_obj) {
             this.fetchOccurrenceReport(this.$route.params.occurrence_report_id);
         }
     },
