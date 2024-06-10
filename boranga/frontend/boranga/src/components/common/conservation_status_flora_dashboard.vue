@@ -1090,7 +1090,6 @@ export default {
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: vm.is_for_agenda == false ? buttons : [],
-
                 columns: columns,
                 processing: true,
                 drawCallback: function () {

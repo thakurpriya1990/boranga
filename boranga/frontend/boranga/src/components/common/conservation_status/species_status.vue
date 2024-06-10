@@ -81,7 +81,7 @@
                         <select :disabled="isReadOnly" class="form-select"
                             v-model="conservation_status_obj.change_code_id" id="change_code">
                             <option :value="null">Select the appropriate Change type</option>
-                            <option v-for="option in change_code_list" :value="option.id" v-bind:key="option.id">
+                            <option v-for="option in change_codes" :value="option.id" v-bind:key="option.id">
                                 {{ option.code }}
                             </option>
                         </select>
@@ -487,7 +487,7 @@ export default {
             wa_priority_categories: [],
             commonwealth_conservation_lists: [],
             iucn_version_list: [],
-            change_code_list: [],
+            change_codes: [],
             filtered_wa_legislative_categories: [],
             filtered_wa_priority_categories: [],
             filtered_recommended_wa_legislative_categories: [],
@@ -740,7 +740,7 @@ export default {
             vm.commonwealth_conservation_lists = vm.cs_profile_dict.commonwealth_conservation_lists;
 
             vm.iucn_version_list = vm.cs_profile_dict.iucn_version_list;
-            vm.change_code_list = vm.cs_profile_dict.change_code_list;
+            vm.change_codes = vm.cs_profile_dict.change_codes;
             this.getSpeciesDisplay();
             this.filterWALegislativeCategories();
             this.filterWAPriorityCategories();
