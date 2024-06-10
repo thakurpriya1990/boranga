@@ -4047,6 +4047,11 @@ class OccurrenceViewSet(
                 ocrValue = getattr(ocrSection, i.name)
                 setattr(occSection, i.name, ocrValue)
 
+        occ_section_fields = type(occSection)._meta.get_fields()
+        for i in occ_section_fields:
+            if isinstance(i, models.ForeignKey) and i.related_model.__name__ == ocrSection.__class__.__name__:
+                setattr(occSection, i.name, ocrSection)
+
         occSection.save()
         instance.save(version_user=request.user)
 
