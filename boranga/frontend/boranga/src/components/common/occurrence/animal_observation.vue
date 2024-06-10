@@ -158,7 +158,11 @@
                     v-model="animal_observation.total_count"/>
                 </div>
             </div>
-            
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <span v-if="animal_observation.copied_ocr" class="float-end"><b>Sourced from {{animal_observation.copied_ocr}}</b></span>
+                </div>
+            </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingAnimalOnservationDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->

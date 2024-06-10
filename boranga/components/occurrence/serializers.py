@@ -2018,12 +2018,14 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
         choices=[],
         allow_null=True, allow_blank=True, required=False
     )
+    copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCHabitatComposition
         fields = (
             "id",
             "occurrence_id",
+            "copied_ocr",
             "land_form",
             "rock_type_id",
             "loose_rock_percent",
@@ -2039,13 +2041,20 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         self.fields["land_form"].choices = OCCHabitatComposition._meta.get_field("land_form").choices
 
+    def get_copied_ocr(self, obj):
+        if obj.copied_ocr_habitat_composition:
+            return obj.copied_ocr_habitat_composition.occurrence_report.occurrence_report_number
+
 class OCCHabitatConditionSerializer(serializers.ModelSerializer):
+
+    copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCHabitatCondition
         fields = (
             "id",
             "occurrence_id",
+            "copied_ocr",
             "pristine",
             "excellent",
             "very_good",
@@ -2054,20 +2063,30 @@ class OCCHabitatConditionSerializer(serializers.ModelSerializer):
             "completely_degraded",
         )
 
+    def get_copied_ocr(self, obj):
+        if obj.copied_ocr_habitat_condition:
+            return obj.copied_ocr_habitat_condition.occurrence_report.occurrence_report_number
+
 
 class OCCVegetationStructureSerializer(serializers.ModelSerializer):
+
+    copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCVegetationStructure
         fields = (
             "id",
             "occurrence_id",
+            "copied_ocr",
             "free_text_field_one",
             "free_text_field_two",
             "free_text_field_three",
             "free_text_field_four",
         )
 
+    def get_copied_ocr(self, obj):
+        if obj.copied_ocr_vegetation_structure:
+            return obj.copied_ocr_vegetation_structure.occurrence_report.occurrence_report_number
 
 class SaveOCCVegetationStructureSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
@@ -2087,49 +2106,69 @@ class SaveOCCVegetationStructureSerializer(serializers.ModelSerializer):
 
 class OCCFireHistorySerializer(serializers.ModelSerializer):
     last_fire_estimate = serializers.DateField(format="%Y-%m")
+    copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCFireHistory
         fields = (
             "id",
             "occurrence_id",
+            "copied_ocr",
             "last_fire_estimate",
             "intensity_id",
             "comment",
         )
 
+    def get_copied_ocr(self, obj):
+        if obj.copied_ocr_fire_history:
+            return obj.copied_ocr_fire_history.occurrence_report.occurrence_report_number
 
 class OCCAssociatedSpeciesSerializer(serializers.ModelSerializer):
+
+    copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCAssociatedSpecies
         fields = (
             "id",
             "occurrence_id",
+            "copied_ocr",
             "related_species",
         )
 
+    def get_copied_ocr(self, obj):
+        if obj.copied_ocr_associated_species:
+            return obj.copied_ocr_associated_species.occurrence_report.occurrence_report_number
 
 class OCCObservationDetailSerializer(serializers.ModelSerializer):
+
+    copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCObservationDetail
         fields = (
             "id",
             "occurrence_id",
+            "copied_ocr",
             "observation_method_id",
             "area_surveyed",
             "survey_duration",
         )
 
+    def get_copied_ocr(self, obj):
+        if obj.copied_ocr_observation_detail:
+            return obj.copied_ocr_observation_detail.occurrence_report.occurrence_report_number
 
 class OCCPlantCountSerializer(serializers.ModelSerializer):
+
+    copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCPlantCount
         fields = (
             "id",
             "occurrence_id",
+            "copied_ocr",
             "plant_count_method_id",
             "plant_count_accuracy_id",
             "counted_subject_id",
@@ -2162,6 +2201,9 @@ class OCCPlantCountSerializer(serializers.ModelSerializer):
             "detailed_dead_unknown",
         )
 
+    def get_copied_ocr(self, obj):
+        if obj.copied_ocr_plant_count:
+            return obj.copied_ocr_plant_count.occurrence_report.occurrence_report_number
 
 class OCCAnimalObservationSerializer(serializers.ModelSerializer):
 
@@ -2174,12 +2216,14 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
     reproductive_maturity = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
+    copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCAnimalObservation
         fields = (
             "id",
             "occurrence_id",
+            "copied_ocr",
             "primary_detection_method",
             "secondary_sign",
             "reproductive_maturity",
@@ -2206,13 +2250,20 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
         self.fields["secondary_sign"].choices = OCCAnimalObservation._meta.get_field("secondary_sign").choices
         self.fields["reproductive_maturity"].choices = OCCAnimalObservation._meta.get_field("reproductive_maturity").choices
 
+    def get_copied_ocr(self, obj):
+        if obj.copied_ocr_animal_observation:
+            return obj.copied_ocr_animal_observation.occurrence_report.occurrence_report_number
+
 class OCCIdentificationSerializer(serializers.ModelSerializer):
+
+    copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCIdentification
         fields = (
             "id",
             "occurrence_id",
+            "copied_ocr",
             "id_confirmed_by",
             "identification_certainty_id",
             "sample_type_id",
@@ -2224,6 +2275,9 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
             "identification_comment",
         )
 
+    def get_copied_ocr(self, obj):
+        if obj.copied_ocr_identification:
+            return obj.copied_ocr_identification.occurrence_report.occurrence_report_number
 
 class OCCObserverDetailSerializer(serializers.ModelSerializer):
 
@@ -2459,12 +2513,14 @@ class SaveOCCIdentificationSerializer(serializers.ModelSerializer):
 class OCCLocationSerializer(serializers.ModelSerializer):
     has_boundary = serializers.SerializerMethodField()
     has_points = serializers.SerializerMethodField()
+    copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
         model = OCCLocation
         fields = (
             "id",
             "occurrence_id",
+            "copied_ocr",
             "location_description",
             "boundary_description",
             "boundary",
@@ -2486,6 +2542,10 @@ class OCCLocationSerializer(serializers.ModelSerializer):
 
     def get_has_points(self, obj):
         return obj.occurrence.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POINT").exists()
+    
+    def get_copied_ocr(self, obj):
+        if obj.copied_ocr_location:
+            return obj.copied_ocr_location.occurrence_report.occurrence_report_number
 
 class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)
@@ -2500,6 +2560,7 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
         fields = (
             "id",
             "occurrence_id",
+            "copied_ocr",
             "geometry",
             "original_geometry",
             "srid",

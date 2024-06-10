@@ -276,6 +276,12 @@
 
             <div class="row mb-3">
                 <div class="col-sm-12">
+                    <span v-if="plant_count.copied_ocr" class="float-end"><b>Sourced from {{plant_count.copied_ocr}}</b></span>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-sm-12">
                     <!-- <button v-if="!updatingHabitatCompositionDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
                     <button v-if="!updatingPlantCountDetails" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updatePlantCountDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
