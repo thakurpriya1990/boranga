@@ -3030,6 +3030,7 @@ class Occurrence(RevisionedMixin):
         )
         if location:
             location.occurrence = occurrence
+            location.copied_ocr_location = occurrence_report.location
             location.save()
 
         habitat_composition = clone_model(
@@ -3039,6 +3040,7 @@ class Occurrence(RevisionedMixin):
         )
         if habitat_composition:
             habitat_composition.occurrence = occurrence
+            habitat_composition.copied_ocr_habitat_composition = occurrence_report.habitat_composition
             habitat_composition.save()
 
         habitat_condition = clone_model(
@@ -3048,6 +3050,7 @@ class Occurrence(RevisionedMixin):
         )
         if habitat_condition:
             habitat_condition.occurrence = occurrence
+            habitat_condition.copied_ocr_habitat_condition = occurrence_report.habitat_condition
             habitat_condition.save()
 
         vegetation_structure = clone_model(
@@ -3057,6 +3060,7 @@ class Occurrence(RevisionedMixin):
         )
         if vegetation_structure:
             vegetation_structure.occurrence = occurrence
+            vegetation_structure.copied_ocr_vegetation_structure = occurrence_report.vegetation_structure
             vegetation_structure.save()
 
         fire_history = clone_model(
@@ -3064,6 +3068,7 @@ class Occurrence(RevisionedMixin):
         )
         if fire_history:
             fire_history.occurrence = occurrence
+            fire_history.copied_ocr_fire_history = occurrence_report.fire_history
             fire_history.save()
 
         associated_species = clone_model(
@@ -3073,6 +3078,7 @@ class Occurrence(RevisionedMixin):
         )
         if associated_species:
             associated_species.occurrence = occurrence
+            associated_species.copied_ocr_associated_species = occurrence_report.associated_species
             associated_species.save()
 
         observation_detail = clone_model(
@@ -3082,6 +3088,7 @@ class Occurrence(RevisionedMixin):
         )
         if observation_detail:
             observation_detail.occurrence = occurrence
+            observation_detail.copied_ocr_observation_detail = occurrence_report.observation_detail
             observation_detail.save()
 
         plant_count = clone_model(
@@ -3089,6 +3096,7 @@ class Occurrence(RevisionedMixin):
         )
         if plant_count:
             plant_count.occurrence = occurrence
+            plant_count.copied_ocr_plant_count = occurrence_report.plant_count
             plant_count.save()
 
         animal_observation = clone_model(
@@ -3098,6 +3106,7 @@ class Occurrence(RevisionedMixin):
         )
         if animal_observation:
             animal_observation.occurrence = occurrence
+            animal_observation.copied_ocr_animal_observation = occurrence_report.animal_observation
             animal_observation.save()
 
         identification = clone_model(
@@ -3105,6 +3114,7 @@ class Occurrence(RevisionedMixin):
         )
         if identification:
             identification.occurrence = occurrence
+            identification.copied_ocr_identification = occurrence_report.identification
             identification.save()
 
         # Clone the threats
@@ -3123,10 +3133,6 @@ class Occurrence(RevisionedMixin):
             if occ_doc:
                 occ_doc.occurrence = occurrence
                 occ_doc.save()
-
-        # TODO: Once occurrence has it's own geometry field, clone the geometry here
-
-        # TODO: Make sure everything else is cloned once OCR/OCC sections are finalised
 
         return occurrence
 
@@ -3276,6 +3282,7 @@ class OCCLocation(models.Model):
     occurrence = models.OneToOneField(
         Occurrence, on_delete=models.CASCADE, null=True, related_name="location"
     )
+    copied_ocr_location = models.ForeignKey(OCRLocation, on_delete=models.SET_NULL, null=True, blank=True)
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
 
@@ -3540,6 +3547,7 @@ class OCCHabitatComposition(models.Model):
         null=True,
         related_name="habitat_composition",
     )
+    copied_ocr_habitat_composition = models.ForeignKey(OCRHabitatComposition, on_delete=models.SET_NULL, null=True, blank=True)
     land_form = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
     rock_type = models.ForeignKey(
         RockType, on_delete=models.SET_NULL, null=True, blank=True
@@ -3589,6 +3597,7 @@ class OCCHabitatCondition(models.Model):
         null=True,
         related_name="habitat_condition",
     )
+    copied_ocr_habitat_condition = models.ForeignKey(OCRHabitatCondition, on_delete=models.SET_NULL, null=True, blank=True)
     pristine = models.IntegerField(
         null=True,
         blank=True,
@@ -3649,7 +3658,7 @@ class OCCVegetationStructure(models.Model):
         null=True,
         related_name="vegetation_structure",
     )
-
+    copied_ocr_vegetation_structure = models.ForeignKey(OCRVegetationStructure, on_delete=models.SET_NULL, null=True, blank=True)
     free_text_field_one = models.TextField(null=True, blank=True)
     free_text_field_two = models.TextField(null=True, blank=True)
     free_text_field_three = models.TextField(null=True, blank=True)
@@ -3678,6 +3687,7 @@ class OCCFireHistory(models.Model):
         null=True,
         related_name="fire_history",
     )
+    copied_ocr_fire_history = models.ForeignKey(OCRFireHistory, on_delete=models.SET_NULL, null=True, blank=True)
     last_fire_estimate = models.DateField(null=True, blank=True)
     intensity = models.ForeignKey(
         Intensity, on_delete=models.SET_NULL, null=True, blank=True
@@ -3707,6 +3717,7 @@ class OCCAssociatedSpecies(models.Model):
         null=True,
         related_name="associated_species",
     )
+    copied_ocr_associated_species = models.ForeignKey(OCRAssociatedSpecies, on_delete=models.SET_NULL, null=True, blank=True)
     related_species = models.TextField(blank=True)
 
     class Meta:
@@ -3732,6 +3743,7 @@ class OCCObservationDetail(models.Model):
         null=True,
         related_name="observation_detail",
     )
+    copied_ocr_observation_detail = models.ForeignKey(OCRObservationDetail, on_delete=models.SET_NULL, null=True, blank=True)
     observation_method = models.ForeignKey(
         ObservationMethod, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -3761,6 +3773,7 @@ class OCCPlantCount(models.Model):
         null=True,
         related_name="plant_count",
     )
+    copied_ocr_plant_count = models.ForeignKey(OCRPlantCount, on_delete=models.SET_NULL, null=True, blank=True)
     plant_count_method = models.ForeignKey(
         PlantCountMethod, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -3832,6 +3845,7 @@ class OCCAnimalObservation(models.Model):
         null=True,
         related_name="animal_observation",
     )
+    copied_ocr_animal_observation = models.ForeignKey(OCRAnimalObservation, on_delete=models.SET_NULL, null=True, blank=True)
     primary_detection_method = MultiSelectField(
         max_length=250, blank=True, choices=[], null=True
     )
@@ -3892,6 +3906,7 @@ class OCCIdentification(models.Model):
         null=True,
         related_name="identification",
     )
+    copied_ocr_identification = models.ForeignKey(OCRIdentification, on_delete=models.SET_NULL, null=True, blank=True)
     id_confirmed_by = models.CharField(max_length=1000, null=True, blank=True)
     identification_certainty = models.ForeignKey(
         IdentificationCertainty, on_delete=models.SET_NULL, null=True, blank=True

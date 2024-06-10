@@ -4032,7 +4032,6 @@ class OccurrenceViewSet(
 
         ocrId = data["occurrence_report_id"]
         section = data["section"]
-        merge = data["merge"]
 
         ocr = OccurrenceReport.objects.get(id=ocrId)
         ocrSection = getattr(ocr, section)
@@ -4046,14 +4045,7 @@ class OccurrenceViewSet(
                 and hasattr(occSection, i.name)
             ):
                 ocrValue = getattr(ocrSection, i.name)
-                if merge:
-                    # if not ocrValue: #do not overwrite if None, 0, or empty string
-                    #    #determine if field is one-to-many
-                    #    many = False
-                    # DEFERRED for now
-                    pass
-                else:
-                    setattr(occSection, i.name, ocrValue)
+                setattr(occSection, i.name, ocrValue)
 
         occSection.save()
         instance.save(version_user=request.user)
