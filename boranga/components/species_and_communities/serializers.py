@@ -20,7 +20,9 @@ from boranga.components.species_and_communities.models import (
     CommunityTaxonomy,
     CommunityUserAction,
     ConservationThreat,
+    District,
     InformalGroup,
+    Region,
     Species,
     SpeciesConservationAttributes,
     SpeciesDistribution,
@@ -30,8 +32,6 @@ from boranga.components.species_and_communities.models import (
     SpeciesUserAction,
     Taxonomy,
     TaxonVernacular,
-    District,
-    Region,
 )
 from boranga.helpers import is_internal, is_species_communities_approver
 from boranga.ledger_api_utils import retrieve_email_user
@@ -232,6 +232,12 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
     user_process = serializers.SerializerMethodField(read_only=True)
     can_user_edit = serializers.SerializerMethodField()
     publishing_status = serializers.SerializerMethodField()
+    wa_legislative_list = serializers.SerializerMethodField()
+    wa_legislative_category = serializers.SerializerMethodField()
+    wa_priority_category = serializers.SerializerMethodField()
+    commonwealth_conservation_list = serializers.SerializerMethodField()
+    international_conservation = serializers.SerializerMethodField()
+    conservation_criteria = serializers.SerializerMethodField()
 
     class Meta:
         model = Community
@@ -249,6 +255,12 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "user_process",
             "comment",
             "publishing_status",
+            "wa_legislative_list",
+            "wa_legislative_category",
+            "wa_priority_category",
+            "commonwealth_conservation_list",
+            "international_conservation",
+            "conservation_criteria",
         )
         datatables_always_serialize = (
             "id",
@@ -264,6 +276,12 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "user_process",
             "comment",
             "publishing_status",
+            "wa_legislative_list",
+            "wa_legislative_category",
+            "wa_priority_category",
+            "commonwealth_conservation_list",
+            "international_conservation",
+            "conservation_criteria",
         )
 
     def get_group_type(self, obj):
@@ -313,6 +331,47 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             return CommunityPublishingStatusSerializer(ps_instance).data
         except CommunityPublishingStatus.DoesNotExist:
             return CommunityPublishingStatusSerializer().data
+
+    def approved_conservation_status(self, obj):
+        return obj.conservation_status.filter(
+            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
+        ).first()
+
+    def get_wa_legislative_list(self, obj):
+        conservation_status = self.approved_conservation_status(obj)
+        if conservation_status and conservation_status.wa_legislative_list:
+            return conservation_status.wa_legislative_list.code
+        return ""
+
+    def get_wa_legislative_category(self, obj):
+        conservation_status = self.approved_conservation_status(obj)
+        if conservation_status and conservation_status.wa_legislative_category:
+            return conservation_status.wa_legislative_category.code
+        return ""
+
+    def get_wa_priority_category(self, obj):
+        conservation_status = self.approved_conservation_status(obj)
+        if conservation_status and conservation_status.wa_priority_category:
+            return conservation_status.wa_priority_category.code
+        return ""
+
+    def get_commonwealth_conservation_list(self, obj):
+        conservation_status = self.approved_conservation_status(obj)
+        if conservation_status and conservation_status.commonwealth_conservation_list:
+            return conservation_status.commonwealth_conservation_list.code
+        return ""
+
+    def get_international_conservation(self, obj):
+        conservation_status = self.approved_conservation_status(obj)
+        if conservation_status and conservation_status.international_conservation:
+            return conservation_status.international_conservation
+        return ""
+
+    def get_conservation_criteria(self, obj):
+        conservation_status = self.approved_conservation_status(obj)
+        if conservation_status and conservation_status.conservation_criteria:
+            return conservation_status.conservation_criteria
+        return ""
 
 
 class TaxonomySerializer(serializers.ModelSerializer):
@@ -686,8 +745,8 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
     def get_group_type(self, obj):
         return obj.group_type.name
-    
-    def get_regions(self,obj):
+
+    def get_regions(self, obj):
         return [r.id for r in obj.regions.all()]
 
     # TODO not used on the form yet as gives error for new species as taxonomy = null
@@ -765,7 +824,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
     def get_processing_status(self, obj):
         return obj.get_processing_status_display()
-    
+
     # def __init__(self, *args, **kwargs):
     #     super().__init__(*args, **kwargs)
     #     self.fields["species_regions"] = serializers.MultipleChoiceField(
@@ -775,13 +834,13 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     #         ],
     #         allow_blank=False,
     #     )
-        # self.fields["districts"] = serializers.MultipleChoiceField(
-        #     choices=[
-        #         (district_instance.id, district_instance.name)
-        #         for district_instance in District.objects.all()
-        #     ],
-        #     allow_blank=False,
-        # )
+    # self.fields["districts"] = serializers.MultipleChoiceField(
+    #     choices=[
+    #         (district_instance.id, district_instance.name)
+    #         for district_instance in District.objects.all()
+    #     ],
+    #     allow_blank=False,
+    # )
 
 
 class SpeciesSerializer(BaseSpeciesSerializer):
@@ -808,9 +867,9 @@ class SpeciesSerializer(BaseSpeciesSerializer):
             "districts",
             "image_doc",
             "processing_status",
-            #"readonly",
-            #"can_user_edit",
-            #"can_user_view",
+            # "readonly",
+            # "can_user_edit",
+            # "can_user_view",
             "comment",
             "publishing_status",
         )
@@ -1384,7 +1443,7 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
             "conservation_plan_reference",
         )
         read_only_fields = ("id", "group_type")
-    
+
     # def __init__(self, *args, **kwargs):
     #     super().__init__(*args, **kwargs)
     #     self.fields["species_regions"] = serializers.MultipleChoiceField(
@@ -1755,14 +1814,16 @@ class CommunityUserActionSerializer(serializers.ModelSerializer):
         fullname = email_user.get_full_name()
         return fullname
 
+
 class DistrictSerializer(serializers.ModelSerializer):
     class Meta:
         model = District
-        fields = ('id', 'name', 'code')
+        fields = ("id", "name", "code")
 
 
 class RegionSerializer(serializers.ModelSerializer):
     districts = DistrictSerializer(many=True)
+
     class Meta:
         model = Region
-        fields = ('id', 'name', 'forest_region', 'districts')
+        fields = ("id", "name", "forest_region", "districts")

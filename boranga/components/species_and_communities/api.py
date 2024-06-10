@@ -117,7 +117,7 @@ from boranga.components.species_and_communities.utils import (
     species_form_submit,
 )
 from boranga.components.users.models import SubmitterCategory
-from boranga.helpers import is_customer, is_internal
+from boranga.helpers import is_internal
 
 logger = logging.getLogger(__name__)
 
@@ -729,6 +729,14 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         if filter_application_status and not filter_application_status.lower() == "all":
             queryset = queryset.filter(processing_status=filter_application_status)
 
+        filter_region = request.POST.get("filter_region")
+        if filter_region and not filter_region.lower() == "all":
+            queryset = queryset.filter(region=filter_region)
+
+        filter_district = request.POST.get("filter_district")
+        if filter_district and not filter_district.lower() == "all":
+            queryset = queryset.filter(district=filter_district)
+
         filter_wa_legislative_list = request.POST.get("filter_wa_legislative_list")
         if (
             filter_wa_legislative_list
@@ -980,21 +988,6 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         if filter_community_name and not filter_community_name.lower() == "all":
             queryset = queryset.filter(taxonomy=filter_community_name)
 
-        filter_conservation_list = request.GET.get("filter_conservation_list")
-        if filter_conservation_list and not filter_conservation_list.lower() == "all":
-            queryset = queryset.filter(
-                conservation_status__conservation_list=filter_conservation_list
-            ).distinct()
-
-        filter_conservation_category = request.GET.get("filter_conservation_category")
-        if (
-            filter_conservation_category
-            and not filter_conservation_category.lower() == "all"
-        ):
-            queryset = queryset.filter(
-                conservation_status__conservation_category=filter_conservation_category
-            )
-
         filter_application_status = request.GET.get("filter_application_status")
         if filter_application_status and not filter_application_status.lower() == "all":
             queryset = queryset.filter(processing_status=filter_application_status)
@@ -1007,17 +1000,67 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         if filter_district and not filter_district.lower() == "all":
             queryset = queryset.filter(district=filter_district)
 
-        # getter = request.query_params.get
+        filter_wa_legislative_list = request.GET.get("filter_wa_legislative_list")
+        if (
+            filter_wa_legislative_list
+            and not filter_wa_legislative_list.lower() == "all"
+        ):
+            queryset = queryset.filter(
+                conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+                conservation_status__wa_legislative_list_id=filter_wa_legislative_list,
+            ).distinct()
+
+        filter_wa_legislative_category = request.GET.get(
+            "filter_wa_legislative_category"
+        )
+        if (
+            filter_wa_legislative_category
+            and not filter_wa_legislative_category.lower() == "all"
+        ):
+            queryset = queryset.filter(
+                conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+                conservation_status__wa_legislative_category_id=filter_wa_legislative_category,
+            ).distinct()
+
+        filter_wa_priority_category = request.GET.get("filter_wa_priority_category")
+        if (
+            filter_wa_priority_category
+            and not filter_wa_priority_category.lower() == "all"
+        ):
+            queryset = queryset.filter(
+                conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+                conservation_status__wa_priority_category_id=filter_wa_priority_category,
+            ).distinct()
+
+        filter_commonwealth_relevance = request.GET.get("filter_commonwealth_relevance")
+        if filter_commonwealth_relevance == "true":
+            queryset = queryset.filter(
+                conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ).exclude(conservation_status__commonwealth_conservation_list__isnull=True)
+
+        filter_international_relevance = request.GET.get(
+            "filter_international_relevance"
+        )
+        if filter_international_relevance == "true":
+            queryset = queryset.filter(
+                conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ).exclude(conservation_status__international_conservation__isnull=True)
+
+        filter_conservation_criteria = request.GET.get("filter_conservation_criteria")
+        if filter_conservation_criteria:
+            queryset = queryset.filter(
+                conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+                conservation_status__conservation_criteria__icontains=filter_conservation_criteria,
+            )
+
         fields = self.get_fields(request)
         ordering = self.get_ordering(request, view, fields)
         queryset = queryset.order_by(*ordering)
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -2478,16 +2521,20 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             qs = ConservationThreat.objects.all().order_by("id")
             return qs
         else:
-            qs = ConservationThreat.objects.filter(visible=True).filter(
-                (
-                    Q(species__species_publishing_status__species_public=True)
-                    & Q(species__species_publishing_status__threats_public=True)
+            qs = (
+                ConservationThreat.objects.filter(visible=True)
+                .filter(
+                    (
+                        Q(species__species_publishing_status__species_public=True)
+                        & Q(species__species_publishing_status__threats_public=True)
+                    )
+                    | (
+                        Q(community__community_publishing_status__community_public=True)
+                        & Q(community__community_publishing_status__threats_public=True)
+                    )
                 )
-                | (
-                    Q(community__community_publishing_status__community_public=True)
-                    & Q(community__community_publishing_status__threats_public=True)
-                )
-            ).order_by("id")
+                .order_by("id")
+            )
             return qs
 
     def update_publishing_status(self):
