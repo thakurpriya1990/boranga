@@ -2,7 +2,7 @@ import logging
 import re
 
 from django.apps import apps
-from django.db.models import Q
+from django.db.models import Q, F
 from django.db import IntegrityError
 from django.contrib.gis.geos import GEOSGeometry
 from django.core.cache import cache
@@ -149,10 +149,24 @@ def populate_occurrence_tenure_data(geometry_instance, features):
         # Add the occurrence tenure ID to the list
         occurrence_tenure_ids.append(occurrence_tenure.id)
 
-    # Set the status of occurrence tenures that existed before, but were not created or updated to historical
-    occurrence_tenures_before.filter(~Q(id__in=occurrence_tenure_ids)).update(
-        status="historical", occurrence_geometry=None
+    # Remaining tenures that where not handled up to this point
+    remaining_tenures = occurrence_tenures_before.filter(
+        ~Q(id__in=occurrence_tenure_ids)
     )
+    for tenure_area in remaining_tenures:
+        logger.info(f"Setting OccurrenceTenure {tenure_area} to historical")
+        # Set the status of occurrence tenures that existed before, but were not created or updated to historical
+        tenure_area.status = tenure_area.STATUS_HISTORICAL
+        # Also populate the historical_ fields for back reference
+        tenure_area.historical_occurrence = (
+            tenure_area.occurrence_geometry.occurrence.id
+        )
+        tenure_area.historical_occurrence_geometry_ewkb = (
+            tenure_area.occurrence_geometry.geometry.ewkb
+        )
+        # Remove the reference to the occurrence geometry
+        tenure_area.occurrence_geometry = None
+        tenure_area.save()
 
 
 def save_geometry(
