@@ -808,9 +808,9 @@ class SpeciesSerializer(BaseSpeciesSerializer):
             "districts",
             "image_doc",
             "processing_status",
-            "readonly",
-            "can_user_edit",
-            "can_user_view",
+            #"readonly",
+            #"can_user_edit",
+            #"can_user_view",
             "comment",
             "publishing_status",
         )
