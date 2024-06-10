@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
-from django.db.models import Count, CharField, Func
+from django.db.models import CharField, Count, Func, Q
 from django.db.models.functions import Cast
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -47,9 +47,12 @@ from boranga.components.species_and_communities.models import (
     PotentialThreatOnset,
     Region,
     Species,
-    Taxonomy,
     ThreatAgent,
     ThreatCategory,
+)
+from boranga.components.users.models import (
+    SubmitterInformation,
+    SubmitterInformationModelMixin,
 )
 from boranga.helpers import (
     clone_model,
@@ -86,13 +89,29 @@ def update_occurrence_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/occurrence/{instance.occurrence.id}/documents/{filename}"
 
 
-class OccurrenceReport(RevisionedMixin):
+class OccurrenceReportManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related("group_type", "species", "community")
+            .annotate(
+                observer_count=Count(
+                    "observer_detail", filter=Q(observer_detail__visible=True)
+                )
+            )
+        )
+
+
+class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     """
     Occurrence Report for any particular species or community
 
     Used by:
     - Occurrence
     """
+
+    objects = OccurrenceReportManager()
 
     CUSTOMER_STATUS_DRAFT = "draft"
     CUSTOMER_STATUS_WITH_ASSESSOR = "with_assessor"
@@ -244,6 +263,13 @@ class OccurrenceReport(RevisionedMixin):
     reported_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     effective_from = models.DateTimeField(null=True, blank=True)
     effective_to = models.DateTimeField(null=True, blank=True)
+    submitter_information = models.OneToOneField(
+        SubmitterInformation,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="occurrence_report",
+    )
     submitter = models.IntegerField(null=True)  # EmailUserRO
     lodgement_date = models.DateTimeField(
         blank=True, null=True
@@ -453,6 +479,14 @@ class OccurrenceReport(RevisionedMixin):
             return list(set(users))
         else:
             return []
+
+    @property
+    def number_of_observers(self):
+        return self.observer_count
+
+    @property
+    def has_main_observer(self):
+        return self.observer_detail.filter(visible=True, main_observer=True).exists()
 
     def has_assessor_mode(self, request):
         status_with_assessor = [
@@ -688,13 +722,14 @@ class OccurrenceReport(RevisionedMixin):
         if self.ocr_geometry.count() < 1:
             missing_values.append("Location")
 
-        #TODO tenure
+        # TODO tenure
 
         if missing_values:
             raise ValidationError(
-                "Cannot submit this report due to missing values: " + ", ".join(missing_values)
+                "Cannot submit this report due to missing values: "
+                + ", ".join(missing_values)
             )
-        
+
     def validate_propose_approve(self):
         self.validate_submit()
 
@@ -708,7 +743,8 @@ class OccurrenceReport(RevisionedMixin):
 
         if missing_values:
             raise ValidationError(
-                "Cannot submit this report due to missing values: " + ", ".join(missing_values)
+                "Cannot submit this report due to missing values: "
+                + ", ".join(missing_values)
             )
 
     @transaction.atomic
@@ -1543,7 +1579,9 @@ class OCRLocation(models.Model):
     )
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
-    new_occurrence = models.BooleanField(null=True, blank=True) #TODO what is this for? is it needed?
+    new_occurrence = models.BooleanField(
+        null=True, blank=True
+    )  # TODO what is this for? is it needed?
     boundary = models.IntegerField(null=True, blank=True, default=0)
     mapped_boundary = models.BooleanField(null=True, blank=True)
     buffer_radius = models.IntegerField(null=True, blank=True, default=0)
@@ -1694,7 +1732,7 @@ class OCRObserverDetail(models.Model):
     )
     observer_name = models.CharField(max_length=250, blank=True, null=True)
     role = models.CharField(max_length=250, blank=True, null=True)
-    contact = models.CharField(max_length=250, blank=True, null=True)
+    contact = models.TextField(max_length=250, blank=True, null=True)
     organisation = models.CharField(max_length=250, blank=True, null=True)
     main_observer = models.BooleanField(null=True, blank=True)
     visible = models.BooleanField(default=True)
@@ -1880,10 +1918,13 @@ class OCRHabitatComposition(models.Model):
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?\
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._meta.get_field("land_form").choices = tuple(LandForm.objects.values_list("id","name"))
+        self._meta.get_field("land_form").choices = tuple(
+            LandForm.objects.values_list("id", "name")
+        )
+
 
 class OCRHabitatCondition(models.Model):
     """
@@ -2408,12 +2449,18 @@ class OCRAnimalObservation(models.Model):
 
     def __str__(self):
         return str(self.occurrence_report)
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._meta.get_field("primary_detection_method").choices = tuple(PrimaryDetectionMethod.objects.values_list("id","name"))
-        self._meta.get_field("reproductive_maturity").choices = tuple(ReproductiveMaturity.objects.values_list("id","name"))
-        self._meta.get_field("secondary_sign").choices = tuple(SecondarySign.objects.values_list("id","name"))
+        self._meta.get_field("primary_detection_method").choices = tuple(
+            PrimaryDetectionMethod.objects.values_list("id", "name")
+        )
+        self._meta.get_field("reproductive_maturity").choices = tuple(
+            ReproductiveMaturity.objects.values_list("id", "name")
+        )
+        self._meta.get_field("secondary_sign").choices = tuple(
+            SecondarySign.objects.values_list("id", "name")
+        )
 
 
 class IdentificationCertainty(models.Model):
@@ -2752,7 +2799,7 @@ class OccurrenceManager(models.Manager):
         return (
             super()
             .get_queryset()
-            .select_related("group_type", "species")
+            .select_related("group_type", "species", "community")
             .annotate(occurrence_report_count=Count("occurrence_reports"))
         )
 
@@ -2870,22 +2917,34 @@ class Occurrence(RevisionedMixin):
     def validate_activate(self):
         missing_values = []
 
-        occ_points = self.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POINT")
-        occ_boundaries = self.occ_geometry.annotate(geom_type=GeometryType("geometry")).filter(geom_type="POLYGON")
+        occ_points = self.occ_geometry.annotate(
+            geom_type=GeometryType("geometry")
+        ).filter(geom_type="POINT")
+        occ_boundaries = self.occ_geometry.annotate(
+            geom_type=GeometryType("geometry")
+        ).filter(geom_type="POLYGON")
 
-        if (self.group_type.name in [GroupType.GROUP_TYPE_FLORA,GroupType.GROUP_TYPE_COMMUNITY] 
-            and not self.occurrence_name):
+        if (
+            self.group_type.name
+            in [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_COMMUNITY]
+            and not self.occurrence_name
+        ):
             missing_values.append("Occurrence Name")
 
-        if (self.group_type.name in [GroupType.GROUP_TYPE_FLORA,GroupType.GROUP_TYPE_COMMUNITY] 
-            and not occ_boundaries.exists()):
+        if (
+            self.group_type.name
+            in [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_COMMUNITY]
+            and not occ_boundaries.exists()
+        ):
             missing_values.append("Boundary on Map")
 
-        if (self.group_type.name == GroupType.GROUP_TYPE_FAUNA
-            and not occ_points.exists()):
+        if (
+            self.group_type.name == GroupType.GROUP_TYPE_FAUNA
+            and not occ_points.exists()
+        ):
             missing_values.append("Point on Map")
 
-        #TODO tenure
+        # TODO tenure
 
         if not self.identification or not self.identification.identification_certainty:
             missing_values.append("Identification Certainty")
@@ -2895,10 +2954,11 @@ class Occurrence(RevisionedMixin):
 
         if missing_values:
             raise ValidationError(
-                "Cannot activate this occurrence due to missing values: " + ", ".join(missing_values)
+                "Cannot activate this occurrence due to missing values: "
+                + ", ".join(missing_values)
             )
 
-    def activate(self,request):
+    def activate(self, request):
         self.validate_activate()
         if (
             is_occurrence_approver(request)
@@ -2933,9 +2993,7 @@ class Occurrence(RevisionedMixin):
 
     # if this function is called and the OCC has no associated OCRs, discard it
     def check_ocr_count_for_discard(self, request):
-        discardable = [
-            Occurrence.PROCESSING_STATUS_DRAFT
-        ]
+        discardable = [Occurrence.PROCESSING_STATUS_DRAFT]
         if (
             self.processing_status in discardable
             and is_occurrence_assessor(request)
@@ -3040,7 +3098,9 @@ class Occurrence(RevisionedMixin):
         )
         if habitat_composition:
             habitat_composition.occurrence = occurrence
-            habitat_composition.copied_ocr_habitat_composition = occurrence_report.habitat_composition
+            habitat_composition.copied_ocr_habitat_composition = (
+                occurrence_report.habitat_composition
+            )
             habitat_composition.save()
 
         habitat_condition = clone_model(
@@ -3050,7 +3110,9 @@ class Occurrence(RevisionedMixin):
         )
         if habitat_condition:
             habitat_condition.occurrence = occurrence
-            habitat_condition.copied_ocr_habitat_condition = occurrence_report.habitat_condition
+            habitat_condition.copied_ocr_habitat_condition = (
+                occurrence_report.habitat_condition
+            )
             habitat_condition.save()
 
         vegetation_structure = clone_model(
@@ -3060,7 +3122,9 @@ class Occurrence(RevisionedMixin):
         )
         if vegetation_structure:
             vegetation_structure.occurrence = occurrence
-            vegetation_structure.copied_ocr_vegetation_structure = occurrence_report.vegetation_structure
+            vegetation_structure.copied_ocr_vegetation_structure = (
+                occurrence_report.vegetation_structure
+            )
             vegetation_structure.save()
 
         fire_history = clone_model(
@@ -3078,7 +3142,9 @@ class Occurrence(RevisionedMixin):
         )
         if associated_species:
             associated_species.occurrence = occurrence
-            associated_species.copied_ocr_associated_species = occurrence_report.associated_species
+            associated_species.copied_ocr_associated_species = (
+                occurrence_report.associated_species
+            )
             associated_species.save()
 
         observation_detail = clone_model(
@@ -3088,7 +3154,9 @@ class Occurrence(RevisionedMixin):
         )
         if observation_detail:
             observation_detail.occurrence = occurrence
-            observation_detail.copied_ocr_observation_detail = occurrence_report.observation_detail
+            observation_detail.copied_ocr_observation_detail = (
+                occurrence_report.observation_detail
+            )
             observation_detail.save()
 
         plant_count = clone_model(
@@ -3106,7 +3174,9 @@ class Occurrence(RevisionedMixin):
         )
         if animal_observation:
             animal_observation.occurrence = occurrence
-            animal_observation.copied_ocr_animal_observation = occurrence_report.animal_observation
+            animal_observation.copied_ocr_animal_observation = (
+                occurrence_report.animal_observation
+            )
             animal_observation.save()
 
         identification = clone_model(
@@ -3282,7 +3352,9 @@ class OCCLocation(models.Model):
     occurrence = models.OneToOneField(
         Occurrence, on_delete=models.CASCADE, null=True, related_name="location"
     )
-    copied_ocr_location = models.ForeignKey(OCRLocation, on_delete=models.SET_NULL, null=True, blank=True)
+    copied_ocr_location = models.ForeignKey(
+        OCRLocation, on_delete=models.SET_NULL, null=True, blank=True
+    )
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
 
@@ -3334,9 +3406,11 @@ class OccurrenceGeometryManager(models.Manager):
             )
         )
 
+
 class GeometryType(Func):
-    function = 'GeometryType'
+    function = "GeometryType"
     output_field = CharField()
+
 
 class OccurrenceGeometry(models.Model):
     objects = OccurrenceGeometryManager()
@@ -3547,7 +3621,9 @@ class OCCHabitatComposition(models.Model):
         null=True,
         related_name="habitat_composition",
     )
-    copied_ocr_habitat_composition = models.ForeignKey(OCRHabitatComposition, on_delete=models.SET_NULL, null=True, blank=True)
+    copied_ocr_habitat_composition = models.ForeignKey(
+        OCRHabitatComposition, on_delete=models.SET_NULL, null=True, blank=True
+    )
     land_form = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
     rock_type = models.ForeignKey(
         RockType, on_delete=models.SET_NULL, null=True, blank=True
@@ -3575,10 +3651,12 @@ class OCCHabitatComposition(models.Model):
 
     def __str__(self):
         return str(self.occurrence)  # TODO: is the most appropriate?\
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._meta.get_field("land_form").choices = tuple(LandForm.objects.values_list("id","name"))
+        self._meta.get_field("land_form").choices = tuple(
+            LandForm.objects.values_list("id", "name")
+        )
 
 
 class OCCHabitatCondition(models.Model):
@@ -3597,7 +3675,9 @@ class OCCHabitatCondition(models.Model):
         null=True,
         related_name="habitat_condition",
     )
-    copied_ocr_habitat_condition = models.ForeignKey(OCRHabitatCondition, on_delete=models.SET_NULL, null=True, blank=True)
+    copied_ocr_habitat_condition = models.ForeignKey(
+        OCRHabitatCondition, on_delete=models.SET_NULL, null=True, blank=True
+    )
     pristine = models.IntegerField(
         null=True,
         blank=True,
@@ -3658,7 +3738,9 @@ class OCCVegetationStructure(models.Model):
         null=True,
         related_name="vegetation_structure",
     )
-    copied_ocr_vegetation_structure = models.ForeignKey(OCRVegetationStructure, on_delete=models.SET_NULL, null=True, blank=True)
+    copied_ocr_vegetation_structure = models.ForeignKey(
+        OCRVegetationStructure, on_delete=models.SET_NULL, null=True, blank=True
+    )
     free_text_field_one = models.TextField(null=True, blank=True)
     free_text_field_two = models.TextField(null=True, blank=True)
     free_text_field_three = models.TextField(null=True, blank=True)
@@ -3687,7 +3769,9 @@ class OCCFireHistory(models.Model):
         null=True,
         related_name="fire_history",
     )
-    copied_ocr_fire_history = models.ForeignKey(OCRFireHistory, on_delete=models.SET_NULL, null=True, blank=True)
+    copied_ocr_fire_history = models.ForeignKey(
+        OCRFireHistory, on_delete=models.SET_NULL, null=True, blank=True
+    )
     last_fire_estimate = models.DateField(null=True, blank=True)
     intensity = models.ForeignKey(
         Intensity, on_delete=models.SET_NULL, null=True, blank=True
@@ -3717,7 +3801,9 @@ class OCCAssociatedSpecies(models.Model):
         null=True,
         related_name="associated_species",
     )
-    copied_ocr_associated_species = models.ForeignKey(OCRAssociatedSpecies, on_delete=models.SET_NULL, null=True, blank=True)
+    copied_ocr_associated_species = models.ForeignKey(
+        OCRAssociatedSpecies, on_delete=models.SET_NULL, null=True, blank=True
+    )
     related_species = models.TextField(blank=True)
 
     class Meta:
@@ -3743,7 +3829,9 @@ class OCCObservationDetail(models.Model):
         null=True,
         related_name="observation_detail",
     )
-    copied_ocr_observation_detail = models.ForeignKey(OCRObservationDetail, on_delete=models.SET_NULL, null=True, blank=True)
+    copied_ocr_observation_detail = models.ForeignKey(
+        OCRObservationDetail, on_delete=models.SET_NULL, null=True, blank=True
+    )
     observation_method = models.ForeignKey(
         ObservationMethod, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -3773,7 +3861,9 @@ class OCCPlantCount(models.Model):
         null=True,
         related_name="plant_count",
     )
-    copied_ocr_plant_count = models.ForeignKey(OCRPlantCount, on_delete=models.SET_NULL, null=True, blank=True)
+    copied_ocr_plant_count = models.ForeignKey(
+        OCRPlantCount, on_delete=models.SET_NULL, null=True, blank=True
+    )
     plant_count_method = models.ForeignKey(
         PlantCountMethod, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -3845,7 +3935,9 @@ class OCCAnimalObservation(models.Model):
         null=True,
         related_name="animal_observation",
     )
-    copied_ocr_animal_observation = models.ForeignKey(OCRAnimalObservation, on_delete=models.SET_NULL, null=True, blank=True)
+    copied_ocr_animal_observation = models.ForeignKey(
+        OCRAnimalObservation, on_delete=models.SET_NULL, null=True, blank=True
+    )
     primary_detection_method = MultiSelectField(
         max_length=250, blank=True, choices=[], null=True
     )
@@ -3885,9 +3977,15 @@ class OCCAnimalObservation(models.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._meta.get_field("primary_detection_method").choices = tuple(PrimaryDetectionMethod.objects.values_list("id","name"))
-        self._meta.get_field("reproductive_maturity").choices = tuple(ReproductiveMaturity.objects.values_list("id","name"))
-        self._meta.get_field("secondary_sign").choices = tuple(SecondarySign.objects.values_list("id","name"))
+        self._meta.get_field("primary_detection_method").choices = tuple(
+            PrimaryDetectionMethod.objects.values_list("id", "name")
+        )
+        self._meta.get_field("reproductive_maturity").choices = tuple(
+            ReproductiveMaturity.objects.values_list("id", "name")
+        )
+        self._meta.get_field("secondary_sign").choices = tuple(
+            SecondarySign.objects.values_list("id", "name")
+        )
 
 
 class OCCIdentification(models.Model):
@@ -3906,7 +4004,9 @@ class OCCIdentification(models.Model):
         null=True,
         related_name="identification",
     )
-    copied_ocr_identification = models.ForeignKey(OCRIdentification, on_delete=models.SET_NULL, null=True, blank=True)
+    copied_ocr_identification = models.ForeignKey(
+        OCRIdentification, on_delete=models.SET_NULL, null=True, blank=True
+    )
     id_confirmed_by = models.CharField(max_length=1000, null=True, blank=True)
     identification_certainty = models.ForeignKey(
         IdentificationCertainty, on_delete=models.SET_NULL, null=True, blank=True
@@ -4036,6 +4136,7 @@ class OccurrenceTenure(models.Model):
     @property
     def geometry(self):
         from boranga.components.spatial.utils import wkb_to_geojson
+
         # TODO: Draw from historical if historical, else:
         return wkb_to_geojson(self.occurrence_geometry.geometry.ewkb)
 

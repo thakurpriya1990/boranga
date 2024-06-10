@@ -40,7 +40,7 @@
             </div>
 
             <ProposalOccurrenceReport v-if="occurrence_report_obj" :occurrence_report_obj="occurrence_report_obj"
-                id="OccurrenceReportStart" :canEditStatus="canEditStatus" :is_external="true" ref="occurrence_report"
+                id="OccurrenceReportStart" :canEditStatus="canEditStatus" :is_external="true" ref="occurrence_report" @refreshOccurrenceReport="refreshOccurrenceReport()"
                 @refreshFromResponse="refreshFromResponse">
             </ProposalOccurrenceReport>
 
@@ -455,6 +455,9 @@ export default {
                     blank_fields.push(' Community Name is missing')
                 }
             }
+            if(!vm.occurrence_report_obj.submitter_information.submitter_category){
+                blank_fields.push(' Please select a submitter category')
+            }
             if (check_action == "submit") {
                 //TODO add validation for fields required before submit
             }
@@ -514,6 +517,23 @@ export default {
         refreshFromResponse: function (data) {
             this.occurrence_report_obj = Object.assign({}, data);
         },
+        fetchOccurrenceReport: function (id) {
+            let vm = this;
+            Vue.http.get(`/api/occurrence_report/${id}/`).then(res => {
+                vm.occurrence_report_obj = Object.assign({}, res.body);
+            },
+                err => {
+                    console.log(err);
+                });
+        },
+        refreshOccurrenceReport: function () {
+            this.fetchOccurrenceReport(this.$route.params.occurrence_report_id);
+        },
+    },
+    created: function () {
+        if (!this.occurrence_report_obj) {
+            this.fetchOccurrenceReport(this.$route.params.occurrence_report_id);
+        }
     },
     mounted: function () {
         let vm = this;

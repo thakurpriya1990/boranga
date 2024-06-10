@@ -4,15 +4,15 @@ from datetime import datetime, time
 from io import BytesIO
 
 import pandas as pd
-from django.db import models
 from django.core.cache import cache
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import CharField, Q, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from multiselectfield import MultiSelectField
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -24,21 +24,13 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
-from multiselectfield import MultiSelectField
-from django.apps import apps
 
 from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
-from boranga.components.occurrence.mixins import DatumSearchMixin
-from boranga.components.spatial.utils import (
-    populate_occurrence_tenure_data,
-    save_geometry,
-    spatially_process_geometry,
-    transform_json_geometry,
-)
 from boranga.components.main.utils import validate_threat_request
+from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
     AnimalHealth,
     CoordinationSource,
@@ -48,8 +40,6 @@ from boranga.components.occurrence.models import (
     IdentificationCertainty,
     Intensity,
     LandForm,
-    OCCLocation,
-    OCRLocation,
     LocationAccuracy,
     ObservationMethod,
     OCCAnimalObservation,
@@ -59,6 +49,7 @@ from boranga.components.occurrence.models import (
     OCCHabitatComposition,
     OCCHabitatCondition,
     OCCIdentification,
+    OCCLocation,
     OCCObservationDetail,
     OCCPlantCount,
     Occurrence,
@@ -81,6 +72,7 @@ from boranga.components.occurrence.models import (
     OCRHabitatComposition,
     OCRHabitatCondition,
     OCRIdentification,
+    OCRLocation,
     OCRObservationDetail,
     OCRObserverDetail,
     OCRPlantCount,
@@ -107,9 +99,9 @@ from boranga.components.occurrence.serializers import (
     InternalOccurrenceReportReferralSerializer,
     InternalOccurrenceReportSerializer,
     ListInternalOccurrenceReportSerializer,
+    ListOCCMinimalSerializer,
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
-    ListOCCMinimalSerializer,
     ListOCRReportMinimalSerializer,
     OCCConservationThreatSerializer,
     OccurrenceDocumentSerializer,
@@ -126,8 +118,6 @@ from boranga.components.occurrence.serializers import (
     OCRObserverDetailSerializer,
     ProposeApproveSerializer,
     ProposeDeclineSerializer,
-    SaveOCCLocationSerializer,
-    SaveOCRLocationSerializer,
     SaveOCCAnimalObservationSerializer,
     SaveOCCAssociatedSpeciesSerializer,
     SaveOCCConservationThreatSerializer,
@@ -135,6 +125,7 @@ from boranga.components.occurrence.serializers import (
     SaveOCCHabitatCompositionSerializer,
     SaveOCCHabitatConditionSerializer,
     SaveOCCIdentificationSerializer,
+    SaveOCCLocationSerializer,
     SaveOCCObservationDetailSerializer,
     SaveOCCPlantCountSerializer,
     SaveOccurrenceDocumentSerializer,
@@ -149,6 +140,7 @@ from boranga.components.occurrence.serializers import (
     SaveOCRHabitatCompositionSerializer,
     SaveOCRHabitatConditionSerializer,
     SaveOCRIdentificationSerializer,
+    SaveOCRLocationSerializer,
     SaveOCRObservationDetailSerializer,
     SaveOCRPlantCountSerializer,
     SaveOCRVegetationStructureSerializer,
@@ -157,6 +149,12 @@ from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
     process_shapefile_document,
     validate_map_files,
+)
+from boranga.components.spatial.utils import (
+    populate_occurrence_tenure_data,
+    save_geometry,
+    spatially_process_geometry,
+    transform_json_geometry,
 )
 from boranga.components.species_and_communities.models import (
     CommunityTaxonomy,
@@ -677,12 +675,11 @@ class OccurrenceReportViewSet(
 
     def get_queryset(self):
         user = self.request.user
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):
             qs = OccurrenceReport.objects.all()
             return qs
         elif is_customer(self.request):
-            # user_orgs = [org.id for org in user.boranga_organisations.all()]
-            qs = OccurrenceReport.objects.filter(Q(submitter=user.id))
+            qs = OccurrenceReport.objects.filter(submitter=user.id)
             return qs
         logger.warn(
             "User is neither customer nor internal user: {} <{}>".format(
@@ -960,7 +957,6 @@ class OccurrenceReportViewSet(
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
 
-
     @list_route(
         methods=[
             "GET",
@@ -973,44 +969,52 @@ class OccurrenceReportViewSet(
         ocr = self.get_object()
         res_json = {}
 
-        if hasattr(ocr,section):
-            #print(section)
-            section_value = getattr(ocr,section)
+        if hasattr(ocr, section):
+            # print(section)
+            section_value = getattr(ocr, section)
             section_fields = section_value._meta.get_fields()
-            #print(section_fields)
+            # print(section_fields)
 
             for i in section_fields:
-                if (i.name == "id" or i.name == "occurrence_report" or isinstance(i, models.ManyToOneRel)):
+                if (
+                    i.name == "id"
+                    or i.name == "occurrence_report"
+                    or isinstance(i, models.ManyToOneRel)
+                ):
                     continue
-                
-                if isinstance(i, models.ForeignKey):                    
-                    sub_section_value = getattr(section_value,i.name)
-                    if sub_section_value != None:
+
+                if isinstance(i, models.ForeignKey):
+                    sub_section_value = getattr(section_value, i.name)
+                    if sub_section_value is not None:
                         res_json[i.name] = {}
                         sub_section_fields = sub_section_value._meta.get_fields()
                         for j in sub_section_fields:
-                            if (j.name != "id" and 
-                                not isinstance(j, models.ForeignKey) and 
-                                not isinstance(j, models.ManyToOneRel) and
-                                getattr(sub_section_value,j.name) != None):
-                                res_json[i.name][j.name] = str(getattr(sub_section_value,j.name))
-                        #if the num sub section has only one value, assign as section
+                            if (
+                                j.name != "id"
+                                and not isinstance(j, models.ForeignKey)
+                                and not isinstance(j, models.ManyToOneRel)
+                                and getattr(sub_section_value, j.name) is not None
+                            ):
+                                res_json[i.name][j.name] = str(
+                                    getattr(sub_section_value, j.name)
+                                )
+                        # if the num sub section has only one value, assign as section
                         if len(res_json[i.name]) == 1:
                             res_json[i.name] = list(res_json[i.name].values())[0]
                 elif isinstance(i, MultiSelectField):
                     if i.choices:
                         choice_dict = dict(i.choices)
-                        id_list = getattr(section_value,i.name)
+                        id_list = getattr(section_value, i.name)
                         values_list = []
                         for id in id_list:
                             if id.isdigit() and int(id) in choice_dict:
                                 values_list.append(choice_dict[int(id)])
                         res_json[i.name] = values_list
                     else:
-                        res_json[i.name] = getattr(section_value,i.name)
+                        res_json[i.name] = getattr(section_value, i.name)
 
-                elif getattr(section_value,i.name) != None:
-                    res_json[i.name] = str(getattr(section_value,i.name))
+                elif getattr(section_value, i.name) is not None:
+                    res_json[i.name] = str(getattr(section_value, i.name))
 
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
@@ -3507,10 +3511,9 @@ class OccurrenceViewSet(
 
     def is_authorised_to_update(self):
         instance = self.get_object()
-        if (
-            not is_occurrence_approver(self.request)
-            and (instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE or
-            instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT)
+        if not is_occurrence_approver(self.request) and (
+            instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+            or instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
         ):
             raise serializers.ValidationError(
                 "User not authorised to update Occurrence"
@@ -3998,7 +4001,7 @@ class OccurrenceViewSet(
                 request, instance, geometry_data, "occurrence"
             )
             instance.occ_geometry.all()
-        
+
             if intersect_data:
                 for key, value in intersect_data.items():
                     occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
@@ -4049,7 +4052,10 @@ class OccurrenceViewSet(
 
         occ_section_fields = type(occSection)._meta.get_fields()
         for i in occ_section_fields:
-            if isinstance(i, models.ForeignKey) and i.related_model.__name__ == ocrSection.__class__.__name__:
+            if (
+                isinstance(i, models.ForeignKey)
+                and i.related_model.__name__ == ocrSection.__class__.__name__
+            ):
                 setattr(occSection, i.name, ocrSection)
 
         occSection.save()
