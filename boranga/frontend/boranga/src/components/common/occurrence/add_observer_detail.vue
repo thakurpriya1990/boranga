@@ -219,6 +219,7 @@ export default {
         populateWithSubmitterInformation: function () {
             console.log('Populating with submitter information')
             let observerObj = {
+                occurrence_report: this.occurrence_report.id,
                 main_observer: true,
                 observer_name: '',
                 contact: '',
@@ -236,7 +237,10 @@ export default {
             this.observerObj = Object.assign({}, observerObj);
         },
         clearForm: function () {
-            this.observerObj = { main_observer: true };
+            this.observerObj = {
+                occurrence_report: this.occurrence_report.id,
+                main_observer: true
+            };
             this.$refs.observer_name.focus();
         },
     },
