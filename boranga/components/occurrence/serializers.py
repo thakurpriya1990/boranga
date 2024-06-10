@@ -883,6 +883,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
         format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     )
     observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    number_of_observers = serializers.IntegerField(read_only=True)
+    has_main_observer = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -929,6 +931,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "observation_date",
             "site",
             "submitter_information",
+            "number_of_observers",
+            "has_main_observer",
         )
 
     def get_readonly(self, obj):
@@ -1055,7 +1059,7 @@ class CreateOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         )
 
 
-class CreateOccurrenceSerializer(BaseOccurrenceReportSerializer):
+class CreateOccurrenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Occurrence
         fields = (
@@ -1190,6 +1194,8 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "observation_date",
             "site",
             "submitter_information",
+            "number_of_observers",
+            "has_main_observer",
         )
 
     def get_readonly(self, obj):
@@ -1798,7 +1804,6 @@ class OCRConservationThreatSerializer(serializers.ModelSerializer):
     current_impact_name = serializers.SerializerMethodField()
     potential_impact_name = serializers.SerializerMethodField()
     potential_threat_onset_name = serializers.SerializerMethodField()
-    # occurrence_report = OccurrenceReportSerializer()
 
     class Meta:
         model = OCRConservationThreat
