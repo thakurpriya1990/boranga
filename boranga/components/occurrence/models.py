@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
-from django.db.models import CharField, Count, Func
+from django.db.models import CharField, Count, Func, Q
 from django.db.models.functions import Cast
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -89,6 +89,20 @@ def update_occurrence_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/occurrence/{instance.occurrence.id}/documents/{filename}"
 
 
+class OccurrenceReportManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related("group_type", "species", "community")
+            .annotate(
+                observer_count=Count(
+                    "observer_detail", filter=Q(observer_detail__visible=True)
+                )
+            )
+        )
+
+
 class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     """
     Occurrence Report for any particular species or community
@@ -96,6 +110,8 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     Used by:
     - Occurrence
     """
+
+    objects = OccurrenceReportManager()
 
     CUSTOMER_STATUS_DRAFT = "draft"
     CUSTOMER_STATUS_WITH_ASSESSOR = "with_assessor"
@@ -463,6 +479,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             return list(set(users))
         else:
             return []
+
+    @property
+    def number_of_observers(self):
+        return self.observer_count
+
+    @property
+    def has_main_observer(self):
+        return self.observer_detail.filter(visible=True, main_observer=True).exists()
 
     def has_assessor_mode(self, request):
         status_with_assessor = [
@@ -2757,7 +2781,7 @@ class OccurrenceManager(models.Manager):
         return (
             super()
             .get_queryset()
-            .select_related("group_type", "species")
+            .select_related("group_type", "species", "community")
             .annotate(occurrence_report_count=Count("occurrence_reports"))
         )
 
