@@ -158,7 +158,11 @@
                     v-model="animal_observation.total_count"/>
                 </div>
             </div>
-            
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <span v-if="animal_observation.copied_ocr" class="float-end"><b>Sourced from {{animal_observation.copied_ocr}}</b></span>
+                </div>
+            </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingAnimalOnservationDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
@@ -229,6 +233,12 @@ export default {
         computed: {
         },
         watch:{
+            animal_observation: function (){
+                let vm = this;
+                $(vm.$refs.primary_detection_select).val(vm.animal_observation.primary_detection_method).trigger('change.select2');
+                //$(vm.$refs.secondary_sign_select).val(vm.animal_observation.secondary_sign).trigger('change.select2');
+                $(vm.$refs.reproductive_maturity_select).val(vm.animal_observation.reproductive_maturity).trigger('change.select2');
+            }
         },
         methods:{
             eventListeners:function (){

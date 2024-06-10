@@ -5,13 +5,14 @@ from io import BytesIO
 
 import pandas as pd
 from django.core.cache import cache
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import CharField, Q, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from multiselectfield import MultiSelectField
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -956,6 +957,68 @@ class OccurrenceReportViewSet(
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
 
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def section_values(self, request, *args, **kwargs):
+
+        section = request.GET.get("section")
+        ocr = self.get_object()
+        res_json = {}
+
+        if hasattr(ocr, section):
+            # print(section)
+            section_value = getattr(ocr, section)
+            section_fields = section_value._meta.get_fields()
+            # print(section_fields)
+
+            for i in section_fields:
+                if (
+                    i.name == "id"
+                    or i.name == "occurrence_report"
+                    or isinstance(i, models.ManyToOneRel)
+                ):
+                    continue
+
+                if isinstance(i, models.ForeignKey):
+                    sub_section_value = getattr(section_value, i.name)
+                    if sub_section_value is not None:
+                        res_json[i.name] = {}
+                        sub_section_fields = sub_section_value._meta.get_fields()
+                        for j in sub_section_fields:
+                            if (
+                                j.name != "id"
+                                and not isinstance(j, models.ForeignKey)
+                                and not isinstance(j, models.ManyToOneRel)
+                                and getattr(sub_section_value, j.name) is not None
+                            ):
+                                res_json[i.name][j.name] = str(
+                                    getattr(sub_section_value, j.name)
+                                )
+                        # if the num sub section has only one value, assign as section
+                        if len(res_json[i.name]) == 1:
+                            res_json[i.name] = list(res_json[i.name].values())[0]
+                elif isinstance(i, MultiSelectField):
+                    if i.choices:
+                        choice_dict = dict(i.choices)
+                        id_list = getattr(section_value, i.name)
+                        values_list = []
+                        for id in id_list:
+                            if id.isdigit() and int(id) in choice_dict:
+                                values_list.append(choice_dict[int(id)])
+                        res_json[i.name] = values_list
+                    else:
+                        res_json[i.name] = getattr(section_value, i.name)
+
+                elif getattr(section_value, i.name) is not None:
+                    res_json[i.name] = str(getattr(section_value, i.name))
+
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
     # used for Occurrence Report Observation external form
     @list_route(
         methods=[
@@ -1603,7 +1666,7 @@ class OccurrenceReportViewSet(
 
         cache_key = settings.CACHE_KEY_MAP_OCCURRENCE_REPORTS
         qs = cache.get(cache_key)
-        qs = None
+
         if qs is None:
             qs = (
                 self.get_queryset()
@@ -3937,6 +4000,8 @@ class OccurrenceViewSet(
             intersect_data = save_geometry(
                 request, instance, geometry_data, "occurrence"
             )
+            instance.occ_geometry.all()
+
             if intersect_data:
                 for key, value in intersect_data.items():
                     occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
@@ -3970,7 +4035,6 @@ class OccurrenceViewSet(
 
         ocrId = data["occurrence_report_id"]
         section = data["section"]
-        merge = data["merge"]
 
         ocr = OccurrenceReport.objects.get(id=ocrId)
         ocrSection = getattr(ocr, section)
@@ -3984,14 +4048,15 @@ class OccurrenceViewSet(
                 and hasattr(occSection, i.name)
             ):
                 ocrValue = getattr(ocrSection, i.name)
-                if merge:
-                    # if not ocrValue: #do not overwrite if None, 0, or empty string
-                    #    #determine if field is one-to-many
-                    #    many = False
-                    # DEFERRED for now
-                    pass
-                else:
-                    setattr(occSection, i.name, ocrValue)
+                setattr(occSection, i.name, ocrValue)
+
+        occ_section_fields = type(occSection)._meta.get_fields()
+        for i in occ_section_fields:
+            if (
+                isinstance(i, models.ForeignKey)
+                and i.related_model.__name__ == ocrSection.__class__.__name__
+            ):
+                setattr(occSection, i.name, ocrSection)
 
         occSection.save()
         instance.save(version_user=request.user)

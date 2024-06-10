@@ -1173,12 +1173,11 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
         if is_internal(self.request):  # user.is_authenticated():
             qs = Community.objects.all()
             return qs
-        elif is_customer(self.request):
+        else:
             qs = Community.objects.filter(
                 processing_status=Species.PROCESSING_STATUS_ACTIVE
             ).filter(community_publishing_status__community_public=True)
             return qs
-        return Community.objects.none()
 
     @detail_route(
         methods=[
@@ -1192,7 +1191,7 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
             raise serializers.ValidationError(
                 "Threats are not publicly visible for this record"
             )
-        qs = instance.community_threats.all()
+        qs = instance.community_threats.filter(visible=True)
         qs = qs.order_by("-date_observed")
 
         filter_backend = ConservationThreatFilterBackend()
@@ -1212,12 +1211,11 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
         if is_internal(self.request):  # user.is_authenticated():
             qs = Species.objects.all()
             return qs
-        elif is_customer(self.request):
+        else:
             qs = Species.objects.filter(
                 processing_status=Species.PROCESSING_STATUS_ACTIVE
             ).filter(species_publishing_status__species_public=True)
             return qs
-        return Species.objects.none()
 
     @detail_route(
         methods=[
@@ -1231,7 +1229,7 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
             raise serializers.ValidationError(
                 "Threats are not publicly visible for this record"
             )
-        qs = instance.species_threats.all()
+        qs = instance.species_threats.filter(visible=True)
         qs = qs.order_by("-date_observed")
 
         filter_backend = ConservationThreatFilterBackend()
@@ -2479,8 +2477,8 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         if is_internal(self.request):  # user.is_authenticated():
             qs = ConservationThreat.objects.all().order_by("id")
             return qs
-        elif is_customer(self.request):
-            qs = ConservationThreat.objects.filter(
+        else:
+            qs = ConservationThreat.objects.filter(visible=True).filter(
                 (
                     Q(species__species_publishing_status__species_public=True)
                     & Q(species__species_publishing_status__threats_public=True)
@@ -2491,7 +2489,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 )
             ).order_by("id")
             return qs
-        return ConservationThreat.objects.none()
 
     def update_publishing_status(self):
 

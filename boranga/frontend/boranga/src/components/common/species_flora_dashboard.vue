@@ -46,7 +46,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div v-if="is_internal" class="col-md-3">
                     <div class="form-group">
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterFloraApplicationStatus">

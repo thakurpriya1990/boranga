@@ -3,6 +3,7 @@ import re
 
 from django.apps import apps
 from django.db.models import Q
+from django.db import IntegrityError
 from django.contrib.gis.geos import GEOSGeometry
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -99,7 +100,14 @@ def intersect_geometry_with_layer(geometry, intersect_layer, geometry_name="SHAP
     return res.json()
 
 
-def populate_occurrence_tenure_data(instance, features):
+def populate_occurrence_tenure_data(geometry_instance, features):
+    # Get existing occurrence tenures for this geometry
+    occurrence_tenures_before = OccurrenceTenure.objects.filter(
+        occurrence_geometry=geometry_instance
+    )
+    # Keep a track of the occurrence tenure IDs that are created or updated
+    occurrence_tenure_ids = []
+    # Process each feature in the geometry
     for feature in features:
         feature_id = feature.get("id", None)
         owner_name = feature.get("properties", {}).get("CAD_OWNER_NAME", None)
@@ -108,15 +116,43 @@ def populate_occurrence_tenure_data(instance, features):
         if not feature_id:
             logger.warn(f"Feature does not have an ID: {feature}")
             continue
-
-        occurrence_tenure, created = OccurrenceTenure.objects.get_or_create(
-            occurrence_geometry=instance,
-            tenure_area_id=feature_id,
-            defaults={"owner_name": owner_name, "owner_count": owner_count},
+        # Check if an occurrence tenure entry already exists for this feature ID
+        occurrence_tenure_before = OccurrenceTenure.objects.filter(
+            tenure_area_id=feature_id
         )
+        created = False
+        if not occurrence_tenure_before.exists():
+            # No tenure entry exists yet for this occurrence geometry
+            try:
+                occurrence_tenure = OccurrenceTenure.objects.create(
+                    occurrence_geometry=geometry_instance,
+                    tenure_area_id=feature_id,
+                    owner_name=owner_name,
+                    owner_count=owner_count,
+                )
+            except IntegrityError as e:
+                logger.error(f"Error creating OccurrenceTenure: {e}")
+                continue
+        else:
+            # Update existing tenure entry
+            occurrence_tenure, created = OccurrenceTenure.objects.update_or_create(
+                occurrence_geometry=geometry_instance,
+                status="current",  # In case all existing tenures are historical, create a new one
+                tenure_area_id=feature_id,
+                defaults={"owner_name": owner_name, "owner_count": owner_count},
+            )
 
         if created:
             logger.info(f"Created OccurrenceTenure: {occurrence_tenure}")
+        else:
+            logger.info(f"Updated OccurrenceTenure: {occurrence_tenure}")
+        # Add the occurrence tenure ID to the list
+        occurrence_tenure_ids.append(occurrence_tenure.id)
+
+    # Set the status of occurrence tenures that existed before, but were not created or updated to historical
+    occurrence_tenures_before.filter(~Q(id__in=occurrence_tenure_ids)).update(
+        status="historical", occurrence_geometry=None
+    )
 
 
 def save_geometry(
@@ -610,9 +646,7 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
         # Note: possibly add support for other request types if needed, like GetFeatureInfo, GetCapabilities
         raise Http404(f"Request {params.get('request')} not supported")
 
-    if any(
-        cts["layer_name"].split(":")[-1] in layers for cts in cache_times_strings
-    ):
+    if any(cts["layer_name"].split(":")[-1] in layers for cts in cache_times_strings):
         layer_allowed = True
 
     if layer_allowed is True:
@@ -624,9 +658,7 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
                 auth_details = {"user": auth_user, "password": auth_password}
             proxy_response = proxy_view(request, remoteurl, basic_auth=auth_details)
 
-            proxy_response_content_encoded = base64.b64encode(
-                proxy_response.content
-            )
+            proxy_response_content_encoded = base64.b64encode(proxy_response.content)
             base64_json = {
                 "status_code": proxy_response.status_code,
                 "content_type": proxy_response.headers["content-type"],

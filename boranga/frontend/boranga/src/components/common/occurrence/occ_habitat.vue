@@ -92,17 +92,22 @@
             </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
+                    <span v-if="occurrence_obj.habitat_composition.copied_ocr" class="float-end"><b>Sourced from {{occurrence_obj.habitat_composition.copied_ocr}}</b></span>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
                     <!-- <button v-if="!updatingHabitatCompositionDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
                     <button v-if="!updatingHabitatCompositionDetails" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updateHabitatCompositionDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
 
-            <RelatedReports 
-        :isReadOnly="isReadOnly"
-                :occurrence_obj=occurrence_obj
-                :section_type="'habitat_composition'"
-                @copyUpdate="copyUpdate"
+        <RelatedReports 
+            :isReadOnly="isReadOnly"
+            :occurrence_obj=occurrence_obj
+            :section_type="'habitat_composition'"
+            @copyUpdate="copyUpdate"
             />
         </FormSection>
         <FormSection :formCollapse="false" label="Habitat Condition" :Index="habitatConditionBody">
@@ -157,6 +162,11 @@
             </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
+                    <span v-if="occurrence_obj.habitat_condition.copied_ocr" class="float-end"><b>Sourced from {{occurrence_obj.habitat_condition.copied_ocr}}</b></span>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
                     <button v-if="!updatingHabitatConditionDetails" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updateHabitatConditionDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
@@ -192,6 +202,11 @@
                 <label for="" class="col-sm-3 control-label">Free Text Field 4 :</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_4" placeholder="" v-model="occurrence_obj.vegetation_structure.free_text_field_four"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <span v-if="occurrence_obj.vegetation_structure.copied_ocr" class="float-end"><b>Sourced from {{occurrence_obj.vegetation_structure.copied_ocr}}</b></span>
                 </div>
             </div>
             <div class="row mb-3">
@@ -236,6 +251,11 @@
             </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
+                    <span v-if="occurrence_obj.fire_history.copied_ocr" class="float-end"><b>Sourced from {{occurrence_obj.fire_history.copied_ocr}}</b></span>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
                     <button v-if="!updatingFireHistoryDetails" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updateFireHistoryDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
@@ -256,6 +276,11 @@
                     <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="related_species" placeholder=""
                         v-model="occurrence_obj.associated_species.related_species"
                     />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <span v-if="occurrence_obj.associated_species.copied_ocr" class="float-end"><b>Sourced from {{occurrence_obj.associated_species.copied_ocr}}</b></span>
                 </div>
             </div>
             <div class="row mb-3">
@@ -309,7 +334,6 @@ export default {
                 vegetationStructureBody: 'vegetationStructureBody' + vm._uid,
                 fireHistoryBody: 'fireHistoryBody' + vm._uid,
                 associatedSpeciesBody: 'associatedSpeciesBody'+ vm._uid,
-                richTextKey: 0,
                 //---to show fields related to Fauna
                 isFauna: vm.occurrence_obj.group_type==="fauna"?true:false,
                 //----list of values dictionary
@@ -403,11 +427,7 @@ export default {
             copyUpdate: function(object,section) {
                 let vm = this;
                 vm.occurrence_obj[section] = object[section];
-
-                //special handling
-                if (section == "associated_species") {
-                    vm.richTextKey++;
-                }
+                $(vm.$refs.land_form_select).val(vm.occurrence_obj.habitat_composition.land_form).trigger('change.select2');
             },
             updateHabitatCompositionDetails: function() {
                 let vm = this;
