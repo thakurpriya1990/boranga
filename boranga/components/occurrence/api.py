@@ -28,14 +28,8 @@ from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
-from boranga.components.occurrence.mixins import DatumSearchMixin
-from boranga.components.spatial.utils import (
-    populate_occurrence_tenure_data,
-    save_geometry,
-    spatially_process_geometry,
-    transform_json_geometry,
-)
 from boranga.components.main.utils import validate_threat_request
+from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
     AnimalHealth,
     CoordinationSource,
@@ -45,8 +39,6 @@ from boranga.components.occurrence.models import (
     IdentificationCertainty,
     Intensity,
     LandForm,
-    OCCLocation,
-    OCRLocation,
     LocationAccuracy,
     ObservationMethod,
     OCCAnimalObservation,
@@ -56,6 +48,7 @@ from boranga.components.occurrence.models import (
     OCCHabitatComposition,
     OCCHabitatCondition,
     OCCIdentification,
+    OCCLocation,
     OCCObservationDetail,
     OCCPlantCount,
     Occurrence,
@@ -78,6 +71,7 @@ from boranga.components.occurrence.models import (
     OCRHabitatComposition,
     OCRHabitatCondition,
     OCRIdentification,
+    OCRLocation,
     OCRObservationDetail,
     OCRObserverDetail,
     OCRPlantCount,
@@ -104,9 +98,9 @@ from boranga.components.occurrence.serializers import (
     InternalOccurrenceReportReferralSerializer,
     InternalOccurrenceReportSerializer,
     ListInternalOccurrenceReportSerializer,
+    ListOCCMinimalSerializer,
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
-    ListOCCMinimalSerializer,
     ListOCRReportMinimalSerializer,
     OCCConservationThreatSerializer,
     OccurrenceDocumentSerializer,
@@ -123,8 +117,6 @@ from boranga.components.occurrence.serializers import (
     OCRObserverDetailSerializer,
     ProposeApproveSerializer,
     ProposeDeclineSerializer,
-    SaveOCCLocationSerializer,
-    SaveOCRLocationSerializer,
     SaveOCCAnimalObservationSerializer,
     SaveOCCAssociatedSpeciesSerializer,
     SaveOCCConservationThreatSerializer,
@@ -132,6 +124,7 @@ from boranga.components.occurrence.serializers import (
     SaveOCCHabitatCompositionSerializer,
     SaveOCCHabitatConditionSerializer,
     SaveOCCIdentificationSerializer,
+    SaveOCCLocationSerializer,
     SaveOCCObservationDetailSerializer,
     SaveOCCPlantCountSerializer,
     SaveOccurrenceDocumentSerializer,
@@ -146,6 +139,7 @@ from boranga.components.occurrence.serializers import (
     SaveOCRHabitatCompositionSerializer,
     SaveOCRHabitatConditionSerializer,
     SaveOCRIdentificationSerializer,
+    SaveOCRLocationSerializer,
     SaveOCRObservationDetailSerializer,
     SaveOCRPlantCountSerializer,
     SaveOCRVegetationStructureSerializer,
@@ -154,6 +148,12 @@ from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
     process_shapefile_document,
     validate_map_files,
+)
+from boranga.components.spatial.utils import (
+    populate_occurrence_tenure_data,
+    save_geometry,
+    spatially_process_geometry,
+    transform_json_geometry,
 )
 from boranga.components.species_and_communities.models import (
     CommunityTaxonomy,
@@ -674,12 +674,11 @@ class OccurrenceReportViewSet(
 
     def get_queryset(self):
         user = self.request.user
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):
             qs = OccurrenceReport.objects.all()
             return qs
         elif is_customer(self.request):
-            # user_orgs = [org.id for org in user.boranga_organisations.all()]
-            qs = OccurrenceReport.objects.filter(Q(submitter=user.id))
+            qs = OccurrenceReport.objects.filter(submitter=user.id)
             return qs
         logger.warn(
             "User is neither customer nor internal user: {} <{}>".format(
@@ -3449,10 +3448,9 @@ class OccurrenceViewSet(
 
     def is_authorised_to_update(self):
         instance = self.get_object()
-        if (
-            not is_occurrence_approver(self.request)
-            and (instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE or
-            instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT)
+        if not is_occurrence_approver(self.request) and (
+            instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+            or instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
         ):
             raise serializers.ValidationError(
                 "User not authorised to update Occurrence"
