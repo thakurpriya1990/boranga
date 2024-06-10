@@ -2,7 +2,7 @@
     <div>
         <div class="" :id="occurrenceReportBody">
             <OCRProfile ref="ocr_profile" id="ocrProfile" :is_external="is_external"
-                :occurrence_report_obj="occurrence_report_obj">
+                :occurrence_report_obj="occurrence_report_obj" @refreshOccurrenceReport="refreshOccurrenceReport()">
             </OCRProfile>
             <SubmitterInformation v-if="occurrence_report_obj.submitter_information" :key="reloadcount"
                 ref="submitter_information" id="submitter_information"
@@ -119,7 +119,7 @@ export default {
             default: true,
         },
     },
-    emits: ['refreshFromResponse'],
+    emits: ['refreshFromResponse', 'refreshOccurrenceReport'],
     data: function () {
         let vm = this;
         return {
@@ -164,6 +164,9 @@ export default {
         // eslint-disable-next-line no-unused-vars
         refreshFromResponse: function (data) {
             //this.$emit('refreshFromResponse', data);
+        },
+        refreshOccurrenceReport: function () {
+            this.$emit('refreshOccurrenceReport');
         },
     },
 };

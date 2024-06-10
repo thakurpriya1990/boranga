@@ -172,7 +172,7 @@
 
                             <button v-if="with_assessor || with_approver" style="width:80%;" class="btn btn-primary mb-2"
                                 @click.prevent="splitSpecies()">Split</button><br />
-                            <button v-if="canDiscard" style="width:80%;" class="btn btn-primary mb-2" 
+                            <button v-if="canDiscard" style="width:80%;" class="btn btn-primary mb-2"
                                 @click.prevent="discardOCRProposal()">Discard</button>
 
                             <button v-if="approved" style="width:80%;" class="btn btn-primary mb-4"
@@ -189,7 +189,7 @@
                         enctype="multipart/form-data">
                         <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
                             id="OccurrenceReportStart" :canEditStatus="false" :is_external="false"
-                            ref="occurrence_report" @refreshFromResponse="refreshFromResponse">
+                            ref="occurrence_report" @refreshFromResponse="refreshFromResponse" @refreshOccurrenceReport="refreshOccurrenceReport()">
                         </ProposalOccurrenceReport>
 
                         <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
@@ -1086,16 +1086,22 @@ export default {
                 })
             });
         },
-    },
-    created: function () {
-        console.log(this.occurrence_report)
-        if (!this.occurrence_report) {
-            Vue.http.get(`/api/occurrence_report/${this.$route.params.occurrence_report_id}/`).then(res => {
-                this.occurrence_report = res.body;
+        fetchOccurrenceReport: function (id) {
+            let vm = this;
+            Vue.http.get(`/api/occurrence_report/${id}/`).then(res => {
+                vm.occurrence_report = res.body;
             },
                 err => {
                     console.log(err);
                 });
+        },
+        refreshOccurrenceReport: function () {
+            this.fetchOccurrenceReport(this.$route.params.occurrence_report_id);
+        },
+    },
+    created: function () {
+        if (!this.occurrence_report) {
+            this.fetchOccurrenceReport(this.$route.params.occurrence_report_id);
         }
     },
     mounted: function () {

@@ -14,7 +14,8 @@
             <datatable ref="observer_detail_datatable" id="observerDetailTable" :dtOptions="observer_detail_options"
                 :dtHeaders="observer_detail_headers" />
         </div>
-        <ObserverDetail ref="observer_detail" @refreshFromResponse="refreshFromResponse" :url="observer_detail_url">
+        <ObserverDetail v-if="occurrence_report_obj" ref="observer_detail" @refreshFromResponse="refreshFromResponse"
+            :url="observer_detail_url" :occurrence_report="occurrence_report_obj">
         </ObserverDetail>
     </div>
 </template>
@@ -45,6 +46,7 @@ export default {
             default: true
         },
     },
+    emits: ['refreshOccurrenceReport'],
     data: function () {
         let vm = this;
         return {
@@ -286,6 +288,7 @@ export default {
                                 confirmButtonColor: '#226fbb',
                             }).then((result) => {
                                 vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
+                                vm.$emit('refreshOccurrenceReport');
                                 if (vm.occurrence_report_obj.processing_status == "Unlocked") {
                                     vm.$router.go();
                                 }
@@ -309,6 +312,7 @@ export default {
                         confirmButtonColor: '#226fbb',
                     }).then((result) => {
                         vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
+                        vm.$emit('refreshOccurrenceReport');
                         if (vm.occurrence_report_obj.processing_status == "Unlocked") {
                             vm.$router.go();
                         }
@@ -320,6 +324,7 @@ export default {
         updatedObserverDetails() {
             let vm = this;
             this.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
+            vm.$emit('refreshOccurrenceReport');
             if (vm.occurrence_report_obj.processing_status == "Unlocked") {
                 vm.$router.go();
             }

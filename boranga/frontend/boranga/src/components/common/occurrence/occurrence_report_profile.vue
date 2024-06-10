@@ -118,7 +118,8 @@
             <!-- ------------Observer Detail section -->
 
             <ObserverDatatable ref="observer_datatable" :occurrence_report_obj="occurrence_report_obj"
-                :is_external="is_external" :is-read-only="isReadOnly"></ObserverDatatable>
+                :is_external="is_external" :is-read-only="isReadOnly" @refreshOccurrenceReport="refreshOccurrenceReport()">
+            </ObserverDatatable>
 
         </FormSection>
     </div>
@@ -148,6 +149,7 @@ export default {
             default: false,
         },
     },
+    emits: ['refreshOccurrenceReport'],
     data: function () {
         let vm = this;
         return {
@@ -175,8 +177,6 @@ export default {
         FormSection,
         ObserverDatatable,
         CollapsibleComponent
-    },
-    watch: {
     },
     methods: {
         initialiseScientificNameLookup: function () {
@@ -388,7 +388,10 @@ export default {
                     });
                 });
             }
-        }
+        },
+        refreshOccurrenceReport: function () {
+            this.$emit('refreshOccurrenceReport');
+        },
     },
     created: async function () {
         let vm = this;
@@ -439,7 +442,7 @@ export default {
     },
     mounted: function () {
         let vm = this;
-        if(!vm.is_external && vm.$refs.assessment_comments){
+        if (!vm.is_external && vm.$refs.assessment_comments) {
             vm.$refs.assessment_comments.show_warning_icon(false);
         }
         this.$nextTick(() => {
