@@ -1087,9 +1087,56 @@ class OccurrenceReportApprovalDetailsSerializer(serializers.ModelSerializer):
 
 
 class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    occurrence_report_number = serializers.CharField(
+        source="occurrence_report.occurrence_report_number", allow_null=True
+    )
+    occurrence_name = serializers.CharField(
+        source="occurrence_report.occurrence.occurrence_number", allow_null=True
+    )
+    scientific_name = serializers.CharField(
+        source="occurrence_report.species.taxonomy.scientific_name", allow_null=True
+    )
+    reported_date = serializers.DateTimeField(
+        source="occurrence_report.reported_date", format="%Y-%m-%d %H:%M:%S"
+    )
+    submitter = serializers.SerializerMethodField()
+    effective_from = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
+    effective_to = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
+    review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
+    group_type = serializers.CharField(
+        source="occurrence_report.group_type.name", allow_null=True
+    )
+    processing_status_display = serializers.CharField(
+        source="get_processing_status_display"
+    )
+
     class Meta:
         model = OccurrenceReportReferral
         fields = "__all__"
+        datatables_always_serialize = (
+            "id",
+            "occurrence_report_number",
+            "occurrence_name",
+            "scientific_name",
+            "reported_date",
+            "submitter",
+            "effective_from",
+            "effective_to",
+            "review_due_date",
+            "group_type",
+            "processing_status_display",
+        )
+
+    def get_submitter(self, obj):
+        if obj.occurrence_report and obj.occurrence_report.submitter:
+            email_user = retrieve_email_user(obj.occurrence_report.submitter)
+            return email_user.get_full_name()
+        else:
+            return None
 
 
 class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
