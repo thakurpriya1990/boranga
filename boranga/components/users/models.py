@@ -49,7 +49,9 @@ class SubmitterInformation(models.Model):
 class SubmitterInformationModelMixin:
     def save(self, *args, **kwargs):
         if not self.pk:
+            super().save(*args, **kwargs)
             return
+
         self.create_submitter_information()
         if not kwargs.get("no_revision", False):
             kwargs["no_revision"] = True

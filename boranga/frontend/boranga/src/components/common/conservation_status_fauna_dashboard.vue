@@ -170,7 +170,7 @@
         <div v-if="addFaunaCSVisibility && is_for_agenda == false" class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFaunaConservationStatus"><i
-                        class="fa-solid fa-circle-plus"></i> Propose Conservation Satus</button>
+                        class="fa-solid fa-circle-plus"></i> Propose Conservation Status</button>
             </div>
         </div>
 
