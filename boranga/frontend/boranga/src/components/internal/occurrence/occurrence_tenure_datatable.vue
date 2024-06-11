@@ -34,13 +34,13 @@ export default {
             headers: [
                 'Feature ID',
                 // 'Tenure Area ID',
-                "Owner's Name",
-                // 'Owner Count',
+                'Status',
                 'Vesting',
                 'Purpose',
                 'Comments',
-                'Significant to OCC',
-                'Status',
+                'Signif. to OCC',
+                "Owner's Name",
+                // 'Owner Count',
                 'Action',
             ],
         };
@@ -104,7 +104,7 @@ export default {
         },
         column_status: function () {
             return {
-                data: 'status',
+                data: 'status_display',
                 orderable: true,
                 searchable: true,
                 visible: true,
@@ -118,8 +118,8 @@ export default {
                 visible: true,
                 // eslint-disable-next-line no-unused-vars
                 render: function (data, type, row) {
-                    let html = `<button class="btn btn-primary" @click="highlightOnMap(${data})">Highlight on Map</button>`;
-                    html += `<br><button class="btn btn-primary" @click="editTenureDetails(${data})">Edit Tenure Details</button>`;
+                    let html = `<button class="btn btn-primary btn-sm mb-1" @click="highlightOnMap(${data})">Highlight on Map</button>`;
+                    html += `<br><button class="btn btn-primary btn-sm" @click="editTenureDetails(${data})">Edit Tenure Details</button>`;
                     return html;
                 },
             };
@@ -128,13 +128,13 @@ export default {
             let columns = [
                 this.column_featureid,
                 // this.column_tenure_area_id,
-                this.column_owner_name,
-                // this.column_owner_count,
+                this.column_status,
                 this.column_vesting,
                 this.column_purpose,
                 this.column_comments,
                 this.column_significant_to_occurrence,
-                this.column_status,
+                this.column_owner_name,
+                // this.column_owner_count,
                 this.column_action,
             ];
             let url = this.url;
@@ -147,10 +147,20 @@ export default {
                     processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
-                //serverSide: true,
                 searching: true,
                 ordering: true,
-                order: [[7, 'asc'], [0, 'desc']],
+                order: [
+                    [1, 'asc'],
+                    [0, 'desc'],
+                ],
+                fixedColumns: {
+                    start: 1,
+                    end: 1,
+                },
+                paging: true,
+                scrollCollapse: true,
+                scrollX: true,
+                scrollY: false,
                 ajax: {
                     url: url,
                     dataSrc: 'data',
