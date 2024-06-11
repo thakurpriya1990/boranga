@@ -32,7 +32,8 @@ export default {
             datatable_id: 'occurrence-tenure-datatable-' + uuid(),
             url: api_endpoints.occurrence_tenure_paginated_internal,
             headers: [
-                'Tenure Area ID',
+                'Feature ID',
+                // 'Tenure Area ID',
                 "Owner's Name",
                 // 'Owner Count',
                 'Vesting',
@@ -45,6 +46,14 @@ export default {
         };
     },
     computed: {
+        column_featureid: function () {
+            return {
+                data: 'featureid',
+                orderable: true,
+                searchable: true,
+                visible: true,
+            };
+        },
         column_tenure_area_id: function () {
             return {
                 data: 'tenure_area_id',
@@ -117,7 +126,8 @@ export default {
         },
         options: function () {
             let columns = [
-                this.column_tenure_area_id,
+                this.column_featureid,
+                // this.column_tenure_area_id,
                 this.column_owner_name,
                 // this.column_owner_count,
                 this.column_vesting,
@@ -140,7 +150,7 @@ export default {
                 //serverSide: true,
                 searching: true,
                 ordering: true,
-                order: [[0, 'desc']],
+                order: [[7, 'asc'], [0, 'desc']],
                 ajax: {
                     url: url,
                     dataSrc: 'data',

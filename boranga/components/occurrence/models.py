@@ -4178,7 +4178,7 @@ class OccurrenceTenure(models.Model):
 
     @property
     def vesting(self):
-        return "Vesting to be implemented"
+        return "Vesting TBI"
 
 
 # Occurrence Report Document

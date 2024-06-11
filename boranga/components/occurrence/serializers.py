@@ -2706,6 +2706,7 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
 
 class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
     vesting = serializers.SerializerMethodField()
+    featureid = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceTenure
@@ -2718,6 +2719,9 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
             return obj.vesting
         return None
 
+    def get_featureid(self, obj):
+        return obj.featureid
+
 class OccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
     pass
 
@@ -2728,6 +2732,7 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "id",
             "status",
             "tenure_area_id",
+            "featureid",
             "owner_name",
             "owner_count",
             "vesting",
@@ -2739,6 +2744,7 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "id",
             "status",
             "tenure_area_id",
+            "featureid",
             "owner_name",
             "owner_count",
             "vesting",
