@@ -4176,6 +4176,10 @@ class OccurrenceTenure(models.Model):
                 return None
         return self.occurrence_geometry.occurrence
 
+    @property
+    def vesting(self):
+        return "Vesting to be implemented"
+
 
 # Occurrence Report Document
 reversion.register(OccurrenceReportDocument)
