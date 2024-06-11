@@ -4,13 +4,6 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Community ID:</label>
-                        <select class="form-select" v-model="filterCSRefCommunityMigratedId">
-                            <option value="all">All</option>
-                            <option v-for="option in communities_data_list" :value="option.id">
-                                {{option.community_migrated_id}}
-                            </option>
-                        </select> -->
                         <label for="cs_ref_community_id_lookup">Community ID:</label>
                         <select
                             id="cs_ref_community_id_lookup"
@@ -21,13 +14,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <!-- <label for="">Community Name:</label>
-                        <select class="form-select" v-model="filterCSRefCommunityName">
-                            <option value="all">All</option>
-                            <option v-for="option in communities_data_list" :value="option.id">
-                                {{option.community_name}}
-                            </option>
-                        </select> -->
                         <label for="cs_ref_community_name_lookup">Community Name:</label>
                         <select
                             id="cs_ref_community_name_lookup"
@@ -42,25 +28,6 @@
                         <select class="form-select" v-model="filterCSRefCommunityApplicationStatus">
                             <option value="all">All</option>
                             <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Region:</label>
-                        <select class="form-select" v-model="filterCSRefCommunityRegion"
-                        @change="filterDistrict($event)">
-                            <option value="all">All</option>
-                            <option v-for="region in region_list" :value="region.id" v-bind:key="region.id">{{region.name}}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">District:</label>
-                        <select class="form-select" v-model="filterCSRefCommunityDistrict">
-                            <option value="all">All</option>
-                            <option v-for="district in filtered_district_list" :value="district.id">{{district.name}}</option>
                         </select>
                     </div>
                 </div>
@@ -83,7 +50,7 @@ import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
-import Vue from 'vue'
+
 import {
     api_endpoints,
     constants,
@@ -125,16 +92,6 @@ export default {
             required: false,
             default: 'filterCSRefCommunityConservationCategory',
         },
-        filterCSRefCommunityRegion_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSRefCommunityRegion',
-        },
-        filterCSRefCommunityDistrict_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSRefCommunityDistrict',
-        },
         filterCSRefCommunityApplicationStatus_cache: {
             type: String,
             required: false,
@@ -158,12 +115,6 @@ export default {
             filterCSRefCommunityConservationCategory:
                 sessionStorage.getItem(this.filterCSRefCommunityRefConservationCategory_cache) ?
                 sessionStorage.getItem(this.filterCSRefCommunityRefConservationCategory_cache) : 'all',
-
-            filterCSRefCommunityRegion: sessionStorage.getItem(this.filterCSRefCommunityRegion_cache) ?
-                                    sessionStorage.getItem(this.filterCSRefCommunityRegion_cache) : 'all',
-
-            filterCSRefCommunityDistrict: sessionStorage.getItem(this.filterCSRefCommunityDistrict_cache) ?
-                                        sessionStorage.getItem(this.filterCSRefCommunityDistrict_cache) : 'all',
 
             filterCSRefCommunityApplicationStatus:
                     sessionStorage.getItem(this.filterCSRefCommunityApplicationStatus_cache) ?
@@ -205,16 +156,6 @@ export default {
             sessionStorage.setItem(vm.filterCSRefCommunityConservationCategory_cache,
                 vm.filterCSRefCommunityConservationCategory);
         },
-        filterCSRefCommunityRegion: function(){
-            let vm = this;
-            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefCommunityRegion_cache, vm.filterCSRefCommunityRegion);
-        },
-        filterCSRefCommunityDistrict: function(){
-            let vm = this;
-            vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefCommunityDistrict_cache, vm.filterCSRefCommunityDistrict);
-        },
         filterCSRefCommunityApplicationStatus: function() {
             let vm = this;
             vm.$refs.cs_communities_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
@@ -235,8 +176,6 @@ export default {
                 this.filterCSRefCommunityName === 'all' &&
                 this.filterCSRefCommunityConservationList === 'all' &&
                 this.filterCSRefCommunityConservationCategory === 'all' &&
-                this.filterCSRefCommunityRegion === 'all' &&
-                this.filterCSRefCommunityDistrict === 'all' &&
                 this.filterCSRefCommunityApplicationStatus === 'all'){
                 return false
             } else {
@@ -321,38 +260,6 @@ export default {
                 name: "conservation_status__processing_status",
             }
         },
-        /*column_region: function(){
-            return {
-                data: "region",
-                orderable: true,
-                searchable: false,
-                visible: true,
-                'render': function(data, type, full){
-                    if(full.region){
-                        return full.region;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status__community__region__name",
-            }
-        },
-        column_district: function(){
-            return {
-                data: "district",
-                orderable: true,
-                searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
-                visible: true,
-                'render': function(data, type, full){
-                    if (full.district){
-                        return full.district
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "conservation_status__community__district__name",
-            }
-        },*/
         column_action: function(){
             let vm = this
             return {
@@ -450,8 +357,6 @@ export default {
                         d.filter_conservation_list = vm.filterCSRefCommunityConservationList;
                         d.filter_conservation_category = vm.filterCSRefCommunityConservationCategory;
                         d.filter_group_type = vm.group_type_name;
-                        d.filter_region = vm.filterCSRefCommunityRegion;
-                        d.filter_district = vm.filterCSRefCommunityDistrict;
                         d.filter_application_status = vm.filterCSRefCommunityApplicationStatus;
                         d.is_internal = vm.is_internal;
                     }
@@ -472,7 +377,6 @@ export default {
                 },
             }
         }
-
     },
     methods:{
         collapsible_component_mounted: function(){
@@ -557,7 +461,6 @@ export default {
 
             vm.$http.get(api_endpoints.filter_list_cs_referrals_community+ '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsCommunities= response.body;
-                vm.filterDistrict();
                 vm.proposal_status = vm.filterListsCommunities.processing_status_list
             },(error) => {
                 console.log(error);
@@ -569,23 +472,6 @@ export default {
             },(error) => {
                 console.log(error);
             })
-        },
-          //-------filter district dropdown dependent on region selected
-          filterDistrict: function(event) {
-                this.$nextTick(() => {
-                    if(event){
-                      this.filterCSRefCommunityDistrict='all'; //-----to remove the previous selection
-                    }
-                    this.filtered_district_list=[];
-                    //---filter districts as per region selected
-                    for(let choice of this.district_list){
-                        if(choice.region_id.toString() === this.filterCSRefCommunityRegion.toString())
-                        {
-                          this.filtered_district_list.push(choice);
-                        }
-
-                    }
-                });
         },
         addEventListeners: function(){
             let vm = this;
@@ -689,16 +575,6 @@ export default {
                         "regex":"false"
                     }
                 },
-                // "10":{
-                //     "data":"conservation_status",
-                //     "name":"",
-                //     "searchable":"true",
-                //     "orderable":"true",
-                //     "search":{
-                //         "value":"",
-                //         "regex":"false"
-                //     }
-                // },
             };
 
             const object_load = {
@@ -709,8 +585,6 @@ export default {
                 filter_conservation_list: vm.filterCSRefCommunityConservationList,
                 filter_conservation_category: vm.filterCSRefCommunityConservationCategory,
                 filter_application_status: vm.filterCSRefCommunityApplicationStatus,
-                filter_region: vm.filterCSRefCommunityRegion,
-                filter_district: vm.filterCSRefCommunityDistrict,
                 is_internal: vm.is_internal,
                 export_format: format
             };
@@ -743,7 +617,6 @@ export default {
                         },
                         url: url+"/",
                         data: object_load,
-                        //contentType: "application/vnd.ms-excel",
                         dataType: "binary",
                         xhrFields: {
                             responseType: 'blob'
@@ -804,8 +677,6 @@ export default {
             }
         },
     },
-
-
     mounted: function(){
         this.fetchFilterLists();
         let vm = this;

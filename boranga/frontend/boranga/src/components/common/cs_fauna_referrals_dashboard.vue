@@ -61,25 +61,6 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Region:</label>
-                        <select class="form-select" v-model="filterCSRefFaunaRegion"
-                        @change="filterDistrict($event)">
-                            <option value="all">All</option>
-                            <option v-for="region in region_list" :value="region.id" v-bind:key="region.id">{{region.name}}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">District:</label>
-                        <select class="form-select" v-model="filterCSRefFaunaDistrict">
-                            <option value="all">All</option>
-                            <option v-for="district in filtered_district_list" :value="district.id">{{district.name}}</option>
-                        </select>
-                    </div>
-                </div>
             </div>
         </CollapsibleFilters>
 
@@ -147,16 +128,6 @@ export default {
             required: false,
             default: 'filterCSRefFaunaGenus',
         },
-        filterCSRefFaunaRegion_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSRefFaunaRegion',
-        },
-        filterCSRefFaunaDistrict_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSRefFaunaDistrict',
-        },
         filterCSRefFaunaApplicationStatus_cache: {
             type: String,
             required: false,
@@ -183,12 +154,6 @@ export default {
 
             filterCSRefFaunaGenus: sessionStorage.getItem(this.filterCSRefFaunaGenus_cache) ?
                                 sessionStorage.getItem(this.filterCSRefFaunaGenus_cache) : 'all',
-
-            filterCSRefFaunaRegion: sessionStorage.getItem(this.filterCSRefFaunaRegion_cache) ?
-                                    sessionStorage.getItem(this.filterCSRefFaunaRegion_cache) : 'all',
-
-            filterCSRefFaunaDistrict: sessionStorage.getItem(this.filterCSRefFaunaDistrict_cache) ?
-                                    sessionStorage.getItem(this.filterCSRefFaunaDistrict_cache) : 'all',
 
             filterCSRefFaunaApplicationStatus: sessionStorage.getItem(this.filterCSRefFaunaApplicationStatus_cache) ?
                                     sessionStorage.getItem(this.filterCSRefFaunaApplicationStatus_cache) : 'all',
@@ -236,16 +201,6 @@ export default {
             vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSRefFaunaGenus_cache, vm.filterCSRefFaunaGenus);
         },
-        filterCSRefFaunaRegion: function(){
-            let vm = this;
-            vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefFaunaRegion_cache, vm.filterCSRefFaunaRegion);
-        },
-        filterCSRefFaunaDistrict: function(){
-            let vm = this;
-            vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefFaunaDistrict_cache, vm.filterCSRefFaunaDistrict);
-        },
         filterCSRefFaunaApplicationStatus: function() {
             let vm = this;
             vm.$refs.fauna_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
@@ -265,8 +220,6 @@ export default {
                 this.filterCSRefFaunaPhylogeneticGroup === 'all' &&
                 this.filterCSRefFaunaFamily === 'all' &&
                 this.filterCSRefFaunaGenus === 'all' &&
-                this.filterCSRefFaunaRegion === 'all' &&
-                this.filterCSRefFaunaDistrict === 'all' &&
                 this.filterCSRefFaunaApplicationStatus === 'all'){
                 return false
             } else {
@@ -450,13 +403,9 @@ export default {
                         d.filter_phylogenetic_group = vm.filterCSRefFaunaPhylogeneticGroup;
                         d.filter_family = vm.filterCSRefFaunaFamily;
                         d.filter_genus = vm.filterCSRefFaunaGenus;
-                        d.filter_region = vm.filterCSRefFaunaRegion;
-                        d.filter_district = vm.filterCSRefFaunaDistrict;
                         d.filter_application_status = vm.filterCSRefFaunaApplicationStatus;
-                        //d.is_internal = vm.is_internal;
                     }
                 },
-                //dom: 'lBfrtip',
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                      "<'row'<'col-sm-12'tr>>" +
                      "<'d-flex align-items-center'<'me-auto'i>p>",
@@ -679,7 +628,6 @@ export default {
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
                 vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
-                vm.filterDistrict();
                 vm.proposal_status = vm.filterListsSpecies.processing_status_list;
             },(error) => {
                 console.log(error);
@@ -691,23 +639,6 @@ export default {
             },(error) => {
                 console.log(error);
             })
-        },
-         //-------filter district dropdown dependent on region selected
-         filterDistrict: function(event) {
-                this.$nextTick(() => {
-                    if(event){
-                      this.filterCSRefFaunaDistrict='all'; //-----to remove the previous selection
-                    }
-                    this.filtered_district_list=[];
-                    //---filter districts as per region selected
-                    for(let choice of this.district_list){
-                        if(choice.region_id.toString() === this.filterCSRefFaunaRegion.toString())
-                        {
-                          this.filtered_district_list.push(choice);
-                        }
-
-                    }
-                });
         },
         addEventListeners: function(){
             let vm = this;
@@ -850,8 +781,6 @@ export default {
                 filter_common_name: vm.filterCSRefFaunaScientificName,
                 filter_family: vm.filterCSRefFaunaFamily,
                 filter_genus: vm.filterCSRefFaunaGenus,
-                filter_region: vm.filterCSRefFaunaRegion,
-                filter_district: vm.filterCSRefFaunaDistrict,
                 filter_application_status: vm.filterCSRefFaunaApplicationStatus,
                 is_internal: vm.is_internal,
                 export_format: format
@@ -885,7 +814,6 @@ export default {
                         },
                         url: url+"/",
                         data: object_load,
-                        //contentType: "application/vnd.ms-excel",
                         dataType: "binary",
                         xhrFields: {
                             responseType: 'blob'

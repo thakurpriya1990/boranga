@@ -57,26 +57,7 @@
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSRefFloraApplicationStatus">
                             <option value="all">All</option>
-                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">Region:</label>
-                        <select class="form-select" v-model="filterCSRefFloraRegion"
-                        @change="filterDistrict($event)">
-                            <option value="all">All</option>
-                            <option v-for="region in region_list" :value="region.id" v-bind:key="region.id">{{region.name}}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">District:</label>
-                        <select class="form-select" v-model="filterCSRefFloraDistrict">
-                            <option value="all">All</option>
-                            <option v-for="district in filtered_district_list" :value="district.id">{{district.name}}</option>
+                            <option v-for="status in processing_statuses" :value="status.value">{{ status.name }}</option>
                         </select>
                     </div>
                 </div>
@@ -157,16 +138,6 @@ export default {
             required: false,
             default: 'filterCSRefFloraConservationCategory',
         },
-        filterCSRefFloraRegion_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSRefFloraRegion',
-        },
-        filterCSRefFloraDistrict_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSRefFloraDistrict',
-        },
         filterCSRefFloraApplicationStatus_cache: {
             type: String,
             required: false,
@@ -200,12 +171,6 @@ export default {
             filterCSRefFloraConservationCategory: sessionStorage.getItem(this.filterCSRefFloraConservationCategory_cache) ?
                                     sessionStorage.getItem(this.filterCSRefFloraConservationCategory_cache) : 'all',
 
-            filterCSRefFloraRegion: sessionStorage.getItem(this.filterCSRefFloraRegion_cache) ?
-                                    sessionStorage.getItem(this.filterCSRefFloraRegion_cache) : 'all',
-
-            filterCSRefFloraDistrict: sessionStorage.getItem(this.filterCSRefFloraDistrict_cache) ?
-                                    sessionStorage.getItem(this.filterCSRefFloraDistrict_cache) : 'all',
-
             filterCSRefFloraApplicationStatus: sessionStorage.getItem(this.filterCSRefFloraApplicationStatus_cache) ?
                                     sessionStorage.getItem(this.filterCSRefFloraApplicationStatus_cache) : 'all',
 
@@ -217,7 +182,7 @@ export default {
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
-            proposal_status: [],
+            processing_statuses: [],
             filtered_district_list: [],
         }
     },
@@ -261,16 +226,6 @@ export default {
             vm.$refs.flora_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSRefFloraConservationCategory_cache, vm.filterCSRefFloraConservationCategory);
         },
-        filterCSRefFloraRegion: function(){
-            let vm = this;
-            vm.$refs.flora_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefFloraRegion_cache, vm.filterCSRefFloraRegion);
-        },
-        filterCSRefFloraDistrict: function(){
-            let vm = this;
-            vm.$refs.flora_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSRefFloraDistrict_cache, vm.filterCSRefFloraDistrict);
-        },
         filterCSRefFloraApplicationStatus: function() {
             let vm = this;
             vm.$refs.flora_cs_ref_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
@@ -292,8 +247,6 @@ export default {
                 this.filterCSRefFloraGenus === 'all' &&
                 this.filterCSRefFloraConservationList === 'all' &&
                 this.filterCSRefFloraConservationCategory === 'all' &&
-                this.filterCSRefFloraRegion === 'all' &&
-                this.filterCSRefFloraDistrict === 'all' &&
                 this.filterCSRefFloraApplicationStatus === 'all'){
                 return false
             } else {
@@ -479,13 +432,9 @@ export default {
                         d.filter_genus = vm.filterCSRefFloraGenus;
                         d.filter_conservation_list = vm.filterCSRefFloraConservationList;
                         d.filter_conservation_category = vm.filterCSRefFloraConservationCategory;
-                        d.filter_region = vm.filterCSRefFloraRegion;
-                        d.filter_district = vm.filterCSRefFloraDistrict;
                         d.filter_application_status = vm.filterCSRefFloraApplicationStatus;
-                        //d.is_internal = vm.is_internal;
                     }
                 },
-                //dom: 'lBfrtip',
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                      "<'row'<'col-sm-12'tr>>" +
                      "<'d-flex align-items-center'<'me-auto'i>p>",
@@ -707,8 +656,7 @@ export default {
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
-                vm.filterDistrict();
-                vm.proposal_status = vm.filterListsSpecies.processing_status_list;
+                vm.processing_statuses = vm.filterListsSpecies.processing_status_list;
             },(error) => {
                 console.log(error);
             })
@@ -719,23 +667,6 @@ export default {
             },(error) => {
                 console.log(error);
             })
-        },
-         //-------filter district dropdown dependent on region selected
-         filterDistrict: function(event) {
-                this.$nextTick(() => {
-                    if(event){
-                      this.filterCSRefFloraDistrict='all'; //-----to remove the previous selection
-                    }
-                    this.filtered_district_list=[];
-                    //---filter districts as per region selected
-                    for(let choice of this.district_list){
-                        if(choice.region_id.toString() === this.filterCSRefFloraRegion.toString())
-                        {
-                          this.filtered_district_list.push(choice);
-                        }
-
-                    }
-                });
         },
         addEventListeners: function(){
             let vm = this;
@@ -851,8 +782,6 @@ export default {
                 filter_conservation_list: vm.filterCSRefFloraConservationList,
                 filter_conservation_category: vm.filterCSRefFloraConservationCategory,
                 filter_application_status: vm.filterCSRefFloraApplicationStatus,
-                filter_region: vm.filterCSRefFloraRegion,
-                filter_district: vm.filterCSRefFloraDistrict,
                 is_internal: vm.is_internal,
                 export_format: format
             };
