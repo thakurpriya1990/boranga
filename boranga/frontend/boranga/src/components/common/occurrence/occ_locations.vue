@@ -235,6 +235,13 @@
                 </div>
             </div>
 
+            <RelatedReports 
+                    :isReadOnly="isReadOnly"
+                    :occurrence_obj=occurrence_obj
+                    :section_type="'location'"
+                    @copyUpdate="copyUpdate"
+                />
+
         </FormSection>
     </div>
 </template>
@@ -246,6 +253,7 @@ import FormSection from '@/components/forms/section_toggle.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 import MapComponent from '../component_map.vue';
 import { VueSelect } from 'vue-select';
+import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 
 export default {
     name: 'OCClocations',
@@ -253,6 +261,7 @@ export default {
         MapComponent,
         FormSection,
         VueSelect,
+        RelatedReports,
     },
     props: {
         occurrence_obj: {
@@ -414,6 +423,10 @@ export default {
                 }
             });
         },
+        copyUpdate: function(object,section) {
+                let vm = this;
+                vm.occurrence_obj[section] = object[section];
+            },
         updateLocationDetails: function () {
             let vm = this;
             vm.updatingLocationDetails = true;

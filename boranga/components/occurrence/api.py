@@ -1007,6 +1007,7 @@ class OccurrenceReportViewSet(
                                 j.name != "id"
                                 and not isinstance(j, models.ForeignKey)
                                 and not isinstance(j, models.ManyToOneRel)
+                                and not isinstance(j, models.ManyToManyRel)
                                 and getattr(sub_section_value, j.name) is not None
                             ):
                                 res_json[i.name][j.name] = str(
