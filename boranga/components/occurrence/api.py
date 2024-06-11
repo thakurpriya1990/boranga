@@ -4771,7 +4771,6 @@ class OccurrenceViewSet(
 
     @list_route(methods=["GET"], detail=False)
     def list_for_map(self, request, *args, **kwargs):
-        request.query_params
         occurrence_ids = [
             int(id)
             for id in request.query_params.get("proposal_ids", "").split(",")
@@ -4927,6 +4926,7 @@ class OccurrenceReportReferralViewSet(
         )
         return redirect(reverse("internal"))
 
+
 class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = OccurrenceTenure.objects.none()
     serializer_class = OccurrenceTenureSerializer
@@ -4943,6 +4943,12 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = super().get_queryset()
         if not is_internal(self.request):
             return qs.none()
+        occurrence_id = self.request.query_params.get("occurrence_id", None)
+        if occurrence_id and occurrence_id.isnumeric():
+            return OccurrenceTenure.objects.filter(
+                Q(occurrence_geometry__occurrence_id=occurrence_id)
+                | Q(historical_occurrence=occurrence_id)
+            )
         return OccurrenceTenure.objects.all()
 
     @list_route(
@@ -4958,8 +4964,6 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         Serializer = self.get_serializer_class()
-        serializer = Serializer(
-            result_page, context={"request": request}, many=True
-        )
+        serializer = Serializer(result_page, context={"request": request}, many=True)
 
         return self.paginator.get_paginated_response(serializer.data)
