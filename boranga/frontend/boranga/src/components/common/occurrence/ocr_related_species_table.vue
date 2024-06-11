@@ -49,7 +49,7 @@ export default {
         datatable,
     },
     props: {
-        occurrence_obj:{
+        occurrence_report_obj:{
             type: Object,
             required:true
         },
@@ -61,8 +61,8 @@ export default {
     data() {
         let vm = this;
         return {
-            scientific_name_lookup: 'scientific_name_lookup' + vm.occurrence_obj.id,
-            select_scientific_name: "select_scientific_name"+ vm.occurrence_obj.id,
+            scientific_name_lookup: 'scientific_name_lookup' + vm.occurrence_report_obj.id,
+            select_scientific_name: "select_scientific_name"+ vm.occurrence_report_obj.id,
             selected_scientific_name: null,
             adding_species: false,
             uuid:0,
@@ -125,7 +125,7 @@ export default {
                 ordering: true,
                 order: [[0, 'desc']],
                 ajax: {
-                    "url": "/api/occurrence/" + this.occurrence_obj.id + "/get_related_species/",
+                    "url": "/api/occurrence_report/" + this.occurrence_report_obj.id + "/get_related_species/",
                     "dataSrc": "",
                 },
                 dom: 'lBfrtip',
@@ -153,7 +153,7 @@ export default {
             let vm = this;
             if (vm.selected_scientific_name && !vm.adding_species) {
                 vm.adding_species = true
-                vm.$http.get("/api/occurrence/" + this.occurrence_obj.id + '/add_related_species?species='+vm.selected_scientific_name)
+                vm.$http.get("/api/occurrence_report/" + this.occurrence_report_obj.id + '/add_related_species?species='+vm.selected_scientific_name)
                 .then((response) => {
                     swal.fire({
                         title: 'Added',
@@ -181,7 +181,7 @@ export default {
                 confirmButtonColor:'#d9534f'
             }).then((result) => {
                 if(result.isConfirmed){
-                    vm.$http.get("/api/occurrence/" + this.occurrence_obj.id + '/remove_related_species?species='+id)
+                    vm.$http.get("/api/occurrence_report/" + this.occurrence_report_obj.id + '/remove_related_species?species='+id)
                     .then((response) => {
                         swal.fire({
                             title: 'Removed',

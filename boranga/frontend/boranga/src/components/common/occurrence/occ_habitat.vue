@@ -268,6 +268,13 @@
             />
         </FormSection>
         <FormSection :formCollapse="false" label="Associated Species" :Index="associatedSpeciesBody">
+            
+            <RelatedSpecies
+                    :isReadOnly="isReadOnly"
+                    ref="related_species" 
+                    :occurrence_obj=occurrence_obj
+                />
+            
             <div class="row mb-3">
                 <div class="col-sm-3">
                     <label for="related_species" class="control-label">Comment</label>
@@ -290,12 +297,6 @@
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
-
-            <RelatedSpecies
-                    :isReadOnly="isReadOnly"
-                    ref="related_species" 
-                    :occurrence_obj=occurrence_obj
-                />
 
             <RelatedReports 
                     :isReadOnly="isReadOnly"
