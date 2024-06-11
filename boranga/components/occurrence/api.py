@@ -63,6 +63,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportReferral,
     OccurrenceReportUserAction,
     OccurrenceSource,
+    OccurrenceTenure,
     OccurrenceUserAction,
     OCCVegetationStructure,
     OCRAnimalObservation,
@@ -103,6 +104,7 @@ from boranga.components.occurrence.serializers import (
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
     ListOCRReportMinimalSerializer,
+    ListOccurrenceTenureSerializer,
     OCCConservationThreatSerializer,
     OccurrenceDocumentSerializer,
     OccurrenceLogEntrySerializer,
@@ -113,6 +115,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceReportSerializer,
     OccurrenceReportUserActionSerializer,
     OccurrenceSerializer,
+    OccurrenceTenureSerializer,
     OccurrenceUserActionSerializer,
     OCRConservationThreatSerializer,
     OCRObserverDetailSerializer,
@@ -4768,7 +4771,6 @@ class OccurrenceViewSet(
 
     @list_route(methods=["GET"], detail=False)
     def list_for_map(self, request, *args, **kwargs):
-        request.query_params
         occurrence_ids = [
             int(id)
             for id in request.query_params.get("proposal_ids", "").split(",")
@@ -4923,3 +4925,45 @@ class OccurrenceReportReferralViewSet(
             request,
         )
         return redirect(reverse("internal"))
+
+
+class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = OccurrenceTenure.objects.none()
+    serializer_class = OccurrenceTenureSerializer
+    pagination_class = DatatablesPageNumberPagination
+    # filter_backends = [OccurrenceTenureFilterBackend,]
+    page_size = 10
+
+    def get_serializer_class(self):
+        if self.action in ["list", "occurrence_tenure_internal"]:
+            return ListOccurrenceTenureSerializer
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not is_internal(self.request):
+            return qs.none()
+        occurrence_id = self.request.query_params.get("occurrence_id", None)
+        if occurrence_id and occurrence_id.isnumeric():
+            return OccurrenceTenure.objects.filter(
+                Q(occurrence_geometry__occurrence_id=occurrence_id)
+                | Q(historical_occurrence=occurrence_id)
+            )
+        return OccurrenceTenure.objects.all()
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_tenure_internal(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        Serializer = self.get_serializer_class()
+        serializer = Serializer(result_page, context={"request": request}, many=True)
+
+        return self.paginator.get_paginated_response(serializer.data)

@@ -39,6 +39,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportLogEntry,
     OccurrenceReportReferral,
     OccurrenceReportUserAction,
+    OccurrenceTenure,
     OccurrenceUserAction,
     OCCVegetationStructure,
     OCRAnimalObservation,
@@ -2702,3 +2703,57 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
             "locked",
         )
         read_only_fields = ("id",)
+
+class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
+    vesting = serializers.SerializerMethodField()
+    featureid = serializers.SerializerMethodField()
+    status_display = serializers.CharField(
+        read_only=True, source="get_status_display"
+    )
+
+    class Meta:
+        model = OccurrenceTenure
+        fields = (
+            "__all__"
+        )
+
+    def get_vesting(self, obj):
+        if obj.vesting:
+            return obj.vesting
+        return None
+
+    def get_featureid(self, obj):
+        return obj.featureid
+
+class OccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
+    pass
+
+class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
+    class Meta:
+        model = OccurrenceTenure
+        fields = (
+            "id",
+            "status",
+            "status_display",
+            "tenure_area_id",
+            "featureid",
+            "owner_name",
+            "owner_count",
+            "vesting",
+            "purpose",
+            "comments",
+            "significant_to_occurrence",
+        )
+        datatables_always_serialize = (
+            "id",
+            "status",
+            "status_display",
+            "tenure_area_id",
+            "featureid",
+            "owner_name",
+            "owner_count",
+            "vesting",
+            "purpose",
+            "comments",
+            "significant_to_occurrence",
+        )

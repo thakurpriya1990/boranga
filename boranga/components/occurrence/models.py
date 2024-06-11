@@ -4079,12 +4079,23 @@ class OccurrenceTenurePurpose(models.Model):
 
 def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
     sub_objs.update(status="historical")
-    # TODO: add historical_occurrence_geometry_ewkb and historical_occurrence to sub_objs.update
+    occurrence_geometry_dict = collector.data.get(OccurrenceGeometry, None)
+    if len(occurrence_geometry_dict) > 0:
+        # Populate historical_occurrence_geometry_ewkb and historical_occurrence id
+        occurrence_geometry = occurrence_geometry_dict.pop()
+        occurrence_geometry.occurrence.id
+        occurrence_geometry.geometry.ewkt
+        sub_objs.update(historical_occurrence=occurrence_geometry.occurrence.id)
+        sub_objs.update(
+            historical_occurrence_geometry_ewkb=occurrence_geometry.geometry.ewkb
+        )
     collector.add_field_update(field, None, sub_objs)
 
 
 class OccurrenceTenure(models.Model):
-    STATUS_CHOICES = (("current", "Current"), ("historical", "Historical"))
+    STATUS_CURRENT = "current"
+    STATUS_HISTORICAL = "historical"
+    STATUS_CHOICES = ((STATUS_CURRENT, "Current"), (STATUS_HISTORICAL, "Historical"))
 
     status = models.CharField(
         max_length=100, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0]
@@ -4145,13 +4156,29 @@ class OccurrenceTenure(models.Model):
     def geometry(self):
         from boranga.components.spatial.utils import wkb_to_geojson
 
-        # TODO: Draw from historical if historical, else:
+        # Return from historical geometry if historical, else from occurrence_geometry's geometry
+        if self.status == self.STATUS_HISTORICAL:
+            if self.historical_occurrence_geometry_ewkb:
+                return wkb_to_geojson(self.historical_occurrence_geometry_ewkb)
+            return None
         return wkb_to_geojson(self.occurrence_geometry.geometry.ewkb)
 
     @property
     def occurrence(self):
-        # TODO: Draw form historical if historical, else:
+        # Return from historical occurrence if historical, else from occurrence_geometry's occurrence
+        if self.status == self.STATUS_HISTORICAL:
+            try:
+                return Occurrence.objects.get(id=self.historical_occurrence)
+            except Occurrence.DoesNotExist:
+                logger.warning(
+                    f"OccurrenceTenure {self.id} has historical_occurrence {self.historical_occurrence} which does not exist"
+                )
+                return None
         return self.occurrence_geometry.occurrence
+
+    @property
+    def vesting(self):
+        return "Vesting TBI"
 
 
 # Occurrence Report Document
