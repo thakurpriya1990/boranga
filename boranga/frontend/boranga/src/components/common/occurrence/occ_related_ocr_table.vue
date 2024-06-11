@@ -1,6 +1,6 @@
 <template lang="html">
     <div :id="'related_ocr'+section_type">
-        <FormSection :formCollapse="true" label="Related Occurrence Reports" :Index="'related_ocr'+section_type">
+        <FormSection :formCollapse="true" label="Related Occurrence Reports" :Index="'related_ocr'+section_type" @toggle-collapse="toggleCollapse">
             <div>
                 <datatable
                     ref="related_ocr_datatable"
@@ -96,6 +96,30 @@ export default {
                 visible: true,
             }
         },
+        column_location_accuracy: function(){
+            return {
+                data: 'location_accuracy',
+                orderable: true,
+                searchable: true,
+                visible: true,
+            }
+        },
+        column_identification_certainty: function(){
+            return {
+                data: 'identification_certainty',
+                orderable: true,
+                searchable: true,
+                visible: true,
+            }
+        },
+        column_site: function(){
+            return {
+                data: 'site',
+                orderable: true,
+                searchable: true,
+                visible: true,
+            }
+        },
         column_submitter: function(){
             return {
                 data: 'submitter',
@@ -146,13 +170,16 @@ export default {
 
             let columns = [
                 vm.column_number,
-                vm.column_status,
-                vm.column_observation_date,
                 vm.column_submitter,
+                //vm.column_status,
+                vm.column_observation_date,
+                vm.column_location_accuracy,
+                vm.column_identification_certainty,
+                vm.column_site,
                 action,
             ]
             return {
-                autoWidth: false,
+                autoWidth: true,
                 language: {
                     processing: constants.DATATABLE_PROCESSING_HTML
                 },
@@ -161,6 +188,10 @@ export default {
                 searching: true,
                 ordering: true,
                 order: [[0, 'desc']],
+                columnDefs: [
+                        { responsivePriority: 1, targets: 0 },
+                        { responsivePriority: 2, targets: -1 },
+                    ],
                 ajax: {
                     //"url": '/api/proposal/' + vm.proposal.id + '/get_related_items/',
                     "url": "/api/occurrence/" + this.occurrence_obj.id + "/get_related_occurrence_reports/",
@@ -170,11 +201,21 @@ export default {
                         d.related_filter_type = vm.filterRelatedType
                     }
                 },
-                dom: 'lBfrtip',
+                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons:[ ],
                 columns: columns,
                 processing: true,
+                drawCallback: function () {
+                    setTimeout(function () {
+                        vm.adjust_table_width();
+                    }, 100);
+                },
                 initComplete: function(settings, json) {
+                    setTimeout(function () {
+                        vm.adjust_table_width();
+                    }, 100);
                 },
             }
         },
@@ -182,14 +223,20 @@ export default {
             return [
                 //'id',
                 'Number',
-                'Status',
-                'Observation Date',
                 'Submitter',
+                //'Status',
+                'Observation Date',
+                'Location Accuracy',
+                'Identification Certainty',
+                'Site',
                 'Action',
             ]
         },
     },
     methods:{
+        toggleCollapse: function () {
+            this.adjust_table_width();
+        },
         viewSection:function (id) {
             let vm=this;
             //get ocr object with id
@@ -229,6 +276,9 @@ export default {
                     vm.errors = true;
                     vm.errorString = helpers.apiVueResourceError(error);
                 });
+        },
+        adjust_table_width: function () {
+            if (this.$refs.related_ocr_datatable !== undefined) { this.$refs.related_ocr_datatable.vmDataTable.columns.adjust().responsive.recalc() };
         },
         addEventListeners:function (){
             let vm=this;
