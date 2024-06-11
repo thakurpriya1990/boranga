@@ -104,6 +104,7 @@ module.exports = {
     community_occurrence_report_internal_export: "/api/occurrence_report_paginated/community_occurrence_report_internal_export",
     occurrence_report_paginated_external: "/api/occurrence_report_paginated/occurrence_report_external?format=datatables",
     occurrence_report_paginated_internal: "/api/occurrence_report_paginated/occurrence_report_internal?format=datatables",
+    occurrence_report_paginated_referred_to_me: "/api/occurrence_report_paginated/referred_to_me?format=datatables",
     occurrence: "/api/occurrence/",
     phylo_group_lookup: "/api/phylo_group_lookup",
     proposals_paginated_external: "/api/proposal_paginated/proposals_external/?format=datatables",
