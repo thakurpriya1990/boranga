@@ -163,6 +163,7 @@ from boranga.components.species_and_communities.models import (
 )
 from boranga.helpers import (
     is_customer,
+    is_external_contributor,
     is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
@@ -675,18 +676,16 @@ class OccurrenceReportViewSet(
 
     def get_queryset(self):
         user = self.request.user
+        qs = self.queryset
+        if not is_internal(self.request) and not is_external_contributor(self.request):
+            return qs
+
         if is_internal(self.request):
             qs = OccurrenceReport.objects.all()
-            return qs
-        elif is_customer(self.request):
+        elif is_external_contributor(self.request):
             qs = OccurrenceReport.objects.filter(submitter=user.id)
-            return qs
-        logger.warn(
-            "User is neither customer nor internal user: {} <{}>".format(
-                user.get_full_name(), user.email
-            )
-        )
-        return OccurrenceReport.objects.none()
+
+        return qs
 
     def get_serializer_class(self):
         if is_internal(self.request):
