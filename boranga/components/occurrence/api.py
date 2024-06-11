@@ -675,7 +675,7 @@ class OccurrenceReportViewSet(
     lookup_field = "id"
 
     def get_queryset(self):
-        request = self.request.user
+        request = self.request
         qs = self.queryset
         if not is_internal(request) and not is_external_contributor(request):
             return qs
