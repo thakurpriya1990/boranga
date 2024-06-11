@@ -47,6 +47,7 @@ from boranga.components.species_and_communities.models import (
     PotentialThreatOnset,
     Region,
     Species,
+    Taxonomy,
     ThreatAgent,
     ThreatCategory,
 )
@@ -2081,7 +2082,9 @@ class OCRAssociatedSpecies(models.Model):
         null=True,
         related_name="associated_species",
     )
-    related_species = models.TextField(blank=True)
+    comment = models.TextField(blank=True)
+
+    related_species = models.ManyToManyField(Taxonomy)
 
     class Meta:
         app_label = "boranga"
@@ -3804,7 +3807,9 @@ class OCCAssociatedSpecies(models.Model):
     copied_ocr_associated_species = models.ForeignKey(
         OCRAssociatedSpecies, on_delete=models.SET_NULL, null=True, blank=True
     )
-    related_species = models.TextField(blank=True)
+    comment = models.TextField(blank=True)
+
+    related_species = models.ManyToManyField(Taxonomy)
 
     class Meta:
         app_label = "boranga"

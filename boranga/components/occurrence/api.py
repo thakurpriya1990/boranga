@@ -161,6 +161,9 @@ from boranga.components.species_and_communities.models import (
     GroupType,
     Species,
 )
+from boranga.components.species_and_communities.serializers import (
+    TaxonomySerializer,
+)
 from boranga.helpers import (
     is_customer,
     is_internal,
@@ -983,7 +986,17 @@ class OccurrenceReportViewSet(
                 ):
                     continue
 
-                if isinstance(i, models.ForeignKey):
+                #ensure many to many fields are assigned an appropriate __str__
+                if isinstance(i, models.ManyToManyField):
+                    sub_section_values = getattr(section_value, i.name)
+                    res_json[i.name] = []
+                    for j in sub_section_values.all():
+                        if j.__str__():
+                            res_json[i.name].append(j.__str__())
+                        else:
+                            res_json[i.name].append(j.id)
+
+                elif isinstance(i, models.ForeignKey):
                     sub_section_value = getattr(section_value, i.name)
                     if sub_section_value is not None:
                         res_json[i.name] = {}
@@ -3756,6 +3769,18 @@ class OccurrenceViewSet(
         return Response(data)
 
     @detail_route(methods=["get"], detail=True)
+    def get_related_species(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.associated_species:
+            related_species = instance.associated_species.related_species
+        else:
+            return Response()
+        serializer = TaxonomySerializer(
+            related_species, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
+    @detail_route(methods=["get"], detail=True)
     def get_related_occurrence_reports(self, request, *args, **kwargs):
         instance = self.get_object()
         related_reports = instance.get_related_occurrence_reports()
@@ -4047,8 +4072,14 @@ class OccurrenceViewSet(
                 and i.name != "occurrence_report"
                 and hasattr(occSection, i.name)
             ):
-                ocrValue = getattr(ocrSection, i.name)
-                setattr(occSection, i.name, ocrValue)
+                if isinstance(i, models.ManyToManyField):
+                    ocrValue = getattr(ocrSection, i.name)
+                    occValue = getattr(occSection, i.name)
+                    for i in ocrValue.all():
+                        occValue.add(i)
+                else:
+                    ocrValue = getattr(ocrSection, i.name)
+                    setattr(occSection, i.name, ocrValue)
 
         occ_section_fields = type(occSection)._meta.get_fields()
         for i in occ_section_fields:

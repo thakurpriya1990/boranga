@@ -223,11 +223,11 @@
         <FormSection :formCollapse="false" label="Associated Species" :Index="associatedSpeciesBody">
             <div class="row mb-3">
                 <div class="col-sm-3">
-                    <label for="related_species" class="control-label">Related Species</label>
+                    <label for="related_species" class="control-label">Comment</label>
                 </div>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="related_species" placeholder=""
-                        v-model="occurrence_report_obj.associated_species.related_species"
+                        v-model="occurrence_report_obj.associated_species.comment"
                     />
                 </div>
             </div>
