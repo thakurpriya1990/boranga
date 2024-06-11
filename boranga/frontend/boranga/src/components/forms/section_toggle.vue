@@ -1,6 +1,6 @@
 <template lang="html">
     <div class="card section-wrapper" :id="custom_id">
-        <div class="card-header h5 fw-bold py-3">
+        <div class="card-header h4 fw-bold p-4">
             <div class='row show_hide_switch' :id="'show_hide_switch_' + section_body_id" aria-expanded="true"
                 :aria-controls="section_body_id" @click="toggle_show_hide">
                 <div class='col-11' :style="'color:' + customColor">
