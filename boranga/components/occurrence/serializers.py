@@ -2710,15 +2710,7 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
     class Meta:
         model = OccurrenceTenure
         fields = (
-            "id",
-            "status",
-            "tenure_area_id",
-            "owner_name",
-            "owner_count",
-            "vesting",
-            "purpose",
-            "comments",
-            "significant_to_occurrence",
+            "__all__"
         )
 
     def get_vesting(self, obj):
@@ -2730,4 +2722,27 @@ class OccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
     pass
 
 class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
-    pass
+    class Meta:
+        model = OccurrenceTenure
+        fields = (
+            "id",
+            "status",
+            "tenure_area_id",
+            "owner_name",
+            "owner_count",
+            "vesting",
+            "purpose",
+            "comments",
+            "significant_to_occurrence",
+        )
+        datatables_always_serialize = (
+            "id",
+            "status",
+            "tenure_area_id",
+            "owner_name",
+            "owner_count",
+            "vesting",
+            "purpose",
+            "comments",
+            "significant_to_occurrence",
+        )
