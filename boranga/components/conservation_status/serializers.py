@@ -32,7 +32,9 @@ logger = logging.getLogger("boranga")
 
 # Serializer used for species and communities forms
 class BasicConservationStatusSerializer(serializers.ModelSerializer):
-    wa_legislative_list = serializers.CharField(source="wa_legislative_list.code")
+    wa_legislative_list = serializers.CharField(
+        source="wa_legislative_list.code", allow_null=True
+    )
     wa_legislative_category = serializers.CharField(
         source="wa_legislative_category.code", allow_null=True
     )
