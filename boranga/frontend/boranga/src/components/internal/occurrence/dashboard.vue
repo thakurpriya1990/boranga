@@ -28,6 +28,11 @@
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_url"
                         :profile="profile" />
                 </FormSection>
+                <FormSection :formCollapse="false" label="Occurrence Report - Flora Referred to Me" Index="occurrence-report-flora-referred-to-me">
+                    <OccurrenceReportFloraReferredToMeDashTable v-if="isFlora" ref="flora_referrals_table" level="internal"
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_referrals_url"
+                        :profile="profile" />
+                </FormSection>
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
                 <FormSection v-if="show_occurrences" :formCollapse="false" label="Occurrences - Fauna" Index="occurrence-fauna">
@@ -66,6 +71,10 @@ import OccurrenceCommunityDashboard from '@/components/common/occurrence_communi
 import OccurrenceReportFloraDashTable from '@/components/common/occurrence_report_flora_dashboard.vue'
 import OccurrenceReportFaunaDashTable from '@common-utils/occurrence_report_fauna_dashboard.vue'
 import OccurrenceReportCommunityDashTable from '@common-utils/occurrence_report_community_dashboard.vue'
+
+import OccurrenceReportFloraReferredToMeDashTable from '@common-utils/ocr_flora_referrals_dashboard.vue'
+
+
 import FormSection from '@/components/forms/section_toggle.vue'
 
 import {
@@ -85,6 +94,7 @@ export default {
             community_occ_url: api_endpoints.occurrence_paginated_internal,
             species_ocr_url: api_endpoints.occurrence_report_paginated_internal,
             community_ocr_url: api_endpoints.occurrence_report_paginated_internal,
+            species_ocr_referrals_url: api_endpoints.occurrence_report_paginated_referred_to_me,
             profile: null,
         }
     },
@@ -95,6 +105,7 @@ export default {
         OccurrenceReportFloraDashTable,
         OccurrenceReportFaunaDashTable,
         OccurrenceReportCommunityDashTable,
+        OccurrenceReportFloraReferredToMeDashTable,
         FormSection,
     },
     computed: {
@@ -134,7 +145,6 @@ export default {
                 }
             }
         }
-
     },
     methods: {
         set_active_tab: function (group_name) {
