@@ -268,13 +268,20 @@
             />
         </FormSection>
         <FormSection :formCollapse="false" label="Associated Species" :Index="associatedSpeciesBody">
+            
+            <RelatedSpecies
+                    :isReadOnly="isReadOnly"
+                    ref="related_species" 
+                    :occurrence_obj=occurrence_obj
+                />
+            
             <div class="row mb-3">
                 <div class="col-sm-3">
-                    <label for="related_species" class="control-label">Related Species</label>
+                    <label for="related_species" class="control-label">Comment</label>
                 </div>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="related_species" placeholder=""
-                        v-model="occurrence_obj.associated_species.related_species"
+                        v-model="occurrence_obj.associated_species.comment"
                     />
                 </div>
             </div>
@@ -282,15 +289,17 @@
                 <div class="col-sm-12">
                     <span v-if="occurrence_obj.associated_species.copied_ocr" class="float-end"><b>Sourced from {{occurrence_obj.associated_species.copied_ocr}}</b></span>
                 </div>
-            </div>
+            </div>    
+
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <button v-if="!updatingAssociatedSpeciesDetails" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updateAssociatedSpeciesDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
+
             <RelatedReports 
-        :isReadOnly="isReadOnly"
+                    :isReadOnly="isReadOnly"
                     :occurrence_obj=occurrence_obj
                     :section_type="'associated_species'"
                     @copyUpdate="copyUpdate"
@@ -304,6 +313,7 @@ import Vue from 'vue' ;
 import FormSection from '@/components/forms/section_toggle.vue';
 import RichText from '@/components/forms/richtext.vue'
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
+import RelatedSpecies from '@/components/common/occurrence/occ_related_species_table.vue'
 import {
   api_endpoints,
   helpers
@@ -358,6 +368,7 @@ export default {
             FormSection,
             RichText,
             RelatedReports,
+            RelatedSpecies,
         },
         computed: {
             isReadOnly: function () {
@@ -428,6 +439,7 @@ export default {
                 let vm = this;
                 vm.occurrence_obj[section] = object[section];
                 $(vm.$refs.land_form_select).val(vm.occurrence_obj.habitat_composition.land_form).trigger('change.select2');
+                vm.$refs.related_species.reload();
             },
             updateHabitatCompositionDetails: function() {
                 let vm = this;
