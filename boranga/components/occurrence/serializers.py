@@ -39,6 +39,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportLogEntry,
     OccurrenceReportReferral,
     OccurrenceReportUserAction,
+    OccurrenceTenure,
     OccurrenceUserAction,
     OCCVegetationStructure,
     OCRAnimalObservation,
@@ -2702,3 +2703,31 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
             "locked",
         )
         read_only_fields = ("id",)
+
+class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
+    vesting = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OccurrenceTenure
+        fields = (
+            "id",
+            "status",
+            "tenure_area_id",
+            "owner_name",
+            "owner_count",
+            "vesting",
+            "purpose",
+            "comments",
+            "significant_to_occurrence",
+        )
+
+    def get_vesting(self, obj):
+        if obj.vesting:
+            return obj.vesting
+        return None
+
+class OccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
+    pass
+
+class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
+    pass
