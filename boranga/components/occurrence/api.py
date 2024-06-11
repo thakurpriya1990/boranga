@@ -1063,6 +1063,13 @@ class OccurrenceReportViewSet(
         serializer = TaxonomySerializer(
             related_species, many=True, context={"request": request}
         )
+
+        if (
+            instance.processing_status
+            == OccurrenceReport.PROCESSING_STATUS_UNLOCKED
+        ):
+            self.unlocked_back_to_assessor()
+
         return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)
@@ -1095,6 +1102,13 @@ class OccurrenceReportViewSet(
         serializer = TaxonomySerializer(
             related_species, many=True, context={"request": request}
         )
+
+        if (
+            instance.processing_status
+            == OccurrenceReport.PROCESSING_STATUS_UNLOCKED
+        ):
+            self.unlocked_back_to_assessor()
+            
         return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)

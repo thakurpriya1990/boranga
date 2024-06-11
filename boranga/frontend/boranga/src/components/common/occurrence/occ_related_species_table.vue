@@ -95,6 +95,7 @@ export default {
             }
         },
         column_action: function(){
+            let vm = this;
             return {
                 data: 'id',
                 orderable: false,
@@ -102,7 +103,9 @@ export default {
                 visible: true,
                 'render': function(row, type, full){
                     let links = '';
-                    links += `<a href='#' data-discard-species='${full.id}'>Remove</a><br>`;
+                    if (!vm.isReadOnly) {
+                        links += `<a href='#' data-discard-species='${full.id}'>Remove</a><br>`;
+                    }
                     return links;
                 }
             }

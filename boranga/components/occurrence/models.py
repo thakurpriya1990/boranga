@@ -3149,6 +3149,9 @@ class Occurrence(RevisionedMixin):
                 occurrence_report.associated_species
             )
             associated_species.save()
+            #copy over related species separately
+            for i in occurrence_report.associated_species.related_species.all():
+                associated_species.related_species.add(i)
 
         observation_detail = clone_model(
             OCRObservationDetail,

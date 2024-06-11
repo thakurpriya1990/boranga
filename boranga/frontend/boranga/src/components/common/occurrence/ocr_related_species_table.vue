@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import Vue from 'vue'
+import Vue, { readonly } from 'vue'
 import { v4 as uuid } from 'uuid'
 import datatable from '@/utils/vue/datatable.vue'
 import {
@@ -95,6 +95,7 @@ export default {
             }
         },
         column_action: function(){
+            let vm = this;
             return {
                 data: 'id',
                 orderable: false,
@@ -102,7 +103,9 @@ export default {
                 visible: true,
                 'render': function(row, type, full){
                     let links = '';
-                    links += `<a href='#' data-discard-species='${full.id}'>Remove</a><br>`;
+                    if (!vm.isReadOnly) {
+                        links += `<a href='#' data-discard-species='${full.id}'>Remove</a><br>`;
+                    }
                     return links;
                 }
             }
@@ -164,6 +167,9 @@ export default {
                     vm.$refs.related_species_datatable.vmDataTable.ajax.reload();
                     vm.selected_scientific_name = null;
                     vm.adding_species = false;
+                    if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                        vm.$router.go();
+                    }
                 }, (error) => {
                     console.log(error);
                     vm.adding_species = false;
@@ -190,6 +196,9 @@ export default {
                             confirmButtonColor:'#226fbb'
                         });
                         vm.$refs.related_species_datatable.vmDataTable.ajax.reload();
+                        if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                            vm.$router.go();
+                        }
                     }, (error) => {
                         console.log(error);
                     });
