@@ -234,12 +234,10 @@
                     </button>
                 </div>
             </div>
-
             <!-- Putting the occurrence tenure dt here for now -->
-             {{ occurrence_obj?.occurrence_geometry?.occurrence_tenure }}
-             <!-- v-if="occurrence_obj.occurrence_geometry" -->
             <OccurrenceTenureDatatable
-                :occurrence-tenure="'occurrence_obj.occurrence_geometry.occurrence_tenure'"
+                v-if="occurrence_obj"
+                :occurrence-id="occurrence_obj.id"
             ></OccurrenceTenureDatatable>
         </FormSection>
     </div>
