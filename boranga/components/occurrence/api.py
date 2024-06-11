@@ -30,6 +30,7 @@ from boranga.components.conservation_status.serializers import SendReferralSeria
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import validate_threat_request
+from boranga.components.occurrence.filters import OccurrenceReportReferralFilterBackend
 from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
     AnimalHealth,
@@ -270,7 +271,7 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
                     review_due_date__lte=filter_to_review_due_date
                 )
 
-        if "external" in view.name:
+        else:
             total_count = queryset.count()
 
             filter_group_type = request.GET.get("filter_group_type")
@@ -300,19 +301,10 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
-
-
-# class OccurrenceReportRenderer(DatatablesRenderer):
-#     def render(self, data, accepted_media_type=None, renderer_context=None):
-#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
-#         return super(OccurrenceReportRenderer, self).render(data, accepted_media_type, renderer_context)
 
 
 class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
@@ -665,6 +657,28 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
             else:
                 return Response(status=400, data="Format not valid")
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def referred_to_me(self, request, *args, **kwargs):
+        qs = (
+            OccurrenceReportReferral.objects.filter(referral=request.user.id)
+            if is_internal(self.request)
+            else OccurrenceReportReferral.objects.none()
+        )
+        self.filter_backends = (OccurrenceReportReferralFilterBackend,)
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = OccurrenceReportReferralSerializer(
+            result_page, context={"request": request}, many=True
+        )
+        return self.paginator.get_paginated_response(serializer.data)
 
 
 class OccurrenceReportViewSet(
