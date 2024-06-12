@@ -276,9 +276,9 @@ export default {
             if (!this.conservation_status_obj.can_user_edit) {
                 var current_referral_present = false;
                 $.each(this.conservation_status_obj.latest_referrals, (i, v) => {
-                    var referral_name = `comment-field-Referral-${v.referral_obj.email}`;
-                    var referral_visibility = assessor_mode == 'referral' && this.conservation_status_obj.assessor_mode.assessor_can_assess && this.referral.referral == v.referral_obj.id ? false : true;
-                    var referral_label = `${v.referral_obj.fullname}`;
+                    var referral_name = `comment-field-Referral-${v.referral.email}`;
+                    var referral_visibility = assessor_mode == 'referral' && this.conservation_status_obj.assessor_mode.assessor_can_assess && this.referral.referral == v.referral.id ? false : true;
+                    var referral_label = `${v.referral.fullname}`;
                     var referral_comment_val = `${v.referral_comment}`;
                     this.referral_comments_boxes.push(
                         {
