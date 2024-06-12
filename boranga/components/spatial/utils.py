@@ -364,7 +364,6 @@ def feature_json_to_geosgeometry(feature, srid=4326):
 
     shape = geo_json.get("geometry") if "geometry" in geo_json else geo_json
     geom_shape = shp.shape(shape)
-    shp.shape(geo_json).wkt
 
     return GEOSGeometry(geom_shape.wkt, srid=srid)
 
