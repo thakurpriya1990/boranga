@@ -826,12 +826,16 @@ export default {
             }
             vm.submitConservationStatus = true;
             swal.fire({
-                title: "Submit New Conservation Status Application",
-                text: "Are you sure you want to submit this application?",
+                title: "Submit Proposal",
+                text: "Are you sure you want to submit this conservation status proposal?",
                 icon: "question",
                 showCancelButton: true,
-                confirmButtonText: "submit",
-                confirmButtonColor: '#226fbb'
+                confirmButtonText: "Submit Proposal",
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     let result = await vm.save_before_submit()
@@ -853,6 +857,8 @@ export default {
                             });
                         });
                     }
+                } else {
+                    vm.submitConservationStatus = false;
                 }
             }, (error) => {
                 vm.submitConservationStatus = false;
