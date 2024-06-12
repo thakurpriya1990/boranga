@@ -458,9 +458,7 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
                 filter_application_status
                 and not filter_application_status.lower() == "all"
             ):
-                queryset = queryset.filter(
-                    conservation_status__processing_status=filter_application_status
-                )
+                queryset = queryset.filter(processing_status=filter_application_status)
 
         filter_assessor = request.POST.get("filter_assessor")
         if filter_assessor and not filter_assessor.lower() == "all":
