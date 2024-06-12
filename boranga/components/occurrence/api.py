@@ -30,6 +30,7 @@ from boranga.components.conservation_status.serializers import SendReferralSeria
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import validate_threat_request
+from boranga.components.occurrence.filters import OccurrenceReportReferralFilterBackend
 from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
     AnimalHealth,
@@ -103,8 +104,8 @@ from boranga.components.occurrence.serializers import (
     ListOCCMinimalSerializer,
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
-    ListOCRReportMinimalSerializer,
     ListOccurrenceTenureSerializer,
+    ListOCRReportMinimalSerializer,
     OCCConservationThreatSerializer,
     OccurrenceDocumentSerializer,
     OccurrenceLogEntrySerializer,
@@ -165,11 +166,10 @@ from boranga.components.species_and_communities.models import (
     Species,
     Taxonomy,
 )
-from boranga.components.species_and_communities.serializers import (
-    TaxonomySerializer,
-)
+from boranga.components.species_and_communities.serializers import TaxonomySerializer
 from boranga.helpers import (
     is_customer,
+    is_external_contributor,
     is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
@@ -276,7 +276,7 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
                     review_due_date__lte=filter_to_review_due_date
                 )
 
-        if "external" in view.name:
+        else:
             total_count = queryset.count()
 
             filter_group_type = request.GET.get("filter_group_type")
@@ -306,19 +306,10 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
-
-
-# class OccurrenceReportRenderer(DatatablesRenderer):
-#     def render(self, data, accepted_media_type=None, renderer_context=None):
-#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
-#         return super(OccurrenceReportRenderer, self).render(data, accepted_media_type, renderer_context)
 
 
 class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
@@ -672,6 +663,28 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             else:
                 return Response(status=400, data="Format not valid")
 
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def referred_to_me(self, request, *args, **kwargs):
+        qs = (
+            OccurrenceReportReferral.objects.filter(referral=request.user.id)
+            if is_internal(self.request)
+            else OccurrenceReportReferral.objects.none()
+        )
+        self.filter_backends = (OccurrenceReportReferralFilterBackend,)
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = OccurrenceReportReferralSerializer(
+            result_page, context={"request": request}, many=True
+        )
+        return self.paginator.get_paginated_response(serializer.data)
+
 
 class OccurrenceReportViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin, DatumSearchMixin
@@ -681,19 +694,17 @@ class OccurrenceReportViewSet(
     lookup_field = "id"
 
     def get_queryset(self):
-        user = self.request.user
-        if is_internal(self.request):
+        request = self.request
+        qs = self.queryset
+        if not is_internal(request) and not is_external_contributor(request):
+            return qs
+
+        if is_internal(request):
             qs = OccurrenceReport.objects.all()
-            return qs
-        elif is_customer(self.request):
-            qs = OccurrenceReport.objects.filter(submitter=user.id)
-            return qs
-        logger.warn(
-            "User is neither customer nor internal user: {} <{}>".format(
-                user.get_full_name(), user.email
-            )
-        )
-        return OccurrenceReport.objects.none()
+        elif is_external_contributor(request):
+            qs = OccurrenceReport.objects.filter(submitter=request.user.id)
+
+        return qs
 
     def get_serializer_class(self):
         if is_internal(self.request):
@@ -990,7 +1001,7 @@ class OccurrenceReportViewSet(
                 ):
                     continue
 
-                #ensure many to many fields are assigned an appropriate __str__
+                # ensure many to many fields are assigned an appropriate __str__
                 if isinstance(i, models.ManyToManyField):
                     sub_section_values = getattr(section_value, i.name)
                     res_json[i.name] = []
@@ -1044,25 +1055,19 @@ class OccurrenceReportViewSet(
         if instance.associated_species:
             related_species = instance.associated_species.related_species
         else:
-            raise serializers.ValidationError(
-                "Associated Species does not exist"
-            )
-        
+            raise serializers.ValidationError("Associated Species does not exist")
+
         taxon_id = request.GET.get("species")
-        
+
         try:
             taxon = Taxonomy.objects.get(id=taxon_id)
-        except:
-            raise serializers.ValidationError(
-                "Species does not exist"
-            )
-        
-        if not taxon in related_species.all():
+        except Taxonomy.DoesNotExist:
+            raise serializers.ValidationError("Species does not exist")
+
+        if taxon not in related_species.all():
             related_species.add(taxon)
         else:
-            raise serializers.ValidationError(
-                "Species already added"
-            )
+            raise serializers.ValidationError("Species already added")
 
         instance.save(version_user=request.user)
 
@@ -1070,10 +1075,7 @@ class OccurrenceReportViewSet(
             related_species, many=True, context={"request": request}
         )
 
-        if (
-            instance.processing_status
-            == OccurrenceReport.PROCESSING_STATUS_UNLOCKED
-        ):
+        if instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
             self.unlocked_back_to_assessor()
 
         return Response(serializer.data)
@@ -1085,25 +1087,19 @@ class OccurrenceReportViewSet(
         if instance.associated_species:
             related_species = instance.associated_species.related_species
         else:
-            raise serializers.ValidationError(
-                "Associated Species does not exist"
-            )
-        
+            raise serializers.ValidationError("Associated Species does not exist")
+
         taxon_id = request.GET.get("species")
-        
+
         try:
             taxon = Taxonomy.objects.get(id=taxon_id)
-        except:
-            raise serializers.ValidationError(
-                "Species does not exist"
-            )
-        
+        except Taxonomy.DoesNotExist:
+            raise serializers.ValidationError("Species does not exist")
+
         if taxon in related_species.all():
             related_species.remove(taxon)
         else:
-            raise serializers.ValidationError(
-                "Species not related"
-            )
+            raise serializers.ValidationError("Species not related")
 
         instance.save(version_user=request.user)
 
@@ -1111,18 +1107,15 @@ class OccurrenceReportViewSet(
             related_species, many=True, context={"request": request}
         )
 
-        if (
-            instance.processing_status
-            == OccurrenceReport.PROCESSING_STATUS_UNLOCKED
-        ):
+        if instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
             self.unlocked_back_to_assessor()
-            
+
         return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)
     def get_related_species(self, request, *args, **kwargs):
         instance = self.get_object()
-        if hasattr(instance,"associated_species"):
+        if hasattr(instance, "associated_species"):
             related_species = instance.associated_species.related_species
         else:
             related_species = Taxonomy.objects.none()
@@ -3871,23 +3864,19 @@ class OccurrenceViewSet(
     def add_related_species(self, request, *args, **kwargs):
         self.is_authorised_to_update()
         instance = self.get_object()
-        if hasattr(instance,"associated_species"):
+        if hasattr(instance, "associated_species"):
             related_species = instance.associated_species.related_species
         else:
-            raise serializers.ValidationError(
-                "Associated Species does not exist"
-            )
-        
+            raise serializers.ValidationError("Associated Species does not exist")
+
         taxon_id = request.GET.get("species")
-        
+
         try:
             taxon = Taxonomy.objects.get(id=taxon_id)
-        except:
-            raise serializers.ValidationError(
-                "Species does not exist"
-            )
-        
-        if not taxon in related_species.all():
+        except Taxonomy.DoesNotExist:
+            raise serializers.ValidationError("Species does not exist")
+
+        if taxon not in related_species.all():
             related_species.add(taxon)
 
         instance.save(version_user=request.user)
@@ -3901,22 +3890,18 @@ class OccurrenceViewSet(
     def remove_related_species(self, request, *args, **kwargs):
         self.is_authorised_to_update()
         instance = self.get_object()
-        if hasattr(instance,"associated_species"):
+        if hasattr(instance, "associated_species"):
             related_species = instance.associated_species.related_species
         else:
-            raise serializers.ValidationError(
-                "Associated Species does not exist"
-            )
-        
+            raise serializers.ValidationError("Associated Species does not exist")
+
         taxon_id = request.GET.get("species")
-        
+
         try:
             taxon = Taxonomy.objects.get(id=taxon_id)
-        except:
-            raise serializers.ValidationError(
-                "Species does not exist"
-            )
-        
+        except Taxonomy.DoesNotExist:
+            raise serializers.ValidationError("Species does not exist")
+
         if taxon in related_species.all():
             related_species.remove(taxon)
 
@@ -3930,7 +3915,7 @@ class OccurrenceViewSet(
     @detail_route(methods=["get"], detail=True)
     def get_related_species(self, request, *args, **kwargs):
         instance = self.get_object()
-        if hasattr(instance,"associated_species"):
+        if hasattr(instance, "associated_species"):
             related_species = instance.associated_species.related_species
         else:
             related_species = Taxonomy.objects.none()

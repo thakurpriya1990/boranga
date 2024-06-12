@@ -706,15 +706,11 @@ class ConservationStatusIssuanceApprovalDetailsSerializer(serializers.ModelSeria
     effective_from_date = serializers.DateField(
         format="%Y-%m-%d", required=False, allow_null=True
     )
-    effective_to_date = serializers.DateField(
-        format="%Y-%m-%d", required=False, allow_null=True
-    )
 
     class Meta:
         model = ConservationStatusIssuanceApprovalDetails
         fields = (
             "effective_from_date",
-            "effective_to_date",
             "details",
             "cc_email",
         )

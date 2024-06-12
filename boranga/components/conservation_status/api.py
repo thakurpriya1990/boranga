@@ -679,6 +679,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
     @list_route(
         methods=[
+            "GET",
             "POST",
         ],
         detail=False,

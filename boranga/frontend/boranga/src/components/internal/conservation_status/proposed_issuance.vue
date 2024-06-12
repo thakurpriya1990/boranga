@@ -26,19 +26,6 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-4">
-                                        <label class="control-label pull-left" for="Name">Effective To Date</label>
-                                    </div>
-                                    <div class="col-sm-8">
-                                        <div class="input-group date" style="width: 70%;">
-                                            <input type="date" class="form-control" ref="due_date"
-                                                placeholder="DD/MM/YYYY" v-model="approval.effective_to_date">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="row mb-3">
-                                    <div class="col-sm-4">
                                         <label class="control-label pull-left" for="Name">Details</label>
                                     </div>
                                     <div class="col-sm-8">

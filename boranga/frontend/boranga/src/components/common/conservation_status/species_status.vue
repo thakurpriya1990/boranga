@@ -76,7 +76,8 @@
             <template v-if="show_administrative_information">
                 <div class="row mb-3 border-top pt-3">
                     <h5 class="text-muted mb-4">Administrative Information</h5>
-                    <label for="change_code" class="col-sm-4 col-form-label">Change Type:</label>
+                    <label for="change_code" class="col-sm-4 col-form-label fw-bold">Change Type <span
+                            class="text-danger">*</span></label>
                     <div class="col-sm-8">
                         <select :disabled="isReadOnly" class="form-select"
                             v-model="conservation_status_obj.change_code_id" id="change_code">
@@ -88,7 +89,8 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="approval_level" class="col-sm-4 col-form-label">Applicable Workflow:</label>
+                    <label for="approval_level" class="col-sm-4 col-form-label fw-bold">Applicable Workflow <span
+                            class="text-danger">*</span></label>
                     <div class="col-sm-8">
                         <select id="approval_level" v-model="conservation_status_obj.approval_level" class="form-select"
                             :disabled="approval_level_disabled" @change="approvalLevelChanged">
@@ -136,8 +138,8 @@
                     <h5 class="text-muted mb-4"><template v-if="conservation_list_proposed">Proposed
                         </template>Conservation
                         Status</h5>
-                    <label for="proposed_wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative
-                        List:</label>
+                    <label for="proposed_wa_legislative_list" class="col-sm-4 col-form-label fw-bold">WA Legislative
+                        List <span class="text-warning">*</span></label>
                     <div class="col-sm-8">
                         <select :disabled="isReadOnly" class="form-select"
                             v-model="conservation_status_obj.wa_legislative_list_id" id="proposed_wa_legislative_list"
@@ -165,7 +167,8 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="proposed_wa_priority_list" class="col-sm-4 col-form-label">WA Priority List:</label>
+                    <label for="proposed_wa_priority_list" class="col-sm-4 col-form-label fw-bold">WA Priority
+                        List <span class="text-warning">*</span></label>
                     <div class="col-sm-8">
                         <select :disabled="isReadOnly" class="form-select"
                             v-model="conservation_status_obj.wa_priority_list_id" id="proposed_wa_priority_list"
@@ -229,7 +232,8 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="comment" class="col-sm-4 col-form-label">Comments:</label>
+                    <label for="comment" class="col-sm-4 col-form-label fw-bold">Comments <span
+                            class="text-danger">*</span></label>
                     <div class="col-sm-8">
                         <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
                             v-model="conservation_status_obj.comment" />
@@ -426,13 +430,16 @@
                 </div>
             </template>
             <template v-if="!is_external && isStatusApproved">
-                <div class="row mb-3">
+                <div class="row border-top pt-3">
                     <label for="" class="col-sm-4 col-form-label">Approval document:</label>
                     <div class="col-sm-8">
-                        <p v-if="conservation_status_obj.conservation_status_approval_document">
-                            <strong><a :href="conservation_status_obj.conservation_status_approval_document[1]"
-                                    target="_blank">{{
-                                        conservation_status_obj.conservation_status_approval_document[0] }}</a></strong>
+                        <p class="col-form-label">
+                            <template v-if="conservation_status_obj.conservation_status_approval_document">
+                                <strong><a :href="conservation_status_obj.conservation_status_approval_document[1]"
+                                        target="_blank">{{
+                                            conservation_status_obj.conservation_status_approval_document[0] }}</a></strong>
+                            </template>
+                            <template v-else>No approval document uploaded</template>
                         </p>
                     </div>
                 </div>

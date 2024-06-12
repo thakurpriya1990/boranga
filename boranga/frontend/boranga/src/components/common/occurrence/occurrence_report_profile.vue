@@ -58,7 +58,6 @@
                 </CollapsibleComponent>
             </template>
             <div v-show="!isCommunity">
-
                 <div class="row mb-3">
                     <label for="" class="col-sm-3 control-label">Scientific Name:</label>
                     <div :id="select_scientific_name" class="col-sm-9">
@@ -81,7 +80,6 @@
                     </div>
                 </div>
             </div>
-
             <div v-show="isCommunity">
                 <div class="row mb-3">
                     <label for="" class="col-sm-3 control-label">Community Name:</label>
@@ -98,7 +96,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Site:</label>
                 <div class="col-sm-9">
@@ -106,7 +103,6 @@
                         " :disabled="isReadOnly" class="form-control" rows="1" placeholder="" />
                 </div>
             </div>
-
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Observation Date:</label>
                 <div class="col-sm-9">
@@ -115,12 +111,10 @@
                         @change="formatObservationDate()" />
                 </div>
             </div>
-            <!-- ------------Observer Detail section -->
-
             <ObserverDatatable ref="observer_datatable" :occurrence_report_obj="occurrence_report_obj"
-                :is_external="is_external" :is-read-only="isReadOnly" @refreshOccurrenceReport="refreshOccurrenceReport()">
+                :is_external="is_external" :is-read-only="isReadOnly"
+                @refreshOccurrenceReport="refreshOccurrenceReport()">
             </ObserverDatatable>
-
         </FormSection>
     </div>
 </template>
@@ -201,10 +195,6 @@ export default {
                             };
                             return query;
                         },
-                        // results: function (data, page) { // parse the results into the format expected by Select2.
-                        //     // since we are using custom formatting functions we do not need to alter remote JSON data
-                        //     return {results: data};
-                        // },
                     },
                 })
                 .on('select2:select', function (e) {
@@ -246,19 +236,6 @@ export default {
                         vm.taxon_previous_name = response.body.taxon_previous_name
                     })
             }
-            /*for (let choice of vm.species_list) {
-                if (choice.id === vm.occurrence_report_obj.species_id) {
-                    const newOption = new Option(
-                        choice.name,
-                        choice.id,
-                        false,
-                        true
-                    );
-                    $('#' + vm.scientific_name_lookup).append(newOption);
-                    vm.species_display = choice.name;
-                    vm.taxon_previous_name = choice.taxon_previous_name;
-                }
-            }*/
         },
         initialiseCommunityNameLookup: function () {
             let vm = this;
@@ -280,10 +257,6 @@ export default {
                             };
                             return query;
                         },
-                        // results: function (data, page) { // parse the results into the format expected by Select2.
-                        //     // since we are using custom formatting functions we do not need to alter remote JSON data
-                        //     return {results: data};
-                        // },
                     },
                 })
                 .on('select2:select', function (e) {
@@ -320,18 +293,6 @@ export default {
                         vm.community_display = response.body.name
                     })
             }
-            //for (let choice of this.community_list) {
-            //    if (choice.id === this.occurrence_report_obj.community_id) {
-            //        const newOption = new Option(
-            //            choice.name,
-            //            choice.id,
-            //            false,
-            //            true
-            //        );
-            //        $('#' + this.community_name_lookup).append(newOption);
-            //        this.community_display = choice.name;
-            //    }
-            //}
         },
         incrementComponentMapKey: function () {
             this.uuid = uuid();
@@ -411,12 +372,10 @@ export default {
         vm.$http.get(dict_url).then(
             (response) => {
                 vm.cs_profile_dict = response.body;
-                //vm.species_list = vm.cs_profile_dict.species_list;
                 if (!vm.isCommunity) {
                     this.getSpeciesDisplay();
                 }
                 else {
-                    //vm.community_list = vm.cs_profile_dict.community_list;
                     this.getCommunityDisplay();
                 }
             },
@@ -455,10 +414,6 @@ export default {
 </script>
 
 <style lang="css" scoped>
-/*ul, li {
-        zoom:1;
-        display: inline;
-    }*/
 fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;
