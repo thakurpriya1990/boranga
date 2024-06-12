@@ -27,10 +27,10 @@
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left" :disabled="isReadOnly">Contact Details</label>
+                                        <label class="control-label pull-left">Contact Details</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <textarea class="form-control" id="contact_details"
+                                        <textarea class="form-control" id="contact_details" :disabled="isReadOnly"
                                             v-model="contactObj.contact" rows="4" />
                                     </div>
                                 </div>

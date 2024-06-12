@@ -27,10 +27,10 @@
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left" :disabled="isReadOnly">Contact Details</label>
+                                        <label class="control-label pull-left">Contact Details</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <textarea class="form-control" id="contact_details"
+                                        <textarea class="form-control" id="contact_details" :disabled="isReadOnly"
                                             v-model="observerObj.contact" rows="4" />
                                     </div>
                                 </div>
@@ -77,17 +77,17 @@
             </div>
             <div slot="footer">
                 <div v-if="!isReadOnly">
-                <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
-                <template v-if="observer_detail_id">
-                    <button type="button" v-if="updatingObserver" disabled class="btn btn-primary" @click="ok"><i
-                            class="fa fa-spinnner fa-spin"></i> Updating</button>
-                    <button type="button" v-else class="btn btn-primary" @click="ok">Update Observer</button>
-                </template>
-                <template v-else>
-                    <button type="button" v-if="addingObserver" disabled class="btn btn-primary" @click="ok"><i
-                            class="fa fa-spinner fa-spin"></i> Adding</button>
-                    <button type="button" v-else class="btn btn-primary" @click="ok">Add Observer</button>
-                </template>
+                    <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
+                    <template v-if="observer_detail_id">
+                        <button type="button" v-if="updatingObserver" disabled class="btn btn-primary" @click="ok"><i
+                                class="fa fa-spinnner fa-spin"></i> Updating</button>
+                        <button type="button" v-else class="btn btn-primary" @click="ok">Update Observer</button>
+                    </template>
+                    <template v-else>
+                        <button type="button" v-if="addingObserver" disabled class="btn btn-primary" @click="ok"><i
+                                class="fa fa-spinner fa-spin"></i> Adding</button>
+                        <button type="button" v-else class="btn btn-primary" @click="ok">Add Observer</button>
+                    </template>
                 </div>
             </div>
         </modal>

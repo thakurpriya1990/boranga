@@ -51,7 +51,7 @@ export default {
         let vm = this;
         return {
             contact_detail_url: api_endpoints.contact_detail,
-            contact_detail_headers: ['Contact Name', 'Contact Role', 'Contact Detail', 'Organisation', 'Main Contact', 'Action'],
+            contact_detail_headers: ['Contact Name', 'Contact Role', 'Contact Details', 'Organisation', 'Main Contact', 'Action'],
             contact_detail_options: {
                 autowidth: false,
                 language: {
