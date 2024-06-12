@@ -58,7 +58,6 @@ export default {
             type: Boolean,
             default: false,
         }
-
     },
     data: function () {
         return {
@@ -82,11 +81,11 @@ export default {
         },
     },
     methods: {
-
         toggle_show_hide: function () {
             // Bootstrap add a 'collapsed' class name to the element
             let elem_expanded_when_clicked = $('#show_hide_switch_' + this.section_body_id).hasClass('collapsed')
             this.elem_expanded = !elem_expanded_when_clicked
+            this.$emit('toggle-collapse')
         },
         toggleComment: function () {
             this.$emit('toggleComment', !this.isShowComment)
@@ -95,8 +94,6 @@ export default {
     },
     mounted: function () {
         chevron_toggle.init()
-    },
-    created: function () {
     },
 }
 </script>

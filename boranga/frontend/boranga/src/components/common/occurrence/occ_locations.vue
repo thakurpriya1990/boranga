@@ -239,6 +239,13 @@
                 v-if="occurrence_obj"
                 :occurrence-id="occurrence_obj.id"
             ></OccurrenceTenureDatatable>
+            <RelatedReports 
+                    :isReadOnly="isReadOnly"
+                    :occurrence_obj=occurrence_obj
+                    :section_type="'location'"
+                    @copyUpdate="copyUpdate"
+                />
+
         </FormSection>
     </div>
 </template>
@@ -251,6 +258,7 @@ import { api_endpoints, helpers } from '@/utils/hooks';
 import MapComponent from '../component_map.vue';
 import { VueSelect } from 'vue-select';
 import OccurrenceTenureDatatable from '@/components/internal/occurrence/occurrence_tenure_datatable.vue';
+import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 
 export default {
     name: 'OCClocations',
@@ -259,6 +267,7 @@ export default {
         FormSection,
         VueSelect,
         OccurrenceTenureDatatable,
+        RelatedReports,
     },
     props: {
         occurrence_obj: {
@@ -420,6 +429,10 @@ export default {
                 }
             });
         },
+        copyUpdate: function(object,section) {
+                let vm = this;
+                vm.occurrence_obj[section] = object[section];
+            },
         updateLocationDetails: function () {
             let vm = this;
             vm.updatingLocationDetails = true;

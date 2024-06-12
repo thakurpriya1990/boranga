@@ -270,6 +270,8 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     observation_date = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S", allow_null=True
     )
+    location_accuracy = serializers.SerializerMethodField()
+    identification_certainty = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -298,6 +300,9 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "review_due_date",
             "is_new_contributor",
             "observation_date",
+            "location_accuracy",
+            "identification_certainty",
+            "site",
         )
         datatables_always_serialize = (
             "id",
@@ -368,6 +373,14 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_is_new_contributor(self, obj):
         return is_new_external_contributor(obj.submitter)
+
+    def get_location_accuracy(self, obj):
+        if obj.location and obj.location.location_accuracy:
+            return obj.location.location_accuracy.name
+
+    def get_identification_certainty(self, obj):
+        if obj.identification and obj.identification.identification_certainty:
+            return obj.identification.identification_certainty.name
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
