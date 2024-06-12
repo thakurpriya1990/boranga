@@ -275,7 +275,7 @@ export default {
             var assessor_mode = this.conservation_status_obj.assessor_mode.assessor_level
             if (!this.conservation_status_obj.can_user_edit) {
                 var current_referral_present = false;
-                $.each(this.conservation_status_obj.latest_referrals, (i, v) => {
+                $.each(this.conservation_status_obj.referrals, (i, v) => {
                     var referral_name = `comment-field-Referral-${v.referral.email}`;
                     var referral_visibility = assessor_mode == 'referral' && this.conservation_status_obj.assessor_mode.assessor_can_assess && this.referral.referral == v.referral.id ? false : true;
                     var referral_label = `${v.referral.fullname}`;
