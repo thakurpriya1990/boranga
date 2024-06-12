@@ -36,9 +36,7 @@ class OccurrenceReportReferralFilterBackend(DatatablesFilterBackend):
 
         filter_status = request.GET.get("filter_status")
         if filter_status and not filter_status.lower() == "all":
-            queryset = queryset.filter(
-                occurrence_report__processing_status=filter_status
-            )
+            queryset = queryset.filter(processing_status=filter_status)
 
         def get_date(filter_date):
             date = request.GET.get(filter_date)
