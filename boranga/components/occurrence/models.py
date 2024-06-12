@@ -3512,7 +3512,7 @@ class OCCContactDetail(models.Model):
     role = models.CharField(max_length=250, blank=True, null=True)
     contact = models.CharField(max_length=250, blank=True, null=True)
     organisation = models.CharField(max_length=250, blank=True, null=True)
-    main_contact = models.BooleanField(null=True, blank=True) #TODO is this needed?
+    notes = models.CharField(max_length=512, blank=True, null=True)
     visible = models.BooleanField(default=True)
 
     class Meta:

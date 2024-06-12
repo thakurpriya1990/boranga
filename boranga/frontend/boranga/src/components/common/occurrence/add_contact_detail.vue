@@ -43,24 +43,18 @@
                                             v-model="contactObj.organisation" />
                                     </div>
                                 </div>
+                                
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Main Contact</label>
+                                        <label class="control-label pull-left">Notes</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <div class="form-check form-check-inline">
-                                            <input :disabled="isReadOnly" id="mainContactYes" class="form-check-input"
-                                                type="radio" v-model="contactObj.main_contact" value="true">
-                                            <label for="mainContactYes" class="form-check-label">Yes</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input :disabled="isReadOnly" id="mainContactNo" class="form-check-input"
-                                                type="radio" v-model="contactObj.main_contact" value="false">
-                                            <label for="mainContactNo" class="form-check-label">No</label>
-                                        </div>
+                                        <textarea class="form-control" id="notes" :disabled="isReadOnly"
+                                            v-model="contactObj.notes" rows="4" />
                                     </div>
                                 </div>
-                                <div v-if="!occurrence.has_main_contact" class="row mb-3">
+
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left">&nbsp;</label>
                                     </div>
@@ -156,9 +150,6 @@ export default {
             if (val) {
                 this.$nextTick(() => {
                     this.$refs.contact_name.focus();
-                    if (this.occurrence.has_main_contact) {
-                        this.contactObj.main_contact = false;
-                    }
                 });
             }
         }
@@ -217,8 +208,7 @@ export default {
         },
         clearForm: function () {
             this.contactObj = {
-                occurrence: this.occurrence.id,
-                main_contact: true
+                occurrence: this.occurrence.id
             };
             this.$refs.contact_name.focus();
         },

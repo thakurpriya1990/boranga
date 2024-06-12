@@ -51,7 +51,7 @@ export default {
         let vm = this;
         return {
             contact_detail_url: api_endpoints.contact_detail,
-            contact_detail_headers: ['Contact Name', 'Contact Role', 'Contact Details', 'Organisation', 'Main Contact', 'Action'],
+            contact_detail_headers: ['Contact Name', 'Contact Role', 'Contact Details', 'Organisation', 'Notes', 'Action'],
             contact_detail_options: {
                 autowidth: false,
                 language: {
@@ -140,14 +140,17 @@ export default {
                         },
                     },
                     {
-                        data: "main_contact",
+                        data: "notes",
                         orderable: true,
                         searchable: true,
                         mRender: function (data, type, full) {
-                            if (full.visible) {
-                                return full.main_contact;
-                            } else {
-                                return '<s>' + full.main_contact; + '</s>'
+                            let value = full.notes;
+                            let result = helpers.dtPopover(value, 60, 'hover');
+                            if(full.visible){
+                                return result;
+                            }
+                            else{
+                                return '<s>' + result + '</s>';
                             }
                         },
                     },
@@ -238,7 +241,7 @@ export default {
                 role: '',
                 contact: '',
                 organisation: '',
-                main_contact: null,
+                notes: '',
             }
             this.$refs.contact_detail.contactObj = new_contact_detail;
             this.$refs.contact_detail.contact_detail_action = 'add';
