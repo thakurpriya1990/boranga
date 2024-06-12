@@ -156,6 +156,7 @@ module.exports = {
 
     occurrence_report: "/api/occurrence_report",
     observer_detail: "/api/observer_detail.json",
+    contact_detail: "/api/contact_detail.json",
     occurrence_report_documents: "/api/occurrence_report_documents.json",
     occurrence_documents: "/api/occurrence_documents.json",
     ocr_threat: "/api/ocr_threat.json",

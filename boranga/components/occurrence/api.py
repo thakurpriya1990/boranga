@@ -66,6 +66,7 @@ from boranga.components.occurrence.models import (
     OccurrenceSource,
     OccurrenceTenure,
     OccurrenceUserAction,
+    OCCContactDetail,
     OCCVegetationStructure,
     OCRAnimalObservation,
     OCRAssociatedSpecies,
@@ -107,6 +108,7 @@ from boranga.components.occurrence.serializers import (
     ListOccurrenceTenureSerializer,
     ListOCRReportMinimalSerializer,
     OCCConservationThreatSerializer,
+    OCCContactDetailSerializer,
     OccurrenceDocumentSerializer,
     OccurrenceLogEntrySerializer,
     OccurrenceReportAmendmentRequestSerializer,
@@ -1743,7 +1745,7 @@ class OccurrenceReportViewSet(
 
         return Response(serializer.data)
 
-    # used for observer detail datatable on location tab
+    # used for observer detail datatable 
     @detail_route(
         methods=[
             "GET",
@@ -3616,10 +3618,10 @@ class OccurrenceViewSet(
 
     def is_authorised_to_update(self):
         instance = self.get_object()
-        if not is_occurrence_approver(self.request) and (
+        if not (is_occurrence_approver(self.request) and (
             instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
             or instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
-        ):
+        )):
             raise serializers.ValidationError(
                 "User not authorised to update Occurrence"
             )
@@ -4788,6 +4790,20 @@ class OccurrenceViewSet(
             qs, context={"request": request}, many=True
         )
         return Response(serializer.data)
+    
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def contact_details(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = instance.contact_detail.all()
+        serializer = OCCContactDetailSerializer(
+            qs, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
 
 
 class OccurrenceReportReferralViewSet(
@@ -4961,3 +4977,77 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = Serializer(result_page, context={"request": request}, many=True)
 
         return self.paginator.get_paginated_response(serializer.data)
+
+
+class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+    queryset = OCCContactDetail.objects.none()
+    serializer_class = OCCContactDetailSerializer
+
+    def is_authorised_to_update(self, occurrence):
+        user = self.request.user
+        if not (is_occurrence_approver(self.request) and (
+            occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+            or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+        )):
+            raise serializers.ValidationError(
+                "User not authorised to update Occurrence"
+            )
+
+    def get_queryset(self):
+        qs = OCCContactDetail.objects.none()
+
+        if is_internal(self.request):
+            qs = OCCContactDetail.objects.all().order_by("id")
+        return qs
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
+        serializer = OCCContactDetailSerializer(
+            instance, data=json.loads(request.data.get("data"))
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = OCCContactDetailSerializer(
+            data=json.loads(request.data.get("data"))
+        )
+        serializer.is_valid(raise_exception=True)
+        occurrence = serializer.validated_data["occurrence"]
+        self.is_authorised_to_update(occurrence)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
+        instance.visible = False
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
+        instance.visible = True
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)

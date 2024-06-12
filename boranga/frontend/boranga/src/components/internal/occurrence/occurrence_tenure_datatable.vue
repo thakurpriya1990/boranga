@@ -19,11 +19,17 @@ export default {
     components: {
         datatable,
     },
+    emit: ['highlight-on-map', 'edit-tenure-details'],
     props: {
         occurrenceId: {
             type: Number,
             required: false,
             default: null,
+        },
+        hrefContainerId: {
+            type: String,
+            required: false,
+            default: '#',
         },
     },
     data: function () {
@@ -111,6 +117,7 @@ export default {
             };
         },
         column_action: function () {
+            const vm = this;
             return {
                 data: 'id',
                 orderable: false,
@@ -118,8 +125,11 @@ export default {
                 visible: true,
                 // eslint-disable-next-line no-unused-vars
                 render: function (data, type, row) {
-                    let html = `<button class="btn btn-primary btn-sm mb-1" @click="highlightOnMap(${data})">Highlight on Map</button>`;
-                    html += `<br><button class="btn btn-primary btn-sm" @click="editTenureDetails(${data})">Edit Tenure Details</button>`;
+                    const coordinates = row.tenure_area_centroid
+                        ? JSON.stringify(row.tenure_area_centroid.coordinates)
+                        : '';
+                    let html = `<a href="#${vm.hrefContainerId}" class="btn btn-primary btn-sm mb-1" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
+                    html += `<br><a href="#" class="btn btn-primary btn-sm" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;
                     return html;
                 },
             };
@@ -178,6 +188,46 @@ export default {
                     //
                 },
             };
+        },
+    },
+    mounted: function () {
+        this.$nextTick(() => {
+            this.addEventListeners();
+        });
+    },
+    methods: {
+        addEventListeners: function () {
+            const vm = this;
+            this.$refs.occurrence_tenure_datatable.vmDataTable.on(
+                'click',
+                'a[data-highlight-on-map-coordinates]',
+                function (e) {
+                    let coordinates = $(this).attr(
+                        'data-highlight-on-map-coordinates'
+                    );
+                    coordinates = coordinates || null;
+                    if (!coordinates) {
+                        e.preventDefault();
+                    }
+                    vm.highlightOnMap(coordinates);
+                }
+            );
+            this.$refs.occurrence_tenure_datatable.vmDataTable.on(
+                'click',
+                'a[data-edit-tenure-details]',
+                function (e) {
+                    e.preventDefault();
+                    const id = $(this).attr('data-edit-tenure-details');
+                    vm.editTenureDetails(id);
+                    console.log(id);
+                }
+            );
+        },
+        highlightOnMap: function (coordinates = null) {
+            this.$emit('highlight-on-map', JSON.parse(coordinates));
+        },
+        editTenureDetails: function (id) {
+            this.$emit('edit-tenure-details', id);
         },
     },
 };

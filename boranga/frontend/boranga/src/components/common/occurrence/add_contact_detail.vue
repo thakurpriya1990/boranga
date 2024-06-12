@@ -1,9 +1,9 @@
 <template lang="html">
-    <div id="observerDetail">
+    <div id="contactDetail">
         <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large>
             <div class="container-fluid">
                 <div class="row">
-                    <form class="form-horizontal needs-validation" name="observerDetailForm" novalidate>
+                    <form class="form-horizontal needs-validation" name="contactDetailForm" novalidate>
                         <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
@@ -13,7 +13,7 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <input type="text" class="form-control" :disabled="isReadOnly"
-                                            v-model="observerObj.observer_name" ref="observer_name" required />
+                                            v-model="contactObj.contact_name" ref="contact_name" required />
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -22,7 +22,7 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <input type="text" class="form-control" :disabled="isReadOnly"
-                                            v-model="observerObj.role" />
+                                            v-model="contactObj.role" />
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -31,7 +31,7 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <textarea class="form-control" id="contact_details" :disabled="isReadOnly"
-                                            v-model="observerObj.contact" rows="4" />
+                                            v-model="contactObj.contact" rows="4" />
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -40,34 +40,27 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <input type="text" class="form-control" :disabled="isReadOnly"
-                                            v-model="observerObj.organisation" />
+                                            v-model="contactObj.organisation" />
                                     </div>
                                 </div>
+                                
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Main Observer</label>
+                                        <label class="control-label pull-left">Notes</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <div class="form-check form-check-inline">
-                                            <input :disabled="isReadOnly" id="mainObserverYes" class="form-check-input"
-                                                type="radio" v-model="observerObj.main_observer" value="true">
-                                            <label for="mainObserverYes" class="form-check-label">Yes</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input :disabled="isReadOnly" id="mainObserverNo" class="form-check-input"
-                                                type="radio" v-model="observerObj.main_observer" value="false">
-                                            <label for="mainObserverNo" class="form-check-label">No</label>
-                                        </div>
+                                        <textarea class="form-control" id="notes" :disabled="isReadOnly"
+                                            v-model="contactObj.notes" rows="4" />
                                     </div>
                                 </div>
-                                <div v-if="!occurrence_report.has_main_observer" class="row mb-3">
+
+                                <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left">&nbsp;</label>
                                     </div>
                                     <div v-if="!isReadOnly" class="col-sm-9">
                                         <button type="button" class="btn btn-primary mb-2" @click="clearForm">Clear
                                             Form</button><br />
-                                        <button type="button" class="btn btn-primary" @click="populateWithSubmitterInformation()">Populate Form with Submitter Details</button>
                                     </div>
                                 </div>
                             </div>
@@ -78,15 +71,15 @@
             <div slot="footer">
                 <div v-if="!isReadOnly">
                     <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
-                    <template v-if="observer_detail_id">
-                        <button type="button" v-if="updatingObserver" disabled class="btn btn-primary" @click="ok"><i
+                    <template v-if="contact_detail_id">
+                        <button type="button" v-if="updatingContact" disabled class="btn btn-primary" @click="ok"><i
                                 class="fa fa-spinnner fa-spin"></i> Updating</button>
-                        <button type="button" v-else class="btn btn-primary" @click="ok">Update Observer</button>
+                        <button type="button" v-else class="btn btn-primary" @click="ok">Update Contact</button>
                     </template>
                     <template v-else>
-                        <button type="button" v-if="addingObserver" disabled class="btn btn-primary" @click="ok"><i
+                        <button type="button" v-if="addingContact" disabled class="btn btn-primary" @click="ok"><i
                                 class="fa fa-spinner fa-spin"></i> Adding</button>
-                        <button type="button" v-else class="btn btn-primary" @click="ok">Add Observer</button>
+                        <button type="button" v-else class="btn btn-primary" @click="ok">Add Contact</button>
                     </template>
                 </div>
             </div>
@@ -100,7 +93,7 @@ import alert from '@vue-utils/alert.vue'
 import { helpers } from "@/utils/hooks.js"
 
 export default {
-    name: 'ObserverDetail',
+    name: 'ContactDetail',
     components: {
         modal,
         alert
@@ -110,7 +103,7 @@ export default {
             type: String,
             required: true
         },
-        occurrence_report: {
+        occurrence: {
             type: Object,
             required: true
         },
@@ -120,11 +113,11 @@ export default {
         return {
             isModalOpen: false,
             form: null,
-            observer_detail_id: String,
-            observer_detail_action: String,
-            observerObj: {},
-            addingObserver: false,
-            updatingObserver: false,
+            contact_detail_id: String,
+            contact_detail_action: String,
+            contactObj: {},
+            addingContact: false,
+            updatingContact: false,
             validation_form: null,
             type: '1',
             errors: false,
@@ -140,28 +133,23 @@ export default {
             return vm.errors;
         },
         title: function () {
-            var action = this.observer_detail_action;
+            var action = this.contact_detail_action;
             if (typeof action === "string" && action.length > 0) {
                 var capitalizedAction = action.charAt(0).toUpperCase() + action.slice(1);
-                return `${capitalizedAction} Observer to ${this.occurrence_report.occurrence_report_number}`;
+                return `${capitalizedAction} Contact to ${this.occurrence.occurrence_number}`;
             } else {
-                return "Invalid Observer detail action"; // Or handle the error in an appropriate way
+                return "Invalid Contact detail action"; // Or handle the error in an appropriate way
             }
         },
         isReadOnly: function () {
-            return this.observer_detail_action === "view" ? true : false;
+            return this.contact_detail_action === "view" ? true : false;
         }
     },
     watch: {
         isModalOpen: function (val) {
             if (val) {
                 this.$nextTick(() => {
-                    this.$refs.observer_name.focus();
-                    if (this.occurrence_report.has_main_observer) {
-                        this.observerObj.main_observer = false;
-                    } else {
-                        this.populateWithSubmitterInformation();
-                    }
+                    this.$refs.contact_name.focus();
                 });
             }
         }
@@ -178,77 +166,56 @@ export default {
         },
         close: function () {
             this.isModalOpen = false;
-            this.observerObj = {};
+            this.contactObj = {};
             this.errors = false;
             $('.has-error').removeClass('has-error');
         },
         sendData: function () {
             let vm = this;
             vm.errors = false;
-            let observerObj = JSON.parse(JSON.stringify(vm.observerObj));
+            let contactObj = JSON.parse(JSON.stringify(vm.contactObj));
             let formData = new FormData()
 
-            if (vm.observerObj.id) {
-                vm.updatingObserver = true;
-                formData.append('data', JSON.stringify(observerObj));
-                vm.$http.put(helpers.add_endpoint_json(vm.url, observerObj.id), formData, {
+            if (vm.contactObj.id) {
+                vm.updatingContact = true;
+                formData.append('data', JSON.stringify(contactObj));
+                vm.$http.put(helpers.add_endpoint_json(vm.url, contactObj.id), formData, {
                     emulateJSON: true,
                 }).then((response) => {
-                    vm.updatingObserver = false;
-                    vm.$parent.updatedObserverDetails();
+                    vm.updatingContact = false;
+                    vm.$parent.updatedContactDetails();
                     vm.close();
                 }, (error) => {
                     vm.errors = true;
                     vm.errorString = helpers.apiVueResourceError(error);
-                    vm.updatingObserver = false;
+                    vm.updatingContact = false;
                 });
             } else {
-                vm.addingObserver = true;
-                formData.append('data', JSON.stringify(observerObj));
+                vm.addingContact = true;
+                formData.append('data', JSON.stringify(contactObj));
                 vm.$http.post(vm.url, formData, {
                     emulateJSON: true,
                 }).then((response) => {
-                    vm.addingObserver = false;
-                    vm.$parent.updatedObserverDetails();
+                    vm.addingContact = false;
+                    vm.$parent.updatedContactDetails();
                     vm.close();
                 }, (error) => {
                     vm.errors = true;
-                    vm.addingObserver = false;
+                    vm.addingContact = false;
                     vm.errorString = helpers.apiVueResourceError(error);
                 });
             }
         },
-        populateWithSubmitterInformation: function () {
-            console.log('Populating with submitter information')
-            let observerObj = {
-                occurrence_report: this.occurrence_report.id,
-                main_observer: true,
-                observer_name: '',
-                contact: '',
-                organisation: '',
-                role: '',
-            };
-            observerObj.observer_name = this.occurrence_report.submitter_information.name;
-            observerObj.contact = this.occurrence_report.submitter_information.contact_details;
-            if (this.occurrence_report.submitter_information.organisation) {
-                observerObj.organisation = this.occurrence_report.submitter_information.organisation;
-            }
-            if (this.occurrence_report.submitter_information.position) {
-                observerObj.role = this.occurrence_report.submitter_information.position;
-            }
-            this.observerObj = Object.assign({}, observerObj);
-        },
         clearForm: function () {
-            this.observerObj = {
-                occurrence_report: this.occurrence_report.id,
-                main_observer: true
+            this.contactObj = {
+                occurrence: this.occurrence.id
             };
-            this.$refs.observer_name.focus();
+            this.$refs.contact_name.focus();
         },
     },
     mounted: function () {
         let vm = this;
-        vm.form = document.forms.observerDetailForm;
+        vm.form = document.forms.contactDetailForm;
     }
 }
 </script>

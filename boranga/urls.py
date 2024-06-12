@@ -149,6 +149,7 @@ router.register(
     "occurrence_report_paginated",
 )
 router.register(r"observer_detail", occurrence_api.ObserverDetailViewSet)
+router.register(r"contact_detail", occurrence_api.ContactDetailViewSet)
 router.register(
     r"occurrence_report_documents", occurrence_api.OccurrenceReportDocumentViewSet
 )

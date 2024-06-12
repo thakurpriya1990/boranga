@@ -21,7 +21,7 @@ from boranga.components.occurrence.models import (
     OCCIdentification,
     OCCLocation,
     OCCObservationDetail,
-    OCCObserverDetail,
+    OCCContactDetail,
     OCCPlantCount,
     Occurrence,
     OccurrenceDocument,
@@ -2411,18 +2411,19 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
             )
 
 
-class OCCObserverDetailSerializer(serializers.ModelSerializer):
+class OCCContactDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = OCCObserverDetail
+        model = OCCContactDetail
         fields = (
             "id",
             "occurrence",
-            "observer_name",
+            "contact_name",
             "role",
             "contact",
             "organisation",
-            "main_observer",
+            "notes",
+            "visible",
         )
 
 
@@ -2896,6 +2897,7 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "purpose",
             "comments",
             "significant_to_occurrence",
+            "tenure_area_centroid",
         )
         datatables_always_serialize = (
             "id",
@@ -2909,4 +2911,5 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "purpose",
             "comments",
             "significant_to_occurrence",
+            "tenure_area_centroid",
         )
