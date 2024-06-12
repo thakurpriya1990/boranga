@@ -3,22 +3,18 @@
         <div class="card-header">
             Submission
         </div>
-        <div class="card-body border-bottom py-2">
+        <div class="card-body py-2">
             <strong>Submitted by</strong><br />
             {{ submitter_first_name }}
             {{ submitter_last_name }}
-             <span v-if="is_new_contributor" class="badge bg-warning"><i class="bi bi-person-plus-fill"></i> New Contributor</span>
+            <span v-if="is_new_contributor" class="badge bg-warning"><i class="bi bi-person-plus-fill"></i> New
+                Contributor</span>
         </div>
-        <div class="card-body py-2">
-            <strong>Lodged on</strong><br />
-            <template v-if="lodgement_date">
-                {{ lodgement_date | formatDate }}
-            </template>
-            <template v-else>
-                Not yet lodged
-            </template>
+        <div v-if="lodgement_date" class="card-body border-top py-2">
+            <strong>Lodged on</strong>
+            {{ lodgement_date | formatDate }}
         </div>
-        <div v-if="enableHistory" class="card-body py-2">
+        <div v-if="enableHistory" class="card-body border-top py-2">
             <table class="table small-table">
                 <tr>
                     <th>Lodgement</th>
