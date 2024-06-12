@@ -19,6 +19,7 @@ from boranga.components.occurrence.models import (
     OccurrenceSource,
     OccurrenceReport,
     OccurrenceTenure,
+    OccurrenceTenurePurpose,
     PermitType,
     PlantCondition,
     PlantCountAccuracy,
@@ -215,6 +216,11 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
 
     def tenure_area(self, obj):
         return wkb_to_geojson(obj.tenure_area_ewkb)
+
+
+@admin.register(OccurrenceTenurePurpose)
+class OccurrenceTenurePurposeAdmin(admin.ModelAdmin):
+    pass
 
 
 # Each of the following models will be available to Django Admin.

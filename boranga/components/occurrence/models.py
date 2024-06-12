@@ -4075,6 +4075,8 @@ class OccurrenceTenurePurpose(models.Model):
 
     class Meta:
         app_label = "boranga"
+        verbose_name = "Occurrence Tenure Purpose"
+        verbose_name_plural = "Occurrence Tenure Purposes"
 
 
 def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
