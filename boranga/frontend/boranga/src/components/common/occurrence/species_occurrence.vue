@@ -43,6 +43,12 @@
                         v-model="occurrence_obj.comment" rows="4"/>
                 </div>
             </div>
+
+            <ContactDatatable ref="contact_datatable" :occurrence_obj="occurrence_obj"
+                :is_external="is_external" :is-read-only="isReadOnly"
+                @refreshOccurrence="refreshOccurrence()">
+            </ContactDatatable>
+
             <RelatedReports :isReadOnly="isReadOnly" :occurrence_obj=occurrence_obj />
         </FormSection>
     </div>
@@ -50,6 +56,7 @@
 
 <script>
 import FormSection from '@/components/forms/section_toggle.vue';
+import ContactDatatable from './contact_datatable.vue';
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 import {
     api_endpoints,
@@ -84,6 +91,7 @@ export default {
     components: {
         FormSection,
         RelatedReports,
+        ContactDatatable,
     },
     watch: {
     },

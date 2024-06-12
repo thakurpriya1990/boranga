@@ -2428,6 +2428,7 @@ class OCCContactDetailSerializer(serializers.ModelSerializer):
             "contact",
             "organisation",
             "main_contact",
+            "visible",
         )
 
 

@@ -2084,7 +2084,7 @@ class OCRAssociatedSpecies(models.Model):
     )
     comment = models.TextField(blank=True)
 
-    related_species = models.ManyToManyField(Taxonomy, null=True)
+    related_species = models.ManyToManyField(Taxonomy, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -3513,6 +3513,7 @@ class OCCContactDetail(models.Model):
     contact = models.CharField(max_length=250, blank=True, null=True)
     organisation = models.CharField(max_length=250, blank=True, null=True)
     main_contact = models.BooleanField(null=True, blank=True) #TODO is this needed?
+    visible = models.BooleanField(default=True)
 
     class Meta:
         app_label = "boranga"
@@ -3812,7 +3813,7 @@ class OCCAssociatedSpecies(models.Model):
     )
     comment = models.TextField(blank=True)
 
-    related_species = models.ManyToManyField(Taxonomy, null=True)
+    related_species = models.ManyToManyField(Taxonomy, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"

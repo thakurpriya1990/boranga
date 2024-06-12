@@ -646,11 +646,11 @@ export default {
                     blank_fields.push(' Community Name is missing')
                 }
             }
-            if(!vm.occurrence_report.submitter_information.submitter_category){
-                blank_fields.push(' Please select a submitter category')
-            }
             if (check_action == 'submit') {
                 //TODO add validation for fields required before submit
+                if(!vm.occurrence_report.submitter_information.submitter_category){
+                    blank_fields.push(' Please select a submitter category')
+                }
             }
             if (blank_fields.length == 0) {
                 return true;
