@@ -4186,9 +4186,16 @@ class OccurrenceTenure(models.Model):
 
     @property
     def tenure_area_centroid(self):
-        from boranga.components.spatial.utils import wkb_to_geojson
+        from boranga.components.spatial.utils import (
+            wkb_to_geojson,
+            feature_json_to_geosgeometry,
+        )
 
-        return wkb_to_geojson(self.tenure_area_ewkb)
+        if self.tenure_area_ewkb:
+            geo_json = wkb_to_geojson(self.tenure_area_ewkb)
+            centroid = feature_json_to_geosgeometry(geo_json).centroid
+            return wkb_to_geojson(centroid.ewkb)
+        return None
 
 
 # Occurrence Report Document

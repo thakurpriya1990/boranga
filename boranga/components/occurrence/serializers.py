@@ -2901,6 +2901,7 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "purpose",
             "comments",
             "significant_to_occurrence",
+            "tenure_area_centroid",
         )
         datatables_always_serialize = (
             "id",
@@ -2914,4 +2915,5 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "purpose",
             "comments",
             "significant_to_occurrence",
+            "tenure_area_centroid",
         )
