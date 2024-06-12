@@ -280,7 +280,7 @@ export default {
                     text: '<i class="fa-solid fa-download"></i> Excel',
                     className: 'btn btn-primary me-2 rounded',
                     exportOptions: {
-                        columns: ':visible:not(.no-export)'
+                        columns: ':not(.no-export)'
                     }
                 },
                 {
@@ -288,7 +288,7 @@ export default {
                     text: '<i class="fa-solid fa-download"></i> CSV',
                     className: 'btn btn-primary rounded',
                     exportOptions: {
-                        columns: ':visible:not(.no-export)'
+                        columns: ':not(.no-export)'
                     }
                 }
             ]
@@ -321,7 +321,7 @@ export default {
                 searching: search,
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
-                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 1, targets: 0, className: 'no-export' },
                     { responsivePriority: 3, targets: -1, className: 'no-export' },
                     { responsivePriority: 2, targets: -2 }
                 ],
