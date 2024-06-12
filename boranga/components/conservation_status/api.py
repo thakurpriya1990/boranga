@@ -1236,17 +1236,12 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
 
     @list_route(
         methods=[
+            "GET",
             "POST",
         ],
         detail=False,
     )
     def community_cs_referrals_internal(self, request, *args, **kwargs):
-        """
-        Used by the internal Referred to me dashboard
-
-        http://localhost:8499/api/community_conservation_status_paginated/community_cs_referrals_internal/?format=datatables&draw=1&length=2
-        """
-        self.serializer_class = ConservationStatusReferralSerializer
         qs = (
             ConservationStatusReferral.objects.filter(referral=request.user.id)
             if is_internal(self.request)
@@ -1269,8 +1264,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
         detail=False,
     )
     def community_cs_referrals_internal_export(self, request, *args, **kwargs):
-
-        self.serializer_class = ConservationStatusReferralSerializer
         qs = (
             ConservationStatusReferral.objects.filter(referral=request.user.id)
             if is_internal(self.request)
