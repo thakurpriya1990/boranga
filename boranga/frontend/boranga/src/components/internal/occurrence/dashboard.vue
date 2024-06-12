@@ -29,7 +29,7 @@
                         :profile="profile" />
                 </FormSection>
                 <FormSection :formCollapse="false" label="Occurrence Report - Flora Referred to Me" Index="occurrence-report-flora-referred-to-me">
-                    <OccurrenceReportSpeciesReferredToMeDashTable v-if="isFlora" ref="flora_referrals_table" level="internal"
+                    <OccurrenceReportReferredToMeDashTable v-if="isFlora" ref="flora_referrals_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_referrals_url"
                         :profile="profile" />
                 </FormSection>
@@ -46,7 +46,7 @@
                         :profile="profile" />
                 </FormSection>
                 <FormSection :formCollapse="false" label="Occurrence Report - Fauna Referred to Me" Index="occurrence-report-fauna-referred-to-me">
-                    <OccurrenceReportSpeciesReferredToMeDashTable v-if="isFauna" ref="fauna_referrals_table" level="internal"
+                    <OccurrenceReportReferredToMeDashTable v-if="isFauna" ref="fauna_referrals_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_referrals_url"
                         :profile="profile" />
                 </FormSection>
@@ -60,6 +60,11 @@
                 <FormSection :formCollapse="false" label="Occurrence Report - Community" Index="community">
                     <OccurrenceReportCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="community_ocr_url"
+                        :profile="profile" />
+                </FormSection>
+                <FormSection :formCollapse="false" label="Occurrence Report - Community Referred to Me" Index="occurrence-report-community-referred-to-me">
+                    <OccurrenceReportReferredToMeDashTable v-if="isCommunity" ref="community_referrals_table" level="internal"
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_referrals_url"
                         :profile="profile" />
                 </FormSection>
             </div>
@@ -77,7 +82,7 @@ import OccurrenceReportFloraDashTable from '@/components/common/occurrence_repor
 import OccurrenceReportFaunaDashTable from '@common-utils/occurrence_report_fauna_dashboard.vue'
 import OccurrenceReportCommunityDashTable from '@common-utils/occurrence_report_community_dashboard.vue'
 
-import OccurrenceReportSpeciesReferredToMeDashTable from '@common-utils/ocr_species_referrals_dashboard.vue'
+import OccurrenceReportReferredToMeDashTable from '@common-utils/ocr_referrals_dashboard.vue'
 
 import FormSection from '@/components/forms/section_toggle.vue'
 
@@ -108,7 +113,7 @@ export default {
         OccurrenceReportFloraDashTable,
         OccurrenceReportFaunaDashTable,
         OccurrenceReportCommunityDashTable,
-        OccurrenceReportSpeciesReferredToMeDashTable,
+        OccurrenceReportReferredToMeDashTable,
         FormSection,
     },
     computed: {
