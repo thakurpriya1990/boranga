@@ -2170,12 +2170,12 @@ export default {
                 Math.max(...N),
             ];
         },
-        centerOnFeature: function (feature) {
+        centerOnFeature: function (feature, maxZoom = 17) {
             const ext = feature.getGeometry().getExtent();
             this.map.getView().fit(ext, {
                 duration: 1000,
                 size: this.map.getSize(),
-                maxZoom: 17,
+                maxZoom: maxZoom,
             });
         },
         setBaseLayer: function (selected_layer_name) {
@@ -4881,6 +4881,21 @@ export default {
                 layer.set('editing', false);
             }
         },
+        highlightPointOnTenureLayer: function (coordinates) {
+            if (!coordinates) {
+                return;
+            }
+            const tenureLayer = this.optionalLayers.filter((layer) => {
+                return layer.get('is_tenure_intersects_query_layer') == true;
+            })[0];
+            if (tenureLayer) {
+                queryLayerAtPoint(this, tenureLayer, coordinates);
+            }
+            const feature = new Feature({
+                geometry: new Point(coordinates),
+            });
+            this.centerOnFeature(feature, 12);
+        },
     },
 };
 </script>
@@ -4928,7 +4943,7 @@ export default {
 }
 
 .map-spinner {
-    position: relative;    
+    position: relative;
 }
 
 .shapefile-row {

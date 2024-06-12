@@ -120,7 +120,7 @@ export default {
                 // eslint-disable-next-line no-unused-vars
                 render: function (data, type, row) {
                     const coordinates = row.tenure_area_centroid
-                        ? row.tenure_area_centroid.coordinates
+                        ? JSON.stringify(row.tenure_area_centroid.coordinates)
                         : null;
                     let html = `<a class="btn btn-primary btn-sm mb-1" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
                     html += `<br><a class="btn btn-primary btn-sm" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;
@@ -191,6 +191,7 @@ export default {
     },
     methods: {
         addEventListeners: function () {
+            const vm = this;
             this.$refs.occurrence_tenure_datatable.vmDataTable.on(
                 'click',
                 'a[data-highlight-on-map-coordinates]',
@@ -200,7 +201,7 @@ export default {
                         'data-highlight-on-map-coordinates'
                     );
                     console.log(coordinates);
-                    this.highlightOnMap(coordinates);
+                    vm.highlightOnMap(coordinates);
                 }
             );
             this.$refs.occurrence_tenure_datatable.vmDataTable.on(
@@ -209,13 +210,13 @@ export default {
                 function (e) {
                     e.preventDefault();
                     const id = $(this).attr('data-edit-tenure-details');
-                    this.editTenureDetails(id);
+                    vm.editTenureDetails(id);
                     console.log(id);
                 }
             );
         },
-        highlightOnMap: function (coordinates) {
-            this.$emit('highlight-on-map', coordinates);
+        highlightOnMap: function (coordinates = null) {
+            this.$emit('highlight-on-map', JSON.parse(coordinates));
         },
         editTenureDetails: function (id) {
             this.$emit('edit-tenure-details', id);

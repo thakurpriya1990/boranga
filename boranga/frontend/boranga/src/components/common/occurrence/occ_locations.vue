@@ -234,12 +234,13 @@
                     </button>
                 </div>
             </div>
-            <!-- Putting the occurrence tenure dt here for now -->
+            <!-- Occurrence Tenure Datatable -->
             <OccurrenceTenureDatatable
                 v-if="occurrence_obj"
                 ref="occurrence_tenure_datatable"
                 :key="'occurrence-tenure-datatable-' + uuid"
                 :occurrence-id="occurrence_obj.id"
+                @highlight-on-map="highlightOnMap"
             ></OccurrenceTenureDatatable>
             <RelatedReports 
                     :isReadOnly="isReadOnly"
@@ -543,6 +544,13 @@ export default {
                 .finally(() => {
                     loading(false);
                 });
+        },
+        highlightOnMap: function (coordinates) {
+            if (!coordinates) {
+                console.warn('No coordinates found');
+                return;
+            }
+            this.$refs.component_map.highlightPointOnTenureLayer(coordinates);
         },
     },
 };
