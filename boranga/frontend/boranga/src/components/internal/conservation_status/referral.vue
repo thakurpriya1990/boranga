@@ -5,8 +5,6 @@
 
             <div class="col-md-3">
 
-                <CommsLogs :comms_url="comms_url" :logs_url="logs_url" comms_add_url="test" />
-
                 <Submission :submitter_first_name="submitter_first_name" :submitter_last_name="submitter_last_name"
                     :lodgement_date="conservation_status_obj.lodgement_date" class="mt-3" />
 
@@ -18,104 +16,6 @@
                         <div class="card-body">
                             <strong>Status</strong><br />
                             {{ conservation_status_obj.processing_status }}
-                        </div>
-                        <div v-if="canRefer" class="card-body border-top">
-                            <div class="row">
-                                <div class="col-sm-12 top-buffer-s">
-                                    <strong>Referrals</strong><br />
-                                    <div class="form-group mb-3">
-                                        <select :disabled="!canLimitedAction" ref="department_users"
-                                            class="form-control">
-                                        </select>
-                                        <template v-if='!sendingReferral'>
-                                            <template v-if="selected_referral">
-                                                <label class="control-label mt-2" for="referral_text">Comments</label>
-                                                <textarea class="form-control" name="referral_text" ref="referral_text"
-                                                    v-model="referral_text"></textarea>
-                                                <a v-if="canLimitedAction" @click.prevent="sendReferral()"
-                                                    class="actionBtn float-end">Send</a>
-                                            </template>
-                                        </template>
-                                        <template v-else>
-                                            <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled
-                                                class="actionBtn text-primary float-end">
-                                                Sending Referral&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
-                                            </span>
-                                        </template>
-                                    </div>
-                                    <template
-                                        v-if="conservation_status_obj.latest_referrals && conservation_status_obj.latest_referrals.length > 0">
-                                        <div>
-                                            <div class="fw-bold mb-1">
-                                                Recent Referrals
-                                                <small class="text-secondary fw-lighter">(Showing {{
-                                                    conservation_status_obj.latest_referrals.length }} of
-                                                    {{ conservation_status_obj.referrals.length }})</small>
-                                            </div>
-                                            <table class="table table-sm table-hover table-referrals">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Referee</th>
-                                                        <th>Status</th>
-                                                        <th>Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="r in conservation_status_obj.latest_referrals">
-                                                        <td class="truncate-name">
-                                                            {{ r.referral.first_name }} {{
-                                                                r.referral.last_name }}
-                                                        </td>
-                                                        <td>
-                                                            {{ r.processing_status }}
-                                                        </td>
-                                                        <td>
-                                                            <template v-if="r.processing_status == 'Awaiting'">
-                                                                <a v-if="canLimitedAction" role="button"
-                                                                    data-bs-toggle="popover" data-bs-trigger="hover"
-                                                                    :data-bs-content="'Send a reminder to ' +
-                                                                        r.referral['fullname']
-                                                                        " data-bs-placement="bottom"
-                                                                    data-bs-container="body"
-                                                                    @click.prevent="remindReferral(r)"><i
-                                                                        class="fa fa-bell text-warning"
-                                                                        aria-hidden="true"></i>
-                                                                </a>
-                                                                <a role="button" data-bs-toggle="popover"
-                                                                    data-bs-trigger="hover" :data-bs-content="'Recall the referral request sent to ' +
-                                                                        r.referral['fullname']
-                                                                        " data-bs-placement="bottom"
-                                                                    data-bs-container="body"
-                                                                    @click.prevent="recallReferral(r)"><i
-                                                                        class="fa fa-times-circle text-danger"
-                                                                        aria-hidden="true"></i>
-                                                                </a>
-                                                            </template>
-                                                            <template v-else>
-                                                                <template v-if="canLimitedAction"><a role="button"
-                                                                        data-bs-toggle="popover" data-bs-trigger="hover"
-                                                                        :data-bs-content="'Resend this referral request to ' +
-                                                                            r.referral['fullname']
-                                                                            " data-bs-container="body"
-                                                                        @click.prevent="resendReferral(r)"><i
-                                                                            class="fa fa-envelope text-primary"
-                                                                            aria-hidden="true"></i>
-                                                                    </a>
-                                                                </template>
-                                                            </template>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                            <CSMoreReferrals @refreshFromResponse="refreshFromResponse"
-                                                :conservation_status_obj="conservation_status_obj"
-                                                :canAction="canLimitedAction" :isFinalised="isFinalised"
-                                                :referral_url="referralListURL" />
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -184,7 +84,7 @@ export default {
             logs_url: helpers.add_endpoint_json(api_endpoints.conservation_status, vm.$route.params.conservation_status_id + '/action_log'),
             comparing: false,
             initialisedSelects: false,
-            referral: {},
+            referral: null,
         }
     },
     components: {
