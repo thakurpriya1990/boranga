@@ -127,7 +127,7 @@ export default {
                 render: function (data, type, row) {
                     const coordinates = row.tenure_area_centroid
                         ? JSON.stringify(row.tenure_area_centroid.coordinates)
-                        : null;
+                        : '';
                     let html = `<a href="#${vm.hrefContainerId}" class="btn btn-primary btn-sm mb-1" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
                     html += `<br><a href="#" class="btn btn-primary btn-sm" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;
                     return html;
@@ -201,13 +201,14 @@ export default {
             this.$refs.occurrence_tenure_datatable.vmDataTable.on(
                 'click',
                 'a[data-highlight-on-map-coordinates]',
-                // eslint-disable-next-line no-unused-vars
                 function (e) {
-                    // e.preventDefault();
-                    const coordinates = $(this).attr(
+                    let coordinates = $(this).attr(
                         'data-highlight-on-map-coordinates'
                     );
-                    console.log(coordinates);
+                    coordinates = coordinates || null;
+                    if (!coordinates) {
+                        e.preventDefault();
+                    }
                     vm.highlightOnMap(coordinates);
                 }
             );
