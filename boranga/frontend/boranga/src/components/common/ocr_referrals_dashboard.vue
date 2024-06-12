@@ -191,6 +191,16 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
+                'render': function (data, type, full) {
+                    let tick = '';
+                    if (full.can_be_processed) {
+                        tick = " <i class='fa fa-exclamation-circle' style='color:#FFBF00'></i>";
+                    }
+                    else {
+                        tick = " <i class='fa fa-check-circle' style='color:green'></i>";
+                    }
+                    return full.occurrence_report_number + tick;
+                },
                 name: "occurrence_report__occurrence_report_number",
             }
         },
@@ -282,13 +292,13 @@ export default {
         },
         column_action: function () {
             return {
-                data: "id",
+                data: "can_be_processed",
                 orderable: false,
                 searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
                     let links = "";
-                    if (full.processing_status == 'with_referral') {
+                    if (full.can_be_processed) {
                         links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Process</a><br/>`;
                     }
                     else {
