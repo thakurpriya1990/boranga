@@ -34,6 +34,7 @@ from boranga.components.occurrence.models import (
     SoilType,
     WildStatus,
 )
+from boranga.components.spatial.utils import wkb_to_geojson
 
 
 class OccurrenceTenureInline(nested_admin.NestedTabularInline):
@@ -133,9 +134,18 @@ class OccurrenceAdmin(nested_admin.NestedModelAdmin):
     inlines = [OccurrenceGeometryInline]
 
 
+class OccurrenceTenureAdminForm(forms.ModelForm):
+    # geometry = forms.GeometryField(widget=forms.OSMWidget(attrs={"display_raw": False}))
+
+    class Meta:
+        model = OccurrenceTenure
+        fields = "__all__"
+
+
 @admin.register(OccurrenceTenure)
 class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
     model = OccurrenceTenure
+    form = OccurrenceTenureAdminForm
 
     fieldsets = (
         (
@@ -188,6 +198,20 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
 
     readonly_fields = ["typename", "featureid", "geometry", "occurrence"]
     list_filter = ("status", "significant_to_occurrence", "purpose")
+
+    def occurrence(self, obj):
+        if obj.status == obj.STATUS_HISTORICAL:
+            return f"{obj.occurrence.__str__()} [Historical]"
+        return obj.occurrence
+
+    def geometry(self, obj):
+        if obj.status == obj.STATUS_HISTORICAL:
+            geom = wkb_to_geojson(obj.historical_occurrence_geometry_ewkb)
+            geom["properties"]["status"] = obj.STATUS_HISTORICAL
+            geom["properties"]["occurrence_id"] = obj.occurrence.id
+            return geom
+        return obj.occurrence_geometry
+
 
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm)

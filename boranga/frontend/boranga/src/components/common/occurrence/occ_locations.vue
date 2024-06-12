@@ -65,7 +65,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">District:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" 
+                    <select :disabled="isReadOnly" class="form-select"
                         v-model="occurrence_obj.location.district_id">
                         <option v-for="option in filtered_district_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}
@@ -234,7 +234,11 @@
                     </button>
                 </div>
             </div>
-
+            <!-- Putting the occurrence tenure dt here for now -->
+            <OccurrenceTenureDatatable
+                v-if="occurrence_obj"
+                :occurrence-id="occurrence_obj.id"
+            ></OccurrenceTenureDatatable>
             <RelatedReports 
                     :isReadOnly="isReadOnly"
                     :occurrence_obj=occurrence_obj
@@ -253,6 +257,7 @@ import FormSection from '@/components/forms/section_toggle.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 import MapComponent from '../component_map.vue';
 import { VueSelect } from 'vue-select';
+import OccurrenceTenureDatatable from '@/components/internal/occurrence/occurrence_tenure_datatable.vue';
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 
 export default {
@@ -261,6 +266,7 @@ export default {
         MapComponent,
         FormSection,
         VueSelect,
+        OccurrenceTenureDatatable,
         RelatedReports,
     },
     props: {

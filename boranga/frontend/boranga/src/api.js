@@ -126,6 +126,8 @@ module.exports = {
     species_paginated_internal: "/api/species_paginated/species_internal/?format=datatables",
     wild_status_lookup: "/api/wild_status_lookup",
     occurrence_source_lookup: "/api/occurrence_source_lookup",
+    occurrence_tenure_paginated_internal:
+        '/api/occurrence_tenure_paginated/occurrence_tenure_internal/?format=datatables',
 
     // Pending - need to create viewsets for the below when working on search filters for OR dashboard
     or_status_lookup: "/api/or_status_lookup",

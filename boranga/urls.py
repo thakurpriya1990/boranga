@@ -161,6 +161,12 @@ router.register(r"global_settings", main_api.GlobalSettingsViewSet)
 router.register(r"tile_layer", spatial_api.TileLayerViewSet, "tile_layer")
 router.register(r'regions', species_communities_api.RegionViewSet,"regions")
 
+router.register(
+    r"occurrence_tenure_paginated",
+    occurrence_api.OccurrenceTenurePaginatedViewSet,
+    "occurrence-tenure-paginated",
+)
+
 api_patterns = [
     url(r"^api/profile$", users_api.GetProfile.as_view(), name="get-profile"),
     url(
