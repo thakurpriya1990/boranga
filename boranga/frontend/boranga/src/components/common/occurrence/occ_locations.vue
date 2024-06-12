@@ -237,6 +237,8 @@
             <!-- Putting the occurrence tenure dt here for now -->
             <OccurrenceTenureDatatable
                 v-if="occurrence_obj"
+                ref="occurrence_tenure_datatable"
+                :key="'occurrence-tenure-datatable-' + uuid"
                 :occurrence-id="occurrence_obj.id"
             ></OccurrenceTenureDatatable>
             <RelatedReports 
