@@ -43,13 +43,13 @@
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSRefFaunaApplicationStatus">
                             <option value="all">All</option>
-                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
+                            <option v-for="status in processing_statuses" :value="status.value">{{ status.name }}
+                            </option>
                         </select>
                     </div>
                 </div>
             </div>
         </CollapsibleFilters>
-
         <div class="row">
             <div class="col-lg-12">
                 <datatable ref="fauna_cs_ref_datatable" :id="datatable_id" :dtOptions="datatable_options"
@@ -121,7 +121,6 @@ export default {
         return {
             datatable_id: 'species_fauna_cs_ref-datatable-' + vm._uid,
 
-            // selected values for filtering
             filterCSRefFaunaScientificName: sessionStorage.getItem(this.filterCSRefFaunaScientificName_cache) ?
                 sessionStorage.getItem(this.filterCSRefFaunaScientificName_cache) : 'all',
 
@@ -140,17 +139,10 @@ export default {
             filterCSRefFaunaApplicationStatus: sessionStorage.getItem(this.filterCSRefFaunaApplicationStatus_cache) ?
                 sessionStorage.getItem(this.filterCSRefFaunaApplicationStatus_cache) : 'all',
 
-            //Filter list for scientific name and common name
-            filterListsSpecies: {},
-            scientific_name_list: [],
-            common_name_list: [],
-            family_list: [],
-            phylogenetic_group_list: [],
-            filterRegionDistrict: {},
-            region_list: [],
-            district_list: [],
-            proposal_status: [],
-            filtered_district_list: [],
+            processing_statuses: [
+                { value: 'with_referral', name: 'Awaiting' },
+                { value: 'completed', name: 'Completed' },
+            ],
         }
     },
     components: {
@@ -190,7 +182,6 @@ export default {
         },
         filterApplied: function () {
             if (this.$refs.collapsible_filters) {
-                // Collapsible component exists
                 this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
             }
         },
@@ -220,10 +211,10 @@ export default {
                 'render': function (data, type, full) {
                     let tick = '';
                     if (full.can_be_processed) {
-                        tick = "<i class='fa fa-exclamation-circle' style='color:#FFBF00'></i>";
+                        tick = " <i class='fa fa-exclamation-circle' style='color:#FFBF00'></i>";
                     }
                     else {
-                        tick = "<i class='fa fa-check-circle' style='color:green'></i>";
+                        tick = " <i class='fa fa-check-circle' style='color:green'></i>";
                     }
                     return full.conservation_status_number + tick;
                 },
@@ -236,9 +227,6 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    return full.species_number
-                },
                 name: "conservation_status__species__species_number",
             }
         },
@@ -265,7 +253,6 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                //'createdCell': helpers.dtPopoverCellFn,
                 name: "conservation_status__species__taxonomy__vernaculars__vernacular_name",
             }
         },
@@ -276,20 +263,12 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    if (full.processing_status) {
-                        return full.processing_status;
-                    }
-                    // Should not reach here
-                    return ''
-                },
                 name: "conservation_status__processing_status",
             }
         },
         column_action: function () {
             let vm = this
             return {
-                // 10. Action
                 data: "id",
                 orderable: false,
                 searchable: false,
@@ -336,17 +315,19 @@ export default {
             let search = false
             let buttons = [
                 {
+                    extend: 'excel',
                     text: '<i class="fa-solid fa-download"></i> Excel',
                     className: 'btn btn-primary me-2 rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("excel");
+                    exportOptions: {
+                        columns: ':not(.no-export)'
                     }
                 },
                 {
+                    extend: 'csv',
                     text: '<i class="fa-solid fa-download"></i> CSV',
                     className: 'btn btn-primary rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("csv");
+                    exportOptions: {
+                        columns: ':not(.no-export)'
                     }
                 }
             ]
@@ -366,7 +347,7 @@ export default {
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 },
-                    { responsivePriority: 3, targets: -1 },
+                    { responsivePriority: 3, targets: -1, className: 'no-export' },
                     { responsivePriority: 2, targets: -2 }
                 ],
                 ajax: {
@@ -402,7 +383,6 @@ export default {
                 },
             }
         }
-
     },
     methods: {
         collapsible_component_mounted: function () {
@@ -442,7 +422,6 @@ export default {
                 }).
                 on("select2:open", function (e) {
                     const searchField = $('[aria-controls="select2-cs_ref_scientific_name_lookup-results"]')
-                    // move focus to select2 field
                     searchField[0].focus();
                 });
         },
@@ -480,7 +459,6 @@ export default {
                 }).
                 on("select2:open", function (e) {
                     const searchField = $('[aria-controls="select2-cs_ref_common_name_lookup-results"]')
-                    // move focus to select2 field
                     searchField[0].focus();
                 });
         },
@@ -518,7 +496,6 @@ export default {
                 }).
                 on("select2:open", function (e) {
                     const searchField = $('[aria-controls="select2-cs_ref_phylo_group_lookup-results"]')
-                    // move focus to select2 field
                     searchField[0].focus();
                 });
         },
@@ -555,9 +532,7 @@ export default {
                     sessionStorage.setItem("filterCSRefFaunaFamilyText", '');
                 }).
                 on("select2:open", function (e) {
-                    //const searchField = $(".select2-search__field")
                     const searchField = $('[aria-controls="select2-cs_ref_family_lookup-results"]')
-                    // move focus to select2 field
                     searchField[0].focus();
                 });
         },
@@ -594,32 +569,9 @@ export default {
                     sessionStorage.setItem("filterCSRefFaunaGenusText", '');
                 }).
                 on("select2:open", function (e) {
-                    //const searchField = $(".select2-search__field")
                     const searchField = $('[aria-controls="select2-cs_ref_genera_lookup-results"]')
-                    // move focus to select2 field
                     searchField[0].focus();
                 });
-        },
-        fetchFilterLists: function () {
-            let vm = this;
-            //large FilterList of Species Values object
-            vm.$http.get(api_endpoints.filter_list_cs_referrals + '?group_type_name=' + vm.group_type_name).then((response) => {
-                vm.filterListsSpecies = response.body;
-                vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
-                vm.common_name_list = vm.filterListsSpecies.common_name_list;
-                vm.family_list = vm.filterListsSpecies.family_list;
-                vm.phylogenetic_group_list = vm.filterListsSpecies.phylogenetic_group_list;
-                vm.proposal_status = vm.filterListsSpecies.processing_status_list;
-            }, (error) => {
-                console.log(error);
-            })
-            vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
-                vm.filterRegionDistrict = response.body;
-                vm.region_list = vm.filterRegionDistrict.region_list;
-                vm.district_list = vm.filterRegionDistrict.district_list;
-            }, (error) => {
-                console.log(error);
-            })
         },
         addEventListeners: function () {
             let vm = this;
@@ -627,226 +579,8 @@ export default {
                 helpers.enablePopovers();
             });
         },
-        initialiseSearch: function () {
-            this.submitterSearch();
-        },
-        submitterSearch: function () {
-            let vm = this;
-            vm.$refs.fauna_cs_ref_datatable.table.dataTableExt.afnFiltering.push(
-                function (settings, data, dataIndex, original) {
-                    let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All') { return true; }
-                    return filtered_submitter == original.submitter.email;
-                }
-            );
-        },
-        exportData: function (format) {
-            let vm = this;
-            const columns_new = {
-                "0": {
-                    "data": "conservation_status_number",
-                    "name": "conservation_status__id, conservation_status__conservation_status_number",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "1": {
-                    "data": "species_number",
-                    "name": "conservation_status__species__species_number",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "2": {
-                    "data": "scientific_name",
-                    "name": "conservation_status__species__taxonomy__scientific_name",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "3": {
-                    "data": "common_name",
-                    "name": "conservation_status__species__taxonomy__vernaculars__vernacular_name",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "4": {
-                    "data": "conservation_list",
-                    "name": "conservation_status__conservation_list__code",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "5": {
-                    "data": "conservation_category",
-                    "name": "conservation_status__conservation_category__code",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                /*"6":{
-                    "data":"family",
-                    "name":"species__taxonomy__family_name",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },
-                "7":{
-                    "data":"genus",
-                    "name":"species__taxonomy__genera_name",
-                    "searchable":"true",
-                    "orderable":"true",
-                    "search":{
-                        "value":"",
-                        "regex":"false"
-                    }
-                },*/
-                "6": {
-                    "data": "processing_status",
-                    "name": "conservation_status__processing_status",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "7": {
-                    "data": "id",
-                    "name": "",
-                    "searchable": "false",
-                    "orderable": "false",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-            };
-
-            const object_load = {
-                columns: columns_new,
-                filter_group_type: vm.group_type_name,
-                filter_scientific_name: vm.filterCSRefFaunaScientificName,
-                filter_common_name: vm.filterCSRefFaunaScientificName,
-                filter_family: vm.filterCSRefFaunaFamily,
-                filter_genus: vm.filterCSRefFaunaGenus,
-                filter_application_status: vm.filterCSRefFaunaApplicationStatus,
-                is_internal: vm.is_internal,
-                export_format: format
-            };
-
-            const url = api_endpoints.species_cs_referrals_internal_export;
-            const keyValuePairs = [];
-
-            for (const key in object_load) {
-                if (object_load.hasOwnProperty(key)) {
-                    const encodedKey = encodeURIComponent(key);
-                    let encodedValue = '';
-
-                    if (typeof object_load[key] === 'object') {
-                        encodedValue = encodeURIComponent(JSON.stringify(object_load[key]));
-                    }
-                    else {
-                        encodedValue = encodeURIComponent(object_load[key]);
-                    }
-                    keyValuePairs.push(`${encodedKey}=${encodedValue}`);
-                }
-            }
-            const params = keyValuePairs.join('&');
-            const fullUrl = `${url}?${params}`;
-            try {
-                if (format === "excel") {
-                    $.ajax({
-                        type: "POST",
-                        headers: {
-                            'X-CSRFToken': helpers.getCookie('csrftoken'),
-                        },
-                        url: url + "/",
-                        data: object_load,
-                        dataType: "binary",
-                        xhrFields: {
-                            responseType: 'blob'
-                        },
-
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "application/vnd.ms-excel" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-                else if (format === "csv") {
-                    $.ajax({
-                        type: "POST",
-                        headers: {
-                            'X-CSRFToken': helpers.getCookie('csrftoken'),
-                        },
-                        url: url + "/",
-                        data: object_load,
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "text/csv" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-            }
-            catch (err) {
-                console.log(err);
-                if (vm.is_internal) {
-                    return err;
-                }
-            }
-        },
     },
     mounted: function () {
-        this.fetchFilterLists();
         let vm = this;
         $('a[data-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
@@ -860,32 +594,25 @@ export default {
             vm.initialisePhyloGroupLookup();
             vm.initialiseFamilyLookup();
             vm.initialiseGeneraLookup();
-            vm.initialiseSearch();
             vm.addEventListeners();
 
-            // -- to set the select2 field with the session value if exists onload()
             if (sessionStorage.getItem("filterCSRefFaunaScientificName") != 'all' && sessionStorage.getItem("filterCSRefFaunaScientificName") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSRefFaunaScientificNameText"), vm.filterCSRefFaunaScientificName, false, true);
                 $('#cs_ref_scientific_name_lookup').append(newOption);
             }
             if (sessionStorage.getItem("filterCSRefFaunaCommonName") != 'all' && sessionStorage.getItem("filterCSRefFaunaCommonName") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSRefFaunaCommonNameText"), vm.filterCSRefFaunaCommonName, false, true);
                 $('#cs_ref_common_name_lookup').append(newOption);
             }
             if (sessionStorage.getItem("filterCSRefFaunaPhylogeneticGroup") != 'all' && sessionStorage.getItem("filterCSRefFaunaPhylogeneticGroup") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSRefFaunaPhylogeneticGroupText"), vm.filterCSRefFaunaPhylogeneticGroup, false, true);
                 $('#cs_ref_phylo_group_lookup').append(newOption);
             }
             if (sessionStorage.getItem("filterCSRefFaunaFamily") != 'all' && sessionStorage.getItem("filterCSRefFaunaFamily") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSRefFaunaFamilyText"), vm.filterCSRefFaunaFamily, false, true);
                 $('#cs_ref_family_lookup').append(newOption);
             }
             if (sessionStorage.getItem("filterCSRefFaunaGenus") != 'all' && sessionStorage.getItem("filterCSRefFaunaGenus") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterCSRefFaunaGenusText"), vm.filterCSRefFaunaGenus, false, true);
                 $('#cs_ref_genera_lookup').append(newOption);
             }
@@ -893,58 +620,3 @@ export default {
     }
 }
 </script>
-<style scoped>
-.dt-buttons {
-    float: right;
-}
-
-.collapse-icon {
-    cursor: pointer;
-}
-
-.collapse-icon::before {
-    top: 5px;
-    left: 4px;
-    height: 14px;
-    width: 14px;
-    border-radius: 14px;
-    line-height: 14px;
-    border: 2px solid white;
-    line-height: 14px;
-    content: '-';
-    color: white;
-    background-color: #d33333;
-    display: inline-block;
-    box-shadow: 0px 0px 3px #444;
-    box-sizing: content-box;
-    text-align: center;
-    text-indent: 0 !important;
-    font-family: 'Courier New', Courier monospace;
-    margin: 5px;
-}
-
-.expand-icon {
-    cursor: pointer;
-}
-
-.expand-icon::before {
-    top: 5px;
-    left: 4px;
-    height: 14px;
-    width: 14px;
-    border-radius: 14px;
-    line-height: 14px;
-    border: 2px solid white;
-    line-height: 14px;
-    content: '+';
-    color: white;
-    background-color: #337ab7;
-    display: inline-block;
-    box-shadow: 0px 0px 3px #444;
-    box-sizing: content-box;
-    text-align: center;
-    text-indent: 0 !important;
-    font-family: 'Courier New', Courier monospace;
-    margin: 5px;
-}
-</style>
