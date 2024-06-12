@@ -2084,7 +2084,7 @@ class OCRAssociatedSpecies(models.Model):
     )
     comment = models.TextField(blank=True)
 
-    related_species = models.ManyToManyField(Taxonomy)
+    related_species = models.ManyToManyField(Taxonomy, null=True)
 
     class Meta:
         app_label = "boranga"
@@ -3812,7 +3812,7 @@ class OCCAssociatedSpecies(models.Model):
     )
     comment = models.TextField(blank=True)
 
-    related_species = models.ManyToManyField(Taxonomy)
+    related_species = models.ManyToManyField(Taxonomy, null=True)
 
     class Meta:
         app_label = "boranga"

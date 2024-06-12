@@ -1010,6 +1010,7 @@ class OccurrenceReportViewSet(
                                 j.name != "id"
                                 and not isinstance(j, models.ForeignKey)
                                 and not isinstance(j, models.ManyToOneRel)
+                                and not isinstance(j, models.ManyToManyRel)
                                 and getattr(sub_section_value, j.name) is not None
                             ):
                                 res_json[i.name][j.name] = str(
@@ -1043,7 +1044,9 @@ class OccurrenceReportViewSet(
         if instance.associated_species:
             related_species = instance.associated_species.related_species
         else:
-            return Response()
+            raise serializers.ValidationError(
+                "Associated Species does not exist"
+            )
         
         taxon_id = request.GET.get("species")
         
@@ -1082,7 +1085,9 @@ class OccurrenceReportViewSet(
         if instance.associated_species:
             related_species = instance.associated_species.related_species
         else:
-            return Response()
+            raise serializers.ValidationError(
+                "Associated Species does not exist"
+            )
         
         taxon_id = request.GET.get("species")
         
@@ -1117,10 +1122,10 @@ class OccurrenceReportViewSet(
     @detail_route(methods=["get"], detail=True)
     def get_related_species(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.associated_species:
+        if hasattr(instance,"associated_species"):
             related_species = instance.associated_species.related_species
         else:
-            return Response()
+            related_species = Taxonomy.objects.none()
         serializer = TaxonomySerializer(
             related_species, many=True, context={"request": request}
         )
@@ -3866,10 +3871,12 @@ class OccurrenceViewSet(
     def add_related_species(self, request, *args, **kwargs):
         self.is_authorised_to_update()
         instance = self.get_object()
-        if instance.associated_species:
+        if hasattr(instance,"associated_species"):
             related_species = instance.associated_species.related_species
         else:
-            return Response()
+            raise serializers.ValidationError(
+                "Associated Species does not exist"
+            )
         
         taxon_id = request.GET.get("species")
         
@@ -3894,10 +3901,12 @@ class OccurrenceViewSet(
     def remove_related_species(self, request, *args, **kwargs):
         self.is_authorised_to_update()
         instance = self.get_object()
-        if instance.associated_species:
+        if hasattr(instance,"associated_species"):
             related_species = instance.associated_species.related_species
         else:
-            return Response()
+            raise serializers.ValidationError(
+                "Associated Species does not exist"
+            )
         
         taxon_id = request.GET.get("species")
         
@@ -3921,10 +3930,10 @@ class OccurrenceViewSet(
     @detail_route(methods=["get"], detail=True)
     def get_related_species(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.associated_species:
+        if hasattr(instance,"associated_species"):
             related_species = instance.associated_species.related_species
         else:
-            return Response()
+            related_species = Taxonomy.objects.none()
         serializer = TaxonomySerializer(
             related_species, many=True, context={"request": request}
         )
