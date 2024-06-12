@@ -3492,9 +3492,9 @@ class OccurrenceGeometry(models.Model):
         return None
 
 
-class OCCObserverDetail(models.Model):
+class OCCContactDetail(models.Model):
     """
-    Observer data  for occurrence
+    Observer data for occurrence
 
     Used for:
     - Occurrence
@@ -3506,18 +3506,18 @@ class OCCObserverDetail(models.Model):
         Occurrence,
         on_delete=models.CASCADE,
         null=True,
-        related_name="observer_detail",
+        related_name="contact_detail",
     )
-    observer_name = models.CharField(max_length=250, blank=True, null=True)
+    contact_name = models.CharField(max_length=250, blank=True, null=True)
     role = models.CharField(max_length=250, blank=True, null=True)
     contact = models.CharField(max_length=250, blank=True, null=True)
     organisation = models.CharField(max_length=250, blank=True, null=True)
-    main_observer = models.BooleanField(null=True, blank=True)
+    main_contact = models.BooleanField(null=True, blank=True) #TODO is this needed?
 
     class Meta:
         app_label = "boranga"
         unique_together = (
-            "observer_name",
+            "contact_name",
             "occurrence",
         )
 

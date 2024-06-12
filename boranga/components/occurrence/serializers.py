@@ -21,7 +21,7 @@ from boranga.components.occurrence.models import (
     OCCIdentification,
     OCCLocation,
     OCCObservationDetail,
-    OCCObserverDetail,
+    OCCContactDetail,
     OCCPlantCount,
     Occurrence,
     OccurrenceDocument,
@@ -2416,18 +2416,18 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
             )
 
 
-class OCCObserverDetailSerializer(serializers.ModelSerializer):
+class OCCContactDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = OCCObserverDetail
+        model = OCCContactDetail
         fields = (
             "id",
             "occurrence",
-            "observer_name",
+            "contact_name",
             "role",
             "contact",
             "organisation",
-            "main_observer",
+            "main_contact",
         )
 
 
