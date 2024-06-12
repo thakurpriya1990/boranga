@@ -236,14 +236,22 @@
                 </div>
             </div>
             <!-- Occurrence Tenure Datatable -->
-            <OccurrenceTenureDatatable
-                v-if="occurrence_obj"
-                ref="occurrence_tenure_datatable"
-                :key="'occurrence-tenure-datatable-' + uuid"
-                :occurrence-id="occurrence_obj.id"
-                :href-container-id="mapContainerId"
-                @highlight-on-map="highlightOnMap"
-            ></OccurrenceTenureDatatable>
+            <FormSection
+                :form-collapse="false"
+                label="Occurrence Tenures"
+                Index="occurrence_tenure_datatable"
+            >
+                <div>
+                    <OccurrenceTenureDatatable
+                        v-if="occurrence_obj"
+                        ref="occurrence_tenure_datatable"
+                        :key="'occurrence-tenure-datatable-' + uuid"
+                        :occurrence-id="occurrence_obj.id"
+                        :href-container-id="mapContainerId"
+                        @highlight-on-map="highlightOnMap"
+                    ></OccurrenceTenureDatatable>
+                </div>
+            </FormSection>
             <RelatedReports 
                     :isReadOnly="isReadOnly"
                     :occurrence_obj=occurrence_obj
