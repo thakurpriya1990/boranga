@@ -10,7 +10,14 @@
                             ref="ocr_referrals_occurrence_lookup" class="form-control" />
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div v-if="group_type_name == 'community'" class="col-md-4">
+                    <div class="form-group" id="select_ocr_referrals_community_name">
+                        <label for="ocr_referrals_community_name_lookup">Community Name:</label>
+                        <select id="ocr_referrals_community_name_lookup" name="ocr_referrals_community_name_lookup"
+                            ref="ocr_referrals_community_name_lookup" class="form-control" />
+                    </div>
+                </div>
+                <div v-else class="col-md-4">
                     <div class="form-group" id="ocr_referrals_select_scientific_name_by_groupname">
                         <label for="ocr_referrals_scientific_name_lookup_by_groupname">Scientific Name:</label>
                         <select id="ocr_referrals_scientific_name_lookup_by_groupname"
@@ -21,7 +28,7 @@
                 <div class="col-md-4">
                     <div class="form-group" id="select_status">
                         <label for="">Status:</label>
-                        <select class="form-select" v-model="filterOCRFloraReferralsStatus">
+                        <select class="form-select" v-model="filterOCRReferralsStatus">
                             <option value="all">All</option>
                             <option v-for="status in processing_statuses" :value="status.value">{{ status.name }}
                             </option>
@@ -78,25 +85,25 @@ export default {
             type: Object,
             default: null
         },
-        // for adding agendaitems for the meeting_obj.id
-        meeting_obj: {
-            type: Object,
-            required: false
-        },
-        filterOCRFloraReferralsOccurrence_cache: {
+        filterOCRReferralsOccurrence_cache: {
             type: String,
             required: false,
-            default: 'filterOCRFloraReferralsOccurrence',
+            default: 'filterOCRReferralsOccurrence',
         },
-        filterOCRFloraReferralsScientificName_cache: {
+        filterOCRReferralsScientificName_cache: {
             type: String,
             required: false,
-            default: 'filterOCRFloraReferralsScientificName',
+            default: 'filterOCRReferralsScientificName',
         },
-        filterOCRFloraReferralsStatus_cache: {
+        filterOCRReferralsName_cache: {
             type: String,
             required: false,
-            default: 'filterOCRFloraReferralsStatus',
+            default: 'filterOCRReferralsName',
+        },
+        filterOCRReferralsStatus_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRReferralsStatus',
         },
     },
     data() {
@@ -105,12 +112,14 @@ export default {
             uuid: 0,
             occurrenceReportHistoryId: null,
             datatable_id: 'species_flora_ocr_referrals_datatable_' + vm._uid,
-            filterOCRFloraReferralsOccurrence: sessionStorage.getItem(this.filterOCRFloraReferralsOccurrence_cache) ?
-                sessionStorage.getItem(this.filterOCRFloraReferralsOccurrence_cache) : 'all',
-            filterOCRFloraReferralsScientificName: sessionStorage.getItem(this.filterOCRFloraReferralsScientificName_cache) ?
-                sessionStorage.getItem(this.filterOCRFloraReferralsScientificName_cache) : 'all',
-            filterOCRFloraReferralsStatus: sessionStorage.getItem(this.filterOCRFloraReferralsStatus_cache) ?
-                sessionStorage.getItem(this.filterOCRFloraReferralsStatus_cache) : 'all',
+            filterOCRReferralsOccurrence: sessionStorage.getItem(this.filterOCRReferralsOccurrence_cache) ?
+                sessionStorage.getItem(this.filterOCRReferralsOccurrence_cache) : 'all',
+            filterOCRReferralsScientificName: sessionStorage.getItem(this.filterOCRReferralsScientificName_cache) ?
+                sessionStorage.getItem(this.filterOCRReferralsScientificName_cache) : 'all',
+            filterOCRReferralsName: sessionStorage.getItem(this.filterOCRReferralsName_cache) ?
+                sessionStorage.getItem(this.filterOCRReferralsName_cache) : 'all',
+            filterOCRReferralsStatus: sessionStorage.getItem(this.filterOCRReferralsStatus_cache) ?
+                sessionStorage.getItem(this.filterOCRReferralsStatus_cache) : 'all',
             processing_statuses: [
                 { value: 'with_referral', name: 'Awaiting' },
                 { value: 'completed', name: 'Completed' },
@@ -123,20 +132,25 @@ export default {
         FormSection,
     },
     watch: {
-        filterOCRFloraReferralsOccurrence: function () {
+        filterOCRReferralsOccurrence: function () {
             let vm = this;
-            vm.$refs.flora_ocr_referrals_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRFloraReferralsOccurrence_cache, vm.filterOCRFloraReferralsOccurrence);
+            vm.$refs.flora_ocr_referrals_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+            sessionStorage.setItem(vm.filterOCRReferralsOccurrence_cache, vm.filterOCRReferralsOccurrence);
         },
-        filterOCRFloraReferralsScientificName: function () {
+        filterOCRReferralsScientificName: function () {
             let vm = this;
-            vm.$refs.flora_ocr_referrals_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRFloraReferralsScientificName_cache, vm.filterOCRFloraReferralsScientificName);
+            vm.$refs.flora_ocr_referrals_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+            sessionStorage.setItem(vm.filterOCRReferralsScientificName_cache, vm.filterOCRReferralsScientificName);
         },
-        filterOCRFloraReferralsStatus: function () {
+        filterOCRReferralsName: function () {
             let vm = this;
-            vm.$refs.flora_ocr_referrals_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRFloraReferralsStatus_cache, vm.filterOCRFloraReferralsStatus);
+            vm.$refs.flora_ocr_referrals_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+            sessionStorage.setItem(vm.filterOCRReferralsName_cache, vm.filterOCRReferralsName);
+        },
+        filterOCRReferralsStatus: function () {
+            let vm = this;
+            vm.$refs.flora_ocr_referrals_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+            sessionStorage.setItem(vm.filterOCRReferralsStatus_cache, vm.filterOCRReferralsStatus);
         },
         filterApplied: function () {
             if (this.$refs.collapsible_filters) {
@@ -146,20 +160,21 @@ export default {
     },
     computed: {
         filterApplied: function () {
-            if (this.filterOCRFloraReferralsOccurrence === 'all' &&
-                this.filterOCRFloraReferralsScientificName === 'all' &&
-                this.filterOCRFloraReferralsStatus === 'all') {
+            if (this.filterOCRReferralsOccurrence === 'all' &&
+                this.filterOCRReferralsScientificName === 'all' &&
+                this.filterOCRReferralsName === 'all' &&
+                this.filterOCRReferralsStatus === 'all') {
                 return false
             } else {
                 return true
             }
         },
         datatable_headers: function () {
-            if(this.group_type_name == 'community'){
-                return ['ID', 'Number', 'Occurrence', 'Community Name', 'Submission date/time', 'Submitter', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
-            } else {
-                return ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
+            let headers = ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
+            if (this.group_type_name == 'community') {
+                headers.splice(3, 1, 'Community Name')
             }
+            return headers
         },
         column_id: function () {
             return {
@@ -285,7 +300,6 @@ export default {
         },
         datatable_options: function () {
             let vm = this
-            let columns = []
             let search = null
             let buttons = [
                 {
@@ -306,7 +320,7 @@ export default {
                 }
             ]
 
-            columns = [
+            let columns = [
                 vm.column_id,
                 vm.column_number,
                 vm.column_occurrence,
@@ -320,7 +334,7 @@ export default {
                 vm.column_action,
             ]
 
-            if(this.group_type_name == 'community'){
+            if (this.group_type_name == 'community') {
                 columns.splice(3, 1, vm.column_community_name)
             }
 
@@ -349,9 +363,10 @@ export default {
                     "dataSrc": 'data',
                     "data": function (d) {
                         d.filter_group_type = vm.group_type_name;
-                        d.filter_occurrence = vm.filterOCRFloraReferralsOccurrence;
-                        d.filter_scientific_name = vm.filterOCRFloraReferralsScientificName;
-                        d.filter_status = vm.filterOCRFloraReferralsStatus;
+                        d.filter_occurrence = vm.filterOCRReferralsOccurrence;
+                        d.filter_scientific_name = vm.filterOCRReferralsScientificName;
+                        d.filter_community_name = vm.filterOCRReferralsName;
+                        d.filter_status = vm.filterOCRReferralsStatus;
                     }
                 },
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
@@ -401,13 +416,13 @@ export default {
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    vm.filterOCRFloraReferralsOccurrence = data;
-                    sessionStorage.setItem("filterOCRFloraReferralsOccurrenceText", e.params.data.text);
+                    vm.filterOCRReferralsOccurrence = data;
+                    sessionStorage.setItem("filterOCRReferralsOccurrenceText", e.params.data.text);
                 }).
                 on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
-                    vm.filterOCRFloraReferralsOccurrence = 'all';
-                    sessionStorage.setItem("filterOCRFloraReferralsOccurrenceText", '');
+                    vm.filterOCRReferralsOccurrence = 'all';
+                    sessionStorage.setItem("filterOCRReferralsOccurrenceText", '');
                 }).
                 on("select2:open", function (e) {
                     const searchField = $('[aria-controls="select2-ocr_referrals_occurrence_lookup-results"]')
@@ -438,16 +453,52 @@ export default {
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    vm.filterOCRFloraReferralsScientificName = data;
-                    sessionStorage.setItem("filterOCRFloraReferralsScientificNameText", e.params.data.text);
+                    vm.filterOCRReferralsScientificName = data;
+                    sessionStorage.setItem("filterOCRReferralsScientificNameText", e.params.data.text);
                 }).
                 on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
-                    vm.filterOCRFloraReferralsScientificName = 'all';
-                    sessionStorage.setItem("filterOCRFloraReferralsScientificNameText", '');
+                    vm.filterOCRReferralsScientificName = 'all';
+                    sessionStorage.setItem("filterOCRReferralsScientificNameText", '');
                 }).
                 on("select2:open", function (e) {
                     const searchField = $('[aria-controls="select2-ocr_referrals_scientific_name_lookup_by_groupname-results"]')
+                    searchField[0].focus();
+                });
+        },
+        initialiseCommunityNameLookup: function () {
+            let vm = this;
+            $(vm.$refs.ocr_referrals_community_name_lookup).select2({
+                minimumInputLength: 2,
+                dropdownParent: $("#select_ocr_referrals_community_name"),
+                theme: 'bootstrap-5',
+                allowClear: true,
+                placeholder: "Select Community Name",
+                ajax: {
+                    url: api_endpoints.community_name_lookup,
+                    dataType: 'json',
+                    data: function (params) {
+                        var query = {
+                            term: params.term,
+                            type: 'public',
+                        }
+                        return query;
+                    },
+                },
+            }).
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.filterOCRReferralsName = data;
+                    sessionStorage.setItem("filterOCRReferralsNameText", e.params.data.text);
+                }).
+                on("select2:unselect", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.filterOCRReferralsName = 'all';
+                    sessionStorage.setItem("filterOCRReferralsNameText", '');
+                }).
+                on("select2:open", function (e) {
+                    const searchField = $('[aria-controls="select2-ocr_referrals_community_name_lookup-results"]')
                     searchField[0].focus();
                 });
         },
@@ -468,15 +519,23 @@ export default {
         });
         this.$nextTick(() => {
             vm.initialiseOccurrenceLookup();
-            vm.initialiseScientificNameLookup();
+            if (vm.group_type_name == 'community') {
+                vm.initialiseCommunityNameLookup();
+            } else {
+                vm.initialiseScientificNameLookup();
+            }
             vm.addEventListeners();
-            if (sessionStorage.getItem("filterOCRFloraReferralsOccurrence") != 'all' && sessionStorage.getItem("filterOCRFloraReferralsOccurrence") != null) {
-                var newOption = new Option(sessionStorage.getItem("filterOCRFloraReferralsOccurrenceText"), vm.filterOCRFloraReferralsOccurrence, false, true);
+            if (sessionStorage.getItem("filterOCRReferralsOccurrence") != 'all' && sessionStorage.getItem("filterOCRReferralsOccurrence") != null) {
+                var newOption = new Option(sessionStorage.getItem("filterOCRReferralsOccurrenceText"), vm.filterOCRReferralsOccurrence, false, true);
                 $('#ocr_referrals_occurrence_lookup').append(newOption);
             }
-            if (sessionStorage.getItem("filterOCRFloraReferralsScientificName") != 'all' && sessionStorage.getItem("filterOCRFloraReferralsScientificName") != null) {
-                var newOption = new Option(sessionStorage.getItem("filterOCRFloraReferralsScientificNameText"), vm.filterOCRFloraReferralsScientificName, false, true);
+            if (sessionStorage.getItem("filterOCRReferralsScientificName") != 'all' && sessionStorage.getItem("filterOCRReferralsScientificName") != null) {
+                var newOption = new Option(sessionStorage.getItem("filterOCRReferralsScientificNameText"), vm.filterOCRReferralsScientificName, false, true);
                 $('#ocr_referrals_scientific_name_lookup').append(newOption);
+            }
+            if (sessionStorage.getItem("filterOCRReferralsName") != 'all' && sessionStorage.getItem("filterOCRReferralsName") != null) {
+                var newOption = new Option(sessionStorage.getItem("filterOCRReferralsNameText"), vm.filterOCRReferralsName, false, true);
+                $('#ocr_referrals_community_name_lookup').append(newOption);
             }
         });
     }
