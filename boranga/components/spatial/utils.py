@@ -112,6 +112,7 @@ def populate_occurrence_tenure_data(geometry_instance, features):
         feature_id = feature.get("id", None)
         owner_name = feature.get("properties", {}).get("CAD_OWNER_NAME", None)
         owner_count = feature.get("properties", {}).get("CAD_OWNER_COUNT", None)
+        tenure_area_ewkb = feature_json_to_geosgeometry(feature).ewkb
 
         if not feature_id:
             logger.warn(f"Feature does not have an ID: {feature}")
@@ -139,7 +140,11 @@ def populate_occurrence_tenure_data(geometry_instance, features):
                 occurrence_geometry=geometry_instance,
                 status="current",  # In case all existing tenures are historical, create a new one
                 tenure_area_id=feature_id,
-                defaults={"owner_name": owner_name, "owner_count": owner_count},
+                defaults={
+                    "owner_name": owner_name,
+                    "owner_count": owner_count,
+                    "tenure_area_ewkb": tenure_area_ewkb,
+                },
             )
 
         if created:

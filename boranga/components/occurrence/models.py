@@ -4116,6 +4116,7 @@ class OccurrenceTenure(models.Model):
     tenure_area_id = models.CharField(
         max_length=100, blank=True, null=True
     )  # E.g. CPT_CADASTRE_SCDB.314159265
+    tenure_area_ewkb = models.BinaryField(blank=True, null=True, editable=True)
     owner_name = models.CharField(max_length=255, blank=True, null=True)
     owner_count = models.IntegerField(blank=True, null=True)
     # vesting = models.TBD
@@ -4180,6 +4181,12 @@ class OccurrenceTenure(models.Model):
     @property
     def vesting(self):
         return "Vesting TBI"
+
+    @property
+    def tenure_area_centroid(self):
+        from boranga.components.spatial.utils import wkb_to_geojson
+
+        return wkb_to_geojson(self.tenure_area_ewkb)
 
 
 # Occurrence Report Document
