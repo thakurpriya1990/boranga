@@ -105,12 +105,12 @@ export default {
             return "section_body_"+this.Index;
         },
     },
-    methods: {
-        
+    methods: {        
         toggle_show_hide: function(){
             // Bootstrap add a 'collapsed' class name to the element
             let elem_expanded_when_clicked = $('#show_hide_switch_' + this.section_body_id).hasClass('collapsed')
             this.elem_expanded = !elem_expanded_when_clicked
+            this.$emit('toggle-collapse')
         },
         toggleComment:function(){
                 this.$emit('toggleComment',!this.isShowComment)

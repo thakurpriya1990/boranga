@@ -29,7 +29,6 @@ import Vue from 'vue'
 import { v4 as uuid } from 'uuid'
 import datatable from '@/utils/vue/datatable.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
-import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import SectionModal from '@/components/common/occurrence/section_modal.vue'
 import {
     constants,
@@ -43,7 +42,6 @@ export default {
     components: {
         datatable,
         FormSection,
-        CollapsibleFilters,
         SectionModal,
     },
     props: {
@@ -235,6 +233,7 @@ export default {
     },
     methods:{
         toggleCollapse: function () {
+            console.log("toggle");
             this.adjust_table_width();
         },
         viewSection:function (id) {
