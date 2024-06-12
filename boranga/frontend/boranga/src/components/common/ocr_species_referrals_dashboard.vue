@@ -155,7 +155,11 @@ export default {
             }
         },
         datatable_headers: function () {
-            return ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
+            if(this.group_type_name == 'community'){
+                return ['ID', 'Number', 'Occurrence', 'Community Name', 'Submission date/time', 'Submitter', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
+            } else {
+                return ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
+            }
         },
         column_id: function () {
             return {
@@ -197,6 +201,15 @@ export default {
                 searchable: true,
                 visible: true,
                 name: "occurrence_report__species__taxonomy__scientific_name",
+            }
+        },
+        column_community_name: function () {
+            return {
+                data: "community_name",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                name: "occurrence_report__community__taxonomy__community_name",
             }
         },
         column_submission_date_time: function () {
@@ -292,6 +305,7 @@ export default {
                     }
                 }
             ]
+
             columns = [
                 vm.column_id,
                 vm.column_number,
@@ -305,6 +319,11 @@ export default {
                 vm.column_status,
                 vm.column_action,
             ]
+
+            if(this.group_type_name == 'community'){
+                columns.splice(3, 1, vm.column_community_name)
+            }
+
             search = true
 
             return {
