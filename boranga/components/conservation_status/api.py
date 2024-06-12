@@ -72,7 +72,11 @@ from boranga.components.species_and_communities.models import (
     TaxonVernacular,
 )
 from boranga.components.users.models import SubmitterCategory
-from boranga.helpers import is_external_contributor, is_internal
+from boranga.helpers import (
+    is_conservation_status_approver,
+    is_external_contributor,
+    is_internal,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1836,10 +1840,17 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         if not status:
             raise serializers.ValidationError("Status is required")
 
-        if status not in [
+        allowed_statuses = [
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
-        ]:
+        ]
+
+        if is_conservation_status_approver(request):
+            # When an assessor proposes to delist a CS, the approver can instead decide to
+            # return the CS to approved status.
+            allowed_statuses.append(ConservationStatus.PROCESSING_STATUS_APPROVED)
+
+        if status not in allowed_statuses:
             raise serializers.ValidationError("The status provided is not allowed")
 
         instance.move_to_status(request, status, approver_comment)

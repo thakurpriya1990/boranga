@@ -20,7 +20,7 @@
                             <strong>Status</strong><br />
                             {{ conservation_status_obj.processing_status }}
                         </div>
-                        <div v-if="!isFinalised" class="card-body border-top">
+                        <div class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Currently assigned to</strong><br />
@@ -150,27 +150,48 @@
                                 </div>
                             </div>
                         </div>
+                        <div v-if="isFinalised && canAction" class="card-body border-top">
+                            <div class="row">
+                                <div class="col-sm-12 top-buffer-s">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <strong>Action</strong><br />
+                                        </div>
+                                    </div>
+                                    <template v-if="conservation_status_obj.processing_status == 'Approved'">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="proposeDelist()">Propose Delist</button><br />
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                         <div v-if="!isFinalised && canAction" class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
-                                    <template
-                                        v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <strong>Action</strong><br />
+                                        </div>
+                                    </div>
+                                    <template v-if="conservation_status_obj.processing_status == 'Approved'">
                                         <div class="row">
                                             <div class="col-sm-12">
-                                                <strong>Action</strong><br />
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="proposeDelist()">Propose Delist</button><br />
                                             </div>
                                         </div>
+                                    </template>
+                                    <template
+                                        v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="amendmentRequest()">Request
                                                     Amendment</button><br />
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="proposeDelist()">Propose Delist</button><br />
                                             </div>
                                         </div>
                                         <div class="row" v-if="conservation_status_obj.approval_level == 'minister'">
@@ -196,11 +217,6 @@
                                         </div>
                                     </template>
                                     <template v-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <strong>Action</strong><br />
-                                            </div>
-                                        </div>
                                         <div class="row" v-if="conservation_status_obj.approval_level == 'minister'">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
@@ -216,11 +232,6 @@
                                     </template>
                                     <template
                                         v-else-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <strong>Action</strong><br />
-                                            </div>
-                                        </div>
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <label class="control-label pull-left" for="Name">Approver
@@ -251,14 +262,14 @@
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary"
-                                                    @click.prevent="switchStatus('with_assessor')">Back To
-                                                    Assessor</button><br />
+                                                    @click.prevent="switchStatus('approved')">Revert To
+                                                    Approved</button><br />
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="delistProposal()">Delist</button><br />
+                                                    @click.prevent="delistProposal()">Confirm Delisting</button><br />
                                             </div>
                                         </div>
                                     </template>
@@ -499,9 +510,8 @@ export default {
                         this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver)
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess;
             }
-            else if (['With Assessor'].includes(this.conservation_status_obj.processing_status)) {
+            else if (['With Assessor', 'Approved'].includes(this.conservation_status_obj.processing_status)) {
                 return this.conservation_status_obj
-                    && !this.isFinalised
                     && (
                         this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer)
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess;
