@@ -4075,16 +4075,19 @@ class OccurrenceTenurePurpose(models.Model):
 
     class Meta:
         app_label = "boranga"
+        verbose_name = "Occurrence Tenure Purpose"
+        verbose_name_plural = "Occurrence Tenure Purposes"
 
 
 def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
     sub_objs.update(status="historical")
-    occurrence_geometry_dict = collector.data.get(OccurrenceGeometry, None)
-    if len(occurrence_geometry_dict) > 0:
-        # Populate historical_occurrence_geometry_ewkb and historical_occurrence id
-        occurrence_geometry = occurrence_geometry_dict.pop()
+    occurrence_geometry_set = collector.data.get(OccurrenceGeometry, {})
+    if len(occurrence_geometry_set) > 0:
+        # Create a shallow copy first to not modify the original set
+        occurrence_geometry = occurrence_geometry_set.copy().pop()
         occurrence_geometry.occurrence.id
         occurrence_geometry.geometry.ewkt
+        # Populate historical_occurrence_geometry_ewkb and historical_occurrence id
         sub_objs.update(historical_occurrence=occurrence_geometry.occurrence.id)
         sub_objs.update(
             historical_occurrence_geometry_ewkb=occurrence_geometry.geometry.ewkb
@@ -4115,6 +4118,7 @@ class OccurrenceTenure(models.Model):
     tenure_area_id = models.CharField(
         max_length=100, blank=True, null=True
     )  # E.g. CPT_CADASTRE_SCDB.314159265
+    tenure_area_ewkb = models.BinaryField(blank=True, null=True, editable=True)
     owner_name = models.CharField(max_length=255, blank=True, null=True)
     owner_count = models.IntegerField(blank=True, null=True)
     # vesting = models.TBD
@@ -4179,6 +4183,19 @@ class OccurrenceTenure(models.Model):
     @property
     def vesting(self):
         return "Vesting TBI"
+
+    @property
+    def tenure_area_centroid(self):
+        from boranga.components.spatial.utils import (
+            wkb_to_geojson,
+            feature_json_to_geosgeometry,
+        )
+
+        if self.tenure_area_ewkb:
+            geo_json = wkb_to_geojson(self.tenure_area_ewkb)
+            centroid = feature_json_to_geosgeometry(geo_json).centroid
+            return wkb_to_geojson(centroid.ewkb)
+        return None
 
 
 # Occurrence Report Document

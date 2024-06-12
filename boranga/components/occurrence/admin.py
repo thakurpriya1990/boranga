@@ -19,6 +19,7 @@ from boranga.components.occurrence.models import (
     OccurrenceSource,
     OccurrenceReport,
     OccurrenceTenure,
+    OccurrenceTenurePurpose,
     PermitType,
     PlantCondition,
     PlantCountAccuracy,
@@ -171,6 +172,7 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
                         "typename",
                         "featureid",
                     ),
+                    ("tenure_area"),
                 )
             },
         ),
@@ -196,7 +198,7 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
         ),
     )
 
-    readonly_fields = ["typename", "featureid", "geometry", "occurrence"]
+    readonly_fields = ["typename", "featureid", "tenure_area", "geometry", "occurrence"]
     list_filter = ("status", "significant_to_occurrence", "purpose")
 
     def occurrence(self, obj):
@@ -211,6 +213,14 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
             geom["properties"]["occurrence_id"] = obj.occurrence.id
             return geom
         return obj.occurrence_geometry
+
+    def tenure_area(self, obj):
+        return wkb_to_geojson(obj.tenure_area_ewkb)
+
+
+@admin.register(OccurrenceTenurePurpose)
+class OccurrenceTenurePurposeAdmin(admin.ModelAdmin):
+    pass
 
 
 # Each of the following models will be available to Django Admin.
