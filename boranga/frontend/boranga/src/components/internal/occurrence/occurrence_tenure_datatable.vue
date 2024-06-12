@@ -19,6 +19,7 @@ export default {
     components: {
         datatable,
     },
+    emit: ['highlight-on-map', 'edit-tenure-details'],
     props: {
         occurrenceId: {
             type: Number,
@@ -118,8 +119,11 @@ export default {
                 visible: true,
                 // eslint-disable-next-line no-unused-vars
                 render: function (data, type, row) {
-                    let html = `<button class="btn btn-primary btn-sm mb-1" @click="highlightOnMap(${data})">Highlight on Map</button>`;
-                    html += `<br><button class="btn btn-primary btn-sm" @click="editTenureDetails(${data})">Edit Tenure Details</button>`;
+                    const coordinates = row.tenure_area_centroid
+                        ? row.tenure_area_centroid.coordinates
+                        : null;
+                    let html = `<a class="btn btn-primary btn-sm mb-1" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
+                    html += `<br><a class="btn btn-primary btn-sm" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;
                     return html;
                 },
             };
@@ -178,6 +182,43 @@ export default {
                     //
                 },
             };
+        },
+    },
+    mounted: function () {
+        this.$nextTick(() => {
+            this.addEventListeners();
+        });
+    },
+    methods: {
+        addEventListeners: function () {
+            this.$refs.occurrence_tenure_datatable.vmDataTable.on(
+                'click',
+                'a[data-highlight-on-map-coordinates]',
+                function (e) {
+                    e.preventDefault();
+                    const coordinates = $(this).attr(
+                        'data-highlight-on-map-coordinates'
+                    );
+                    console.log(coordinates);
+                    this.highlightOnMap(coordinates);
+                }
+            );
+            this.$refs.occurrence_tenure_datatable.vmDataTable.on(
+                'click',
+                'a[data-edit-tenure-details]',
+                function (e) {
+                    e.preventDefault();
+                    const id = $(this).attr('data-edit-tenure-details');
+                    this.editTenureDetails(id);
+                    console.log(id);
+                }
+            );
+        },
+        highlightOnMap: function (coordinates) {
+            this.$emit('highlight-on-map', coordinates);
+        },
+        editTenureDetails: function (id) {
+            this.$emit('edit-tenure-details', id);
         },
     },
 };
