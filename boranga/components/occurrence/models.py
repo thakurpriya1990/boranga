@@ -4079,12 +4079,13 @@ class OccurrenceTenurePurpose(models.Model):
 
 def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
     sub_objs.update(status="historical")
-    occurrence_geometry_dict = collector.data.get(OccurrenceGeometry, None)
-    if len(occurrence_geometry_dict) > 0:
-        # Populate historical_occurrence_geometry_ewkb and historical_occurrence id
-        occurrence_geometry = occurrence_geometry_dict.pop()
+    occurrence_geometry_set = collector.data.get(OccurrenceGeometry, {})
+    if len(occurrence_geometry_set) > 0:
+        # Create a shallow copy first to not modify the original set
+        occurrence_geometry = occurrence_geometry_set.copy().pop()
         occurrence_geometry.occurrence.id
         occurrence_geometry.geometry.ewkt
+        # Populate historical_occurrence_geometry_ewkb and historical_occurrence id
         sub_objs.update(historical_occurrence=occurrence_geometry.occurrence.id)
         sub_objs.update(
             historical_occurrence_geometry_ewkb=occurrence_geometry.geometry.ewkb
