@@ -45,6 +45,7 @@
                             ids: [occurrence_obj.id],
                         },
                     ]"
+                    @features-loaded="mapFeaturesLoaded"
                     @crs-select-search="searchForCRS"
                 ></MapComponent>
             </div>
@@ -240,6 +241,7 @@
                 ref="occurrence_tenure_datatable"
                 :key="'occurrence-tenure-datatable-' + uuid"
                 :occurrence-id="occurrence_obj.id"
+                :href-container-id="mapContainerId"
                 @highlight-on-map="highlightOnMap"
             ></OccurrenceTenureDatatable>
             <RelatedReports 
@@ -308,6 +310,7 @@ export default {
             datum_list: [],
             coordination_source_list: [],
             location_accuracy_list: [],
+            mapReady: false,
         };
     },
     computed: {
@@ -340,6 +343,12 @@ export default {
         },
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
+        },
+        mapContainerId: function () {
+            if (!this.mapReady) {
+                return null;
+            }
+            return this.$refs.component_map.map_container_id;
         },
     },
     created: async function () {
@@ -544,6 +553,10 @@ export default {
                 .finally(() => {
                     loading(false);
                 });
+        },
+        mapFeaturesLoaded: function () {
+            console.log('Map features loaded.');
+            this.mapReady = true;
         },
         highlightOnMap: function (coordinates) {
             if (!coordinates) {

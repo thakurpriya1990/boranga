@@ -1595,7 +1595,7 @@ export default {
             },
         },
     },
-    emits: ['validate-feature', 'refreshFromResponse'],
+    emits: ['validate-feature', 'refreshFromResponse', 'features-loaded'],
     data() {
         // eslint-disable-next-line no-unused-vars
         let vm = this;
@@ -2064,7 +2064,7 @@ export default {
         });
     },
     methods: {
-        setLoadingMap(loading=false) {
+        setLoadingMap(loading = false) {
             this.loadingMap = loading;
         },
         /**
@@ -2128,6 +2128,8 @@ export default {
         onFeaturesLoaded: function (event) {
             let vm = this;
             if (event.details.loaded == true) {
+                vm.$emit('features-loaded');
+
                 vm.initialiseUndoRedos();
 
                 vm.dragbox = new DragBox({

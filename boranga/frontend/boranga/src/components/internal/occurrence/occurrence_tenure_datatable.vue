@@ -26,6 +26,11 @@ export default {
             required: false,
             default: null,
         },
+        hrefContainerId: {
+            type: String,
+            required: false,
+            default: '#',
+        },
     },
     data: function () {
         return {
@@ -112,6 +117,7 @@ export default {
             };
         },
         column_action: function () {
+            const vm = this;
             return {
                 data: 'id',
                 orderable: false,
@@ -122,8 +128,8 @@ export default {
                     const coordinates = row.tenure_area_centroid
                         ? JSON.stringify(row.tenure_area_centroid.coordinates)
                         : null;
-                    let html = `<a class="btn btn-primary btn-sm mb-1" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
-                    html += `<br><a class="btn btn-primary btn-sm" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;
+                    let html = `<a href="#${vm.hrefContainerId}" class="btn btn-primary btn-sm mb-1" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
+                    html += `<br><a href="#" class="btn btn-primary btn-sm" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;
                     return html;
                 },
             };
@@ -195,8 +201,9 @@ export default {
             this.$refs.occurrence_tenure_datatable.vmDataTable.on(
                 'click',
                 'a[data-highlight-on-map-coordinates]',
+                // eslint-disable-next-line no-unused-vars
                 function (e) {
-                    e.preventDefault();
+                    // e.preventDefault();
                     const coordinates = $(this).attr(
                         'data-highlight-on-map-coordinates'
                     );
