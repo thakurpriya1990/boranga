@@ -2084,7 +2084,7 @@ class OCRAssociatedSpecies(models.Model):
     )
     comment = models.TextField(blank=True)
 
-    related_species = models.ManyToManyField(Taxonomy, null=True)
+    related_species = models.ManyToManyField(Taxonomy, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -3492,9 +3492,9 @@ class OccurrenceGeometry(models.Model):
         return None
 
 
-class OCCObserverDetail(models.Model):
+class OCCContactDetail(models.Model):
     """
-    Observer data  for occurrence
+    Observer data for occurrence
 
     Used for:
     - Occurrence
@@ -3506,18 +3506,19 @@ class OCCObserverDetail(models.Model):
         Occurrence,
         on_delete=models.CASCADE,
         null=True,
-        related_name="observer_detail",
+        related_name="contact_detail",
     )
-    observer_name = models.CharField(max_length=250, blank=True, null=True)
+    contact_name = models.CharField(max_length=250, blank=True, null=True)
     role = models.CharField(max_length=250, blank=True, null=True)
     contact = models.CharField(max_length=250, blank=True, null=True)
     organisation = models.CharField(max_length=250, blank=True, null=True)
-    main_observer = models.BooleanField(null=True, blank=True)
+    notes = models.CharField(max_length=512, blank=True, null=True)
+    visible = models.BooleanField(default=True)
 
     class Meta:
         app_label = "boranga"
         unique_together = (
-            "observer_name",
+            "contact_name",
             "occurrence",
         )
 
@@ -3812,7 +3813,7 @@ class OCCAssociatedSpecies(models.Model):
     )
     comment = models.TextField(blank=True)
 
-    related_species = models.ManyToManyField(Taxonomy, null=True)
+    related_species = models.ManyToManyField(Taxonomy, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
