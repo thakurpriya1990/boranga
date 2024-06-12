@@ -236,17 +236,22 @@ export default {
             }
         },
         column_action: function () {
-            let vm = this
             return {
-                data: "id",
+                data: "conservation_status_id",
                 orderable: false,
                 searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
                     let links = '';
-                    links += full.can_be_processed ? `<a href='/internal/conservation_status/${full.conservation_status}/referral/${full.id}'>Process</a><br/>` : `<a href='/internal/conservation_status/${full.conservation_status}/referral/${full.id}'>View</a><br/>`;
+                    links += full.can_be_processed ? `<a href='/internal/conservation_status/${full.conservation_status_id}/referral/${full.id}'>Process</a><br/>` : `<a href='/internal/conservation_status/${full.conservation_status_id}/referral/${full.id}'>View</a><br/>`;
                     return links;
                 }
+            }
+        },
+        column_can_be_processed: function () {
+            return {
+                data: "can_be_processed",
+                visible: false,
             }
         },
         datatable_options: function () {
@@ -259,6 +264,7 @@ export default {
                 vm.column_community_name,
                 vm.column_status,
                 vm.column_action,
+                vm.column_can_be_processed
             ]
             let search = false
             let buttons = [
