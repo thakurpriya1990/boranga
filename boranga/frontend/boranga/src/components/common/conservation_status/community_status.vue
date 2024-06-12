@@ -1,41 +1,58 @@
 <template lang="html">
     <div id="communityStatus">
-        <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status"
-            :isShowComment="isShowComment" :has_comment_value="has_comment_value"
-            v-on:toggleComment="toggleComment($event)" :displayCommentSection="!is_external">
-            <div v-if="!is_external">
-                <div v-show="isShowComment">
-                    <div class="row mb-3" v-if="deficiencyVisibility">
-                        <label for="" class="col-sm-4 control-label">Deficiencies:</label>
-                        <div class="col-sm-8">
-                            <textarea :disabled="deficiency_readonly" class="form-control" rows="3"
-                                id="assessor_deficiencies" placeholder=""
-                                v-model="conservation_status_obj.deficiency_data" />
-                        </div>
-                    </div>
-                    <div class="row mb-3" v-if="assessorCommentVisibility">
-                        <label for="" class="col-sm-4 control-label">Assessor:</label>
-                        <div class="col-sm-8">
-                            <textarea :disabled="assessor_comment_readonly" class="form-control" rows="3"
-                                id="assessor_comment" placeholder="" v-model="conservation_status_obj.assessor_data" />
-                        </div>
-                    </div>
-                    <div v-if="referral_comments_boxes.length > 0">
-                        <div v-for="ref in referral_comments_boxes">
-                            <div class="row mb-3" v-if="ref.box_view">
-                                <label for="" class="col-sm-4 control-label">{{ ref.label }}:</label>
-                                <div class="col-sm-8">
-                                    <textarea v-if='!ref.readonly' :disabled="ref.readonly" :name="ref.name"
-                                        class="form-control" rows="3" placeholder=""
-                                        v-model="referral.referral_comment" />
-                                    <textarea v-else :disabled="ref.readonly" :name="ref.name" :value="ref.value"
-                                        class="form-control" rows="" placeholder="" />
+        <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
+            <template v-if="!is_external">
+                <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments"
+                    :collapsed="false">
+                    <div class="row">
+                        <div class="col rounded">
+                            <div class="row" v-if="deficiencyVisibility">
+                                <div class="col">
+                                    <div class="form-floating m-3">
+                                        <textarea :disabled="deficiency_readonly" class="form-control"
+                                            id="assessor_deficiencies" placeholder="Deficiency Comments"
+                                            v-model="conservation_status_obj.deficiency_data" />
+                                        <label for="assessor_deficiencies" class="form-label">Deficiency
+                                            Comments</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" v-if="assessorCommentVisibility">
+                                <div class="col">
+                                    <div class="form-floating m-3 mt-1">
+                                        <textarea :disabled="assessor_comment_readonly" class="form-control" rows="3"
+                                            id="assessor_comment" placeholder="Assessor Comments"
+                                            v-model="conservation_status_obj.assessor_data" />
+                                        <label for="" class="col-sm-4 col-form-label">Assessor Comments</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="referral_comments_boxes.length > 0">
+                                <div>
+                                    <div class="row mt-2">
+                                        <div class="col ms-3">
+                                            <h6 class="text-muted">Referral Comments</h6>
+                                        </div>
+                                    </div>
+                                    <div v-for="ref in referral_comments_boxes" class="row mb-3" v-if="ref.box_view">
+                                        <div class="col">
+                                            <div class="form-floating m-3 mt-1">
+                                                <textarea v-if='!ref.readonly' :disabled="ref.readonly" :id="ref.name"
+                                                    :name="ref.name" class="form-control" :placeholder="ref.label"
+                                                    v-model="referral.referral_comment" />
+                                                <textarea v-else :disabled="ref.readonly" :name="ref.name"
+                                                    :value="ref.value || ''" class="form-control"
+                                                    :placeholder="ref.label" />
+                                                <label :for="ref.name" class="form-label">{{ ref.label }}</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </CollapsibleComponent>
+            </template>
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label">Community Name:</label>
                 <div class="col-sm-8" :id="select_community_name">
@@ -114,7 +131,8 @@
                 <div class="col-sm-8">
                     <p v-if="conservation_status_obj.conservation_status_approval_document">
                         <strong><a :href="conservation_status_obj.conservation_status_approval_document[1]"
-                                target="_blank">{{ conservation_status_obj.conservation_status_approval_document[0]
+                                target="_blank">{{
+                                    conservation_status_obj.conservation_status_approval_document[0]
                                 }}</a></strong>
                     </p>
                 </div>
@@ -125,6 +143,7 @@
 
 <script>
 import FormSection from '@/components/forms/section_toggle.vue';
+import CollapsibleComponent from '@/components/forms/collapsible_component.vue'
 import {
     api_endpoints,
     helpers
@@ -166,6 +185,7 @@ export default {
         }
     },
     components: {
+        CollapsibleComponent,
         FormSection,
     },
     computed: {
@@ -314,6 +334,9 @@ export default {
     },
     mounted: function () {
         let vm = this;
+        if (!this.is_external && vm.$refs.assessment_comments) {
+            vm.$refs.assessment_comments.show_warning_icon(false);
+        }
         this.$nextTick(() => {
             vm.initialiseCommunityNameLookup();
         });
