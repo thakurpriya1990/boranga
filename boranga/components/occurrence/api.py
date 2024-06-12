@@ -3618,10 +3618,10 @@ class OccurrenceViewSet(
 
     def is_authorised_to_update(self):
         instance = self.get_object()
-        if not is_occurrence_approver(self.request) and (
+        if not (is_occurrence_approver(self.request) and (
             instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
             or instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
-        ):
+        )):
             raise serializers.ValidationError(
                 "User not authorised to update Occurrence"
             )
@@ -4985,10 +4985,10 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     def is_authorised_to_update(self, occurrence):
         user = self.request.user
-        if not is_occurrence_approver(self.request) and (
+        if not (is_occurrence_approver(self.request) and (
             occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
             or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
-        ):
+        )):
             raise serializers.ValidationError(
                 "User not authorised to update Occurrence"
             )

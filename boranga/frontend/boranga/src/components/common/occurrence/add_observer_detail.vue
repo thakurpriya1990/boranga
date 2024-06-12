@@ -27,7 +27,7 @@
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Contact Details</label>
+                                        <label class="control-label pull-left" :disabled="isReadOnly">Contact Details</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <textarea class="form-control" id="contact_details"
@@ -64,7 +64,7 @@
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left">&nbsp;</label>
                                     </div>
-                                    <div class="col-sm-9">
+                                    <div v-if="!isReadOnly" class="col-sm-9">
                                         <button type="button" class="btn btn-primary mb-2" @click="clearForm">Clear
                                             Form</button><br />
                                         <button type="button" class="btn btn-primary" @click="populateWithSubmitterInformation()">Populate Form with Submitter Details</button>
@@ -76,6 +76,7 @@
                 </div>
             </div>
             <div slot="footer">
+                <div v-if="!isReadOnly">
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
                 <template v-if="observer_detail_id">
                     <button type="button" v-if="updatingObserver" disabled class="btn btn-primary" @click="ok"><i
@@ -87,6 +88,7 @@
                             class="fa fa-spinner fa-spin"></i> Adding</button>
                     <button type="button" v-else class="btn btn-primary" @click="ok">Add Observer</button>
                 </template>
+                </div>
             </div>
         </modal>
     </div>
