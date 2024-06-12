@@ -29,7 +29,7 @@
                         :profile="profile" />
                 </FormSection>
                 <FormSection :formCollapse="false" label="Occurrence Report - Flora Referred to Me" Index="occurrence-report-flora-referred-to-me">
-                    <OccurrenceReportFloraReferredToMeDashTable v-if="isFlora" ref="flora_referrals_table" level="internal"
+                    <OccurrenceReportSpeciesReferredToMeDashTable v-if="isFlora" ref="flora_referrals_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_referrals_url"
                         :profile="profile" />
                 </FormSection>
@@ -43,6 +43,11 @@
                 <FormSection :formCollapse="false" label="Occurrence Report - Fauna" Index="fauna">
                     <OccurrenceReportFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_url"
+                        :profile="profile" />
+                </FormSection>
+                <FormSection :formCollapse="false" label="Occurrence Report - Fauna Referred to Me" Index="occurrence-report-fauna-referred-to-me">
+                    <OccurrenceReportSpeciesReferredToMeDashTable v-if="isFauna" ref="fauna_referrals_table" level="internal"
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_referrals_url"
                         :profile="profile" />
                 </FormSection>
             </div>
@@ -72,8 +77,7 @@ import OccurrenceReportFloraDashTable from '@/components/common/occurrence_repor
 import OccurrenceReportFaunaDashTable from '@common-utils/occurrence_report_fauna_dashboard.vue'
 import OccurrenceReportCommunityDashTable from '@common-utils/occurrence_report_community_dashboard.vue'
 
-import OccurrenceReportFloraReferredToMeDashTable from '@common-utils/ocr_flora_referrals_dashboard.vue'
-
+import OccurrenceReportSpeciesReferredToMeDashTable from '@common-utils/ocr_species_referrals_dashboard.vue'
 
 import FormSection from '@/components/forms/section_toggle.vue'
 
@@ -85,7 +89,6 @@ import {
 export default {
     name: 'InternalOccurrenceDashboard',
     data() {
-        let vm = this;
         return {
             user_preference: 'flora',    // TODO : set it to default user preference but for now is hardcoded value
             group_types: [],
@@ -105,11 +108,10 @@ export default {
         OccurrenceReportFloraDashTable,
         OccurrenceReportFaunaDashTable,
         OccurrenceReportCommunityDashTable,
-        OccurrenceReportFloraReferredToMeDashTable,
+        OccurrenceReportSpeciesReferredToMeDashTable,
         FormSection,
     },
     computed: {
-        /*------properties to show the user authenticated Tabs only-----------*/
         show_occurrences: function () {
             return this.profile && this.profile.groups.find((i) => [
                 constants.GROUPS.SPECIES_AND_COMMUNITIES_APPROVERS,
@@ -126,8 +128,6 @@ export default {
         showCommunityTab: function () {
             return this.group_types.includes('community');
         },
-        /*---------------------------------------------------------------------*/
-        /*---------properties to load group related vue components-------------*/
         isFlora: function () {
             return this.group_name == 'flora';
         },
@@ -137,7 +137,6 @@ export default {
         isCommunity: function () {
             return this.group_name == 'community';
         },
-        /*---------------------------------------------------------------------*/
         getGroupId: function () {
             for (var i = 0; i < this.group_types.length; i++) {
                 if (this.group_name === this.group_types[i].name) {
@@ -185,7 +184,6 @@ export default {
             this.getGroupId;
         })
     },
-
 }
 </script>
 
