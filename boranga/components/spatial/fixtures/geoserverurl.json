@@ -14,5 +14,13 @@
             "url": "https://kaartdijin-boodja-geoserver.dbca.wa.gov.au/geoserver/ows",
             "wms_version": "1.3.0"
         }
+    },
+    {
+        "model": "boranga.geoserverurl",
+        "pk": 4,
+        "fields": {
+            "url": "/geoproxy/kb-node1-proxy/kaartdijin-boodja-private/wms",
+            "wms_version": "1.3.0"
+        }
     }
 ]
