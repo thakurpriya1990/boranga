@@ -979,8 +979,6 @@ class OccurrenceReportApprovalDetails(models.Model):
     )  # If being added to an existing occurrence
     new_occurrence_name = models.CharField(max_length=200, null=True, blank=True)
     officer = models.IntegerField()  # EmailUserRO
-    effective_from_date = models.DateField(null=True, blank=True)
-    effective_to_date = models.DateField(null=True, blank=True)
     details = models.TextField(blank=True)
 
     class Meta:
@@ -2823,8 +2821,7 @@ class Occurrence(RevisionedMixin):
         blank=True,
         related_name="occurrences",
     )
-    effective_from = models.DateTimeField(null=True, blank=True)
-    effective_to = models.DateTimeField(null=True, blank=True)
+
     submitter = models.IntegerField(null=True)  # EmailUserRO
     wild_status = models.ForeignKey(
         WildStatus, on_delete=models.PROTECT, null=True, blank=True
