@@ -752,10 +752,17 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             except Occurrence.DoesNotExist:
                 raise ValidationError(
                     f"Occurrence with id {occurrence_id} does not exist"
-                )
-
+                )            
+        
         details = validated_data.get("details", None)
         new_occurrence_name = validated_data.get("new_occurrence_name", None)
+
+        if new_occurrence_name and Occurrence.objects.filter(occurrence_name=new_occurrence_name).exists():
+            raise ValidationError(
+                f"Occurrence with name \"{new_occurrence_name}\" already exists"
+            )
+
+
         OccurrenceReportApprovalDetails.objects.update_or_create(
             occurrence_report=self,
             defaults={
