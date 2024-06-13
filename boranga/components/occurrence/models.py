@@ -2609,6 +2609,7 @@ class OccurrenceReportDocument(Document):
     can_hide = models.BooleanField(
         default=False
     )  # after initial submit, document cannot be deleted but can be hidden
+    can_submitter_access = models.BooleanField(default=False)
     hidden = models.BooleanField(default=False)
     # after initial submit prevent document from being deleted
     # Priya alternatively used below visible field in boranga
