@@ -342,9 +342,12 @@ export default {
             return this.crs;
         },
         occurrenceReportIds: function () {
-            return this.occurrence_obj.occurrence_reports.map(
+            let ocrIds = this.occurrence_obj.occurrence_reports.map(
                 (report) => report.id
             );
+            // If no ocr ids for this occ, return [-1], because [] pulls _all_ ocrs
+            ocrIds = ocrIds.length ? ocrIds : [-1];
+            return ocrIds;
         },
         tileLayerApiUrl: function () {
             return api_endpoints.tile_layer;
