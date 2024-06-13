@@ -4883,6 +4883,10 @@ export default {
                 layer.set('editing', false);
             }
         },
+        /**
+         * Queries the tenure layer at point coordinates and pans/zooms to coordinates
+         * @param {Array} coordinates Point coordinates
+         */
         highlightPointOnTenureLayer: function (coordinates) {
             if (!coordinates) {
                 return;
@@ -4897,6 +4901,37 @@ export default {
                 geometry: new Point(coordinates),
             });
             this.centerOnFeature(feature, 12);
+        },
+        /**
+         * Returns a layer by its name
+         * @param {String} layer_name The 'name' property of the layer. Corresponds to the 'name' property in the layer definition prop
+         */
+        getLayerByName: function (layer_name) {
+            return this.map
+                .getLayers()
+                .getArray()
+                .find((layer) => {
+                    return layer.get('name') == layer_name;
+                });
+        },
+        /**
+         * Returns a layer's feature by its id
+         * @param {Object} layer A layer
+         * @param {String|Number} feature_id The id of a feature on the layer
+         */
+        getFeatureById: function (layer, feature_id) {
+            let featureId = Number(feature_id);
+            if (isNaN(featureId)) {
+                console.error(`Feature ID ${feature_id} is not a number`);
+                return;
+            }
+            return layer
+                .getSource()
+                .getFeatures()
+                .find((feature) => {
+                    // The features name property is the model instance pk
+                    return feature.getProperties().name == featureId;
+                });
         },
     },
 };
