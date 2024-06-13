@@ -27,7 +27,7 @@
                     :spatial-operations-allowed="['__all__']"
                     :tile-layer-api-url="tileLayerApiUrl"
                     :query-layer-definition="{
-                        name: 'query_layer',
+                        name: queryLayerName,
                         title: 'Occurrence Reports',
                         default: false,
                         can_edit: true,
@@ -325,6 +325,7 @@ export default {
             coordination_source_list: [],
             location_accuracy_list: [],
             mapReady: false,
+            queryLayerName: 'query_layer',
         };
     },
     computed: {
@@ -590,7 +591,10 @@ export default {
             this.$refs.component_map.highlightPointOnTenureLayer(coordinates);
         },
         highlightIdOnMapLayer: function (id) {
-            console.log(id);
+            const map = this.$refs.component_map;
+            const layer = map.getLayerByName(this.queryLayerName);
+            const feature = map.getFeatureById(layer, id);
+            map.centerOnFeature(feature, 12);
         },
     },
 };
