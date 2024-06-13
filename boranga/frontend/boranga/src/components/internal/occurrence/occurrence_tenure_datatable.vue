@@ -6,6 +6,7 @@
             :dt-options="options"
             :dt-headers="headers"
         />
+        {{ hrefContainerId }}
     </div>
 </template>
 

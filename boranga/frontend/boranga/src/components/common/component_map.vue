@@ -1251,6 +1251,7 @@
                 </div>
             </div>
         </div>
+        {{ map_container_id }}
     </div>
 </template>
 

@@ -157,7 +157,6 @@ export default {
                 visible: true,
                 'render': function(row, type, full){
                     let links = '';
-                    // full.occurrence_report_number
                     if (vm.section_type == 'location') {
                         links += `<a href="#${vm.hrefContainerId}" data-highlight-on-map='${full.id}'>Highlight on Map</a><br>`;
                     }

@@ -247,7 +247,7 @@
                         ref="occurrence_tenure_datatable"
                         :key="datatableOCCTenureKey"
                         :occurrence-id="occurrence_obj.id"
-                        :href-container-id="mapContainerId"
+                        :href-container-id="getMapContainerId"
                         @highlight-on-map="highlightPointOnMap"
                     ></OccurrenceTenureDatatable>
                 </div>
@@ -259,7 +259,7 @@
                 :is-read-only="isReadOnly"
                 :occurrence_obj="occurrence_obj"
                 :section_type="'location'"
-                :href-container-id="mapContainerId"
+                :href-container-id="getMapContainerId"
                 @copyUpdate="copyUpdate"
                 @highlight-on-map="highlightIdOnMapLayer"
             />
@@ -325,6 +325,7 @@ export default {
             coordination_source_list: [],
             location_accuracy_list: [],
             mapReady: false,
+            mapContainerId: false,
             queryLayerName: 'query_layer',
         };
     },
@@ -368,11 +369,11 @@ export default {
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
         },
-        mapContainerId: function () {
+        getMapContainerId: function () {
             if (!this.mapReady) {
                 return '';
             }
-            return this.$refs.component_map.map_container_id;
+            return this.mapContainerId;
         },
     },
     created: async function () {
@@ -446,8 +447,7 @@ export default {
         });
 
         // Make sure the datatables have access to the map container id to have the page scroll to the map anchor
-        this.uuid_datatable_ocr = uuid();
-        this.uuid_datatable_occ_tenure = uuid();
+        this.refreshDatatables();
     },
     methods: {
         filterDistrict: function (event) {
@@ -538,6 +538,9 @@ export default {
         },
         incrementComponentMapKey: function () {
             this.uuid_component_map = uuid();
+            this.$nextTick(() => {
+                this.mapContainerId = this.$refs.component_map.map_container_id;
+            });
         },
         refreshDatatables: function () {
             this.uuid_datatable_ocr = uuid();
@@ -589,6 +592,7 @@ export default {
         },
         mapFeaturesLoaded: function () {
             console.log('Map features loaded.');
+            this.mapContainerId = this.$refs.component_map.map_container_id;
             this.mapReady = true;
         },
         highlightPointOnMap: function (coordinates) {
