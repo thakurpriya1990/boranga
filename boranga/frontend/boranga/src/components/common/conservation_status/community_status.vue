@@ -597,7 +597,6 @@ export default {
     methods: {
         approvalLevelChanged: function () {
             this.conservation_status_obj.effective_from = null;
-            this.$emit('saveConservationStatus');
         },
         initialiseCommunityNameLookup: function () {
             let vm = this;
