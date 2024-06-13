@@ -207,7 +207,7 @@
                                         @mouseleave="
                                             toggleHidden($event.target)
                                         "
-                                        @click="centerOnFeature(feature)"
+                                        @click="centerOnFeature(feature, 17)"
                                     >
                                         <img
                                             v-if="isMultiPointFeature(feature)"
@@ -1277,6 +1277,7 @@ import Collection from 'ol/Collection';
 import { Circle as CircleStyle, Fill, Stroke, Style, Icon } from 'ol/style';
 import { FullScreen as FullScreenControl } from 'ol/control';
 import { LineString, Point, MultiPoint, Polygon, MultiPolygon } from 'ol/geom';
+import { fromExtent } from 'ol/geom/Polygon';
 import { getArea } from 'ol/sphere.js';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
@@ -2172,8 +2173,13 @@ export default {
                 Math.max(...N),
             ];
         },
-        centerOnFeature: function (feature, maxZoom = 17) {
-            const ext = feature.getGeometry().getExtent();
+        centerOnFeature: function (feature, maxZoom) {
+            let ext = feature.getGeometry().getExtent();
+            if (!maxZoom) {
+                const extPol = fromExtent(ext);
+                extPol.scale(1.5);
+                ext = new Feature(extPol).getGeometry().getExtent();
+            }
             this.map.getView().fit(ext, {
                 duration: 1000,
                 size: this.map.getSize(),

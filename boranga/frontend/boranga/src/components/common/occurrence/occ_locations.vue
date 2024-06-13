@@ -520,6 +520,7 @@ export default {
                         }
                     });
                     vm.incrementComponentMapKey();
+                    vm.refreshDatatables();
                 },
                 (error) => {
                     var text = helpers.apiVueResourceError(error);
@@ -537,6 +538,10 @@ export default {
         },
         incrementComponentMapKey: function () {
             this.uuid_component_map = uuid();
+        },
+        refreshDatatables: function () {
+            this.uuid_datatable_ocr = uuid();
+            this.uuid_datatable_occ_tenure = uuid();
         },
         searchForCRS: function (search, loading) {
             const vm = this;
@@ -597,7 +602,7 @@ export default {
             const map = this.$refs.component_map;
             const layer = map.getLayerByName(this.queryLayerName);
             const feature = map.getFeatureById(layer, id);
-            map.centerOnFeature(feature, 12);
+            map.centerOnFeature(feature);
         },
     },
 };
