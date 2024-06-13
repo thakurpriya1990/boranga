@@ -170,7 +170,7 @@ export default {
             }
         },
         datatable_headers: function () {
-            let headers = ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter', 'Review Due', 'Status', 'Action']
+            let headers = ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter', 'Status', 'Action']
             if (this.group_type_name == 'community') {
                 headers.splice(3, 1, 'Community Name')
             }
@@ -244,15 +244,6 @@ export default {
                 visible: true,
             }
         },
-        column_review_due_date: function () {
-            return {
-                data: "review_due_date",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                name: "occurrence_report__review_due_date",
-            }
-        },
         column_status: function () {
             return {
                 data: "processing_status_display",
@@ -309,7 +300,6 @@ export default {
                 vm.column_scientific_name,
                 vm.column_submission_date_time,
                 vm.column_submitter,
-                vm.column_review_due_date,
                 vm.column_status,
                 vm.column_action,
             ]

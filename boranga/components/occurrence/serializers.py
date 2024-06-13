@@ -255,7 +255,6 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         source="get_processing_status_display"
     )
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
-    review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     assessor_edit = serializers.SerializerMethodField(read_only=True)
     internal_user_edit = serializers.SerializerMethodField()
@@ -294,7 +293,6 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "internal_user_edit",
             "occurrence",
             "occurrence_name",
-            "review_due_date",
             "is_new_contributor",
             "observation_date",
             "location_accuracy",
@@ -908,7 +906,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             # 'assigned_officer',
             "customer_status",
             "processing_status",
-            "review_status",
             "readonly",
             "can_user_edit",
             "can_user_view",
@@ -945,9 +942,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_processing_status(self, obj):
         return obj.get_processing_status_display()
-
-    def get_review_status(self, obj):
-        return obj.get_review_status_display()
 
     def get_customer_status(self, obj):
         return obj.get_customer_status_display()
@@ -1032,7 +1026,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
-    review_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
 
     def get_readonly(self, obj):
@@ -1110,7 +1103,6 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
         source="occurrence_report.reported_date", format="%Y-%m-%d %H:%M:%S"
     )
     submitter = serializers.SerializerMethodField()
-    review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     group_type = serializers.CharField(
         source="occurrence_report.group_type.name", allow_null=True
     )
@@ -1129,7 +1121,6 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
             "community_name",
             "reported_date",
             "submitter",
-            "review_due_date",
             "group_type",
             "processing_status_display",
         )
@@ -1197,7 +1188,6 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "assigned_officer",
             "customer_status",
             "processing_status",
-            "review_status",
             "readonly",
             "can_user_edit",
             "can_user_view",

@@ -310,7 +310,7 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_internal) {
-                return ['Number', 'Occurrence', 'Scientific Name', 'Observation Date','Submission Date', 'Submitter', 'Review Due', 'Status', 'Action']
+                return ['Number', 'Occurrence', 'Scientific Name', 'Observation Date','Submission Date', 'Submitter', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -417,15 +417,6 @@ export default {
                 name: "submitter__first_name, submitter__last_name",
             }
         },
-        column_review_due_date: function () {
-            return {
-                data: "review_due_date",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                name: "review_due_date",
-            }
-        },
         column_status: function () {
             return {
                 data: "processing_status_display",
@@ -500,7 +491,6 @@ export default {
                     vm.column_observation_date_time,
                     vm.column_submission_date_time,
                     vm.column_submitter,
-                    vm.column_review_due_date,
                     vm.column_status,
                     vm.column_action,
                 ]

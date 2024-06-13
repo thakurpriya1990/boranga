@@ -194,12 +194,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         PROCESSING_STATUS_CLOSED,
     ]
 
-    REVIEW_STATUS_CHOICES = (
-        ("not_reviewed", "Not Reviewed"),
-        ("awaiting_amendments", "Awaiting Amendments"),
-        ("amended", "Amended"),
-        ("accepted", "Accepted"),
-    )
     customer_status = models.CharField(
         "Customer Status",
         max_length=40,
@@ -286,16 +280,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
-
-    review_due_date = models.DateField(null=True, blank=True)
-    review_date = models.DateField(null=True, blank=True)
-    reviewed_by = models.IntegerField(null=True)  # EmailUserRO
-    review_status = models.CharField(
-        "Review Status",
-        max_length=30,
-        choices=REVIEW_STATUS_CHOICES,
-        default=REVIEW_STATUS_CHOICES[0][0],
-    )
 
     proposed_decline_status = models.BooleanField(default=False)
     deficiency_data = models.TextField(null=True, blank=True)  # deficiency comment
@@ -2803,6 +2787,13 @@ class OccurrenceManager(models.Manager):
 
 class Occurrence(RevisionedMixin):
 
+    REVIEW_STATUS_CHOICES = (
+        ("not_reviewed", "Not Reviewed"),
+        ("awaiting_amendments", "Awaiting Amendments"),
+        ("amended", "Amended"),
+        ("accepted", "Accepted"),
+    )
+
     RELATED_ITEM_CHOICES = [
         ("species", "Species"),
         ("community", "Community"),
@@ -2850,8 +2841,8 @@ class Occurrence(RevisionedMixin):
     review_status = models.CharField(
         "Review Status",
         max_length=30,
-        choices=OccurrenceReport.REVIEW_STATUS_CHOICES,
-        default=OccurrenceReport.REVIEW_STATUS_CHOICES[0][0],
+        choices=REVIEW_STATUS_CHOICES,
+        default=REVIEW_STATUS_CHOICES[0][0],
     )
 
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
@@ -3065,11 +3056,6 @@ class Occurrence(RevisionedMixin):
 
         occurrence.species = occurrence_report.species
         occurrence.community = occurrence_report.community
-
-        occurrence.review_due_date = occurrence_report.review_due_date
-        occurrence.review_date = occurrence_report.review_date
-        occurrence.reviewed_by = occurrence_report.reviewed_by
-        occurrence.review_status = occurrence_report.review_status
 
         occurrence.save(no_revision=True)
 
