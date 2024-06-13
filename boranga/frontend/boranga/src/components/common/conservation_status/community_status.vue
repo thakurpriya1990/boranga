@@ -496,6 +496,7 @@ export default {
             assessor_comment_readonly: !this.is_external && !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor ? false : true,
         }
     },
+    emits: ['approvalLevelChanged'],
     components: {
         CollapsibleComponent,
         FormSection,
@@ -542,13 +543,18 @@ export default {
             return this.conservation_status_obj.processing_status == "Approved" ? true : false;
         },
         isReadOnly: function () {
-            let action = this.$route.query.action;
-            if (action === "edit" && this.conservation_status_obj && this.conservation_status_obj.assessor_mode.has_assessor_mode) {
-                return false;
+            if (this.is_external) {
+                return !this.conservation_status_obj.can_user_edit;
+            } else {
+                if (this.conservation_status_obj.processing_status == "Ready For Agenda") {
+                    return true;
+                }
+                if (this.conservation_status_obj.assessor_mode.assessor_can_assess || this.conservation_status_obj.internal_user_edit) {
+                    return false;
+                }
             }
-            else {
-                return this.conservation_status_obj.readonly;
-            }
+
+            return true;
         },
         conservation_criteria_label: function () {
             if (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") {
@@ -571,6 +577,10 @@ export default {
         }
     },
     methods: {
+        approvalLevelChanged: function () {
+            this.conservation_status_obj.effective_from = null;
+            this.$emit('approvalLevelChanged');
+        },
         initialiseCommunityNameLookup: function () {
             let vm = this;
             $(vm.$refs[vm.community_name_lookup]).select2({
