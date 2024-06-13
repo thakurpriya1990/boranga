@@ -415,7 +415,6 @@ export default {
             filterCSToFloraReviewDueDate: sessionStorage.getItem(this.filterCSToFloraReviewDueDate_cache) ?
                 sessionStorage.getItem(this.filterCSToFloraReviewDueDate_cache) : '',
 
-            //Filter list for scientific name and common name
             filterListsSpecies: {},
             scientific_name_list: [],
             common_name_list: [],
@@ -426,15 +425,6 @@ export default {
             wa_legislative_categories: [],
             wa_priority_categories: [],
 
-            // filtering options
-            external_status: [
-                { value: 'draft', name: 'Draft' },
-                { value: 'with_assessor', name: 'Under Review' },
-                { value: 'approved', name: 'Approved' },
-                { value: 'declined', name: 'Declined' },
-                { value: 'discarded', name: 'Discarded' },
-                { value: 'awaiting_payment', name: 'Awaiting Payment' },
-            ],
             internal_status: [
                 { value: 'draft', name: 'Draft' },
                 { value: 'with_assessor', name: 'With Assessor' },
@@ -446,7 +436,6 @@ export default {
                 { value: 'approved', name: 'Approved' },
                 { value: 'declined', name: 'Declined' },
             ],
-
             processing_statuses: [],
         }
     },
@@ -597,12 +586,6 @@ export default {
                 return true
             }
         },
-        is_external: function () {
-            return this.level == 'external';
-        },
-        is_internal: function () {
-            return this.level == 'internal'
-        },
         is_referral: function () {
             return this.level == 'referral';
         },
@@ -614,20 +597,11 @@ export default {
             );
         },
         datatable_headers: function () {
-            if (this.is_external) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Phylo Group(s)', 'Change Type', 'WA Priority List',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
-                    'Conservation Criteria',
-                    'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
-                    'Status', 'Action']
-            }
-            if (this.is_internal) {
-                return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Phylo Group(s)', 'Change Type', 'WA Priority List',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
-                    'Conservation Criteria',
-                    'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
-                    'Status', 'Action']
-            }
+            return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Phylo Group(s)', 'Change Type', 'WA Priority List',
+                'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
+                'Conservation Criteria',
+                'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
+                'Status', 'Action']
         },
         column_id: function () {
             return {
@@ -650,7 +624,7 @@ export default {
                 visible: true,
                 'render': function (data, type, full) {
                     let value = full.conservation_status_number
-                    if (vm.is_internal && full.is_new_contributor) {
+                    if (full.is_new_contributor) {
                         value += ' <span class="badge bg-warning">New Contributor</span>'
                     }
                     return value
@@ -901,30 +875,28 @@ export default {
                 'render': function (data, type, full) {
                     let links = "";
                     if (vm.is_for_agenda == false) {
-                        if (!vm.is_external) {
-                            if (full.internal_user_edit) {
-                                links += `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
-                                links += `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
-                                links += `<a href='#' data-history-conservation-status-species='${full.id}'
+                        if (full.internal_user_edit) {
+                            links += `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
+                            links += `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
+                            links += `<a href='#' data-history-conservation-status-species='${full.id}'
                                 data-history-species='${full.species_number}'
                                 >History</a><br>`;
-                            }
-                            else {
-                                if (full.assessor_process || full.approver_process) {
-                                    links += `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
-                                    links += `<a href='#' data-history-conservation-status-species='${full.id}'
+                        }
+                        else {
+                            if (full.assessor_process || full.approver_process) {
+                                links += `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
+                                links += `<a href='#' data-history-conservation-status-species='${full.id}'
                                         data-history-species='${full.species_number}'
                                         >History</a><br>`;
+                            }
+                            else {
+                                if (full.assessor_edit) {
+                                    links += `<a href='/internal/conservation_status/${full.id}?action=edit'>Edit</a><br/>`;
                                 }
-                                else {
-                                    if (full.assessor_edit) {
-                                        links += `<a href='/internal/conservation_status/${full.id}?action=edit'>Edit</a><br/>`;
-                                    }
-                                    links += `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
-                                    links += `<a href='#' data-history-conservation-status-species='${full.id}'
+                                links += `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
+                                links += `<a href='#' data-history-conservation-status-species='${full.id}'
                                     data-history-species='${full.species_number}'
                                     >History</a><br>`;
-                                }
                             }
                         }
                     }
@@ -961,64 +933,34 @@ export default {
                     }
                 }
             ]
-            if (vm.is_external) {
-                columns = [
-                    vm.column_number,
-                    vm.column_species_number,
-                    vm.column_scientific_name,
-                    vm.column_common_name,
-                    vm.column_family,
-                    vm.column_genera,
-                    vm.column_phylo_group,
-                    vm.column_change_code,
-                    vm.column_wa_priority_list,
-                    vm.column_wa_priority_category,
-                    vm.column_wa_legislative_list,
-                    vm.column_wa_legislative_category,
-                    vm.column_commonwealth_conservation_list,
-                    vm.column_international_conservation,
-                    vm.column_conservation_criteria,
-                    vm.column_submitter_name,
-                    vm.column_submitter_category,
-                    vm.column_submitter_organisation,
-                    vm.column_assessor_name,
-                    vm.column_effective_from,
-                    vm.column_effective_to,
-                    vm.column_review_due_date,
-                    vm.column_status,
-                    vm.column_action,
-                ]
-                search = false
-            }
-            if (vm.is_internal) {
-                columns = [
-                    vm.column_number,
-                    vm.column_species_number,
-                    vm.column_scientific_name,
-                    vm.column_common_name,
-                    vm.column_family,
-                    vm.column_genera,
-                    vm.column_phylo_group,
-                    vm.column_change_code,
-                    vm.column_wa_priority_list,
-                    vm.column_wa_priority_category,
-                    vm.column_wa_legislative_list,
-                    vm.column_wa_legislative_category,
-                    vm.column_commonwealth_conservation_list,
-                    vm.column_international_conservation,
-                    vm.column_conservation_criteria,
-                    vm.column_submitter_name,
-                    vm.column_submitter_category,
-                    vm.column_submitter_organisation,
-                    vm.column_assessor_name,
-                    vm.column_effective_from,
-                    vm.column_effective_to,
-                    vm.column_review_due_date,
-                    vm.column_status,
-                    vm.column_action,
-                ]
-                search = true
-            }
+
+            columns = [
+                vm.column_number,
+                vm.column_species_number,
+                vm.column_scientific_name,
+                vm.column_common_name,
+                vm.column_family,
+                vm.column_genera,
+                vm.column_phylo_group,
+                vm.column_change_code,
+                vm.column_wa_priority_list,
+                vm.column_wa_priority_category,
+                vm.column_wa_legislative_list,
+                vm.column_wa_legislative_category,
+                vm.column_commonwealth_conservation_list,
+                vm.column_international_conservation,
+                vm.column_conservation_criteria,
+                vm.column_submitter_name,
+                vm.column_submitter_category,
+                vm.column_submitter_organisation,
+                vm.column_assessor_name,
+                vm.column_effective_from,
+                vm.column_effective_to,
+                vm.column_review_due_date,
+                vm.column_status,
+                vm.column_action,
+            ]
+            search = true
 
             return {
                 autoWidth: false,
@@ -1069,10 +1011,8 @@ export default {
                         d.filter_to_effective_to_date = vm.filterCSToFloraEffectiveToDate;
                         d.filter_from_review_due_date = vm.filterCSFromFloraReviewDueDate;
                         d.filter_to_review_due_date = vm.filterCSToFloraReviewDueDate;
-                        d.is_internal = vm.is_internal;
                     }
                 },
-                //dom: 'lBfrtip',
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
@@ -1393,9 +1333,6 @@ export default {
             }
             catch (err) {
                 console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
             }
             this.$router.push({
                 name: 'internal-conservation_status',
@@ -1608,7 +1545,6 @@ export default {
                 filter_to_effective_to_date: vm.filterCSToFloraEffectiveToDate,
                 filter_from_review_due_date: vm.filterCSFromFloraReviewDueDate,
                 filter_to_review_due_date: vm.filterCSToFloraReviewDueDate,
-                is_internal: vm.is_internal,
                 export_format: format
             };
 
@@ -1695,9 +1631,6 @@ export default {
             }
             catch (err) {
                 console.log(err);
-                if (vm.is_internal) {
-                    return err;
-                }
             }
         },
     },
