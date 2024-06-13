@@ -32,7 +32,7 @@
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSApplicationStatus">
                             <option value="all">All</option>
-                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
+                            <option v-for="status in customer_statuses" :value="status.value">{{ status.name }}</option>
                         </select>
                     </div>
                 </div>
@@ -46,7 +46,8 @@
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="cs_proposal_type">
                     <li v-for="group in group_types">
-                        <a class="dropdown-item" role="button" @click.prevent="createConservationStatus(group.id)">{{ group.display }}
+                        <a class="dropdown-item" role="button" @click.prevent="createConservationStatus(group.id)">{{
+                            group.display }}
                         </a>
                     </li>
                 </ul>
@@ -146,21 +147,17 @@ export default {
             filterCSApplicationStatus: sessionStorage.getItem(this.filterCSApplicationStatus_cache) ?
                 sessionStorage.getItem(this.filterCSApplicationStatus_cache) : 'all',
 
-            //Filter list for scientific name and common name
             group_types: [],
-            filterListsSpecies: {},
 
-            // filtering options
-            external_status: [
+            customer_statuses: [
                 { value: 'draft', name: 'Draft' },
                 { value: 'with_assessor', name: 'Under Review' },
                 { value: 'ready_for_agenda', name: 'In Meeting' },
                 { value: 'approved', name: 'Approved' },
-                { value: 'declined', name: 'Declined' },
-                { value: 'discarded', name: 'Discarded' },
                 { value: 'closed', name: 'Closed' },
+                { value: 'delisted', name: 'DeListed' },
+                { value: 'declined', name: 'Declined' },
             ],
-            proposal_status: [],
         }
     },
     components: {
@@ -224,18 +221,13 @@ export default {
                 return true
             }
         },
-        is_external: function () {
-            return this.level == 'external';
-        },
         addCSVisibility: function () {
             let visibility = false;
             visibility = true;
             return visibility;
         },
         datatable_headers: function () {
-            if (this.is_external) {
-                return ['Number', 'Type', 'Scientific Name', 'Community Name', 'Status', 'Action']
-            }
+            return ['Number', 'Type', 'Scientific Name', 'Community Name', 'Status', 'Action']
         },
         column_id: function () {
             return {
@@ -331,7 +323,7 @@ export default {
                     else if (full.can_user_view) {
                         links += `<a href='/external/conservation_status/${full.id}'>View</a>`;
                     }
-                    else if (full.processing_status=='discarded') {
+                    else if (full.processing_status == 'discarded') {
                         links += `<a <a href='#${full.id}' data-reinstate-cs-proposal='${full.id}'>Reinstate</a>`;
                     }
 
@@ -345,18 +337,16 @@ export default {
             let columns = []
             let search = null
             let buttons = []
-            if (vm.is_external) {
-                columns = [
-                    vm.column_number,
-                    vm.column_type,
-                    vm.column_scientific_name,
-                    vm.column_community_name,
-                    vm.column_status,
-                    vm.column_action,
-                ]
-                search = false
-                buttons = []
-            }
+            columns = [
+                vm.column_number,
+                vm.column_type,
+                vm.column_scientific_name,
+                vm.column_community_name,
+                vm.column_status,
+                vm.column_action,
+            ]
+            search = false
+            buttons = []
 
             return {
                 autoWidth: false,
@@ -378,8 +368,6 @@ export default {
                 ajax: {
                     "url": this.url,
                     "dataSrc": 'data',
-
-                    // adding extra GET params for Custom filtering
                     "data": function (d) {
                         d.filter_group_type = vm.filterCSGroupType;
                         d.filter_scientific_name = vm.filterCSScientificName;
@@ -387,7 +375,6 @@ export default {
                         d.filter_conservation_list = vm.filterCSConservationList;
                         d.filter_conservation_category = vm.filterCSConservationCategory;
                         d.filter_application_status = vm.filterCSApplicationStatus
-                        d.is_internal = vm.is_internal;
                     }
                 },
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
@@ -480,13 +467,6 @@ export default {
         },
         fetchFilterLists: function () {
             let vm = this;
-            //large FilterList
-            vm.$http.get(api_endpoints.conservation_list_dict).then((response) => {
-                vm.filterListsCS = response.body;
-                vm.proposal_status = vm.external_status;
-            }, (error) => {
-                console.log(error);
-            })
             vm.$http.get(api_endpoints.group_types_dict).then((response) => {
                 vm.group_types = response.body;
             }, (error) => {
@@ -506,9 +486,6 @@ export default {
             }
             catch (err) {
                 console.log(err);
-                if (this.is_external) {
-                    return err;
-                }
             }
             this.$router.push({
                 name: 'draft_cs_proposal',
@@ -593,7 +570,7 @@ export default {
                 vm.reinstateCSProposal(id);
             });
             vm.$refs.conservation_status_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
-                    helpers.enablePopovers();
+                helpers.enablePopovers();
             });
         },
         initialiseSearch: function () {
@@ -609,11 +586,11 @@ export default {
                 }
             );
         },
-        fetchProfile: function(){
+        fetchProfile: function () {
             let vm = this;
             Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
-            },(error) => {
+            }, (error) => {
                 console.log(error);
             })
         },
