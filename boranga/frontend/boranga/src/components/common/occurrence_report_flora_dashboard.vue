@@ -369,7 +369,9 @@ export default {
                 visible: true,
                 'render': function (data, type, full) {
                     if (full.scientific_name) {
-                        return full.scientific_name;
+                        let value = full.scientific_name;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return type == 'export' ? value : result;
                     }
                     return ''
                 },

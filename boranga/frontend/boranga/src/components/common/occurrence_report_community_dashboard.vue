@@ -376,7 +376,9 @@ export default {
                 visible: true,
                 'render': function(data, type, full){
                     if (full.community_name){
-                        return full.community_name;
+                        let value = full.community_name;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return type == 'export' ? value : result;
                     }
                     return ''
                 },
