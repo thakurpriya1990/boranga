@@ -130,6 +130,7 @@ def populate_occurrence_tenure_data(geometry_instance, features):
                     tenure_area_id=feature_id,
                     owner_name=owner_name,
                     owner_count=owner_count,
+                    tenure_area_ewkb=tenure_area_ewkb,
                 )
             except IntegrityError as e:
                 logger.error(f"Error creating OccurrenceTenure: {e}")

@@ -3423,6 +3423,7 @@ class OccurrenceGeometry(models.Model):
     )
     drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
     locked = models.BooleanField(default=False)
+    # buffer_radius = models.FloatField(null=True, blank=True, default=0)
 
     class Meta:
         app_label = "boranga"

@@ -215,6 +215,8 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
         return obj.occurrence_geometry
 
     def tenure_area(self, obj):
+        if obj.tenure_area_ewkb is None:
+            return None
         return wkb_to_geojson(obj.tenure_area_ewkb)
 
 
