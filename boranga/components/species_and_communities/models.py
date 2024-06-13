@@ -438,9 +438,7 @@ class Species(RevisionedMixin):
     region = models.ForeignKey(
         Region, default=None, on_delete=models.CASCADE, null=True, blank=True
     )
-    regions = models.ManyToManyField(
-        Region, null=True, blank=True, related_name="species_regions"
-    )
+    regions = models.ManyToManyField(Region, blank=True, related_name="species_regions")
     # species_regions = MultiSelectField(max_length=250, blank=True,
     # choices=[(r.id, r.name) for r in Region.objects.all()], null=True)
     district = models.ForeignKey(
