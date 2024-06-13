@@ -2,49 +2,31 @@
 
 {%  block content %}
 	{% if ocr_proposal.is_flora_application %}
-		Your application for a flora occurrence report has been submitted, the application number is {{ ocr_proposal.occurrence_report_number }}</p>
+		Your proposal for a flora occurrence report has been submitted, the proposal number is {{ ocr_proposal.occurrence_report_number }}</p>
 
 		Submitter: {{ submitter }}<br>
 		Lodgement date: {{ ocr_proposal.lodgement_date }}
 
-		
-			Please note it may take up to 21 days to process your application.
-		
-			
-			You will receive a notification email if there is any incomplete information or documents missing from the application.
-		
-		<!-- If you would like to amend the application now please contact a licensing officer on {{settings.DEP_PHONE_FILMING}} or email {{settings.SUPPORT_EMAIL_FILMING}} -->
+		Please note it may take up to 21 days to process your proposal.
 
+		You will receive a notification email if there is any incomplete information or documents missing from the proposal.
 	{% elif ocr_proposal.is_fauna_application %}
-		Your application for a fauna occurrence report has been submitted, the application number is {{ ocr_proposal.occurrence_report_number }}</p>
+		Your proposal for a fauna occurrence report has been submitted, the proposal number is {{ ocr_proposal.occurrence_report_number }}</p>
 
 		Submitter: {{ submitter }}<br>
 		Lodgement date: {{ ocr_proposal.lodgement_date }}
 
-		
-			Please note it may take up to 21 days to process your application.
-		
+		Please note it may take up to 21 days to process your proposal.
 
-		
-			You will receive a notification email if there is any incomplete information or documents missing from the application.
-		
-		<!-- If you would like to amend the application now please contact a licensing officer on {{settings.DEP_PHONE_FILMING}} or email {{settings.SUPPORT_EMAIL}} -->
-
+		You will receive a notification email if there is any incomplete information or documents missing from the proposal.
 	{% else %}
-
-		Your application for a community occurrence report has been submitted, the application number is {{ ocr_proposal.occurrence_report_number }}</p>
+		Your proposal for a community occurrence report has been submitted, the proposal number is {{ ocr_proposal.occurrence_report_number }}</p>
 
 		Submitter: {{ submitter }}<br>
 		Lodgement date: {{ ocr_proposal.lodgement_date }}
 
-		
-			Please note it may take up to 21 days to process your application.
-		
+		Please note it may take up to 21 days to process your proposal.
 
-		
-			You will receive a notification email if there is any incomplete information or documents missing from the application.
-		
-		<!-- If you would like to amend the application now please contact a licensing office on {{settings.DEP_PHONE}} or email {{settings.SUPPORT_EMAIL}} -->
-
+		You will receive a notification email if there is any incomplete information or documents missing from the proposal.
 	{% endif %}
 {%  endblock %}

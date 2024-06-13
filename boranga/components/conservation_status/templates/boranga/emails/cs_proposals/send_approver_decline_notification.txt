@@ -1,7 +1,7 @@
 {%  extends 'boranga/emails/base_email.txt' %}
 
 {%  block content %}
-	Your Conservation Status Application {{ cs_proposal.conservation_status_number }} has been reviewed and has been recommended for decline.
+	Your Conservation Status Proposal {{ cs_proposal.conservation_status_number }} has been reviewed and has been recommended for decline.
 
     {% if reason %}
         <p>
@@ -10,9 +10,8 @@
     {% endif %}
 
     <p>
-    You can access this Application using the following link:
+        You can access this Proposal using the following link:
     </p>
+
     {{url}}
-
-
 {%  endblock %}
