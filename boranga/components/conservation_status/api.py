@@ -32,7 +32,6 @@ from boranga.components.conservation_status.models import (
     ConservationStatusDocument,
     ConservationStatusReferral,
     ConservationStatusUserAction,
-    IUCNVersion,
     ProposalAmendmentReason,
     WALegislativeCategory,
     WALegislativeList,
@@ -150,17 +149,6 @@ class GetCSProfileDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get("group_type", "")
 
-        iucn_version_list = []
-        if group_type:
-            versions = IUCNVersion.objects.filter()
-            if versions:
-                for option in versions:
-                    iucn_version_list.append(
-                        {
-                            "id": option.id,
-                            "code": option.code,
-                        }
-                    )
         res_json = {
             "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
             "wa_priority_categories": WAPriorityCategory.get_categories_dict(
@@ -173,7 +161,6 @@ class GetCSProfileDict(views.APIView):
             "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
                 group_type
             ),
-            "iucn_version_list": iucn_version_list,
             "change_codes": ConservationChangeCode.get_filter_list(),
             "submitter_categories": SubmitterCategory.get_filter_list(),
         }

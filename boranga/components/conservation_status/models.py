@@ -304,21 +304,6 @@ class ConservationChangeCode(models.Model):
         return list(cls.objects.values("id", "code"))
 
 
-class IUCNVersion(models.Model):
-    """
-    IUCN Version while approving the List
-    """
-
-    code = models.CharField(max_length=32, default="None")
-    label = models.CharField(max_length=512, default="None")
-
-    class Meta:
-        app_label = "boranga"
-
-    def __str__(self):
-        return str(self.code)
-
-
 class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     """
     Several lists with different attributes
@@ -572,13 +557,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         null=True,
     )
 
-    iucn_version = models.ForeignKey(
-        IUCNVersion,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name="iucn_version",
-    )
     comment = models.CharField(max_length=512, blank=True, null=True)
     review_due_date = models.DateField(null=True, blank=True)
     reviewed_by = models.IntegerField(null=True)  # EmailUserRO
