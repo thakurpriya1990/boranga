@@ -1860,8 +1860,8 @@ class ConservationStatusReferralDocument(Document):
         if self.can_delete:
             return self.can_delete
         logger.info(
-            "Cannot delete existing document object after Application has been submitted "
-            "(including document submitted before Application pushback to status Draft): {}".format(
+            "Cannot delete existing document object after proposal has been submitted "
+            "(including document submitted before proposal pushback to status Draft): {}".format(
                 self.name
             )
         )
