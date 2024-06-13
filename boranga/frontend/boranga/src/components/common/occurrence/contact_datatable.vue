@@ -121,9 +121,13 @@ export default {
                         searchable: true,
                         mRender: function (data, type, full) {
                             if (full.visible) {
-                                return full.contact;
+                                let value = full.contact;
+                                let result = helpers.dtPopover(value, 30, 'hover');
+                                return type == 'export' ? value : result;
                             } else {
-                                return '<s>' + full.contact + '</s>'
+                                let value = full.contact;
+                                let result = helpers.dtPopover(value, 30, 'hover');
+                                return '<s>' + type == 'export' ? value : result + '</s>'
                             }
                         },
                     },
