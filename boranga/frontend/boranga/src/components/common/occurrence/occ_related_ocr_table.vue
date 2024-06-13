@@ -21,7 +21,6 @@
                 :sectionObj="sectionObj"
             />
         </div>
-        {{ hrefContainerId }}
     </div>
 </template>
 

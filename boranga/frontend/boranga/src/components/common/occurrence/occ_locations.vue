@@ -379,7 +379,6 @@ export default {
     created: async function () {
         let vm = this;
         let action = this.$route.query.action;
-        // this.uuid = uuid();
 
         fetch(
             helpers.add_endpoint_join(
