@@ -20,6 +20,7 @@ from rest_framework import mixins, serializers, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -46,6 +47,7 @@ from boranga.components.occurrence.models import (
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
+    OCCContactDetail,
     OCCFireHistory,
     OCCHabitatComposition,
     OCCHabitatCondition,
@@ -66,7 +68,6 @@ from boranga.components.occurrence.models import (
     OccurrenceSource,
     OccurrenceTenure,
     OccurrenceUserAction,
-    OCCContactDetail,
     OCCVegetationStructure,
     OCRAnimalObservation,
     OCRAssociatedSpecies,
@@ -1745,7 +1746,7 @@ class OccurrenceReportViewSet(
 
         return Response(serializer.data)
 
-    # used for observer detail datatable 
+    # used for observer detail datatable
     @detail_route(
         methods=[
             "GET",
@@ -2033,13 +2034,19 @@ class OccurrenceReportViewSet(
     )
     def documents(self, request, *args, **kwargs):
         instance = self.get_object()
-        # qs = instance.documents.all()
-        if is_internal(self.request):
-            qs = instance.documents.all()
-        elif is_customer(self.request):
-            qs = instance.documents.filter(Q(uploaded_by=request.user.id))
-        # qs = qs.exclude(input_name='occurrence_report_approval_doc')
-        # TODO do we need/not to show approval doc in cs documents tab
+
+        if not is_internal and not is_external_contributor(request):
+            raise PermissionDenied  # TODO: Replace with permission class
+
+        qs = instance.documents.all()
+        qs = qs.exclude(input_name="occurrence_report_approval_doc")
+        if not is_internal(request) and is_external_contributor(request):
+            qs = qs.filter(
+                occurrence_report__submitter=self.request.user.id,
+                visible=True,
+                can_submitter_access=True,
+            )
+
         qs = qs.order_by("-uploaded_date")
         serializer = OccurrenceReportDocumentSerializer(
             qs, many=True, context={"request": request}
@@ -3618,10 +3625,13 @@ class OccurrenceViewSet(
 
     def is_authorised_to_update(self):
         instance = self.get_object()
-        if not (is_occurrence_approver(self.request) and (
-            instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
-            or instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
-        )):
+        if not (
+            is_occurrence_approver(self.request)
+            and (
+                instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+                or instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+            )
+        ):
             raise serializers.ValidationError(
                 "User not authorised to update Occurrence"
             )
@@ -4790,7 +4800,7 @@ class OccurrenceViewSet(
             qs, context={"request": request}, many=True
         )
         return Response(serializer.data)
-    
+
     @detail_route(
         methods=[
             "GET",
@@ -4984,11 +4994,13 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     serializer_class = OCCContactDetailSerializer
 
     def is_authorised_to_update(self, occurrence):
-        user = self.request.user
-        if not (is_occurrence_approver(self.request) and (
-            occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
-            or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
-        )):
+        if not (
+            is_occurrence_approver(self.request)
+            and (
+                occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+                or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+            )
+        ):
             raise serializers.ValidationError(
                 "User not authorised to update Occurrence"
             )
