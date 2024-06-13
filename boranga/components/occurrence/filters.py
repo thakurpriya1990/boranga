@@ -70,32 +70,6 @@ class OccurrenceReportReferralFilterBackend(DatatablesFilterBackend):
                 occurrence_report__reported_date__lte=filter_submitted_to_date
             )
 
-        filter_from_effective_from_date = request.GET.get(
-            "filter_from_effective_from_date"
-        )
-        filter_to_effective_from_date = request.GET.get("filter_to_effective_from_date")
-
-        filter_from_effective_to_date = request.GET.get("filter_from_effective_to_date")
-        filter_to_effective_to_date = request.GET.get("filter_to_effective_to_date")
-
-        if filter_from_effective_from_date:
-            queryset = queryset.filter(
-                occurrence_report__effective_from__gte=filter_from_effective_from_date
-            )
-        if filter_to_effective_from_date:
-            queryset = queryset.filter(
-                occurrence_report__effective_from__lte=filter_to_effective_from_date
-            )
-
-        if filter_from_effective_to_date:
-            queryset = queryset.filter(
-                occurrence_report__effective_to__gte=filter_from_effective_to_date
-            )
-        if filter_to_effective_to_date:
-            queryset = queryset.filter(
-                occurrence_report__effective_to__lte=filter_to_effective_to_date
-            )
-
         filter_from_review_due_date = request.GET.get("filter_from_review_due_date")
         filter_to_review_due_date = request.GET.get("filter_to_review_due_date")
 

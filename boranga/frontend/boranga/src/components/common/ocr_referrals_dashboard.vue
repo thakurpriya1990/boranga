@@ -244,24 +244,6 @@ export default {
                 visible: true,
             }
         },
-        column_effective_from: function () {
-            return {
-                data: "effective_from",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                name: "occurrence_report__effective_from",
-            }
-        },
-        column_effective_to: function () {
-            return {
-                data: "effective_to",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                name: "occurrence_report__effective_to",
-            }
-        },
         column_review_due_date: function () {
             return {
                 data: "review_due_date",
@@ -327,8 +309,6 @@ export default {
                 vm.column_scientific_name,
                 vm.column_submission_date_time,
                 vm.column_submitter,
-                vm.column_effective_from,
-                vm.column_effective_to,
                 vm.column_review_due_date,
                 vm.column_status,
                 vm.column_action,

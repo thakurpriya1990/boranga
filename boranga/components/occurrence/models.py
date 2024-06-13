@@ -262,8 +262,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     observation_date = models.DateTimeField(null=True, blank=True)
     reported_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
-    effective_from = models.DateTimeField(null=True, blank=True)
-    effective_to = models.DateTimeField(null=True, blank=True)
     submitter_information = models.OneToOneField(
         SubmitterInformation,
         on_delete=models.SET_NULL,
@@ -774,16 +772,12 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         details = validated_data.get("details", None)
         new_occurrence_name = validated_data.get("new_occurrence_name", None)
-        effective_from_date = validated_data.get("effective_from_date")
-        effective_to_date = validated_data.get("effective_to_date")
         OccurrenceReportApprovalDetails.objects.update_or_create(
             occurrence_report=self,
             defaults={
                 "officer": request.user.id,
                 "occurrence": occurrence,
                 "new_occurrence_name": new_occurrence_name,
-                "effective_from_date": effective_from_date,
-                "effective_to_date": effective_to_date,
                 "details": details,
             },
         )
@@ -3071,9 +3065,6 @@ class Occurrence(RevisionedMixin):
 
         occurrence.species = occurrence_report.species
         occurrence.community = occurrence_report.community
-
-        occurrence.effective_from = occurrence_report.effective_from
-        occurrence.effective_to = occurrence_report.effective_to
 
         occurrence.review_due_date = occurrence_report.review_due_date
         occurrence.review_date = occurrence_report.review_date

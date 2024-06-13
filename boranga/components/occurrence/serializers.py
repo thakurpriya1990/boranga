@@ -250,12 +250,6 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         source="get_processing_status_display"
     )
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
-    effective_from = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
-    effective_to = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
     review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     assessor_edit = serializers.SerializerMethodField(read_only=True)
@@ -295,8 +289,6 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "internal_user_edit",
             "occurrence",
             "occurrence_name",
-            "effective_from",
-            "effective_to",
             "review_due_date",
             "is_new_contributor",
             "observation_date",
@@ -1111,12 +1103,6 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
         source="occurrence_report.reported_date", format="%Y-%m-%d %H:%M:%S"
     )
     submitter = serializers.SerializerMethodField()
-    effective_from = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
-    effective_to = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
     review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     group_type = serializers.CharField(
         source="occurrence_report.group_type.name", allow_null=True
@@ -1136,8 +1122,6 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
             "community_name",
             "reported_date",
             "submitter",
-            "effective_from",
-            "effective_to",
             "review_due_date",
             "group_type",
             "processing_status_display",

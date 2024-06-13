@@ -43,47 +43,6 @@
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" v-model="filterOCRCommunitySubmittedToDate">
                     </div>
                 </div>
-
-                <div class="col-md-3" >
-                    <div class="form-group">
-                        <label for="">Effective From Date Range:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_from_date" v-model="filterOCRFromCommunityEffectiveFromDate">
-                    </div>
-                </div>
-                <div class="col-md-3" >
-                    <div class="form-group">
-                        <label for=""></label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date" v-model="filterOCRToCommunityEffectiveFromDate">
-                    </div>
-                </div>
-
-                <div class="col-md-3" >
-                    <div class="form-group">
-                        <label for="">Effective To Date Range:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_to_date" v-model="filterOCRFromCommunityEffectiveToDate">
-                    </div>
-                </div>
-
-                <div class="col-md-3" >
-                    <div class="form-group">
-                        <label for=""></label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_to_date" v-model="filterOCRToCommunityEffectiveToDate">
-                    </div>
-                </div>
-
-                <!--<div class="col-md-3" >
-                    <div class="form-group">
-                        <label for="">Due Date Range:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_due_date" v-model="filterOCRFromCommunityDueDate">
-                    </div>
-                </div>
-
-                <div class="col-md-3" >
-                    <div class="form-group">
-                        <label for=""></label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_due_date" v-model="filterOCRToCommunityDueDate">
-                    </div>
-                </div>-->
             </div>
         </CollapsibleFilters>
 
@@ -177,26 +136,6 @@ export default {
             required: false,
             default: 'filterOCRCommunitySubmittedToDate',
         },
-        filterOCRFromCommunityEffectiveFromDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterOCRFromCommunityEffectiveFromDate',
-        },
-        filterOCRToCommunityEffectiveFromDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterOCRToCommunityEffectiveFromDate',
-        },
-        filterOCRFromCommunityEffectiveToDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterOCRFromCommunityEffectiveToDate',
-        },
-        filterOCRToCommunityEffectiveToDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterOCRToCommunityEffectiveToDate',
-        },
         filterOCRFromCommunityDueDate_cache: {
             type: String,
             required: false,
@@ -230,16 +169,6 @@ export default {
 
             filterOCRCommunitySubmittedToDate: sessionStorage.getItem(this.filterOCRCommunitySubmittedToDate_cache) ?
                                 sessionStorage.getItem(this.filterOCRCommunitySubmittedToDate_cache) : '',
-
-            filterOCRFromCommunityEffectiveFromDate: sessionStorage.getItem(this.filterOCRFromCommunityEffectiveFromDate_cache) ?
-            sessionStorage.getItem(this.filterOCRFromCommunityEffectiveFromDate_cache) : '',
-            filterOCRToCommunityEffectiveFromDate: sessionStorage.getItem(this.filterOCRToCommunityEffectiveFromDate_cache) ?
-            sessionStorage.getItem(this.filterOCRToCommunityEffectiveFromDate_cache) : '',
-
-            filterOCRFromCommunityEffectiveToDate: sessionStorage.getItem(this.filterOCRFromCommunityEffectiveToDate_cache) ?
-            sessionStorage.getItem(this.filterOCRFromCommunityEffectiveToDate_cache) : '',
-            filterOCRToCommunityEffectiveToDate: sessionStorage.getItem(this.filterOCRToCommunityEffectiveToDate_cache) ?
-            sessionStorage.getItem(this.filterOCRToCommunityEffectiveToDate_cache) : '',
 
             filterOCRFromCommunityDueDate: sessionStorage.getItem(this.filterOCRFromCommunityDueDate_cache) ?
             sessionStorage.getItem(this.filterOCRFromCommunityDueDate_cache) : '',
@@ -303,26 +232,6 @@ export default {
             vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRCommunitySubmittedToDate_cache, vm.filterOCRCommunitySubmittedToDate);
         },
-        filterOCRFromCommunityEffectiveFromDate: function(){
-            let vm = this;
-            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRFromCommunityEffectiveFromDate_cache, vm.filterOCRFromCommunityEffectiveFromDate);
-        },
-        filterOCRToCommunityEffectiveFromDate: function(){
-            let vm = this;
-            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRToCommunityEffectiveFromDate_cache, vm.filterOCRToCommunityEffectiveFromDate);
-        },
-        filterOCRFromCommunityEffectiveToDate: function(){
-            let vm = this;
-            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRFromCommunityEffectiveToDate_cache, vm.filterOCRFromCommunityEffectiveToDate);
-        },
-        filterOCRToCommunityEffectiveToDate: function(){
-            let vm = this;
-            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRToCommunityEffectiveToDate_cache, vm.filterOCRToCommunityEffectiveToDate);
-        },
         filterOCRFromCommunityDueDate: function(){
             let vm = this;
             vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
@@ -347,10 +256,6 @@ export default {
                 this.filterOCRCommunityStatus === 'all' &&
                 this.filterOCRCommunitySubmittedFromDate === '' &&
                 this.filterOCRCommunitySubmittedToDate === ''&&
-                this.filterOCRFromCommunityEffectiveFromDate === '' &&
-                this.filterOCRToCommunityEffectiveFromDate === '' &&
-                this.filterOCRFromCommunityEffectiveToDate === '' &&
-                this.filterOCRToCommunityEffectiveToDate === '' &&
                 this.filterOCRFromCommunityDueDate === '' &&
                 this.filterOCRToCommunityDueDate === ''){
                 return false
@@ -372,7 +277,7 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_internal){
-                return ['Number','Occurrence','Community Name', 'Submission date/time', 'Submitter',  'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
+                return ['Number','Occurrence','Community Name', 'Submission date/time', 'Submitter', 'Review Due', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -464,24 +369,6 @@ export default {
                 name: "submitter__first_name, submitter__last_name",
             }
         },
-        column_effective_from: function(){
-            return {
-                data: "effective_from",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                name: "effective_from",
-            }
-        },
-        column_effective_to: function(){
-            return {
-                data: "effective_to",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                name: "effective_to",
-            }
-        },
         column_review_due_date: function(){
             return {
                 data: "review_due_date",
@@ -564,8 +451,6 @@ export default {
                     vm.column_community_name,
                     vm.column_submission_date_time,
                     vm.column_submitter,
-                    vm.column_effective_from,
-                    vm.column_effective_to,
                     vm.column_review_due_date,
                     vm.column_status,
                     vm.column_action,
@@ -603,10 +488,6 @@ export default {
                         d.filter_status = vm.filterOCRCommunityStatus;
                         d.filter_submitted_from_date = vm.filterOCRCommunitySubmittedFromDate;
                         d.filter_submitted_to_date = vm.filterOCRCommunitySubmittedToDate;
-                        d.filter_from_effective_from_date = vm.filterOCRFromCommunityEffectiveFromDate;
-                        d.filter_to_effective_from_date = vm.filterOCRToCommunityEffectiveFromDate;
-                        d.filter_from_effective_to_date = vm.filterOCRFromCommunityEffectiveToDate;
-                        d.filter_to_effective_to_date = vm.filterOCRToCommunityEffectiveToDate;
                         d.filter_from_due_date = vm.filterOCRFromCommunityDueDate;
                         d.filter_to_due_date = vm.filterOCRToCommunityDueDate;
                         d.is_internal = vm.is_internal;
@@ -900,10 +781,6 @@ export default {
                 filter_status: vm.filterOCRCommunityStatus,
                 filter_submitted_from_date: vm.filterOCRCommunitySubmittedFromDate,
                 filter_submitted_to_date: vm.filterOCRCommunitySubmittedToDate,
-                filter_from_effective_from_date: vm.filterOCRFromCommunityEffectiveFromDate,
-                filter_to_effective_from_date: vm.filterOCRToCommunityEffectiveFromDate,
-                filter_from_effective_to_date: vm.filterOCRFromCommunityEffectiveToDate,
-                filter_to_effective_to_date: vm.filterOCRToCommunityEffectiveToDate,
                 filter_from_due_date: vm.filterOCRFromCommunityDueDate,
                 filter_to_due_date: vm.filterOCRToCommunityDueDate,
                 is_internal: vm.is_internal,
