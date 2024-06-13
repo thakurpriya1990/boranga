@@ -1248,9 +1248,7 @@ class SendReferralSerializer(serializers.Serializer):
 
 
 class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
-    processing_status = serializers.CharField(
-        source="conservation_status.get_processing_status_display"
-    )
+    processing_status = serializers.CharField(source="get_processing_status_display")
     referral_status = serializers.CharField(source="get_processing_status_display")
     conservation_status_id = serializers.IntegerField(source="conservation_status.id")
     conservation_status_lodgement_date = serializers.CharField(

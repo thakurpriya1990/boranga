@@ -483,26 +483,20 @@ export default {
             scientific_name_lookup: 'scientific_name_lookup' + vm.conservation_status_obj.id,
             select_scientific_name: "select_scientific_name" + vm.conservation_status_obj.id,
             isShowComment: false,
-            //---to show fields related to Fauna
             isFauna: vm.conservation_status_obj.group_type === "fauna" ? true : false,
-            //----list of values dictionary
             cs_profile_dict: {},
-            species_list: [],
             wa_legislative_lists: [],
             wa_legislative_categories: [],
             wa_priority_lists: [],
             wa_priority_categories: [],
             commonwealth_conservation_lists: [],
-            iucn_version_list: [],
             change_codes: [],
             filtered_wa_legislative_categories: [],
             filtered_wa_priority_categories: [],
             filtered_recommended_wa_legislative_categories: [],
             referral_comments_boxes: [],
-            // to display the species selected
             species_display: '',
             taxon_previous_name: '',
-            //---Comment box attributes
 
             deficiency_readonly: !this.is_external &&
                 !this.conservation_status_obj.can_user_edit &&
@@ -578,19 +572,6 @@ export default {
         },
         conservation_list_proposed: function () {
             return !(this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed")
-        },
-        conservation_criteria_label: function () {
-            if (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") {
-                return "Conservation Criteria";
-            }
-            else {
-                if (this.conservation_status_obj.processing_status == "Draft") {
-                    return "Propose Conservation Criteria";
-                }
-                else {
-                    return "Proposed Conservation Criteria";
-                }
-            }
         },
         canViewCurrentList: function () {
             return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? false : true;
@@ -732,21 +713,16 @@ export default {
     },
     created: async function () {
         let vm = this;
-        //------fetch list of values according to action
         let action = this.$route.query.action;
         let dict_url = action == "view" ? api_endpoints.cs_profile_dict + '?group_type=' + vm.conservation_status_obj.group_type + '&action=' + action :
             api_endpoints.cs_profile_dict + '?group_type=' + vm.conservation_status_obj.group_type
         vm.$http.get(dict_url).then((response) => {
             vm.cs_profile_dict = response.body;
-            vm.species_list = vm.cs_profile_dict.species_list;
-
             vm.wa_legislative_lists = vm.cs_profile_dict.wa_legislative_lists;
             vm.wa_legislative_categories = vm.cs_profile_dict.wa_legislative_categories;
             vm.wa_priority_lists = vm.cs_profile_dict.wa_priority_lists;
             vm.wa_priority_categories = vm.cs_profile_dict.wa_priority_categories;
             vm.commonwealth_conservation_lists = vm.cs_profile_dict.commonwealth_conservation_lists;
-
-            vm.iucn_version_list = vm.cs_profile_dict.iucn_version_list;
             vm.change_codes = vm.cs_profile_dict.change_codes;
             this.getSpeciesDisplay();
             this.filterWALegislativeCategories();

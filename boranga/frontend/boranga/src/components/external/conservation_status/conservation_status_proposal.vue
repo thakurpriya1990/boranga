@@ -48,11 +48,10 @@
                                             class="btn btn-primary me-2" value="Save and Exit"
                                             :disabled="savingCSProposal || paySubmitting" />
 
-                                        <button v-if="paySubmitting" type="button" class="btn btn-primary" disabled>{{
-                                            submit_text() }}&nbsp;
+                                        <button v-if="paySubmitting" type="button" class="btn btn-primary" disabled>Submit&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                         <input v-else type="button" @click.prevent="submit" class="btn btn-primary"
-                                            :value="submit_text()" :disabled="saveExitCSProposal || savingCSProposal" />
+                                            :value="'Submit'" :disabled="saveExitCSProposal || savingCSProposal" />
                                         <input id="save_and_continue_btn" type="hidden" @click.prevent="save_wo_confirm"
                                             class="btn btn-primary" value="Save Without Confirmation" />
                                     </div>
@@ -147,11 +146,6 @@ export default {
         },
     },
     methods: {
-        submit_text: function () {
-            let vm = this;
-            return 'Submit';
-        },
-
         set_formData: function (e) {
             let vm = this;
             let formData = new FormData(vm.form);
@@ -175,8 +169,8 @@ export default {
             Object.assign(payload, vm.conservation_status_obj);
             await vm.$http.post(vm.cs_proposal_form_url, payload).then(res => {
                 swal.fire({
-                    title: 'Saved',
-                    text: 'Your application has been saved',
+                    title: 'Proposal Saved',
+                    text: 'Your conservation status proposal has been saved',
                     icon: 'success',
                     confirmButtonColor: '#226fbb'
                 });;
@@ -350,11 +344,11 @@ export default {
             vm.paySubmitting = true;
 
             swal.fire({
-                title: vm.submit_text() + " Application",
-                text: "Are you sure you want to " + vm.submit_text().toLowerCase() + " this application?",
+                title: "Submit Proposal",
+                text: "Are you sure you want to submit this conservation status proposal?",
                 icon: "question",
                 showCancelButton: true,
-                confirmButtonText: vm.submit_text(),
+                confirmButtonText: "Submit Proposal",
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary',

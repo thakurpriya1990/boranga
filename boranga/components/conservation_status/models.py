@@ -1089,6 +1089,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         if status not in [
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
         ]:
             raise ValidationError("The provided status cannot be found.")
 
@@ -1311,6 +1312,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
         self.processing_status = ConservationStatus.PROCESSING_STATUS_APPROVED
         self.customer_status = ConservationStatus.CUSTOMER_STATUS_APPROVED
+        self.assigned_officer = None
 
         if effective_from:
             self.effective_from = effective_from
@@ -1489,12 +1491,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     @transaction.atomic
     def propose_delist(self, request):
-        if (
-            not self.processing_status
-            == ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
-        ):
+        if not self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
             raise ValidationError(
-                "You cannot propose to delist a conservation status that is not with assessor"
+                "You cannot propose to delist a conservation status that is not approved"
             )
 
         if not self.assigned_officer == request.user.id:
@@ -1861,8 +1860,8 @@ class ConservationStatusReferralDocument(Document):
         if self.can_delete:
             return self.can_delete
         logger.info(
-            "Cannot delete existing document object after Application has been submitted "
-            "(including document submitted before Application pushback to status Draft): {}".format(
+            "Cannot delete existing document object after proposal has been submitted "
+            "(including document submitted before proposal pushback to status Draft): {}".format(
                 self.name
             )
         )
