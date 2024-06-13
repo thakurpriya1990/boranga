@@ -2084,7 +2084,7 @@ class OCRAssociatedSpecies(models.Model):
     )
     comment = models.TextField(blank=True)
 
-    related_species = models.ManyToManyField(Taxonomy, null=True, blank=True)
+    related_species = models.ManyToManyField(Taxonomy, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -3149,7 +3149,7 @@ class Occurrence(RevisionedMixin):
                 occurrence_report.associated_species
             )
             associated_species.save()
-            #copy over related species separately
+            # copy over related species separately
             for i in occurrence_report.associated_species.related_species.all():
                 associated_species.related_species.add(i)
 
@@ -3813,7 +3813,7 @@ class OCCAssociatedSpecies(models.Model):
     )
     comment = models.TextField(blank=True)
 
-    related_species = models.ManyToManyField(Taxonomy, null=True, blank=True)
+    related_species = models.ManyToManyField(Taxonomy, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -4176,7 +4176,8 @@ class OccurrenceTenure(models.Model):
                 return Occurrence.objects.get(id=self.historical_occurrence)
             except Occurrence.DoesNotExist:
                 logger.warning(
-                    f"OccurrenceTenure {self.id} has historical_occurrence {self.historical_occurrence} which does not exist"
+                    f"OccurrenceTenure {self.id} has historical_occurrence "
+                    f"{self.historical_occurrence} which does not exist"
                 )
                 return None
         return self.occurrence_geometry.occurrence
@@ -4188,8 +4189,8 @@ class OccurrenceTenure(models.Model):
     @property
     def tenure_area_centroid(self):
         from boranga.components.spatial.utils import (
-            wkb_to_geojson,
             feature_json_to_geosgeometry,
+            wkb_to_geojson,
         )
 
         if self.tenure_area_ewkb:
