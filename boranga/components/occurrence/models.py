@@ -757,9 +757,11 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         details = validated_data.get("details", None)
         new_occurrence_name = validated_data.get("new_occurrence_name", None)
 
-        if new_occurrence_name and Occurrence.objects.filter(occurrence_name=new_occurrence_name).exists():
+        if (new_occurrence_name and 
+            Occurrence.objects.filter(occurrence_name=new_occurrence_name).exists() or
+            OccurrenceReportApprovalDetails.objects.filter(new_occurrence_name=new_occurrence_name).exists()):
             raise ValidationError(
-                f"Occurrence with name \"{new_occurrence_name}\" already exists"
+                f"Occurrence with name \"{new_occurrence_name}\" already exists or has been proposed for approval"
             )
 
 
