@@ -1790,6 +1790,9 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def documents(self, request, *args, **kwargs):
         instance = self.get_object()
+        if not is_internal and not is_external_contributor(request):
+            raise PermissionDenied  # TODO: Replace with permission class
+
         qs = instance.documents.all()
         qs = qs.exclude(input_name="conservation_status_approval_doc")
         if not is_internal(request) and is_external_contributor(request):
