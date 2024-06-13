@@ -1,6 +1,6 @@
 <template lang="html">
     <div :id="'related_ocr'+section_type">
-        <FormSection :formCollapse="true" label="Related Occurrence Reports" :Index="'related_ocr'+section_type" @toggle-collapse="toggleCollapse">
+        <FormSection :formCollapse="false" label="Related Occurrence Reports" :Index="'related_ocr'+section_type" @toggle-collapse="toggleCollapse">
             <div>
                 <datatable
                     ref="related_ocr_datatable"
@@ -21,6 +21,7 @@
                 :sectionObj="sectionObj"
             />
         </div>
+        {{ hrefContainerId }}
     </div>
 </template>
 
@@ -58,12 +59,18 @@ export default {
             type: Boolean,
             default: false
         },
+        hrefContainerId: {
+            type: String,
+            required: false,
+            default: '',
+        },
     },
+    emits: ['copyUpdate', 'highlight-on-map'],
     data() {
         let vm = this;
         return {
-            uuid:0,
-            datatable_id: uuid(),
+            uuid: uuid(),
+            datatable_id: 'datatable-related-ocr-' + uuid(),
             sectionOCRId: null,
             sectionTypeFormatted: null,
             sectionObj: null,
@@ -141,6 +148,7 @@ export default {
             }
         },
         column_copy_action: function(){
+            const vm = this;
             return {
                 //name: 'action',
                 data: 'id',
@@ -149,10 +157,14 @@ export default {
                 visible: true,
                 'render': function(row, type, full){
                     let links = '';
+                    // full.occurrence_report_number
+                    if (vm.section_type == 'location') {
+                        links += `<a href="#${vm.hrefContainerId}" data-highlight-on-map='${full.id}'>Highlight on Map</a><br>`;
+                    }
                     links += `<a href='#' data-view-section='${full.id}'>View Section</a><br>`;
                     //links += `<a href='#' data-merge-section='${full.id}'>Copy Section Data (merge)</a><br>`;
                     links += `<a href='#' data-replace-section='${full.id}'>Copy Section Data</a><br>`;
-                    
+
                     return links;
                 }
             }
@@ -296,7 +308,22 @@ export default {
                 var id = $(this).attr('data-replace-section');
                 vm.copySection(id,false);
             });
-        }
+            vm.$refs.related_ocr_datatable.vmDataTable.on(
+                'click',
+                'a[data-highlight-on-map]',
+                function (e) {
+                    let id = $(this).attr('data-highlight-on-map');
+                    id = id || null;
+                    if (!id) {
+                        e.preventDefault();
+                    }
+                    vm.highlightOnMap(id);
+                }
+            );
+        },
+        highlightOnMap: function (id = null) {
+            this.$emit('highlight-on-map', id);
+        },
     },
     mounted: function(){
         let vm = this;

@@ -1123,20 +1123,14 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
     processing_status_display = serializers.CharField(
         source="get_processing_status_display"
     )
+    can_be_processed = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = OccurrenceReportReferral
         fields = "__all__"
         datatables_always_serialize = (
             "id",
-            "occurrence_report_number",
-            "occurrence_name",
-            "scientific_name",
-            "community_name",
-            "reported_date",
-            "submitter",
-            "group_type",
-            "processing_status_display",
+            "can_be_processed",
         )
 
     def get_submitter(self, obj):
@@ -1155,6 +1149,10 @@ class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
     class Meta:
         model = OccurrenceReportReferral
         fields = "__all__"
+        datatables_always_serialize = (
+            "id",
+            "can_be_processed",
+        )
 
     def get_referral(self, obj):
         return EmailUserSerializer(retrieve_email_user(obj.referral)).data

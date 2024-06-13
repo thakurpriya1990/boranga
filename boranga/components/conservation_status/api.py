@@ -72,7 +72,11 @@ from boranga.components.species_and_communities.models import (
     TaxonVernacular,
 )
 from boranga.components.users.models import SubmitterCategory
-from boranga.helpers import is_external_contributor, is_internal
+from boranga.helpers import (
+    is_conservation_status_approver,
+    is_external_contributor,
+    is_internal,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -454,9 +458,7 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
                 filter_application_status
                 and not filter_application_status.lower() == "all"
             ):
-                queryset = queryset.filter(
-                    conservation_status__processing_status=filter_application_status
-                )
+                queryset = queryset.filter(processing_status=filter_application_status)
 
         filter_assessor = request.POST.get("filter_assessor")
         if filter_assessor and not filter_assessor.lower() == "all":
@@ -1234,17 +1236,12 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
 
     @list_route(
         methods=[
+            "GET",
             "POST",
         ],
         detail=False,
     )
     def community_cs_referrals_internal(self, request, *args, **kwargs):
-        """
-        Used by the internal Referred to me dashboard
-
-        http://localhost:8499/api/community_conservation_status_paginated/community_cs_referrals_internal/?format=datatables&draw=1&length=2
-        """
-        self.serializer_class = ConservationStatusReferralSerializer
         qs = (
             ConservationStatusReferral.objects.filter(referral=request.user.id)
             if is_internal(self.request)
@@ -1267,8 +1264,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
         detail=False,
     )
     def community_cs_referrals_internal_export(self, request, *args, **kwargs):
-
-        self.serializer_class = ConservationStatusReferralSerializer
         qs = (
             ConservationStatusReferral.objects.filter(referral=request.user.id)
             if is_internal(self.request)
@@ -1836,10 +1831,17 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         if not status:
             raise serializers.ValidationError("Status is required")
 
-        if status not in [
+        allowed_statuses = [
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
-        ]:
+        ]
+
+        if is_conservation_status_approver(request):
+            # When an assessor proposes to delist a CS, the approver can instead decide to
+            # return the CS to approved status.
+            allowed_statuses.append(ConservationStatus.PROCESSING_STATUS_APPROVED)
+
+        if status not in allowed_statuses:
             raise serializers.ValidationError("The status provided is not allowed")
 
         instance.move_to_status(request, status, approver_comment)

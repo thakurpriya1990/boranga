@@ -102,7 +102,7 @@ export default {
         },
         close: function () {
             this.isModalOpen = false;
-            this.delist = {};
+            this.delist = {effective_to: new Date().toISOString().split('T')[0]};
             this.errors = false;
             $('.was-validated').removeClass('was-validated');
         },
@@ -121,7 +121,7 @@ export default {
             vm.errors = false;
             let delist = JSON.parse(JSON.stringify(vm.delist));
             vm.delistingProposal = true;
-            if (vm.processing_status == 'With Assessor') {
+            if (vm.processing_status == 'Approved') {
                 vm.$http.patch(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/propose_delist'), JSON.stringify(delist), {
                     emulateJSON: true,
                 }).then((response) => {
@@ -134,6 +134,8 @@ export default {
                     vm.delistingProposal = false;
                     vm.errorString = helpers.apiVueResourceError(error);
                 });
+            } else {
+                vm.close();
             }
         },
     },

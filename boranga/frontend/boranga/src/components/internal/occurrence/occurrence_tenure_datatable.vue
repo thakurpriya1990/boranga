@@ -29,7 +29,7 @@ export default {
         hrefContainerId: {
             type: String,
             required: false,
-            default: '#',
+            default: '',
         },
     },
     data: function () {

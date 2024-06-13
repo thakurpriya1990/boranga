@@ -1,23 +1,11 @@
 {%  extends 'boranga/emails/base_email.html' %}
 
 {%  block content %}
-	The Application {{ cs_proposal.conservation_status_number }} has been assessed and has been recommended for approval.
-
-    {% comment %}
-    {% if cs_proposal.proposed_issuance_approval %}
-        <p>
-        	<span>Approved: </span>
-        </p>
-        <p>Effective from date: {{ effective_from_date }}</p>
-        <p>Effective to date: {{ effective_to_date }}</p>
-        <p>Details: {{ details }}</p>
-    {% endif %}
-    {% endcomment %}
+	The conservation status Proposal {{ cs_proposal.conservation_status_number }} has been assessed and has been recommended for approval.
 
     <p>
-    You can access this Application using the following link:
+        You can access this Proposal using the following link:
     </p>
-    <a href="{{url}}">Access Application</a>
 
-
+    <a href="{{url}}">Access Proposal</a>
 {%  endblock %}
