@@ -199,6 +199,7 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
     observation_date = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S", allow_null=True
     )
+    main_observer = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -212,7 +213,8 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
             "customer_status",
             "can_user_view",
             "can_user_edit",
-            'observation_date',
+            "observation_date",
+            "main_observer",
         )
         datatables_always_serialize = (
             "id",
@@ -245,6 +247,15 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
             except CommunityTaxonomy.DoesNotExist:
                 return ""
         return ""
+    
+    def get_main_observer(self, obj):
+        try:
+            if obj.observer_detail.filter(main_observer=True).exists():
+                return obj.observer_detail.filter(main_observer=True).first().observer_name
+            else:
+                return ""
+        except:
+            return ""
 
 
 class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
@@ -270,6 +281,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     )
     location_accuracy = serializers.SerializerMethodField()
     identification_certainty = serializers.SerializerMethodField()
+    main_observer = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -298,6 +310,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "location_accuracy",
             "identification_certainty",
             "site",
+            "main_observer",
         )
         datatables_always_serialize = (
             "id",
@@ -376,6 +389,15 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     def get_identification_certainty(self, obj):
         if obj.identification and obj.identification.identification_certainty:
             return obj.identification.identification_certainty.name
+        
+    def get_main_observer(self, obj):
+        try:
+            if obj.observer_detail.filter(main_observer=True).exists():
+                return obj.observer_detail.filter(main_observer=True).first().observer_name
+            else:
+                return ""
+        except:
+            return ""
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):

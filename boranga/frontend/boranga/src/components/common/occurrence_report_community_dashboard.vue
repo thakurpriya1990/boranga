@@ -321,7 +321,7 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_internal){
-                return ['Number','Occurrence','Community Name', 'Observation Date','Submission Date', 'Submitter', 'Status', 'Action']
+                return ['Number','Occurrence','Community Name', 'Observation Date', 'Main Observer','Submission Date', 'Submitter', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -396,6 +396,21 @@ export default {
                     return ''
                 },
                 name: "observation_date",
+            }
+        },
+        column_main_observer: function () {
+            return {
+                data: "main_observer",
+                orderable: false,
+                searchable: false,
+                visible: true,
+                'render': function (data, type, full) {
+                    if (full.main_observer) {
+                        return full.main_observer;
+                    }
+                    return ''
+                },
+                name: "main_observer",
             }
         },
         column_submission_date_time: function(){
@@ -500,6 +515,7 @@ export default {
                     vm.column_occurrence,
                     vm.column_community_name,
                     vm.column_observation_date_time,
+                    vm.column_main_observer,
                     vm.column_submission_date_time,
                     vm.column_submitter,
                     vm.column_status,
