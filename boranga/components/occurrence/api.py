@@ -2593,9 +2593,13 @@ class OccurrenceReportDocumentViewSet(
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         self.is_authorised_to_update(instance.occurrence_report)
-        serializer = SaveOccurrenceReportDocumentSerializer(
-            instance, data=json.loads(request.data.get("data"))
-        )
+        data = json.loads(request.data.get("data"))
+        serializer = SaveOccurrenceReportDocumentSerializer(instance, data=data)
+        if is_internal(self.request):
+            serializer = InternalSaveOccurrenceReportDocumentSerializer(
+                instance, data=data
+            )
+
         serializer.is_valid(raise_exception=True)
         serializer.save(no_revision=True)
         instance.add_documents(request, no_revision=True)
