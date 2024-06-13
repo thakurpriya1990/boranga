@@ -864,34 +864,22 @@ export default {
                 name: "processing_status",
             }
         },
-        column_effective_from_date: function () {
+        column_effective_from: function () {
             return {
-                data: "effective_from_date",
+                data: "effective_from",
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    if (full.effective_from_date) {
-                        return full.effective_from_date
-                    }
-                    return ''
-                },
-                name: "conservationstatusissuanceapprovaldetails__effective_from_date",
+                name: "effective_from",
             }
         },
-        column_effective_to_date: function () {
+        column_effective_to: function () {
             return {
-                data: "effective_to_date",
+                data: "effective_to",
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    if (full.effective_to_date) {
-                        return full.effective_to_date
-                    }
-                    return ''
-                },
-                name: "conservationstatusissuanceapprovaldetails__effective_to_date",
+                name: "effective_to",
             }
         },
         column_review_due_date: function () {
@@ -994,8 +982,8 @@ export default {
                     vm.column_submitter_category,
                     vm.column_submitter_organisation,
                     vm.column_assessor_name,
-                    vm.column_effective_from_date,
-                    vm.column_effective_to_date,
+                    vm.column_effective_from,
+                    vm.column_effective_to,
                     vm.column_review_due_date,
                     vm.column_status,
                     vm.column_action,
@@ -1023,8 +1011,8 @@ export default {
                     vm.column_submitter_category,
                     vm.column_submitter_organisation,
                     vm.column_assessor_name,
-                    vm.column_effective_from_date,
-                    vm.column_effective_to_date,
+                    vm.column_effective_from,
+                    vm.column_effective_to,
                     vm.column_review_due_date,
                     vm.column_status,
                     vm.column_action,
