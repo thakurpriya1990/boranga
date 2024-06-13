@@ -55,6 +55,7 @@ from boranga.components.occurrence.models import (
 )
 from boranga.components.spatial.utils import wkb_to_geojson
 from boranga.components.species_and_communities.models import CommunityTaxonomy
+from boranga.components.users.serializers import SubmitterInformationSerializer
 from boranga.helpers import (
     is_internal,
     is_new_external_contributor,
@@ -936,6 +937,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "occurrence",
             "observation_date",
             "site",
+            "submitter_information",
         )
 
     def get_readonly(self, obj):
@@ -1035,6 +1037,7 @@ class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
     processing_status = serializers.SerializerMethodField(read_only=True)
     review_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
+    submitter_information = SubmitterInformationSerializer(read_only=True)
 
     def get_readonly(self, obj):
         return obj.can_user_view
@@ -1182,6 +1185,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     )
     readonly = serializers.SerializerMethodField(read_only=True)
     is_new_contributor = serializers.SerializerMethodField()
+    submitter_information = SubmitterInformationSerializer(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -1240,6 +1244,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "is_new_contributor",
             "observation_date",
             "site",
+            "submitter_information",
         )
 
     def get_readonly(self, obj):
