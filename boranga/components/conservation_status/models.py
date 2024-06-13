@@ -952,10 +952,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 f"Officer with id {officer} is not authorised to be assigned to this conservation status"
             )
 
-        if self.processing_status in [
+        allowed_statuses = [
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
-        ]:
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+        ]
+
+        if self.processing_status in allowed_statuses:
             if officer == self.assigned_approver:
                 return
 
@@ -973,10 +976,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
             # TODO: Create a log entry for the user
 
-        if self.processing_status in [
-            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
-            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
-        ]:
+        if self.processing_status in allowed_statuses:
             if officer == self.assigned_officer:
                 return
 
