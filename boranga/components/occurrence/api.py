@@ -102,6 +102,7 @@ from boranga.components.occurrence.serializers import (
     CreateOccurrenceSerializer,
     InternalOccurrenceReportReferralSerializer,
     InternalOccurrenceReportSerializer,
+    InternalSaveOccurrenceReportDocumentSerializer,
     ListInternalOccurrenceReportSerializer,
     ListOCCMinimalSerializer,
     ListOccurrenceReportSerializer,
@@ -2524,15 +2525,15 @@ class OccurrenceReportDocumentViewSet(
             occurrence_report.back_to_assessor(request, serializer.validated_data)
 
     def get_queryset(self):
-        request_user = self.request.user
-        qs = OccurrenceReportDocument.objects.none()
-
         if is_internal(self.request):
-            qs = OccurrenceReportDocument.objects.all().order_by("id")
-        elif is_customer(self.request):
-            qs = OccurrenceReportDocument.objects.filter(Q(uploaded_by=request_user.id))
-            return qs
-        return qs
+            return OccurrenceReportDocument.objects.all().order_by("id")
+        if is_external_contributor(self.request):
+            return OccurrenceReportDocument.objects.filter(
+                occurrence_report__submitter=self.request.user.id,
+                visible=True,
+                can_submitter_access=True,
+            )
+        return OccurrenceReportDocument.objects.none()
 
     @detail_route(
         methods=[
@@ -2617,15 +2618,21 @@ class OccurrenceReportDocumentViewSet(
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        serializer = SaveOccurrenceReportDocumentSerializer(
-            data=json.loads(request.data.get("data"))
-        )
+        data = json.loads(request.data.get("data"))
+        serializer = SaveOccurrenceReportDocumentSerializer(data=data)
+        if is_internal(self.request):
+            serializer = InternalSaveOccurrenceReportDocumentSerializer(data=data)
+
         serializer.is_valid(raise_exception=True)
         occurrence_report = serializer.validated_data["occurrence_report"]
         self.is_authorised_to_update(occurrence_report)
         instance = serializer.save(no_revision=True)
         instance.add_documents(request, no_revision=True)
         instance.uploaded_by = request.user.id
+
+        if is_external_contributor(self.request):
+            instance.can_submitter_access = True
+
         instance.save(version_user=request.user)
         if instance.occurrence_report:
             instance.occurrence_report.log_user_action(
