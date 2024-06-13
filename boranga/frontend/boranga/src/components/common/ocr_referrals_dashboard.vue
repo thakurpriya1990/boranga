@@ -170,7 +170,7 @@ export default {
             }
         },
         datatable_headers: function () {
-            let headers = ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter', 'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
+            let headers = ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter', 'Review Due', 'Status', 'Action']
             if (this.group_type_name == 'community') {
                 headers.splice(3, 1, 'Community Name')
             }

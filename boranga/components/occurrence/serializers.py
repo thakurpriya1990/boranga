@@ -62,6 +62,7 @@ from boranga.helpers import (
     is_occurrence_assessor,
 )
 from boranga.ledger_api_utils import retrieve_email_user
+from boranga.components.users.serializers import SubmitterInformationSerializer
 
 logger = logging.getLogger("boranga")
 
@@ -195,6 +196,9 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
     scientific_name = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
     customer_status = serializers.CharField(source="get_customer_status_display")
+    observation_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
 
     class Meta:
         model = OccurrenceReport
@@ -208,6 +212,7 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
             "customer_status",
             "can_user_view",
             "can_user_edit",
+            'observation_date',
         )
         datatables_always_serialize = (
             "id",
@@ -883,6 +888,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
         format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     )
     observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    submitter_information = SubmitterInformationSerializer()
 
     class Meta:
         model = OccurrenceReport
@@ -928,6 +934,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "occurrence",
             "observation_date",
             "site",
+            "submitter_information",
         )
 
     def get_readonly(self, obj):

@@ -31,16 +31,32 @@
                             </select>
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="">Observation Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observation_from_date"
+                            v-model="filterOCRCommunityObservationFromDate">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observation_from_date"
+                            v-model="filterOCRCommunityObservationToDate">
+                    </div>
+                </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Submitted Date Range:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" v-model="filterOCRCommunitySubmittedFromDate">
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" 
+                        v-model="filterOCRCommunitySubmittedFromDate">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for=""></label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" v-model="filterOCRCommunitySubmittedToDate">
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date" 
+                        v-model="filterOCRCommunitySubmittedToDate">
                     </div>
                 </div>
             </div>
@@ -126,6 +142,16 @@ export default {
             required: false,
             default: 'filterOCRCommunityStatus',
         },
+        filterOCRCommunityObservationFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRCommunityObservationFromDate',
+        },
+        filterOCRCommunityObservationToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRCommunityObservationToDate',
+        },
         filterOCRCommunitySubmittedFromDate_cache: {
             type: String,
             required: false,
@@ -163,6 +189,12 @@ export default {
 
             filterOCRCommunityStatus: sessionStorage.getItem(this.filterOCRCommunityStatus_cache) ?
                         sessionStorage.getItem(this.filterOCRCommunityStatus_cache) : 'all',
+
+            filterOCRCommunityObservationFromDate: sessionStorage.getItem(this.filterOCRCommunityObservationFromDate_cache) ?
+                sessionStorage.getItem(this.filterOCRCommunityObservationFromDate_cache) : '',
+
+            filterOCRCommunityObservationToDate: sessionStorage.getItem(this.filterOCRCommunityObservationToDate_cache) ?
+                sessionStorage.getItem(this.filterOCRCommunityObservationToDate_cache) : '',
 
             filterOCRCommunitySubmittedFromDate: sessionStorage.getItem(this.filterOCRCommunitySubmittedFromDate_cache) ?
                                 sessionStorage.getItem(this.filterOCRCommunitySubmittedFromDate_cache) : '',
@@ -222,6 +254,16 @@ export default {
             vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRCommunityStatus_cache, vm.filterOCRCommunityStatus);
         },
+        filterOCRCommunityObservationFromDate: function () {
+            let vm = this;
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRCommunityObservationFromDate_cache, vm.filterOCRCommunityObservationFromDate);
+        },
+        filterOCRCommunityObservationToDate: function () {
+            let vm = this;
+            vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRCommunityObservationToDate_cache, vm.filterOCRCommunityObservationToDate);
+        },
         filterOCRCommunitySubmittedFromDate: function() {
             let vm = this;
             vm.$refs.community_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
@@ -254,6 +296,8 @@ export default {
             if(this.filterOCRCommunityOccurrence === 'all' &&
                 this.filterOCRCommunityName === 'all' &&
                 this.filterOCRCommunityStatus === 'all' &&
+                this.filterOCRCommunityObservationFromDate === '' &&
+                this.filterOCRCommunityObservationToDate === '' &&
                 this.filterOCRCommunitySubmittedFromDate === '' &&
                 this.filterOCRCommunitySubmittedToDate === ''&&
                 this.filterOCRFromCommunityDueDate === '' &&
@@ -277,7 +321,7 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_internal){
-                return ['Number','Occurrence','Community Name', 'Submission date/time', 'Submitter', 'Review Due', 'Status', 'Action']
+                return ['Number','Occurrence','Community Name', 'Observation Date','Submission Date', 'Submitter', 'Review Due', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -337,6 +381,21 @@ export default {
                     return ''
                 },
                 name: "community__taxonomy__community_name",
+            }
+        },
+        column_observation_date_time: function(){
+            return {
+                data: "observation_date",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function(data, type, full){
+                    if (full.observation_date){
+                        return full.observation_date;
+                    }
+                    return ''
+                },
+                name: "observation_date",
             }
         },
         column_submission_date_time: function(){
@@ -449,6 +508,7 @@ export default {
                 vm.column_number,
                     vm.column_occurrence,
                     vm.column_community_name,
+                    vm.column_observation_date_time,
                     vm.column_submission_date_time,
                     vm.column_submitter,
                     vm.column_review_due_date,
@@ -486,6 +546,8 @@ export default {
                         d.filter_occurrence = vm.filterOCRCommunityOccurrence;
                         d.filter_community_name = vm.filterOCRCommunityName;
                         d.filter_status = vm.filterOCRCommunityStatus;
+                        d.filter_observation_from_date = vm.filterOCRCommunityObservationFromDate;
+                        d.filter_observation_to_date = vm.filterOCRCommunityObservationToDate;
                         d.filter_submitted_from_date = vm.filterOCRCommunitySubmittedFromDate;
                         d.filter_submitted_to_date = vm.filterOCRCommunitySubmittedToDate;
                         d.filter_from_due_date = vm.filterOCRFromCommunityDueDate;
@@ -779,6 +841,8 @@ export default {
                 filter_occurrence: vm.filterOCRCommunityOccurrence,
                 filter_community_name: vm.filterOCRCommunityName,
                 filter_status: vm.filterOCRCommunityStatus,
+                filter_observation_from_date: vm.filterOCRCommunityObservationFromDate,
+                filter_observation_to_date: vm.filterOCRCommunityObservationToDate,
                 filter_submitted_from_date: vm.filterOCRCommunitySubmittedFromDate,
                 filter_submitted_to_date: vm.filterOCRCommunitySubmittedToDate,
                 filter_from_due_date: vm.filterOCRFromCommunityDueDate,

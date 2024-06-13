@@ -236,6 +236,18 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
             if filter_submitted_to_date and not filter_submitted_from_date:
                 queryset = queryset.filter(reported_date__lte=filter_submitted_to_date)
 
+            filter_from_observation_date = request.GET.get("filter_observation_from_date")
+            filter_to_observation_date = request.GET.get("filter_observation_to_date")
+
+            if filter_from_observation_date:
+                queryset = queryset.filter(
+                    observation_date__gte=filter_from_observation_date
+                )
+            if filter_to_observation_date:
+                queryset = queryset.filter(
+                    observation_date__lte=filter_to_observation_date
+                )
+
             filter_from_review_due_date = request.GET.get("filter_from_review_due_date")
             filter_to_review_due_date = request.GET.get("filter_to_review_due_date")
 

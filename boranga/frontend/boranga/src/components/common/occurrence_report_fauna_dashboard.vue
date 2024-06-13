@@ -29,14 +29,28 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="">Submitted From Date:</label>
+                        <label for="">Observation Date Range:</label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observation_from_date"
+                            v-model="filterOCRFaunaObservationFromDate">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for=""></label>
+                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observation_from_date"
+                            v-model="filterOCRFaunaObservationToDate">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="">Submitted Date Range:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date"
                             v-model="filterOCRFaunaSubmittedFromDate">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label for="">Submitted To Date:</label>
+                        <label for=""></label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="submitted_from_date"
                             v-model="filterOCRFaunaSubmittedToDate">
                     </div>
@@ -123,6 +137,16 @@ export default {
             required: false,
             default: 'filterOCRFaunaStatus',
         },
+        filterOCRFaunaObservationFromDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRFaunaObservationFromDate',
+        },
+        filterOCRFaunaObservationToDate_cache: {
+            type: String,
+            required: false,
+            default: 'filterOCRFaunaObservationToDate',
+        },
         filterOCRFaunaSubmittedFromDate_cache: {
             type: String,
             required: false,
@@ -160,6 +184,12 @@ export default {
 
             filterOCRFaunaStatus: sessionStorage.getItem(this.filterOCRFaunaStatus_cache) ?
                 sessionStorage.getItem(this.filterOCRFaunaStatus_cache) : 'all',
+
+            filterOCRFaunaObservationFromDate: sessionStorage.getItem(this.filterOCRFaunaObservationFromDate_cache) ?
+                sessionStorage.getItem(this.filterOCRFaunaObservationFromDate_cache) : '',
+
+            filterOCRFaunaObservationToDate: sessionStorage.getItem(this.filterOCRFaunaObservationToDate_cache) ?
+                sessionStorage.getItem(this.filterOCRFaunaObservationToDate_cache) : '',
 
             filterOCRFaunaSubmittedFromDate: sessionStorage.getItem(this.filterOCRFaunaSubmittedFromDate_cache) ?
                 sessionStorage.getItem(this.filterOCRFaunaSubmittedFromDate_cache) : '',
@@ -216,6 +246,16 @@ export default {
             vm.$refs.fauna_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRFaunaStatus_cache, vm.filterOCRFaunaStatus);
         },
+        filterOCRFaunaObservationFromDate: function () {
+            let vm = this;
+            vm.$refs.fauna_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRFaunaObservationFromDate_cache, vm.filterOCRFaunaObservationFromDate);
+        },
+        filterOCRFaunaObservationToDate: function () {
+            let vm = this;
+            vm.$refs.fauna_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterOCRFaunaObservationToDate_cache, vm.filterOCRFaunaObservationToDate);
+        },
         filterOCRFaunaSubmittedFromDate: function () {
             let vm = this;
             vm.$refs.fauna_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
@@ -248,6 +288,8 @@ export default {
             if (this.filterOCRFaunaOccurrence === 'all' &&
                 this.filterOCRFaunaScientificName === 'all' &&
                 this.filterOCRFaunaStatus === 'all' &&
+                this.filterOCRFaunaObservationFromDate === '' &&
+                this.filterOCRFaunaObservationToDate === '' &&
                 this.filterOCRFaunaSubmittedFromDate === '' &&
                 this.filterOCRFaunaSubmittedToDate === '' &&
                 this.filterOCRFromFaunaDueDate === '' &&
@@ -268,7 +310,7 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_internal) {
-                return ['Number', 'Occurrence', 'Scientific Name', 'Submission date/time', 'Submitter', 'Review Due', 'Status', 'Action']
+                return ['Number', 'Occurrence', 'Scientific Name', 'Observation Date','Submission Date', 'Submitter', 'Review Due', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -328,6 +370,21 @@ export default {
                     return ''
                 },
                 name: "species__taxonomy__scientific_name",
+            }
+        },
+        column_observation_date_time: function () {
+            return {
+                data: "observation_date",
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function (data, type, full) {
+                    if (full.observation_date) {
+                        return full.observation_date;
+                    }
+                    return ''
+                },
+                name: "observation_date",
             }
         },
         column_submission_date_time: function () {
@@ -440,6 +497,7 @@ export default {
                     vm.column_number,
                     vm.column_occurrence,
                     vm.column_scientific_name,
+                    vm.column_observation_date_time,
                     vm.column_submission_date_time,
                     vm.column_submitter,
                     vm.column_review_due_date,
@@ -477,6 +535,8 @@ export default {
                         d.filter_occurrence = vm.filterOCRFaunaOccurrence;
                         d.filter_scientific_name = vm.filterOCRFaunaScientificName;
                         d.filter_status = vm.filterOCRFaunaStatus;
+                        d.filter_observation_from_date = vm.filterOCRFaunaObservationFromDate;
+                        d.filter_observation_to_date = vm.filterOCRFaunaObservationToDate;
                         d.filter_submitted_from_date = vm.filterOCRFaunaSubmittedFromDate;
                         d.filter_submitted_to_date = vm.filterOCRFaunaSubmittedToDate;
                         d.filter_from_due_date = vm.filterOCRFromFaunaDueDate;
@@ -771,6 +831,8 @@ export default {
                 filter_occurrence: vm.filterOCRFaunaOccurrence,
                 filter_scientific_name: vm.filterOCRFaunaScientificName,
                 filter_status: vm.filterOCRFaunaStatus,
+                filter_observation_from_date: vm.filterOCRFaunaObservationFromDate,
+                filter_observation_to_date: vm.filterOCRFaunaObservationToDate,
                 filter_submitted_from_date: vm.filterOCRFaunaSubmittedFromDate,
                 filter_submitted_to_date: vm.filterOCRFaunaSubmittedToDate,
                 filter_from_due_date: vm.filterOCRFromFaunaDueDate,
