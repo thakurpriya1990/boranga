@@ -826,8 +826,15 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     @property
     def current_conservation_status(self):
-        current_conservation_statuses = ConservationStatus.objects.filter(
-            species=self.species,
+        if self.species:
+            current_conservation_statuses = ConservationStatus.objects.filter(
+                species=self.species,
+            )
+        elif self.community:
+            current_conservation_statuses = ConservationStatus.objects.filter(
+                community=self.community,
+            )
+        current_conservation_statuses.filter(
             processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
         )
         if current_conservation_statuses.count() > 1:
