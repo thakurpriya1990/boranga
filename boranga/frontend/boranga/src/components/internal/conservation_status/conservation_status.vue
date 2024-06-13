@@ -302,7 +302,7 @@
                                     <ProposalConservationStatus ref="conservation_status"
                                         :conservation_status_obj="conservation_status_obj"
                                         :canEditStatus="canEditStatus" id="ConservationStatusStart" :is_internal="true"
-                                        @approvalLevelChanged="save_wo()">
+                                        @saveConservationStatus="save_wo()">
                                         <!-- TODO add hasAssessorMode props to ProposalConservationStatus -->
                                     </ProposalConservationStatus>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
