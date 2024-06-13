@@ -15,13 +15,13 @@ from boranga.components.occurrence.models import (
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
+    OCCContactDetail,
     OCCFireHistory,
     OCCHabitatComposition,
     OCCHabitatCondition,
     OCCIdentification,
     OCCLocation,
     OCCObservationDetail,
-    OCCContactDetail,
     OCCPlantCount,
     Occurrence,
     OccurrenceDocument,
@@ -1729,6 +1729,7 @@ class OccurrenceReportDocumentSerializer(serializers.ModelSerializer):
             "document_sub_category",
             "document_sub_category_name",
             "visible",
+            "can_submitter_access",
         )
         read_only_fields = ("id", "document_number")
 
@@ -1772,6 +1773,17 @@ class SaveOccurrenceReportDocumentSerializer(serializers.ModelSerializer):
                     setattr(instance, field_name, validated_data[field_name])
             instance.save(*args, **kwargs)
             return instance
+
+
+class InternalSaveOccurrenceReportDocumentSerializer(
+    SaveOccurrenceReportDocumentSerializer
+):
+    class Meta:
+        model = OccurrenceReportDocument
+        fields = SaveOccurrenceReportDocumentSerializer.Meta.fields + (
+            "can_submitter_access",
+        )
+        read_only_fields = SaveOccurrenceReportDocumentSerializer.Meta.read_only_fields
 
 
 class OccurrenceDocumentSerializer(serializers.ModelSerializer):
