@@ -245,20 +245,24 @@
                     <OccurrenceTenureDatatable
                         v-if="occurrence_obj"
                         ref="occurrence_tenure_datatable"
-                        :key="'occurrence-tenure-datatable-' + uuid"
+                        :key="datatableOCCTenureKey"
                         :occurrence-id="occurrence_obj.id"
                         :href-container-id="mapContainerId"
-                        @highlight-on-map="highlightOnMap"
+                        @highlight-on-map="highlightPointOnMap"
                     ></OccurrenceTenureDatatable>
                 </div>
             </FormSection>
-            <RelatedReports 
-                    :isReadOnly="isReadOnly"
-                    :occurrence_obj=occurrence_obj
-                    :section_type="'location'"
-                    @copyUpdate="copyUpdate"
-                />
-
+            <RelatedReports
+                v-if="occurrence_obj"
+                ref="related_reports_datatable"
+                :key="datatableRelatedOCRKey"
+                :is-read-only="isReadOnly"
+                :occurrence_obj="occurrence_obj"
+                :section_type="'location'"
+                :href-container-id="mapContainerId"
+                @copyUpdate="copyUpdate"
+                @highlight-on-map="highlightIdOnMapLayer"
+            />
         </FormSection>
     </div>
 </template>
@@ -308,7 +312,9 @@ export default {
     emits: [],
     data() {
         return {
-            uuid: uuid(),
+            uuid_component_map: uuid(),
+            uuid_datatable_ocr: uuid(),
+            uuid_datatable_occ_tenure: uuid(),
             crs: [],
             region_list: [],
             district_list: [],
@@ -323,7 +329,13 @@ export default {
     },
     computed: {
         componentMapKey: function () {
-            return `component-map-${this.uuid}`;
+            return `component-map-${this.uuid_component_map}`;
+        },
+        datatableRelatedOCRKey: function () {
+            return `datatable-ocr-${this.uuid_datatable_ocr}`;
+        },
+        datatableOCCTenureKey: function () {
+            return `datatable-occ-tenure-${this.uuid_datatable_occ_tenure}`;
         },
         coordinateReferenceSystems: function () {
             return this.crs;
@@ -354,15 +366,15 @@ export default {
         },
         mapContainerId: function () {
             if (!this.mapReady) {
-                return null;
+                return '';
             }
             return this.$refs.component_map.map_container_id;
         },
     },
     created: async function () {
         let vm = this;
-        this.uuid = uuid();
         let action = this.$route.query.action;
+        // this.uuid = uuid();
 
         fetch(
             helpers.add_endpoint_join(
@@ -428,6 +440,10 @@ export default {
                 error
             );
         });
+
+        // Make sure the datatables have access to the map container id to have the page scroll to the map anchor
+        this.uuid_datatable_ocr = uuid();
+        this.uuid_datatable_occ_tenure = uuid();
     },
     methods: {
         filterDistrict: function (event) {
@@ -516,7 +532,7 @@ export default {
             );
         },
         incrementComponentMapKey: function () {
-            this.uuid = uuid();
+            this.uuid_component_map = uuid();
         },
         searchForCRS: function (search, loading) {
             const vm = this;
@@ -566,12 +582,15 @@ export default {
             console.log('Map features loaded.');
             this.mapReady = true;
         },
-        highlightOnMap: function (coordinates) {
+        highlightPointOnMap: function (coordinates) {
             if (!coordinates) {
                 console.warn('No coordinates found');
                 return;
             }
             this.$refs.component_map.highlightPointOnTenureLayer(coordinates);
+        },
+        highlightIdOnMapLayer: function (id) {
+            console.log(id);
         },
     },
 };
