@@ -1643,6 +1643,21 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             self.processing_status = ConservationStatus.PROCESSING_STATUS_UNLOCKED
             self.save(version_user=request.user)
 
+    def has_unlocked_mode(self, request):
+        status_with_assessor = [
+            "unlocked",
+        ]
+        if self.processing_status not in status_with_assessor:
+            return False
+
+        if not self.assigned_officer:
+            return False
+
+        if not self.assigned_officer == request.user.id:
+            return False
+
+        return is_conservation_status_approver(request)
+
 
 class ConservationStatusLogEntry(CommunicationsLogEntry):
     conservation_status = models.ForeignKey(
