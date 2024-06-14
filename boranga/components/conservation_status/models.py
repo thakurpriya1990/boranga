@@ -1624,6 +1624,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             and self.processing_status == ConservationStatus.PROCESSING_STATUS_UNLOCKED
         ):
             self.processing_status = ConservationStatus.PROCESSING_STATUS_APPROVED
+            self.assigned_approver = None
             self.save(version_user=request.user)
 
     def unlock(self, request):
