@@ -122,8 +122,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     CUSTOMER_STATUS_DECLINED = "declined"
     CUSTOMER_STATUS_DISCARDED = "discarded"
     CUSTOMER_STATUS_CLOSED = "closed"
-    CUSTOMER_STATUS_PARTIALLY_APPROVED = "partially_approved"
-    CUSTOMER_STATUS_PARTIALLY_DECLINED = "partially_declined"
     CUSTOMER_STATUS_CHOICES = (
         (CUSTOMER_STATUS_DRAFT, "Draft"),
         (CUSTOMER_STATUS_WITH_ASSESSOR, "Under Review"),
@@ -133,8 +131,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         (CUSTOMER_STATUS_DECLINED, "Declined"),
         (CUSTOMER_STATUS_DISCARDED, "Discarded"),
         (CUSTOMER_STATUS_CLOSED, "DeListed"),
-        (CUSTOMER_STATUS_PARTIALLY_APPROVED, "Partially Approved"),
-        (CUSTOMER_STATUS_PARTIALLY_DECLINED, "Partially Declined"),
     )
 
     # List of statuses from above that allow a customer to edit an occurrence report.
@@ -151,8 +147,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         "approved",
         "declined",
         "closed",
-        "partially_approved",
-        "partially_declined",
     ]
 
     PROCESSING_STATUS_TEMP = "temp"
@@ -168,8 +162,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     PROCESSING_STATUS_UNLOCKED = "unlocked"
     PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_CLOSED = "closed"
-    PROCESSING_STATUS_PARTIALLY_APPROVED = "partially_approved"
-    PROCESSING_STATUS_PARTIALLY_DECLINED = "partially_declined"
     PROCESSING_STATUS_CHOICES = (
         (PROCESSING_STATUS_DRAFT, "Draft"),
         (PROCESSING_STATUS_WITH_ASSESSOR, "With Assessor"),
@@ -183,8 +175,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_UNLOCKED, "Unlocked"),
         (PROCESSING_STATUS_DISCARDED, "Discarded"),
         (PROCESSING_STATUS_CLOSED, "DeListed"),
-        (PROCESSING_STATUS_PARTIALLY_APPROVED, "Partially Approved"),
-        (PROCESSING_STATUS_PARTIALLY_DECLINED, "Partially Declined"),
     )
 
     FINALISED_STATUSES = [
