@@ -804,6 +804,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         return {
             "assessor_mode": True,
             "has_assessor_mode": obj.has_assessor_mode(request),
+            "has_unlocked_mode": obj.has_unlocked_mode(request),
             "assessor_can_assess": obj.can_assess(request),
             "assessor_level": "assessor",
             "assessor_box_view": obj.assessor_comments_view(request),
