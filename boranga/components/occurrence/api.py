@@ -238,46 +238,18 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
             if filter_submitted_to_date and not filter_submitted_from_date:
                 queryset = queryset.filter(reported_date__lte=filter_submitted_to_date)
 
-            filter_from_effective_from_date = request.GET.get(
-                "filter_from_effective_from_date"
+            filter_from_observation_date = request.GET.get(
+                "filter_observation_from_date"
             )
-            filter_to_effective_from_date = request.GET.get(
-                "filter_to_effective_from_date"
-            )
+            filter_to_observation_date = request.GET.get("filter_observation_to_date")
 
-            filter_from_effective_to_date = request.GET.get(
-                "filter_from_effective_to_date"
-            )
-            filter_to_effective_to_date = request.GET.get("filter_to_effective_to_date")
-
-            if filter_from_effective_from_date:
+            if filter_from_observation_date:
                 queryset = queryset.filter(
-                    effective_from__gte=filter_from_effective_from_date
+                    observation_date__gte=filter_from_observation_date
                 )
-            if filter_to_effective_from_date:
+            if filter_to_observation_date:
                 queryset = queryset.filter(
-                    effective_from__lte=filter_to_effective_from_date
-                )
-
-            if filter_from_effective_to_date:
-                queryset = queryset.filter(
-                    effective_to__gte=filter_from_effective_to_date
-                )
-            if filter_to_effective_to_date:
-                queryset = queryset.filter(
-                    effective_to__lte=filter_to_effective_to_date
-                )
-
-            filter_from_review_due_date = request.GET.get("filter_from_review_due_date")
-            filter_to_review_due_date = request.GET.get("filter_to_review_due_date")
-
-            if filter_from_review_due_date:
-                queryset = queryset.filter(
-                    review_due_date__gte=filter_from_review_due_date
-                )
-            if filter_to_review_due_date:
-                queryset = queryset.filter(
-                    review_due_date__lte=filter_to_review_due_date
+                    observation_date__lte=filter_to_observation_date
                 )
 
         else:
@@ -310,7 +282,23 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        queryset = super().filter_queryset(request, queryset, view)
+        search_text = request.GET.get("search[value]")
+        search_queryset = queryset
+        # for search values that cannot be accommodated by DRF
+        if search_text:
+            if "internal" in view.name:
+                observer_ids = (
+                    OCRObserverDetail.objects.filter(main_observer=True)
+                    .filter(observer_name__icontains=search_text)
+                    .values_list("occurrence_report__id", flat=True)
+                )
+                search_queryset = queryset.filter(
+                    Q(submitter_information__name__icontains=search_text)
+                    | Q(id__in=observer_ids)
+                )
+
+        super_queryset = super().filter_queryset(request, queryset, view)
+        queryset = search_queryset.union(super_queryset)
 
         setattr(view, "_datatables_total_count", total_count)
         return queryset
@@ -2953,28 +2941,6 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
         filter_status = request.GET.get("filter_status")
         if filter_status and not filter_status.lower() == "all":
             queryset = queryset.filter(processing_status=filter_status)
-
-        filter_from_effective_from_date = request.GET.get(
-            "filter_from_effective_from_date"
-        )
-        filter_to_effective_from_date = request.GET.get("filter_to_effective_from_date")
-
-        filter_from_effective_to_date = request.GET.get("filter_from_effective_to_date")
-        filter_to_effective_to_date = request.GET.get("filter_to_effective_to_date")
-
-        if filter_from_effective_from_date:
-            queryset = queryset.filter(
-                effective_from__gte=filter_from_effective_from_date
-            )
-        if filter_to_effective_from_date:
-            queryset = queryset.filter(
-                effective_from__lte=filter_to_effective_from_date
-            )
-
-        if filter_from_effective_to_date:
-            queryset = queryset.filter(effective_to__gte=filter_from_effective_to_date)
-        if filter_to_effective_to_date:
-            queryset = queryset.filter(effective_to__lte=filter_to_effective_to_date)
 
         filter_from_review_due_date = request.GET.get("filter_from_review_due_date")
         filter_to_review_due_date = request.GET.get("filter_to_review_due_date")

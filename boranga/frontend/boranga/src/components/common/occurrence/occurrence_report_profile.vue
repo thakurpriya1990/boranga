@@ -149,9 +149,9 @@ export default {
         return {
             uuid: null,
             scientific_name_lookup:
-                'scientific_name_lookup' + vm.occurrence_report_obj.id,
+                'scientific_name_lookup' + vm._uid,
             select_scientific_name:
-                'select_scientific_name' + vm.occurrence_report_obj.id,
+                'select_scientific_name' + vm._uid,
             community_name_lookup: 'community_name_lookup' + vm._uid,
             select_community_name: 'select_community_name' + vm._uid,
             isFauna:

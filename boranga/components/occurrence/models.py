@@ -184,12 +184,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         PROCESSING_STATUS_CLOSED,
     ]
 
-    REVIEW_STATUS_CHOICES = (
-        ("not_reviewed", "Not Reviewed"),
-        ("awaiting_amendments", "Awaiting Amendments"),
-        ("amended", "Amended"),
-        ("accepted", "Accepted"),
-    )
     customer_status = models.CharField(
         "Customer Status",
         max_length=40,
@@ -252,8 +246,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     observation_date = models.DateTimeField(null=True, blank=True)
     reported_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
-    effective_from = models.DateTimeField(null=True, blank=True)
-    effective_to = models.DateTimeField(null=True, blank=True)
     submitter_information = models.OneToOneField(
         SubmitterInformation,
         on_delete=models.SET_NULL,
@@ -278,16 +270,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
-
-    review_due_date = models.DateField(null=True, blank=True)
-    review_date = models.DateField(null=True, blank=True)
-    reviewed_by = models.IntegerField(null=True)  # EmailUserRO
-    review_status = models.CharField(
-        "Review Status",
-        max_length=30,
-        choices=REVIEW_STATUS_CHOICES,
-        default=REVIEW_STATUS_CHOICES[0][0],
-    )
 
     proposed_decline_status = models.BooleanField(default=False)
     deficiency_data = models.TextField(null=True, blank=True)  # deficiency comment
@@ -751,16 +733,24 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         details = validated_data.get("details", None)
         new_occurrence_name = validated_data.get("new_occurrence_name", None)
-        effective_from_date = validated_data.get("effective_from_date")
-        effective_to_date = validated_data.get("effective_to_date")
+
+        if (
+            new_occurrence_name
+            and Occurrence.objects.filter(occurrence_name=new_occurrence_name).exists()
+            or OccurrenceReportApprovalDetails.objects.filter(
+                new_occurrence_name=new_occurrence_name
+            ).exists()
+        ):
+            raise ValidationError(
+                f'Occurrence with name "{new_occurrence_name}" already exists or has been proposed for approval'
+            )
+
         OccurrenceReportApprovalDetails.objects.update_or_create(
             occurrence_report=self,
             defaults={
                 "officer": request.user.id,
                 "occurrence": occurrence,
                 "new_occurrence_name": new_occurrence_name,
-                "effective_from_date": effective_from_date,
-                "effective_to_date": effective_to_date,
                 "details": details,
             },
         )
@@ -978,8 +968,6 @@ class OccurrenceReportApprovalDetails(models.Model):
     )  # If being added to an existing occurrence
     new_occurrence_name = models.CharField(max_length=200, null=True, blank=True)
     officer = models.IntegerField()  # EmailUserRO
-    effective_from_date = models.DateField(null=True, blank=True)
-    effective_to_date = models.DateField(null=True, blank=True)
     details = models.TextField(blank=True)
 
     class Meta:
@@ -2787,6 +2775,13 @@ class OccurrenceManager(models.Manager):
 
 class Occurrence(RevisionedMixin):
 
+    REVIEW_STATUS_CHOICES = (
+        ("not_reviewed", "Not Reviewed"),
+        ("awaiting_amendments", "Awaiting Amendments"),
+        ("amended", "Amended"),
+        ("accepted", "Accepted"),
+    )
+
     RELATED_ITEM_CHOICES = [
         ("species", "Species"),
         ("community", "Community"),
@@ -2816,8 +2811,7 @@ class Occurrence(RevisionedMixin):
         blank=True,
         related_name="occurrences",
     )
-    effective_from = models.DateTimeField(null=True, blank=True)
-    effective_to = models.DateTimeField(null=True, blank=True)
+
     submitter = models.IntegerField(null=True)  # EmailUserRO
     wild_status = models.ForeignKey(
         WildStatus, on_delete=models.PROTECT, null=True, blank=True
@@ -2834,8 +2828,8 @@ class Occurrence(RevisionedMixin):
     review_status = models.CharField(
         "Review Status",
         max_length=30,
-        choices=OccurrenceReport.REVIEW_STATUS_CHOICES,
-        default=OccurrenceReport.REVIEW_STATUS_CHOICES[0][0],
+        choices=REVIEW_STATUS_CHOICES,
+        default=REVIEW_STATUS_CHOICES[0][0],
     )
 
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
@@ -3049,14 +3043,6 @@ class Occurrence(RevisionedMixin):
 
         occurrence.species = occurrence_report.species
         occurrence.community = occurrence_report.community
-
-        occurrence.effective_from = occurrence_report.effective_from
-        occurrence.effective_to = occurrence_report.effective_to
-
-        occurrence.review_due_date = occurrence_report.review_due_date
-        occurrence.review_date = occurrence_report.review_date
-        occurrence.reviewed_by = occurrence_report.reviewed_by
-        occurrence.review_status = occurrence_report.review_status
 
         occurrence.save(no_revision=True)
 
