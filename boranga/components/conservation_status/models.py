@@ -823,7 +823,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         elif self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
-            ConservationStatus.PROCESSING_STATUS_APPROVED,
             ConservationStatus.PROCESSING_STATUS_UNLOCKED,
         ]:
             return is_conservation_status_approver(request)
@@ -873,8 +872,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_DRAFT,
         ]
         if self.processing_status in status_without_assessor:
-            # For Editing the 'Approved' conservation status for authorised group
-            if self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
+            if self.processing_status in [
+                ConservationStatus.PROCESSING_STATUS_UNLOCKED,
+            ]:
                 return is_conservation_status_approver(request)
 
             return False
@@ -912,9 +912,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     @transaction.atomic
     def assign_officer(self, request, officer):
-        if not self.can_assess(request):
-            raise exceptions.ProposalNotAuthorized()
-
         if not is_conservation_status_assessor(
             request
         ) and not is_conservation_status_approver(request):
@@ -974,13 +971,12 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     @transaction.atomic
     def unassign(self, request):
-        if not self.can_assess(request):
-            raise exceptions.ProposalNotAuthorized()
-
-        if (
-            self.processing_status
-            == ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
-        ):
+        if self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
+        ]:
             if self.assigned_approver:
                 self.assigned_approver = None
                 self.save()
