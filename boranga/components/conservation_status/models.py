@@ -44,7 +44,6 @@ from boranga.components.users.models import (
     SubmitterInformationModelMixin,
 )
 from boranga.helpers import (
-    belongs_to_by_user_id,
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_external_contributor,
@@ -916,56 +915,62 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         if not self.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
-        if not belongs_to_by_user_id(
-            officer.id, settings.GROUP_NAME_CONSERVATION_STATUS_ASSESSOR
-        ) or not belongs_to_by_user_id(
-            officer.id, settings.GROUP_NAME_CONSERVATION_STATUS_APPROVER
-        ):
+        if not is_conservation_status_assessor(
+            request
+        ) and not is_conservation_status_approver(request):
             raise ValidationError(
                 f"Officer with id {officer} is not authorised to be assigned to this conservation status"
             )
 
-        allowed_statuses = [
-            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
-            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
-            ConservationStatus.PROCESSING_STATUS_APPROVED,
-        ]
+        if is_conservation_status_approver(request):
+            allowed_statuses = [
+                ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+                ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+                ConservationStatus.PROCESSING_STATUS_APPROVED,
+                ConservationStatus.PROCESSING_STATUS_UNLOCKED,
+            ]
 
-        if self.processing_status in allowed_statuses:
-            if officer == self.assigned_approver:
-                return
+            if self.processing_status in allowed_statuses:
+                if officer == self.assigned_approver:
+                    return
 
-            self.assigned_approver = officer.id
-            self.save()
+                self.assigned_approver = officer.id
+                self.save()
 
-            # Create a log entry for the conservation status
-            self.log_user_action(
-                ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(
-                    self.conservation_status_number,
-                    f"{officer.get_full_name()}({officer.email})",
-                ),
-                request,
-            )
+                # Create a log entry for the conservation status
+                self.log_user_action(
+                    ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(
+                        self.conservation_status_number,
+                        f"{officer.get_full_name()}({officer.email})",
+                    ),
+                    request,
+                )
 
-            # TODO: Create a log entry for the user
+                # TODO: Create a log entry for the user
 
-        if self.processing_status in allowed_statuses:
-            if officer == self.assigned_officer:
-                return
+        if is_conservation_status_assessor(request):
+            allowed_statuses = [
+                ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+                ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
+            ]
 
-            self.assigned_officer = officer.id
-            self.save()
+            if self.processing_status in allowed_statuses:
+                if officer == self.assigned_officer:
+                    return
 
-            # Create a log entry for the conservation status
-            self.log_user_action(
-                ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
-                    self.conservation_status_number,
-                    f"{officer.get_full_name()}({officer.email})",
-                ),
-                request,
-            )
+                self.assigned_officer = officer.id
+                self.save()
 
-            # TODO: Create a log entry for the user
+                # Create a log entry for the conservation status
+                self.log_user_action(
+                    ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
+                        self.conservation_status_number,
+                        f"{officer.get_full_name()}({officer.email})",
+                    ),
+                    request,
+                )
+
+                # TODO: Create a log entry for the user
 
     @transaction.atomic
     def unassign(self, request):
