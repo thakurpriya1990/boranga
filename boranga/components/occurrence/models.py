@@ -1597,8 +1597,7 @@ class OCRLocation(models.Model):
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
 
-
-class OccurrenceReportGeometryManager(models.Manager):
+class GeometryManager(models.Manager):
     def get_queryset(self):
         qs = super().get_queryset()
         polygon_ids = qs.extra(
@@ -1616,11 +1615,12 @@ class OccurrenceReportGeometryManager(models.Manager):
             )
         )
 
-
 class GeometryBase(models.Model):
     """
     Base class for geometry models
     """
+
+    objects = GeometryManager()
 
     EXTENT = (112.5, -35.5, 129.0, -13.5)
 
@@ -1694,8 +1694,6 @@ class IntersectsGeometry(models.Model):
 
 
 class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
-    objects = OccurrenceReportGeometryManager()
-
     occurrence_report = models.ForeignKey(
         OccurrenceReport,
         on_delete=models.CASCADE,
@@ -3405,35 +3403,12 @@ class OCCLocation(models.Model):
     def __str__(self):
         return str(self.occurrence)  # TODO: is the most appropriate?
 
-
-# TODO do we need a separate model for OCC and OCR here?
-class OccurrenceGeometryManager(models.Manager):
-    def get_queryset(self):
-        qs = super().get_queryset()
-        polygon_ids = qs.extra(
-            where=["geometrytype(geometry) LIKE 'POLYGON'"]
-        ).values_list("id", flat=True)
-        return qs.annotate(
-            area=models.Case(
-                models.When(
-                    models.Q(geometry__isnull=False) & models.Q(id__in=polygon_ids),
-                    then=Area(
-                        Cast("geometry", gis_models.PolygonField(geography=True))
-                    ),
-                ),
-                default=None,
-            )
-        )
-
-
 class GeometryType(Func):
     function = "GeometryType"
     output_field = CharField()
 
 
 class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
-    objects = OccurrenceGeometryManager()
-
     occurrence = models.ForeignKey(
         Occurrence,
         on_delete=models.CASCADE,
@@ -4174,30 +4149,19 @@ class OccurrenceTenure(models.Model):
             return wkb_to_geojson(centroid.ewkb)
         return None
 
-# class BufferGeometry(models.Model):
-#     objects = OccurrenceGeometryManager()
+# class BufferGeometry(GeometryBase):
+#     # objects = OccurrenceGeometryManager()
 
-#     EXTENT = (112.5, -35.5, 129.0, -13.5)
-
-#     occurrence = models.ForeignKey(
-#         Occurrence,
+#     occurrence_geometry = models.OneToOneField(
+#         OccurrenceGeometry,
 #         on_delete=models.CASCADE,
-#         null=True,
-#         related_name="occ_geometry",
+#         null=False,
+#         blank=False,
+#         related_name="buffer_geometry",
 #     )
-#     # Extents of WA
-#     geometry = gis_models.GeometryField(extent=EXTENT, blank=True, null=True)
-#     original_geometry_ewkb = models.BinaryField(
-#         blank=True, null=True, editable=True
-#     )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
-#     intersects = models.BooleanField(default=False)
-#     copied_from = models.ForeignKey(
-#         "self", on_delete=models.SET_NULL, blank=True, null=True
-#     )
-#     drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
-#     locked = models.BooleanField(default=False)
-#     # TODO: possibly remove buffer radius from location models when we go with the radius being a property of the geometry
-#     buffer_radius = models.FloatField(null=True, blank=True, default=0)
+
+#     def related_model_field(self):
+#         return self.occurrence_geometry
 
 
 # Occurrence Report Document
