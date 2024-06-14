@@ -1635,6 +1635,19 @@ class GeometryBase(models.Model):
     def save(self, *args, **kwargs):
         if not self.geometry:
             raise ValidationError("Geometry is required")
+
+        if self.geometry.srid != 4326:
+            raise ValidationError(
+                f"Trying to save a geometry with SRID {self.geometry.srid} into WGS-84 (SRID 4326) geometry field."
+            )
+
+        if not self.geometry.within(
+            GEOSGeometry(Polygon.from_bbox(self.EXTENT), srid=4326)
+        ):
+            raise ValidationError(
+                "Geometry is not within the extent of Western Australia"
+            )
+
         super().save(*args, **kwargs)
 
     @abstractmethod
@@ -1716,14 +1729,7 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry
             self.occurrence_report.group_type.name == GroupType.GROUP_TYPE_FAUNA
             and type(self.geometry).__name__ in ["Polygon", "MultiPolygon"]
         ):
-            raise ValidationError("Fauna occurrence reports cannot have polygons")
-
-        if not self.geometry.within(
-            GEOSGeometry(Polygon.from_bbox(self.EXTENT), srid=4326)
-        ):
-            raise ValidationError(
-                "A geometry is not within the extent of Western Australia"
-            )
+            raise ValidationError("Fauna occurrence reports cannot have polygons")        
 
         super().save(*args, **kwargs)
 
@@ -3433,13 +3439,6 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
             self.geometry
         ).__name__ in ["Polygon", "MultiPolygon"]:
             raise ValidationError("Fauna occurrences cannot have polygons")
-
-        if not self.geometry.within(
-            GEOSGeometry(Polygon.from_bbox(self.EXTENT), srid=4326)
-        ):
-            raise ValidationError(
-                "A geometry is not within the extent of Western Australia"
-            )
 
         super().save(*args, **kwargs)
 
