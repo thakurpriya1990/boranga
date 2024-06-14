@@ -1859,9 +1859,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         instance.unlock(request)
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
-        res_json = {"conservation_status_obj": serializer.data}
-        res_json = json.dumps(res_json)
-        return HttpResponse(res_json, content_type="application/json")
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -1878,9 +1876,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         instance.lock(request)
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
-        res_json = {"conservation_status_obj": serializer.data}
-        res_json = json.dumps(res_json)
-        return HttpResponse(res_json, content_type="application/json")
+        return Response(serializer.data)
 
 
 class ConservationStatusReferralViewSet(
