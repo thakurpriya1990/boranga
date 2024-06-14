@@ -435,18 +435,15 @@ class Species(RevisionedMixin):
         blank=True,
         related_name="species_image",
     )
-    region = models.ForeignKey(
-        Region, default=None, on_delete=models.CASCADE, null=True, blank=True
-    )
-    regions = models.ManyToManyField(
-        Region, null=True, blank=True, related_name="species_regions"
-    )
-    # species_regions = MultiSelectField(max_length=250, blank=True,
-    # choices=[(r.id, r.name) for r in Region.objects.all()], null=True)
-    district = models.ForeignKey(
-        District, default=None, on_delete=models.CASCADE, null=True, blank=True
-    )
-    districts = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
+    # region = models.ForeignKey(
+    #     Region, default=None, on_delete=models.CASCADE, null=True, blank=True
+    # )
+    regions = models.ManyToManyField(Region, null=True, blank=True, related_name="species_regions")
+    # species_regions = MultiSelectField(max_length=250, blank=True, choices=[(r.id, r.name) for r in Region.objects.all()], null=True)
+    # district = models.ForeignKey(
+    #     District, default=None, on_delete=models.CASCADE, null=True, blank=True
+    # )
+    districts = models.ManyToManyField(District, null=True, blank=True, related_name="species_districts")
     last_data_curration_date = models.DateField(blank=True, null=True)
     conservation_plan_exists = models.BooleanField(default=False)
     conservation_plan_reference = models.CharField(
