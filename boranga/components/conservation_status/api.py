@@ -1857,8 +1857,30 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 "User not authorised to unlock Conservation Status"
             )
         instance.unlock(request)
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        res_json = {"conservation_status_obj": serializer.data}
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def lock_conservation_status(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.can_change_lock(request):
+            raise serializers.ValidationError(
+                "User not authorised to lock Conservation Status"
+            )
+        instance.lock(request)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        res_json = {"conservation_status_obj": serializer.data}
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
 
 
 class ConservationStatusReferralViewSet(
