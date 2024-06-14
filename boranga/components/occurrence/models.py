@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import json
 import logging
 
@@ -1621,6 +1622,13 @@ class GeometryBase(models.Model):
     Base class for geometry models
     """
 
+    EXTENT = (112.5, -35.5, 129.0, -13.5)
+
+    geometry = gis_models.GeometryField(extent=EXTENT, blank=True, null=True)
+    original_geometry_ewkb = models.BinaryField(
+        blank=True, null=True, editable=True
+    )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
+
     class Meta:
         abstract = True
 
@@ -1629,51 +1637,24 @@ class GeometryBase(models.Model):
             raise ValidationError("Geometry is required")
         super().save(*args, **kwargs)
 
+    @abstractmethod
+    def related_model_field(self):
+        """Returns the model field (foreign key) that this geometry model is the geometry of.
+        E.g. OccurrenceGeometry is the geometry model of Occurrence"""
 
-class OccurrenceReportGeometry(models.Model):
-    objects = OccurrenceReportGeometryManager()
-
-    EXTENT = (112.5, -35.5, 129.0, -13.5)
-
-    occurrence_report = models.ForeignKey(
-        OccurrenceReport,
-        on_delete=models.CASCADE,
-        null=True,
-        related_name="ocr_geometry",
-    )
-    # Extents of WA
-    geometry = gis_models.GeometryField(extent=EXTENT, blank=True, null=True)
-    original_geometry_ewkb = models.BinaryField(
-        blank=True, null=True, editable=True
-    )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
-    intersects = models.BooleanField(default=False)
-    copied_from = models.ForeignKey(
-        "self", on_delete=models.SET_NULL, blank=True, null=True
-    )
-    drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
-    locked = models.BooleanField(default=False)
-
-    class Meta:
-        app_label = "boranga"
+        raise NotImplementedError(
+            f"Class {self.__class__.__name__} inheriting from {self.__class__.__base__.__name__} needs to implement a related_model_field function."
+        )
 
     def __str__(self):
-        return str(self.occurrence_report)  # TODO: is the most appropriate?
-
-    def save(self, *args, **kwargs):
-        if (
-            self.occurrence_report.group_type.name == GroupType.GROUP_TYPE_FAUNA
-            and type(self.geometry).__name__ in ["Polygon", "MultiPolygon"]
-        ):
-            raise ValidationError("Fauna occurrence reports cannot have polygons")
-
-        if not self.geometry.within(
-            GEOSGeometry(Polygon.from_bbox(self.EXTENT), srid=4326)
-        ):
-            raise ValidationError(
-                "A geometry is not within the extent of Western Australia"
+        wkt_ellipsis = ""
+        if self.geometry:
+            wkt_ellipsis = (
+                (self.geometry.wkt[:85] + "..")
+                if len(self.geometry.wkt) > 75
+                else self.geometry.wkt
             )
-
-        super().save(*args, **kwargs)
+        return f"{self.related_model_field()} Geometry: {wkt_ellipsis}"
 
     @property
     def area_sqm(self):
@@ -1698,6 +1679,55 @@ class OccurrenceReportGeometry(models.Model):
         if self.original_geometry_ewkb:
             return GEOSGeometry(self.original_geometry_ewkb).srid
         return None
+
+class DrawnByGeometry(models.Model):
+    drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
+
+    class Meta:
+        abstract = True
+
+class IntersectsGeometry(models.Model):
+    intersects = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
+
+
+class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
+    objects = OccurrenceReportGeometryManager()
+
+    occurrence_report = models.ForeignKey(
+        OccurrenceReport,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="ocr_geometry",
+    )
+    copied_from = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, blank=True, null=True
+    )
+    locked = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+
+    def related_model_field(self):
+        return self.occurrence_report
+
+    def save(self, *args, **kwargs):
+        if (
+            self.occurrence_report.group_type.name == GroupType.GROUP_TYPE_FAUNA
+            and type(self.geometry).__name__ in ["Polygon", "MultiPolygon"]
+        ):
+            raise ValidationError("Fauna occurrence reports cannot have polygons")
+
+        if not self.geometry.within(
+            GEOSGeometry(Polygon.from_bbox(self.EXTENT), srid=4326)
+        ):
+            raise ValidationError(
+                "A geometry is not within the extent of Western Australia"
+            )
+
+        super().save(*args, **kwargs)
 
 
 class OCRObserverDetail(models.Model):
@@ -3401,10 +3431,8 @@ class GeometryType(Func):
     output_field = CharField()
 
 
-class OccurrenceGeometry(models.Model):
+class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
     objects = OccurrenceGeometryManager()
-
-    EXTENT = (112.5, -35.5, 129.0, -13.5)
 
     occurrence = models.ForeignKey(
         Occurrence,
@@ -3412,16 +3440,9 @@ class OccurrenceGeometry(models.Model):
         null=True,
         related_name="occ_geometry",
     )
-    # Extents of WA
-    geometry = gis_models.GeometryField(extent=EXTENT, blank=True, null=True)
-    original_geometry_ewkb = models.BinaryField(
-        blank=True, null=True, editable=True
-    )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
-    intersects = models.BooleanField(default=False)
     copied_from = models.ForeignKey(
         "self", on_delete=models.SET_NULL, blank=True, null=True
     )
-    drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
     locked = models.BooleanField(default=False)
     # TODO: possibly remove buffer radius from location models when we go with the radius being a property of the geometry
     buffer_radius = models.FloatField(null=True, blank=True, default=0)
@@ -3429,13 +3450,8 @@ class OccurrenceGeometry(models.Model):
     class Meta:
         app_label = "boranga"
 
-    def __str__(self):
-        wkt_ellipsis = (
-            (self.geometry.wkt[:85] + "..")
-            if len(self.geometry.wkt) > 75
-            else self.geometry.wkt
-        )
-        return f"{self.occurrence} Geometry: {wkt_ellipsis}"
+    def related_model_field(self):
+        return self.occurrence
 
     def save(self, *args, **kwargs):
         if self.occurrence.group_type.name == GroupType.GROUP_TYPE_FAUNA and type(
@@ -3451,31 +3467,6 @@ class OccurrenceGeometry(models.Model):
             )
 
         super().save(*args, **kwargs)
-
-    @property
-    def area_sqm(self):
-        if not hasattr(self, "area") or not self.area:
-            return None
-        return self.area.sq_m
-
-    @property
-    def area_sqhm(self):
-        if not hasattr(self, "area") or not self.area:
-            return None
-        return self.area.sq_m / 10000
-
-    @property
-    def original_geometry(self):
-        if self.original_geometry_ewkb:
-            return GEOSGeometry(self.original_geometry_ewkb)
-        return None
-
-    @property
-    def original_geometry_srid(self):
-        if self.original_geometry_ewkb:
-            return GEOSGeometry(self.original_geometry_ewkb).srid
-        return None
-
 
 class OCCContactDetail(models.Model):
     """
@@ -4182,6 +4173,31 @@ class OccurrenceTenure(models.Model):
             centroid = feature_json_to_geosgeometry(geo_json).centroid
             return wkb_to_geojson(centroid.ewkb)
         return None
+
+# class BufferGeometry(models.Model):
+#     objects = OccurrenceGeometryManager()
+
+#     EXTENT = (112.5, -35.5, 129.0, -13.5)
+
+#     occurrence = models.ForeignKey(
+#         Occurrence,
+#         on_delete=models.CASCADE,
+#         null=True,
+#         related_name="occ_geometry",
+#     )
+#     # Extents of WA
+#     geometry = gis_models.GeometryField(extent=EXTENT, blank=True, null=True)
+#     original_geometry_ewkb = models.BinaryField(
+#         blank=True, null=True, editable=True
+#     )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
+#     intersects = models.BooleanField(default=False)
+#     copied_from = models.ForeignKey(
+#         "self", on_delete=models.SET_NULL, blank=True, null=True
+#     )
+#     drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
+#     locked = models.BooleanField(default=False)
+#     # TODO: possibly remove buffer radius from location models when we go with the radius being a property of the geometry
+#     buffer_radius = models.FloatField(null=True, blank=True, default=0)
 
 
 # Occurrence Report Document
