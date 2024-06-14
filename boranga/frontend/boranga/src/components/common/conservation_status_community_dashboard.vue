@@ -870,9 +870,6 @@ export default {
                                     data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
                             }
                             else {
-                                if (full.assessor_edit) {
-                                    links += `<a href='/internal/conservation_status/${full.id}?action=edit'>Edit</a><br/>`;
-                                }
                                 links += `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
                                 links += `<a href='#' data-history-conservation-status-community='${full.id}'
                                 data-history-community='${full.community_number}'

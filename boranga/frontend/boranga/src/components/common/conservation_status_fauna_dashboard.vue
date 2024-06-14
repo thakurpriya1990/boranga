@@ -901,9 +901,6 @@ export default {
                                         data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
                             }
                             else {
-                                if (full.assessor_edit) {
-                                    links += `<a href='/internal/conservation_status/${full.id}?action=edit'>Edit</a><br/>`;
-                                }
                                 links += `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
                                 links += `<a href='#' data-history-conservation-status-species='${full.id}'
                                     data-history-species='${full.species_number}'
