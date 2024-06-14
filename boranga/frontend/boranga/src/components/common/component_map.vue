@@ -1248,7 +1248,6 @@
                 </div>
             </div>
         </div>
-        {{ map_container_id }}
     </div>
 </template>
 
@@ -3860,6 +3859,10 @@ export default {
                 context.label ||
                 'Draw';
 
+            const featureProperties = structuredClone(properties);
+            // TODO: Continue here:
+            featureProperties['id'];
+
             feature.setProperties({
                 id: this.newFeatureId,
                 model: context,
@@ -3867,13 +3870,13 @@ export default {
                 source: properties.source || null,
                 name: context.id || -1,
                 label: label,
-                color: color,
+                color: color, // <-
                 stroke: stroke,
-                locked: properties.locked || false,
-                copied_from: properties.report_copied_from || null,
+                locked: properties.locked || false, // <-
+                copied_from: properties.report_copied_from || null, // <-
                 srid: properties.srid || this.mapSrid,
-                original_geometry: original_geometry,
-                area_sqm: properties.area_sqm || this.featureArea(feature),
+                original_geometry: original_geometry, // <-
+                area_sqm: properties.area_sqm || this.featureArea(feature), // <-
             });
 
             const type = feature.getGeometry().getType();
