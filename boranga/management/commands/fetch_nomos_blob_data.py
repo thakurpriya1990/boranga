@@ -243,7 +243,6 @@ class Command(BaseCommand):
             cmd_name, err_str, total_count
         )
         logger.info(msg)
-        print(msg)  # will redirect to cron_tasks.log file, by the parent script
 
         if len(errors) > 0:
             # send email notification

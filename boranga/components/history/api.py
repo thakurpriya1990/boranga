@@ -1,3 +1,5 @@
+import logging
+
 from django.apps import apps
 from django.db import models
 from django.db.models import F, JSONField, Q
@@ -21,6 +23,8 @@ from boranga.helpers import (
     is_occurrence_assessor,
     is_species_communities_approver,
 )
+
+logger = logging.getLogger("log")
 
 
 # keeping it as an APIView to control how its handled
@@ -189,8 +193,7 @@ class VersionsFilterBackend(DatatablesFilterBackend):
                 )
                 queryset = queryset.filter(revision_id__in=remaining_revision_ids)
             except Exception as e:
-                print(e)
-                print("Invalid search term")
+                logger.warn(f"Invalid search term: {e}")
 
         return queryset
 
@@ -242,16 +245,12 @@ class GetLookUpValues:
         Returns all one to many fields that are not reversion registered
         """
         # get all foreign fields of model
-        # model = apps.get_model(app_label=app_label, model_name=model_name)
         lookup_fields = []
-        # reversion_fields = ContentType.objects.values_list(,flat=True)
         for i in model._meta.get_fields():
             # check if field foreign
-            # print(i,i.__class__)
             if isinstance(i, models.ForeignKey) and not is_registered(i.related_model):
                 # check if reversion has been applied
                 # if not, treat it as a lookup field
-                # print(i.name)
                 lookup_fields.append(i.name)
         return lookup_fields
 

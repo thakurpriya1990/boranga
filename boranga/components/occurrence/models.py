@@ -317,10 +317,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     def applicant_details(self):
         if self.submitter:
             email_user = retrieve_email_user(self.submitter)
-            print(email_user)
             return f"{email_user.first_name} {email_user.last_name}"
-            # Priya commented the below as gives error on UAT and Dev only on external side
-            # email_user.addresses.all().first())
 
     @property
     def applicant_address(self):

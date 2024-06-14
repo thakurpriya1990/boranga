@@ -800,10 +800,8 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -2505,10 +2503,8 @@ class ConservationThreatFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 

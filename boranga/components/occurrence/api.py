@@ -980,10 +980,8 @@ class OccurrenceReportViewSet(
         res_json = {}
 
         if hasattr(ocr, section):
-            # print(section)
             section_value = getattr(ocr, section)
             section_fields = section_value._meta.get_fields()
-            # print(section_fields)
 
             for i in section_fields:
                 if (
@@ -1458,7 +1456,6 @@ class OccurrenceReportViewSet(
         if geometry_data:
             save_geometry(request, ocr_instance, geometry_data, "occurrence_report")
 
-        # print(request.data.get('geojson_polygon'))
         # polygon = request.data.get('geojson_polygon')
         # if polygon:
         #     coords_list = [list(map(float, coord.split(' '))) for coord in polygon.split(',')]
@@ -2694,10 +2691,8 @@ class OCRConservationThreatFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -2957,10 +2952,8 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -3247,7 +3240,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             related_reports = related_reports.all()
         else:
             related_reports = related_reports.none()
-        print(related_reports)
+
         serializer = ListInternalOccurrenceReportSerializer(
             related_reports, many=True, context={"request": request}
         )
@@ -3444,10 +3437,8 @@ class OCCConservationThreatFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
