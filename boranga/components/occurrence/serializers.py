@@ -62,6 +62,7 @@ from boranga.helpers import (
     is_occurrence_assessor,
 )
 from boranga.ledger_api_utils import retrieve_email_user
+from boranga.components.users.serializers import SubmitterInformationSerializer
 
 logger = logging.getLogger("boranga")
 
@@ -195,6 +196,10 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
     scientific_name = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
     customer_status = serializers.CharField(source="get_customer_status_display")
+    observation_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
+    main_observer = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -208,6 +213,8 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
             "customer_status",
             "can_user_view",
             "can_user_edit",
+            "observation_date",
+            "main_observer",
         )
         datatables_always_serialize = (
             "id",
@@ -240,6 +247,15 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
             except CommunityTaxonomy.DoesNotExist:
                 return ""
         return ""
+    
+    def get_main_observer(self, obj):
+        try:
+            if obj.observer_detail.filter(main_observer=True).exists():
+                return obj.observer_detail.filter(main_observer=True).first().observer_name
+            else:
+                return ""
+        except:
+            return ""
 
 
 class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
@@ -250,13 +266,6 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         source="get_processing_status_display"
     )
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
-    effective_from = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
-    effective_to = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
-    review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     assessor_edit = serializers.SerializerMethodField(read_only=True)
     internal_user_edit = serializers.SerializerMethodField()
@@ -272,6 +281,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     )
     location_accuracy = serializers.SerializerMethodField()
     identification_certainty = serializers.SerializerMethodField()
+    main_observer = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -295,14 +305,12 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "internal_user_edit",
             "occurrence",
             "occurrence_name",
-            "effective_from",
-            "effective_to",
-            "review_due_date",
             "is_new_contributor",
             "observation_date",
             "location_accuracy",
             "identification_certainty",
             "site",
+            "main_observer",
         )
         datatables_always_serialize = (
             "id",
@@ -381,6 +389,15 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     def get_identification_certainty(self, obj):
         if obj.identification and obj.identification.identification_certainty:
             return obj.identification.identification_certainty.name
+        
+    def get_main_observer(self, obj):
+        try:
+            if obj.observer_detail.filter(main_observer=True).exists():
+                return obj.observer_detail.filter(main_observer=True).first().observer_name
+            else:
+                return ""
+        except:
+            return ""
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
@@ -780,12 +797,6 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
     processing_status_display = serializers.CharField(
         source="get_processing_status_display"
     )
-    effective_from = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
-    effective_to = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
     review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     community_number = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
@@ -809,8 +820,6 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "number_of_reports",
             "processing_status",
             "processing_status_display",
-            "effective_from",
-            "effective_to",
             "review_due_date",
             "can_user_edit",
         )
@@ -891,6 +900,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
         format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     )
     observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    submitter_information = SubmitterInformationSerializer()
 
     class Meta:
         model = OccurrenceReport
@@ -910,7 +920,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             # 'assigned_officer',
             "customer_status",
             "processing_status",
-            "review_status",
             "readonly",
             "can_user_edit",
             "can_user_view",
@@ -936,6 +945,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "occurrence",
             "observation_date",
             "site",
+            "submitter_information",
         )
 
     def get_readonly(self, obj):
@@ -946,9 +956,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_processing_status(self, obj):
         return obj.get_processing_status_display()
-
-    def get_review_status(self, obj):
-        return obj.get_review_status_display()
 
     def get_customer_status(self, obj):
         return obj.get_customer_status_display()
@@ -1033,7 +1040,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
-    review_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
 
     def get_readonly(self, obj):
@@ -1111,13 +1117,6 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
         source="occurrence_report.reported_date", format="%Y-%m-%d %H:%M:%S"
     )
     submitter = serializers.SerializerMethodField()
-    effective_from = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
-    effective_to = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
-    review_due_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     group_type = serializers.CharField(
         source="occurrence_report.group_type.name", allow_null=True
     )
@@ -1182,6 +1181,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     )
     readonly = serializers.SerializerMethodField(read_only=True)
     is_new_contributor = serializers.SerializerMethodField()
+    submitter_information = SubmitterInformationSerializer()
 
     class Meta:
         model = OccurrenceReport
@@ -1201,7 +1201,6 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "assigned_officer",
             "customer_status",
             "processing_status",
-            "review_status",
             "readonly",
             "can_user_edit",
             "can_user_view",
@@ -1240,6 +1239,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "is_new_contributor",
             "observation_date",
             "site",
+            "submitter_information",
         )
 
     def get_readonly(self, obj):
@@ -2083,8 +2083,6 @@ class BackToAssessorSerializer(serializers.Serializer):
 class ProposeApproveSerializer(serializers.Serializer):
     occurrence_id = serializers.IntegerField(allow_null=True)
     new_occurrence_name = serializers.CharField(allow_blank=True)
-    effective_from_date = serializers.DateField()
-    effective_to_date = serializers.DateField()
     details = serializers.CharField()
 
 

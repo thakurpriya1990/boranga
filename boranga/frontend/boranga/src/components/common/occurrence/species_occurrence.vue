@@ -75,12 +75,12 @@ export default {
     data: function () {
         let vm = this;
         return {
-            scientific_name_lookup: 'scientific_name_lookup' + vm.occurrence_obj.id,
-            select_scientific_name: "select_scientific_name" + vm.occurrence_obj.id,
-            occurrence_source_lookup: 'occurrence_source_lookup' + vm.occurrence_obj.id,
-            select_occurrence_source: "select_occurrence_source" + vm.occurrence_obj.id,
-            wild_status_lookup: 'wild_status_lookup' + vm.occurrence_obj.id,
-            select_wild_status: "select_wild_status" + vm.occurrence_obj.id,
+            scientific_name_lookup: 'scientific_name_lookup' + vm._uid,
+            select_scientific_name: "select_scientific_name" + vm._uid,
+            occurrence_source_lookup: 'occurrence_source_lookup' + vm._uid,
+            select_occurrence_source: "select_occurrence_source" + vm._uid,
+            wild_status_lookup: 'wild_status_lookup' + vm._uid,
+            select_wild_status: "select_wild_status" + vm._uid,
             common_name: null,
             occ_profile_dict: {},
             species_list: [],

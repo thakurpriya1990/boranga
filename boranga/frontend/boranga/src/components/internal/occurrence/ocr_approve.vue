@@ -32,13 +32,6 @@
                     </div>
 
                     <div class="mb-3 row">
-                        <label for="effective_from" class="col-sm-4 col-form-label">Effective From</label>
-                        <div class="col-sm-8">
-                            <input type="text" readonly class="form-control-plaintext" id="effective_from" :value="effective_from_text">
-                        </div>
-                    </div>
-
-                    <div class="mb-3 row">
                         <label for="details_from_assessor" class="col-sm-4 col-form-label">Details from Assessor</label>
                         <div class="col-sm-8">
                             <input type="text" readonly class="form-control-plaintext" id="details_from_assessor"
@@ -96,15 +89,6 @@ export default {
     computed: {
         proposeApproveButtonDisabled: function () {
             return !this.approve.create_new_occurrence && !this.approve.occurrence;
-        },
-        effective_from_text: function () {
-            if(!this.approval_details || !this.approval_details.effective_from_date || !this.approval_details.effective_to_date) {
-                return '';
-            }
-            let effective_from_date = new Date(this.approval_details.effective_from_date).toLocaleDateString('en-AU') ;
-            let effective_to_date = new Date(this.approval_details.effective_to_date).toLocaleDateString('en-AU');
-
-            return `${effective_from_date} to ${effective_to_date}`;
         },
     },
     methods: {

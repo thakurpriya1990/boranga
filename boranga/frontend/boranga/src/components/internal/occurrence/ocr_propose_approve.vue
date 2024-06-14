@@ -45,16 +45,6 @@
                                     v-model="propose_approve.new_occurrence_name" required />
                             </div>
                             <div class="mt-3">
-                                <label class="form-label" for="effective_from_date">Effective From</label>
-                                <input type="date" class="form-control" id="effective_from_date"
-                                    name="effective_from_date" v-model="propose_approve.effective_from_date" required />
-                            </div>
-                            <div class="mt-3">
-                                <label class="form-label" for="effective_to_date">Effective To</label>
-                                <input type="date" class="form-control" id="effective_to_date" name="effective_to_date"
-                                    v-model="propose_approve.effective_to_date" required />
-                            </div>
-                            <div class="mt-3">
                                 <label class="form-label" for="details">Details for Approver</label>
                                 <textarea type="date" class="form-control" id="details" name="details"
                                     v-model="propose_approve.details" required></textarea>
@@ -105,8 +95,6 @@ export default {
                 occurrence_name: '',
                 create_new_occurrence: false,
                 new_occurrence_name: '',
-                effective_from_date: '',
-                effective_to_date: '',
                 details: '',
             },
             errorString: '',
@@ -157,8 +145,6 @@ export default {
                 occurrence_name: '',
                 create_new_occurrence: false,
                 new_occurrence_name: '',
-                effective_from_date: '',
-                effective_to_date: '',
                 details: '',
             };
             this.errorString = '';
