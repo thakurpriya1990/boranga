@@ -422,6 +422,46 @@ def projection_aea_wa_to_4326():
     return projection(aea_wa_string, 4326)
 
 
+def transform_geosgeometry_3857_to_4326(geometry):
+    """Transforms a gis.geos GEOSGeometry from Web-Mercator to WGS-84
+    This function is mainly intended to be used in an admin panel map that uses OSMWidget.
+    For some reason, OSMWidget wants to save a geometry that has been edited in the admin panel
+    with SRID 3857, so it needs to be transformed to SRID 4326 first.
+    """
+
+    from pyproj import Transformer
+
+    if geometry.srid != 3857:
+        # Potentially have to make this function more generic and allow for other projections as well
+        logger.debug("Not transforming geometry, as it is not in SRID 3857.")
+        return geometry
+
+    geom_type = (
+        "points" if geometry.geom_type in ["Point", "MultiPoint"] else "polygons"
+    )
+    projection_3857_to_4326 = Transformer.from_crs("EPSG:3857", "EPSG:4326")
+
+    if geom_type == "points":
+        linear_ring = [geometry.coords]
+    else:
+        linear_ring = geometry.exterior_ring.coords
+    pnts = [shp.Point(p) for p in linear_ring]
+    pnts_transformed = [projection_3857_to_4326.transform(p.x, p.y) for p in pnts]
+
+    pnts_xy = [shp.Point(p[1], p[0]) for p in pnts_transformed]
+
+    if geom_type == "points":
+        if len(pnts_xy) == 1:
+            instance_geometry = shp.Point(pnts_xy[0])
+        else:
+            instance_geometry = shp.MultiPoint(pnts_xy)
+    else:
+        # Maybe need to also check for multi-polygon here
+        instance_geometry = shp.Polygon(pnts_xy)
+
+    return instance_geometry
+
+
 def polygon_points(polygon):
     return [shp.Point(p) for p in polygon.exterior.coords]
 

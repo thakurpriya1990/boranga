@@ -1,4 +1,6 @@
 from django.contrib.gis import admin, forms
+from django.contrib.gis.geos import GEOSGeometry
+
 import nested_admin
 
 from boranga.components.occurrence.models import (
@@ -36,7 +38,15 @@ from boranga.components.occurrence.models import (
     SoilType,
     WildStatus,
 )
-from boranga.components.spatial.utils import wkb_to_geojson
+from boranga.components.spatial.utils import (
+    projection,
+    transform_geosgeometry_3857_to_4326,
+    wkb_to_geojson,
+)
+
+
+import shapely.geometry as shp
+from shapely.ops import transform
 
 
 class GeometryField(forms.GeometryField):
@@ -205,10 +215,38 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
 class OccurrenceReportAdmin(admin.ModelAdmin):
     inlines = [OccurrenceReportGeometryInline]
 
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for obj in formset.deleted_objects:
+            obj.delete()
+        for instance in instances:
+            if hasattr(instance, "geometry"):
+                geometry = instance.geometry
+
+                instance_geometry = transform_geosgeometry_3857_to_4326(geometry)
+                instance.geometry = GEOSGeometry(instance_geometry.wkt)
+
+            instance.save()
+        formset.save_m2m()
+
 
 @admin.register(Occurrence)
 class OccurrenceAdmin(nested_admin.NestedModelAdmin):
     inlines = [OccurrenceGeometryInline]
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for obj in formset.deleted_objects:
+            obj.delete()
+        for instance in instances:
+            if hasattr(instance, "geometry"):
+                geometry = instance.geometry
+
+                instance_geometry = transform_geosgeometry_3857_to_4326(geometry)
+                instance.geometry = GEOSGeometry(instance_geometry.wkt)
+
+            instance.save()
+        formset.save_m2m()
 
 
 class OccurrenceTenureAdminForm(forms.ModelForm):
