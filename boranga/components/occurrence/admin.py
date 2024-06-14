@@ -39,6 +39,19 @@ from boranga.components.occurrence.models import (
 from boranga.components.spatial.utils import wkb_to_geojson
 
 
+class GeometryField(forms.GeometryField):
+    widget = forms.OSMWidget(
+        attrs={
+            "display_raw": False,
+            "map_width": 800,
+            "map_srid": 4326,
+            "map_height": 600,
+            "default_lat": -31.9502682,
+            "default_lon": 115.8590241,
+        }
+    )
+
+
 class OccurrenceTenureInline(nested_admin.NestedTabularInline):
     model = OccurrenceTenure
     extra = 0
@@ -66,18 +79,7 @@ class OccurrenceTenureInline(nested_admin.NestedTabularInline):
 
 
 class BufferGeometryInlineForm(forms.ModelForm):
-    geometry = forms.GeometryField(
-        widget=forms.OSMWidget(
-            attrs={
-                "display_raw": False,
-                "map_width": 800,
-                "map_srid": 4326,
-                "map_height": 600,
-                "default_lat": -31.9502682,
-                "default_lon": 115.8590241,
-            }
-        )
-    )
+    geometry = GeometryField()
 
     class Meta:
         model = BufferGeometry
@@ -109,18 +111,7 @@ class BufferGeometryInline(nested_admin.NestedStackedInline):
 
 
 class OccurrenceReportGeometryInlineForm(forms.ModelForm):
-    geometry = forms.GeometryField(
-        widget=forms.OSMWidget(
-            attrs={
-                "display_raw": False,
-                "map_width": 800,
-                "map_srid": 4326,
-                "map_height": 600,
-                "default_lat": -31.9502682,
-                "default_lon": 115.8590241,
-            }
-        )
-    )
+    geometry = GeometryField()
 
     class Meta:
         model = OccurrenceReportGeometry
@@ -166,18 +157,7 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
 
 
 class OccurrenceGeometryInlineForm(forms.ModelForm):
-    geometry = forms.GeometryField(
-        widget=forms.OSMWidget(
-            attrs={
-                "display_raw": False,
-                "map_width": 800,
-                "map_srid": 4326,
-                "map_height": 600,
-                "default_lat": -31.9502682,
-                "default_lon": 115.8590241,
-            }
-        )
-    )
+    geometry = GeometryField()
 
     class Meta:
         model = OccurrenceGeometry
