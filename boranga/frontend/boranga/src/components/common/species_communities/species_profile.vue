@@ -1427,11 +1427,11 @@ export default {
             }
             return [];
         },
-        chainedSelectDistricts: function(regions,action){
+        chainedSelectDistricts: function(regions,action,deselect_region_id){
             let vm = this;
             if(action!= "fetch"){
                 vm.species_community.districts = []; //-----to remove the previous selection
-                }
+            }
             vm.district_list = [];
             if(regions){
                 for(let r of regions){
