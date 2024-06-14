@@ -63,9 +63,28 @@ class OccurrenceTenureInline(nested_admin.NestedTabularInline):
 
     readonly_fields = ["tenure_area_id"]
 
+class OccurrenceReportGeometryInlineForm(forms.ModelForm):
+    geometry = forms.GeometryField(
+        widget=forms.OSMWidget(
+            attrs={
+                "display_raw": False,
+                "map_width": 800,
+                "map_srid": 4326,
+                "map_height": 600,
+                "default_lat": -31.9502682,
+                "default_lon": 115.8590241,
+            }
+        )
+    )
+
+    class Meta:
+        model = OccurrenceReportGeometry
+        fields = "__all__"
+
 
 class OccurrenceReportGeometryInline(admin.StackedInline):
     model = OccurrenceReportGeometry
+    form = OccurrenceReportGeometryInlineForm
     extra = 0
     verbose_name = "Occurrence Report Geometry"
     verbose_name_plural = "Occurrence Report Geometries"
@@ -90,7 +109,18 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
 
 
 class OccurrenceGeometryInlineForm(forms.ModelForm):
-    geometry = forms.GeometryField(widget=forms.OSMWidget(attrs={"display_raw": False}))
+    geometry = forms.GeometryField(
+        widget=forms.OSMWidget(
+            attrs={
+                "display_raw": False,
+                "map_width": 800,
+                "map_srid": 4326,
+                "map_height": 600,
+                "default_lat": -31.9502682,
+                "default_lon": 115.8590241,
+            }
+        )
+    )
 
     class Meta:
         model = OccurrenceGeometry
