@@ -372,6 +372,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     PROCESSING_STATUS_AWAITING_RESPONSES = "awaiting_responses"
     PROCESSING_STATUS_APPROVED = "approved"
     PROCESSING_STATUS_DECLINED = "declined"
+    PROCESSING_STATUS_UNLOCKED = "unlocked"
     PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_DISCARDED_INTERNALLY = "discarded_internally"
     PROCESSING_STATUS_CLOSED = "closed"
@@ -389,6 +390,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_AWAITING_RESPONSES, "Awaiting Responses"),
         (PROCESSING_STATUS_APPROVED, "Approved"),
         (PROCESSING_STATUS_DECLINED, "Declined"),
+        (PROCESSING_STATUS_UNLOCKED, "Unlocked"),
         (PROCESSING_STATUS_DISCARDED, "Discarded"),
         (PROCESSING_STATUS_DELISTED, "DeListed"),
         (PROCESSING_STATUS_CLOSED, "Closed"),
@@ -769,6 +771,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         elif self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
+            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
         ]:
             group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_ASSESSOR)
 
@@ -832,6 +835,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
         ]:
             return is_conservation_status_approver(request)
 
@@ -844,6 +848,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
             ConservationStatus.PROCESSING_STATUS_CLOSED,
             ConservationStatus.PROCESSING_STATUS_DELISTED,
         ]:
@@ -1614,6 +1619,29 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     @property
     def related_item_status(self):
         return self.get_processing_status_display
+
+    def can_change_lock(self, request):
+        if self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+        ]:
+            return is_conservation_status_approver(request)
+
+    def lock(self, request):
+        if (
+            self.can_change_lock(request)
+            and self.processing_status == ConservationStatus.PROCESSING_STATUS_UNLOCKED
+        ):
+            self.processing_status = ConservationStatus.PROCESSING_STATUS_APPROVED
+            self.save(version_user=request.user)
+
+    def unlock(self, request):
+        if (
+            self.can_change_lock(request)
+            and self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED
+        ):
+            self.processing_status = ConservationStatus.PROCESSING_STATUS_UNLOCKED
+            self.save(version_user=request.user)
 
 
 class ConservationStatusLogEntry(CommunicationsLogEntry):
