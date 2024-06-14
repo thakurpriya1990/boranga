@@ -464,19 +464,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                 else []
             )
 
-            group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER)
-            users = (
-                users
-                + list(
-                    map(
-                        lambda id: retrieve_email_user(id),
-                        group_ids,
-                    )
-                )
-                if group_ids
-                else []
-            )
-
             return list(set(users))
         else:
             return []
