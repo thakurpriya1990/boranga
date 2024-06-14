@@ -1595,7 +1595,7 @@ export default {
             },
         },
     },
-    emits: ['validate-feature', 'refreshFromResponse'],
+    emits: ['validate-feature', 'refreshFromResponse', 'features-loaded'],
     data() {
         // eslint-disable-next-line no-unused-vars
         let vm = this;
@@ -2064,7 +2064,7 @@ export default {
         });
     },
     methods: {
-        setLoadingMap(loading=false) {
+        setLoadingMap(loading = false) {
             this.loadingMap = loading;
         },
         /**
@@ -2128,6 +2128,8 @@ export default {
         onFeaturesLoaded: function (event) {
             let vm = this;
             if (event.details.loaded == true) {
+                vm.$emit('features-loaded');
+
                 vm.initialiseUndoRedos();
 
                 vm.dragbox = new DragBox({
@@ -2170,12 +2172,12 @@ export default {
                 Math.max(...N),
             ];
         },
-        centerOnFeature: function (feature) {
+        centerOnFeature: function (feature, maxZoom = 17) {
             const ext = feature.getGeometry().getExtent();
             this.map.getView().fit(ext, {
                 duration: 1000,
                 size: this.map.getSize(),
-                maxZoom: 17,
+                maxZoom: maxZoom,
             });
         },
         setBaseLayer: function (selected_layer_name) {
@@ -4881,6 +4883,56 @@ export default {
                 layer.set('editing', false);
             }
         },
+        /**
+         * Queries the tenure layer at point coordinates and pans/zooms to coordinates
+         * @param {Array} coordinates Point coordinates
+         */
+        highlightPointOnTenureLayer: function (coordinates) {
+            if (!coordinates) {
+                return;
+            }
+            const tenureLayer = this.optionalLayers.filter((layer) => {
+                return layer.get('is_tenure_intersects_query_layer') == true;
+            })[0];
+            if (tenureLayer) {
+                queryLayerAtPoint(this, tenureLayer, coordinates);
+            }
+            const feature = new Feature({
+                geometry: new Point(coordinates),
+            });
+            this.centerOnFeature(feature, 12);
+        },
+        /**
+         * Returns a layer by its name
+         * @param {String} layer_name The 'name' property of the layer. Corresponds to the 'name' property in the layer definition prop
+         */
+        getLayerByName: function (layer_name) {
+            return this.map
+                .getLayers()
+                .getArray()
+                .find((layer) => {
+                    return layer.get('name') == layer_name;
+                });
+        },
+        /**
+         * Returns a layer's feature by its id
+         * @param {Object} layer A layer
+         * @param {String|Number} feature_id The id of a feature on the layer
+         */
+        getFeatureById: function (layer, feature_id) {
+            let featureId = Number(feature_id);
+            if (isNaN(featureId)) {
+                console.error(`Feature ID ${feature_id} is not a number`);
+                return;
+            }
+            return layer
+                .getSource()
+                .getFeatures()
+                .find((feature) => {
+                    // The features name property is the model instance pk
+                    return feature.getProperties().name == featureId;
+                });
+        },
     },
 };
 </script>
@@ -4928,7 +4980,7 @@ export default {
 }
 
 .map-spinner {
-    position: relative;    
+    position: relative;
 }
 
 .shapefile-row {

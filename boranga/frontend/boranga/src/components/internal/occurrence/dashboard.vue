@@ -18,7 +18,8 @@
 
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
-                <FormSection v-if="show_occurrences" :formCollapse="false" label="Occurrences - Flora" Index="occurrence-flora">
+                <FormSection v-if="show_occurrences" :formCollapse="false" label="Occurrences - Flora"
+                    Index="occurrence-flora">
                     <OccurrenceFloraDashboard v-if="isFlora" ref="occ_flora_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_occ_url"
                         :profile="profile" />
@@ -28,9 +29,19 @@
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_url"
                         :profile="profile" />
                 </FormSection>
+                <FormSection :formCollapse="false" label="Occurrence Report - Flora Referred to Me"
+                    Index="occurrence-report-flora-referred-to-me">
+                    <OccurrenceReportReferredToMeDashTable v-if="isFlora" ref="flora_referrals_table" level="internal"
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_referrals_url"
+                        :profile="profile" filterOCRReferralsOccurrence_cache="filterOCRFloraReferralsOccurrence"
+                        filterOCRReferralsScientificName_cache="filterOCRFloraReferralsScientificName"
+                        filterOCRReferralsName_cache="filterOCRFloraReferralsName"
+                        filterOCRReferralsStatus_cache="filterOCRFloraReferralsStatus" />
+                </FormSection>
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
-                <FormSection v-if="show_occurrences" :formCollapse="false" label="Occurrences - Fauna" Index="occurrence-fauna">
+                <FormSection v-if="show_occurrences" :formCollapse="false" label="Occurrences - Fauna"
+                    Index="occurrence-fauna">
                     <OccurrenceFaunaDashboard v-if="isFauna" ref="occ_fauna_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_occ_url"
                         :profile="profile" />
@@ -40,9 +51,19 @@
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_url"
                         :profile="profile" />
                 </FormSection>
+                <FormSection :formCollapse="false" label="Occurrence Report - Fauna Referred to Me"
+                    Index="occurrence-report-fauna-referred-to-me">
+                    <OccurrenceReportReferredToMeDashTable v-if="isFauna" ref="fauna_referrals_table" level="internal"
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_referrals_url"
+                        :profile="profile" filterOCRReferralsOccurrence_cache="filterOCRCommunityReferralsOccurrence"
+                        filterOCRReferralsScientificName_cache="filterOCRCommunityReferralsScientificName"
+                        filterOCRReferralsName_cache="filterOCRCommunityReferralsName"
+                        filterOCRReferralsStatus_cache="filterOCRCommunityReferralsStatus" />
+                </FormSection>
             </div>
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
-                <FormSection v-if="show_occurrences" :formCollapse="false" label="Occurrences - Community" Index="occurrence-community">
+                <FormSection v-if="show_occurrences" :formCollapse="false" label="Occurrences - Community"
+                    Index="occurrence-community">
                     <OccurrenceCommunityDashboard v-if="isCommunity" ref="occ_community_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="community_occ_url"
                         :profile="profile" />
@@ -51,6 +72,16 @@
                     <OccurrenceReportCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="community_ocr_url"
                         :profile="profile" />
+                </FormSection>
+                <FormSection :formCollapse="false" label="Occurrence Report - Community Referred to Me"
+                    Index="occurrence-report-community-referred-to-me">
+                    <OccurrenceReportReferredToMeDashTable v-if="isCommunity" ref="community_referrals_table"
+                        level="internal" :group_type_name="group_name" :group_type_id="getGroupId"
+                        :url="species_ocr_referrals_url" :profile="profile"
+                        filterOCRReferralsOccurrence_cache="filterOCRFaunaReferralsOccurrence"
+                        filterOCRReferralsScientificName_cache="filterOCRFaunaReferralsScientificName"
+                        filterOCRReferralsName_cache="filterOCRFaunaReferralsName"
+                        filterOCRReferralsStatus_cache="filterOCRFaunaReferralsStatus" />
                 </FormSection>
             </div>
         </div>
@@ -66,6 +97,9 @@ import OccurrenceCommunityDashboard from '@/components/common/occurrence_communi
 import OccurrenceReportFloraDashTable from '@/components/common/occurrence_report_flora_dashboard.vue'
 import OccurrenceReportFaunaDashTable from '@common-utils/occurrence_report_fauna_dashboard.vue'
 import OccurrenceReportCommunityDashTable from '@common-utils/occurrence_report_community_dashboard.vue'
+
+import OccurrenceReportReferredToMeDashTable from '@common-utils/ocr_referrals_dashboard.vue'
+
 import FormSection from '@/components/forms/section_toggle.vue'
 
 import {
@@ -76,7 +110,6 @@ import {
 export default {
     name: 'InternalOccurrenceDashboard',
     data() {
-        let vm = this;
         return {
             user_preference: 'flora',    // TODO : set it to default user preference but for now is hardcoded value
             group_types: [],
@@ -85,6 +118,7 @@ export default {
             community_occ_url: api_endpoints.occurrence_paginated_internal,
             species_ocr_url: api_endpoints.occurrence_report_paginated_internal,
             community_ocr_url: api_endpoints.occurrence_report_paginated_internal,
+            species_ocr_referrals_url: api_endpoints.occurrence_report_paginated_referred_to_me,
             profile: null,
         }
     },
@@ -95,10 +129,10 @@ export default {
         OccurrenceReportFloraDashTable,
         OccurrenceReportFaunaDashTable,
         OccurrenceReportCommunityDashTable,
+        OccurrenceReportReferredToMeDashTable,
         FormSection,
     },
     computed: {
-        /*------properties to show the user authenticated Tabs only-----------*/
         show_occurrences: function () {
             return this.profile && this.profile.groups.find((i) => [
                 constants.GROUPS.SPECIES_AND_COMMUNITIES_APPROVERS,
@@ -115,8 +149,6 @@ export default {
         showCommunityTab: function () {
             return this.group_types.includes('community');
         },
-        /*---------------------------------------------------------------------*/
-        /*---------properties to load group related vue components-------------*/
         isFlora: function () {
             return this.group_name == 'flora';
         },
@@ -126,7 +158,6 @@ export default {
         isCommunity: function () {
             return this.group_name == 'community';
         },
-        /*---------------------------------------------------------------------*/
         getGroupId: function () {
             for (var i = 0; i < this.group_types.length; i++) {
                 if (this.group_name === this.group_types[i].name) {
@@ -134,7 +165,6 @@ export default {
                 }
             }
         }
-
     },
     methods: {
         set_active_tab: function (group_name) {
@@ -175,7 +205,6 @@ export default {
             this.getGroupId;
         })
     },
-
 }
 </script>
 

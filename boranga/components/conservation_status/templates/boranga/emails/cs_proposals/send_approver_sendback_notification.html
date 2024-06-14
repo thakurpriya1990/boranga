@@ -1,15 +1,13 @@
 {%  extends 'boranga/emails/base_email.html' %}
 
 {%  block content %}
-	The Application {{ cs_proposal.conservation_status_number }} has been sent back by approver.
+	The Proposal {{ cs_proposal.conservation_status_number }} has been sent back by approver.
 
     <p>Approver comments: {{ approver_comment }}</p>
-    
 
     <p>
-    You can access this Application using the following link:
+        You can access this Proposal using the following link:
     </p>
-    <a href="{{url}}">Access Application</a>
 
-
+    <a href="{{url}}">Access Proposal</a>
 {%  endblock %}

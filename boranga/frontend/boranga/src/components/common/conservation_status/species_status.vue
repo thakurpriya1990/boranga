@@ -76,19 +76,21 @@
             <template v-if="show_administrative_information">
                 <div class="row mb-3 border-top pt-3">
                     <h5 class="text-muted mb-4">Administrative Information</h5>
-                    <label for="change_code" class="col-sm-4 col-form-label">Change Type:</label>
+                    <label for="change_code" class="col-sm-4 col-form-label fw-bold">Change Type <span
+                            class="text-danger">*</span></label>
                     <div class="col-sm-8">
                         <select :disabled="isReadOnly" class="form-select"
                             v-model="conservation_status_obj.change_code_id" id="change_code">
                             <option :value="null">Select the appropriate Change type</option>
-                            <option v-for="option in change_code_list" :value="option.id" v-bind:key="option.id">
+                            <option v-for="option in change_codes" :value="option.id" v-bind:key="option.id">
                                 {{ option.code }}
                             </option>
                         </select>
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="approval_level" class="col-sm-4 col-form-label">Applicable Workflow:</label>
+                    <label for="approval_level" class="col-sm-4 col-form-label fw-bold">Applicable Workflow <span
+                            class="text-danger">*</span></label>
                     <div class="col-sm-8">
                         <select id="approval_level" v-model="conservation_status_obj.approval_level" class="form-select"
                             :disabled="approval_level_disabled" @change="approvalLevelChanged">
@@ -123,7 +125,7 @@
                             v-model="conservation_status_obj.listing_date"
                             :disabled="listing_and_review_due_date_disabled" />
                     </div>
-                    <label for="review_due_date" class="col-sm-3 col-form-label">Review Date:</label>
+                    <label for="review_due_date" class="col-sm-3 col-form-label">Review Due Date:</label>
                     <div class="col-sm-3">
                         <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="review_due_date"
                             v-model="conservation_status_obj.review_due_date"
@@ -136,8 +138,8 @@
                     <h5 class="text-muted mb-4"><template v-if="conservation_list_proposed">Proposed
                         </template>Conservation
                         Status</h5>
-                    <label for="proposed_wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative
-                        List:</label>
+                    <label for="proposed_wa_legislative_list" class="col-sm-4 col-form-label fw-bold">WA Legislative
+                        List <span class="text-warning">*</span></label>
                     <div class="col-sm-8">
                         <select :disabled="isReadOnly" class="form-select"
                             v-model="conservation_status_obj.wa_legislative_list_id" id="proposed_wa_legislative_list"
@@ -165,7 +167,8 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="proposed_wa_priority_list" class="col-sm-4 col-form-label">WA Priority List:</label>
+                    <label for="proposed_wa_priority_list" class="col-sm-4 col-form-label fw-bold">WA Priority
+                        List <span class="text-warning">*</span></label>
                     <div class="col-sm-8">
                         <select :disabled="isReadOnly" class="form-select"
                             v-model="conservation_status_obj.wa_priority_list_id" id="proposed_wa_priority_list"
@@ -229,7 +232,8 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="comment" class="col-sm-4 col-form-label">Comments:</label>
+                    <label for="comment" class="col-sm-4 col-form-label fw-bold">Comments <span
+                            class="text-danger">*</span></label>
                     <div class="col-sm-8">
                         <textarea :disabled="isReadOnly" class="form-control" rows="3" id="comment" placeholder=""
                             v-model="conservation_status_obj.comment" />
@@ -426,13 +430,16 @@
                 </div>
             </template>
             <template v-if="!is_external && isStatusApproved">
-                <div class="row mb-3">
+                <div class="row border-top pt-3">
                     <label for="" class="col-sm-4 col-form-label">Approval document:</label>
                     <div class="col-sm-8">
-                        <p v-if="conservation_status_obj.conservation_status_approval_document">
-                            <strong><a :href="conservation_status_obj.conservation_status_approval_document[1]"
-                                    target="_blank">{{
-                                        conservation_status_obj.conservation_status_approval_document[0] }}</a></strong>
+                        <p class="col-form-label">
+                            <template v-if="conservation_status_obj.conservation_status_approval_document">
+                                <strong><a :href="conservation_status_obj.conservation_status_approval_document[1]"
+                                        target="_blank">{{
+                                            conservation_status_obj.conservation_status_approval_document[0] }}</a></strong>
+                            </template>
+                            <template v-else>No approval document uploaded</template>
                         </p>
                     </div>
                 </div>
@@ -476,26 +483,20 @@ export default {
             scientific_name_lookup: 'scientific_name_lookup' + vm.conservation_status_obj.id,
             select_scientific_name: "select_scientific_name" + vm.conservation_status_obj.id,
             isShowComment: false,
-            //---to show fields related to Fauna
             isFauna: vm.conservation_status_obj.group_type === "fauna" ? true : false,
-            //----list of values dictionary
             cs_profile_dict: {},
-            species_list: [],
             wa_legislative_lists: [],
             wa_legislative_categories: [],
             wa_priority_lists: [],
             wa_priority_categories: [],
             commonwealth_conservation_lists: [],
-            iucn_version_list: [],
-            change_code_list: [],
+            change_codes: [],
             filtered_wa_legislative_categories: [],
             filtered_wa_priority_categories: [],
             filtered_recommended_wa_legislative_categories: [],
             referral_comments_boxes: [],
-            // to display the species selected
             species_display: '',
             taxon_previous_name: '',
-            //---Comment box attributes
 
             deficiency_readonly: !this.is_external &&
                 !this.conservation_status_obj.can_user_edit &&
@@ -571,19 +572,6 @@ export default {
         },
         conservation_list_proposed: function () {
             return !(this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed")
-        },
-        conservation_criteria_label: function () {
-            if (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") {
-                return "Conservation Criteria";
-            }
-            else {
-                if (this.conservation_status_obj.processing_status == "Draft") {
-                    return "Propose Conservation Criteria";
-                }
-                else {
-                    return "Proposed Conservation Criteria";
-                }
-            }
         },
         canViewCurrentList: function () {
             return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? false : true;
@@ -725,22 +713,17 @@ export default {
     },
     created: async function () {
         let vm = this;
-        //------fetch list of values according to action
         let action = this.$route.query.action;
         let dict_url = action == "view" ? api_endpoints.cs_profile_dict + '?group_type=' + vm.conservation_status_obj.group_type + '&action=' + action :
             api_endpoints.cs_profile_dict + '?group_type=' + vm.conservation_status_obj.group_type
         vm.$http.get(dict_url).then((response) => {
             vm.cs_profile_dict = response.body;
-            vm.species_list = vm.cs_profile_dict.species_list;
-
             vm.wa_legislative_lists = vm.cs_profile_dict.wa_legislative_lists;
             vm.wa_legislative_categories = vm.cs_profile_dict.wa_legislative_categories;
             vm.wa_priority_lists = vm.cs_profile_dict.wa_priority_lists;
             vm.wa_priority_categories = vm.cs_profile_dict.wa_priority_categories;
             vm.commonwealth_conservation_lists = vm.cs_profile_dict.commonwealth_conservation_lists;
-
-            vm.iucn_version_list = vm.cs_profile_dict.iucn_version_list;
-            vm.change_code_list = vm.cs_profile_dict.change_code_list;
+            vm.change_codes = vm.cs_profile_dict.change_codes;
             this.getSpeciesDisplay();
             this.filterWALegislativeCategories();
             this.filterWAPriorityCategories();

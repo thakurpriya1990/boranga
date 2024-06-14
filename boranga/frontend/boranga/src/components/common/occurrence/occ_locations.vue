@@ -27,7 +27,7 @@
                     :spatial-operations-allowed="['__all__']"
                     :tile-layer-api-url="tileLayerApiUrl"
                     :query-layer-definition="{
-                        name: 'query_layer',
+                        name: queryLayerName,
                         title: 'Occurrence Reports',
                         default: false,
                         can_edit: true,
@@ -45,6 +45,7 @@
                             ids: [occurrence_obj.id],
                         },
                     ]"
+                    @features-loaded="mapFeaturesLoaded"
                     @crs-select-search="searchForCRS"
                 ></MapComponent>
             </div>
@@ -65,7 +66,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">District:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" 
+                    <select :disabled="isReadOnly" class="form-select"
                         v-model="occurrence_obj.location.district_id">
                         <option v-for="option in filtered_district_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}
@@ -213,7 +214,11 @@
                     </select>
                 </div>
             </div>
-
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <span v-if="occurrence_obj.location.copied_ocr" class="float-end"><b>Sourced from {{occurrence_obj.location.copied_ocr}}</b></span>
+                </div>
+            </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingLocationDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
@@ -230,7 +235,34 @@
                     </button>
                 </div>
             </div>
-
+            <!-- Occurrence Tenure Datatable -->
+            <FormSection
+                :form-collapse="false"
+                label="Occurrence Tenures"
+                Index="occurrence_tenure_datatable"
+            >
+                <div>
+                    <OccurrenceTenureDatatable
+                        v-if="occurrence_obj"
+                        ref="occurrence_tenure_datatable"
+                        :key="datatableOCCTenureKey"
+                        :occurrence-id="occurrence_obj.id"
+                        :href-container-id="mapContainerId"
+                        @highlight-on-map="highlightPointOnMap"
+                    ></OccurrenceTenureDatatable>
+                </div>
+            </FormSection>
+            <RelatedReports
+                v-if="occurrence_obj"
+                ref="related_reports_datatable"
+                :key="datatableRelatedOCRKey"
+                :is-read-only="isReadOnly"
+                :occurrence_obj="occurrence_obj"
+                :section_type="'location'"
+                :href-container-id="mapContainerId"
+                @copyUpdate="copyUpdate"
+                @highlight-on-map="highlightIdOnMapLayer"
+            />
         </FormSection>
     </div>
 </template>
@@ -242,6 +274,8 @@ import FormSection from '@/components/forms/section_toggle.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 import MapComponent from '../component_map.vue';
 import { VueSelect } from 'vue-select';
+import OccurrenceTenureDatatable from '@/components/internal/occurrence/occurrence_tenure_datatable.vue';
+import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 
 export default {
     name: 'OCClocations',
@@ -249,6 +283,8 @@ export default {
         MapComponent,
         FormSection,
         VueSelect,
+        OccurrenceTenureDatatable,
+        RelatedReports,
     },
     props: {
         occurrence_obj: {
@@ -276,7 +312,9 @@ export default {
     emits: [],
     data() {
         return {
-            uuid: uuid(),
+            uuid_component_map: uuid(),
+            uuid_datatable_ocr: uuid(),
+            uuid_datatable_occ_tenure: uuid(),
             crs: [],
             region_list: [],
             district_list: [],
@@ -286,11 +324,19 @@ export default {
             datum_list: [],
             coordination_source_list: [],
             location_accuracy_list: [],
+            mapReady: false,
+            queryLayerName: 'query_layer',
         };
     },
     computed: {
         componentMapKey: function () {
-            return `component-map-${this.uuid}`;
+            return `component-map-${this.uuid_component_map}`;
+        },
+        datatableRelatedOCRKey: function () {
+            return `datatable-ocr-${this.uuid_datatable_ocr}`;
+        },
+        datatableOCCTenureKey: function () {
+            return `datatable-occ-tenure-${this.uuid_datatable_occ_tenure}`;
         },
         coordinateReferenceSystems: function () {
             return this.crs;
@@ -319,11 +365,17 @@ export default {
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
         },
+        mapContainerId: function () {
+            if (!this.mapReady) {
+                return '';
+            }
+            return this.$refs.component_map.map_container_id;
+        },
     },
     created: async function () {
         let vm = this;
-        this.uuid = uuid();
         let action = this.$route.query.action;
+        // this.uuid = uuid();
 
         fetch(
             helpers.add_endpoint_join(
@@ -389,6 +441,10 @@ export default {
                 error
             );
         });
+
+        // Make sure the datatables have access to the map container id to have the page scroll to the map anchor
+        this.uuid_datatable_ocr = uuid();
+        this.uuid_datatable_occ_tenure = uuid();
     },
     methods: {
         filterDistrict: function (event) {
@@ -410,6 +466,10 @@ export default {
                 }
             });
         },
+        copyUpdate: function(object,section) {
+                let vm = this;
+                vm.occurrence_obj[section] = object[section];
+            },
         updateLocationDetails: function () {
             let vm = this;
             vm.updatingLocationDetails = true;
@@ -473,7 +533,7 @@ export default {
             );
         },
         incrementComponentMapKey: function () {
-            this.uuid = uuid();
+            this.uuid_component_map = uuid();
         },
         searchForCRS: function (search, loading) {
             const vm = this;
@@ -518,6 +578,23 @@ export default {
                 .finally(() => {
                     loading(false);
                 });
+        },
+        mapFeaturesLoaded: function () {
+            console.log('Map features loaded.');
+            this.mapReady = true;
+        },
+        highlightPointOnMap: function (coordinates) {
+            if (!coordinates) {
+                console.warn('No coordinates found');
+                return;
+            }
+            this.$refs.component_map.highlightPointOnTenureLayer(coordinates);
+        },
+        highlightIdOnMapLayer: function (id) {
+            const map = this.$refs.component_map;
+            const layer = map.getLayerByName(this.queryLayerName);
+            const feature = map.getFeatureById(layer, id);
+            map.centerOnFeature(feature, 12);
         },
     },
 };

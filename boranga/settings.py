@@ -383,6 +383,7 @@ CONSERVATION_CHANGE_CODES = [
     {"code": CONSERVATION_CHANGE_CODE_CATEGORY_CHANGE, "label": "Category Change"},
     {"code": CONSERVATION_CHANGE_CODE_CRITERIA_CHANGE, "label": "Criteria Change"},
     {"code": CONSERVATION_CHANGE_CODE_DELIST, "label": "DeList"},
+    {"code": CONSERVATION_CHANGE_CODE_CLOSE, "label": "Close"},
     {"code": CONSERVATION_CHANGE_CODE_OTHER, "label": "Other"},
 ]
 

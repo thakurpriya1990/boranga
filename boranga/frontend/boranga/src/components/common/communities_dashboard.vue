@@ -17,7 +17,7 @@
                             class="form-control" />
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div v-if="is_internal" class="col-md-3">
                     <div class="form-group">
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCommunityApplicationStatus">
@@ -44,6 +44,61 @@
                             <option v-for="district in filtered_district_list" :value="district.id">{{ district.name }}
                             </option>
                         </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="wa-legislative-list">WA Legislative List:</label>
+                        <select id="wa-legislative-list" class="form-select" v-model="filterCommunityWALegislativeList">
+                            <option value="all">All</option>
+                            <option v-for="list in wa_legislative_lists" :value="list.id">{{ list.code }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="wa-legislative-category">WA Legislative Category:</label>
+                        <select id="wa-legislative-category" class="form-select"
+                            v-model="filterCommunityWALegislativeCategory">
+                            <option value="all">All</option>
+                            <option v-for="list in wa_legislative_categories" :value="list.id">{{ list.code }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="wa-priority-category">WA Priority Category:</label>
+                        <select id="wa-priority-category" class="form-select" v-model="filterCommunityWAPriorityCategory">
+                            <option value="all">All</option>
+                            <option v-for="list in wa_priority_categories" :value="list.id">{{ list.code }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-check-label" for="commonwealth-relevance">Commonwealth Relevance</label>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" id="commonwealth-relevance"
+                                v-model="filterCommunityCommonwealthRelevance" true-value="true" false-value="false">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-check-label" for="international-relevance">International Relevance</label>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" id="international-relevance"
+                                v-model="filterCommunityInternationalRelevance" true-value="true" false-value="false">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-check-label" for="conservation-criteria">Conservation Criteria</label>
+                        <input class="form-control" type="input" id="conservation-criteria"
+                            v-model="filterCommunityConsevationCriteria" placeholder="Enter text to search for">
                     </div>
                 </div>
             </div>
@@ -130,6 +185,36 @@ export default {
             required: false,
             default: 'filterCommunityDistrict',
         },
+        filterCommunityWALegislativeList_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityWALegislativeList',
+        },
+        filterCommunityWALegislativeCategory_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityWALegislativeCategory',
+        },
+        filterCommunityWAPriorityCategory_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityWAPriorityCategory',
+        },
+        filterCommunityCommonwealthRelevance_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityCommonwealthRelevance',
+        },
+        filterCommunityInternationalRelevance_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityInternationalRelevance',
+        },
+        filterCommunityConsevationCriteria_cache: {
+            type: String,
+            required: false,
+            default: 'filterCommunityConsevationCriteria',
+        },
     },
     data() {
         let vm = this;
@@ -152,6 +237,25 @@ export default {
             filterCommunityDistrict: sessionStorage.getItem(this.filterCommunityDistrict_cache) ?
                 sessionStorage.getItem(this.filterCommunityDistrict_cache) : 'all',
 
+            filterCommunityWALegislativeList: sessionStorage.getItem(this.filterCommunityWALegislativeList_cache) ?
+                sessionStorage.getItem(this.filterCommunityWALegislativeList_cache) : 'all',
+
+            filterCommunityWALegislativeCategory: sessionStorage.getItem(this.filterCommunityWALegislativeCategory_cache) ?
+                sessionStorage.getItem(this.filterCommunityWALegislativeCategory_cache) : 'all',
+
+            filterCommunityWAPriorityCategory: sessionStorage.getItem(this.filterCommunityWAPriorityCategory_cache) ?
+                sessionStorage.getItem(this.filterCommunityWAPriorityCategory_cache) : 'all',
+
+            filterCommunityCommonwealthRelevance: sessionStorage.getItem(this.filterCommunityCommonwealthRelevance_cache) ?
+                sessionStorage.getItem(this.filterCommunityCommonwealthRelevance_cache) : "false",
+
+            filterCommunityInternationalRelevance: sessionStorage.getItem(this.filterCommunityInternationalRelevance_cache) ?
+                sessionStorage.getItem(this.filterCommunityInternationalRelevance_cache) : "false",
+
+            filterCommunityConsevationCriteria: sessionStorage.getItem(this.filterCommunityConsevationCriteria_cache) ?
+                sessionStorage.getItem(this.filterCommunityConsevationCriteria_cache) : "",
+
+
             //Filter list for Community select box
             filterListsCommunities: {},
 
@@ -159,6 +263,9 @@ export default {
             region_list: [],
             district_list: [],
             filtered_district_list: [],
+            wa_legislative_lists: [],
+            wa_legislative_categories: [],
+            wa_priority_categories: [],
 
             // filtering options
             external_status: [
@@ -209,6 +316,36 @@ export default {
             vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCommunityDistrict_cache, vm.filterCommunityDistrict);
         },
+        filterCommunityWALegislativeList: function () {
+            let vm = this;
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCommunityWALegislativeList_cache, vm.filterCommunityWALegislativeList);
+        },
+        filterCommunityWALegislativeCategory: function () {
+            let vm = this;
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCommunityWALegislativeCategory_cache, vm.filterCommunityWALegislativeCategory);
+        },
+        filterCommunityWAPriorityCategory: function () {
+            let vm = this;
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCommunityWAPriorityCategory_cache, vm.filterCommunityWAPriorityCategory);
+        },
+        filterCommunityCommonwealthRelevance: function () {
+            let vm = this;
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCommunityCommonwealthRelevance_cache, vm.filterCommunityCommonwealthRelevance);
+        },
+        filterCommunityInternationalRelevance: function () {
+            let vm = this;
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCommunityInternationalRelevance_cache, vm.filterCommunityInternationalRelevance);
+        },
+        filterCommunityConsevationCriteria: function () {
+            let vm = this;
+            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterCommunityConsevationCriteria_cache, vm.filterCommunityConsevationCriteria);
+        },
         filterApplied: function () {
             if (this.$refs.collapsible_filters) {
                 // Collapsible component exists
@@ -222,7 +359,13 @@ export default {
                 this.filterCommunityName === 'all' &&
                 this.filterCommunityApplicationStatus === 'all' &&
                 this.filterCommunityRegion === 'all' &&
-                this.filterCommunityDistrict === 'all') {
+                this.filterCommunityDistrict === 'all' &&
+                this.filterCommunityWALegislativeList === 'all' &&
+                this.filterCommunityWALegislativeCategory === 'all' &&
+                this.filterCommunityWAPriorityCategory === 'all' &&
+                this.filterCommunityCommonwealthRelevance === 'false' &&
+                this.filterCommunityInternationalRelevance === 'false' &&
+                this.filterCommunityConsevationCriteria === '') {
                 return false
             } else {
                 return true
@@ -242,10 +385,14 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District', 'Action']
+                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
+                    'International Conservation', 'Conservation Criteria', 'Action']
             }
             if (this.is_internal) {
-                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District', 'Status', 'Action']
+                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
+                    'International Conservation', 'Conservation Criteria', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -349,6 +496,55 @@ export default {
                 name: "district__name",
             }
         },
+        column_wa_legislative_list: function () {
+            return {
+                data: "wa_legislative_list",
+                orderable: false,
+                searchable: false,
+                visible: true,
+            }
+        },
+        column_wa_legislative_category: function () {
+            return {
+                data: "wa_legislative_category",
+                orderable: false,
+                searchable: false,
+                visible: true,
+            }
+        },
+        column_wa_priority_category: function () {
+            return {
+                data: "wa_priority_category",
+                orderable: false,
+                searchable: false,
+                visible: true,
+            }
+        },
+        column_commonwealth_conservation_list: function () {
+            return {
+                data: "commonwealth_conservation_list",
+                orderable: false,
+                searchable: false,
+                visible: true,
+            }
+        },
+        column_international_conservation:
+            function () {
+                return {
+                    data: "international_conservation",
+                    orderable: false,
+                    searchable: false,
+                    visible: true,
+                }
+            },
+        column_conservation_criteria: function () {
+            return {
+                data: "conservation_criteria",
+                orderable: false,
+                searchable: false,
+                visible: true,
+            }
+        },
         column_action: function () {
             let vm = this
             return {
@@ -409,6 +605,12 @@ export default {
                     vm.column_community_name,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_wa_priority_category,
+                    vm.column_wa_legislative_list,
+                    vm.column_wa_legislative_category,
+                    vm.column_commonwealth_conservation_list,
+                    vm.column_international_conservation,
+                    vm.column_conservation_criteria,
                     vm.column_action,
                 ]
                 search = false
@@ -421,6 +623,12 @@ export default {
                     vm.column_community_name,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_wa_priority_category,
+                    vm.column_wa_legislative_list,
+                    vm.column_wa_legislative_category,
+                    vm.column_commonwealth_conservation_list,
+                    vm.column_international_conservation,
+                    vm.column_conservation_criteria,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -457,6 +665,12 @@ export default {
                         d.filter_application_status = vm.filterCommunityApplicationStatus;
                         d.filter_region = vm.filterCommunityRegion;
                         d.filter_district = vm.filterCommunityDistrict;
+                        d.filter_wa_legislative_list = vm.filterCommunityWALegislativeList;
+                        d.filter_wa_legislative_category = vm.filterCommunityWALegislativeCategory;
+                        d.filter_wa_priority_category = vm.filterCommunityWAPriorityCategory;
+                        d.filter_commonwealth_relevance = vm.filterCommunityCommonwealthRelevance;
+                        d.filter_international_relevance = vm.filterCommunityInternationalRelevance;
+                        d.filter_conservation_criteria = vm.filterCommunityConsevationCriteria;
                         d.is_internal = vm.is_internal;
                     }
                 },
@@ -566,6 +780,9 @@ export default {
                 vm.community_status = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());
                 });
+                vm.wa_legislative_lists = vm.filterListsCommunities.wa_legislative_lists;
+                vm.wa_legislative_categories = vm.filterListsCommunities.wa_legislative_categories;
+                vm.wa_priority_categories = vm.filterListsCommunities.wa_priority_categories;
             }, (error) => {
                 console.log(error);
             })
@@ -767,6 +984,12 @@ export default {
                 filter_application_status: vm.filterCommunityApplicationStatus,
                 filter_region: vm.filterCommunityRegion,
                 filter_district: vm.filterCommunityDistrict,
+                filter_wa_legislative_list: vm.filterCommunityWALegislativeList,
+                filter_wa_legislative_category: vm.filterCommunityWALegislativeCategory,
+                filter_wa_priority_category: vm.filterCommunityWAPriorityCategory,
+                filter_commonwealth_relevance: vm.filterCommunityCommonwealthRelevance,
+                filter_international_relevance: vm.filterCommunityInternationalRelevance,
+                filter_conservation_criteria: vm.filterCommunityConsevationCriteria,
                 is_internal: vm.is_internal,
                 export_format: format
             };

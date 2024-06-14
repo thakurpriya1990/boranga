@@ -104,6 +104,7 @@ module.exports = {
     community_occurrence_report_internal_export: "/api/occurrence_report_paginated/community_occurrence_report_internal_export",
     occurrence_report_paginated_external: "/api/occurrence_report_paginated/occurrence_report_external?format=datatables",
     occurrence_report_paginated_internal: "/api/occurrence_report_paginated/occurrence_report_internal?format=datatables",
+    occurrence_report_paginated_referred_to_me: "/api/occurrence_report_paginated/referred_to_me?format=datatables",
     occurrence: "/api/occurrence/",
     phylo_group_lookup: "/api/phylo_group_lookup",
     proposals_paginated_external: "/api/proposal_paginated/proposals_external/?format=datatables",
@@ -126,6 +127,8 @@ module.exports = {
     species_paginated_internal: "/api/species_paginated/species_internal/?format=datatables",
     wild_status_lookup: "/api/wild_status_lookup",
     occurrence_source_lookup: "/api/occurrence_source_lookup",
+    occurrence_tenure_paginated_internal:
+        '/api/occurrence_tenure_paginated/occurrence_tenure_internal/?format=datatables',
 
     // Pending - need to create viewsets for the below when working on search filters for OR dashboard
     or_status_lookup: "/api/or_status_lookup",
@@ -153,6 +156,7 @@ module.exports = {
 
     occurrence_report: "/api/occurrence_report",
     observer_detail: "/api/observer_detail.json",
+    contact_detail: "/api/contact_detail.json",
     occurrence_report_documents: "/api/occurrence_report_documents.json",
     occurrence_documents: "/api/occurrence_documents.json",
     ocr_threat: "/api/ocr_threat.json",
@@ -259,6 +263,10 @@ module.exports = {
 
     lookup_revision_versions: function (model,id) {
       return `/api/history/boranga/${model}/${id}/`;
+    },
+
+    lookup_ocr_section_values: function (model,id) {
+      return `/api/occurrence_report/${id}/section_values/?section=${model}`;
     },
 
     event: event,

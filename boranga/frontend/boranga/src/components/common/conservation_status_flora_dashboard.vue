@@ -170,7 +170,7 @@
         <div v-if="addFloraCSVisibility && is_for_agenda == false" class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFloraConservationStatus"><i
-                        class="fa-solid fa-circle-plus"></i> Propose Conservation Satus</button>
+                        class="fa-solid fa-circle-plus"></i> Propose Conservation Status</button>
             </div>
         </div>
 
@@ -1090,7 +1090,6 @@ export default {
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: vm.is_for_agenda == false ? buttons : [],
-
                 columns: columns,
                 processing: true,
                 drawCallback: function () {
@@ -1400,6 +1399,7 @@ export default {
                 payload.application_type_id = this.group_type_id
                 payload.internal_application = true
                 let savedFloraCS = await Vue.http.post(createUrl, payload);
+                alert(JSON.stringify(savedFloraCS))
                 if (savedFloraCS) {
                     newFloraCSId = savedFloraCS.body.id;
                 }

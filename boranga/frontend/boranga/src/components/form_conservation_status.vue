@@ -26,7 +26,7 @@
                     aria-labelledby="pills-status-tab">
                     <CommunityStatus v-if="isCommunity" :key="reloadcount" ref="community_conservation_status"
                         id="communityStatus" :is_external="is_external" :canEditStatus="canEditStatus"
-                        :conservation_status_obj="conservation_status_obj" :referral="referral">
+                        :conservation_status_obj="conservation_status_obj" :referral="referral" @approvalLevelChanged="$emit('approvalLevelChanged');">
                     </CommunityStatus>
                     <SpeciesStatus v-else :key="reloadcount + 'else'" ref="species_conservation_status"
                         id="speciesStatus" :is_external="is_external" :canEditStatus="canEditStatus"
@@ -36,7 +36,7 @@
                     <CSDocuments v-if="!is_internal" :key="reloadcount + 'cs_documents'" ref="cs_documents" id="csDocuments" :is_internal="is_internal"
                         :conservation_status_obj="conservation_status_obj">
                     </CSDocuments>
-                    <SubmitterInformation v-if="conservation_status_obj.submitter_information" :key="reloadcount"
+                    <SubmitterInformation v-if="conservation_status_obj.submitter_information" :key="reloadcount + 'submitter_information'"
                         ref="submitter_information" id="submitter_information"
                         :submitter_information="conservation_status_obj.submitter_information" :disabled="!conservation_status_obj.can_user_edit" />
                 </div>

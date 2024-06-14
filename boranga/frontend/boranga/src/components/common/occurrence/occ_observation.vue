@@ -28,13 +28,18 @@
             </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
+                    <span v-if="occurrence_obj.observation_detail.copied_ocr" class="float-end"><b>Sourced from {{occurrence_obj.observation_detail.copied_ocr}}</b></span>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
                     <!-- <button v-if="!updatingHabitatCompositionDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
                     <button v-if="!updatingObservationDetails" :disabled="isReadOnly" class="btn btn-primary btn-sm float-end" @click.prevent="updateObservationDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
             <RelatedReports 
-        :isReadOnly="isReadOnly"
+                    :isReadOnly="isReadOnly"
                     :occurrence_obj=occurrence_obj
                     :section_type="'observation_detail'"
                     @copyUpdate="copyUpdate"
@@ -53,7 +58,7 @@
                 ref="plantCountDetail">
             </PlantCount>
             <RelatedReports 
-        :isReadOnly="isReadOnly"
+                    :isReadOnly="isReadOnly"
                     :occurrence_obj=occurrence_obj
                     :section_type="'plant_count'"
                     @copyUpdate="copyUpdate"
@@ -72,7 +77,7 @@
                 ref="animalObservationDetail">
             </AnimalObservation>
             <RelatedReports 
-        :isReadOnly="isReadOnly"
+                    :isReadOnly="isReadOnly"
                     :occurrence_obj=occurrence_obj
                     :section_type="'animal_observation'"
                     @copyUpdate="copyUpdate"
@@ -148,6 +153,11 @@
                 <label for="" class="col-sm-3 control-label">Identification Comments:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="identification_comment" placeholder="" v-model="occurrence_obj.identification.identification_comment"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <span v-if="occurrence_obj.identification.copied_ocr" class="float-end"><b>Sourced from {{occurrence_obj.identification.copied_ocr}}</b></span>
                 </div>
             </div>
             <div class="row mb-3">

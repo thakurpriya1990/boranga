@@ -27,7 +27,7 @@
                             </tr>
                         </table>
                         <br/>
-                        <label>You will receive a notification email if there is any incomplete information or documents missing from the application.</label>
+                        <label>You will receive a notification email if there is any incomplete information or documents missing from the proposal.</label>
                         <router-link :to="{name:'external-occurrence_report-dash'}" style="margin-top:15px;" class="btn btn-primary">Back to home</router-link>
                     </div>
                     <div v-else class="col-sm-offset-3 col-sm-6 borderDecoration">

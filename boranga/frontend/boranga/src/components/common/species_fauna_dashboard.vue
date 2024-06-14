@@ -52,7 +52,7 @@
                             class="form-control" />
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div v-if="is_internal" class="col-md-3">
                     <div class="form-group">
                         <label for="">Name Status:</label>
                         <select class="form-select" v-model="filterFaunaNameStatus">
@@ -88,6 +88,61 @@
                             <option value="all">All</option>
                             <option v-for="district in filtered_district_list" :value="district.id">{{district.name}}</option>
                         </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="wa-legislative-list">WA Legislative List:</label>
+                        <select id="wa-legislative-list" class="form-select" v-model="filterFaunaWALegislativeList">
+                            <option value="all">All</option>
+                            <option v-for="list in wa_legislative_lists" :value="list.id">{{ list.code }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="wa-legislative-category">WA Legislative Category:</label>
+                        <select id="wa-legislative-category" class="form-select"
+                            v-model="filterFaunaWALegislativeCategory">
+                            <option value="all">All</option>
+                            <option v-for="list in wa_legislative_categories" :value="list.id">{{ list.code }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="wa-priority-category">WA Priority Category:</label>
+                        <select id="wa-priority-category" class="form-select" v-model="filterFaunaWAPriorityCategory">
+                            <option value="all">All</option>
+                            <option v-for="list in wa_priority_categories" :value="list.id">{{ list.code }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-check-label" for="commonwealth-relevance">Commonwealth Relevance</label>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" id="commonwealth-relevance"
+                                v-model="filterFaunaCommonwealthRelevance" true-value="true" false-value="false">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-check-label" for="international-relevance">International Relevance</label>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" id="international-relevance"
+                                v-model="filterFaunaInternationalRelevance" true-value="true" false-value="false">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-check-label" for="conservation-criteria">Conservation Criteria</label>
+                        <input class="form-control" type="input" id="conservation-criteria"
+                            v-model="filterFaunaConsevationCriteria" placeholder="Enter text to search for">
                     </div>
                 </div>
             </div>
@@ -188,16 +243,6 @@ export default {
             required: false,
             default: 'filterFaunaNameStatus',
         },
-        filterFaunaConservationList_cache: {
-            type: String,
-            required: false,
-            default: 'filterFaunaConservationList',
-        },
-        filterFaunaConservationCategory_cache: {
-            type: String,
-            required: false,
-            default: 'filterFaunaConservationCategory',
-        },
         filterFaunaApplicationStatus_cache: {
             type: String,
             required: false,
@@ -213,6 +258,37 @@ export default {
             required: false,
             default: 'filterFaunaDistrict',
         },
+        filterFaunaWALegislativeList_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaWALegislativeList',
+        },
+        filterFaunaWALegislativeCategory_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaWALegislativeCategory',
+        },
+        filterFaunaWAPriorityCategory_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaWAPriorityCategory',
+        },
+        filterFaunaCommonwealthRelevance_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaCommonwealthRelevance',
+        },
+        filterFaunaInternationalRelevance_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaInternationalRelevance',
+        },
+        filterFaunaConsevationCriteria_cache: {
+            type: String,
+            required: false,
+            default: 'filterFaunaConsevationCriteria',
+        },
+
     },
     data() {
         let vm = this;
@@ -242,12 +318,6 @@ export default {
             filterFaunaNameStatus: sessionStorage.getItem(this.filterFaunaNameStatus_cache) ?
                     sessionStorage.getItem(this.filterFaunaNameStatus_cache) : 'all',
 
-            filterFaunaConservationList: sessionStorage.getItem(this.filterFaunaConservationList_cache) ?
-                                    sessionStorage.getItem(this.filterFaunaConservationList_cache) : 'all',
-
-            filterFaunaConservationCategory: sessionStorage.getItem(this.filterFaunaConservationCategory_cache) ?
-                                    sessionStorage.getItem(this.filterFaunaConservationCategory_cache) : 'all',
-
             filterFaunaApplicationStatus: sessionStorage.getItem(this.filterFaunaApplicationStatus_cache) ?
                                     sessionStorage.getItem(this.filterFaunaApplicationStatus_cache) : 'all',
 
@@ -257,6 +327,24 @@ export default {
             filterFaunaDistrict: sessionStorage.getItem(this.filterFaunaDistrict_cache) ?
                                     sessionStorage.getItem(this.filterFaunaDistrict_cache) : 'all',
 
+            filterFaunaWALegislativeList: sessionStorage.getItem(this.filterFaunaWALegislativeList_cache) ?
+                sessionStorage.getItem(this.filterFaunaWALegislativeList_cache) : 'all',
+
+            filterFaunaWALegislativeCategory: sessionStorage.getItem(this.filterFaunaWALegislativeCategory_cache) ?
+                sessionStorage.getItem(this.filterFaunaWALegislativeCategory_cache) : 'all',
+
+            filterFaunaWAPriorityCategory: sessionStorage.getItem(this.filterFaunaWAPriorityCategory_cache) ?
+                sessionStorage.getItem(this.filterFaunaWAPriorityCategory_cache) : 'all',
+
+            filterFaunaCommonwealthRelevance: sessionStorage.getItem(this.filterFaunaCommonwealthRelevance_cache) ?
+                sessionStorage.getItem(this.filterFaunaCommonwealthRelevance_cache) : "false",
+
+            filterFaunaInternationalRelevance: sessionStorage.getItem(this.filterFaunaInternationalRelevance_cache) ?
+                sessionStorage.getItem(this.filterFaunaInternationalRelevance_cache) : "false",
+
+            filterFaunaConsevationCriteria: sessionStorage.getItem(this.filterFaunaConsevationCriteria_cache) ?
+                sessionStorage.getItem(this.filterFaunaConsevationCriteria_cache) : "",
+
 
             //Filter list for scientific name and common name
             filterListsSpecies: {},
@@ -264,11 +352,13 @@ export default {
             scientific_name_list: [],
             family_list: [],
             phylogenetic_group_list: [],
-            conservation_list_dict: [],
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
             filtered_district_list: [],
+            wa_legislative_lists: [],
+            wa_legislative_categories: [],
+            wa_priority_categories: [],
 
             // filtering options
             external_status:[
@@ -286,7 +376,6 @@ export default {
             ],
 
             species_status: [],
-
         }
     },
     components:{
@@ -326,16 +415,6 @@ export default {
             vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFaunaNameStatus_cache, vm.filterFaunaNameStatus);
         },
-        filterFaunaConservationList: function() {
-            let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterFaunaConservationList_cache, vm.filterFaunaConservationList);
-        },
-        filterFaunaConservationCategory: function() {
-            let vm = this;
-            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterFaunaConservationCategory_cache, vm.filterFaunaConservationCategory);
-        },
         filterFaunaApplicationStatus: function() {
             let vm = this;
             vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
@@ -351,6 +430,36 @@ export default {
             vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterFaunaDistrict_cache, vm.filterFaunaDistrict);
         },
+        filterFaunaWALegislativeList: function () {
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFaunaWALegislativeList_cache, vm.filterFaunaWALegislativeList);
+        },
+        filterFaunaWALegislativeCategory: function () {
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFaunaWALegislativeCategory_cache, vm.filterFaunaWALegislativeCategory);
+        },
+        filterFaunaWAPriorityCategory: function () {
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFaunaWAPriorityCategory_cache, vm.filterFaunaWAPriorityCategory);
+        },
+        filterFaunaCommonwealthRelevance: function () {
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFaunaCommonwealthRelevance_cache, vm.filterFaunaCommonwealthRelevance);
+        },
+        filterFaunaInternationalRelevance: function () {
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFaunaInternationalRelevance_cache, vm.filterFaunaInternationalRelevance);
+        },
+        filterFaunaConsevationCriteria: function () {
+            let vm = this;
+            vm.$refs.fauna_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
+            sessionStorage.setItem(vm.filterFaunaConsevationCriteria_cache, vm.filterFaunaConsevationCriteria);
+        },
         filterApplied: function(){
             if (this.$refs.collapsible_filters){
                 // Collapsible component exists
@@ -363,14 +472,18 @@ export default {
             if(this.filterFaunaScientificName === 'all' &&
                 this.filterFaunaCommonName === 'all' &&
                 this.filterFaunaPhylogeneticGroup === 'all' &&
-                this.filterFaunaConservationList === 'all' &&
-                this.filterFaunaConservationCategory === 'all' &&
                 this.filterFaunaFamily === 'all' &&
                 this.filterFaunaGenus === 'all' &&
                 this.filterFaunaNameStatus === 'all' &&
                 this.filterFaunaApplicationStatus === 'all' &&
                 this.filterFaunaRegion === 'all' &&
-                this.filterFaunaDistrict === 'all'){
+                this.filterFaunaDistrict === 'all'&&
+                this.filterFaunaWALegislativeList === 'all' &&
+                this.filterFaunaWALegislativeCategory === 'all' &&
+                this.filterFaunaWAPriorityCategory === 'all' &&
+                this.filterFaunaCommonwealthRelevance === 'false' &&
+                this.filterFaunaInternationalRelevance === 'false' &&
+                this.filterFaunaConsevationCriteria === ''){
                 return false
             } else {
                 return true
@@ -390,10 +503,14 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_external){
-                return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family',  'Genera', 'Region', 'District', 'Action']
+                return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family',  'Genera', 'Region', 'District',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
+                    'International Conservation', 'Conservation Criteria', 'Action']
             }
             if (this.is_internal){
-                return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera', 'Region', 'District','Status', 'Action']
+                return ['Id','Number', 'Scientific Name', 'Common Name', 'Phylo Group', 'Family', 'Genera', 'Region', 'District',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
+                    'International Conservation', 'Conservation Criteria', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -565,6 +682,55 @@ export default {
                 name: "districts__name",
             }
         },
+        column_wa_legislative_list: function () {
+            return {
+                data: "wa_legislative_list",
+                orderable: false,
+                searchable: false,
+                visible: true,
+            }
+        },
+        column_wa_legislative_category: function () {
+            return {
+                data: "wa_legislative_category",
+                orderable: false,
+                searchable: false,
+                visible: true,
+            }
+        },
+        column_wa_priority_category: function () {
+            return {
+                data: "wa_priority_category",
+                orderable: false,
+                searchable: false,
+                visible: true,
+            }
+        },
+        column_commonwealth_conservation_list: function () {
+            return {
+                data: "commonwealth_conservation_list",
+                orderable: false,
+                searchable: false,
+                visible: true,
+            }
+        },
+        column_international_conservation:
+            function () {
+                return {
+                    data: "international_conservation",
+                    orderable: false,
+                    searchable: false,
+                    visible: true,
+                }
+            },
+        column_conservation_criteria: function () {
+            return {
+                data: "conservation_criteria",
+                orderable: false,
+                searchable: false,
+                visible: true,
+            }
+        },
         column_action: function(){
             let vm = this
             return {
@@ -626,6 +792,12 @@ export default {
                     vm.column_genera,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_wa_priority_category,
+                    vm.column_wa_legislative_list,
+                    vm.column_wa_legislative_category,
+                    vm.column_commonwealth_conservation_list,
+                    vm.column_international_conservation,
+                    vm.column_conservation_criteria,
                     vm.column_action,
                 ]
                 search = false
@@ -641,6 +813,12 @@ export default {
                     vm.column_genera,
                     vm.column_region,
                     vm.column_district,
+                    vm.column_wa_priority_category,
+                    vm.column_wa_legislative_list,
+                    vm.column_wa_legislative_category,
+                    vm.column_commonwealth_conservation_list,
+                    vm.column_international_conservation,
+                    vm.column_conservation_criteria,
                     vm.column_status,
                     vm.column_action,
                 ]
@@ -686,15 +864,19 @@ export default {
                         d.filter_application_status = vm.filterFaunaApplicationStatus;
                         d.filter_region = vm.filterFaunaRegion;
                         d.filter_district = vm.filterFaunaDistrict;
+                        d.filter_wa_legislative_list = vm.filterFaunaWALegislativeList;
+                        d.filter_wa_legislative_category = vm.filterFaunaWALegislativeCategory;
+                        d.filter_wa_priority_category = vm.filterFaunaWAPriorityCategory;
+                        d.filter_commonwealth_relevance = vm.filterFaunaCommonwealthRelevance;
+                        d.filter_international_relevance = vm.filterFaunaInternationalRelevance;
+                        d.filter_conservation_criteria = vm.filterFaunaConsevationCriteria;
                         d.is_internal = vm.is_internal;
                     }
                 },
-                //dom: 'lBfrtip',
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                      "<'row'<'col-sm-12'tr>>" +
                      "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: buttons,
-
                 columns: columns,
                 processing: true,
                 drawCallback: function() {
@@ -705,7 +887,6 @@ export default {
                 },
             }
         }
-
     },
     methods:{
         historyDocument: function(id){
@@ -918,6 +1099,9 @@ export default {
                 vm.species_status = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());
                 });
+                vm.wa_legislative_lists = vm.filterListsSpecies.wa_legislative_lists;
+                vm.wa_legislative_categories = vm.filterListsSpecies.wa_legislative_categories;
+                vm.wa_priority_categories = vm.filterListsSpecies.wa_priority_categories;
             },(error) => {
                 console.log(error);
             })
@@ -1112,12 +1296,16 @@ export default {
                 filter_family: vm.filterFaunaFamily,
                 filter_phylogenetic_group: vm.filterFaunaPhylogeneticGroup,
                 filter_genus: vm.filterFaunaGenus,
-                filter_conservation_list: vm.filterFaunaConservationList,
-                filter_conservation_category: vm.filterFaunaConservationCategory,
                 filter_name_status: vm.filterFaunaNameStatus,
                 filter_application_status: vm.filterFaunaApplicationStatus,
                 filter_region: vm.filterFaunaRegion,
                 filter_district: vm.filterFaunaDistrict,
+                filter_wa_legislative_list: vm.filterFaunaWALegislativeList,
+                filter_wa_legislative_category: vm.filterFaunaWALegislativeCategory,
+                filter_wa_priority_category: vm.filterFaunaWAPriorityCategory,
+                filter_commonwealth_relevance: vm.filterFaunaCommonwealthRelevance,
+                filter_international_relevance: vm.filterFaunaInternationalRelevance,
+                filter_conservation_criteria: vm.filterFaunaConsevationCriteria,
                 is_internal: vm.is_internal,
                 export_format: format
             };

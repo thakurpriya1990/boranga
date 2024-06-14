@@ -265,7 +265,7 @@ export default {
             return {
                 data: "group_type",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
                     return full.group_type
@@ -283,7 +283,7 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                name: "species__scientific_name__name",
+                name: "species_taxonomy__scientific_name",
             }
         },
         column_community_name: function () {
@@ -296,21 +296,19 @@ export default {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                name: "community__community_name__name",
+                name: "community__taxonomy__community_name",
             }
         },
         column_status: function () {
             return {
-                // 9. Workflow Status
                 data: "customer_status",
                 orderable: true,
-                searchable: true,
+                searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
                     if (full.customer_status) {
                         return full.customer_status;
                     }
-                    // Should not reach here
                     return ''
                 },
                 name: "customer_status",
@@ -392,12 +390,10 @@ export default {
                         d.is_internal = vm.is_internal;
                     }
                 },
-                //dom: 'lBfrtip',
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: buttons,
-
                 columns: columns,
                 processing: true,
                 initComplete: function () {

@@ -506,6 +506,8 @@ const _helper = {
                 invert_xy: layer.invert_xy,
                 minZoom: layer.min_zoom,
                 maxZoom: layer.max_zoom,
+                is_tenure_intersects_query_layer:
+                    layer.is_tenure_intersects_query_layer,
             });
 
             let legend_url = null;

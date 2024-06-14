@@ -1,6 +1,6 @@
 <template lang="html">
     <div :id="'related_ocr'+section_type">
-        <FormSection :formCollapse="true" label="Related Occurrence Reports" :Index="'related_ocr'+section_type">
+        <FormSection :formCollapse="false" label="Related Occurrence Reports" :Index="'related_ocr'+section_type" @toggle-collapse="toggleCollapse">
             <div>
                 <datatable
                     ref="related_ocr_datatable"
@@ -15,11 +15,13 @@
             <SectionModal
                 ref="section_modal"
                 :key="sectionOCRId"
-                :sectionType="sectionTypeFormatted"
+                :sectionTypeDisplay="sectionTypeFormatted"
+                :sectionType="section_type"
                 :ocrNumber="sectionOCRId"
                 :sectionObj="sectionObj"
             />
         </div>
+        {{ hrefContainerId }}
     </div>
 </template>
 
@@ -28,7 +30,6 @@ import Vue from 'vue'
 import { v4 as uuid } from 'uuid'
 import datatable from '@/utils/vue/datatable.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
-import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import SectionModal from '@/components/common/occurrence/section_modal.vue'
 import {
     constants,
@@ -42,7 +43,6 @@ export default {
     components: {
         datatable,
         FormSection,
-        CollapsibleFilters,
         SectionModal,
     },
     props: {
@@ -59,12 +59,18 @@ export default {
             type: Boolean,
             default: false
         },
+        hrefContainerId: {
+            type: String,
+            required: false,
+            default: '',
+        },
     },
+    emits: ['copyUpdate', 'highlight-on-map'],
     data() {
         let vm = this;
         return {
-            uuid:0,
-            datatable_id: uuid(),
+            uuid: uuid(),
+            datatable_id: 'datatable-related-ocr-' + uuid(),
             sectionOCRId: null,
             sectionTypeFormatted: null,
             sectionObj: null,
@@ -95,6 +101,30 @@ export default {
                 visible: true,
             }
         },
+        column_location_accuracy: function(){
+            return {
+                data: 'location_accuracy',
+                orderable: true,
+                searchable: true,
+                visible: true,
+            }
+        },
+        column_identification_certainty: function(){
+            return {
+                data: 'identification_certainty',
+                orderable: true,
+                searchable: true,
+                visible: true,
+            }
+        },
+        column_site: function(){
+            return {
+                data: 'site',
+                orderable: true,
+                searchable: true,
+                visible: true,
+            }
+        },
         column_submitter: function(){
             return {
                 data: 'submitter',
@@ -118,6 +148,7 @@ export default {
             }
         },
         column_copy_action: function(){
+            const vm = this;
             return {
                 //name: 'action',
                 data: 'id',
@@ -126,10 +157,14 @@ export default {
                 visible: true,
                 'render': function(row, type, full){
                     let links = '';
+                    // full.occurrence_report_number
+                    if (vm.section_type == 'location') {
+                        links += `<a href="#${vm.hrefContainerId}" data-highlight-on-map='${full.id}'>Highlight on Map</a><br>`;
+                    }
                     links += `<a href='#' data-view-section='${full.id}'>View Section</a><br>`;
                     //links += `<a href='#' data-merge-section='${full.id}'>Copy Section Data (merge)</a><br>`;
                     links += `<a href='#' data-replace-section='${full.id}'>Copy Section Data</a><br>`;
-                    
+
                     return links;
                 }
             }
@@ -145,13 +180,16 @@ export default {
 
             let columns = [
                 vm.column_number,
-                vm.column_status,
-                vm.column_observation_date,
                 vm.column_submitter,
+                //vm.column_status,
+                vm.column_observation_date,
+                vm.column_location_accuracy,
+                vm.column_identification_certainty,
+                vm.column_site,
                 action,
             ]
             return {
-                autoWidth: false,
+                autoWidth: true,
                 language: {
                     processing: constants.DATATABLE_PROCESSING_HTML
                 },
@@ -160,6 +198,10 @@ export default {
                 searching: true,
                 ordering: true,
                 order: [[0, 'desc']],
+                columnDefs: [
+                        { responsivePriority: 1, targets: 0 },
+                        { responsivePriority: 2, targets: -1 },
+                    ],
                 ajax: {
                     //"url": '/api/proposal/' + vm.proposal.id + '/get_related_items/',
                     "url": "/api/occurrence/" + this.occurrence_obj.id + "/get_related_occurrence_reports/",
@@ -169,11 +211,21 @@ export default {
                         d.related_filter_type = vm.filterRelatedType
                     }
                 },
-                dom: 'lBfrtip',
+                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons:[ ],
                 columns: columns,
                 processing: true,
+                drawCallback: function () {
+                    setTimeout(function () {
+                        vm.adjust_table_width();
+                    }, 100);
+                },
                 initComplete: function(settings, json) {
+                    setTimeout(function () {
+                        vm.adjust_table_width();
+                    }, 100);
                 },
             }
         },
@@ -181,14 +233,21 @@ export default {
             return [
                 //'id',
                 'Number',
-                'Status',
-                'Observation Date',
                 'Submitter',
+                //'Status',
+                'Observation Date',
+                'Location Accuracy',
+                'Identification Certainty',
+                'Site',
                 'Action',
             ]
         },
     },
     methods:{
+        toggleCollapse: function () {
+            console.log("toggle");
+            this.adjust_table_width();
+        },
         viewSection:function (id) {
             let vm=this;
             //get ocr object with id
@@ -229,6 +288,9 @@ export default {
                     vm.errorString = helpers.apiVueResourceError(error);
                 });
         },
+        adjust_table_width: function () {
+            if (this.$refs.related_ocr_datatable !== undefined) { this.$refs.related_ocr_datatable.vmDataTable.columns.adjust().responsive.recalc() };
+        },
         addEventListeners:function (){
             let vm=this;
             vm.$refs.related_ocr_datatable.vmDataTable.on('click', 'a[data-view-section]', function(e) {
@@ -246,7 +308,22 @@ export default {
                 var id = $(this).attr('data-replace-section');
                 vm.copySection(id,false);
             });
-        }
+            vm.$refs.related_ocr_datatable.vmDataTable.on(
+                'click',
+                'a[data-highlight-on-map]',
+                function (e) {
+                    let id = $(this).attr('data-highlight-on-map');
+                    id = id || null;
+                    if (!id) {
+                        e.preventDefault();
+                    }
+                    vm.highlightOnMap(id);
+                }
+            );
+        },
+        highlightOnMap: function (id = null) {
+            this.$emit('highlight-on-map', id);
+        },
     },
     mounted: function(){
         let vm = this;

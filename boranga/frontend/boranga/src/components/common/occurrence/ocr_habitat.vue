@@ -221,13 +221,18 @@
             </div>
         </FormSection>
         <FormSection :formCollapse="false" label="Associated Species" :Index="associatedSpeciesBody">
+            <RelatedSpecies
+                    :isReadOnly="isReadOnly"
+                    ref="related_species" 
+                    :occurrence_report_obj=occurrence_report_obj
+                />
             <div class="row mb-3">
                 <div class="col-sm-3">
-                    <label for="related_species" class="control-label">Related Species</label>
+                    <label for="related_species" class="control-label">Comment</label>
                 </div>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="related_species" placeholder=""
-                        v-model="occurrence_report_obj.associated_species.related_species"
+                        v-model="occurrence_report_obj.associated_species.comment"
                     />
                 </div>
             </div>
@@ -245,6 +250,7 @@
 import Vue from 'vue' ;
 import FormSection from '@/components/forms/section_toggle.vue';
 import RichText from '@/components/forms/richtext.vue'
+import RelatedSpecies from '@/components/common/occurrence/ocr_related_species_table.vue'
 import {
   api_endpoints,
   helpers
@@ -298,6 +304,7 @@ export default {
         components: {
             FormSection,
             RichText,
+            RelatedSpecies,
         },
         computed: {
             isReadOnly: function(){

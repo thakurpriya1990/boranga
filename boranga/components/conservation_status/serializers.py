@@ -32,7 +32,9 @@ logger = logging.getLogger("boranga")
 
 # Serializer used for species and communities forms
 class BasicConservationStatusSerializer(serializers.ModelSerializer):
-    wa_legislative_list = serializers.CharField(source="wa_legislative_list.code")
+    wa_legislative_list = serializers.CharField(
+        source="wa_legislative_list.code", allow_null=True
+    )
     wa_legislative_category = serializers.CharField(
         source="wa_legislative_category.code", allow_null=True
     )
@@ -359,8 +361,36 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     assessor_process = serializers.SerializerMethodField(read_only=True)
     assessor_edit = serializers.SerializerMethodField(read_only=True)
     internal_user_edit = serializers.SerializerMethodField(read_only=True)
+    wa_priority_list = serializers.CharField(
+        source="wa_priority_list.code", allow_null=True
+    )
+    wa_priority_category = serializers.CharField(
+        source="wa_priority_category.code", allow_null=True
+    )
+    wa_legislative_list = serializers.CharField(
+        source="wa_legislative_list.code", allow_null=True
+    )
+    wa_legislative_category = serializers.CharField(
+        source="wa_legislative_category.code", allow_null=True
+    )
+    commonwealth_conservation_list = serializers.CharField(
+        source="commonwealth_conservation_list.code", allow_null=True
+    )
     effective_from_date = serializers.SerializerMethodField()
     effective_to_date = serializers.SerializerMethodField()
+    change_code = serializers.CharField(
+        source="change_code.code", read_only=True, allow_null=True
+    )
+    submitter_name = serializers.CharField(
+        source="submitter_information.name", allow_null=True
+    )
+    submitter_category = serializers.CharField(
+        source="submitter_information.submitter_category.name", allow_null=True
+    )
+    submitter_organisation = serializers.CharField(
+        source="submitter_information.organisation", allow_null=True
+    )
+    assessor_name = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatus
@@ -381,8 +411,21 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             "assessor_edit",
             "internal_application",
             "internal_user_edit",
+            "wa_priority_list",
+            "wa_priority_category",
+            "wa_legislative_list",
+            "wa_legislative_category",
+            "commonwealth_conservation_list",
+            "international_conservation",
+            "conservation_criteria",
             "effective_from_date",
             "effective_to_date",
+            "review_due_date",
+            "change_code",
+            "submitter_name",
+            "submitter_category",
+            "submitter_organisation",
+            "assessor_name",
         )
         datatables_always_serialize = (
             "id",
@@ -401,8 +444,21 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             "assessor_edit",
             "internal_application",
             "internal_user_edit",
+            "wa_priority_list",
+            "wa_priority_category",
+            "wa_legislative_list",
+            "wa_legislative_category",
+            "commonwealth_conservation_list",
+            "international_conservation",
+            "conservation_criteria",
             "effective_from_date",
             "effective_to_date",
+            "review_due_date",
+            "change_code",
+            "submitter_name",
+            "submitter_category",
+            "submitter_organisation",
+            "assessor_name",
         )
 
     def get_group_type(self, obj):
@@ -489,6 +545,12 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             and is_internal_contributor(request)
             and obj.submitter == request.user.id
         )
+
+    def get_assessor_name(self, obj):
+        if obj.assigned_officer:
+            email_user = retrieve_email_user(obj.assigned_officer)
+            return email_user.get_full_name()
+        return ""
 
 
 class BaseConservationStatusSerializer(serializers.ModelSerializer):
@@ -644,15 +706,11 @@ class ConservationStatusIssuanceApprovalDetailsSerializer(serializers.ModelSeria
     effective_from_date = serializers.DateField(
         format="%Y-%m-%d", required=False, allow_null=True
     )
-    effective_to_date = serializers.DateField(
-        format="%Y-%m-%d", required=False, allow_null=True
-    )
 
     class Meta:
         model = ConservationStatusIssuanceApprovalDetails
         fields = (
             "effective_from_date",
-            "effective_to_date",
             "details",
             "cc_email",
         )
@@ -1134,6 +1192,7 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
             "reference",
             "deficiency_data",
             "assessor_data",
+            "change_code_id",
         )
         read_only_fields = ("id",)
 
@@ -1189,9 +1248,7 @@ class SendReferralSerializer(serializers.Serializer):
 
 
 class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
-    processing_status = serializers.CharField(
-        source="conservation_status.get_processing_status_display"
-    )
+    processing_status = serializers.CharField(source="get_processing_status_display")
     referral_status = serializers.CharField(source="get_processing_status_display")
     conservation_status_id = serializers.IntegerField(source="conservation_status.id")
     conservation_status_lodgement_date = serializers.CharField(

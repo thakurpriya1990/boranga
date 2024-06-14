@@ -5,13 +5,14 @@ from io import BytesIO
 
 import pandas as pd
 from django.core.cache import cache
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import CharField, Q, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from multiselectfield import MultiSelectField
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -28,14 +29,9 @@ from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
-from boranga.components.occurrence.mixins import DatumSearchMixin
-from boranga.components.spatial.utils import (
-    populate_occurrence_tenure_data,
-    save_geometry,
-    spatially_process_geometry,
-    transform_json_geometry,
-)
 from boranga.components.main.utils import validate_threat_request
+from boranga.components.occurrence.filters import OccurrenceReportReferralFilterBackend
+from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
     AnimalHealth,
     CoordinationSource,
@@ -45,8 +41,6 @@ from boranga.components.occurrence.models import (
     IdentificationCertainty,
     Intensity,
     LandForm,
-    OCCLocation,
-    OCRLocation,
     LocationAccuracy,
     ObservationMethod,
     OCCAnimalObservation,
@@ -56,6 +50,7 @@ from boranga.components.occurrence.models import (
     OCCHabitatComposition,
     OCCHabitatCondition,
     OCCIdentification,
+    OCCLocation,
     OCCObservationDetail,
     OCCPlantCount,
     Occurrence,
@@ -69,7 +64,9 @@ from boranga.components.occurrence.models import (
     OccurrenceReportReferral,
     OccurrenceReportUserAction,
     OccurrenceSource,
+    OccurrenceTenure,
     OccurrenceUserAction,
+    OCCContactDetail,
     OCCVegetationStructure,
     OCRAnimalObservation,
     OCRAssociatedSpecies,
@@ -78,6 +75,7 @@ from boranga.components.occurrence.models import (
     OCRHabitatComposition,
     OCRHabitatCondition,
     OCRIdentification,
+    OCRLocation,
     OCRObservationDetail,
     OCRObserverDetail,
     OCRPlantCount,
@@ -104,11 +102,13 @@ from boranga.components.occurrence.serializers import (
     InternalOccurrenceReportReferralSerializer,
     InternalOccurrenceReportSerializer,
     ListInternalOccurrenceReportSerializer,
+    ListOCCMinimalSerializer,
     ListOccurrenceReportSerializer,
     ListOccurrenceSerializer,
-    ListOCCMinimalSerializer,
+    ListOccurrenceTenureSerializer,
     ListOCRReportMinimalSerializer,
     OCCConservationThreatSerializer,
+    OCCContactDetailSerializer,
     OccurrenceDocumentSerializer,
     OccurrenceLogEntrySerializer,
     OccurrenceReportAmendmentRequestSerializer,
@@ -118,13 +118,12 @@ from boranga.components.occurrence.serializers import (
     OccurrenceReportSerializer,
     OccurrenceReportUserActionSerializer,
     OccurrenceSerializer,
+    OccurrenceTenureSerializer,
     OccurrenceUserActionSerializer,
     OCRConservationThreatSerializer,
     OCRObserverDetailSerializer,
     ProposeApproveSerializer,
     ProposeDeclineSerializer,
-    SaveOCCLocationSerializer,
-    SaveOCRLocationSerializer,
     SaveOCCAnimalObservationSerializer,
     SaveOCCAssociatedSpeciesSerializer,
     SaveOCCConservationThreatSerializer,
@@ -132,6 +131,7 @@ from boranga.components.occurrence.serializers import (
     SaveOCCHabitatCompositionSerializer,
     SaveOCCHabitatConditionSerializer,
     SaveOCCIdentificationSerializer,
+    SaveOCCLocationSerializer,
     SaveOCCObservationDetailSerializer,
     SaveOCCPlantCountSerializer,
     SaveOccurrenceDocumentSerializer,
@@ -146,6 +146,7 @@ from boranga.components.occurrence.serializers import (
     SaveOCRHabitatCompositionSerializer,
     SaveOCRHabitatConditionSerializer,
     SaveOCRIdentificationSerializer,
+    SaveOCRLocationSerializer,
     SaveOCRObservationDetailSerializer,
     SaveOCRPlantCountSerializer,
     SaveOCRVegetationStructureSerializer,
@@ -155,13 +156,22 @@ from boranga.components.occurrence.utils import (
     process_shapefile_document,
     validate_map_files,
 )
+from boranga.components.spatial.utils import (
+    populate_occurrence_tenure_data,
+    save_geometry,
+    spatially_process_geometry,
+    transform_json_geometry,
+)
 from boranga.components.species_and_communities.models import (
     CommunityTaxonomy,
     GroupType,
     Species,
+    Taxonomy,
 )
+from boranga.components.species_and_communities.serializers import TaxonomySerializer
 from boranga.helpers import (
     is_customer,
+    is_external_contributor,
     is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
@@ -268,7 +278,7 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
                     review_due_date__lte=filter_to_review_due_date
                 )
 
-        if "external" in view.name:
+        else:
             total_count = queryset.count()
 
             filter_group_type = request.GET.get("filter_group_type")
@@ -298,19 +308,10 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
-
-
-# class OccurrenceReportRenderer(DatatablesRenderer):
-#     def render(self, data, accepted_media_type=None, renderer_context=None):
-#         if 'view' in renderer_context and hasattr(renderer_context['view'], '_datatables_total_count'):
-#             data['recordsTotal'] = renderer_context['view']._datatables_total_count
-#         return super(OccurrenceReportRenderer, self).render(data, accepted_media_type, renderer_context)
 
 
 class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
@@ -664,6 +665,28 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             else:
                 return Response(status=400, data="Format not valid")
 
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def referred_to_me(self, request, *args, **kwargs):
+        qs = (
+            OccurrenceReportReferral.objects.filter(referral=request.user.id)
+            if is_internal(self.request)
+            else OccurrenceReportReferral.objects.none()
+        )
+        self.filter_backends = (OccurrenceReportReferralFilterBackend,)
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = OccurrenceReportReferralSerializer(
+            result_page, context={"request": request}, many=True
+        )
+        return self.paginator.get_paginated_response(serializer.data)
+
 
 class OccurrenceReportViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin, DatumSearchMixin
@@ -673,20 +696,17 @@ class OccurrenceReportViewSet(
     lookup_field = "id"
 
     def get_queryset(self):
-        user = self.request.user
-        if is_internal(self.request):  # user.is_authenticated():
+        request = self.request
+        qs = self.queryset
+        if not is_internal(request) and not is_external_contributor(request):
+            return qs
+
+        if is_internal(request):
             qs = OccurrenceReport.objects.all()
-            return qs
-        elif is_customer(self.request):
-            # user_orgs = [org.id for org in user.boranga_organisations.all()]
-            qs = OccurrenceReport.objects.filter(Q(submitter=user.id))
-            return qs
-        logger.warn(
-            "User is neither customer nor internal user: {} <{}>".format(
-                user.get_full_name(), user.email
-            )
-        )
-        return OccurrenceReport.objects.none()
+        elif is_external_contributor(request):
+            qs = OccurrenceReport.objects.filter(submitter=request.user.id)
+
+        return qs
 
     def get_serializer_class(self):
         if is_internal(self.request):
@@ -956,6 +976,155 @@ class OccurrenceReportViewSet(
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def section_values(self, request, *args, **kwargs):
+
+        section = request.GET.get("section")
+        ocr = self.get_object()
+        res_json = {}
+
+        if hasattr(ocr, section):
+            # print(section)
+            section_value = getattr(ocr, section)
+            section_fields = section_value._meta.get_fields()
+            # print(section_fields)
+
+            for i in section_fields:
+                if (
+                    i.name == "id"
+                    or i.name == "occurrence_report"
+                    or isinstance(i, models.ManyToOneRel)
+                ):
+                    continue
+
+                # ensure many to many fields are assigned an appropriate __str__
+                if isinstance(i, models.ManyToManyField):
+                    sub_section_values = getattr(section_value, i.name)
+                    res_json[i.name] = []
+                    for j in sub_section_values.all():
+                        if j.__str__():
+                            res_json[i.name].append(j.__str__())
+                        else:
+                            res_json[i.name].append(j.id)
+
+                elif isinstance(i, models.ForeignKey):
+                    sub_section_value = getattr(section_value, i.name)
+                    if sub_section_value is not None:
+                        res_json[i.name] = {}
+                        sub_section_fields = sub_section_value._meta.get_fields()
+                        for j in sub_section_fields:
+                            if (
+                                j.name != "id"
+                                and not isinstance(j, models.ForeignKey)
+                                and not isinstance(j, models.ManyToOneRel)
+                                and not isinstance(j, models.ManyToManyRel)
+                                and getattr(sub_section_value, j.name) is not None
+                            ):
+                                res_json[i.name][j.name] = str(
+                                    getattr(sub_section_value, j.name)
+                                )
+                        # if the num sub section has only one value, assign as section
+                        if len(res_json[i.name]) == 1:
+                            res_json[i.name] = list(res_json[i.name].values())[0]
+                elif isinstance(i, MultiSelectField):
+                    if i.choices:
+                        choice_dict = dict(i.choices)
+                        id_list = getattr(section_value, i.name)
+                        values_list = []
+                        for id in id_list:
+                            if id.isdigit() and int(id) in choice_dict:
+                                values_list.append(choice_dict[int(id)])
+                        res_json[i.name] = values_list
+                    else:
+                        res_json[i.name] = getattr(section_value, i.name)
+
+                elif getattr(section_value, i.name) is not None:
+                    res_json[i.name] = str(getattr(section_value, i.name))
+
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
+    @detail_route(methods=["get"], detail=True)
+    def add_related_species(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
+        instance = self.get_object()
+        if instance.associated_species:
+            related_species = instance.associated_species.related_species
+        else:
+            raise serializers.ValidationError("Associated Species does not exist")
+
+        taxon_id = request.GET.get("species")
+
+        try:
+            taxon = Taxonomy.objects.get(id=taxon_id)
+        except Taxonomy.DoesNotExist:
+            raise serializers.ValidationError("Species does not exist")
+
+        if taxon not in related_species.all():
+            related_species.add(taxon)
+        else:
+            raise serializers.ValidationError("Species already added")
+
+        instance.save(version_user=request.user)
+
+        serializer = TaxonomySerializer(
+            related_species, many=True, context={"request": request}
+        )
+
+        if instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+
+        return Response(serializer.data)
+
+    @detail_route(methods=["get"], detail=True)
+    def remove_related_species(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
+        instance = self.get_object()
+        if instance.associated_species:
+            related_species = instance.associated_species.related_species
+        else:
+            raise serializers.ValidationError("Associated Species does not exist")
+
+        taxon_id = request.GET.get("species")
+
+        try:
+            taxon = Taxonomy.objects.get(id=taxon_id)
+        except Taxonomy.DoesNotExist:
+            raise serializers.ValidationError("Species does not exist")
+
+        if taxon in related_species.all():
+            related_species.remove(taxon)
+        else:
+            raise serializers.ValidationError("Species not related")
+
+        instance.save(version_user=request.user)
+
+        serializer = TaxonomySerializer(
+            related_species, many=True, context={"request": request}
+        )
+
+        if instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
+            self.unlocked_back_to_assessor()
+
+        return Response(serializer.data)
+
+    @detail_route(methods=["get"], detail=True)
+    def get_related_species(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if hasattr(instance, "associated_species"):
+            related_species = instance.associated_species.related_species
+        else:
+            related_species = Taxonomy.objects.none()
+        serializer = TaxonomySerializer(
+            related_species, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
 
     # used for Occurrence Report Observation external form
     @list_route(
@@ -1576,7 +1745,7 @@ class OccurrenceReportViewSet(
 
         return Response(serializer.data)
 
-    # used for observer detail datatable on location tab
+    # used for observer detail datatable 
     @detail_route(
         methods=[
             "GET",
@@ -3449,11 +3618,10 @@ class OccurrenceViewSet(
 
     def is_authorised_to_update(self):
         instance = self.get_object()
-        if (
-            not is_occurrence_approver(self.request)
-            and (instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE or
-            instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT)
-        ):
+        if not (is_occurrence_approver(self.request) and (
+            instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+            or instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+        )):
             raise serializers.ValidationError(
                 "User not authorised to update Occurrence"
             )
@@ -3693,6 +3861,70 @@ class OccurrenceViewSet(
             data.append(instance.occurrence_number)
 
         return Response(data)
+
+    @detail_route(methods=["get"], detail=True)
+    def add_related_species(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
+        instance = self.get_object()
+        if hasattr(instance, "associated_species"):
+            related_species = instance.associated_species.related_species
+        else:
+            raise serializers.ValidationError("Associated Species does not exist")
+
+        taxon_id = request.GET.get("species")
+
+        try:
+            taxon = Taxonomy.objects.get(id=taxon_id)
+        except Taxonomy.DoesNotExist:
+            raise serializers.ValidationError("Species does not exist")
+
+        if taxon not in related_species.all():
+            related_species.add(taxon)
+
+        instance.save(version_user=request.user)
+
+        serializer = TaxonomySerializer(
+            related_species, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
+    @detail_route(methods=["get"], detail=True)
+    def remove_related_species(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
+        instance = self.get_object()
+        if hasattr(instance, "associated_species"):
+            related_species = instance.associated_species.related_species
+        else:
+            raise serializers.ValidationError("Associated Species does not exist")
+
+        taxon_id = request.GET.get("species")
+
+        try:
+            taxon = Taxonomy.objects.get(id=taxon_id)
+        except Taxonomy.DoesNotExist:
+            raise serializers.ValidationError("Species does not exist")
+
+        if taxon in related_species.all():
+            related_species.remove(taxon)
+
+        instance.save(version_user=request.user)
+
+        serializer = TaxonomySerializer(
+            related_species, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
+    @detail_route(methods=["get"], detail=True)
+    def get_related_species(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if hasattr(instance, "associated_species"):
+            related_species = instance.associated_species.related_species
+        else:
+            related_species = Taxonomy.objects.none()
+        serializer = TaxonomySerializer(
+            related_species, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)
     def get_related_occurrence_reports(self, request, *args, **kwargs):
@@ -3940,7 +4172,7 @@ class OccurrenceViewSet(
                 request, instance, geometry_data, "occurrence"
             )
             instance.occ_geometry.all()
-        
+
             if intersect_data:
                 for key, value in intersect_data.items():
                     occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
@@ -3974,7 +4206,6 @@ class OccurrenceViewSet(
 
         ocrId = data["occurrence_report_id"]
         section = data["section"]
-        merge = data["merge"]
 
         ocr = OccurrenceReport.objects.get(id=ocrId)
         ocrSection = getattr(ocr, section)
@@ -3987,15 +4218,23 @@ class OccurrenceViewSet(
                 and i.name != "occurrence_report"
                 and hasattr(occSection, i.name)
             ):
-                ocrValue = getattr(ocrSection, i.name)
-                if merge:
-                    # if not ocrValue: #do not overwrite if None, 0, or empty string
-                    #    #determine if field is one-to-many
-                    #    many = False
-                    # DEFERRED for now
-                    pass
+                if isinstance(i, models.ManyToManyField):
+                    ocrValue = getattr(ocrSection, i.name)
+                    occValue = getattr(occSection, i.name)
+                    occValue.clear()
+                    for i in ocrValue.all():
+                        occValue.add(i)
                 else:
+                    ocrValue = getattr(ocrSection, i.name)
                     setattr(occSection, i.name, ocrValue)
+
+        occ_section_fields = type(occSection)._meta.get_fields()
+        for i in occ_section_fields:
+            if (
+                isinstance(i, models.ForeignKey)
+                and i.related_model.__name__ == ocrSection.__class__.__name__
+            ):
+                setattr(occSection, i.name, ocrSection)
 
         occSection.save()
         instance.save(version_user=request.user)
@@ -4528,7 +4767,6 @@ class OccurrenceViewSet(
 
     @list_route(methods=["GET"], detail=False)
     def list_for_map(self, request, *args, **kwargs):
-        request.query_params
         occurrence_ids = [
             int(id)
             for id in request.query_params.get("proposal_ids", "").split(",")
@@ -4550,6 +4788,20 @@ class OccurrenceViewSet(
 
         serializer = ListOCCMinimalSerializer(
             qs, context={"request": request}, many=True
+        )
+        return Response(serializer.data)
+    
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def contact_details(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = instance.contact_detail.all()
+        serializer = OCCContactDetailSerializer(
+            qs, many=True, context={"request": request}
         )
         return Response(serializer.data)
 
@@ -4683,3 +4935,119 @@ class OccurrenceReportReferralViewSet(
             request,
         )
         return redirect(reverse("internal"))
+
+
+class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = OccurrenceTenure.objects.none()
+    serializer_class = OccurrenceTenureSerializer
+    pagination_class = DatatablesPageNumberPagination
+    # filter_backends = [OccurrenceTenureFilterBackend,]
+    page_size = 10
+
+    def get_serializer_class(self):
+        if self.action in ["list", "occurrence_tenure_internal"]:
+            return ListOccurrenceTenureSerializer
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not is_internal(self.request):
+            return qs.none()
+        occurrence_id = self.request.query_params.get("occurrence_id", None)
+        if occurrence_id and occurrence_id.isnumeric():
+            return OccurrenceTenure.objects.filter(
+                Q(occurrence_geometry__occurrence_id=occurrence_id)
+                | Q(historical_occurrence=occurrence_id)
+            )
+        return OccurrenceTenure.objects.all()
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_tenure_internal(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        Serializer = self.get_serializer_class()
+        serializer = Serializer(result_page, context={"request": request}, many=True)
+
+        return self.paginator.get_paginated_response(serializer.data)
+
+
+class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+    queryset = OCCContactDetail.objects.none()
+    serializer_class = OCCContactDetailSerializer
+
+    def is_authorised_to_update(self, occurrence):
+        user = self.request.user
+        if not (is_occurrence_approver(self.request) and (
+            occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+            or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+        )):
+            raise serializers.ValidationError(
+                "User not authorised to update Occurrence"
+            )
+
+    def get_queryset(self):
+        qs = OCCContactDetail.objects.none()
+
+        if is_internal(self.request):
+            qs = OCCContactDetail.objects.all().order_by("id")
+        return qs
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
+        serializer = OCCContactDetailSerializer(
+            instance, data=json.loads(request.data.get("data"))
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = OCCContactDetailSerializer(
+            data=json.loads(request.data.get("data"))
+        )
+        serializer.is_valid(raise_exception=True)
+        occurrence = serializer.validated_data["occurrence"]
+        self.is_authorised_to_update(occurrence)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
+        instance.visible = False
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
+        instance.visible = True
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
