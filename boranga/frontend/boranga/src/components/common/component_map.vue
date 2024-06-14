@@ -951,7 +951,6 @@
                     <template v-if="selectedModel">
                         <div class="toast-header">
                             <img src="" class="rounded me-2" alt="" />
-                            <!-- FIXME: Can this be standardised into the same field name? -->
                             <strong class="me-auto">
                                 {{ selectedModel.label }}:
                                 {{ selectedModel.occurrence_report_number }}
@@ -962,7 +961,6 @@
                                 <tbody>
                                     <tr>
                                         <th scope="row">Processing Status</th>
-                                        <!-- FIXME: Can this be standardised into the same field name? -->
                                         <td>
                                             {{
                                                 selectedModel.status ||
@@ -990,7 +988,6 @@
                                         <th v-else scope="row">
                                             Lodgement Date
                                         </th>
-                                        <!-- FIXME: Can this be standardised into the same field name? -->
                                         <td v-if="selectedModel.copied_from">
                                             {{
                                                 selectedModel.copied_from
@@ -2020,7 +2017,6 @@ export default {
                 this.initialiseMap();
                 // Query Layer
                 this.loadMapFeatures(proposals, this.queryLayerDefinition.name);
-                // TODO:
                 for (let i = 0; i < initialised.length; i++) {
                     const layerDef = this.additionalLayersDefinitions[i];
                     const proposals = this.initialiseProposals(initialised[i]);
@@ -3545,7 +3541,7 @@ export default {
             this.processingFeatures = true;
 
             if (!unit) {
-                // TODO: Find a better way to determine the unit if not set
+                // Note: Find a better way to determine the unit if not set
                 console.warn('Unit not set, defaulting to degrees');
                 unit = 'deg';
             }
@@ -3807,7 +3803,6 @@ export default {
                     }
                 });
             }
-            // TODO:
             // Lets ol display a popup with clicked feature properties
             vm.map.on('singleclick', function (evt) {
                 if (vm.mode !== 'info') {
