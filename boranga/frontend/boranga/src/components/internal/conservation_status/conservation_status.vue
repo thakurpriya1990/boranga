@@ -166,6 +166,14 @@
                                             </div>
                                         </div>
                                     </template>
+                                    <template v-if="canUnlock">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="unlockConservationStatus()">Unlock</button><br />
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
                             </div>
                         </div>
@@ -177,14 +185,6 @@
                                             <strong>Action</strong><br />
                                         </div>
                                     </div>
-                                    <template v-if="conservation_status_obj.processing_status == 'Approved'">
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="proposeDelist()">Propose Delist</button><br />
-                                            </div>
-                                        </div>
-                                    </template>
                                     <template
                                         v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
                                         <div class="row">
@@ -445,12 +445,7 @@ export default {
             return this.conservation_status_obj != null ? helpers.add_endpoint_json(api_endpoints.cs_referrals, 'datatable_list') + '?conservation_status=' + this.conservation_status_obj.id : '';
         },
         species_community_cs_form_url: function () {
-            if (this.$route.query.action == 'edit') {
-                return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_edit.json`;
-            }
-            else {
-                return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_save.json`;
-            }
+            return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_save.json`;
         },
         submitter_first_name: function () {
             if (this.conservation_status_obj.submitter) {
@@ -535,18 +530,9 @@ export default {
                 this.conservation_status_obj.approver_process;
         },
         hasAssessorMode: function () {
-            // Need to check for approved status as to show 'Save changes' button only when edit and not while view
-            if (this.conservation_status_obj.processing_status == 'Approved') {
-                if (this.$route.query.action == 'edit') {
-                    return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.has_assessor_mode;
-                }
-                else {
-                    return false;
-                }
-            }
-            else {
-                return this.conservation_status_obj && this.conservation_status_obj.assessor_mode.has_assessor_mode;
-            }
+            return this.conservation_status_obj && (
+                this.conservation_status_obj.assessor_mode.has_assessor_mode ||
+                this.conservation_status_obj.assessor_mode.has_unlocked_mode);
         },
         isApprovalLevelDocument: function () {
             return false;
@@ -554,10 +540,34 @@ export default {
         canDiscard: function () {
             return this.conservation_status_obj.internal_user_edit;
         },
+        canUnlock: function () {
+            return this.conservation_status_obj && this.conservation_status_obj.processing_status === "Approved";
+        },
     },
     methods: {
         commaToNewline(s) {
             return s.replace(/[,;]/g, '\n');
+        },
+        unlockConservationStatus: async function () {
+            let vm = this;
+            await vm.$http.patch(`/api/conservation_status/${this.conservation_status_obj.id}/unlock_conservation_status.json`).then(res => {
+                swal.fire({
+                    title: "Unlocked",
+                    text: "Occurrence has been Unlocked",
+                    icon: "success",
+                    confirmButtonColor: '#226fbb'
+                }).then(async (swalresult) => {
+                    this.conservation_status_obj = res.body;
+                });
+            }, err => {
+                var errorText = helpers.apiVueResourceError(err);
+                swal.fire({
+                    title: 'Unlock Error',
+                    text: errorText,
+                    icon: 'error',
+                    confirmButtonColor: '#226fbb'
+                });
+            });
         },
         discardCSProposal: function () {
             let vm = this;
