@@ -26,14 +26,14 @@
                                     <strong>Currently assigned to</strong><br />
                                     <div class="form-group">
                                         <template
-                                            v-if="['Ready For Agenda', 'With Approver', 'Unlocked'].includes(conservation_status_obj.processing_status)">
-                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
+                                            v-if="['Ready For Agenda', 'With Approver', 'Unlocked', 'Approved'].includes(conservation_status_obj.processing_status)">
+                                            <select ref="assigned_officer" class="form-control"
                                                 v-model="conservation_status_obj.assigned_approver">
                                                 <option v-for="member in conservation_status_obj.allowed_assessors"
                                                     :value="member.id">{{ member.first_name }} {{ member.last_name }}
                                                 </option>
                                             </select>
-                                            <a v-if="canAssess && conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
+                                            <a v-if="conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
                                                 @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
                                                 to me</a>
                                         </template>
@@ -158,7 +158,8 @@
                                             <strong>Action</strong><br />
                                         </div>
                                     </div>
-                                    <template v-if="conservation_status_obj.processing_status == 'Approved'">
+                                    <template
+                                        v-if="hasAssessorMode && conservation_status_obj.processing_status == 'Approved'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
@@ -507,7 +508,14 @@ export default {
                 && this.conservation_status_obj.assessor_mode.assessor_can_assess;
         },
         canAction: function () {
-            if (['Ready For Agenda', 'With Approver', 'Unlocked'].includes(this.conservation_status_obj.processing_status)) {
+            // TODO: Completely redo the permissions for actions on this page
+            // It was a mess before and now it's even worse =D
+            if (this.conservation_status_obj.processing_status == 'Approved') {
+                return this.conservation_status_obj
+                    && (
+                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver)
+            }
+            else if (['Ready For Agenda', 'With Approver', 'Unlocked'].includes(this.conservation_status_obj.processing_status)) {
                 return this.conservation_status_obj
                     && (
                         this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver)
@@ -549,10 +557,14 @@ export default {
             return this.conservation_status_obj.internal_user_edit;
         },
         canUnlock: function () {
-            return this.conservation_status_obj && this.conservation_status_obj.processing_status === "Approved";
+            return this.conservation_status_obj &&
+                this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver &&
+                this.conservation_status_obj.processing_status === "Approved";
         },
         canLock: function () {
-            return this.conservation_status_obj && this.conservation_status_obj.processing_status === "Unlocked";
+            return this.conservation_status_obj &&
+                this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver &&
+                this.conservation_status_obj.processing_status === "Unlocked";
         },
     },
     methods: {
@@ -562,14 +574,13 @@ export default {
         unlockConservationStatus: async function () {
             let vm = this;
             await vm.$http.patch(`/api/conservation_status/${vm.conservation_status_obj.id}/unlock_conservation_status.json`).then(response => {
+                vm.conservation_status_obj = Object.assign({}, response.body);
                 swal.fire({
                     title: 'Conservation Status Unlocked',
                     icon: 'success',
                     showConfirmButton: false,
                     timer: 1500,
 
-                }).then(async (swalresult) => {
-                    vm.conservation_status_obj = Object.assign({}, response.body);
                 });
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
