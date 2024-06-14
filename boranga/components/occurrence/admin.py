@@ -115,6 +115,7 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
                     "copied_from",
                     "drawn_by",
                     "locked",
+                    "buffer_radius",
                 )
             },
         ),

@@ -2718,6 +2718,7 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
             "geometry_source",
             "locked",
             "copied_from",
+            "buffer_radius",
         )
         read_only_fields = ("id",)
 
