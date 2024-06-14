@@ -4149,19 +4149,22 @@ class OccurrenceTenure(models.Model):
             return wkb_to_geojson(centroid.ewkb)
         return None
 
-# class BufferGeometry(GeometryBase):
-#     # objects = OccurrenceGeometryManager()
+class BufferGeometry(GeometryBase):
+    buffered_from_geometry = models.OneToOneField(
+        OccurrenceGeometry,
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
+        related_name="buffer_geometry",
+    )
 
-#     occurrence_geometry = models.OneToOneField(
-#         OccurrenceGeometry,
-#         on_delete=models.CASCADE,
-#         null=False,
-#         blank=False,
-#         related_name="buffer_geometry",
-#     )
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Buffer Geometry"
+        verbose_name_plural = "Buffer Geometries"
 
-#     def related_model_field(self):
-#         return self.occurrence_geometry
+    def related_model_field(self):
+        return self.buffered_from_geometry
 
 
 # Occurrence Report Document

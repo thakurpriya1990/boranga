@@ -3,6 +3,7 @@ import nested_admin
 
 from boranga.components.occurrence.models import (
     AnimalHealth,
+    BufferGeometry,
     CoordinationSource,
     CountedSubject,
     Datum,
@@ -62,6 +63,49 @@ class OccurrenceTenureInline(nested_admin.NestedTabularInline):
     )
 
     readonly_fields = ["tenure_area_id"]
+
+
+class BufferGeometryInlineForm(forms.ModelForm):
+    geometry = forms.GeometryField(
+        widget=forms.OSMWidget(
+            attrs={
+                "display_raw": False,
+                "map_width": 800,
+                "map_srid": 4326,
+                "map_height": 600,
+                "default_lat": -31.9502682,
+                "default_lon": 115.8590241,
+            }
+        )
+    )
+
+    class Meta:
+        model = BufferGeometry
+        fields = "__all__"
+
+
+class BufferGeometryInline(nested_admin.NestedStackedInline):
+    model = BufferGeometry
+    form = BufferGeometryInlineForm
+    extra = 0
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "geometry",
+                    ("original_geometry"),
+                    (
+                        "area_sqm",
+                        "area_sqhm",
+                    ),
+                )
+            },
+        ),
+    )
+
+    readonly_fields = ["original_geometry", "area_sqm", "area_sqhm"]
 
 
 class OccurrenceReportGeometryInlineForm(forms.ModelForm):
@@ -174,7 +218,7 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
 
     readonly_fields = ["original_geometry", "area_sqm", "area_sqhm"]
 
-    inlines = [OccurrenceTenureInline]
+    inlines = [BufferGeometryInline, OccurrenceTenureInline]
 
 
 @admin.register(OccurrenceReport)
