@@ -86,7 +86,6 @@
                     <select :disabled="isReadOnly" 
                         class="form-select" 
                         v-model="species_community.regions"
-                        @selected="chainedSelectDistricts(species_community.regions,$event)"
                         ref="regions_select">
                         <option value="" selected disabled>Select region</option>
                         <option v-for="option in region_list" :value="option.value" :key="option.value">
@@ -1413,7 +1412,7 @@ export default {
                     }
                     // vm.setProposalData2(this.regions);
                     if(vm.species_community.regions){
-                        vm.chainedSelectDistricts(vm.species_community.regions);
+                        vm.chainedSelectDistricts(vm.species_community.regions,"fetch");
                     }
             },(error) => {
                 console.log(error);
@@ -1428,9 +1427,11 @@ export default {
             }
             return [];
         },
-        chainedSelectDistricts: function(regions,event){
+        chainedSelectDistricts: function(regions,action){
             let vm = this;
-            vm.species_community.districts = []; //-----to remove the previous selection
+            if(action!= "fetch"){
+                vm.species_community.districts = []; //-----to remove the previous selection
+                }
             vm.district_list = [];
             if(regions){
                 for(let r of regions){
@@ -1454,12 +1455,12 @@ export default {
             on("select2:select",function (e) {
                 var selected = $(e.currentTarget);
                 vm.species_community.regions = selected.val();
-                vm.chainedSelectDistricts(vm.species_community.regions);
+                vm.chainedSelectDistricts(vm.species_community.regions,"select");
             }).
             on("select2:unselect",function (e) {
                 var selected = $(e.currentTarget);
                 vm.species_community.regions = selected.val();
-                vm.chainedSelectDistricts(vm.species_community.regions);
+                vm.chainedSelectDistricts(vm.species_community.regions,"deselect");
             });
         },
         initialiseDistrictSelect: function(){
