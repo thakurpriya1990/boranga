@@ -184,7 +184,6 @@
                                     </template>
                                 </div>
                             </div>
-                            {{ conservation_status_obj.processing_status }}
                         </div>
                         <div v-if="!isFinalised && canAction" class="card-body border-top">
                             <div class="row">
@@ -564,12 +563,12 @@ export default {
             let vm = this;
             await vm.$http.patch(`/api/conservation_status/${vm.conservation_status_obj.id}/unlock_conservation_status.json`).then(response => {
                 swal.fire({
-                    title: "Unlocked",
-                    text: "Conservation Status has been Unlocked",
-                    icon: "success",
-                    confirmButtonColor: '#226fbb'
+                    title: 'Conservation Status Unlocked',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1500,
+
                 }).then(async (swalresult) => {
-                    // alert(JSON.stringify(response.body))
                     vm.conservation_status_obj = Object.assign({}, response.body);
                 });
             }, err => {
@@ -599,14 +598,13 @@ export default {
                 if (swalresult.isConfirmed) {
                     vm.$http.patch(`/api/conservation_status/${vm.conservation_status_obj.id}/lock_conservation_status.json`)
                         .then((response) => {
-                            swal.fire({
-                                title: 'Locked',
-                                text: 'The approved conservation status has been locked from editing',
-                                icon: 'success',
-                                confirmButtonColor: '#226fbb',
-                            });
-                            // alert(JSON.stringify(response.body))
                             vm.conservation_status_obj = Object.assign({}, response.body);
+                            swal.fire({
+                                title: 'Conservation Status Locked',
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1200,
+                            });
                         }, (error) => {
                             console.log(error);
                         });
@@ -628,7 +626,7 @@ export default {
                     cancelButton: 'btn btn-secondary'
                 },
                 reverseButtons: true,
-                }).then((result) => {
+            }).then((result) => {
                 if (result.isConfirmed) {
                     vm.$http.delete(api_endpoints.discard_cs_proposal(vm.conservation_status_obj.id))
                         .then((response) => {
