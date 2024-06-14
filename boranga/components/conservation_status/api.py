@@ -1844,6 +1844,22 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         serializer = RelatedItemsSerializer(related_items, many=True)
         return Response(serializer.data)
 
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def unlock_conservation_status(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.can_change_lock(request):
+            raise serializers.ValidationError(
+                "User not authorised to unlock Conservation Status"
+            )
+        instance.unlock(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
 
 class ConservationStatusReferralViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin
