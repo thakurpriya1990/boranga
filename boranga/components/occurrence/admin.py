@@ -63,6 +63,7 @@ class OccurrenceTenureInline(nested_admin.NestedTabularInline):
 
     readonly_fields = ["tenure_area_id"]
 
+
 class OccurrenceReportGeometryInlineForm(forms.ModelForm):
     geometry = forms.GeometryField(
         widget=forms.OSMWidget(
@@ -95,17 +96,29 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
             {
                 "fields": (
                     "geometry",
-                    "original_geometry",
-                    "intersects",
-                    "copied_from",
-                    "drawn_by",
-                    "locked",
+                    ("original_geometry"),
+                    (
+                        "area_sqm",
+                        "area_sqhm",
+                    ),
+                    (
+                        "intersects",
+                        "locked",
+                    ),
+                    (
+                        "copied_from",
+                        "drawn_by",
+                    ),
                 )
             },
         ),
     )
 
-    readonly_fields = ["original_geometry"]
+    readonly_fields = [
+        "original_geometry",
+        "area_sqm",
+        "area_sqhm",
+    ]
 
 
 class OccurrenceGeometryInlineForm(forms.ModelForm):
@@ -140,18 +153,26 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
             {
                 "fields": (
                     "geometry",
-                    "original_geometry",
-                    "intersects",
-                    "copied_from",
-                    "drawn_by",
-                    "locked",
-                    "buffer_radius",
+                    ("original_geometry"),
+                    (
+                        "area_sqm",
+                        "area_sqhm",
+                    ),
+                    (
+                        "intersects",
+                        "locked",
+                    ),
+                    (
+                        "copied_from",
+                        "drawn_by",
+                    ),
+                    ("buffer_radius",),
                 )
             },
         ),
     )
 
-    readonly_fields = ["original_geometry"]
+    readonly_fields = ["original_geometry", "area_sqm", "area_sqhm"]
 
     inlines = [OccurrenceTenureInline]
 
