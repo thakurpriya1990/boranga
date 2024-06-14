@@ -29,47 +29,6 @@
                             </select>
                     </div>
                 </div>
-
-                <div class="col-md-3" >
-                    <div class="form-group">
-                        <label for="">Effective From Date Range:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_from_date" v-model="filterOCCFromCommunityEffectiveFromDate">
-                    </div>
-                </div>
-                <div class="col-md-3" >
-                    <div class="form-group">
-                        <label for=""></label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_from_date" v-model="filterOCCToCommunityEffectiveFromDate">
-                    </div>
-                </div>
-
-                <div class="col-md-3" >
-                    <div class="form-group">
-                        <label for="">Effective To Date Range:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_effective_to_date" v-model="filterOCCFromCommunityEffectiveToDate">
-                    </div>
-                </div>
-
-                <div class="col-md-3" >
-                    <div class="form-group">
-                        <label for=""></label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_effective_to_date" v-model="filterOCCToCommunityEffectiveToDate">
-                    </div>
-                </div>
-
-                <!--<div class="col-md-3" >
-                    <div class="form-group">
-                        <label for="">Due Date Range:</label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="from_due_date" v-model="filterOCCFromCommunityDueDate">
-                    </div>
-                </div>
-
-                <div class="col-md-3" >
-                    <div class="form-group">
-                        <label for=""></label>
-                        <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="to_due_date" v-model="filterOCCToCommunityDueDate">
-                    </div>
-                </div>-->
             </div>
         </CollapsibleFilters>
 
@@ -153,26 +112,6 @@ export default {
             required: false,
             default: 'filterOCCCommunityStatus',
         },
-        filterOCCFromCommunityEffectiveFromDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterOCCFromCommunityEffectiveFromDate',
-        },
-        filterOCCToCommunityEffectiveFromDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterOCCToCommunityEffectiveFromDate',
-        },
-        filterOCCFromCommunityEffectiveToDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterOCCFromCommunityEffectiveToDate',
-        },
-        filterOCCToCommunityEffectiveToDate_cache: {
-            type: String,
-            required: false,
-            default: 'filterOCCToCommunityEffectiveToDate',
-        },
         filterOCCFromCommunityDueDate_cache: {
             type: String,
             required: false,
@@ -200,16 +139,6 @@ export default {
 
             filterOCCCommunityStatus: sessionStorage.getItem(this.filterOCCCommunityStatus_cache) ?
                         sessionStorage.getItem(this.filterOCCCommunityStatus_cache) : 'all',
-
-            filterOCCFromCommunityEffectiveFromDate: sessionStorage.getItem(this.filterOCCFromCommunityEffectiveFromDate_cache) ?
-            sessionStorage.getItem(this.filterOCCFromCommunityEffectiveFromDate_cache) : '',
-            filterOCCToCommunityEffectiveFromDate: sessionStorage.getItem(this.filterOCCToCommunityEffectiveFromDate_cache) ?
-            sessionStorage.getItem(this.filterOCCToCommunityEffectiveFromDate_cache) : '',
-
-            filterOCCFromCommunityEffectiveToDate: sessionStorage.getItem(this.filterOCCFromCommunityEffectiveToDate_cache) ?
-            sessionStorage.getItem(this.filterOCCFromCommunityEffectiveToDate_cache) : '',
-            filterOCCToCommunityEffectiveToDate: sessionStorage.getItem(this.filterOCCToCommunityEffectiveToDate_cache) ?
-            sessionStorage.getItem(this.filterOCCToCommunityEffectiveToDate_cache) : '',
 
             filterOCCFromCommunityDueDate: sessionStorage.getItem(this.filterOCCFromCommunityDueDate_cache) ?
             sessionStorage.getItem(this.filterOCCFromCommunityDueDate_cache) : '',
@@ -263,26 +192,6 @@ export default {
                 this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
             }
         },
-        filterOCCFromCommunityEffectiveFromDate: function(){
-            let vm = this;
-            vm.$refs.community_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCCFromCommunityEffectiveFromDate_cache, vm.filterOCCFromCommunityEffectiveFromDate);
-        },
-        filterOCCToCommunityEffectiveFromDate: function(){
-            let vm = this;
-            vm.$refs.community_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCCToCommunityEffectiveFromDate_cache, vm.filterOCCToCommunityEffectiveFromDate);
-        },
-        filterOCCFromCommunityEffectiveToDate: function(){
-            let vm = this;
-            vm.$refs.community_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCCFromCommunityEffectiveToDate_cache, vm.filterOCCFromCommunityEffectiveToDate);
-        },
-        filterOCCToCommunityEffectiveToDate: function(){
-            let vm = this;
-            vm.$refs.community_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCCToCommunityEffectiveToDate_cache, vm.filterOCCToCommunityEffectiveToDate);
-        },
         filterOCCFromCommunityDueDate: function(){
             let vm = this;
             vm.$refs.community_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
@@ -302,10 +211,6 @@ export default {
             if(this.filterOCCCommunityOccurrenceName === 'all' &&
                 this.filterOCCCommunityName === 'all' &&
                 this.filterOCCCommunityStatus === 'all' &&
-                this.filterOCCFromCommunityEffectiveFromDate === '' &&
-                this.filterOCCToCommunityEffectiveFromDate === '' &&
-                this.filterOCCFromCommunityEffectiveToDate === '' &&
-                this.filterOCCToCommunityEffectiveToDate === '' &&
                 this.filterOCCFromCommunityDueDate === '' &&
                 this.filterOCCToCommunityDueDate === ''){
                 return false
@@ -331,7 +236,7 @@ export default {
         },
         datatable_headers: function(){
             if (this.is_internal){
-                return ['Number','Name of Occurrence','Community Name', 'Wild Status', 'Number of Reports',  'Effective From', 'Effective To', 'Review Due', 'Status', 'Action']
+                return ['Number','Name of Occurrence','Community Name', 'Wild Status', 'Number of Reports', 'Review Due', 'Status', 'Action']
             }
         },
         column_id: function(){
@@ -362,6 +267,14 @@ export default {
                 searchable: true,
                 visible: true,
                 name: "occurrence_name",
+                'render': function (data, type, full) {
+                    if (full.occurrence_name) {
+                        let value = full.occurrence_name;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return type == 'export' ? value : result;
+                    }
+                    return ''
+                },
             }
         },
         column_community_name: function(){
@@ -370,6 +283,14 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
+                'render': function (data, type, full) {
+                    if (full.community_name) {
+                        let value = full.community_name;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return type == 'export' ? value : result;
+                    }
+                    return ''
+                },
                 name: "community__taxonomy__community_name",
             }
         },
@@ -387,24 +308,6 @@ export default {
                 orderable: false,
                 searchable: false,
                 visible: true,
-            }
-        },
-        column_effective_from: function(){
-            return {
-                data: "effective_from",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                name: "effective_from",
-            }
-        },
-        column_effective_to: function(){
-            return {
-                data: "effective_to",
-                orderable: true,
-                searchable: true,
-                visible: true,
-                name: "effective_to",
             }
         },
         column_review_due_date: function(){
@@ -477,8 +380,6 @@ export default {
                     vm.column_community_name,
                     vm.column_wild_status,
                     vm.column_number_of_reports,
-                    vm.column_effective_from,
-                    vm.column_effective_to,
                     vm.column_review_due_date,
                     vm.column_status,
                     vm.column_action,
@@ -514,10 +415,6 @@ export default {
                         d.filter_occurrence_name = vm.filterOCCCommunityOccurrenceName;
                         d.filter_community_name = vm.filterOCCCommunityName;
                         d.filter_status = vm.filterOCCCommunityStatus;
-                        d.filter_from_effective_from_date = vm.filterOCCFromCommunityEffectiveFromDate;
-                        d.filter_to_effective_from_date = vm.filterOCCToCommunityEffectiveFromDate;
-                        d.filter_from_effective_to_date = vm.filterOCCFromCommunityEffectiveToDate;
-                        d.filter_to_effective_to_date = vm.filterOCCToCommunityEffectiveToDate;
                         d.filter_from_due_date = vm.filterOCCFromCommunityDueDate;
                         d.filter_to_due_date = vm.filterOCCToCommunityDueDate;
                         d.is_internal = vm.is_internal;
@@ -797,10 +694,6 @@ export default {
                 filter_occurrence_name: vm.filterOCCCommunityOccurrenceName,
                 filter_community_name: vm.filterOCCCommunityName,
                 filter_status: vm.filterOCCCommunityStatus,
-                filter_from_effective_from_date: vm.filterOCCFromCommunityEffectiveFromDate,
-                filter_to_effective_from_date: vm.filterOCCToCommunityEffectiveFromDate,
-                filter_from_effective_to_date: vm.filterOCCFromCommunityEffectiveToDate,
-                filter_to_effective_to_date: vm.filterOCCToCommunityEffectiveToDate,
                 filter_from_due_date: vm.filterOCCFromCommunityDueDate,
                 filter_to_due_date: vm.filterOCCToCommunityDueDate,
                 is_internal: vm.is_internal,
