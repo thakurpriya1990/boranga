@@ -239,6 +239,33 @@
                                 v-model="conservation_status_obj.comment" />
                         </div>
                     </div>
+                    <div v-if="!is_external" class="row mb-3">
+                        <label for="conservation_status_under_review" class="col-sm-6 col-form-label">Is there a
+                            Conservation Status
+                            proposal under review?</label>
+                        <div class="col-sm-6 d-flex align-items-center">
+                            <div class="form-check form-check-inline">
+                                Yes <input disabled type="radio" id="conservation_status_under_review_yes"
+                                    class="form-check-input" name="conservation_status_under_review"
+                                    v-model="isConservationStatusUnderReview" :value="true" />
+                            </div>
+                            <div class="form-check form-check-inline">
+                                No <input disabled type="radio" id="conservation_status_under_review_no"
+                                    class="form-check-input" name="conservation_status_under_review"
+                                    v-model="isConservationStatusUnderReview" :value="false" />
+                            </div>
+                            <div
+                                v-if="conservation_status_obj.conservation_status_under_review &&
+                                conservation_status_obj.id != conservation_status_obj.conservation_status_under_review.id">
+                                <div>
+                                    <a :href="`/internal/conservation_status/${conservation_status_obj.conservation_status_under_review.id}`"
+                                        target="_blank" class="btn btn-primary">{{
+                                            conservation_status_obj.conservation_status_under_review.conservation_status_number
+                                        }}<i class="bi bi-box-arrow-up-right ps-2"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </template>
                 <template v-if="canViewCurrentList && conservation_status_obj.current_conservation_status">
                     <div class="row border-top pt-3">
@@ -592,6 +619,9 @@ export default {
         },
         canViewCurrentList: function () {
             return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? false : true;
+        },
+        isConservationStatusUnderReview: function () {
+            return Boolean(this.conservation_status_obj.conservation_status_under_review);
         }
     },
     methods: {
