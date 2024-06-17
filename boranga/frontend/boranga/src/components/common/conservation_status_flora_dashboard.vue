@@ -1323,7 +1323,6 @@ export default {
                 payload.application_type_id = this.group_type_id
                 payload.internal_application = true
                 let savedFloraCS = await Vue.http.post(createUrl, payload);
-                alert(JSON.stringify(savedFloraCS))
                 if (savedFloraCS) {
                     newFloraCSId = savedFloraCS.body.id;
                 }
