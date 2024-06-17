@@ -809,13 +809,59 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 community=self.community,
             )
             warning = f"Multiple approved conservation statuses for {self.community}"
+        else:
+            return None
+
         current_conservation_statuses = current_conservation_statuses.filter(
             processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+        )
+        current_conservation_statuses = current_conservation_statuses.exclude(
+            id=self.id
         )
         if current_conservation_statuses.count() > 1:
             logger.warning(warning)
 
         return current_conservation_statuses.first()
+
+    @property
+    def is_conservation_status_under_review(self):
+        # If a CS for the same species or community is under review (i.e. ready for agenda)
+        if self.species:
+            conservation_statuses = ConservationStatus.objects.filter(
+                species=self.species,
+            )
+        elif self.community:
+            conservation_statuses = ConservationStatus.objects.filter(
+                community=self.community,
+            )
+        else:
+            return False
+
+        return (
+            conservation_statuses.exclude(id=self.id)
+            .filter(
+                processing_status=ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+            )
+            .exists()
+        )
+
+    @property
+    def conservation_status_under_review(self):
+        # If a CS for the same species or community is under review (i.e. ready for agenda)
+        if self.species:
+            conservation_statuses = ConservationStatus.objects.filter(
+                species=self.species,
+            )
+        elif self.community:
+            conservation_statuses = ConservationStatus.objects.filter(
+                community=self.community,
+            )
+        else:
+            return None
+
+        return conservation_statuses.filter(
+            processing_status=ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+        ).first()
 
     def can_assess(self, request):
         if self.processing_status in [

@@ -713,6 +713,9 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     current_conservation_status = CurrentConservationStatusSerializer(read_only=True)
     approver_process = serializers.SerializerMethodField(read_only=True)
     submitter_information = SubmitterInformationSerializer(read_only=True)
+    conservation_status_under_review = CurrentConservationStatusSerializer(
+        read_only=True, allow_null=True
+    )
 
     class Meta:
         model = ConservationStatus
@@ -769,6 +772,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "change_code_id",
             "current_conservation_status",
             "submitter_information",
+            "conservation_status_under_review",
         )
 
     def get_submitter(self, obj):
