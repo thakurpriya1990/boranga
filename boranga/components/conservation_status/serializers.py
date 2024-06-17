@@ -161,8 +161,6 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     approver_process = serializers.SerializerMethodField(read_only=True)
     assessor_edit = serializers.SerializerMethodField(read_only=True)
     internal_user_edit = serializers.SerializerMethodField(read_only=True)
-    effective_from_date = serializers.SerializerMethodField()
-    effective_to_date = serializers.SerializerMethodField()
     is_new_contributor = serializers.SerializerMethodField()
     change_code = serializers.CharField(
         source="change_code.code", read_only=True, allow_null=True
@@ -206,8 +204,8 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "assessor_edit",
             "internal_application",
             "internal_user_edit",
-            "effective_from_date",
-            "effective_to_date",
+            "effective_from",
+            "effective_to",
             "is_new_contributor",
             "review_due_date",
             "listing_date",
@@ -241,8 +239,8 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "assessor_edit",
             "internal_application",
             "internal_user_edit",
-            "effective_from_date",
-            "effective_to_date",
+            "effective_from",
+            "effective_to",
             "is_new_contributor",
             "change_code",
             "submitter_name",
@@ -292,26 +290,6 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
                     "classification_system_fk_id__class_desc", flat=True
                 )
         return ""
-
-    def get_effective_from_date(self, obj):
-        try:
-            approval = ConservationStatusIssuanceApprovalDetails.objects.get(
-                conservation_status=obj.id
-            )
-            if approval.effective_from_date:
-                return approval.effective_from_date
-        except ConservationStatusIssuanceApprovalDetails.DoesNotExist:
-            return ""
-
-    def get_effective_to_date(self, obj):
-        try:
-            approval = ConservationStatusIssuanceApprovalDetails.objects.get(
-                conservation_status=obj.id
-            )
-            if approval.effective_to_date:
-                return approval.effective_to_date
-        except ConservationStatusIssuanceApprovalDetails.DoesNotExist:
-            return ""
 
     def get_assessor_process(self, obj):
         # Check if currently logged in user has access to process the proposal
@@ -376,8 +354,6 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     commonwealth_conservation_list = serializers.CharField(
         source="commonwealth_conservation_list.code", allow_null=True
     )
-    effective_from_date = serializers.SerializerMethodField()
-    effective_to_date = serializers.SerializerMethodField()
     change_code = serializers.CharField(
         source="change_code.code", read_only=True, allow_null=True
     )
@@ -418,8 +394,8 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             "commonwealth_conservation_list",
             "international_conservation",
             "conservation_criteria",
-            "effective_from_date",
-            "effective_to_date",
+            "effective_from",
+            "effective_to",
             "review_due_date",
             "change_code",
             "submitter_name",
@@ -451,8 +427,8 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             "commonwealth_conservation_list",
             "international_conservation",
             "conservation_criteria",
-            "effective_from_date",
-            "effective_to_date",
+            "effective_from",
+            "effective_to",
             "review_due_date",
             "change_code",
             "submitter_name",
@@ -503,26 +479,6 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             if obj.community.district:
                 return obj.community.district.name
         return ""
-
-    def get_effective_from_date(self, obj):
-        try:
-            approval = ConservationStatusIssuanceApprovalDetails.objects.get(
-                conservation_status=obj.id
-            )
-            if approval.effective_from_date:
-                return approval.effective_from_date
-        except ConservationStatusIssuanceApprovalDetails.DoesNotExist:
-            return ""
-
-    def get_effective_to_date(self, obj):
-        try:
-            approval = ConservationStatusIssuanceApprovalDetails.objects.get(
-                conservation_status=obj.id
-            )
-            if approval.effective_to_date:
-                return approval.effective_to_date
-        except ConservationStatusIssuanceApprovalDetails.DoesNotExist:
-            return ""
 
     def get_assessor_process(self, obj):
         # Check if currently logged in user has access to process the proposal
@@ -848,6 +804,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         return {
             "assessor_mode": True,
             "has_assessor_mode": obj.has_assessor_mode(request),
+            "has_unlocked_mode": obj.has_unlocked_mode(request),
             "assessor_can_assess": obj.can_assess(request),
             "assessor_level": "assessor",
             "assessor_box_view": obj.assessor_comments_view(request),

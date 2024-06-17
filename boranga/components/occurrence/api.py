@@ -20,6 +20,7 @@ from rest_framework import mixins, serializers, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -46,6 +47,7 @@ from boranga.components.occurrence.models import (
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
+    OCCContactDetail,
     OCCFireHistory,
     OCCHabitatComposition,
     OCCHabitatCondition,
@@ -66,7 +68,6 @@ from boranga.components.occurrence.models import (
     OccurrenceSource,
     OccurrenceTenure,
     OccurrenceUserAction,
-    OCCContactDetail,
     OCCVegetationStructure,
     OCRAnimalObservation,
     OCRAssociatedSpecies,
@@ -101,6 +102,7 @@ from boranga.components.occurrence.serializers import (
     CreateOccurrenceSerializer,
     InternalOccurrenceReportReferralSerializer,
     InternalOccurrenceReportSerializer,
+    InternalSaveOccurrenceReportDocumentSerializer,
     ListInternalOccurrenceReportSerializer,
     ListOCCMinimalSerializer,
     ListOccurrenceReportSerializer,
@@ -236,7 +238,9 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
             if filter_submitted_to_date and not filter_submitted_from_date:
                 queryset = queryset.filter(reported_date__lte=filter_submitted_to_date)
 
-            filter_from_observation_date = request.GET.get("filter_observation_from_date")
+            filter_from_observation_date = request.GET.get(
+                "filter_observation_from_date"
+            )
             filter_to_observation_date = request.GET.get("filter_observation_to_date")
 
             if filter_from_observation_date:
@@ -278,15 +282,19 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        search_text = request.GET.get('search[value]')
+        search_text = request.GET.get("search[value]")
         search_queryset = queryset
-        #for search values that cannot be accommodated by DRF
+        # for search values that cannot be accommodated by DRF
         if search_text:
             if "internal" in view.name:
-                observer_ids = OCRObserverDetail.objects.filter(main_observer=True).filter(observer_name__icontains=search_text).values_list("occurrence_report__id", flat=True)
+                observer_ids = (
+                    OCRObserverDetail.objects.filter(main_observer=True)
+                    .filter(observer_name__icontains=search_text)
+                    .values_list("occurrence_report__id", flat=True)
+                )
                 search_queryset = queryset.filter(
-                    Q(submitter_information__name__icontains=search_text) |
-                    Q(id__in=observer_ids)
+                    Q(submitter_information__name__icontains=search_text)
+                    | Q(id__in=observer_ids)
                 )
 
         super_queryset = super().filter_queryset(request, queryset, view)
@@ -972,10 +980,8 @@ class OccurrenceReportViewSet(
         res_json = {}
 
         if hasattr(ocr, section):
-            # print(section)
             section_value = getattr(ocr, section)
             section_fields = section_value._meta.get_fields()
-            # print(section_fields)
 
             for i in section_fields:
                 if (
@@ -1450,7 +1456,6 @@ class OccurrenceReportViewSet(
         if geometry_data:
             save_geometry(request, ocr_instance, geometry_data, "occurrence_report")
 
-        # print(request.data.get('geojson_polygon'))
         # polygon = request.data.get('geojson_polygon')
         # if polygon:
         #     coords_list = [list(map(float, coord.split(' '))) for coord in polygon.split(',')]
@@ -1727,7 +1732,7 @@ class OccurrenceReportViewSet(
 
         return Response(serializer.data)
 
-    # used for observer detail datatable 
+    # used for observer detail datatable
     @detail_route(
         methods=[
             "GET",
@@ -2015,13 +2020,19 @@ class OccurrenceReportViewSet(
     )
     def documents(self, request, *args, **kwargs):
         instance = self.get_object()
-        # qs = instance.documents.all()
-        if is_internal(self.request):
-            qs = instance.documents.all()
-        elif is_customer(self.request):
-            qs = instance.documents.filter(Q(uploaded_by=request.user.id))
-        # qs = qs.exclude(input_name='occurrence_report_approval_doc')
-        # TODO do we need/not to show approval doc in cs documents tab
+
+        if not is_internal and not is_external_contributor(request):
+            raise PermissionDenied  # TODO: Replace with permission class
+
+        qs = instance.documents.all()
+        qs = qs.exclude(input_name="occurrence_report_approval_doc")
+        if not is_internal(request) and is_external_contributor(request):
+            qs = qs.filter(
+                occurrence_report__submitter=self.request.user.id,
+                visible=True,
+                can_submitter_access=True,
+            )
+
         qs = qs.order_by("-uploaded_date")
         serializer = OccurrenceReportDocumentSerializer(
             qs, many=True, context={"request": request}
@@ -2499,15 +2510,15 @@ class OccurrenceReportDocumentViewSet(
             occurrence_report.back_to_assessor(request, serializer.validated_data)
 
     def get_queryset(self):
-        request_user = self.request.user
-        qs = OccurrenceReportDocument.objects.none()
-
         if is_internal(self.request):
-            qs = OccurrenceReportDocument.objects.all().order_by("id")
-        elif is_customer(self.request):
-            qs = OccurrenceReportDocument.objects.filter(Q(uploaded_by=request_user.id))
-            return qs
-        return qs
+            return OccurrenceReportDocument.objects.all().order_by("id")
+        if is_external_contributor(self.request):
+            return OccurrenceReportDocument.objects.filter(
+                occurrence_report__submitter=self.request.user.id,
+                visible=True,
+                can_submitter_access=True,
+            )
+        return OccurrenceReportDocument.objects.none()
 
     @detail_route(
         methods=[
@@ -2567,9 +2578,13 @@ class OccurrenceReportDocumentViewSet(
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         self.is_authorised_to_update(instance.occurrence_report)
-        serializer = SaveOccurrenceReportDocumentSerializer(
-            instance, data=json.loads(request.data.get("data"))
-        )
+        data = json.loads(request.data.get("data"))
+        serializer = SaveOccurrenceReportDocumentSerializer(instance, data=data)
+        if is_internal(self.request):
+            serializer = InternalSaveOccurrenceReportDocumentSerializer(
+                instance, data=data
+            )
+
         serializer.is_valid(raise_exception=True)
         serializer.save(no_revision=True)
         instance.add_documents(request, no_revision=True)
@@ -2592,15 +2607,21 @@ class OccurrenceReportDocumentViewSet(
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        serializer = SaveOccurrenceReportDocumentSerializer(
-            data=json.loads(request.data.get("data"))
-        )
+        data = json.loads(request.data.get("data"))
+        serializer = SaveOccurrenceReportDocumentSerializer(data=data)
+        if is_internal(self.request):
+            serializer = InternalSaveOccurrenceReportDocumentSerializer(data=data)
+
         serializer.is_valid(raise_exception=True)
         occurrence_report = serializer.validated_data["occurrence_report"]
         self.is_authorised_to_update(occurrence_report)
         instance = serializer.save(no_revision=True)
         instance.add_documents(request, no_revision=True)
         instance.uploaded_by = request.user.id
+
+        if is_external_contributor(self.request):
+            instance.can_submitter_access = True
+
         instance.save(version_user=request.user)
         if instance.occurrence_report:
             instance.occurrence_report.log_user_action(
@@ -2670,10 +2691,8 @@ class OCRConservationThreatFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -2933,10 +2952,8 @@ class OccurrenceFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -3223,7 +3240,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             related_reports = related_reports.all()
         else:
             related_reports = related_reports.none()
-        print(related_reports)
+
         serializer = ListInternalOccurrenceReportSerializer(
             related_reports, many=True, context={"request": request}
         )
@@ -3420,10 +3437,8 @@ class OCCConservationThreatFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -3578,10 +3593,13 @@ class OccurrenceViewSet(
 
     def is_authorised_to_update(self):
         instance = self.get_object()
-        if not (is_occurrence_approver(self.request) and (
-            instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
-            or instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
-        )):
+        if not (
+            is_occurrence_approver(self.request)
+            and (
+                instance.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+                or instance.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+            )
+        ):
             raise serializers.ValidationError(
                 "User not authorised to update Occurrence"
             )
@@ -4750,7 +4768,7 @@ class OccurrenceViewSet(
             qs, context={"request": request}, many=True
         )
         return Response(serializer.data)
-    
+
     @detail_route(
         methods=[
             "GET",
@@ -4944,11 +4962,13 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     serializer_class = OCCContactDetailSerializer
 
     def is_authorised_to_update(self, occurrence):
-        user = self.request.user
-        if not (is_occurrence_approver(self.request) and (
-            occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
-            or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
-        )):
+        if not (
+            is_occurrence_approver(self.request)
+            and (
+                occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+                or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+            )
+        ):
             raise serializers.ValidationError(
                 "User not authorised to update Occurrence"
             )

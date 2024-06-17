@@ -32,7 +32,6 @@ from boranga.components.conservation_status.models import (
     ConservationStatusDocument,
     ConservationStatusReferral,
     ConservationStatusUserAction,
-    IUCNVersion,
     ProposalAmendmentReason,
     WALegislativeCategory,
     WALegislativeList,
@@ -81,7 +80,6 @@ from boranga.helpers import (
 logger = logging.getLogger(__name__)
 
 
-# used for external CS Dash filter
 class GetConservationListDict(views.APIView):
     def get(self, request, format=None):
         # TODO: Check where this is used and add group type filtering if necessary
@@ -105,9 +103,7 @@ class GetConservationListDict(views.APIView):
 
 class GetSpeciesDisplay(views.APIView):
     def get(self, request, format=None):
-        # requires species_id or taxon_id
-        # TODO: remove species id once scientific_name_lookup changes applied to both CS and OCR/OCC
-        # no auth should be required here
+        # TODO: Consider adding throttling to any endpoints that are open to unauthenticated users
         res_json = {}
 
         species_id = request.GET.get("species_id", "")
@@ -133,8 +129,6 @@ class GetSpeciesDisplay(views.APIView):
 
 class GetCommunityDisplay(views.APIView):
     def get(self, request, format=None):
-        # requires community_id
-        # no auth should be required here
         res_json = {}
 
         community_id = request.GET.get("community_id", "")
@@ -155,53 +149,7 @@ class GetCSProfileDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get("group_type", "")
 
-        # NOTE: getting all (non-draft) species and communities here may not be a good idea
-        # - moving these to their own endpoint (with an id req)
-        # species_list = []
-        # if group_type:
-        #    exculde_status = ["draft"]
-        #    species = Species.objects.filter(
-        #        ~Q(processing_status__in=exculde_status)
-        #        & ~Q(taxonomy=None)
-        #        & Q(group_type__name=group_type)
-        #    )
-        #    if species:
-        #        for specimen in species:
-        #            species_list.append(
-        #                {
-        #                    "id": specimen.id,
-        #                    "name": specimen.taxonomy.scientific_name,
-        #                    "taxon_previous_name": specimen.taxonomy.taxon_previous_name,
-        #                }
-        #            )
-        # community_list = []
-        # exculde_status = ["draft"]
-        # communities = CommunityTaxonomy.objects.filter(
-        #    ~Q(community__processing_status__in=exculde_status)
-        # )  # TODO remove later as every community will have community name
-        # if communities:
-        #    for specimen in communities:
-        #        community_list.append(
-        #            {
-        #                "id": specimen.community.id,
-        #                "name": specimen.community_name,
-        #            }
-        #        )
-
-        iucn_version_list = []
-        if group_type:
-            versions = IUCNVersion.objects.filter()
-            if versions:
-                for option in versions:
-                    iucn_version_list.append(
-                        {
-                            "id": option.id,
-                            "code": option.code,
-                        }
-                    )
         res_json = {
-            # "species_list": species_list,
-            # "community_list": community_list,
             "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
             "wa_priority_categories": WAPriorityCategory.get_categories_dict(
                 group_type
@@ -213,7 +161,6 @@ class GetCSProfileDict(views.APIView):
             "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
                 group_type
             ),
-            "iucn_version_list": iucn_version_list,
             "change_codes": ConservationChangeCode.get_filter_list(),
             "submitter_categories": SubmitterCategory.get_filter_list(),
         }
@@ -227,22 +174,16 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
 
-        # filter_group_type
         filter_group_type = request.POST.get("filter_group_type")
         if queryset.model is ConservationStatus:
             if filter_group_type:
-                # queryset = queryset.filter(species__group_type__name=filter_group_type)
-                # changed to application_type (ie group_type)
                 queryset = queryset.filter(application_type__name=filter_group_type)
         elif queryset.model is ConservationStatusReferral:
             if filter_group_type:
-                # queryset = queryset.filter(species__group_type__name=filter_group_type)
-                # changed to application_type (ie group_type)
                 queryset = queryset.filter(
                     conservation_status__application_type__name=filter_group_type
                 )
 
-        # filter_scientific_name
         filter_scientific_name = request.POST.get("filter_scientific_name")
         if queryset.model is ConservationStatus:
             if filter_scientific_name and not filter_scientific_name.lower() == "all":
@@ -502,10 +443,8 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -518,7 +457,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     page_size = 10
 
     def get_queryset(self):
-        # request_user = self.request.user
         qs = ConservationStatus.objects.none()
 
         if is_internal(self.request):
@@ -530,7 +468,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
     @list_route(
         methods=[
-            "GET",  # still allow get for local development speed
+            "GET",
             "POST",
         ],
         detail=False,
@@ -546,7 +484,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         )
         return self.paginator.get_paginated_response(serializer.data)
 
-    # used for Meeting Agenda Modal where status is 'ready_for_agenda'
     @list_route(
         methods=[
             "POST",
@@ -818,7 +755,6 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
 
-        # filter_group_type
         filter_group_type = request.POST.get("filter_group_type")
         if filter_group_type:
             if queryset.model is ConservationStatus:
@@ -828,7 +764,6 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
                     conservation_status__application_type__name=filter_group_type
                 )
 
-        # filter_community_migrated_id
         filter_community_migrated_id = request.POST.get("filter_community_migrated_id")
         if (
             filter_community_migrated_id
@@ -843,7 +778,6 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
                     conservation_status__community__taxonomy__id=filter_community_migrated_id
                 )
 
-        # filter_community_name
         filter_community_name = request.POST.get("filter_community_name")
         if filter_community_name and not filter_community_name.lower() == "all":
             if queryset.model is ConservationStatus:
@@ -1075,13 +1009,11 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
 class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (CommunityConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    # renderer_classes = (CommunityConservationStatusRenderer,)
     queryset = ConservationStatus.objects.none()
     serializer_class = ListCommunityConservationStatusSerializer
     page_size = 10
 
     def get_queryset(self):
-        # request_user = self.request.user
         qs = ConservationStatus.objects.none()
 
         if is_internal(self.request):
@@ -1593,7 +1525,6 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
         instance = self.get_object()
-        # instance.submit(request,self)
         cs_proposal_submit(instance, request)
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
@@ -1658,13 +1589,11 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         serializer = ConservationStatusLogEntrySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         comms = serializer.save()
-        # Save the files
         for f in request.FILES:
             document = comms.documents.create()
             document.name = str(request.FILES[f])
             document._file = request.FILES[f]
             document.save()
-        # End Save Documents
 
         return Response(serializer.data)
 
@@ -1690,7 +1619,6 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     def assign_request_user(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.assign_officer(request, request.user)
-        # serializer = InternalProposalSerializer(instance,context={'request':request})
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
@@ -1714,7 +1642,6 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 "A user with the id passed in does not exist"
             )
         instance.assign_officer(request, user)
-        # serializer = InternalProposalSerializer(instance,context={'request':request})
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
@@ -1728,7 +1655,6 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     def unassign(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.unassign(request)
-        # serializer = InternalProposalSerializer(instance,context={'request':request})
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
@@ -1740,19 +1666,15 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
-        # text=serializer.validated_data['text']
-        # instance.send_referral(request,serializer.validated_data['email'])
         instance.send_referral(
             request,
             serializer.validated_data["email"],
             serializer.validated_data["text"],
         )
-        # serializer = InternalProposalSerializer(instance,context={'request':request})
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
 
-    # with new workflow not used at the moment
     @detail_route(
         methods=[
             "POST",
@@ -1783,7 +1705,6 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
 
-    # with new workflow not used at the moment
     @detail_route(
         methods=[
             "POST",
@@ -1795,7 +1716,6 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         serializer = ProposedApprovalSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance.proposed_approval(request, serializer.validated_data)
-        # serializer = InternalProposalSerializer(instance,context={'request':request})
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
@@ -1858,7 +1778,6 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     def proposed_ready_for_agenda(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.proposed_ready_for_agenda(request)
-        # serializer = InternalProposalSerializer(instance,context={'request':request})
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
@@ -1871,10 +1790,11 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def documents(self, request, *args, **kwargs):
         instance = self.get_object()
+        if not is_internal and not is_external_contributor(request):
+            raise PermissionDenied  # TODO: Replace with permission class
+
         qs = instance.documents.all()
-        qs = qs.exclude(
-            input_name="conservation_status_approval_doc"
-        )  # TODO do we need/not to show approval doc in cs documents tab
+        qs = qs.exclude(input_name="conservation_status_approval_doc")
         if not is_internal(request) and is_external_contributor(request):
             qs = qs.filter(
                 conservation_status__submitter=self.request.user.id,
@@ -1924,6 +1844,40 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         serializer = RelatedItemsSerializer(related_items, many=True)
         return Response(serializer.data)
 
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def unlock_conservation_status(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.can_unlock(request):
+            raise serializers.ValidationError(
+                "User not authorised to unlock Conservation Status"
+            )
+        instance.unlock(request)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def lock_conservation_status(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.can_lock(request):
+            raise serializers.ValidationError(
+                "User not authorised to lock Conservation Status"
+            )
+        instance.lock(request)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
+
 
 class ConservationStatusReferralViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin
@@ -1941,7 +1895,6 @@ class ConservationStatusReferralViewSet(
     def get_serializer_class(self):
         return ConservationStatusReferralSerializer
 
-    # used for Species (flora/Fauna)Referred to me internal dashboard filters
     @list_route(
         methods=[
             "GET",
@@ -2013,7 +1966,7 @@ class ConservationStatusReferralViewSet(
                 .order_by()
                 .values_list("family_id", flat=True)
                 .distinct()
-            )  # fetch all distinct the family_nid(taxon_name_id) for each taxon
+            )
             families = Taxonomy.objects.filter(id__in=families_qs)
 
             if families:
@@ -2181,14 +2134,11 @@ class ConservationStatusReferralViewSet(
         serializer = DTConservationStatusReferralSerializer(
             qs, many=True, context={"request": request}
         )
-        # serializer = ProposalReferralSerializer(qs, many=True)
         return Response(serializer.data)
 
     @detail_route(methods=["GET", "POST"], detail=True)
     def complete(self, request, *args, **kwargs):
         instance = self.get_object()
-        # referral_comment = request.data.get('referral_comment')
-        # instance.complete(request, referral_comment)
         instance.complete(request)
         serializer = self.get_serializer(instance, context={"request": request})
         return Response(serializer.data)
@@ -2235,7 +2185,6 @@ class ConservationStatusReferralViewSet(
         )
         return Response(serializer.data)
 
-    # used on referral form
     @detail_route(methods=["post"], detail=True)
     def send_referral(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -2259,7 +2208,8 @@ class ConservationStatusReferralViewSet(
         request_data = request.data
         instance.referral_comment = request_data.get("referral_comment")
         instance.save()
-        # Create a log entry for the proposal
+
+        # Create a log entry for the conservation status
         instance.conservation_status.log_user_action(
             ConservationStatusUserAction.COMMENT_REFERRAL.format(
                 instance.id,
@@ -2278,7 +2228,7 @@ class ConservationStatusAmendmentRequestViewSet(
     serializer_class = ConservationStatusAmendmentRequestSerializer
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):
             qs = ConservationStatusAmendmentRequest.objects.all().order_by("id")
             return qs
         return ConservationStatusAmendmentRequest.objects.none()

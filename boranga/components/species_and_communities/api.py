@@ -730,11 +730,11 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         filter_application_status = request.POST.get("filter_application_status")
         if filter_application_status and not filter_application_status.lower() == "all":
             queryset = queryset.filter(processing_status=filter_application_status)
-        
+
         filter_region = request.POST.get("filter_region")
         if filter_region and not filter_region.lower() == "all":
             queryset = queryset.filter(regions__id=filter_region)
-        
+
         filter_district = request.POST.get("filter_district")
         if filter_district and not filter_district.lower() == "all":
             queryset = queryset.filter(districts__id=filter_district)
@@ -808,10 +808,8 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -1403,18 +1401,18 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if request_data["submitter"]:
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
 
-        regions = request_data.get('regions')
+        regions = request_data.get("regions")
         instance.regions.clear()
         for r in regions:
             region = Region.objects.get(pk=r)
             instance.regions.add(region)
-        
-        districts = request_data.get('districts')
+
+        districts = request_data.get("districts")
         instance.districts.clear()
         for d in districts:
             district = District.objects.get(pk=d)
             instance.districts.add(district)
-        
+
         if request_data.get("distribution"):
             distribution_instance, created = SpeciesDistribution.objects.get_or_create(
                 species=instance
@@ -2518,10 +2516,8 @@ class ConservationThreatFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 

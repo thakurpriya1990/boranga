@@ -252,6 +252,7 @@ export default {
                 document_category: '',
                 document_sub_category: '',
                 uploaded_date: null,
+                can_submitter_access: false,
             }
             this.$refs.document_detail.documentObj = new_document_another;
             this.$refs.document_detail.uploaded_document = [];

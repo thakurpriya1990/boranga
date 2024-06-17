@@ -1,6 +1,6 @@
-from abc import abstractmethod
 import json
 import logging
+from abc import abstractmethod
 
 import reversion
 from django.conf import settings
@@ -123,8 +123,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     CUSTOMER_STATUS_DECLINED = "declined"
     CUSTOMER_STATUS_DISCARDED = "discarded"
     CUSTOMER_STATUS_CLOSED = "closed"
-    CUSTOMER_STATUS_PARTIALLY_APPROVED = "partially_approved"
-    CUSTOMER_STATUS_PARTIALLY_DECLINED = "partially_declined"
     CUSTOMER_STATUS_CHOICES = (
         (CUSTOMER_STATUS_DRAFT, "Draft"),
         (CUSTOMER_STATUS_WITH_ASSESSOR, "Under Review"),
@@ -134,8 +132,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         (CUSTOMER_STATUS_DECLINED, "Declined"),
         (CUSTOMER_STATUS_DISCARDED, "Discarded"),
         (CUSTOMER_STATUS_CLOSED, "DeListed"),
-        (CUSTOMER_STATUS_PARTIALLY_APPROVED, "Partially Approved"),
-        (CUSTOMER_STATUS_PARTIALLY_DECLINED, "Partially Declined"),
     )
 
     # List of statuses from above that allow a customer to edit an occurrence report.
@@ -152,8 +148,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         "approved",
         "declined",
         "closed",
-        "partially_approved",
-        "partially_declined",
     ]
 
     PROCESSING_STATUS_TEMP = "temp"
@@ -169,8 +163,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     PROCESSING_STATUS_UNLOCKED = "unlocked"
     PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_CLOSED = "closed"
-    PROCESSING_STATUS_PARTIALLY_APPROVED = "partially_approved"
-    PROCESSING_STATUS_PARTIALLY_DECLINED = "partially_declined"
     PROCESSING_STATUS_CHOICES = (
         (PROCESSING_STATUS_DRAFT, "Draft"),
         (PROCESSING_STATUS_WITH_ASSESSOR, "With Assessor"),
@@ -184,8 +176,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_UNLOCKED, "Unlocked"),
         (PROCESSING_STATUS_DISCARDED, "Discarded"),
         (PROCESSING_STATUS_CLOSED, "DeListed"),
-        (PROCESSING_STATUS_PARTIALLY_APPROVED, "Partially Approved"),
-        (PROCESSING_STATUS_PARTIALLY_DECLINED, "Partially Declined"),
     )
 
     FINALISED_STATUSES = [
@@ -328,10 +318,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     def applicant_details(self):
         if self.submitter:
             email_user = retrieve_email_user(self.submitter)
-            print(email_user)
             return f"{email_user.first_name} {email_user.last_name}"
-            # Priya commented the below as gives error on UAT and Dev only on external side
-            # email_user.addresses.all().first())
 
     @property
     def applicant_address(self):
@@ -438,19 +425,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR)
             users = (
                 list(
-                    map(
-                        lambda id: retrieve_email_user(id),
-                        group_ids,
-                    )
-                )
-                if group_ids
-                else []
-            )
-
-            group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER)
-            users = (
-                users
-                + list(
                     map(
                         lambda id: retrieve_email_user(id),
                         group_ids,
@@ -753,18 +727,21 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             except Occurrence.DoesNotExist:
                 raise ValidationError(
                     f"Occurrence with id {occurrence_id} does not exist"
-                )            
-        
+                )
+
         details = validated_data.get("details", None)
         new_occurrence_name = validated_data.get("new_occurrence_name", None)
 
-        if (new_occurrence_name and 
-            Occurrence.objects.filter(occurrence_name=new_occurrence_name).exists() or
-            OccurrenceReportApprovalDetails.objects.filter(new_occurrence_name=new_occurrence_name).exists()):
+        if (
+            new_occurrence_name
+            and Occurrence.objects.filter(occurrence_name=new_occurrence_name).exists()
+            or OccurrenceReportApprovalDetails.objects.filter(
+                new_occurrence_name=new_occurrence_name
+            ).exists()
+        ):
             raise ValidationError(
-                f"Occurrence with name \"{new_occurrence_name}\" already exists or has been proposed for approval"
+                f'Occurrence with name "{new_occurrence_name}" already exists or has been proposed for approval'
             )
-
 
         OccurrenceReportApprovalDetails.objects.update_or_create(
             occurrence_report=self,
@@ -1597,6 +1574,7 @@ class OCRLocation(models.Model):
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
 
+
 class GeometryManager(models.Manager):
     def get_queryset(self):
         qs = super().get_queryset()
@@ -1614,6 +1592,7 @@ class GeometryManager(models.Manager):
                 default=None,
             )
         )
+
 
 class GeometryBase(models.Model):
     """
@@ -1656,7 +1635,8 @@ class GeometryBase(models.Model):
         E.g. OccurrenceGeometry is the geometry model of Occurrence"""
 
         raise NotImplementedError(
-            f"Class {self.__class__.__name__} inheriting from {self.__class__.__base__.__name__} needs to implement a related_model_field function."
+            f"Class {self.__class__.__name__} inheriting from {self.__class__.__base__.__name__} "
+            f"needs to implement a related_model_field function."
         )
 
     def __str__(self):
@@ -1693,11 +1673,13 @@ class GeometryBase(models.Model):
             return GEOSGeometry(self.original_geometry_ewkb).srid
         return None
 
+
 class DrawnByGeometry(models.Model):
     drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
 
     class Meta:
         abstract = True
+
 
 class IntersectsGeometry(models.Model):
     intersects = models.BooleanField(default=False)
@@ -1729,7 +1711,7 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry
             self.occurrence_report.group_type.name == GroupType.GROUP_TYPE_FAUNA
             and type(self.geometry).__name__ in ["Polygon", "MultiPolygon"]
         ):
-            raise ValidationError("Fauna occurrence reports cannot have polygons")        
+            raise ValidationError("Fauna occurrence reports cannot have polygons")
 
         super().save(*args, **kwargs)
 
@@ -2103,7 +2085,7 @@ class OCRAssociatedSpecies(models.Model):
     )
     comment = models.TextField(blank=True)
 
-    related_species = models.ManyToManyField(Taxonomy, null=True, blank=True)
+    related_species = models.ManyToManyField(Taxonomy, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -2628,6 +2610,7 @@ class OccurrenceReportDocument(Document):
     can_hide = models.BooleanField(
         default=False
     )  # after initial submit, document cannot be deleted but can be hidden
+    can_submitter_access = models.BooleanField(default=False)
     hidden = models.BooleanField(default=False)
     # after initial submit prevent document from being deleted
     # Priya alternatively used below visible field in boranga
@@ -3166,7 +3149,7 @@ class Occurrence(RevisionedMixin):
                 occurrence_report.associated_species
             )
             associated_species.save()
-            #copy over related species separately
+            # copy over related species separately
             for i in occurrence_report.associated_species.related_species.all():
                 associated_species.related_species.add(i)
 
@@ -3409,6 +3392,7 @@ class OCCLocation(models.Model):
     def __str__(self):
         return str(self.occurrence)  # TODO: is the most appropriate?
 
+
 class GeometryType(Func):
     function = "GeometryType"
     output_field = CharField()
@@ -3425,7 +3409,8 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
         "self", on_delete=models.SET_NULL, blank=True, null=True
     )
     locked = models.BooleanField(default=False)
-    # TODO: possibly remove buffer radius from location models when we go with the radius being a property of the geometry
+    # TODO: possibly remove buffer radius from location models
+    # when we go with the radius being a property of the geometry
     buffer_radius = models.FloatField(null=True, blank=True, default=0)
 
     class Meta:
@@ -3441,6 +3426,7 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
             raise ValidationError("Fauna occurrences cannot have polygons")
 
         super().save(*args, **kwargs)
+
 
 class OCCContactDetail(models.Model):
     """
@@ -3763,7 +3749,7 @@ class OCCAssociatedSpecies(models.Model):
     )
     comment = models.TextField(blank=True)
 
-    related_species = models.ManyToManyField(Taxonomy, null=True, blank=True)
+    related_species = models.ManyToManyField(Taxonomy, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -4126,7 +4112,8 @@ class OccurrenceTenure(models.Model):
                 return Occurrence.objects.get(id=self.historical_occurrence)
             except Occurrence.DoesNotExist:
                 logger.warning(
-                    f"OccurrenceTenure {self.id} has historical_occurrence {self.historical_occurrence} which does not exist"
+                    f"OccurrenceTenure {self.id} has historical_occurrence "
+                    f"{self.historical_occurrence} which does not exist"
                 )
                 return None
         return self.occurrence_geometry.occurrence
@@ -4138,8 +4125,8 @@ class OccurrenceTenure(models.Model):
     @property
     def tenure_area_centroid(self):
         from boranga.components.spatial.utils import (
-            wkb_to_geojson,
             feature_json_to_geosgeometry,
+            wkb_to_geojson,
         )
 
         if self.tenure_area_ewkb:
@@ -4147,6 +4134,7 @@ class OccurrenceTenure(models.Model):
             centroid = feature_json_to_geosgeometry(geo_json).centroid
             return wkb_to_geojson(centroid.ewkb)
         return None
+
 
 class BufferGeometry(GeometryBase):
     buffered_from_geometry = models.OneToOneField(
