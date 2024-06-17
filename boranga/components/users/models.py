@@ -48,7 +48,7 @@ class SubmitterInformation(models.Model):
 
 class SubmitterInformationModelMixin:
     def save(self, *args, **kwargs):
-        if not self.pk:
+        if not self.pk or self.submitter_information:
             super().save(*args, **kwargs)
             return
 
