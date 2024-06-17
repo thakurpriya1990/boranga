@@ -26,7 +26,7 @@
                                     <strong>Currently assigned to</strong><br />
                                     <div class="form-group">
                                         <template
-                                            v-if="['Ready For Agenda', 'With Approver', 'Unlocked', 'Approved'].includes(conservation_status_obj.processing_status)">
+                                            v-if="['Ready For Agenda', 'With Approver', 'Unlocked', 'Approved', 'Closed', 'DeListed'].includes(conservation_status_obj.processing_status)">
                                             <select ref="assigned_officer" class="form-control"
                                                 v-model="conservation_status_obj.assigned_approver">
                                                 <option v-for="member in conservation_status_obj.allowed_assessors"
@@ -493,6 +493,7 @@ export default {
         isFinalised: function () {
             return this.conservation_status_obj.processing_status == 'Declined' ||
                 this.conservation_status_obj.processing_status == 'Approved' ||
+                this.conservation_status_obj.processing_status == 'Closed' ||
                 this.conservation_status_obj.processing_status == 'Unlocked' ||
                 this.conservation_status_obj.processing_status == 'DeListed';
         },
@@ -510,7 +511,7 @@ export default {
         canAction: function () {
             // TODO: Completely redo the permissions for actions on this page
             // It was a mess before and now it's even worse =D
-            if (this.conservation_status_obj.processing_status == 'Approved') {
+            if (this.isFinalised) {
                 return this.conservation_status_obj
                     && (
                         this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver)
@@ -559,7 +560,7 @@ export default {
         canUnlock: function () {
             return this.conservation_status_obj &&
                 this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver &&
-                this.conservation_status_obj.processing_status === "Approved";
+                ['Approved', 'Closed', 'Declined', 'DeListed'].includes(this.conservation_status_obj.processing_status);
         },
         canLock: function () {
             return this.conservation_status_obj &&
@@ -711,7 +712,6 @@ export default {
                         });
                 }
             });
-
         },
         proposedApproval: function () {
             if (this.conservation_status_obj.conservationstatusissuanceapprovaldetails &&
@@ -954,7 +954,7 @@ export default {
             let vm = this;
             let unassign = true;
             let data = {};
-            if (vm.conservation_status_obj.processing_status == 'With Approver') {
+            if (['With Approver', 'Ready For Agenda', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                 unassign = vm.conservation_status_obj.assigned_approver != null && vm.conservation_status_obj.assigned_approver != 'undefined' ? false : true;
                 data = { 'assessor_id': vm.conservation_status_obj.assigned_approver };
             }
@@ -1001,7 +1001,7 @@ export default {
         },
         updateAssignedOfficerSelect: function () {
             let vm = this;
-            if (['With Approver', 'Ready For Agenda'].includes(vm.conservation_status_obj.processing_status)) {
+            if (['With Approver', 'Ready For Agenda', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                 $(vm.$refs.assigned_officer).val(vm.conservation_status_obj.assigned_approver);
                 $(vm.$refs.assigned_officer).trigger('change');
             }
@@ -1045,7 +1045,7 @@ export default {
             }).
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
-                    if (vm.conservation_status_obj.processing_status == 'With Approver') {
+                    if (['Ready for Agenda', 'With Approver', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                         vm.conservation_status_obj.assigned_approver = selected.val();
                     }
                     else {
@@ -1059,7 +1059,7 @@ export default {
                     }, 0);
                 }).on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
-                    if (vm.conservation_status_obj.processing_status == 'With Approver') {
+                    if (['Ready for Agenda', 'With Approver', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                         vm.conservation_status_obj.assigned_approver = null;
                     }
                     else {
