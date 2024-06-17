@@ -65,7 +65,6 @@ from boranga.components.occurrence.models import (
     OccurrenceReportGeometry,
     OccurrenceReportReferral,
     OccurrenceReportUserAction,
-    OccurrenceSource,
     OccurrenceTenure,
     OccurrenceUserAction,
     OCCVegetationStructure,
@@ -2896,16 +2895,14 @@ class GetOCCProfileDict(views.APIView):
                     }
                 )
 
-        occurrence_source_list = list(
-            OccurrenceSource.objects.all().values("id", "name")
-        )
         wild_status_list = list(WildStatus.objects.all().values("id", "name"))
+        occurrence_source_list = list(Occurrence.OCCURRENCE_SOURCE_CHOICES)
 
         res_json = {
             "species_list": species_list,
             "community_list": community_list,
-            "source_list": occurrence_source_list,
             "wild_status_list": wild_status_list,
+            "occurrence_source_list": occurrence_source_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
@@ -3558,21 +3555,6 @@ class GetWildStatus(views.APIView):
             data_transform = [
                 {"id": wild_status["id"], "text": wild_status["name"]}
                 for wild_status in data
-            ]
-            return Response({"results": data_transform})
-        return Response()
-
-
-class GetOccurrenceSource(views.APIView):
-    def get(self, request, format=None):
-        search_term = request.GET.get("term", "")
-        if search_term:
-            data = OccurrenceSource.objects.filter(name__icontains=search_term).values(
-                "id", "name"
-            )[:10]
-            data_transform = [
-                {"id": occurrence_source["id"], "text": occurrence_source["name"]}
-                for occurrence_source in data
             ]
             return Response({"results": data_transform})
         return Response()

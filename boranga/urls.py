@@ -278,11 +278,6 @@ api_patterns = [
         name="get-wild_status",
     ),
     url(
-        r"^api/occurrence_source_lookup$",
-        occurrence_api.GetOccurrenceSource.as_view(),
-        name="get-occurrence_source_lookup",
-    ),
-    url(
         r"^api/species_display$",
         conservation_status_api.GetSpeciesDisplay.as_view(),
         name="get-cs-profile-dict",
