@@ -1852,7 +1852,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def unlock_conservation_status(self, request, *args, **kwargs):
         instance = self.get_object()
-        if not instance.can_change_lock(request):
+        if not instance.can_unlock(request):
             raise serializers.ValidationError(
                 "User not authorised to unlock Conservation Status"
             )
@@ -1869,7 +1869,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def lock_conservation_status(self, request, *args, **kwargs):
         instance = self.get_object()
-        if not instance.can_change_lock(request):
+        if not instance.can_lock(request):
             raise serializers.ValidationError(
                 "User not authorised to lock Conservation Status"
             )
