@@ -280,6 +280,7 @@ export default {
                 vm.refreshFromResponse(res);
                 vm.$refs.occurrence.$refs.occ_location.$refs.component_map.loadingMap = false;
                 vm.$refs.occurrence.$refs.occ_location.incrementComponentMapKey();
+                vm.$refs.occurrence.$refs.occ_location.refreshDatatables();
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({

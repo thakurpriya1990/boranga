@@ -207,7 +207,7 @@
                                         @mouseleave="
                                             toggleHidden($event.target)
                                         "
-                                        @click="centerOnFeature(feature)"
+                                        @click="centerOnFeature(feature, 17)"
                                     >
                                         <img
                                             v-if="isMultiPointFeature(feature)"
@@ -951,7 +951,6 @@
                     <template v-if="selectedModel">
                         <div class="toast-header">
                             <img src="" class="rounded me-2" alt="" />
-                            <!-- FIXME: Can this be standardised into the same field name? -->
                             <strong class="me-auto">
                                 {{ selectedModel.label }}:
                                 {{ selectedModel.occurrence_report_number }}
@@ -962,7 +961,6 @@
                                 <tbody>
                                     <tr>
                                         <th scope="row">Processing Status</th>
-                                        <!-- FIXME: Can this be standardised into the same field name? -->
                                         <td>
                                             {{
                                                 selectedModel.status ||
@@ -990,7 +988,6 @@
                                         <th v-else scope="row">
                                             Lodgement Date
                                         </th>
-                                        <!-- FIXME: Can this be standardised into the same field name? -->
                                         <td v-if="selectedModel.copied_from">
                                             {{
                                                 selectedModel.copied_from
@@ -1277,6 +1274,7 @@ import Collection from 'ol/Collection';
 import { Circle as CircleStyle, Fill, Stroke, Style, Icon } from 'ol/style';
 import { FullScreen as FullScreenControl } from 'ol/control';
 import { LineString, Point, MultiPoint, Polygon, MultiPolygon } from 'ol/geom';
+import { fromExtent } from 'ol/geom/Polygon';
 import { getArea } from 'ol/sphere.js';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
@@ -2018,7 +2016,6 @@ export default {
                 this.initialiseMap();
                 // Query Layer
                 this.loadMapFeatures(proposals, this.queryLayerDefinition.name);
-                // TODO:
                 for (let i = 0; i < initialised.length; i++) {
                     const layerDef = this.additionalLayersDefinitions[i];
                     const proposals = this.initialiseProposals(initialised[i]);
@@ -2172,8 +2169,13 @@ export default {
                 Math.max(...N),
             ];
         },
-        centerOnFeature: function (feature, maxZoom = 17) {
-            const ext = feature.getGeometry().getExtent();
+        centerOnFeature: function (feature, maxZoom) {
+            let ext = feature.getGeometry().getExtent();
+            if (!maxZoom) {
+                const extPol = fromExtent(ext);
+                extPol.scale(1.5);
+                ext = new Feature(extPol).getGeometry().getExtent();
+            }
             this.map.getView().fit(ext, {
                 duration: 1000,
                 size: this.map.getSize(),
@@ -3538,7 +3540,7 @@ export default {
             this.processingFeatures = true;
 
             if (!unit) {
-                // TODO: Find a better way to determine the unit if not set
+                // Note: Find a better way to determine the unit if not set
                 console.warn('Unit not set, defaulting to degrees');
                 unit = 'deg';
             }
@@ -3800,7 +3802,6 @@ export default {
                     }
                 });
             }
-            // TODO:
             // Lets ol display a popup with clicked feature properties
             vm.map.on('singleclick', function (evt) {
                 if (vm.mode !== 'info') {
@@ -3858,6 +3859,10 @@ export default {
                 context.label ||
                 'Draw';
 
+            const featureProperties = structuredClone(properties);
+            // TODO: Continue here:
+            featureProperties['id'];
+
             feature.setProperties({
                 id: this.newFeatureId,
                 model: context,
@@ -3865,13 +3870,13 @@ export default {
                 source: properties.source || null,
                 name: context.id || -1,
                 label: label,
-                color: color,
+                color: color, // <-
                 stroke: stroke,
-                locked: properties.locked || false,
-                copied_from: properties.report_copied_from || null,
+                locked: properties.locked || false, // <-
+                copied_from: properties.report_copied_from || null, // <-
                 srid: properties.srid || this.mapSrid,
-                original_geometry: original_geometry,
-                area_sqm: properties.area_sqm || this.featureArea(feature),
+                original_geometry: original_geometry, // <-
+                area_sqm: properties.area_sqm || this.featureArea(feature), // <-
             });
 
             const type = feature.getGeometry().getType();
