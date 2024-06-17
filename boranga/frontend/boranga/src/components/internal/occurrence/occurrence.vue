@@ -53,10 +53,6 @@
                                                     <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="combineOccurrence()">Combine</button><br />
                                                 </div>
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="renameOccurrence()">Rename</button><br />
-                                                </div>
                                                 <div v-if="canClose" class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="closeOccurrence()">Close</button><br />
@@ -606,15 +602,6 @@ export default {
             }
             this.$refs.occurrence_combine.isModalOpen = true;
         },
-        renameOccurrence: async function () {
-            let rename_occurrence_obj = null;
-            let newRenameOccurrence = await Vue.http.get(`/api/occurrence/${this.occurrence.id}/rename_deep_copy.json`)
-            if (newRenameOccurrence) {
-                rename_occurrence_obj = newRenameOccurrence.body.occurrence_obj;
-                this.$refs.occurrence_rename.new_rename_occurrence = rename_occurrence_obj;
-                this.$refs.occurrence_rename.isModalOpen = true;
-            }
-        }
     },
     updated: function () {
         let vm = this;

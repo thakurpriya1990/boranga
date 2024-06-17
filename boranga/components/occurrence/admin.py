@@ -19,7 +19,6 @@ from boranga.components.occurrence.models import (
     Occurrence,
     OccurrenceGeometry,
     OccurrenceReportGeometry,
-    OccurrenceSource,
     OccurrenceReport,
     OccurrenceTenure,
     OccurrenceTenurePurpose,
@@ -364,5 +363,4 @@ admin.site.register(PermitType)
 admin.site.register(Datum)
 admin.site.register(CoordinationSource)
 admin.site.register(LocationAccuracy)
-admin.site.register(OccurrenceSource)
 admin.site.register(WildStatus)

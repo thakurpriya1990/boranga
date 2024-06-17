@@ -90,8 +90,6 @@ export default {
                 'Community Name',
                 'Number of Reports',
                 'Wild Status',
-                'Occurrence Source',
-                //'Previous Name',
                 'Status',
                 'Action',
             ];
@@ -305,23 +303,6 @@ export default {
                 name: 'wild_status',
             };
         },
-        column_occ_source: function () {
-            return {
-                
-                data: 'data.data.occurrence.fields.occurrence_source',
-                defaultContent: '',
-                orderable: true,
-                searchable: false, 
-                visible: true,
-                render: function (row, type, full) {
-                    if (full.data.occurrence.fields.occurrence_source) {
-                        return full.data.occurrence.fields.occurrence_source.name;
-                    }
-                    return "";
-                },
-                name: 'occurrence_source',
-            };
-        },
         column_processing_status: function () {
             return {
                 
@@ -359,7 +340,6 @@ export default {
                 //vm.column_previous_name,
                 vm.column_num_reports,
                 vm.column_wild_status,
-                vm.column_occ_source,
                 vm.column_processing_status,
                 vm.column_action,
             ];
