@@ -89,6 +89,9 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     label = serializers.SerializerMethodField()
     model_name = serializers.SerializerMethodField()
     occurrence_reports = serializers.SerializerMethodField()
+    occurrence_source = serializers.MultipleChoiceField(
+        choices=Occurrence.OCCURRENCE_SOURCE_CHOICES, allow_null=True, allow_blank=True, required=False
+    )
 
     class Meta:
         model = Occurrence
@@ -2092,6 +2095,9 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
     )
     community_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
+    )
+    occurrence_source = serializers.MultipleChoiceField(
+        choices=Occurrence.OCCURRENCE_SOURCE_CHOICES, allow_null=True, allow_blank=True, required=False
     )
 
     class Meta:

@@ -2769,19 +2769,6 @@ class WildStatus(models.Model):
         return str(self.name)
 
 
-class OccurrenceSource(models.Model):
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
-
-    class Meta:
-        app_label = "boranga"
-        verbose_name = "Occurrence Source"
-        verbose_name_plural = "Occurrence Sources"
-        ordering = ["name"]
-
-    def __str__(self):
-        return str(self.name)
-
-
 class OccurrenceManager(models.Manager):
     def get_queryset(self):
         return (
@@ -2806,6 +2793,13 @@ class Occurrence(RevisionedMixin):
         ("community", "Community"),
         ("occurrence_report", "Occurrence Report"),
     ]
+
+    OCCURRENCE_CHOICE_OCR = "ocr"
+    OCCURRENCE_CHOICE_NON_OCR = "non-ocr"
+    OCCURRENCE_SOURCE_CHOICES = (
+        (OCCURRENCE_CHOICE_OCR,"OCR"),
+        (OCCURRENCE_CHOICE_NON_OCR,"Non-OCR (describe in comments)")
+    )
 
     objects = OccurrenceManager()
     occurrence_number = models.CharField(max_length=9, blank=True, default="")
@@ -2835,9 +2829,7 @@ class Occurrence(RevisionedMixin):
     wild_status = models.ForeignKey(
         WildStatus, on_delete=models.PROTECT, null=True, blank=True
     )
-    occurrence_source = models.ForeignKey(
-        OccurrenceSource, on_delete=models.PROTECT, null=True, blank=True
-    )
+    occurrence_source = MultiSelectField(max_length=250, blank=True, choices=OCCURRENCE_SOURCE_CHOICES, null=True)
 
     comment = models.TextField(null=True, blank=True)
 
