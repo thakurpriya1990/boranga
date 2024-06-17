@@ -286,11 +286,6 @@
                                 <template v-if="canDiscard">
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <strong>Action</strong><br />
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                 @click.prevent="discardCSProposal()">Discard</button><br />
                                         </div>
@@ -640,7 +635,7 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_cs_proposal(vm.conservation_status_obj.id))
+                    vm.$http.patch(api_endpoints.discard_cs_proposal(vm.conservation_status_obj.id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
