@@ -17,7 +17,7 @@ from boranga.components.conservation_status.models import (
     ConservationStatusReferral,
 )
 from boranga.components.meetings.models import Meeting
-from boranga.components.occurrence.models import OccurrenceReport
+from boranga.components.occurrence.models import OccurrenceReport, Occurrence
 from boranga.components.species_and_communities.models import Community, Species
 from boranga.forms import LoginForm
 from boranga.helpers import (
@@ -141,6 +141,10 @@ class ExternalOccurrenceReportView(DetailView):
     model = OccurrenceReport
     template_name = "boranga/dash/index.html"
 
+class InternalOccurrenceView(DetailView):
+    model = Occurrence
+    template_name = "boranga/dash/index.html"
+
 
 class InternalOccurrenceReportView(DetailView):
     model = OccurrenceReport
@@ -188,7 +192,6 @@ class ManagementCommandsView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
         data = {}
         command_script = request.POST.get("script", None)
         if command_script:
-            print(f"running {command_script}")
             call_command(command_script)
             data.update({command_script: "true"})
 
@@ -240,14 +243,12 @@ def is_authorised_to_access_meeting_document(request, document_id):
 def check_allowed_path(document_id, path, allowed_paths):
     try:
         file_name_path_split = path.split("/")
-        print(file_name_path_split)
         id_index = file_name_path_split.index(str(document_id))
         # take all after the id_index, except the last (the file name) - join and check if in allowed_paths
         check_str = "/".join(file_name_path_split[id_index + 1 : -1])
-        print(check_str)
         return check_str in allowed_paths
     except Exception as e:
-        print(e)
+        logger.exception(f"Error checking allowed path: {e}")
         return False
 
 

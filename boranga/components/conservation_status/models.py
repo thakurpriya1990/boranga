@@ -44,7 +44,6 @@ from boranga.components.users.models import (
     SubmitterInformationModelMixin,
 )
 from boranga.helpers import (
-    belongs_to_by_user_id,
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_external_contributor,
@@ -304,21 +303,6 @@ class ConservationChangeCode(models.Model):
         return list(cls.objects.values("id", "code"))
 
 
-class IUCNVersion(models.Model):
-    """
-    IUCN Version while approving the List
-    """
-
-    code = models.CharField(max_length=32, default="None")
-    label = models.CharField(max_length=512, default="None")
-
-    class Meta:
-        app_label = "boranga"
-
-    def __str__(self):
-        return str(self.code)
-
-
 class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     """
     Several lists with different attributes
@@ -343,8 +327,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     CUSTOMER_STATUS_DECLINED = "declined"
     CUSTOMER_STATUS_DISCARDED = "discarded"
     CUSTOMER_STATUS_CLOSED = "closed"
-    CUSTOMER_STATUS_PARTIALLY_APPROVED = "partially_approved"
-    CUSTOMER_STATUS_PARTIALLY_DECLINED = "partially_declined"
     CUSTOMER_STATUS_CHOICES = (
         (CUSTOMER_STATUS_DRAFT, "Draft"),
         (CUSTOMER_STATUS_WITH_ASSESSOR, "Under Review"),
@@ -354,8 +336,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         (CUSTOMER_STATUS_DECLINED, "Declined"),
         (CUSTOMER_STATUS_DISCARDED, "Discarded"),
         (CUSTOMER_STATUS_CLOSED, "DeListed"),
-        (CUSTOMER_STATUS_PARTIALLY_APPROVED, "Partially Approved"),
-        (CUSTOMER_STATUS_PARTIALLY_DECLINED, "Partially Declined"),
     )
 
     # List of statuses from above that allow a customer to edit an application.
@@ -372,8 +352,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         "approved",
         "declined",
         "closed",
-        "partially_approved",
-        "partially_declined",
     ]
 
     PROCESSING_STATUS_TEMP = "temp"
@@ -387,12 +365,11 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     PROCESSING_STATUS_AWAITING_RESPONSES = "awaiting_responses"
     PROCESSING_STATUS_APPROVED = "approved"
     PROCESSING_STATUS_DECLINED = "declined"
+    PROCESSING_STATUS_UNLOCKED = "unlocked"
     PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_DISCARDED_INTERNALLY = "discarded_internally"
     PROCESSING_STATUS_CLOSED = "closed"
     PROCESSING_STATUS_DELISTED = "delisted"
-    PROCESSING_STATUS_PARTIALLY_APPROVED = "partially_approved"
-    PROCESSING_STATUS_PARTIALLY_DECLINED = "partially_declined"
     PROCESSING_STATUS_CHOICES = (
         (PROCESSING_STATUS_DRAFT, "Draft"),
         (PROCESSING_STATUS_WITH_ASSESSOR, "With Assessor"),
@@ -404,11 +381,10 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_AWAITING_RESPONSES, "Awaiting Responses"),
         (PROCESSING_STATUS_APPROVED, "Approved"),
         (PROCESSING_STATUS_DECLINED, "Declined"),
+        (PROCESSING_STATUS_UNLOCKED, "Unlocked"),
         (PROCESSING_STATUS_DISCARDED, "Discarded"),
         (PROCESSING_STATUS_DELISTED, "DeListed"),
         (PROCESSING_STATUS_CLOSED, "Closed"),
-        (PROCESSING_STATUS_PARTIALLY_APPROVED, "Partially Approved"),
-        (PROCESSING_STATUS_PARTIALLY_DECLINED, "Partially Declined"),
     )
     REVIEW_STATUS_CHOICES = (
         ("not_reviewed", "Not Reviewed"),
@@ -572,13 +548,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         null=True,
     )
 
-    iucn_version = models.ForeignKey(
-        IUCNVersion,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name="iucn_version",
-    )
     comment = models.CharField(max_length=512, blank=True, null=True)
     review_due_date = models.DateField(null=True, blank=True)
     reviewed_by = models.IntegerField(null=True)  # EmailUserRO
@@ -786,6 +755,10 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
+            ConservationStatus.PROCESSING_STATUS_CLOSED,
+            ConservationStatus.PROCESSING_STATUS_DECLINED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
         ]:
             group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_APPROVER)
         elif self.processing_status in [
@@ -826,16 +799,69 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     @property
     def current_conservation_status(self):
-        current_conservation_statuses = ConservationStatus.objects.filter(
-            species=self.species,
+        if self.species:
+            current_conservation_statuses = ConservationStatus.objects.filter(
+                species=self.species,
+            )
+            warning = f"Multiple approved conservation statuses for {self.species}"
+        elif self.community:
+            current_conservation_statuses = ConservationStatus.objects.filter(
+                community=self.community,
+            )
+            warning = f"Multiple approved conservation statuses for {self.community}"
+        else:
+            return None
+
+        current_conservation_statuses = current_conservation_statuses.filter(
             processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
         )
+        current_conservation_statuses = current_conservation_statuses.exclude(
+            id=self.id
+        )
         if current_conservation_statuses.count() > 1:
-            logger.warning(
-                f"Multiple approved conservation statuses for {self.species}"
-            )
+            logger.warning(warning)
 
         return current_conservation_statuses.first()
+
+    @property
+    def is_conservation_status_under_review(self):
+        # If a CS for the same species or community is under review (i.e. ready for agenda)
+        if self.species:
+            conservation_statuses = ConservationStatus.objects.filter(
+                species=self.species,
+            )
+        elif self.community:
+            conservation_statuses = ConservationStatus.objects.filter(
+                community=self.community,
+            )
+        else:
+            return False
+
+        return (
+            conservation_statuses.exclude(id=self.id)
+            .filter(
+                processing_status=ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+            )
+            .exists()
+        )
+
+    @property
+    def conservation_status_under_review(self):
+        # If a CS for the same species or community is under review (i.e. ready for agenda)
+        if self.species:
+            conservation_statuses = ConservationStatus.objects.filter(
+                species=self.species,
+            )
+        elif self.community:
+            conservation_statuses = ConservationStatus.objects.filter(
+                community=self.community,
+            )
+        else:
+            return None
+
+        return conservation_statuses.filter(
+            processing_status=ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+        ).first()
 
     def can_assess(self, request):
         if self.processing_status in [
@@ -846,7 +872,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         elif self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
-            ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
         ]:
             return is_conservation_status_approver(request)
 
@@ -859,6 +885,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
             ConservationStatus.PROCESSING_STATUS_CLOSED,
             ConservationStatus.PROCESSING_STATUS_DELISTED,
         ]:
@@ -894,8 +921,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_DRAFT,
         ]
         if self.processing_status in status_without_assessor:
-            # For Editing the 'Approved' conservation status for authorised group
-            if self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
+            if self.processing_status in [
+                ConservationStatus.PROCESSING_STATUS_UNLOCKED,
+            ]:
                 return is_conservation_status_approver(request)
 
             return False
@@ -933,69 +961,77 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     @transaction.atomic
     def assign_officer(self, request, officer):
-        if not self.can_assess(request):
-            raise exceptions.ProposalNotAuthorized()
-
-        if not belongs_to_by_user_id(
-            officer.id, settings.GROUP_NAME_CONSERVATION_STATUS_ASSESSOR
-        ) or not belongs_to_by_user_id(
-            officer.id, settings.GROUP_NAME_CONSERVATION_STATUS_APPROVER
-        ):
+        if not is_conservation_status_assessor(
+            request
+        ) and not is_conservation_status_approver(request):
             raise ValidationError(
                 f"Officer with id {officer} is not authorised to be assigned to this conservation status"
             )
 
-        if self.processing_status in [
-            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
-            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
-        ]:
-            if officer == self.assigned_approver:
-                return
+        if is_conservation_status_approver(request):
+            allowed_statuses = [
+                ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+                ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+                ConservationStatus.PROCESSING_STATUS_APPROVED,
+                ConservationStatus.PROCESSING_STATUS_CLOSED,
+                ConservationStatus.PROCESSING_STATUS_DELISTED,
+                ConservationStatus.PROCESSING_STATUS_DECLINED,
+                ConservationStatus.PROCESSING_STATUS_UNLOCKED,
+            ]
 
-            self.assigned_approver = officer.id
-            self.save()
+            if self.processing_status in allowed_statuses:
+                if officer == self.assigned_approver:
+                    return
 
-            # Create a log entry for the conservation status
-            self.log_user_action(
-                ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(
-                    self.conservation_status_number,
-                    f"{officer.get_full_name()}({officer.email})",
-                ),
-                request,
-            )
+                self.assigned_approver = officer.id
+                self.save()
 
-            # TODO: Create a log entry for the user
+                # Create a log entry for the conservation status
+                self.log_user_action(
+                    ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(
+                        self.conservation_status_number,
+                        f"{officer.get_full_name()}({officer.email})",
+                    ),
+                    request,
+                )
 
-        if self.processing_status in [
-            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
-            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
-        ]:
-            if officer == self.assigned_officer:
-                return
+                # TODO: Create a log entry for the user
 
-            self.assigned_officer = officer.id
-            self.save()
+        if is_conservation_status_assessor(request):
+            allowed_statuses = [
+                ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+                ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
+            ]
 
-            # Create a log entry for the conservation status
-            self.log_user_action(
-                ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
-                    self.conservation_status_number,
-                    f"{officer.get_full_name()}({officer.email})",
-                ),
-                request,
-            )
+            if self.processing_status in allowed_statuses:
+                if officer == self.assigned_officer:
+                    return
 
-            # TODO: Create a log entry for the user
+                self.assigned_officer = officer.id
+                self.save()
+
+                # Create a log entry for the conservation status
+                self.log_user_action(
+                    ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
+                        self.conservation_status_number,
+                        f"{officer.get_full_name()}({officer.email})",
+                    ),
+                    request,
+                )
+
+                # TODO: Create a log entry for the user
 
     @transaction.atomic
     def unassign(self, request):
-        if not self.can_assess(request):
-            raise exceptions.ProposalNotAuthorized()
-
-        if (
-            self.processing_status
-            == ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
-        ):
+        if self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_CLOSED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
+            ConservationStatus.PROCESSING_STATUS_DECLINED,
+            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
+        ]:
             if self.assigned_approver:
                 self.assigned_approver = None
                 self.save()
@@ -1629,6 +1665,53 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     @property
     def related_item_status(self):
         return self.get_processing_status_display
+
+    @property
+    def is_finalised(self):
+        return self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_CLOSED,
+            ConservationStatus.PROCESSING_STATUS_DECLINED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
+        ]
+
+    def can_unlock(self, request):
+        if self.is_finalised:
+            return is_conservation_status_approver(request)
+        return False
+
+    def can_lock(self, request):
+        if self.processing_status == ConservationStatus.PROCESSING_STATUS_UNLOCKED:
+            return is_conservation_status_approver(request)
+        return False
+
+    def lock(self, request):
+        if not self.can_lock(request):
+            return
+
+        self.processing_status = self.prev_processing_status
+        self.assigned_approver = None
+        self.save(version_user=request.user)
+
+    def unlock(self, request):
+        if not self.can_unlock(request):
+            return
+
+        self.prev_processing_status = self.processing_status
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_UNLOCKED
+        self.save(version_user=request.user)
+
+    def has_unlocked_mode(self, request):
+        if not self.processing_status == ConservationStatus.PROCESSING_STATUS_UNLOCKED:
+            return False
+
+        if not self.assigned_officer:
+            return False
+
+        if not self.assigned_officer == request.user.id:
+            return False
+
+        return is_conservation_status_approver(request)
 
 
 class ConservationStatusLogEntry(CommunicationsLogEntry):

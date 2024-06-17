@@ -482,13 +482,13 @@ export default {
         datatable_headers: function () {
             if (this.is_external) {
                 return ['Id', 'Number', 'Scientific Name', 'Common Name', 'Phylo Group(s)', 'Family', 'Genera',
-                    'Region', 'District',
+                    'Region(s)', 'District(s)',
                     'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
                     'International Conservation', 'Conservation Criteria', 'Action']
             }
             if (this.is_internal) {
                 return ['Id', 'Number', 'Scientific Name', 'Common Name', 'Phylo Group(s)', 'Family', 'Genera',
-                    'Region', 'District',
+                    'Region(s)', 'District(s)',
                     'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
                     'International Conservation', 'Conservation Criteria', 'Status', 'Action']
             }
@@ -658,20 +658,20 @@ export default {
         },
         column_region: function () {
             return {
-                data: "region",
+                data: "regions",
                 orderable: true,
                 searchable: false,
                 visible: true,
-                name: "region__name",
+                name: "regions__name",
             }
         },
         column_district: function () {
             return {
-                data: "district",
+                data: "districts",
                 orderable: true,
                 searchable: false,
                 visible: true,
-                name: "district__name",
+                name: "districts__name",
             }
         },
         column_action: function () {
@@ -1112,8 +1112,8 @@ export default {
                     "searchable": "true"
                 },
                 "10": {
-                    "data": "district",
-                    "name": "district__name",
+                    "data": "districts",
+                    "name": "districts__name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",
@@ -1212,8 +1212,8 @@ export default {
                     "searchable": "true"
                 },
                 "9": {
-                    "data": "region",
-                    "name": "region__name",
+                    "data": "regions",
+                    "name": "regions__name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",

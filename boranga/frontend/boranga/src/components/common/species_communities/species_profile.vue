@@ -85,9 +85,8 @@
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" 
                         class="form-select" 
-                        v-model="species_community.region_id"
-                        @change="chainedSelectDistricts(species_community.region_id)">
-                        <!-- ref="regions_select"> -->
+                        v-model="species_community.regions"
+                        ref="regions_select">
                         <option value="" selected disabled>Select region</option>
                         <option v-for="option in region_list" :value="option.value" :key="option.value">
                             {{ option.text }}
@@ -95,7 +94,21 @@
                     </select>
                 </div>
             </div>
-            <div v-if="species_community.region_id" class="row mb-3">
+            <div v-if="species_community.regions" class="row mb-3">
+                <label for="" class="col-sm-3 col-form-label">District:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" 
+                    class="form-select" 
+                    v-model="species_community.districts"
+                    ref="districts_select">
+                        <option value="" selected disabled>Select district</option>
+                        <option v-for="option in district_list" :value="option.value" v-bind:key="option.value">
+                            {{ option.text }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <!-- <div v-if="species_community.region_id" class="row mb-3">
                 <label for="" class="col-sm-3 col-form-label">District:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="species_community.district_id">
@@ -105,7 +118,7 @@
                         </option>
                     </select>
                 </div>
-            </div>
+            </div> -->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 col-form-label">Number of Occurrences:</label>
                 <div class="col-sm-6">
@@ -1398,8 +1411,8 @@ export default {
                         this.region_list.push( {text: vm.api_regions[i].name, value: vm.api_regions[i].id, districts: vm.api_regions[i].districts} );
                     }
                     // vm.setProposalData2(this.regions);
-                    if(vm.species_community.region_id){
-                        vm.chainedSelectDistricts(vm.species_community.region_id);
+                    if(vm.species_community.regions){
+                        vm.chainedSelectDistricts(vm.species_community.regions,"fetch");
                     }
             },(error) => {
                 console.log(error);
@@ -1414,17 +1427,19 @@ export default {
             }
             return [];
         },
-        chainedSelectDistricts: function(region_id,event){
+        chainedSelectDistricts: function(regions,action,deselect_region_id){
             let vm = this;
-            if (event) {
-                vm.species_community.district_id = null; //-----to remove the previous selection
+            if(action!= "fetch"){
+                vm.species_community.districts = []; //-----to remove the previous selection
             }
             vm.district_list = [];
-            if(region_id){
-                var api_districts = this.searchList(region_id, vm.region_list).districts;
-                if (api_districts.length > 0) {
-                    for (var i = 0; i < api_districts.length; i++) {
-                        this.district_list.push( {text: api_districts[i].name, value: api_districts[i].id} );
+            if(regions){
+                for(let r of regions){
+                    var api_districts = this.searchList(r, vm.region_list).districts;
+                    if (api_districts.length > 0) {
+                        for (var i = 0; i < api_districts.length; i++) {
+                            this.district_list.push( {text: api_districts[i].name, value: api_districts[i].id} );
+                        }
                     }
                 }
             }
@@ -1440,10 +1455,29 @@ export default {
             on("select2:select",function (e) {
                 var selected = $(e.currentTarget);
                 vm.species_community.regions = selected.val();
+                vm.chainedSelectDistricts(vm.species_community.regions,"select");
             }).
             on("select2:unselect",function (e) {
                 var selected = $(e.currentTarget);
                 vm.species_community.regions = selected.val();
+                vm.chainedSelectDistricts(vm.species_community.regions,"deselect");
+            });
+        },
+        initialiseDistrictSelect: function(){
+            let vm = this;
+            $(vm.$refs.districts_select).select2({
+                "theme": "bootstrap-5",
+                allowClear: true,
+                multiple: true,
+                placeholder:"Select District",
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                vm.species_community.districts = selected.val();
+            }).
+            on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                vm.species_community.districts = selected.val();
             });
         },
     },
@@ -1525,6 +1559,7 @@ export default {
         vm.initialiseScientificNameLookup();
         vm.loadTaxonomydetails();
         vm.initialiseRegionSelect();
+        vm.initialiseDistrictSelect();
     }
 }
 </script>

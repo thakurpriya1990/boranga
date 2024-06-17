@@ -16,13 +16,13 @@ from boranga.components.occurrence.models import (
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
+    OCCContactDetail,
     OCCFireHistory,
     OCCHabitatComposition,
     OCCHabitatCondition,
     OCCIdentification,
     OCCLocation,
     OCCObservationDetail,
-    OCCContactDetail,
     OCCPlantCount,
     Occurrence,
     OccurrenceDocument,
@@ -56,6 +56,7 @@ from boranga.components.occurrence.models import (
 )
 from boranga.components.spatial.utils import wkb_to_geojson
 from boranga.components.species_and_communities.models import CommunityTaxonomy
+from boranga.components.users.serializers import SubmitterInformationSerializer
 from boranga.helpers import (
     is_internal,
     is_new_external_contributor,
@@ -63,7 +64,6 @@ from boranga.helpers import (
     is_occurrence_assessor,
 )
 from boranga.ledger_api_utils import retrieve_email_user
-from boranga.components.users.serializers import SubmitterInformationSerializer
 
 logger = logging.getLogger("boranga")
 
@@ -251,14 +251,11 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
             except CommunityTaxonomy.DoesNotExist:
                 return ""
         return ""
-    
+
     def get_main_observer(self, obj):
-        try:
-            if obj.observer_detail.filter(main_observer=True).exists():
-                return obj.observer_detail.filter(main_observer=True).first().observer_name
-            else:
-                return ""
-        except:
+        if obj.observer_detail.filter(main_observer=True).exists():
+            return obj.observer_detail.filter(main_observer=True).first().observer_name
+        else:
             return ""
 
 
@@ -393,14 +390,11 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     def get_identification_certainty(self, obj):
         if obj.identification and obj.identification.identification_certainty:
             return obj.identification.identification_certainty.name
-        
+
     def get_main_observer(self, obj):
-        try:
-            if obj.observer_detail.filter(main_observer=True).exists():
-                return obj.observer_detail.filter(main_observer=True).first().observer_name
-            else:
-                return ""
-        except:
+        if obj.observer_detail.filter(main_observer=True).exists():
+            return obj.observer_detail.filter(main_observer=True).first().observer_name
+        else:
             return ""
 
 
@@ -950,6 +944,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "observation_date",
             "site",
             "submitter_information",
+            "submitter_information",
         )
 
     def get_readonly(self, obj):
@@ -1045,6 +1040,7 @@ class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
+    submitter_information = SubmitterInformationSerializer(read_only=True)
 
     def get_readonly(self, obj):
         return obj.can_user_view
@@ -1185,7 +1181,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     )
     readonly = serializers.SerializerMethodField(read_only=True)
     is_new_contributor = serializers.SerializerMethodField()
-    submitter_information = SubmitterInformationSerializer()
+    submitter_information = SubmitterInformationSerializer(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -1733,6 +1729,7 @@ class OccurrenceReportDocumentSerializer(serializers.ModelSerializer):
             "document_sub_category",
             "document_sub_category_name",
             "visible",
+            "can_submitter_access",
         )
         read_only_fields = ("id", "document_number")
 
@@ -1776,6 +1773,17 @@ class SaveOccurrenceReportDocumentSerializer(serializers.ModelSerializer):
                     setattr(instance, field_name, validated_data[field_name])
             instance.save(*args, **kwargs)
             return instance
+
+
+class InternalSaveOccurrenceReportDocumentSerializer(
+    SaveOccurrenceReportDocumentSerializer
+):
+    class Meta:
+        model = OccurrenceReportDocument
+        fields = SaveOccurrenceReportDocumentSerializer.Meta.fields + (
+            "can_submitter_access",
+        )
+        read_only_fields = SaveOccurrenceReportDocumentSerializer.Meta.read_only_fields
 
 
 class OccurrenceDocumentSerializer(serializers.ModelSerializer):
@@ -2754,6 +2762,7 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
             "geometry_source",
             "locked",
             "copied_from",
+            "buffer_radius",
         )
         read_only_fields = ("id",)
 

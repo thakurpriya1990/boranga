@@ -652,34 +652,34 @@ export default {
         },
         column_region: function(){
             return {
-                data: "region",
+                data: "regions",
                 orderable: true,
                 searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
                 visible: true,
                 'render': function(data, type, full){
-                    if (full.region){
-                        return full.region
+                    if (full.regions){
+                        return full.regions
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "region__name",
+                name: "regions__name",
             }
         },
         column_district: function(){
             return {
-                data: "district",
+                data: "districts",
                 orderable: true,
                 searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
                 visible: true,
                 'render': function(data, type, full){
-                    if (full.district){
-                        return full.district
+                    if (full.districts){
+                        return full.districts
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "district__name",
+                name: "districts__name",
             }
         },
         column_wa_legislative_list: function () {
@@ -1177,8 +1177,8 @@ export default {
                     "searchable": "true"
                 },
                 "10": {
-                    "data": "district",
-                    "name": "district__name",
+                    "data": "districts",
+                    "name": "districts__name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",
@@ -1277,8 +1277,8 @@ export default {
                     "searchable": "true"
                 },
                 "9": {
-                    "data": "region",
-                    "name": "region__name",
+                    "data": "regions",
+                    "name": "regions__name",
                     "orderable": "true",
                     "search": {
                         "regex": "false",

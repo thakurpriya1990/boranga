@@ -1,7 +1,7 @@
 {%  extends 'boranga/emails/base_email.html' %}
 
 {%  block content %}
-        The following species {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }} has been split into following new species,
+        <!-- The following species {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }} has been split into following new species,
         <ul>
         {% for new_species in species_proposal.child_species %}
             <li> {{ new_species.species_number }} - {{ new_species.taxonomy.scientific_name }} </li>
@@ -20,5 +20,26 @@
         </p>
         <p>
             These actions are also available from the respective dashboard pages.
+        </p> -->
+        Species {{ species_proposal.species_number }} has been split. You can review the historical and new Species Profiles at:
+        
+        <ul>
+            <li>Historical: {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }}</li>
+            {% for new_species in species_proposal.child_species %}
+                <li> {{ new_species.species_number }} {{ forloop.counter }} - {{ new_species.taxonomy.scientific_name }} </li>
+            {% endfor %}
+        </ul>
+        <p>
+            {% if conservation_status_url %}
+                Please action for related Conservation Status <a href="{{url}}">here</a>
+            {% endif %}
+        </p>
+        <p>
+            {% if occurrences_url %}
+                Please action for related Occurrences:
+                {% for occ in occurrences_url %}
+                    <li> <a href="{{occ.occurrence_url}}">{{ occ.occurrence_number }}</a> </li>
+                {% endfor %}
+            {% endif %}
         </p>
     {%  endblock %}

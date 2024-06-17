@@ -733,6 +733,14 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
 
         filter_region = request.POST.get("filter_region")
         if filter_region and not filter_region.lower() == "all":
+            queryset = queryset.filter(regions__id=filter_region)
+
+        filter_district = request.POST.get("filter_district")
+        if filter_district and not filter_district.lower() == "all":
+            queryset = queryset.filter(districts__id=filter_district)
+
+        filter_region = request.POST.get("filter_region")
+        if filter_region and not filter_region.lower() == "all":
             queryset = queryset.filter(region=filter_region)
 
         filter_district = request.POST.get("filter_district")
@@ -800,10 +808,8 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 
@@ -871,8 +877,8 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "family",
             "genus",
             "phylogenetic_group",
-            "region",
-            "district",
+            "regions",
+            "districts",
             "processing_status",
         ]
 
@@ -911,9 +917,9 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Common Name",
             "Family",
             "Genera",
-            "Phylo Group",
-            "Region",
-            "District",
+            "Phylo Group(s)",
+            "Region(s)",
+            "District(s)",
             "Processing Status",
         ]
         df.columns = new_headings
@@ -921,11 +927,11 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Number",
             "Scientific Name",
             "Common Name",
-            "Phylo Group",
+            "Phylo Group(s)",
             "Family",
             "Genera",
-            "Region",
-            "District",
+            "Region(s)",
+            "District(s)",
             "Processing Status",
         ]
         df = df[column_order]
@@ -1395,12 +1401,17 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if request_data["submitter"]:
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
 
-        if request_data.get("regions"):
-            regions = request_data.get("regions")
-            instance.regions.clear()  # first clear all the species set relatedM:M to community instance
-            for r in regions:
-                reg = Region.objects.get(pk=r)
-                instance.regions.add(reg)
+        regions = request_data.get("regions")
+        instance.regions.clear()
+        for r in regions:
+            region = Region.objects.get(pk=r)
+            instance.regions.add(region)
+
+        districts = request_data.get("districts")
+        instance.districts.clear()
+        for d in districts:
+            district = District.objects.get(pk=d)
+            instance.districts.add(district)
 
         if request_data.get("distribution"):
             distribution_instance, created = SpeciesDistribution.objects.get_or_create(
@@ -2505,10 +2516,8 @@ class ConservationThreatFilterBackend(DatatablesFilterBackend):
         if len(ordering):
             queryset = queryset.order_by(*ordering)
 
-        try:
-            queryset = super().filter_queryset(request, queryset, view)
-        except Exception as e:
-            print(e)
+        queryset = super().filter_queryset(request, queryset, view)
+
         setattr(view, "_datatables_total_count", total_count)
         return queryset
 

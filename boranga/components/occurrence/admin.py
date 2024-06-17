@@ -1,8 +1,11 @@
 from django.contrib.gis import admin, forms
+from django.contrib.gis.geos import GEOSGeometry
+
 import nested_admin
 
 from boranga.components.occurrence.models import (
     AnimalHealth,
+    BufferGeometry,
     CoordinationSource,
     CountedSubject,
     Datum,
@@ -34,7 +37,28 @@ from boranga.components.occurrence.models import (
     SoilType,
     WildStatus,
 )
-from boranga.components.spatial.utils import wkb_to_geojson
+from boranga.components.spatial.utils import (
+    projection,
+    transform_geosgeometry_3857_to_4326,
+    wkb_to_geojson,
+)
+
+
+import shapely.geometry as shp
+from shapely.ops import transform
+
+
+class GeometryField(forms.GeometryField):
+    widget = forms.OSMWidget(
+        attrs={
+            "display_raw": False,
+            "map_width": 800,
+            "map_srid": 4326,
+            "map_height": 600,
+            "default_lat": -31.9502682,
+            "default_lon": 115.8590241,
+        }
+    )
 
 
 class OccurrenceTenureInline(nested_admin.NestedTabularInline):
@@ -63,8 +87,49 @@ class OccurrenceTenureInline(nested_admin.NestedTabularInline):
     readonly_fields = ["tenure_area_id"]
 
 
+class BufferGeometryInlineForm(forms.ModelForm):
+    geometry = GeometryField()
+
+    class Meta:
+        model = BufferGeometry
+        fields = "__all__"
+
+
+class BufferGeometryInline(nested_admin.NestedStackedInline):
+    model = BufferGeometry
+    form = BufferGeometryInlineForm
+    extra = 0
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "geometry",
+                    ("original_geometry"),
+                    (
+                        "area_sqm",
+                        "area_sqhm",
+                    ),
+                )
+            },
+        ),
+    )
+
+    readonly_fields = ["original_geometry", "area_sqm", "area_sqhm"]
+
+
+class OccurrenceReportGeometryInlineForm(forms.ModelForm):
+    geometry = GeometryField()
+
+    class Meta:
+        model = OccurrenceReportGeometry
+        fields = "__all__"
+
+
 class OccurrenceReportGeometryInline(admin.StackedInline):
     model = OccurrenceReportGeometry
+    form = OccurrenceReportGeometryInlineForm
     extra = 0
     verbose_name = "Occurrence Report Geometry"
     verbose_name_plural = "Occurrence Report Geometries"
@@ -75,21 +140,33 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
             {
                 "fields": (
                     "geometry",
-                    "original_geometry",
-                    "intersects",
-                    "copied_from",
-                    "drawn_by",
-                    "locked",
+                    ("original_geometry"),
+                    (
+                        "area_sqm",
+                        "area_sqhm",
+                    ),
+                    (
+                        "intersects",
+                        "locked",
+                    ),
+                    (
+                        "copied_from",
+                        "drawn_by",
+                    ),
                 )
             },
         ),
     )
 
-    readonly_fields = ["original_geometry"]
+    readonly_fields = [
+        "original_geometry",
+        "area_sqm",
+        "area_sqhm",
+    ]
 
 
 class OccurrenceGeometryInlineForm(forms.ModelForm):
-    geometry = forms.GeometryField(widget=forms.OSMWidget(attrs={"display_raw": False}))
+    geometry = GeometryField()
 
     class Meta:
         model = OccurrenceGeometry
@@ -109,29 +186,66 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
             {
                 "fields": (
                     "geometry",
-                    "original_geometry",
-                    "intersects",
-                    "copied_from",
-                    "drawn_by",
-                    "locked",
+                    ("original_geometry"),
+                    (
+                        "area_sqm",
+                        "area_sqhm",
+                    ),
+                    (
+                        "intersects",
+                        "locked",
+                    ),
+                    (
+                        "copied_from",
+                        "drawn_by",
+                    ),
+                    ("buffer_radius",),
                 )
             },
         ),
     )
 
-    readonly_fields = ["original_geometry"]
+    readonly_fields = ["original_geometry", "area_sqm", "area_sqhm"]
 
-    inlines = [OccurrenceTenureInline]
+    inlines = [BufferGeometryInline, OccurrenceTenureInline]
 
 
 @admin.register(OccurrenceReport)
 class OccurrenceReportAdmin(admin.ModelAdmin):
     inlines = [OccurrenceReportGeometryInline]
 
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for obj in formset.deleted_objects:
+            obj.delete()
+        for instance in instances:
+            if hasattr(instance, "geometry"):
+                geometry = instance.geometry
+
+                instance_geometry = transform_geosgeometry_3857_to_4326(geometry)
+                instance.geometry = GEOSGeometry(instance_geometry.wkt)
+
+            instance.save()
+        formset.save_m2m()
+
 
 @admin.register(Occurrence)
 class OccurrenceAdmin(nested_admin.NestedModelAdmin):
     inlines = [OccurrenceGeometryInline]
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for obj in formset.deleted_objects:
+            obj.delete()
+        for instance in instances:
+            if hasattr(instance, "geometry"):
+                geometry = instance.geometry
+
+                instance_geometry = transform_geosgeometry_3857_to_4326(geometry)
+                instance.geometry = GEOSGeometry(instance_geometry.wkt)
+
+            instance.save()
+        formset.save_m2m()
 
 
 class OccurrenceTenureAdminForm(forms.ModelForm):
@@ -214,6 +328,8 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
         return obj.occurrence_geometry
 
     def tenure_area(self, obj):
+        if obj.tenure_area_ewkb is None:
+            return None
         return wkb_to_geojson(obj.tenure_area_ewkb)
 
 

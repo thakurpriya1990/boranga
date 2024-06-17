@@ -395,6 +395,11 @@ urlpatterns = [
         name="internal-meeting-dashboard",
     ),
     url(
+        r"^internal/occurrence/(?P<occurrence_pk>\d+)/$",
+        views.InternalOccurrenceView.as_view(),
+        name="internal-occurrence-detail",
+    ),
+    url(
         r"^external/occurrence-report/(?P<occurrence_report_pk>\d+)/$",
         views.ExternalOccurrenceReportView.as_view(),
         name="external-occurrence-report-detail",
