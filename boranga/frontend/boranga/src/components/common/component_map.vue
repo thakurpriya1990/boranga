@@ -368,6 +368,12 @@
                                             data-bs-toggle="tooltip"
                                             data-bs-placement="top"
                                             data-bs-title="Enter a buffer radius value"
+                                            @change="
+                                                updateUserInputBufferRadius(
+                                                    feature,
+                                                    $event.target.valueAsNumber
+                                                )
+                                            "
                                         />
                                         <label
                                             :for="`feature-${feature.ol_uid}-buffer-radius-input`"
@@ -4634,6 +4640,9 @@ export default {
                     );
                 });
             return transformed;
+        },
+        updateUserInputBufferRadius: function (feature, radius) {
+            feature.set('buffer_radius', radius);
         },
         /**
          * Updates the user input coordinates and srid that are stored on the feature as original_geometry
