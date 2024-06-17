@@ -17,7 +17,22 @@
                             <strong>Status</strong><br />
                             {{ conservation_status_obj.processing_status }}
                         </div>
+                        <div class="card-body mt-3 border-top"
+                            v-if="!isFinalised && referral.referral == conservation_status_obj.current_assessor.id && referral.can_be_completed">
+                            <div class="row mb-3">
+                                <strong>Action</strong>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                        :disabled="conservation_status_obj.can_user_edit"
+                                        @click.prevent="completeReferral">Complete Referral
+                                        Task</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
             </div>
             <div class="col-md-9">
@@ -479,8 +494,12 @@ export default {
                 text: "Are you sure you want to complete this referral?",
                 icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Submit',
-                confirmButtonColor: '#226fbb'
+                confirmButtonText: 'Complete Referral',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
                     let payload = new Object();

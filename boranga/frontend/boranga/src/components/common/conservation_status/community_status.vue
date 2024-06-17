@@ -256,7 +256,7 @@
                             </div>
                             <div
                                 v-if="conservation_status_obj.conservation_status_under_review &&
-                                conservation_status_obj.id != conservation_status_obj.conservation_status_under_review.id">
+                                    conservation_status_obj.id != conservation_status_obj.conservation_status_under_review.id">
                                 <div>
                                     <a :href="`/internal/conservation_status/${conservation_status_obj.conservation_status_under_review.id}`"
                                         target="_blank" class="btn btn-primary">{{
@@ -537,8 +537,6 @@ export default {
             filtered_recommended_wa_legislative_categories: [],
             referral_comments_boxes: [],
             community_display: '',
-            deficiency_readonly: !this.is_external && !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor ? false : true,
-            assessor_comment_readonly: !this.is_external && !this.conservation_status_obj.can_user_edit && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' && this.conservation_status_obj.assessor_mode.has_assessor_mode && !this.conservation_status_obj.assessor_mode.status_without_assessor ? false : true,
         }
     },
     emits: ['saveConservationStatus'],
@@ -561,10 +559,10 @@ export default {
                 this.conservation_status_obj.processing_status == "With Assessor";
         },
         listing_and_review_due_date_disabled: function () {
-            return this.conservation_status_obj.processing_status != "With Assessor"
+            return this.isReadOnly || this.conservation_status_obj.processing_status != "With Assessor"
         },
         approval_level_disabled: function () {
-            return !['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status);
+            return this.isReadOnly || !['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status);
         },
         deficiencyVisibility: function () {
             return this.conservation_status_obj.assessor_mode.assessor_box_view;
@@ -587,14 +585,34 @@ export default {
         isStatusApproved: function () {
             return this.conservation_status_obj.processing_status == "Approved" ? true : false;
         },
+        isAssignedOfficer: function () {
+            if (['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status)) {
+                return Boolean(this.conservation_status_obj.assigned_officer) &&
+                    this.conservation_status_obj.assigned_officer == this.conservation_status_obj.current_assessor.id;
+            }
+            if (this.conservation_status_obj.processing_status != 'Draft') {
+                return this.conservation_status_obj.assigned_opprover &&
+                    this.conservation_status_obj.assigned_opprover == this.conservation_status_obj.current_assessor.id;
+            }
+            return false;
+        },
         isReadOnly: function () {
             if (this.is_external) {
                 return !this.conservation_status_obj.can_user_edit;
+            } else if (
+                this.conservation_status_obj.processing_status == "With Referral" &&
+                this.referral
+            ) {
+                return true;
             } else {
                 if (this.conservation_status_obj.processing_status == "Ready For Agenda") {
                     return true;
                 }
-                if (this.conservation_status_obj.assessor_mode.assessor_can_assess || this.conservation_status_obj.internal_user_edit) {
+                if (
+                    (
+                        this.conservation_status_obj.assessor_mode.assessor_can_assess &&
+                        this.isAssignedOfficer)
+                    || this.conservation_status_obj.internal_user_edit) {
                     return false;
                 }
             }
@@ -622,7 +640,21 @@ export default {
         },
         isConservationStatusUnderReview: function () {
             return Boolean(this.conservation_status_obj.conservation_status_under_review);
-        }
+        },
+        deficiency_readonly: function () {
+            return !this.is_external &&
+                !this.conservation_status_obj.can_user_edit &&
+                this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' &&
+                this.conservation_status_obj.assessor_mode.has_assessor_mode &&
+                !this.conservation_status_obj.assessor_mode.status_without_assessor ? false : true;
+        },
+        assessor_comment_readonly: function () {
+            return !this.is_external &&
+                !this.conservation_status_obj.can_user_edit &&
+                this.conservation_status_obj.assessor_mode.assessor_level == 'assessor' &&
+                this.conservation_status_obj.assessor_mode.has_assessor_mode &&
+                !this.conservation_status_obj.assessor_mode.status_without_assessor ? false : true
+        },
     },
     methods: {
         approvalLevelChanged: function () {

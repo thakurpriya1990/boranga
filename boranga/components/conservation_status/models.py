@@ -1693,6 +1693,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         self.assigned_approver = None
         self.save(version_user=request.user)
 
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_LOCK.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
     def unlock(self, request):
         if not self.can_unlock(request):
             return
@@ -1701,14 +1708,21 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         self.processing_status = ConservationStatus.PROCESSING_STATUS_UNLOCKED
         self.save(version_user=request.user)
 
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_UNLOCK.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
     def has_unlocked_mode(self, request):
         if not self.processing_status == ConservationStatus.PROCESSING_STATUS_UNLOCKED:
             return False
 
-        if not self.assigned_officer:
+        if not self.assigned_approver:
             return False
 
-        if not self.assigned_officer == request.user.id:
+        if not self.assigned_approver == request.user.id:
             return False
 
         return is_conservation_status_approver(request)
@@ -1773,6 +1787,8 @@ class ConservationStatusUserAction(UserAction):
     )
     ACTION_REINSTATE_PROPOSAL = "Reinstate conservation status proposal {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
+    ACTION_UNLOCK = "Unlock conservation status proposal {}"
+    ACTION_LOCK = "Lock conservation status proposal {}"
 
     # Amendment
     ACTION_ID_REQUEST_AMENDMENTS = "Request amendments"
