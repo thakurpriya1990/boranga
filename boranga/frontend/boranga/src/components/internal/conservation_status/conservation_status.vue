@@ -286,11 +286,6 @@
                                 <template v-if="canDiscard">
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <strong>Action</strong><br />
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                 @click.prevent="discardCSProposal()">Discard</button><br />
                                         </div>
