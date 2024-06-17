@@ -326,8 +326,8 @@ export default {
                         id: '',
                         name: '',
                     });
-                vm.$refs.animalObservationDetail.reprod_maturity_list = vm.listOfValuesDict.reprod_maturity_list;
-                vm.$refs.animalObservationDetail.reprod_maturity_list.splice(0,0,
+                vm.$refs.animalObservationDetail.reprod_state_list = vm.listOfValuesDict.reprod_state_list;
+                vm.$refs.animalObservationDetail.reprod_state_list.splice(0,0,
                     {
                         id: '',
                         name: '',

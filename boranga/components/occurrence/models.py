@@ -2320,7 +2320,7 @@ class PrimaryDetectionMethod(models.Model):
 
 
 # used for Animal Observation(MultipleSelect)
-class ReproductiveMaturity(models.Model):
+class ReproductiveState(models.Model):
     """
     # Admin List
 
@@ -2333,8 +2333,8 @@ class ReproductiveMaturity(models.Model):
 
     class Meta:
         app_label = "boranga"
-        verbose_name = "Reproductive Maturity"
-        verbose_name_plural = "Reproductive Maturities"
+        verbose_name = "Reproductive State"
+        verbose_name_plural = "Reproductive States"
         ordering = ["name"]
 
     def __str__(self):
@@ -2420,8 +2420,8 @@ class OCRAnimalObservation(models.Model):
     primary_detection_method = MultiSelectField(
         max_length=250, blank=True, choices=[], null=True
     )
-    reproductive_maturity = MultiSelectField(
-        max_length=250, blank=True, choices=[], null=True
+    reproductive_state = models.ForeignKey(
+        ReproductiveState, on_delete=models.SET_NULL, null=True, blank=True
     )
     animal_health = models.ForeignKey(
         AnimalHealth, on_delete=models.SET_NULL, null=True, blank=True
@@ -2429,8 +2429,9 @@ class OCRAnimalObservation(models.Model):
     death_reason = models.ForeignKey(
         DeathReason, on_delete=models.SET_NULL, null=True, blank=True
     )
-    secondary_sign = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
-
+    secondary_sign = models.ForeignKey(
+        SecondarySign, on_delete=models.SET_NULL, null=True, blank=True
+    )
     total_count = models.IntegerField(null=True, blank=True, default=0)
     distinctive_feature = models.CharField(max_length=1000, null=True, blank=True)
     action_taken = models.CharField(max_length=1000, null=True, blank=True)
@@ -2439,14 +2440,26 @@ class OCRAnimalObservation(models.Model):
         max_length=1000, null=True, blank=True
     )
 
-    alive_adult = models.IntegerField(null=True, blank=True, default=0)
-    dead_adult = models.IntegerField(null=True, blank=True, default=0)
-    alive_juvenile = models.IntegerField(null=True, blank=True, default=0)
-    dead_juvenile = models.IntegerField(null=True, blank=True, default=0)
-    alive_pouch_young = models.IntegerField(null=True, blank=True, default=0)
-    dead_pouch_young = models.IntegerField(null=True, blank=True, default=0)
-    alive_unsure = models.IntegerField(null=True, blank=True, default=0)
-    dead_unsure = models.IntegerField(null=True, blank=True, default=0)
+    alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
+    dead_adult_male = models.IntegerField(null=True, blank=True, default=0)
+    alive_adult_female = models.IntegerField(null=True, blank=True, default=0)
+    dead_adult_female = models.IntegerField(null=True, blank=True, default=0)
+    alive_adult_unknown = models.IntegerField(null=True, blank=True, default=0)
+    dead_adult_unknown = models.IntegerField(null=True, blank=True, default=0)
+
+    alive_juvenile_male = models.IntegerField(null=True, blank=True, default=0)
+    dead_juvenile_male = models.IntegerField(null=True, blank=True, default=0)
+    alive_juvenile_female = models.IntegerField(null=True, blank=True, default=0)
+    dead_juvenile_female = models.IntegerField(null=True, blank=True, default=0)
+    alive_juvenile_unknown = models.IntegerField(null=True, blank=True, default=0)
+    dead_juvenile_unknown = models.IntegerField(null=True, blank=True, default=0)
+
+    alive_unsure_male = models.IntegerField(null=True, blank=True, default=0)
+    dead_unsure_male = models.IntegerField(null=True, blank=True, default=0)
+    alive_unsure_female = models.IntegerField(null=True, blank=True, default=0)
+    dead_unsure_female = models.IntegerField(null=True, blank=True, default=0)
+    alive_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
+    dead_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
 
     class Meta:
         app_label = "boranga"
@@ -2458,12 +2471,6 @@ class OCRAnimalObservation(models.Model):
         super().__init__(*args, **kwargs)
         self._meta.get_field("primary_detection_method").choices = tuple(
             PrimaryDetectionMethod.objects.values_list("id", "name")
-        )
-        self._meta.get_field("reproductive_maturity").choices = tuple(
-            ReproductiveMaturity.objects.values_list("id", "name")
-        )
-        self._meta.get_field("secondary_sign").choices = tuple(
-            SecondarySign.objects.values_list("id", "name")
         )
 
 
@@ -3878,8 +3885,8 @@ class OCCAnimalObservation(models.Model):
     primary_detection_method = MultiSelectField(
         max_length=250, blank=True, choices=[], null=True
     )
-    reproductive_maturity = MultiSelectField(
-        max_length=250, blank=True, choices=[], null=True
+    reproductive_state = models.ForeignKey(
+        ReproductiveState, on_delete=models.SET_NULL, null=True, blank=True
     )
     animal_health = models.ForeignKey(
         AnimalHealth, on_delete=models.SET_NULL, null=True, blank=True
@@ -3887,7 +3894,9 @@ class OCCAnimalObservation(models.Model):
     death_reason = models.ForeignKey(
         DeathReason, on_delete=models.SET_NULL, null=True, blank=True
     )
-    secondary_sign = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
+    secondary_sign = models.ForeignKey(
+        SecondarySign, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     total_count = models.IntegerField(null=True, blank=True, default=0)
     distinctive_feature = models.CharField(max_length=1000, null=True, blank=True)
@@ -3897,14 +3906,26 @@ class OCCAnimalObservation(models.Model):
         max_length=1000, null=True, blank=True
     )
 
-    alive_adult = models.IntegerField(null=True, blank=True, default=0)
-    dead_adult = models.IntegerField(null=True, blank=True, default=0)
-    alive_juvenile = models.IntegerField(null=True, blank=True, default=0)
-    dead_juvenile = models.IntegerField(null=True, blank=True, default=0)
-    alive_pouch_young = models.IntegerField(null=True, blank=True, default=0)
-    dead_pouch_young = models.IntegerField(null=True, blank=True, default=0)
-    alive_unsure = models.IntegerField(null=True, blank=True, default=0)
-    dead_unsure = models.IntegerField(null=True, blank=True, default=0)
+    alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
+    dead_adult_male = models.IntegerField(null=True, blank=True, default=0)
+    alive_adult_female = models.IntegerField(null=True, blank=True, default=0)
+    dead_adult_female = models.IntegerField(null=True, blank=True, default=0)
+    alive_adult_unknown = models.IntegerField(null=True, blank=True, default=0)
+    dead_adult_unknown = models.IntegerField(null=True, blank=True, default=0)
+
+    alive_juvenile_male = models.IntegerField(null=True, blank=True, default=0)
+    dead_juvenile_male = models.IntegerField(null=True, blank=True, default=0)
+    alive_juvenile_female = models.IntegerField(null=True, blank=True, default=0)
+    dead_juvenile_female = models.IntegerField(null=True, blank=True, default=0)
+    alive_juvenile_unknown = models.IntegerField(null=True, blank=True, default=0)
+    dead_juvenile_unknown = models.IntegerField(null=True, blank=True, default=0)
+
+    alive_unsure_male = models.IntegerField(null=True, blank=True, default=0)
+    dead_unsure_male = models.IntegerField(null=True, blank=True, default=0)
+    alive_unsure_female = models.IntegerField(null=True, blank=True, default=0)
+    dead_unsure_female = models.IntegerField(null=True, blank=True, default=0)
+    alive_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
+    dead_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
 
     class Meta:
         app_label = "boranga"
@@ -3916,12 +3937,6 @@ class OCCAnimalObservation(models.Model):
         super().__init__(*args, **kwargs)
         self._meta.get_field("primary_detection_method").choices = tuple(
             PrimaryDetectionMethod.objects.values_list("id", "name")
-        )
-        self._meta.get_field("reproductive_maturity").choices = tuple(
-            ReproductiveMaturity.objects.values_list("id", "name")
-        )
-        self._meta.get_field("secondary_sign").choices = tuple(
-            SecondarySign.objects.values_list("id", "name")
         )
 
 

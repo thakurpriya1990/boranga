@@ -541,12 +541,6 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
-    secondary_sign = serializers.MultipleChoiceField(
-        choices=[], allow_null=True, allow_blank=True, required=False
-    )
-    reproductive_maturity = serializers.MultipleChoiceField(
-        choices=[], allow_null=True, allow_blank=True, required=False
-    )
 
     class Meta:
         model = OCRAnimalObservation
@@ -555,7 +549,7 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "occurrence_report_id",
             "primary_detection_method",
             "secondary_sign",
-            "reproductive_maturity",
+            "reproductive_state",
             "animal_health_id",
             "death_reason_id",
             "total_count",
@@ -563,26 +557,33 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "action_taken",
             "action_required",
             "observation_detail_comment",
-            "alive_adult",
-            "dead_adult",
-            "alive_juvenile",
-            "dead_juvenile",
-            "alive_pouch_young",
-            "dead_pouch_young",
-            "alive_unsure",
-            "dead_unsure",
+            
+            "alive_adult_male",
+            "dead_adult_male",
+            "alive_adult_female",
+            "dead_adult_female",
+            "alive_adult_unknown",
+            "dead_adult_unknown",
+
+            "alive_juvenile_male",
+            "dead_juvenile_male",
+            "alive_juvenile_female",
+            "dead_juvenile_female",
+            "alive_juvenile_unknown",
+            "dead_juvenile_unknown",
+
+            "alive_unsure_male",
+            "dead_unsure_male",
+            "alive_unsure_female",
+            "dead_unsure_female",
+            "alive_unsure_unknown",
+            "dead_unsure_unknown",
         )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["primary_detection_method"].choices = (
             OCRAnimalObservation._meta.get_field("primary_detection_method").choices
-        )
-        self.fields["secondary_sign"].choices = OCRAnimalObservation._meta.get_field(
-            "secondary_sign"
-        ).choices
-        self.fields["reproductive_maturity"].choices = (
-            OCRAnimalObservation._meta.get_field("reproductive_maturity").choices
         )
 
 
@@ -1487,12 +1488,6 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
-    secondary_sign = serializers.MultipleChoiceField(
-        choices=[], allow_null=True, allow_blank=True, required=False
-    )
-    reproductive_maturity = serializers.MultipleChoiceField(
-        choices=[], allow_null=True, allow_blank=True, required=False
-    )
     animal_health_id = serializers.IntegerField(required=False, allow_null=True)
     death_reason_id = serializers.IntegerField(required=False, allow_null=True)
 
@@ -1503,7 +1498,7 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
             "occurrence_report_id",
             "primary_detection_method",
             "secondary_sign",
-            "reproductive_maturity",
+            "reproductive_state",
             "animal_health_id",
             "death_reason_id",
             "total_count",
@@ -1511,26 +1506,33 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
             "action_taken",
             "action_required",
             "observation_detail_comment",
-            "alive_adult",
-            "dead_adult",
-            "alive_juvenile",
-            "dead_juvenile",
-            "alive_pouch_young",
-            "dead_pouch_young",
-            "alive_unsure",
-            "dead_unsure",
+            
+            "alive_adult_male",
+            "dead_adult_male",
+            "alive_adult_female",
+            "dead_adult_female",
+            "alive_adult_unknown",
+            "dead_adult_unknown",
+
+            "alive_juvenile_male",
+            "dead_juvenile_male",
+            "alive_juvenile_female",
+            "dead_juvenile_female",
+            "alive_juvenile_unknown",
+            "dead_juvenile_unknown",
+
+            "alive_unsure_male",
+            "dead_unsure_male",
+            "alive_unsure_female",
+            "dead_unsure_female",
+            "alive_unsure_unknown",
+            "dead_unsure_unknown",
         )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["primary_detection_method"].choices = (
             OCRAnimalObservation._meta.get_field("primary_detection_method").choices
-        )
-        self.fields["secondary_sign"].choices = OCRAnimalObservation._meta.get_field(
-            "secondary_sign"
-        ).choices
-        self.fields["reproductive_maturity"].choices = (
-            OCRAnimalObservation._meta.get_field("reproductive_maturity").choices
         )
 
 
@@ -2372,12 +2374,6 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
-    secondary_sign = serializers.MultipleChoiceField(
-        choices=[], allow_null=True, allow_blank=True, required=False
-    )
-    reproductive_maturity = serializers.MultipleChoiceField(
-        choices=[], allow_null=True, allow_blank=True, required=False
-    )
     copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
@@ -2388,7 +2384,7 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "copied_ocr",
             "primary_detection_method",
             "secondary_sign",
-            "reproductive_maturity",
+            "reproductive_state",
             "animal_health_id",
             "death_reason_id",
             "total_count",
@@ -2396,26 +2392,33 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "action_taken",
             "action_required",
             "observation_detail_comment",
-            "alive_adult",
-            "dead_adult",
-            "alive_juvenile",
-            "dead_juvenile",
-            "alive_pouch_young",
-            "dead_pouch_young",
-            "alive_unsure",
-            "dead_unsure",
+            
+            "alive_adult_male",
+            "dead_adult_male",
+            "alive_adult_female",
+            "dead_adult_female",
+            "alive_adult_unknown",
+            "dead_adult_unknown",
+
+            "alive_juvenile_male",
+            "dead_juvenile_male",
+            "alive_juvenile_female",
+            "dead_juvenile_female",
+            "alive_juvenile_unknown",
+            "dead_juvenile_unknown",
+
+            "alive_unsure_male",
+            "dead_unsure_male",
+            "alive_unsure_female",
+            "dead_unsure_female",
+            "alive_unsure_unknown",
+            "dead_unsure_unknown",
         )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["primary_detection_method"].choices = (
             OCCAnimalObservation._meta.get_field("primary_detection_method").choices
-        )
-        self.fields["secondary_sign"].choices = OCCAnimalObservation._meta.get_field(
-            "secondary_sign"
-        ).choices
-        self.fields["reproductive_maturity"].choices = (
-            OCCAnimalObservation._meta.get_field("reproductive_maturity").choices
         )
 
     def get_copied_ocr(self, obj):
@@ -2621,12 +2624,6 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
-    secondary_sign = serializers.MultipleChoiceField(
-        choices=[], allow_null=True, allow_blank=True, required=False
-    )
-    reproductive_maturity = serializers.MultipleChoiceField(
-        choices=[], allow_null=True, allow_blank=True, required=False
-    )
     animal_health_id = serializers.IntegerField(required=False, allow_null=True)
     death_reason_id = serializers.IntegerField(required=False, allow_null=True)
 
@@ -2637,7 +2634,7 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
             "occurrence_id",
             "primary_detection_method",
             "secondary_sign",
-            "reproductive_maturity",
+            "reproductive_state",
             "animal_health_id",
             "death_reason_id",
             "total_count",
@@ -2645,26 +2642,33 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
             "action_taken",
             "action_required",
             "observation_detail_comment",
-            "alive_adult",
-            "dead_adult",
-            "alive_juvenile",
-            "dead_juvenile",
-            "alive_pouch_young",
-            "dead_pouch_young",
-            "alive_unsure",
-            "dead_unsure",
+            
+            "alive_adult_male",
+            "dead_adult_male",
+            "alive_adult_female",
+            "dead_adult_female",
+            "alive_adult_unknown",
+            "dead_adult_unknown",
+
+            "alive_juvenile_male",
+            "dead_juvenile_male",
+            "alive_juvenile_female",
+            "dead_juvenile_female",
+            "alive_juvenile_unknown",
+            "dead_juvenile_unknown",
+
+            "alive_unsure_male",
+            "dead_unsure_male",
+            "alive_unsure_female",
+            "dead_unsure_female",
+            "alive_unsure_unknown",
+            "dead_unsure_unknown",
         )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["primary_detection_method"].choices = (
             OCCAnimalObservation._meta.get_field("primary_detection_method").choices
-        )
-        self.fields["secondary_sign"].choices = OCCAnimalObservation._meta.get_field(
-            "secondary_sign"
-        ).choices
-        self.fields["reproductive_maturity"].choices = (
-            OCCAnimalObservation._meta.get_field("reproductive_maturity").choices
         )
 
 
