@@ -302,8 +302,15 @@
                                         />
                                         <label
                                             v-if="isPointLikeFeature(feature)"
-                                            :for="`feature-${feature.ol_uid}-latitude-input`"
-                                            >Latitude</label
+                                            :for="`feature-${feature.ol_uid}-longitude-input`"
+                                            ><span
+                                                v-if="
+                                                    isOriginalGeometryCrsProjected(
+                                                        feature
+                                                    )
+                                                "
+                                                >Northing</span
+                                            ><span v-else>Latitude</span></label
                                         >
                                     </div>
                                     <!-- Longitude -->
@@ -331,7 +338,16 @@
                                         <label
                                             v-if="isPointLikeFeature(feature)"
                                             :for="`feature-${feature.ol_uid}-longitude-input`"
-                                            >Longitude</label
+                                            ><span
+                                                v-if="
+                                                    isOriginalGeometryCrsProjected(
+                                                        feature
+                                                    )
+                                                "
+                                                >Easting</span
+                                            ><span v-else
+                                                >Longitude</span
+                                            ></label
                                         >
                                     </div>
                                     <!-- Buffer Radius -->
@@ -4699,6 +4715,10 @@ export default {
             return ['Polygon', 'MultiPolygon'].includes(
                 feature.getGeometry().getType()
             );
+        },
+        isOriginalGeometryCrsProjected: function (feature) {
+            return feature.getProperties().original_geometry.properties
+                ?.crs_projected;
         },
         userInputGeometryStackAdd: function (feature) {
             const original_geometry = feature.getProperties().original_geometry;

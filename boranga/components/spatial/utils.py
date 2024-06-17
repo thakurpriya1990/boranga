@@ -349,7 +349,10 @@ def wkb_to_geojson(wkb):
     geos_geometry = GEOSGeometry(wkb)
     shapely_geometry = loads(geos_geometry.wkt)
     geo_json = shp.mapping(shapely_geometry)
-    geo_json["properties"] = {"srid": geos_geometry.srid}
+    geo_json["properties"] = {
+        "srid": geos_geometry.srid,
+        "crs_projected": geos_geometry.crs.projected,
+    }
 
     return geo_json
 
