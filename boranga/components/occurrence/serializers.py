@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
+from boranga.components.species_and_communities.models import GroupType
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
@@ -2114,7 +2115,31 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
             "can_user_edit",
             "review_due_date",
         )
-        read_only_fields = ("id",)
+        read_only_fields = ("id","group_type")
+
+    def validate(self, data):
+        obj = self.instance
+        if (obj.group_type and 
+            obj.group_type.name in 
+            [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_COMMUNITY] and
+            (data["occurrence_name"] == None or data["occurrence_name"] == "")):
+                raise serializers.ValidationError(
+                    "You must provide an Occurrence Name"
+                )
+        if (obj.group_type and 
+            obj.group_type.name in 
+            [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_FAUNA] and
+            (data["species"] == None)):
+                raise serializers.ValidationError(
+                    "You must provide a Scientific Name"
+                )
+        elif (obj.group_type and 
+            obj.group_type.name == GroupType.GROUP_TYPE_COMMUNITY and
+            (data["community"] == None)):
+                raise serializers.ValidationError(
+                    "You must provide a Community Name"
+                )
+        return data
 
 
 class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
