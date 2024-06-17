@@ -3859,25 +3859,20 @@ export default {
                 context.label ||
                 'Draw';
 
+            // Apply the passed in properties to the feature, but overwrite where necessary (nullish coalescing operator ??=)
             const featureProperties = structuredClone(properties);
-            // TODO: Continue here:
-            featureProperties['id'];
+            featureProperties['id'] ??= this.newFeatureId;
+            featureProperties['model'] ??= context;
+            featureProperties['geometry_source'] ??= 'New';
+            featureProperties['name'] ??= context.id || -1;
+            featureProperties['label'] ??= label;
+            featureProperties['color'] ??= color;
+            featureProperties['stroke'] ??= stroke;
+            featureProperties['srid'] ??= this.mapSrid;
+            featureProperties['original_geometry'] ??= original_geometry;
+            featureProperties['area_sqm'] ??= this.featureArea(feature);
 
-            feature.setProperties({
-                id: this.newFeatureId,
-                model: context,
-                geometry_source: properties.geometry_source || 'New',
-                source: properties.source || null,
-                name: context.id || -1,
-                label: label,
-                color: color, // <-
-                stroke: stroke,
-                locked: properties.locked || false, // <-
-                copied_from: properties.report_copied_from || null, // <-
-                srid: properties.srid || this.mapSrid,
-                original_geometry: original_geometry, // <-
-                area_sqm: properties.area_sqm || this.featureArea(feature), // <-
-            });
+            feature.setProperties(featureProperties);
 
             const type = feature.getGeometry().getType();
             if (!style) {
