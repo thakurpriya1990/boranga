@@ -809,7 +809,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 community=self.community,
             )
             warning = f"Multiple approved conservation statuses for {self.community}"
-        current_conservation_statuses.filter(
+        current_conservation_statuses = current_conservation_statuses.filter(
             processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
         )
         if current_conservation_statuses.count() > 1:
