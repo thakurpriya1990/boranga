@@ -154,14 +154,14 @@
                         <form class="layer_options form-horizontal">
                             <div
                                 v-for="(
-                                    features, title
+                                    features, name
                                 ) in mapFeaturesGroupedAndSorted"
-                                :key="`${title}-${features.length}`"
+                                :key="`${name}-${features.length}`"
                             >
                                 <small
                                     v-if="features.length"
                                     class="input-group-text mb-1 w-100"
-                                    >{{ title }}:</small
+                                    >{{ layerNameTitles[name] }}:</small
                                 >
                                 <div
                                     v-for="feature in features"
@@ -332,6 +332,30 @@
                                             v-if="isPointLikeFeature(feature)"
                                             :for="`feature-${feature.ol_uid}-longitude-input`"
                                             >Longitude</label
+                                        >
+                                    </div>
+                                    <!-- Buffer Radius -->
+                                    <div
+                                        v-if="
+                                            getLayerDefinitionByName(name)
+                                                ?.can_buffer
+                                        "
+                                        class="form-floating flex-grow-1 input-group-text"
+                                    >
+                                        <input
+                                            :id="`feature-${feature.ol_uid}-buffer-radius-input`"
+                                            :ref="`feature-${feature.ol_uid}-buffer-radius-input`"
+                                            class="form-control min-width-90"
+                                            :value="bufferRadius(feature)"
+                                            placeholder="Buffer Radius"
+                                            type="number"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Enter a buffer radius value"
+                                        />
+                                        <label
+                                            :for="`feature-${feature.ol_uid}-buffer-radius-input`"
+                                            >Buffer Radius [m]</label
                                         >
                                     </div>
                                     <!-- CRS Dropdown -->
@@ -1577,6 +1601,7 @@ export default {
                     default: true, // The default layer where in most cases features are added to
                     processed: true, // The layer where processed geometries are added to
                     can_edit: true,
+                    can_buffer: true, // Whether features may be used to create buffer geometries
                     api_url: null, // The API endpoint to fetch features from
                     ids: [], //Ids of proposals to be fetched by the map component and displayed on the map.
                     //  Negative values fetch no proposals
@@ -1918,17 +1943,19 @@ export default {
             ];
             return units;
         },
-        /**
-         * Returns the features in the modelQuerySource grouped by their source layer title and sorted by their id
-         */
-        mapFeaturesGroupedAndSorted: function () {
-            const sortedFeatures = {};
-            const layerNameTitles = Object.fromEntries(
+        layerNameTitles: function () {
+            return Object.fromEntries(
                 this.vectorLayerDefinitions().map((def) => [
                     def.name,
                     def.title,
                 ])
             );
+        },
+        /**
+         * Returns the features in the modelQuerySource grouped by their source layer title and sorted by their id
+         */
+        mapFeaturesGroupedAndSorted: function () {
+            const sortedFeatures = {};
 
             for (let source in this.layerSources) {
                 const features = this.layerSources[source]
@@ -1936,13 +1963,12 @@ export default {
                     .toSorted(function (a, b) {
                         return a.getProperties().id - b.getProperties().id;
                     });
-                const key = layerNameTitles[source];
-                if (!Object.keys(sortedFeatures).includes(key)) {
-                    sortedFeatures[key] = [];
+                // const key = layerNameTitles[source];
+                if (!Object.keys(sortedFeatures).includes(source)) {
+                    sortedFeatures[source] = [];
                 }
-                sortedFeatures[key].push(...features);
+                sortedFeatures[source].push(...features);
             }
-
             return sortedFeatures;
         },
         parameterInputLabel: function () {
@@ -4746,6 +4772,9 @@ export default {
             }
             return geometry.coordinates;
         },
+        bufferRadius: function (feature) {
+            return feature.getProperties().buffer_radius;
+        },
         unOrRedoFeatureUserInputGeoData: function (ol_uid, original_geometry) {
             // Find the respective feature on the map by ol_uid
             this.layerSources[this.defaultQueryLayerName]
@@ -4901,6 +4930,11 @@ export default {
                 geometry: new Point(coordinates),
             });
             this.centerOnFeature(feature, 12);
+        },
+        getLayerDefinitionByName: function (layer_name) {
+            return this.vectorLayerDefinitions().find((layer_def) => {
+                return layer_def.name == layer_name;
+            });
         },
         /**
          * Returns a layer by its name

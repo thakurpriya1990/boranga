@@ -31,6 +31,7 @@
                         title: 'Occurrence Reports',
                         default: false,
                         can_edit: true,
+                        can_buffer: false,
                         api_url: ocrApiUrl,
                         ids: occurrenceReportIds,
                     }"
@@ -41,6 +42,7 @@
                             default: true,
                             processed: true,
                             can_edit: true,
+                            can_buffer: true,
                             api_url: occApiUrl,
                             ids: [occurrence_obj.id],
                         },
