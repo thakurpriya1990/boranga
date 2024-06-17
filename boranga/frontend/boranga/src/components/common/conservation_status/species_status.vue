@@ -245,7 +245,7 @@
                                 v-model="conservation_status_obj.comment" />
                         </div>
                     </div>
-                    <div v-if="conservation_status_obj.processing_status != 'Draft'" class="row mb-3">
+                    <div v-if="!is_external" class="row mb-3">
                         <label for="conservation_status_under_review" class="col-sm-6 col-form-label">Is there a
                             Conservation Status
                             proposal under review?</label>
