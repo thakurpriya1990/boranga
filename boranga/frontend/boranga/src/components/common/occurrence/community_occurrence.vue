@@ -24,9 +24,15 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Wild Status:</label>
-                <div class="col-sm-9" :id="select_wild_status">
-                    <select :disabled="isReadOnly" :id="wild_status_lookup" :name="wild_status_lookup"
-                        :ref="wild_status_lookup" class="form-control" />
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" 
+                        class="form-select" 
+                        v-model="occurrence_obj.wild_status">
+                        <option value="" selected disabled>Select Wild Status</option>
+                        <option v-for="option in wild_status_list" :value="option.id" :key="option.id">
+                            {{ option.name }}
+                        </option>
+                    </select>
                 </div>
             </div>
             <div class="row mb-3">
@@ -69,8 +75,6 @@ export default {
             select_community_name: "select_community_name" + vm.occurrence_obj.id,
             occurrence_source_lookup: 'occurrence_source_lookup' + vm.occurrence_obj.id,
             select_occurrence_source: "select_occurrence_source" + vm.occurrence_obj.id,
-            wild_status_lookup: 'wild_status_lookup' + vm.occurrence_obj.id,
-            select_wild_status: "select_wild_status" + vm.occurrence_obj.id,
             occ_profile_dict: {},
             community_list: [],
             source_list: [],
@@ -161,40 +165,6 @@ export default {
                     searchField[0].focus();
                 });
         },
-        initialiseWildStatusLookup: function () {
-            let vm = this;
-            $(vm.$refs[vm.wild_status_lookup]).select2({
-                minimumInputLength: 2,
-                dropdownParent: $("#" + vm.select_wild_status),
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder: "Select Wild Status",
-                ajax: {
-                    url: api_endpoints.wild_status_lookup,
-                    dataType: 'json',
-                    data: function (params) {
-                        var query = {
-                            term: params.term,
-                            type: 'public',
-                        }
-                        return query;
-                    },
-                },
-            }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.occurrence_obj.wild_status = data;
-                }).
-                on("select2:unselect", function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.occurrence_obj.wild_status = null;
-                }).
-                on("select2:open", function (e) {
-                    const searchField = $('[aria-controls="select2-' + vm.wild_status_lookup + '-results"]')
-                    searchField[0].focus();
-                });
-        },
         getCommunityDisplay: function () {
             let vm = this;
             for (let choice of vm.community_list) {
@@ -215,16 +185,6 @@ export default {
                 }
             }
         },
-        getWildStatusDisplay: function () {
-            let vm = this;
-            for (let choice of vm.wild_status_list) {
-                console.log(choice, vm.occurrence_obj.wild_status)
-                if (choice.id === vm.occurrence_obj.wild_status) {
-                    var newOption = new Option(choice.name, choice.id, false, true);
-                    $('#' + vm.wild_status_lookup).append(newOption);
-                }
-            }
-        },
         eventListeners: function () {
             let vm = this;
 
@@ -242,7 +202,6 @@ export default {
             vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
             this.getCommunityDisplay();
             this.getSourceDisplay();
-            this.getWildStatusDisplay();
 
         }, (error) => {
             console.log(error);
