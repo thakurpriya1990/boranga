@@ -576,10 +576,10 @@ export default {
                 this.conservation_status_obj.processing_status == "With Assessor";
         },
         listing_and_review_due_date_disabled: function () {
-            return this.conservation_status_obj.processing_status != "With Assessor"
+            return this.isReadOnly || this.conservation_status_obj.processing_status != "With Assessor"
         },
         approval_level_disabled: function () {
-            return !['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status);
+            return this.isReadOnly || !['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status);
         },
         deficiencyVisibility: function () {
             return this.conservation_status_obj.assessor_mode.assessor_box_view;
@@ -605,6 +605,11 @@ export default {
         isReadOnly: function () {
             if (this.is_external) {
                 return !this.conservation_status_obj.can_user_edit;
+            } else if (
+                this.conservation_status_obj.processing_status == "With Referral" &&
+                this.referral
+            ) {
+                return true;
             } else {
                 if (this.conservation_status_obj.processing_status == "Ready For Agenda") {
                     return true;
