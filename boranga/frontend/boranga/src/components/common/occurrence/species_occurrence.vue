@@ -43,6 +43,12 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label class="col-sm-3 control-label" for="">Review Due Date:</label>
+                <div class="col-sm-3">
+                    <input type="date" class="form-control" v-model="occurrence_obj.review_due_date" placeholder="DD/MM/YYYY">
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Comments:</label>
                 <div class="col-sm-9">
                     <textarea class="form-control" :disabled="isReadOnly" id="occurrence_comments" placeholder=""
@@ -188,7 +194,6 @@ export default {
         vm.$http.get(dict_url).then((response) => {
             vm.occ_profile_dict = response.body;
             vm.species_list = vm.occ_profile_dict.species_list;
-            vm.source_list = vm.occ_profile_dict.source_list;
             vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
             vm.occurrence_source_list = vm.occ_profile_dict.occurrence_source_list;
             this.getSpeciesDisplay();

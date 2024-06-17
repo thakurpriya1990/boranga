@@ -2112,6 +2112,7 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
             "species",
             "community",
             "can_user_edit",
+            "review_due_date",
         )
         read_only_fields = ("id",)
 
