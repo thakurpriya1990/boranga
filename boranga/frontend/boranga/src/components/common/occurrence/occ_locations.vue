@@ -247,7 +247,7 @@
                         ref="occurrence_tenure_datatable"
                         :key="datatableOCCTenureKey"
                         :occurrence-id="occurrence_obj.id"
-                        :href-container-id="mapContainerId"
+                        :href-container-id="getMapContainerId"
                         @highlight-on-map="highlightPointOnMap"
                     ></OccurrenceTenureDatatable>
                 </div>
@@ -259,7 +259,7 @@
                 :is-read-only="isReadOnly"
                 :occurrence_obj="occurrence_obj"
                 :section_type="'location'"
-                :href-container-id="mapContainerId"
+                :href-container-id="getMapContainerId"
                 @copyUpdate="copyUpdate"
                 @highlight-on-map="highlightIdOnMapLayer"
             />
@@ -325,6 +325,7 @@ export default {
             coordination_source_list: [],
             location_accuracy_list: [],
             mapReady: false,
+            mapContainerId: false,
             queryLayerName: 'query_layer',
         };
     },
@@ -342,9 +343,12 @@ export default {
             return this.crs;
         },
         occurrenceReportIds: function () {
-            return this.occurrence_obj.occurrence_reports.map(
+            let ocrIds = this.occurrence_obj.occurrence_reports.map(
                 (report) => report.id
             );
+            // If no ocr ids for this occ, return [-1], because [] pulls _all_ ocrs
+            ocrIds = ocrIds.length ? ocrIds : [-1];
+            return ocrIds;
         },
         tileLayerApiUrl: function () {
             return api_endpoints.tile_layer;
@@ -365,17 +369,16 @@ export default {
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
         },
-        mapContainerId: function () {
+        getMapContainerId: function () {
             if (!this.mapReady) {
                 return '';
             }
-            return this.$refs.component_map.map_container_id;
+            return this.mapContainerId;
         },
     },
     created: async function () {
         let vm = this;
         let action = this.$route.query.action;
-        // this.uuid = uuid();
 
         fetch(
             helpers.add_endpoint_join(
@@ -443,8 +446,7 @@ export default {
         });
 
         // Make sure the datatables have access to the map container id to have the page scroll to the map anchor
-        this.uuid_datatable_ocr = uuid();
-        this.uuid_datatable_occ_tenure = uuid();
+        this.refreshDatatables();
     },
     methods: {
         filterDistrict: function (event) {
@@ -517,6 +519,7 @@ export default {
                         }
                     });
                     vm.incrementComponentMapKey();
+                    vm.refreshDatatables();
                 },
                 (error) => {
                     var text = helpers.apiVueResourceError(error);
@@ -534,6 +537,13 @@ export default {
         },
         incrementComponentMapKey: function () {
             this.uuid_component_map = uuid();
+            this.$nextTick(() => {
+                this.mapContainerId = this.$refs.component_map.map_container_id;
+            });
+        },
+        refreshDatatables: function () {
+            this.uuid_datatable_ocr = uuid();
+            this.uuid_datatable_occ_tenure = uuid();
         },
         searchForCRS: function (search, loading) {
             const vm = this;
@@ -581,6 +591,7 @@ export default {
         },
         mapFeaturesLoaded: function () {
             console.log('Map features loaded.');
+            this.mapContainerId = this.$refs.component_map.map_container_id;
             this.mapReady = true;
         },
         highlightPointOnMap: function (coordinates) {
@@ -594,7 +605,7 @@ export default {
             const map = this.$refs.component_map;
             const layer = map.getLayerByName(this.queryLayerName);
             const feature = map.getFeatureById(layer, id);
-            map.centerOnFeature(feature, 12);
+            map.centerOnFeature(feature);
         },
     },
 };
