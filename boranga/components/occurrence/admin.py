@@ -27,7 +27,7 @@ from boranga.components.occurrence.models import (
     PlantCountAccuracy,
     PlantCountMethod,
     PrimaryDetectionMethod,
-    ReproductiveMaturity,
+    ReproductiveState,
     RockType,
     SampleDestination,
     SampleType,
@@ -353,7 +353,7 @@ admin.site.register(CountedSubject)
 admin.site.register(PlantCondition)
 admin.site.register(PrimaryDetectionMethod)
 admin.site.register(SecondarySign)
-admin.site.register(ReproductiveMaturity)
+admin.site.register(ReproductiveState)
 admin.site.register(DeathReason)
 admin.site.register(AnimalHealth)
 admin.site.register(IdentificationCertainty)

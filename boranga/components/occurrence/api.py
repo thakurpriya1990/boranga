@@ -85,7 +85,7 @@ from boranga.components.occurrence.models import (
     PlantCountAccuracy,
     PlantCountMethod,
     PrimaryDetectionMethod,
-    ReproductiveMaturity,
+    ReproductiveState,
     RockType,
     SampleDestination,
     SampleType,
@@ -1192,11 +1192,11 @@ class OccurrenceReportViewSet(
                         "name": val.name,
                     }
                 )
-        reprod_maturity_list = []
-        values = ReproductiveMaturity.objects.all()
+        reprod_state_list = []
+        values = ReproductiveState.objects.all()
         if values:
             for val in values:
-                reprod_maturity_list.append(
+                reprod_state_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
@@ -1270,7 +1270,7 @@ class OccurrenceReportViewSet(
             "counted_subject_list": counted_subject_list,
             "primary_detection_method_list": primary_detection_method_list,
             "secondary_sign_list": secondary_sign_list,
-            "reprod_maturity_list": reprod_maturity_list,
+            "reprod_state_list": reprod_state_list,
             "death_reason_list": death_reason_list,
             "animal_health_list": animal_health_list,
             "identification_certainty_list": identification_certainty_list,
@@ -4591,11 +4591,11 @@ class OccurrenceViewSet(
                         "name": val.name,
                     }
                 )
-        reprod_maturity_list = []
-        values = ReproductiveMaturity.objects.all()
+        reprod_state_list = []
+        values = ReproductiveState.objects.all()
         if values:
             for val in values:
-                reprod_maturity_list.append(
+                reprod_state_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
@@ -4669,7 +4669,7 @@ class OccurrenceViewSet(
             "counted_subject_list": counted_subject_list,
             "primary_detection_method_list": primary_detection_method_list,
             "secondary_sign_list": secondary_sign_list,
-            "reprod_maturity_list": reprod_maturity_list,
+            "reprod_state_list": reprod_state_list,
             "death_reason_list": death_reason_list,
             "animal_health_list": animal_health_list,
             "identification_certainty_list": identification_certainty_list,
