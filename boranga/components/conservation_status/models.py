@@ -755,12 +755,15 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
+            ConservationStatus.PROCESSING_STATUS_CLOSED,
+            ConservationStatus.PROCESSING_STATUS_DECLINED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
         ]:
             group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_APPROVER)
         elif self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
-            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
         ]:
             group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_ASSESSOR)
 
@@ -800,17 +803,17 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             current_conservation_statuses = ConservationStatus.objects.filter(
                 species=self.species,
             )
+            warning = f"Multiple approved conservation statuses for {self.species}"
         elif self.community:
             current_conservation_statuses = ConservationStatus.objects.filter(
                 community=self.community,
             )
+            warning = f"Multiple approved conservation statuses for {self.community}"
         current_conservation_statuses.filter(
             processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
         )
         if current_conservation_statuses.count() > 1:
-            logger.warning(
-                f"Multiple approved conservation statuses for {self.species}"
-            )
+            logger.warning(warning)
 
         return current_conservation_statuses.first()
 
@@ -924,6 +927,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
                 ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
                 ConservationStatus.PROCESSING_STATUS_APPROVED,
+                ConservationStatus.PROCESSING_STATUS_CLOSED,
+                ConservationStatus.PROCESSING_STATUS_DELISTED,
+                ConservationStatus.PROCESSING_STATUS_DECLINED,
                 ConservationStatus.PROCESSING_STATUS_UNLOCKED,
             ]
 
@@ -975,6 +981,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_CLOSED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
+            ConservationStatus.PROCESSING_STATUS_DECLINED,
             ConservationStatus.PROCESSING_STATUS_UNLOCKED,
         ]:
             if self.assigned_approver:
@@ -1611,35 +1620,45 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     def related_item_status(self):
         return self.get_processing_status_display
 
-    def can_change_lock(self, request):
-        if self.processing_status in [
-            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
+    @property
+    def is_finalised(self):
+        return self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_APPROVED,
-        ]:
+            ConservationStatus.PROCESSING_STATUS_CLOSED,
+            ConservationStatus.PROCESSING_STATUS_DECLINED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
+        ]
+
+    def can_unlock(self, request):
+        if self.is_finalised:
             return is_conservation_status_approver(request)
+        return False
+
+    def can_lock(self, request):
+        if self.processing_status == ConservationStatus.PROCESSING_STATUS_UNLOCKED:
+            return is_conservation_status_approver(request)
+        return False
 
     def lock(self, request):
-        if (
-            self.can_change_lock(request)
-            and self.processing_status == ConservationStatus.PROCESSING_STATUS_UNLOCKED
-        ):
-            self.processing_status = ConservationStatus.PROCESSING_STATUS_APPROVED
-            self.assigned_approver = None
-            self.save(version_user=request.user)
+        if not self.can_lock(request):
+            return
+
+        self.processing_status = self.prev_processing_status
+        self.assigned_approver = None
+        self.save(version_user=request.user)
 
     def unlock(self, request):
-        if (
-            self.can_change_lock(request)
-            and self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED
-        ):
-            self.processing_status = ConservationStatus.PROCESSING_STATUS_UNLOCKED
-            self.save(version_user=request.user)
+        if not self.can_unlock(request):
+            return
+
+        self.prev_processing_status = self.processing_status
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_UNLOCKED
+        self.save(version_user=request.user)
 
     def has_unlocked_mode(self, request):
-        status_with_assessor = [
-            "unlocked",
-        ]
-        if self.processing_status not in status_with_assessor:
+        # TODO when you start on monday - for some reason this is returning False when
+        # a CS that is closed is unlocked.
+        if not self.processing_status == ConservationStatus.PROCESSING_STATUS_UNLOCKED:
             return False
 
         if not self.assigned_officer:
