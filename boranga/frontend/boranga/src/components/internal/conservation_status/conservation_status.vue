@@ -635,7 +635,7 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_cs_proposal(vm.conservation_status_obj.id))
+                    vm.$http.patch(api_endpoints.discard_cs_proposal(vm.conservation_status_obj.id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
