@@ -2139,6 +2139,10 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "You must provide a Community Name"
                 )
+
+        if data["occurrence_name"] == "":
+            data["occurrence_name"] = None
+
         return data
 
 
