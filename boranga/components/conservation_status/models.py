@@ -1656,8 +1656,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         self.save(version_user=request.user)
 
     def has_unlocked_mode(self, request):
-        # TODO when you start on monday - for some reason this is returning False when
-        # a CS that is closed is unlocked.
         if not self.processing_status == ConservationStatus.PROCESSING_STATUS_UNLOCKED:
             return False
 
