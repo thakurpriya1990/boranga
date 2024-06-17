@@ -152,7 +152,22 @@ def send_species_split_email_notification(request, species_proposal):
     )
     url = convert_external_url_to_internal_url(url)
 
-    context = {"species_proposal": species_proposal, "url": url}
+    conservation_status_url=None
+    conservation_status_list= species_proposal.conservation_status.filter(processing_status='approved')
+    if conservation_status_list:
+        conservation_status_url=request.build_absolute_uri(
+        reverse("internal-conservation-status-detail", kwargs={"cs_proposal_pk": conservation_status_list[0].id})
+    )
+
+    occurrences_url=None
+    occurrences=species_proposal.occurrences.filter(processing_status='active')
+    if occurrences:
+        for occ in occurrences:
+            occurrences_url.append({'occurrence_url': request.build_absolute_uri(
+            reverse("internal-occurrence-detail", kwargs={"occurrence_pk": occ.id })), 'occurrence_number': occ.occurrence_number})
+
+    context = {"species_proposal": species_proposal, "url": url, "conservation_status_url": conservation_status_url, "occurrences_url" : occurrences_url}
+    
 
     all_ccs = []
 

@@ -17,7 +17,7 @@ from boranga.components.conservation_status.models import (
     ConservationStatusReferral,
 )
 from boranga.components.meetings.models import Meeting
-from boranga.components.occurrence.models import OccurrenceReport
+from boranga.components.occurrence.models import OccurrenceReport, Occurrence
 from boranga.components.species_and_communities.models import Community, Species
 from boranga.forms import LoginForm
 from boranga.helpers import (
@@ -139,6 +139,10 @@ class InternalMeetingDashboardView(DetailView):
 
 class ExternalOccurrenceReportView(DetailView):
     model = OccurrenceReport
+    template_name = "boranga/dash/index.html"
+
+class InternalOccurrenceView(DetailView):
+    model = Occurrence
     template_name = "boranga/dash/index.html"
 
 
