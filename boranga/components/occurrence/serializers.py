@@ -2903,6 +2903,7 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
             "intersects",
             "drawn_by",
             "locked",
+            "buffer_radius",
         )
         read_only_fields = ("id",)
 

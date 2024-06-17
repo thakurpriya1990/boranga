@@ -239,6 +239,9 @@ def save_geometry(
             f"Processing {instance_model_name} {instance} geometry feature type: {geometry_type}"
         )
 
+        # Check if the feature has a buffer radius to later update or create a buffer geometry
+        buffer_radius = feature.get("properties", {}).get("buffer_radius", None)
+
         geom_4326 = feature_json_to_geosgeometry(feature)
 
         original_geometry = feature.get("properties", {}).get("original_geometry")
@@ -260,6 +263,7 @@ def save_geometry(
                 f"{instance_fk_field_name}_id": instance.id,
                 "geometry": geom[0],
                 "original_geometry_ewkb": geom[1].ewkb,
+                "buffer_radius": buffer_radius,
             }
 
             intersect_data = {}
@@ -319,7 +323,7 @@ def save_geometry(
             serializer.is_valid(raise_exception=True)
             geometry_instance = serializer.save()
             logger.info(f"Saved {instance_model_name} geometry: {geometry_instance}")
-            # geometry_ids.append(geometry_instance.id)
+
             geometry_id_intersect_data[geometry_instance.id] = intersect_data
 
     # Remove any ocr geometries from the db that are no longer in the ocr_geometry that was submitted
