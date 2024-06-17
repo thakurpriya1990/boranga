@@ -1228,13 +1228,13 @@ export default {
                 showCancelButton: true,
                 confirmButtonText: 'Discard Proposal',
                 customClass: {
-                    confirmButton: 'btn btn-danger',
+                    confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_cs_proposal(conservation_status_id))
+                    vm.$http.patch(api_endpoints.discard_cs_proposal(conservation_status_id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
