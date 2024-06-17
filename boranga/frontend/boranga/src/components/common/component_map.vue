@@ -3984,7 +3984,7 @@ export default {
 
             features.forEach(function (feature) {
                 console.log(feature.getProperties());
-                // feature.unset("model")
+                feature.unset('model');
             });
 
             return format.writeFeatures(features);
