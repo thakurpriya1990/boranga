@@ -1665,6 +1665,8 @@ export default {
                     //  Negative values fetch no proposals
                     //  Positive values fetch proposals with those ids
                     //  Empty list `[]` fetches all proposals
+                    handler: null, // A callback function to invoke on fetched features
+                    geometry_name: 'geometry', // The name of the geometry field in the model
                 };
             },
         },
@@ -3840,7 +3842,20 @@ export default {
                     );
                     return;
                 }
-                geometry.features.forEach(function (featureData) {
+                const geometry_features = geometry.features;
+                if (!geometry_features) {
+                    console.warn(
+                        `Proposal ${proposal.id} geometry has no features. Skipping...`
+                    );
+                    return;
+                }
+                geometry_features.forEach(function (featureData) {
+                    if (!featureData) {
+                        console.warn(
+                            `No data for this geometry feature: ${featureData}. Skipping...`
+                        );
+                        return;
+                    }
                     if (!featureData.geometry) {
                         console.warn(
                             `Feature ${featureData.id} has no geometry. Skipping...`
