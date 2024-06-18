@@ -290,9 +290,27 @@
                                             :value="userCoordinates(feature)[1]"
                                             placeholder="Latitude"
                                             type="number"
-                                            min="-35.5"
-                                            max="-13.5"
-                                            step="0.0001"
+                                            :min="
+                                                isOriginalGeometryCrsProjected(
+                                                    feature
+                                                )
+                                                    ? -10e6
+                                                    : -35.5
+                                            "
+                                            :max="
+                                                isOriginalGeometryCrsProjected(
+                                                    feature
+                                                )
+                                                    ? 0.0
+                                                    : -13.5
+                                            "
+                                            :step="
+                                                isOriginalGeometryCrsProjected(
+                                                    feature
+                                                )
+                                                    ? 1.0
+                                                    : 0.0001
+                                            "
                                             data-bs-toggle="tooltip"
                                             data-bs-placement="top"
                                             data-bs-title="Enter the latitude value"
@@ -325,9 +343,27 @@
                                             :value="userCoordinates(feature)[0]"
                                             placeholder="Longitude"
                                             type="number"
-                                            min="112.5"
-                                            max="129.0"
-                                            step="0.0001"
+                                            :min="
+                                                isOriginalGeometryCrsProjected(
+                                                    feature
+                                                )
+                                                    ? 0.0
+                                                    : 112.5
+                                            "
+                                            :max="
+                                                isOriginalGeometryCrsProjected(
+                                                    feature
+                                                )
+                                                    ? 40e6
+                                                    : 129.0
+                                            "
+                                            :step="
+                                                isOriginalGeometryCrsProjected(
+                                                    feature
+                                                )
+                                                    ? 1.0
+                                                    : 0.0001
+                                            "
                                             data-bs-toggle="tooltip"
                                             data-bs-placement="top"
                                             data-bs-title="Enter the longitude value"
