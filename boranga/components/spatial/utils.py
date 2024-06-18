@@ -1,42 +1,40 @@
+import base64
+import json
 import logging
 import re
+import sys
+import urllib.parse
+from itertools import combinations
 
+import geojson
+import numpy as np
+import requests
+import shapely.geometry as shp
 from django.apps import apps
-from django.db.models import Q, F
-from django.db import IntegrityError
 from django.contrib.gis.geos import GEOSGeometry
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.db.models import Q
 from django.http import Http404, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import serializers
+from shapely import wkt
+from shapely.ops import transform, unary_union, voronoi_diagram
+from wagov_utils.components.proxy.views import proxy_view
 
 from boranga import settings
 from boranga.components.occurrence.models import BufferGeometry, OccurrenceTenure
 from boranga.components.spatial.models import Proxy, TileLayer
 from boranga.helpers import is_internal
-from wagov_utils.components.proxy.views import proxy_view
-
-from rest_framework import serializers
-
-import sys
-import json
-import geojson
-import base64
-import requests
-import urllib.parse
-from itertools import combinations
-
-import shapely.geometry as shp
-from shapely import wkt
-from shapely.ops import transform, unary_union, voronoi_diagram
-
-import numpy as np
-
 
 logger = logging.getLogger(__name__)
 
 # Albers Equal Area projection string for Western Australia
-aea_wa_string = "+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+aea_wa_string = (
+    "+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=0 +y_0=0 "
+    "+ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+)
 
 
 def invert_xy_coordinates(geometries):
@@ -471,7 +469,6 @@ def transform_geosgeometry_3857_to_4326(geometry):
 
     if geometry.srid != 3857:
         # Potentially have to make this function more generic and allow for other projections as well
-        logger.debug("Not transforming geometry, as it is not in SRID 3857.")
         return geometry
 
     geom_type = (

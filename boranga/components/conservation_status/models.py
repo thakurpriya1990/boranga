@@ -1543,8 +1543,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 "are a member of the conservation status assessor group"
             )
 
-        logger.debug(request.data)
-
         self.effective_to = datetime.strptime(
             request.data.get("effective_to"), "%Y-%m-%d"
         )
@@ -1726,6 +1724,12 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             return False
 
         return is_conservation_status_approver(request)
+
+    @property
+    def external_referral_invites(self):
+        return self.external_referee_invites.filter(
+            archived=False, datetime_first_logged_in__isnull=True
+        )
 
 
 class ConservationStatusLogEntry(CommunicationsLogEntry):
@@ -2008,6 +2012,7 @@ class ConservationStatusReferral(models.Model):
         on_delete=models.SET_NULL,
     )
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
+    is_external = models.BooleanField(default=False)
 
     class Meta:
         app_label = "boranga"
@@ -2358,6 +2363,37 @@ class ConservationStatusAmendmentRequestDocument(Document):
     def delete(self):
         if self.can_delete:
             return super().delete()
+
+
+class CSExternalRefereeInvite(models.Model):
+    email = models.EmailField()
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    datetime_sent = models.DateTimeField(null=True, blank=True)
+    datetime_first_logged_in = models.DateTimeField(null=True, blank=True)
+    conservation_status = models.ForeignKey(
+        ConservationStatus,
+        related_name="external_referee_invites",
+        on_delete=models.CASCADE,
+    )
+    sent_by = models.IntegerField()
+    invite_text = models.TextField(blank=True)
+    archived = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "External Conservation Status Referral Invite"
+        verbose_name_plural = "External Conservation Status Referral Invites"
+
+    def __str__(self):
+        return_str = f"{self.first_name} {self.last_name} ({self.email})"
+        if self.archived:
+            return_str += " - Archived"
+        return return_str
+
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
 
 
 # Species Document History

@@ -2085,7 +2085,6 @@ class OccurrenceReportViewSet(
         else:
             instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
-        logger.debug(f"validate_map_files response: {serializer.data}")
 
         return Response(serializer.data)
 
@@ -2912,8 +2911,6 @@ class GetOCCProfileDict(views.APIView):
 
 class OccurrenceFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        logger.debug(f"OccurrenceFilterBackend:filter_queryset: {view.name}")
-
         total_count = queryset.count()
 
         filter_group_type = request.GET.get("filter_group_type")

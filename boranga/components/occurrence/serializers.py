@@ -4,7 +4,6 @@ from django.urls import reverse
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from boranga.components.species_and_communities.models import GroupType
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
@@ -45,6 +44,7 @@ from boranga.components.occurrence.models import (
     OCRAnimalObservation,
     OCRAssociatedSpecies,
     OCRConservationThreat,
+    OCRExternalRefereeInvite,
     OCRFireHistory,
     OCRHabitatComposition,
     OCRHabitatCondition,
@@ -56,7 +56,10 @@ from boranga.components.occurrence.models import (
     OCRVegetationStructure,
 )
 from boranga.components.spatial.utils import wkb_to_geojson
-from boranga.components.species_and_communities.models import CommunityTaxonomy
+from boranga.components.species_and_communities.models import (
+    CommunityTaxonomy,
+    GroupType,
+)
 from boranga.components.users.serializers import SubmitterInformationSerializer
 from boranga.helpers import (
     is_internal,
@@ -92,7 +95,10 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     model_name = serializers.SerializerMethodField()
     occurrence_reports = serializers.SerializerMethodField()
     occurrence_source = serializers.MultipleChoiceField(
-        choices=Occurrence.OCCURRENCE_SOURCE_CHOICES, allow_null=True, allow_blank=True, required=False
+        choices=Occurrence.OCCURRENCE_SOURCE_CHOICES,
+        allow_null=True,
+        allow_blank=True,
+        required=False,
     )
 
     class Meta:
@@ -568,21 +574,18 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "action_taken",
             "action_required",
             "observation_detail_comment",
-            
             "alive_adult_male",
             "dead_adult_male",
             "alive_adult_female",
             "dead_adult_female",
             "alive_adult_unknown",
             "dead_adult_unknown",
-
             "alive_juvenile_male",
             "dead_juvenile_male",
             "alive_juvenile_female",
             "dead_juvenile_female",
             "alive_juvenile_unknown",
             "dead_juvenile_unknown",
-
             "alive_unsure_male",
             "dead_unsure_male",
             "alive_unsure_female",
@@ -1517,21 +1520,18 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
             "action_taken",
             "action_required",
             "observation_detail_comment",
-            
             "alive_adult_male",
             "dead_adult_male",
             "alive_adult_female",
             "dead_adult_female",
             "alive_adult_unknown",
             "dead_adult_unknown",
-
             "alive_juvenile_male",
             "dead_juvenile_male",
             "alive_juvenile_female",
             "dead_juvenile_female",
             "alive_juvenile_unknown",
             "dead_juvenile_unknown",
-
             "alive_unsure_male",
             "dead_unsure_male",
             "alive_unsure_female",
@@ -2119,7 +2119,10 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
         required=False, allow_null=True, write_only=True
     )
     occurrence_source = serializers.MultipleChoiceField(
-        choices=Occurrence.OCCURRENCE_SOURCE_CHOICES, allow_null=True, allow_blank=True, required=False
+        choices=Occurrence.OCCURRENCE_SOURCE_CHOICES,
+        allow_null=True,
+        allow_blank=True,
+        required=False,
     )
 
     class Meta:
@@ -2136,30 +2139,30 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
             "can_user_edit",
             "review_due_date",
         )
-        read_only_fields = ("id","group_type")
+        read_only_fields = ("id", "group_type")
 
     def validate(self, data):
         obj = self.instance
-        if (obj.group_type and 
-            obj.group_type.name in 
-            [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_COMMUNITY] and
-            (data["occurrence_name"] == None or data["occurrence_name"] == "")):
-                raise serializers.ValidationError(
-                    "You must provide an Occurrence Name"
-                )
-        if (obj.group_type and 
-            obj.group_type.name in 
-            [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_FAUNA] and
-            (data["species"] == None)):
-                raise serializers.ValidationError(
-                    "You must provide a Scientific Name"
-                )
-        elif (obj.group_type and 
-            obj.group_type.name == GroupType.GROUP_TYPE_COMMUNITY and
-            (data["community"] == None)):
-                raise serializers.ValidationError(
-                    "You must provide a Community Name"
-                )
+        if (
+            obj.group_type
+            and obj.group_type.name
+            in [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_COMMUNITY]
+            and (data["occurrence_name"] is None or data["occurrence_name"] == "")
+        ):
+            raise serializers.ValidationError("You must provide an Occurrence Name")
+        if (
+            obj.group_type
+            and obj.group_type.name
+            in [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_FAUNA]
+            and (data["species"] is None)
+        ):
+            raise serializers.ValidationError("You must provide a Scientific Name")
+        elif (
+            obj.group_type
+            and obj.group_type.name == GroupType.GROUP_TYPE_COMMUNITY
+            and (data["community"] is None)
+        ):
+            raise serializers.ValidationError("You must provide a Community Name")
 
         if data["occurrence_name"] == "":
             data["occurrence_name"] = None
@@ -2403,21 +2406,18 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "action_taken",
             "action_required",
             "observation_detail_comment",
-            
             "alive_adult_male",
             "dead_adult_male",
             "alive_adult_female",
             "dead_adult_female",
             "alive_adult_unknown",
             "dead_adult_unknown",
-
             "alive_juvenile_male",
             "dead_juvenile_male",
             "alive_juvenile_female",
             "dead_juvenile_female",
             "alive_juvenile_unknown",
             "dead_juvenile_unknown",
-
             "alive_unsure_male",
             "dead_unsure_male",
             "alive_unsure_female",
@@ -2653,21 +2653,18 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
             "action_taken",
             "action_required",
             "observation_detail_comment",
-            
             "alive_adult_male",
             "dead_adult_male",
             "alive_adult_female",
             "dead_adult_female",
             "alive_adult_unknown",
             "dead_adult_unknown",
-
             "alive_juvenile_male",
             "dead_juvenile_male",
             "alive_juvenile_female",
             "dead_juvenile_female",
             "alive_juvenile_unknown",
             "dead_juvenile_unknown",
-
             "alive_unsure_male",
             "dead_unsure_male",
             "alive_unsure_female",
@@ -3018,3 +3015,20 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "significant_to_occurrence",
             "tenure_area_centroid",
         )
+
+
+class OCRExternalRefereeInviteSerializer(serializers.ModelSerializer):
+    occurrence_report_id = serializers.IntegerField(required=False)
+    full_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = OCRExternalRefereeInvite
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "full_name",
+            "email",
+            "invite_text",
+            "occurrence_report_id",
+        ]
