@@ -125,6 +125,10 @@ router.register(
     r"conservation_status", conservation_status_api.ConservationStatusViewSet
 )
 router.register(
+    r"cs_external_referee_invites",
+    conservation_status_api.CSExternalRefereeInviteViewSet,
+)
+router.register(
     r"occurrence_report", occurrence_api.OccurrenceReportViewSet, "occurrence_report"
 )
 router.register(
@@ -160,7 +164,7 @@ router.register(r"users", users_api.UserViewSet)
 router.register(r"global_settings", main_api.GlobalSettingsViewSet)
 
 router.register(r"tile_layer", spatial_api.TileLayerViewSet, "tile_layer")
-router.register(r'regions', species_communities_api.RegionViewSet,"regions")
+router.register(r"regions", species_communities_api.RegionViewSet, "regions")
 
 router.register(
     r"occurrence_tenure_paginated",

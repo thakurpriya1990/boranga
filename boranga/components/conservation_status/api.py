@@ -12,7 +12,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import mixins, serializers, views, viewsets
+from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -78,6 +78,7 @@ from boranga.components.species_and_communities.models import (
 from boranga.components.users.models import SubmitterCategory
 from boranga.helpers import (
     is_conservation_status_approver,
+    is_conservation_status_assessor,
     is_external_contributor,
     is_internal,
 )
@@ -1904,7 +1905,9 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             sent_by=request.user.id, **request.data
         )
         send_external_referee_invite_email(instance, request, external_referee_invite)
-        serializer = self.get_serializer(instance)
+
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
 
 
@@ -2040,11 +2043,13 @@ class ConservationStatusReferralViewSet(
             .values_list("conservation_status__processing_status", flat=True)
         )
         if processing_statuses:
-            for status in processing_statuses:
+            for processing_status in processing_statuses:
                 processing_status_list.append(
                     {
-                        "value": status,
-                        "name": "{}".format(" ".join(status.split("_")).capitalize()),
+                        "value": processing_status,
+                        "name": "{}".format(
+                            " ".join(processing_status.split("_")).capitalize()
+                        ),
                     }
                 )
         res_json = {
@@ -2107,11 +2112,13 @@ class ConservationStatusReferralViewSet(
             .values_list("conservation_status__processing_status", flat=True)
         )
         if processing_statuses:
-            for status in processing_statuses:
+            for processing_status in processing_statuses:
                 processing_status_list.append(
                     {
-                        "value": status,
-                        "name": "{}".format(" ".join(status.split("_")).capitalize()),
+                        "value": processing_status,
+                        "name": "{}".format(
+                            " ".join(processing_status.split("_")).capitalize()
+                        ),
                     }
                 )
         res_json = {
@@ -2382,3 +2389,35 @@ class AmendmentRequestReasonChoicesView(views.APIView):
             for c in choices:
                 choices_list.append({"key": c.id, "value": c.reason})
         return Response(choices_list)
+
+
+class CSExternalRefereeInviteViewSet(viewsets.ModelViewSet):
+    queryset = CSExternalRefereeInvite.objects.filter(archived=False)
+    serializer_class = CSExternalRefereeInviteSerializer
+
+    def get_queryset(self):
+        qs = self.queryset
+        if not is_conservation_status_assessor(self.request):
+            qs = CSExternalRefereeInvite.objects.none()
+        return qs
+
+    @detail_route(methods=["post"], detail=True)
+    def remind(self, request, *args, **kwargs):
+        instance = self.get_object()
+        send_external_referee_invite_email(
+            instance.conservation_status, request, instance, reminder=True
+        )
+        return Response(
+            status=status.HTTP_200_OK,
+            data={"message": f"Reminder sent to {instance.email} successfully"},
+        )
+
+    @detail_route(methods=["patch"], detail=True)
+    def retract(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.archived = True
+        instance.save()
+        serializer = InternalConservationStatusSerializer(
+            instance.conservation_status, context={"request": request}
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
