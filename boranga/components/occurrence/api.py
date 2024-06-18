@@ -4767,36 +4767,6 @@ class OccurrenceViewSet(
         )
         return Response(serializer.data)
 
-    @list_route(methods=["GET"], detail=False)
-    def buffer_geometries(self, request, *args, **kwargs):
-        occurrence_ids = [
-            int(id)
-            for id in request.query_params.get("proposal_ids", "").split(",")
-            if id.lstrip("-").isnumeric()
-        ]
-
-        cache_key = settings.CACHE_KEY_MAP_OCCURRENCES
-        qs = cache.get(cache_key)
-        if qs is None:
-            qs = (
-                self.get_queryset()
-                .exclude(occ_geometry__isnull=True)
-                .prefetch_related("occ_geometry")
-            )
-            cache.set(cache_key, qs, settings.CACHE_TIMEOUT_2_HOURS)
-
-        if len(occurrence_ids) > 0:
-            qs = qs.filter(id__in=occurrence_ids)
-
-        buffer_geometry_ids = qs.filter(id__in=occurrence_ids).values_list("occ_geometry__buffer_geometry", flat=True)
-
-        qs_bgs = BufferGeometry.objects.filter(id__in=buffer_geometry_ids)
-        serializer = BufferGeometrySerializer(
-            qs_bgs, context={"request": request}, many=True
-        )
-
-        return Response(serializer.data)
-
 
 class OccurrenceReportReferralViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin
