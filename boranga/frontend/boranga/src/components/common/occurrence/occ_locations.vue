@@ -53,8 +53,7 @@
                             processed: false,
                             can_edit: false,
                             can_buffer: false,
-                            api_url: bufferGeometriesApiUrl,
-                            ids: [occurrence_obj.id],
+                            handler: bufferGeometryHandler,
                         },
                     ]"
                     @features-loaded="mapFeaturesLoaded"
@@ -621,6 +620,25 @@ export default {
             const layer = map.getLayerByName(this.queryLayerName);
             const feature = map.getFeatureById(layer, id);
             map.centerOnFeature(feature);
+        },
+        bufferGeometryHandler: function () {
+            const occurrence_features = this.$refs.component_map
+                .getLayerByName('processed_layer')
+                .getSource()
+                .getFeatures();
+
+            const features = [];
+            occurrence_features.forEach((feature) => {
+                features.push(feature.getProperties().buffer_geometry);
+            });
+
+            return [
+                {
+                    geometry: {
+                        features: features,
+                    },
+                },
+            ];
         },
     },
 };

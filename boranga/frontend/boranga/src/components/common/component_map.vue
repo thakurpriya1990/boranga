@@ -2102,8 +2102,12 @@ export default {
                 this.loadMapFeatures(proposals, this.queryLayerDefinition.name);
                 for (let i = 0; i < initialised.length; i++) {
                     const layerDef = this.additionalLayersDefinitions[i];
-                    const proposals = this.initialiseProposals(initialised[i]);
-                    this.loadMapFeatures(proposals, layerDef.name);
+                    let features = this.initialiseProposals(initialised[i]);
+
+                    if (layerDef.handler) {
+                        features = layerDef.handler(features);
+                    }
+                    this.loadMapFeatures(features, layerDef.name);
                 }
 
                 console.log('Done fetching map initilisation data');
@@ -3829,7 +3833,7 @@ export default {
             // Remove all features from the layer
             source.clear();
             proposals.forEach(function (proposal) {
-                const geometry = proposal.ocr_geometry || proposal.occ_geometry;
+                const geometry = proposal.geometry || proposal.ocr_geometry || proposal.occ_geometry;
                 if (!geometry) {
                     console.warn(
                         `Proposal ${proposal.id} has no geometry. Skipping...`
