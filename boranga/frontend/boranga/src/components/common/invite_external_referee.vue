@@ -15,8 +15,7 @@
                             </label>
                             <div class="col-sm-9">
                                 <input ref="Email" v-model="external_referee_invite.email" type="email"
-                                    class="form-control" name="email" required
-                                    />
+                                    class="form-control" name="email" required />
                                 <div class="invalid-feedback">
                                     Please enter a valid email address.
                                 </div>
@@ -99,7 +98,7 @@ export default {
             required: true,
         },
     },
-    emits: ['externalRefereeInviteSent'],
+    emits: ['refreshFromResponse'],
     data: function () {
         return {
             isModalOpen: false,
@@ -157,9 +156,13 @@ export default {
                         text: 'External referee invite sent',
                         icon: 'success',
                         confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    }).then((result) => {
+                        vm.$emit('refreshFromResponse', response);
+                        vm.close();
                     });
-                    vm.$emit('externalRefereeInviteSent');
-                    vm.close();
                 })
                 .catch((response) => {
                     vm.errors = response.body;
