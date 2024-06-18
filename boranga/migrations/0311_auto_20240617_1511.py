@@ -47,7 +47,16 @@ class Migration(migrations.Migration):
             name='processing_status',
             field=models.CharField(choices=[('draft', 'Draft'), ('with_assessor', 'With Assessor'), ('with_referral', 'With Referral'), ('with_approver', 'With Approver'), ('ready_for_agenda', 'Ready For Agenda'), ('awaiting_applicant_respone', 'Awaiting Applicant Response'), ('awaiting_assessor_response', 'Awaiting Assessor Response'), ('awaiting_responses', 'Awaiting Responses'), ('approved', 'Approved'), ('declined', 'Declined'), ('unlocked', 'Unlocked'), ('discarded', 'Discarded'), ('delisted', 'DeListed'), ('closed', 'Closed')], default='draft', max_length=30, verbose_name='Processing Status'),
         ),
-        migrations.AlterField(
+        #migrations.AlterField(
+        #    model_name='occanimalobservation',
+        #    name='secondary_sign',
+        #    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='boranga.secondarysign'),
+        #),
+        migrations.RemoveField(
+            model_name='occanimalobservation',
+            name='secondary_sign',
+        ),
+        migrations.AddField(
             model_name='occanimalobservation',
             name='secondary_sign',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='boranga.secondarysign'),
@@ -62,7 +71,16 @@ class Migration(migrations.Migration):
             name='processing_status',
             field=models.CharField(choices=[('draft', 'Draft'), ('with_assessor', 'With Assessor'), ('with_referral', 'With Referral'), ('with_approver', 'With Approver'), ('awaiting_applicant_respone', 'Awaiting Applicant Response'), ('awaiting_assessor_response', 'Awaiting Assessor Response'), ('awaiting_responses', 'Awaiting Responses'), ('approved', 'Approved'), ('declined', 'Declined'), ('unlocked', 'Unlocked'), ('discarded', 'Discarded'), ('closed', 'DeListed')], default='draft', max_length=30, verbose_name='Processing Status'),
         ),
-        migrations.AlterField(
+        #migrations.AlterField(
+        #    model_name='ocranimalobservation',
+        #    name='secondary_sign',
+        #    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='boranga.secondarysign'),
+        #),
+        migrations.RemoveField(
+            model_name='ocranimalobservation',
+            name='secondary_sign',
+        ),
+        migrations.AddField(
             model_name='ocranimalobservation',
             name='secondary_sign',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='boranga.secondarysign'),
