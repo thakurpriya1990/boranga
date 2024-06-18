@@ -77,6 +77,53 @@
                                             </span>
                                         </template>
                                     </div>
+                                    <div v-if="
+                                        conservation_status_obj.external_referral_invites &&
+                                        conservation_status_obj.external_referral_invites.length > 0
+                                    ">
+                                        <div class="fw-bold mb-1">External Referee Invites</div>
+                                        <table class="table table-sm table-hover table-referrals">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Referee</th>
+                                                    <th scope="col">Status</th>
+                                                    <th scope="col">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="external_referee_invite in conservation_status_obj.external_referral_invites"
+                                                    :key="external_referee_invite.id">
+                                                    <td class="truncate-name">
+                                                        {{ external_referee_invite.full_name }}
+                                                    </td>
+                                                    <td>Pending</td>
+                                                    <td class="text-center">
+                                                        <a role="button" data-bs-toggle="popover"
+                                                            data-bs-trigger="hover focus" :data-bs-content="'Send a reminder to ' +
+                                                                external_referee_invite.full_name
+                                                                " data-bs-placement="bottom" @click.prevent="
+                                                                    remindExternalReferee(
+                                                                        external_referee_invite
+                                                                    )
+                                                                    "><i class="fa fa-bell text-warning"
+                                                                aria-hidden="true"></i>
+                                                        </a>
+                                                        <a role="button" data-bs-toggle="popover"
+                                                            data-bs-trigger="hover focus" :data-bs-content="'Recall the external referee invite sent to ' +
+                                                                external_referee_invite.full_name
+                                                                " data-bs-placement="bottom" @click.prevent="
+                                                                    retractExternalRefereeInvite(
+                                                                        external_referee_invite
+                                                                    )
+                                                                    "><i class="fa fa-times-circle text-danger"
+                                                                aria-hidden="true"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
                                     <template
                                         v-if="conservation_status_obj.latest_referrals && conservation_status_obj.latest_referrals.length > 0">
                                         <div>
@@ -372,13 +419,8 @@
         <ProposeDelist ref="propose_delist" :processing_status="conservation_status_obj.processing_status"
             :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse">
         </ProposeDelist>
-        <InviteExternalReferee
-            ref="inviteExternalReferee"
-            :pk="conservation_status_obj.id"
-            model="conservation_status"
-            :email="external_referee_email"
-            @external-referee-invite-sent="fetchConservationStatus"
-        />
+        <InviteExternalReferee ref="inviteExternalReferee" :pk="conservation_status_obj.id" model="conservation_status"
+            :email="external_referee_email" @refreshFromResponse="refreshFromResponse" />
     </div>
 </template>
 <script>
@@ -1151,6 +1193,73 @@ export default {
             vm.selected_referral = '';
             vm.referral_text = '';
         },
+        remindExternalReferee: function (external_referee_invite) {
+            let vm = this;
+            vm.$http.post(
+                helpers.add_endpoint_join(
+                    api_endpoints.cs_external_referee_invites,
+                    `/${external_referee_invite.id}/remind/`
+                ),
+            )
+                .then((response) => {
+                    swal.fire({
+                        title: 'Reminder Email Sent',
+                        text: `A reminder email was successfully sent to ${external_referee_invite.full_name} (${external_referee_invite.email}).`,
+                        icon: 'success',
+                    });
+                })
+                .catch((error) => {
+                    console.error(`Error sending reminder. ${error}`);
+                    swal.fire({
+                        title: 'Reminder Email Failed',
+                        text: `${constants.API_ERROR}`,
+                        icon: 'warning',
+                    });
+                });
+        },
+        retractExternalRefereeInvite: function (external_referee_invite) {
+            swal.fire({
+                title: 'Retract External Referral Invite',
+                text: `Are you sure you want to retract the invite sent to ${external_referee_invite.full_name} (${external_referee_invite.email})?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Retract Email',
+                reverseButtons: true,
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let vm = this;
+                    vm.$http.patch(
+                        helpers.add_endpoint_join(
+                            api_endpoints.cs_external_referee_invites,
+                            `/${external_referee_invite.id}/retract/`
+                        ),
+                    )
+                        .then((response) => {
+                            this.fetchConservationStatus();
+                            swal.fire({
+                                title: 'External Referral Invite Retracted',
+                                text: `The external referee invite that was sent to ${external_referee_invite.full_name} (${external_referee_invite.email}) has been successfully retracted.`,
+                                icon: 'success',
+                            });
+                        })
+                        .catch((error) => {
+                            console.error(
+                                `Error retracting external referee invite. ${error}`
+                            );
+                            swal.fire({
+                                title: 'Retract External Referee Invite Failed',
+                                text: `${constants.API_ERROR}`,
+                                icon: 'error',
+                            });
+                        });
+                }
+            });
+        },
         sendReferral: function () {
             let vm = this;
             let formData = new FormData(vm.form);
@@ -1195,7 +1304,9 @@ export default {
                     title: 'Referral Reminder',
                     text: 'A reminder has been sent to ' + vm.department_users.find(d => d.id == r.referral).name,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    }
                 });
             },
                 error => {
@@ -1218,7 +1329,9 @@ export default {
                     title: 'Referral Recall',
                     text: 'The referral has been recalled from ' + vm.department_users.find(d => d.id == r.referral).name,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    }
                 });
             },
                 error => {
@@ -1226,7 +1339,9 @@ export default {
                         title: 'Referral Recall Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        }
                     });
                 });
         },
@@ -1317,6 +1432,7 @@ export default {
             });
         },
         fetchConservationStatus: function () {
+            console.log('Fetching conservation status')
             let vm = this;
             vm.$http.get('/api/conservation_status/' + vm.$route.params.conservation_status_id + '/internal_conservation_status.json').then(res => {
                 vm.conservation_status_obj = res.body.conservation_status_obj;
