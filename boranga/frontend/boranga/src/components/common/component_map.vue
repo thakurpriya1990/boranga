@@ -3830,26 +3830,29 @@ export default {
             const source =
                 vm.layerSources[toSource] ||
                 vm.layerSources[vm.defaultQueryLayerName];
+            const geometry_name =
+                vm.getLayerDefinitionByName(toSource).geometry_name ||
+                'geometry';
 
             console.log(`Loading features to source ${toSource}`, proposals);
             // Remove all features from the layer
             source.clear();
             proposals.forEach(function (proposal) {
-                const geometry = proposal.geometry || proposal.ocr_geometry || proposal.occ_geometry;
+                const geometry = proposal[geometry_name];
                 if (!geometry) {
                     console.warn(
-                        `Proposal ${proposal.id} has no geometry. Skipping...`
+                        `Proposal ${proposal.id} has no geometry named ${geometry_name}. Skipping...`
                     );
                     return;
                 }
-                const geometry_features = geometry.features;
-                if (!geometry_features) {
+
+                if (!geometry.features) {
                     console.warn(
                         `Proposal ${proposal.id} geometry has no features. Skipping...`
                     );
                     return;
                 }
-                geometry_features.forEach(function (featureData) {
+                geometry.features.forEach(function (featureData) {
                     if (!featureData) {
                         console.warn(
                             `No data for this geometry feature: ${featureData}. Skipping...`

@@ -34,6 +34,7 @@
                         can_buffer: false,
                         api_url: ocrApiUrl,
                         ids: occurrenceReportIds,
+                        geometry_name: 'ocr_geometry',
                     }"
                     :additional-layers-definitions="[
                         {
@@ -45,6 +46,7 @@
                             can_buffer: true,
                             api_url: occApiUrl,
                             ids: [occurrence_obj.id],
+                            geometry_name: 'occ_geometry',
                         },
                         {
                             name: 'buffer_layer',
