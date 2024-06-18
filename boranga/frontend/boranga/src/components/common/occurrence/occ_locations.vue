@@ -46,6 +46,16 @@
                             api_url: occApiUrl,
                             ids: [occurrence_obj.id],
                         },
+                        {
+                            name: 'buffer_layer',
+                            title: 'Buffer Geometries',
+                            default: false,
+                            processed: false,
+                            can_edit: false,
+                            can_buffer: false,
+                            api_url: bufferGeometriesApiUrl,
+                            ids: [occurrence_obj.id],
+                        },
                     ]"
                     @features-loaded="mapFeaturesLoaded"
                     @crs-select-search="searchForCRS"
@@ -360,6 +370,9 @@ export default {
         },
         occApiUrl: function () {
             return api_endpoints.occurrence + 'list_for_map/';
+        },
+        bufferGeometriesApiUrl: function () {
+            return api_endpoints.occurrence + 'buffer_geometries/';
         },
         isReadOnly: function(){
             //override for split reports
