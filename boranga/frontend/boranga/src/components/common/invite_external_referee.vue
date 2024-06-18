@@ -149,11 +149,6 @@ export default {
             const url = `/api/${vm.model}/${vm.pk}/external_referee_invite/`;
             vm.$http.post(url, JSON.stringify(vm.external_referee_invite))
                 .then(async (response) => {
-                    const data = await response.json();
-                    if (!response.ok) {
-                        vm.errors = data || response.statusText;
-                        return;
-                    }
                     swal.fire({
                         title: 'Success',
                         text: 'External referee invite sent',
@@ -163,9 +158,8 @@ export default {
                     vm.$emit('externalRefereeInviteSent', data);
                     vm.close();
                 })
-                .catch((error) => {
-                    console.error('There was an error!', error);
-                    vm.errors = error;
+                .catch((response) => {
+                    vm.errors = response.body;
                 });
         },
     },
