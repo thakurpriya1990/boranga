@@ -1725,6 +1725,12 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
         return is_conservation_status_approver(request)
 
+    @property
+    def external_referral_invites(self):
+        return self.external_referee_invites.filter(
+            archived=False, datetime_first_logged_in__isnull=True
+        )
+
 
 class ConservationStatusLogEntry(CommunicationsLogEntry):
     conservation_status = models.ForeignKey(
@@ -2006,6 +2012,7 @@ class ConservationStatusReferral(models.Model):
         on_delete=models.SET_NULL,
     )
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
+    is_external = models.BooleanField(default=False)
 
     class Meta:
         app_label = "boranga"
