@@ -16,7 +16,7 @@
                             <div class="col-sm-9">
                                 <input ref="Email" v-model="external_referee_invite.email" type="email"
                                     class="form-control" name="email" required
-                                    pattern="^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" />
+                                    />
                                 <div class="invalid-feedback">
                                     Please enter a valid email address.
                                 </div>
@@ -128,6 +128,9 @@ export default {
         close: function () {
             this.isModalOpen = false;
             this.errors = null;
+            this.external_referee_invite = {
+                "email": '',
+            }
             document
                 .getElementById('inviteExternalRefereeForm')
                 .classList.remove('was-validated');
@@ -143,19 +146,19 @@ export default {
             }
             return false;
         },
-        sendData: async function () {
+        sendData: function () {
             let vm = this;
             vm.errors = false;
             const url = `/api/${vm.model}/${vm.pk}/external_referee_invite/`;
             vm.$http.post(url, JSON.stringify(vm.external_referee_invite))
-                .then(async (response) => {
+                .then((response) => {
                     swal.fire({
                         title: 'Success',
                         text: 'External referee invite sent',
                         icon: 'success',
                         confirmButtonText: 'OK',
                     });
-                    vm.$emit('externalRefereeInviteSent', data);
+                    vm.$emit('externalRefereeInviteSent');
                     vm.close();
                 })
                 .catch((response) => {
