@@ -3821,9 +3821,13 @@ export default {
          */
         loadMapFeatures: function (proposals, toSource = null) {
             let vm = this;
-            console.log(proposals);
+            const source =
+                vm.layerSources[toSource] ||
+                vm.layerSources[vm.defaultQueryLayerName];
+
+            console.log(`Loading features to source ${toSource}`, proposals);
             // Remove all features from the layer
-            vm.layerSources[vm.defaultQueryLayerName].clear();
+            source.clear();
             proposals.forEach(function (proposal) {
                 const geometry = proposal.ocr_geometry || proposal.occ_geometry;
                 if (!geometry) {
@@ -3840,19 +3844,12 @@ export default {
                         return;
                     }
                     let feature = vm.featureFromDict(featureData, proposal);
-                    if (
-                        vm.layerSources[
-                            vm.defaultQueryLayerName
-                        ].getFeatureById(feature.getId())
-                    ) {
+                    if (source.getFeatureById(feature.getId())) {
                         console.warn(
                             `Feature ${feature.getId()} already exists in the source. Skipping...`
                         );
                         return;
                     }
-                    const source =
-                        vm.layerSources[toSource] ||
-                        vm.layerSources[vm.defaultQueryLayerName];
                     source.addFeature(feature);
                 });
             });
