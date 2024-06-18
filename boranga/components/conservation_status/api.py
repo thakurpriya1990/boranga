@@ -23,6 +23,9 @@ from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 
 from boranga import exceptions
+from boranga.components.conservation_status.email import (
+    send_external_referee_invite_email,
+)
 from boranga.components.conservation_status.models import (
     CommonwealthConservationList,
     ConservationChangeCode,
@@ -32,6 +35,7 @@ from boranga.components.conservation_status.models import (
     ConservationStatusDocument,
     ConservationStatusReferral,
     ConservationStatusUserAction,
+    CSExternalRefereeInvite,
     ProposalAmendmentReason,
     WALegislativeCategory,
     WALegislativeList,
@@ -47,6 +51,7 @@ from boranga.components.conservation_status.serializers import (
     ConservationStatusSerializer,
     ConservationStatusUserActionSerializer,
     CreateConservationStatusSerializer,
+    CSExternalRefereeInviteSerializer,
     DTConservationStatusReferralSerializer,
     InternalConservationStatusSerializer,
     InternalSaveConservationStatusDocumentSerializer,
@@ -1876,6 +1881,30 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         instance.lock(request)
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
+
+    @detail_route(methods=["post"], detail=True)
+    def external_referee_invite(self, request, *args, **kwargs):
+        instance = self.get_object()
+        request.data["conservation_status_id"] = instance.id
+        serializer = CSExternalRefereeInviteSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        if CSExternalRefereeInvite.objects.filter(
+            archived=False, email=request.data["email"]
+        ).exists():
+            raise serializers.ValidationError(
+                "An external referee invitation has already been sent to {email}".format(
+                    email=request.data["email"]
+                ),
+                code="invalid",
+            )
+        external_referee_invite = CSExternalRefereeInvite.objects.create(
+            sent_by=request.user.id, **request.data
+        )
+        send_external_referee_invite_email(instance, request, external_referee_invite)
+        serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
 
