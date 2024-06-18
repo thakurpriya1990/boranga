@@ -1543,8 +1543,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 "are a member of the conservation status assessor group"
             )
 
-        logger.debug(request.data)
-
         self.effective_to = datetime.strptime(
             request.data.get("effective_to"), "%Y-%m-%d"
         )

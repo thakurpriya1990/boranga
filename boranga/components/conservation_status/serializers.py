@@ -802,9 +802,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         }
 
     def get_assessor_mode(self, obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
-        logger.debug(obj.assessor_comments_view(request))
         return {
             "assessor_mode": True,
             "has_assessor_mode": obj.has_assessor_mode(request),

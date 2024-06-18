@@ -1,7 +1,5 @@
-import json
 import logging
 import os
-import sys
 from zipfile import ZipFile
 
 import geopandas as gpd
@@ -14,7 +12,6 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from boranga.components.spatial.utils import feature_json_to_geosgeometry
 from boranga.components.occurrence.email import (
     send_external_submit_email_notification,
     send_submit_email_notification,
@@ -22,17 +19,12 @@ from boranga.components.occurrence.email import (
 from boranga.components.occurrence.models import (
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
-    OccurrenceReportGeometry,
     OccurrenceReportUserAction,
-    OccurrenceGeometry,
-)
-from boranga.components.occurrence.serializers import (
-    OccurrenceReportGeometrySaveSerializer,
-    OccurrenceGeometrySaveSerializer,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger(__name__)
+
 
 @transaction.atomic
 def ocr_proposal_submit(ocr_proposal, request):
@@ -183,8 +175,6 @@ def validate_map_files(request, instance, foreign_key_field=None):
     # and when they intersect with DBCA legislated land or water polygons
 
     valid_geometry_saved = False
-
-    logger.debug(f"Shapefile documents: {instance.shapefile_documents.all()}")
 
     if not instance.shapefile_documents.exists():
         raise ValidationError(

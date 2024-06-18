@@ -225,7 +225,6 @@ def clone_model(
 
     Pass save=True to save the new instance to the database automatically after copying the field values.
     """
-    logger.debug(f"Save: {save}")
     if source_model is None:
         return None
 
