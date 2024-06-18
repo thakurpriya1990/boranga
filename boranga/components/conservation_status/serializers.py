@@ -12,6 +12,7 @@ from boranga.components.conservation_status.models import (
     ConservationStatusLogEntry,
     ConservationStatusReferral,
     ConservationStatusUserAction,
+    CSExternalRefereeInvite,
 )
 from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
@@ -1513,3 +1514,21 @@ class InternalSaveConservationStatusDocumentSerializer(
         read_only_fields = (
             SaveConservationStatusDocumentSerializer.Meta.read_only_fields
         )
+
+
+class CSExternalRefereeInviteSerializer(serializers.ModelSerializer):
+    conservation_status_id = serializers.IntegerField(required=False)
+    full_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = CSExternalRefereeInvite
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "full_name",
+            "email",
+            "organisation",
+            "invite_text",
+            "conservation_status_id",
+        ]
