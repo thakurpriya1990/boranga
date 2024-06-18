@@ -46,17 +46,6 @@
                         </div>
 
                         <div class="row mb-4">
-                            <label for="mobile" class="col-sm-3 col-form-label">Organisation</label>
-                            <div class="col-sm-9">
-                                <input v-model="external_referee_invite.organisation
-                                    " type="text" class="form-control" name="organisation" required />
-                                <div class="invalid-feedback">
-                                    Please enter the referee's organisation.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4">
                             <label for="mobile" class="col-sm-3 col-form-label">Invite Comments</label>
                             <div class="col-sm-9">
                                 <textarea v-model="external_referee_invite.invite_text
@@ -157,15 +146,8 @@ export default {
         sendData: async function () {
             let vm = this;
             vm.errors = false;
-            vm.external_referee_invite.model = vm.model;
             const url = `/api/${vm.model}/${vm.pk}/external_referee_invite/`;
-            const requestOptions = {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(vm.external_referee_invite),
-            };
-
-            fetch(url, requestOptions)
+            vm.$http.post(url, JSON.stringify(vm.external_referee_invite))
                 .then(async (response) => {
                     const data = await response.json();
                     if (!response.ok) {
