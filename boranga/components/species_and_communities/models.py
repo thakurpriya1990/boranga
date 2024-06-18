@@ -435,11 +435,9 @@ class Species(RevisionedMixin):
         blank=True,
         related_name="species_image",
     )
-    regions = models.ManyToManyField(
-        Region, null=True, blank=True, related_name="species_regions"
-    )
+    regions = models.ManyToManyField(Region, blank=True, related_name="species_regions")
     districts = models.ManyToManyField(
-        District, null=True, blank=True, related_name="species_districts"
+        District, blank=True, related_name="species_districts"
     )
     last_data_curration_date = models.DateField(blank=True, null=True)
     conservation_plan_exists = models.BooleanField(default=False)
