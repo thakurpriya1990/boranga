@@ -35,6 +35,7 @@ from boranga.components.occurrence.filters import OccurrenceReportReferralFilter
 from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
     AnimalHealth,
+    BufferGeometry,
     CoordinationSource,
     CountedSubject,
     DeathReason,
@@ -97,6 +98,7 @@ from boranga.components.occurrence.models import (
 )
 from boranga.components.occurrence.serializers import (
     BackToAssessorSerializer,
+    BufferGeometrySerializer,
     CreateOccurrenceReportSerializer,
     CreateOccurrenceSerializer,
     InternalOccurrenceReportReferralSerializer,

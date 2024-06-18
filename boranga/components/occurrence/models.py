@@ -1615,9 +1615,15 @@ class GeometryBase(models.Model):
         if not self.geometry:
             raise ValidationError("Geometry is required")
 
+        if not self.geometry.valid:
+            raise ValidationError("Invalid geometry")
+
+        if self.geometry.empty:
+            raise ValidationError("Geometry is empty")
+
         if self.geometry.srid != 4326:
             raise ValidationError(
-                f"Trying to save a geometry with SRID {self.geometry.srid} into WGS-84 (SRID 4326) geometry field."
+                f"Cannot save a geometry with SRID {self.geometry.srid} into a WGS-84 (SRID 4326) geometry field."
             )
 
         if not self.geometry.within(

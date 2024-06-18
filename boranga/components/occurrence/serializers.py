@@ -12,6 +12,7 @@ from boranga.components.main.serializers import (
 )
 from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
+    BufferGeometry,
     GeometryType,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
@@ -253,9 +254,14 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
         return ""
 
     def get_main_observer(self, obj):
-        if obj.observer_detail.filter(main_observer=True).exists():
-            return obj.observer_detail.filter(main_observer=True).first().observer_name
-        else:
+        try:
+            if obj.observer_detail.filter(main_observer=True).exists():
+                return (
+                    obj.observer_detail.filter(main_observer=True).first().observer_name
+                )
+            else:
+                return ""
+        except:
             return ""
 
 
@@ -392,9 +398,14 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             return obj.identification.identification_certainty.name
 
     def get_main_observer(self, obj):
-        if obj.observer_detail.filter(main_observer=True).exists():
-            return obj.observer_detail.filter(main_observer=True).first().observer_name
-        else:
+        try:
+            if obj.observer_detail.filter(main_observer=True).exists():
+                return (
+                    obj.observer_detail.filter(main_observer=True).first().observer_name
+                )
+            else:
+                return ""
+        except:
             return ""
 
 
@@ -2744,12 +2755,57 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             return obj.copied_ocr_location.occurrence_report.occurrence_report_number
 
 
+class BufferGeometrySerializer(GeoFeatureModelSerializer):
+    geometry_source = serializers.SerializerMethodField()
+    srid = serializers.SerializerMethodField(read_only=True)
+    original_geometry = serializers.SerializerMethodField(read_only=True)
+    label = serializers.SerializerMethodField(read_only=True)
+    buffer_radius = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = BufferGeometry
+        geo_field = "geometry"
+        fields = (
+            "id",
+            "buffered_from_geometry",
+            "geometry",
+            "original_geometry",
+            "srid",
+            "area_sqm",
+            "area_sqhm",
+            "geometry_source",
+            "label",
+            "buffer_radius",
+        )
+
+    def get_srid(self, obj):
+        if obj.geometry:
+            return obj.geometry.srid
+        else:
+            return None
+
+    def get_geometry_source(self, obj):
+        return obj.buffered_from_geometry.occurrence.occurrence_number
+
+    def get_original_geometry(self, obj):
+        if obj.original_geometry_ewkb:
+            return wkb_to_geojson(obj.original_geometry_ewkb)
+        else:
+            return None
+
+    def get_label(self, obj):
+        return f"{obj.buffered_from_geometry.occurrence.occurrence_number} [Buffer]"
+
+    def get_buffer_radius(self, obj):
+        return obj.buffered_from_geometry.buffer_radius
+
 class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)
     geometry_source = serializers.SerializerMethodField()
     copied_from = serializers.SerializerMethodField(read_only=True)
     srid = serializers.SerializerMethodField(read_only=True)
     original_geometry = serializers.SerializerMethodField(read_only=True)
+    buffer_geometry = BufferGeometrySerializer(read_only=True)
 
     class Meta:
         model = OccurrenceGeometry
@@ -2767,6 +2823,7 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
             "locked",
             "copied_from",
             "buffer_radius",
+            "buffer_geometry",
         )
         read_only_fields = ("id",)
 
@@ -2903,6 +2960,7 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
             "intersects",
             "drawn_by",
             "locked",
+            "buffer_radius",
         )
         read_only_fields = ("id",)
 
