@@ -2391,6 +2391,7 @@ class CSExternalRefereeInvite(models.Model):
             return_str += " - Archived"
         return return_str
 
+    @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
 
