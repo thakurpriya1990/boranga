@@ -653,6 +653,23 @@ class ConservationStatusProposalReferralSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
+class CSExternalRefereeInviteSerializer(serializers.ModelSerializer):
+    conservation_status_id = serializers.IntegerField(required=False)
+    full_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = CSExternalRefereeInvite
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "full_name",
+            "email",
+            "invite_text",
+            "conservation_status_id",
+        ]
+
+
 class ConservationStatusDeclinedDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConservationStatusDeclinedDetails
@@ -717,6 +734,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     conservation_status_under_review = CurrentConservationStatusSerializer(
         read_only=True, allow_null=True
     )
+    external_referral_invites = CSExternalRefereeInviteSerializer(many=True)
 
     class Meta:
         model = ConservationStatus
@@ -774,6 +792,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "current_conservation_status",
             "submitter_information",
             "conservation_status_under_review",
+            "external_referral_invites",
         )
 
     def get_submitter(self, obj):
@@ -1514,20 +1533,3 @@ class InternalSaveConservationStatusDocumentSerializer(
         read_only_fields = (
             SaveConservationStatusDocumentSerializer.Meta.read_only_fields
         )
-
-
-class CSExternalRefereeInviteSerializer(serializers.ModelSerializer):
-    conservation_status_id = serializers.IntegerField(required=False)
-    full_name = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = CSExternalRefereeInvite
-        fields = [
-            "id",
-            "first_name",
-            "last_name",
-            "full_name",
-            "email",
-            "invite_text",
-            "conservation_status_id",
-        ]
