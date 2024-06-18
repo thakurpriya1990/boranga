@@ -2360,6 +2360,36 @@ class ConservationStatusAmendmentRequestDocument(Document):
             return super().delete()
 
 
+class CSExternalRefereeInvite(models.Model):
+    email = models.EmailField()
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    datetime_sent = models.DateTimeField(null=True, blank=True)
+    datetime_first_logged_in = models.DateTimeField(null=True, blank=True)
+    conservation_status = models.ForeignKey(
+        ConservationStatus,
+        related_name="external_referee_invites",
+        on_delete=models.CASCADE,
+    )
+    sent_by = models.IntegerField()
+    invite_text = models.TextField(blank=True)
+    archived = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "External Conservation Status Referral Invite"
+        verbose_name_plural = "External Conservation Status Referral Invites"
+
+    def __str__(self):
+        return_str = f"{self.first_name} {self.last_name} ({self.email})"
+        if self.archived:
+            return_str += " - Archived"
+        return return_str
+
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+
 # Species Document History
 reversion.register(ConservationStatusDocument)
 
