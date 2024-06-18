@@ -372,6 +372,13 @@
         <ProposeDelist ref="propose_delist" :processing_status="conservation_status_obj.processing_status"
             :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse">
         </ProposeDelist>
+        <InviteExternalReferee
+            ref="inviteExternalReferee"
+            :pk="conservation_status_obj.id"
+            model="conservation_status"
+            :email="external_referee_email"
+            @external-referee-invite-sent="fetchConservationStatus"
+        />
     </div>
 </template>
 <script>
@@ -384,7 +391,7 @@ import AmendmentRequest from './amendment_request.vue'
 import ProposedDecline from './proposal_proposed_decline'
 import ProposeDelist from './proposal_propose_delist'
 import ProposedApproval from './proposed_issuance.vue'
-
+import InviteExternalReferee from '@common-utils/invite_external_referee.vue'
 import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals.vue'
 import ProposalConservationStatus from '@/components/form_conservation_status.vue'
 import {
@@ -414,7 +421,7 @@ export default {
             sendingReferral: false,
             changingStatus: false,
             proposeReadyForAgenda: false,
-
+            external_referee_email: '',
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comms_url: helpers.add_endpoint_json(api_endpoints.conservation_status, vm.$route.params.conservation_status_id + '/comms_log'),
             comms_add_url: helpers.add_endpoint_json(api_endpoints.conservation_status, vm.$route.params.conservation_status_id + '/add_comms_log'),
@@ -435,6 +442,7 @@ export default {
         ProposedDecline,
         ProposeDelist,
         ProposedApproval,
+        InviteExternalReferee
     },
     filters: {
         formatDate: function (data) {
@@ -1092,6 +1100,34 @@ export default {
                             }
                             return query;
                         },
+                        processResults: function (data, params) {
+                            if (Object.keys(data.results).length == 0) {
+                                swal.fire({
+                                    title: 'No Referee Found',
+                                    text: 'Would you like to invite a new external referee to the system?',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    reverseButtons: true,
+                                    confirmButtonText: 'Yes',
+                                    cancelButtonText: 'No',
+                                    buttonsStyling: false,
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                        cancelButton: 'btn btn-secondary me-2',
+                                    },
+                                }).then(async (result) => {
+                                    if (result.isConfirmed) {
+                                        vm.external_referee_email =
+                                            params.term;
+                                        vm.$refs.inviteExternalReferee.isModalOpen = true;
+                                        $(vm.$refs.department_users).select2(
+                                            'close'
+                                        );
+                                    }
+                                });
+                            }
+                            return data;
+                        },
                     },
                 })
                     .on("select2:select", function (e) {
@@ -1108,6 +1144,12 @@ export default {
                 vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
             }
+        },
+        externalRefereeInviteSent: function () {
+            let vm = this;
+            $(vm.$refs.department_users).val(null).trigger("change");
+            vm.selected_referral = '';
+            vm.referral_text = '';
         },
         sendReferral: function () {
             let vm = this;
@@ -1274,6 +1316,15 @@ export default {
                 })
             });
         },
+        fetchConservationStatus: function () {
+            let vm = this;
+            vm.$http.get('/api/conservation_status/' + vm.$route.params.conservation_status_id + '/internal_conservation_status.json').then(res => {
+                vm.conservation_status_obj = res.body.conservation_status_obj;
+            },
+                err => {
+                    console.log(err);
+                });
+        },
     },
     mounted: function () {
         let vm = this;
@@ -1281,12 +1332,7 @@ export default {
     },
     created: function () {
         if (!this.conservation_status_obj) {
-            this.$http.get('/api/conservation_status/' + this.$route.params.conservation_status_id + '/internal_conservation_status.json').then(res => {
-                this.conservation_status_obj = res.body.conservation_status_obj;
-            },
-                err => {
-                    console.log(err);
-                });
+            this.fetchConservationStatus();
         }
     },
     updated: function () {
