@@ -1035,7 +1035,11 @@
                             <img src="" class="rounded me-2" alt="" />
                             <strong class="me-auto">
                                 {{ selectedModel.label }}:
-                                {{ selectedModel.occurrence_report_number }}
+                                {{
+                                    selectedModel.occurrence_report_number ||
+                                    selectedModel.occurrence_number ||
+                                    selectedModel.buffer_radius
+                                }}
                             </strong>
                         </div>
                         <div class="toast-body">
@@ -3245,6 +3249,10 @@ export default {
                                     projection: `EPSG:${vm.mapSrid}`,
                                 })
                             );
+                            model.label ??= selected.getProperties().label;
+                            model.buffer_radius ??= `${
+                                selected.getProperties().buffer_radius
+                            }m`;
                         }
                         vm.selectedModel = model;
                         if (!isSelectedFeature(selected)) {
