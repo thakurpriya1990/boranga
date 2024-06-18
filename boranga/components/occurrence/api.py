@@ -35,6 +35,7 @@ from boranga.components.occurrence.filters import OccurrenceReportReferralFilter
 from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
     AnimalHealth,
+    BufferGeometry,
     CoordinationSource,
     CountedSubject,
     DeathReason,
@@ -97,6 +98,7 @@ from boranga.components.occurrence.models import (
 )
 from boranga.components.occurrence.serializers import (
     BackToAssessorSerializer,
+    BufferGeometrySerializer,
     CreateOccurrenceReportSerializer,
     CreateOccurrenceSerializer,
     InternalOccurrenceReportReferralSerializer,
@@ -4786,11 +4788,13 @@ class OccurrenceViewSet(
         if len(occurrence_ids) > 0:
             qs = qs.filter(id__in=occurrence_ids)
 
-        qs.filter(id__in=occurrence_ids).values_list("occ_geometry__buffer_geometry", flat=True)
+        buffer_geometry_ids = qs.filter(id__in=occurrence_ids).values_list("occ_geometry__buffer_geometry", flat=True)
 
-        serializer = ListOCCMinimalSerializer(
-            qs, context={"request": request}, many=True
+        qs_bgs = BufferGeometry.objects.filter(id__in=buffer_geometry_ids)
+        serializer = BufferGeometrySerializer(
+            qs_bgs, context={"request": request}, many=True
         )
+
         return Response(serializer.data)
 
 
