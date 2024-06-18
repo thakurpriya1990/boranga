@@ -2971,7 +2971,6 @@ class OCRExternalRefereeInviteSerializer(serializers.ModelSerializer):
             "last_name",
             "full_name",
             "email",
-            "organisation",
             "invite_text",
             "occurrence_report_id",
         ]

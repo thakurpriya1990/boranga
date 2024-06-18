@@ -1528,7 +1528,6 @@ class CSExternalRefereeInviteSerializer(serializers.ModelSerializer):
             "last_name",
             "full_name",
             "email",
-            "organisation",
             "invite_text",
             "conservation_status_id",
         ]
