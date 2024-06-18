@@ -5,6 +5,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import smart_text
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
@@ -175,6 +176,40 @@ def send_external_submit_email_notification(request, cs_proposal):
     _log_user_email(msg, to_user, to_user, sender=sender)
 
     return msg
+
+
+def send_external_referee_invite_email(
+    conservation_status, request, external_referee_invite, reminder=False
+):
+    subject = (
+        f"Referral Request for DBCA's Boranga System "
+        f"Conservation Status Proposal: {conservation_status.conservation_status_number}"
+    )
+    if reminder:
+        subject = f"Reminder: {subject}"
+    email = TemplateEmailBase(
+        subject=subject,
+        html_template="boranga/emails/cs_proposals/send_external_referee_invite.html",
+        txt_template="boranga/emails/cs_proposals/send_external_referee_invite.txt",
+    )
+
+    url = request.build_absolute_uri(reverse("external"))
+    context = {
+        "external_referee_invite": external_referee_invite,
+        "conservation_status": conservation_status,
+        "url": url,
+        "reminder": reminder,
+    }
+
+    msg = email.send(
+        external_referee_invite.email,
+        context=context,
+    )
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_conservation_status_email(msg, conservation_status, sender=sender)
+
+    external_referee_invite.datetime_sent = timezone.now()
+    external_referee_invite.save()
 
 
 def _log_conservation_status_email(
