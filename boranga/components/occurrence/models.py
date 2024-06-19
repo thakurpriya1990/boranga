@@ -58,7 +58,6 @@ from boranga.components.users.models import (
 )
 from boranga.helpers import (
     clone_model,
-    email_in_dept_domains,
     is_occurrence_approver,
     is_occurrence_assessor,
     member_ids,
@@ -895,16 +894,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         # Check if the user is in ledger
         try:
-            referee = EmailUser.objects.get(email__icontains=referral_email)
+            referee = EmailUser.objects.get(email__iexact=referral_email.strip())
         except EmailUser.DoesNotExist:
             raise ValidationError(
                 "The user you want to send the referral to does not exist in the ledger database"
-            )
-
-        # Validate if it is a deparment user
-        if not email_in_dept_domains(referral_email):
-            raise ValidationError(
-                "The user you want to send the referral to is not a member of the department"
             )
 
         # Check if the referral has already been sent to this user
