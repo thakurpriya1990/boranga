@@ -1,4 +1,3 @@
-import Search from '../search.vue'
 import User from '../users/manage.vue'
 import SpeciesCommunitiesDash from '../species_communities/dashboard.vue'
 import SpeciesCommunities from '../species_communities/species_communities.vue'
@@ -59,11 +58,6 @@ export default
                 path: 'occurrence_report/:occurrence_report_id',
                 component: OccurrenceReport,
                 name: "internal-occurrence-report-detail"
-            },
-            {
-                path: 'search',
-                component: Search,
-                name: "internal-search"
             },
             {
                 path: 'users',
