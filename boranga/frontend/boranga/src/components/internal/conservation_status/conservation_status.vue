@@ -1133,7 +1133,7 @@ export default {
                     allowClear: true,
                     placeholder: "Search for a Referree",
                     ajax: {
-                        url: api_endpoints.users_api + '/get_department_users/',
+                        url: api_endpoints.users_api + '/get_referees/',
                         dataType: 'json',
                         data: function (params) {
                             var query = {
@@ -1276,7 +1276,7 @@ export default {
                     vm.conservation_status_obj = response.body;
                     swal.fire({
                         title: 'Referral Sent',
-                        text: 'The referral has been sent to ' + vm.department_users.find(d => d.email == vm.selected_referral).name,
+                        text: `The referral has been sent to ${vm.selected_referral}`,
                         icon: 'success',
                         confirmButtonColor: '#226fbb'
                     });
