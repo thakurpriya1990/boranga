@@ -467,10 +467,10 @@ class OCRVegetationStructureSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "occurrence_report_id",
-            "free_text_field_one",
-            "free_text_field_two",
-            "free_text_field_three",
-            "free_text_field_four",
+            "vegetation_structure_layer_one",
+            "vegetation_structure_layer_two",
+            "vegetation_structure_layer_three",
+            "vegetation_structure_layer_four",
         )
 
 
@@ -1397,10 +1397,10 @@ class SaveOCRVegetationStructureSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "occurrence_report_id",
-            "free_text_field_one",
-            "free_text_field_two",
-            "free_text_field_three",
-            "free_text_field_four",
+            "vegetation_structure_layer_one",
+            "vegetation_structure_layer_two",
+            "vegetation_structure_layer_three",
+            "vegetation_structure_layer_four",
         )
 
 
@@ -2242,10 +2242,10 @@ class OCCVegetationStructureSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_id",
             "copied_ocr",
-            "free_text_field_one",
-            "free_text_field_two",
-            "free_text_field_three",
-            "free_text_field_four",
+            "vegetation_structure_layer_one",
+            "vegetation_structure_layer_two",
+            "vegetation_structure_layer_three",
+            "vegetation_structure_layer_four",
         )
 
     def get_copied_ocr(self, obj):
@@ -2264,10 +2264,10 @@ class SaveOCCVegetationStructureSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "occurrence_id",
-            "free_text_field_one",
-            "free_text_field_two",
-            "free_text_field_three",
-            "free_text_field_four",
+            "vegetation_structure_layer_one",
+            "vegetation_structure_layer_two",
+            "vegetation_structure_layer_three",
+            "vegetation_structure_layer_four",
         )
 
 
