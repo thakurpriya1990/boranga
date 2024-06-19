@@ -1275,6 +1275,7 @@ class OccurrenceReportReferral(models.Model):
         on_delete=models.SET_NULL,
     )
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
+    is_external = models.BooleanField(default=False)
 
     class Meta:
         app_label = "boranga"
@@ -2821,8 +2822,8 @@ class Occurrence(RevisionedMixin):
     OCCURRENCE_CHOICE_OCR = "ocr"
     OCCURRENCE_CHOICE_NON_OCR = "non-ocr"
     OCCURRENCE_SOURCE_CHOICES = (
-        (OCCURRENCE_CHOICE_OCR,"OCR"),
-        (OCCURRENCE_CHOICE_NON_OCR,"Non-OCR (describe in comments)")
+        (OCCURRENCE_CHOICE_OCR, "OCR"),
+        (OCCURRENCE_CHOICE_NON_OCR, "Non-OCR (describe in comments)"),
     )
 
     objects = OccurrenceManager()
@@ -2853,7 +2854,9 @@ class Occurrence(RevisionedMixin):
     wild_status = models.ForeignKey(
         WildStatus, on_delete=models.PROTECT, null=True, blank=True
     )
-    occurrence_source = MultiSelectField(max_length=250, blank=True, choices=OCCURRENCE_SOURCE_CHOICES, null=True)
+    occurrence_source = MultiSelectField(
+        max_length=250, blank=True, choices=OCCURRENCE_SOURCE_CHOICES, null=True
+    )
 
     comment = models.TextField(null=True, blank=True)
 
