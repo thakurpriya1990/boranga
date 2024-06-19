@@ -549,7 +549,7 @@
                                         type="button"
                                         class="btn btn-primary btn-sm"
                                         :class="
-                                            pointFeaturesSupported
+                                            selectedFeatureIds.length
                                                 ? ''
                                                 : 'disabled'
                                         "
