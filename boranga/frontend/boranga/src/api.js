@@ -76,6 +76,7 @@ module.exports = {
     meetings_paginated: "/api/meeting_paginated/?format=datatables",
     occurrence_lookup: "/api/occurrence_paginated/occurrence_lookup",
     occurrence_name_lookup: "/api/occurrence_paginated/occurrence_name_lookup",
+    combine_occurrence_name_lookup: "/api/occurrence_paginated/combine_occurrence_name_lookup",
     occurrence_internal_export: "/api/occurrence_paginated/occurrence_internal_export",
     occurrence_paginated_internal: "/api/occurrence_paginated/occurrence_internal?format=datatables",
     occurrence_report_external_export: "/api/occurrence_report_paginated/occurrence_report_external_export",

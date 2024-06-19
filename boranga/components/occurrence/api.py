@@ -158,6 +158,7 @@ from boranga.components.occurrence.utils import (
     ocr_proposal_submit,
     process_shapefile_document,
     validate_map_files,
+    get_all_related_species,
 )
 from boranga.components.spatial.utils import (
     populate_occurrence_tenure_data,
@@ -3189,6 +3190,64 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                     {"id": occurrence["id"], "text": occurrence["occurrence_name"]}
                     for occurrence in queryset
                 ]
+        return Response({"results": queryset})
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def combine_occurrence_name_lookup(self, request, *args, **kwargs):
+
+        main_occurrence_id = request.GET.get("occurrence_id", None)
+
+        if main_occurrence_id:
+            try:
+                main_occurrence = self.get_queryset().get(id=main_occurrence_id)
+                queryset = self.get_queryset().exclude(
+                    id=main_occurrence_id,
+                    processing_status=OccurrenceReport.PROCESSING_STATUS_CLOSED,
+                ).filter(
+                    group_type=main_occurrence.group_type
+                )
+
+                if main_occurrence.group_type.name in [
+                    GroupType.GROUP_TYPE_FLORA,
+                    GroupType.GROUP_TYPE_FAUNA,
+                ]:
+                    #get species and all parents/children of those species
+                    species_ids = get_all_related_species(main_occurrence.species.id)
+                    queryset = queryset.filter(species_id__in=species_ids)
+
+                search_term = request.GET.get("term", None)
+                if search_term and main_occurrence_id:
+                    queryset = (
+                        queryset.annotate(
+                            display_name=Concat(
+                                "occurrence_number",
+                                Value(" - "),
+                                "occurrence_name",
+                                Value(" ("),
+                                "group_type__name",
+                                Value(")"),
+                                output_field=CharField(),
+                            ),
+                        )
+                        .filter(display_name__icontains=search_term)
+                        .distinct()
+                        .values("id", "display_name")[:10]
+                    )
+                    queryset = [
+                        {"id": occurrence["id"], "text": occurrence["display_name"]}
+                        for occurrence in queryset
+                    ]
+            except Exception as e:
+                print(e)
+                queryset = self.get_queryset().none()
+        else:
+            queryset = self.get_queryset().none()
+        
         return Response({"results": queryset})
 
     @detail_route(

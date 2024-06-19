@@ -112,7 +112,7 @@
         </div>
         <!-- <OccurrenceSplit ref="occurrence_split" :occurrence="occurrence" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />-->
-        <OccurrenceCombine ref="occurrence_combine" :occurrence="occurrence" :is_internal="true"
+        <OccurrenceCombine v-if="occurrence" ref="occurrence_combine" :main_occurrence_obj="occurrence" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
     </div>
 
@@ -510,62 +510,7 @@ export default {
             });
         },
         splitOccurrence: async function () {
-            this.$refs.occurrence_split.occurrence_original = this.occurrence;
-            let newOccurrenceId1 = null
-            try {
-                const createUrl = api_endpoints.occurrence + "/";
-                let payload = new Object();
-                payload.group_type_id = this.occurrence.group_type_id;
-                let savedOccurrence = await Vue.http.post(createUrl, payload);
-                if (savedOccurrence) {
-                    newOccurrenceId1 = savedOccurrence.body.id;
-                    Vue.http.get(`/api/occurrence/${newOccurrenceId1}/internal_occurrence.json`).then(res => {
-                        let occurrence_obj = res.body.occurrence_obj;
-                        //--- to add empty documents array
-                        occurrence_obj.documents = []
-                        //---empty threats array added to store the select threat ids in from the child component
-                        occurrence_obj.threats = []
-                        this.$refs.occurrence_split.occurrence_list.push(occurrence_obj); //--temp occurrence_obj
-                    },
-                        err => {
-                            console.log(err);
-                        });
-                }
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-            let newOccurrenceId2 = null
-            try {
-                const createUrl = api_endpoints.occurrence + "/";
-                let payload = new Object();
-                payload.group_type_id = this.occurrence.group_type_id
-                let savedOccurrence = await Vue.http.post(createUrl, payload);
-                if (savedOccurrence) {
-                    newOccurrenceId2 = savedOccurrence.body.id;
-                    Vue.http.get(`/api/occurrence/${newOccurrenceId2}/internal_occurrence.json`).then(res => {
-                        let occurrence_obj = res.body.occurrence_obj;
-                        // to add documents id array from original occurrence
-                        occurrence_obj.documents = []
-                        //---empty threats array added to store the select threat ids in from the child component
-                        occurrence_obj.threats = []
-                        this.$refs.occurrence_split.occurrence_list.push(occurrence_obj); //--temp occurrence_obj
-                    },
-                        err => {
-                            console.log(err);
-                        });
-                }
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-            this.$refs.occurrence_split.isModalOpen = true;
+            //this.$refs.occurrence_split.isModalOpen = true;
         },
         combineOccurrence: async function () {
             this.$refs.occurrence_combine.isModalOpen = true;
