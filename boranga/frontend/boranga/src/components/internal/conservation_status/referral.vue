@@ -1,22 +1,33 @@
 <template lang="html">
     <div v-if="conservation_status_obj" class="container" id="internalCSReferral">
-        <div class="row" style="padding-bottom: 50px;">
+        <div class="row">
             <h3><span class="text-capitalize">{{ conservation_status_obj.group_type }}</span> {{
                 conservation_status_obj.conservation_status_number }} - Referral</h3>
+        </div>
+        <div class="row">
             <div class="col-md-3">
                 <Submission :submitter_first_name="submitter_first_name" :submitter_last_name="submitter_last_name"
-                    :lodgement_date="conservation_status_obj.lodgement_date" class="mt-3" />
-                <div class="mt-3">
-                    <div class="card card-default">
-                        <div class="card-header">
-                            Referral
+                    :lodgement_date="conservation_status_obj.lodgement_date" class="mb-3" />
+                <div class="card card-default sticky-top">
+                    <div class="card-header">
+                        Referral
+                    </div>
+                    <div class="card-body">
+                        <strong>Status</strong><br />
+                        {{ referral.processing_status }}
+                    </div>
+                    <template
+                        v-if="!isFinalised && referral.referral == conservation_status_obj.current_assessor.id && referral.can_be_completed">
+                        <div class="card-body border-top">
+                            <strong>Referer's Comments</strong><br />
+                            <textarea class="form-control" rows="6" v-model="referral.text" :disabled="true"></textarea>
                         </div>
-                        <div class="card-body">
-                            <strong>Status</strong><br />
-                            {{ referral.processing_status }}
+                        <div class="card-body border-top">
+                            <strong>Your Comments</strong><br />
+                            <textarea id="your-comments" class="form-control" rows="6"
+                                v-model="referral.referral_comment" autofocus></textarea>
                         </div>
-                        <div class="card-body mt-2 border-top"
-                            v-if="!isFinalised && referral.referral == conservation_status_obj.current_assessor.id && referral.can_be_completed">
+                        <div class="card-body mt-2 border-top">
                             <div class="row mb-3">
                                 <strong>Action</strong>
                             </div>
@@ -29,7 +40,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </template>
                 </div>
             </div>
             <div class="col-md-9">
@@ -39,7 +50,7 @@
                             <div class="row">
                                 <form :action="species_community_cs_form_url" method="post"
                                     name="new_conservation_status" enctype="multipart/form-data">
-                                    <ProposalConservationStatus v-if="conservation_status_obj" ref="conservation_status"
+                                    <ProposalConservationStatus ref="conservation_status"
                                         :conservation_status_obj="conservation_status_obj" :referral="referral">
                                     </ProposalConservationStatus>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
@@ -50,7 +61,8 @@
                                             <div v-if="!isFinalised" class="container">
                                                 <div class="col-md-12 text-end">
                                                     <button class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                        @click.prevent="save()">Save Changes</button>
+                                                        @click.prevent="save()">Save
+                                                        Changes</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -147,6 +159,20 @@ export default {
         },
         completeReferral: function () {
             let vm = this;
+            if ($('#your-comments').val().trim().length == 0) {
+                swal.fire({
+                    title: 'Referral Error',
+                    text: 'Please provide a comment before completing the referral',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                    didClose: function () {
+                        $('#your-comments').focus();
+                    }
+                });
+                return;
+            }
             swal.fire({
                 title: "Complete Referral",
                 text: "Are you sure you want to complete this referral?",
@@ -164,7 +190,7 @@ export default {
                     Object.assign(payload, vm.referral);
                     vm.$http.post(vm.species_community_cs_referral_form_url, payload).then(res => {
                         vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, vm.$route.params.referral_id + '/complete')).then(res => {
-                            vm.referral = res.body;
+                            vm.referral = Object.assign({}, res.body);
                         },
                             error => {
                                 swal.fire({
@@ -186,7 +212,7 @@ export default {
         fetchReferral: function () {
             let vm = this;
             Vue.http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, vm.$route.params.referral_id)).then(res => {
-                vm.referral = res.body;
+                vm.referral = Object.assign({}, res.body);
             },
                 err => {
                     console.log(err);
@@ -197,11 +223,6 @@ export default {
         if (!this.referral) {
             this.fetchReferral();
         }
-    },
-    mounted: function () {
-        this.$nextTick(() => {
-            $(".referral-comment-box:enabled:visible:first").focus();
-        });
     },
     beforeRouteEnter: function (to, from, next) {
         Vue.http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, to.params.referral_id)).then(res => {
