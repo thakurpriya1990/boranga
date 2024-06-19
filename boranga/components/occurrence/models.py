@@ -2011,10 +2011,10 @@ class OCRVegetationStructure(models.Model):
         related_name="vegetation_structure",
     )
 
-    free_text_field_one = models.TextField(null=True, blank=True)
-    free_text_field_two = models.TextField(null=True, blank=True)
-    free_text_field_three = models.TextField(null=True, blank=True)
-    free_text_field_four = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_one = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_two = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_three = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_four = models.TextField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -3689,10 +3689,10 @@ class OCCVegetationStructure(models.Model):
     copied_ocr_vegetation_structure = models.ForeignKey(
         OCRVegetationStructure, on_delete=models.SET_NULL, null=True, blank=True
     )
-    free_text_field_one = models.TextField(null=True, blank=True)
-    free_text_field_two = models.TextField(null=True, blank=True)
-    free_text_field_three = models.TextField(null=True, blank=True)
-    free_text_field_four = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_one = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_two = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_three = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_four = models.TextField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
