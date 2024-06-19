@@ -12,6 +12,7 @@ from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
@@ -51,6 +52,7 @@ class GetCountries(views.APIView):
     renderer_classes = [
         JSONRenderer,
     ]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
         country_list = []
@@ -63,6 +65,7 @@ class GetProfile(views.APIView):
     renderer_classes = [
         JSONRenderer,
     ]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
         serializer = UserSerializer(request.user, context={"request": request})
@@ -73,6 +76,7 @@ class GetSubmitterCategories(views.APIView):
     renderer_classes = [
         JSONRenderer,
     ]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
         submitter_categories = SubmitterCategory.objects.all()
@@ -84,6 +88,7 @@ class SaveSubmitterInformation(views.APIView):
     renderer_classes = [
         JSONRenderer,
     ]
+    permission_classes = [IsAuthenticated]
 
     def put(self, request, format=None):
         instance = get_object_or_404(SubmitterInformation, pk=request.data["id"])
