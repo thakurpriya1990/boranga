@@ -24,7 +24,11 @@ from shapely.ops import transform, unary_union, voronoi_diagram
 from wagov_utils.components.proxy.views import proxy_view
 
 from boranga import settings
-from boranga.components.occurrence.models import BufferGeometry, OccurrenceTenure
+from boranga.components.occurrence.models import (
+    BufferGeometry,
+    OccurrenceGeometry,
+    OccurrenceTenure,
+)
 from boranga.components.spatial.models import Proxy, TileLayer
 from boranga.helpers import is_internal
 
@@ -324,6 +328,10 @@ def save_geometry(
 
             geometry_id_intersect_data[geometry_instance.id] = intersect_data
 
+            if not isinstance(geometry_instance, OccurrenceGeometry):
+                # Only occurrence geometries can have buffer geometries
+                continue
+
             try:
                 buffer_geometry = BufferGeometry.objects.get(
                     buffered_from_geometry=geometry_instance
@@ -343,8 +351,8 @@ def save_geometry(
             else:
                 if buffer_radius:
                     buffer_geometry.geometry = buffer_geos_geometry(
-                            geometry_instance.geometry, buffer_radius
-                        )
+                        geometry_instance.geometry, buffer_radius
+                    )
                     buffer_geometry.save()
                     logger.info(
                         f"Updated buffer geometry for {instance_model_name} geometry: {geometry_instance}"
