@@ -260,14 +260,9 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
         return ""
 
     def get_main_observer(self, obj):
-        try:
-            if obj.observer_detail.filter(main_observer=True).exists():
-                return (
-                    obj.observer_detail.filter(main_observer=True).first().observer_name
-                )
-            else:
-                return ""
-        except:
+        if obj.observer_detail.filter(main_observer=True).exists():
+            return obj.observer_detail.filter(main_observer=True).first().observer_name
+        else:
             return ""
 
 
@@ -404,14 +399,9 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             return obj.identification.identification_certainty.name
 
     def get_main_observer(self, obj):
-        try:
-            if obj.observer_detail.filter(main_observer=True).exists():
-                return (
-                    obj.observer_detail.filter(main_observer=True).first().observer_name
-                )
-            else:
-                return ""
-        except:
+        if obj.observer_detail.filter(main_observer=True).exists():
+            return obj.observer_detail.filter(main_observer=True).first().observer_name
+        else:
             return ""
 
 
@@ -1119,6 +1109,7 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
     occurrence_report_number = serializers.CharField(
         source="occurrence_report.occurrence_report_number", allow_null=True
     )
+    occurrence_report_id = serializers.IntegerField(source="occurrence_report.id")
     occurrence_name = serializers.CharField(
         source="occurrence_report.occurrence.occurrence_number", allow_null=True
     )
@@ -1142,10 +1133,24 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OccurrenceReportReferral
-        fields = "__all__"
+        fields = (
+            "id",
+            "occurrence_report_number",
+            "occurrence_report_id",
+            "occurrence_name",
+            "scientific_name",
+            "community_name",
+            "reported_date",
+            "submitter",
+            "group_type",
+            "processing_status",
+            "processing_status_display",
+            "can_be_processed",
+        )
         datatables_always_serialize = (
             "id",
             "can_be_processed",
+            "occurrence_report_id",
         )
 
     def get_submitter(self, obj):
@@ -1160,6 +1165,7 @@ class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
     referral = serializers.SerializerMethodField()
     referral_comment = serializers.SerializerMethodField()
     referral_status = serializers.CharField(source="get_processing_status_display")
+    occurrence_report_id = serializers.IntegerField(source="occurrence_report.id")
 
     class Meta:
         model = OccurrenceReportReferral
@@ -1167,7 +1173,16 @@ class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
         datatables_always_serialize = (
             "id",
             "can_be_processed",
+            "occurrence_report_id",
         )
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.fields["occurrence_report"] = (
+    #         OccurrenceReportSerializer(
+    #             context={"request": self.context["request"]}
+    #         )
+    #     )
 
     def get_referral(self, obj):
         return EmailUserSerializer(retrieve_email_user(obj.referral)).data
@@ -2795,6 +2810,7 @@ class BufferGeometrySerializer(GeoFeatureModelSerializer):
 
     def get_buffer_radius(self, obj):
         return obj.buffered_from_geometry.buffer_radius
+
 
 class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)
