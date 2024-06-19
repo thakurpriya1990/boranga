@@ -190,11 +190,6 @@ api_patterns = [
         users_api.DepartmentUserList.as_view(),
         name="department-users-list",
     ),
-    url(
-        r"^api/filtered_users$",
-        users_api.UserListFilterView.as_view(),
-        name="filtered_users",
-    ),
     url(r"^api/", include(router.urls)),
     url(
         r"^api/filter_lists_species",
