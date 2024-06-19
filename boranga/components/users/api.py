@@ -112,7 +112,7 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         search_term = request.GET.get("term", "")
 
         # Allow for search of first name, last name and concatenation of both
-        department_users = EmailUser.objects.annotate(
+        users = EmailUser.objects.annotate(
             search_term=Concat(
                 "first_name",
                 Value(" "),
@@ -123,22 +123,22 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             )
         )
         if kwargs.get("is_staff", False):
-            department_users = department_users.filter(is_staff=True)
+            users = users.filter(is_staff=True)
 
         id_field = "email"
         if kwargs.get("id_field", False):
             id_field = kwargs.get("id_field")
 
-        department_users = department_users.filter(
-            search_term__icontains=search_term
-        ).values("id", "email", "first_name", "last_name")[:10]
+        users = users.filter(search_term__icontains=search_term).values(
+            "id", "email", "first_name", "last_name"
+        )[:10]
 
         data_transform = [
             {
                 "id": person[id_field],
                 "text": f"{person['first_name']} {person['last_name']} ({person['email']})",
             }
-            for person in department_users
+            for person in users
         ]
         return Response({"results": data_transform})
 
@@ -202,7 +202,9 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         external_ocr_referrals = OccurrenceReportReferral.objects.filter(
             is_external=True
         ).values_list("referral", flat=True)
-        external_referee_ids = list(set(external_cs_referrals + external_ocr_referrals))
+        external_referee_ids = list(
+            set(list(external_cs_referrals) + list(external_ocr_referrals))
+        )
 
         external_referees = EmailUser.objects.filter(
             id__in=external_referee_ids
