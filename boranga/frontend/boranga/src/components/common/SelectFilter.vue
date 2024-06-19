@@ -1,6 +1,6 @@
 <!-- A single dropdown with selectable items as a component -->
 <template>
-    <div>
+    <div :class="classes">
         <label
             v-if="showTitle"
             :for="`select-filter-${id}`"

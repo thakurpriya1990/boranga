@@ -232,8 +232,10 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
     community_migrated_id = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
     # TODO: Add new conservation status lists/catories
-    region = serializers.SerializerMethodField()
-    district = serializers.SerializerMethodField()
+    #region = serializers.SerializerMethodField()
+    #district = serializers.SerializerMethodField()
+    regions = serializers.SerializerMethodField()
+    districts = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
     user_process = serializers.SerializerMethodField(read_only=True)
     can_user_edit = serializers.SerializerMethodField()
@@ -253,8 +255,8 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "group_type",
             "community_migrated_id",
             "community_name",
-            "region",
-            "district",
+            "regions",
+            "districts",
             "processing_status",
             "can_user_edit",
             "can_user_view",
@@ -307,16 +309,32 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
         except CommunityTaxonomy.DoesNotExist:
             return ""
 
-    def get_region(self, obj):
-        if obj.region:
-            return obj.region.name
+    # def get_region(self, obj):
+    #     if obj.region:
+    #         return obj.region.name
+    #     return ""
+
+    # def get_district(self, obj):
+    #     if obj.district:
+    #         return obj.district.name
+    #     return ""
+
+    def get_regions(self, obj):
+        if obj.regions:
+            regions_list = obj.regions.all().values_list(
+                    "name", flat=True
+                )
+            return ",".join(regions_list)
         return ""
 
-    def get_district(self, obj):
-        if obj.district:
-            return obj.district.name
+    def get_districts(self, obj):
+        if obj.districts:
+            districts_list = obj.districts.all().values_list(
+                    "name", flat=True
+                )
+            return ",".join(districts_list)
         return ""
-
+    
     def get_user_process(self, obj):
         # Check if currently logged in user has access to process the Community
         request = self.context["request"]
@@ -1171,6 +1189,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
     conservation_attributes = serializers.SerializerMethodField()
     readonly = serializers.SerializerMethodField(read_only=True)
     image_doc = serializers.SerializerMethodField()
+    #regions = serializers.SerializerMethodField()
 
     class Meta:
         model = Community
@@ -1196,6 +1215,8 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
             "can_user_view",
             "applicant_details",
             "comment",
+            "regions",
+            "districts",
         )
 
     def get_species(self, obj):
@@ -1206,6 +1227,12 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
     def get_group_type(self, obj):
         return obj.group_type.name
+    
+    def get_regions(self, obj):
+        return [r.id for r in obj.regions.all()]
+    
+    def get_districts(self,obj):
+        return [d.id for d in obj.districts.all()]
 
     # TODO not used on the form yet as gives error for new species as taxonomy = null
     def get_taxonomy_details(self, obj):
@@ -1332,8 +1359,8 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "community_number",
             "group_type",
             "taxonomy_details",
-            "region_id",
-            "district_id",
+            "regions",
+            "districts",
             "conservation_status",
             "distribution",
             "publishing_status",
@@ -1437,20 +1464,20 @@ class CreateSpeciesSerializer(BaseSpeciesSerializer):
 
 
 class SaveCommunitySerializer(BaseCommunitySerializer):
-    region_id = serializers.IntegerField(
-        required=False, allow_null=True, write_only=True
-    )
-    district_id = serializers.IntegerField(
-        required=False, allow_null=True, write_only=True
-    )
+    # region_id = serializers.IntegerField(
+    #     required=False, allow_null=True, write_only=True
+    # )
+    # district_id = serializers.IntegerField(
+    #     required=False, allow_null=True, write_only=True
+    # )
 
     class Meta:
         model = Community
         fields = (
             "id",
             "group_type",
-            "region_id",
-            "district_id",
+            # "region_id",
+            # "district_id",
             "last_data_curration_date",
             "submitter",
             "readonly",
@@ -1459,6 +1486,8 @@ class SaveCommunitySerializer(BaseCommunitySerializer):
             "comment",
             "conservation_plan_exists",
             "conservation_plan_reference",
+            "regions",
+            "districts",
         )
         read_only_fields = ("id", "group_type")
 

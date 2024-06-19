@@ -99,47 +99,47 @@
             </div>
         </FormSection>
         <FormSection :formCollapse="false" label="Habitat Condition" :Index="habitatConditionBody">
-            <label for="" class="col-lg-3 control-label fs-5 fw-bold">Keiry Scale</label>
+            <label for="" class="col-lg-3 control-label fs-5 fw-bold">Keighery Scale</label>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Pristine %:</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="pristine" placeholder="" min="0" max="100"
-                    v-model="occurrence_report_obj.habitat_condition.pristine" @change.prevent="calcKeiryTotal()"/>
+                    v-model="occurrence_report_obj.habitat_condition.pristine" @change.prevent="calcKeigheryTotal()"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Excellent %:</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="excellent" placeholder="" min="0" max="100"
-                    v-model="occurrence_report_obj.habitat_condition.excellent" @change.prevent="calcKeiryTotal()"/>
+                    v-model="occurrence_report_obj.habitat_condition.excellent" @change.prevent="calcKeigheryTotal()"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Very Good %:</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="very_good" placeholder="" min="0" max="100"
-                    v-model="occurrence_report_obj.habitat_condition.very_good" @change.prevent="calcKeiryTotal()"/>
+                    v-model="occurrence_report_obj.habitat_condition.very_good" @change.prevent="calcKeigheryTotal()"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Good %:</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="good" placeholder="" min="0" max="100"
-                    v-model="occurrence_report_obj.habitat_condition.good" @change.prevent="calcKeiryTotal()"/>
+                    v-model="occurrence_report_obj.habitat_condition.good" @change.prevent="calcKeigheryTotal()"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Degraded %:</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="degraded" placeholder="" min="0" max="100"
-                    v-model="occurrence_report_obj.habitat_condition.degraded" @change.prevent="calcKeiryTotal()"/>
+                    v-model="occurrence_report_obj.habitat_condition.degraded" @change.prevent="calcKeigheryTotal()"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Completely Degraded %:</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="completely_degraded" placeholder="" min="0" max="100"
-                    v-model="occurrence_report_obj.habitat_condition.completely_degraded" @change.prevent="calcKeiryTotal()"/>
+                    v-model="occurrence_report_obj.habitat_condition.completely_degraded" @change.prevent="calcKeigheryTotal()"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -157,27 +157,27 @@
         </FormSection>
         <FormSection :formCollapse="false" label="Vegetation Structure" :Index="vegetationStructureBody">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Free Text Field 1 :</label>
+                <label for="" class="col-sm-6 control-label">Vegetation Structure - Layer 1:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_1" placeholder="" v-model="occurrence_report_obj.vegetation_structure.free_text_field_one"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_1" placeholder="" v-model="occurrence_report_obj.vegetation_structure.vegetation_structure_layer_one"/>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Free Text Field 2 :</label>
+                <label for="" class="col-sm-6 control-label">Vegetation Structure - Layer 2:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_2" placeholder="" v-model="occurrence_report_obj.vegetation_structure.free_text_field_two"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_2" placeholder="" v-model="occurrence_report_obj.vegetation_structure.vegetation_structure_layer_two"/>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Free Text Field 3 :</label>
+                <label for="" class="col-sm-6 control-label">Vegetation Structure - Layer 3:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_3" placeholder="" v-model="occurrence_report_obj.vegetation_structure.free_text_field_three"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_3" placeholder="" v-model="occurrence_report_obj.vegetation_structure.vegetation_structure_layer_three"/>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Free Text Field 4 :</label>
+                <label for="" class="col-sm-6 control-label">Vegetation Structure - Layer 4:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_4" placeholder="" v-model="occurrence_report_obj.vegetation_structure.free_text_field_four"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_4" placeholder="" v-model="occurrence_report_obj.vegetation_structure.vegetation_structure_layer_four"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -407,8 +407,8 @@ export default {
             },
             updateHabitatConditionDetails: function() {
                 let vm = this;
-                var valKeiryTotal=vm.calcKeiryTotal();
-                if(valKeiryTotal){
+                var valKeigheryTotal=vm.calcKeigheryTotal();
+                if(valKeigheryTotal){
                     vm.updatingHabitatConditionDetails = true;
                     vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report,(vm.occurrence_report_obj.id+'/update_habitat_condition_details')),JSON.stringify(vm.occurrence_report_obj.habitat_condition),{
                         emulateJSON:true
@@ -531,7 +531,7 @@ export default {
                     vm.updatingAssociatedSpeciesDetails = false;
                 });
             },
-            calcKeiryTotal: function(){
+            calcKeigheryTotal: function(){
                 let vm=this;
                 let total=0;
                 let a = parseInt(vm.occurrence_report_obj.habitat_condition.pristine);
@@ -609,6 +609,7 @@ export default {
             let vm = this;
             vm.eventListeners();
             vm.initialiseLandFormSelect();
+            vm.calcKeigheryTotal();
         },
     }
 </script>

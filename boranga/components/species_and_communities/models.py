@@ -942,12 +942,16 @@ class Community(RevisionedMixin):
     # TODO the species is noy required as per the new requirements
     species = models.ManyToManyField(Species, blank=True)
     # taxonomy = models.ForeignKey(CommunityTaxonomy, on_delete=models.SET_NULL, unique=True, null=True, blank=True)
-    region = models.ForeignKey(
-        Region, default=None, on_delete=models.CASCADE, null=True, blank=True
+    # region = models.ForeignKey(
+    #     Region, default=None, on_delete=models.CASCADE, null=True, blank=True
+    # )
+    # district = models.ForeignKey(
+    #     District, default=None, on_delete=models.CASCADE, null=True, blank=True
+    # )
+    regions = models.ManyToManyField(
+        Region, null=True, blank=True, related_name="community_regions"
     )
-    district = models.ForeignKey(
-        District, default=None, on_delete=models.CASCADE, null=True, blank=True
-    )
+    districts = models.ManyToManyField(District, null=True, blank=True, related_name="community_districts")
     last_data_curration_date = models.DateField(blank=True, null=True)
     conservation_plan_exists = models.BooleanField(default=False)
     conservation_plan_reference = models.CharField(

@@ -154,14 +154,14 @@
                         <form class="layer_options form-horizontal">
                             <div
                                 v-for="(
-                                    features, title
+                                    features, name
                                 ) in mapFeaturesGroupedAndSorted"
-                                :key="`${title}-${features.length}`"
+                                :key="`${name}-${features.length}`"
                             >
                                 <small
                                     v-if="features.length"
                                     class="input-group-text mb-1 w-100"
-                                    >{{ title }}:</small
+                                    >{{ layerNameTitles[name] }}:</small
                                 >
                                 <div
                                     v-for="feature in features"
@@ -290,9 +290,27 @@
                                             :value="userCoordinates(feature)[1]"
                                             placeholder="Latitude"
                                             type="number"
-                                            min="-35.5"
-                                            max="-13.5"
-                                            step="0.0001"
+                                            :min="
+                                                isOriginalGeometryCrsProjected(
+                                                    feature
+                                                )
+                                                    ? -10e6
+                                                    : -35.5
+                                            "
+                                            :max="
+                                                isOriginalGeometryCrsProjected(
+                                                    feature
+                                                )
+                                                    ? 0.0
+                                                    : -13.5
+                                            "
+                                            :step="
+                                                isOriginalGeometryCrsProjected(
+                                                    feature
+                                                )
+                                                    ? 1.0
+                                                    : 0.0001
+                                            "
                                             data-bs-toggle="tooltip"
                                             data-bs-placement="top"
                                             data-bs-title="Enter the latitude value"
@@ -302,8 +320,15 @@
                                         />
                                         <label
                                             v-if="isPointLikeFeature(feature)"
-                                            :for="`feature-${feature.ol_uid}-latitude-input`"
-                                            >Latitude</label
+                                            :for="`feature-${feature.ol_uid}-longitude-input`"
+                                            ><span
+                                                v-if="
+                                                    isOriginalGeometryCrsProjected(
+                                                        feature
+                                                    )
+                                                "
+                                                >Northing</span
+                                            ><span v-else>Latitude</span></label
                                         >
                                     </div>
                                     <!-- Longitude -->
@@ -318,9 +343,27 @@
                                             :value="userCoordinates(feature)[0]"
                                             placeholder="Longitude"
                                             type="number"
-                                            min="112.5"
-                                            max="129.0"
-                                            step="0.0001"
+                                            :min="
+                                                isOriginalGeometryCrsProjected(
+                                                    feature
+                                                )
+                                                    ? 0.0
+                                                    : 112.5
+                                            "
+                                            :max="
+                                                isOriginalGeometryCrsProjected(
+                                                    feature
+                                                )
+                                                    ? 40e6
+                                                    : 129.0
+                                            "
+                                            :step="
+                                                isOriginalGeometryCrsProjected(
+                                                    feature
+                                                )
+                                                    ? 1.0
+                                                    : 0.0001
+                                            "
                                             data-bs-toggle="tooltip"
                                             data-bs-placement="top"
                                             data-bs-title="Enter the longitude value"
@@ -331,7 +374,46 @@
                                         <label
                                             v-if="isPointLikeFeature(feature)"
                                             :for="`feature-${feature.ol_uid}-longitude-input`"
-                                            >Longitude</label
+                                            ><span
+                                                v-if="
+                                                    isOriginalGeometryCrsProjected(
+                                                        feature
+                                                    )
+                                                "
+                                                >Easting</span
+                                            ><span v-else
+                                                >Longitude</span
+                                            ></label
+                                        >
+                                    </div>
+                                    <!-- Buffer Radius -->
+                                    <div
+                                        v-if="
+                                            getLayerDefinitionByName(name)
+                                                ?.can_buffer
+                                        "
+                                        class="form-floating flex-grow-1 input-group-text"
+                                    >
+                                        <input
+                                            :id="`feature-${feature.ol_uid}-buffer-radius-input`"
+                                            :ref="`feature-${feature.ol_uid}-buffer-radius-input`"
+                                            class="form-control min-width-90"
+                                            :value="bufferRadius(feature)"
+                                            placeholder="Buffer Radius"
+                                            type="number"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Enter a buffer radius value"
+                                            @change="
+                                                updateUserInputBufferRadius(
+                                                    feature,
+                                                    $event.target.valueAsNumber
+                                                )
+                                            "
+                                        />
+                                        <label
+                                            :for="`feature-${feature.ol_uid}-buffer-radius-input`"
+                                            >Buffer Radius [m]</label
                                         >
                                     </div>
                                     <!-- CRS Dropdown -->
@@ -953,7 +1035,11 @@
                             <img src="" class="rounded me-2" alt="" />
                             <strong class="me-auto">
                                 {{ selectedModel.label }}:
-                                {{ selectedModel.occurrence_report_number }}
+                                {{
+                                    selectedModel.occurrence_report_number ||
+                                    selectedModel.occurrence_number ||
+                                    selectedModel.buffer_radius
+                                }}
                             </strong>
                         </div>
                         <div class="toast-body">
@@ -1577,11 +1663,14 @@ export default {
                     default: true, // The default layer where in most cases features are added to
                     processed: true, // The layer where processed geometries are added to
                     can_edit: true,
+                    can_buffer: true, // Whether features may be used to create buffer geometries
                     api_url: null, // The API endpoint to fetch features from
                     ids: [], //Ids of proposals to be fetched by the map component and displayed on the map.
                     //  Negative values fetch no proposals
                     //  Positive values fetch proposals with those ids
                     //  Empty list `[]` fetches all proposals
+                    handler: null, // A callback function to invoke on fetched features
+                    geometry_name: 'geometry', // The name of the geometry field in the model
                 };
             },
         },
@@ -1918,17 +2007,19 @@ export default {
             ];
             return units;
         },
-        /**
-         * Returns the features in the modelQuerySource grouped by their source layer title and sorted by their id
-         */
-        mapFeaturesGroupedAndSorted: function () {
-            const sortedFeatures = {};
-            const layerNameTitles = Object.fromEntries(
+        layerNameTitles: function () {
+            return Object.fromEntries(
                 this.vectorLayerDefinitions().map((def) => [
                     def.name,
                     def.title,
                 ])
             );
+        },
+        /**
+         * Returns the features in the modelQuerySource grouped by their source layer title and sorted by their id
+         */
+        mapFeaturesGroupedAndSorted: function () {
+            const sortedFeatures = {};
 
             for (let source in this.layerSources) {
                 const features = this.layerSources[source]
@@ -1936,13 +2027,12 @@ export default {
                     .toSorted(function (a, b) {
                         return a.getProperties().id - b.getProperties().id;
                     });
-                const key = layerNameTitles[source];
-                if (!Object.keys(sortedFeatures).includes(key)) {
-                    sortedFeatures[key] = [];
+                // const key = layerNameTitles[source];
+                if (!Object.keys(sortedFeatures).includes(source)) {
+                    sortedFeatures[source] = [];
                 }
-                sortedFeatures[key].push(...features);
+                sortedFeatures[source].push(...features);
             }
-
             return sortedFeatures;
         },
         parameterInputLabel: function () {
@@ -2018,8 +2108,12 @@ export default {
                 this.loadMapFeatures(proposals, this.queryLayerDefinition.name);
                 for (let i = 0; i < initialised.length; i++) {
                     const layerDef = this.additionalLayersDefinitions[i];
-                    const proposals = this.initialiseProposals(initialised[i]);
-                    this.loadMapFeatures(proposals, layerDef.name);
+                    let features = this.initialiseProposals(initialised[i]);
+
+                    if (layerDef.handler) {
+                        features = layerDef.handler(features);
+                    }
+                    this.loadMapFeatures(features, layerDef.name);
                 }
 
                 console.log('Done fetching map initilisation data');
@@ -3155,6 +3249,10 @@ export default {
                                     projection: `EPSG:${vm.mapSrid}`,
                                 })
                             );
+                            model.label ??= selected.getProperties().label;
+                            model.buffer_radius ??= `${
+                                selected.getProperties().buffer_radius
+                            }m`;
                         }
                         vm.selectedModel = model;
                         if (!isSelectedFeature(selected)) {
@@ -3737,18 +3835,38 @@ export default {
          */
         loadMapFeatures: function (proposals, toSource = null) {
             let vm = this;
-            console.log(proposals);
+            const source =
+                vm.layerSources[toSource] ||
+                vm.layerSources[vm.defaultQueryLayerName];
+            const geometry_name =
+                vm.getLayerDefinitionByName(toSource).geometry_name ||
+                'geometry';
+
+            console.log(`Loading features to source ${toSource}`, proposals);
             // Remove all features from the layer
-            vm.layerSources[vm.defaultQueryLayerName].clear();
+            source.clear();
             proposals.forEach(function (proposal) {
-                const geometry = proposal.ocr_geometry || proposal.occ_geometry;
+                const geometry = proposal[geometry_name];
                 if (!geometry) {
                     console.warn(
-                        `Proposal ${proposal.id} has no geometry. Skipping...`
+                        `Proposal ${proposal.id} has no geometry named ${geometry_name}. Skipping...`
+                    );
+                    return;
+                }
+
+                if (!geometry.features) {
+                    console.warn(
+                        `Proposal ${proposal.id} geometry has no features. Skipping...`
                     );
                     return;
                 }
                 geometry.features.forEach(function (featureData) {
+                    if (!featureData) {
+                        console.warn(
+                            `No data for this geometry feature: ${featureData}. Skipping...`
+                        );
+                        return;
+                    }
                     if (!featureData.geometry) {
                         console.warn(
                             `Feature ${featureData.id} has no geometry. Skipping...`
@@ -3756,19 +3874,12 @@ export default {
                         return;
                     }
                     let feature = vm.featureFromDict(featureData, proposal);
-                    if (
-                        vm.layerSources[
-                            vm.defaultQueryLayerName
-                        ].getFeatureById(feature.getId())
-                    ) {
+                    if (source.getFeatureById(feature.getId())) {
                         console.warn(
                             `Feature ${feature.getId()} already exists in the source. Skipping...`
                         );
                         return;
                     }
-                    const source =
-                        vm.layerSources[toSource] ||
-                        vm.layerSources[vm.defaultQueryLayerName];
                     source.addFeature(feature);
                 });
             });
@@ -3859,25 +3970,20 @@ export default {
                 context.label ||
                 'Draw';
 
+            // Apply the passed in properties to the feature, but overwrite where necessary (nullish coalescing operator ??=)
             const featureProperties = structuredClone(properties);
-            // TODO: Continue here:
-            featureProperties['id'];
+            featureProperties['id'] ??= this.newFeatureId;
+            featureProperties['model'] ??= context;
+            featureProperties['geometry_source'] ??= 'New';
+            featureProperties['name'] ??= context.id || -1;
+            featureProperties['label'] ??= label;
+            featureProperties['color'] ??= color;
+            featureProperties['stroke'] ??= stroke;
+            featureProperties['srid'] ??= this.mapSrid;
+            featureProperties['original_geometry'] ??= original_geometry;
+            featureProperties['area_sqm'] ??= this.featureArea(feature);
 
-            feature.setProperties({
-                id: this.newFeatureId,
-                model: context,
-                geometry_source: properties.geometry_source || 'New',
-                source: properties.source || null,
-                name: context.id || -1,
-                label: label,
-                color: color, // <-
-                stroke: stroke,
-                locked: properties.locked || false, // <-
-                copied_from: properties.report_copied_from || null, // <-
-                srid: properties.srid || this.mapSrid,
-                original_geometry: original_geometry, // <-
-                area_sqm: properties.area_sqm || this.featureArea(feature), // <-
-            });
+            feature.setProperties(featureProperties);
 
             const type = feature.getGeometry().getType();
             if (!style) {
@@ -3989,7 +4095,7 @@ export default {
 
             features.forEach(function (feature) {
                 console.log(feature.getProperties());
-                // feature.unset("model")
+                feature.unset('model');
             });
 
             return format.writeFeatures(features);
@@ -4598,6 +4704,9 @@ export default {
                 });
             return transformed;
         },
+        updateUserInputBufferRadius: function (feature, radius) {
+            feature.set('buffer_radius', radius);
+        },
         /**
          * Updates the user input coordinates and srid that are stored on the feature as original_geometry
          * @param {Object} feature A feature
@@ -4679,6 +4788,10 @@ export default {
                 feature.getGeometry().getType()
             );
         },
+        isOriginalGeometryCrsProjected: function (feature) {
+            return feature.getProperties().original_geometry.properties
+                ?.crs_projected;
+        },
         userInputGeometryStackAdd: function (feature) {
             const original_geometry = feature.getProperties().original_geometry;
             const clone = structuredClone(original_geometry);
@@ -4750,6 +4863,9 @@ export default {
                 return geometry.coordinates[0];
             }
             return geometry.coordinates;
+        },
+        bufferRadius: function (feature) {
+            return feature.getProperties().buffer_radius;
         },
         unOrRedoFeatureUserInputGeoData: function (ol_uid, original_geometry) {
             // Find the respective feature on the map by ol_uid
@@ -4906,6 +5022,11 @@ export default {
                 geometry: new Point(coordinates),
             });
             this.centerOnFeature(feature, 12);
+        },
+        getLayerDefinitionByName: function (layer_name) {
+            return this.vectorLayerDefinitions().find((layer_def) => {
+                return layer_def.name == layer_name;
+            });
         },
         /**
          * Returns a layer by its name

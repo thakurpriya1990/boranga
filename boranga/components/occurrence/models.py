@@ -1616,9 +1616,15 @@ class GeometryBase(models.Model):
         if not self.geometry:
             raise ValidationError("Geometry is required")
 
+        if not self.geometry.valid:
+            raise ValidationError("Invalid geometry")
+
+        if self.geometry.empty:
+            raise ValidationError("Geometry is empty")
+
         if self.geometry.srid != 4326:
             raise ValidationError(
-                f"Trying to save a geometry with SRID {self.geometry.srid} into WGS-84 (SRID 4326) geometry field."
+                f"Cannot save a geometry with SRID {self.geometry.srid} into a WGS-84 (SRID 4326) geometry field."
             )
 
         if not self.geometry.within(
@@ -2006,10 +2012,10 @@ class OCRVegetationStructure(models.Model):
         related_name="vegetation_structure",
     )
 
-    free_text_field_one = models.TextField(null=True, blank=True)
-    free_text_field_two = models.TextField(null=True, blank=True)
-    free_text_field_three = models.TextField(null=True, blank=True)
-    free_text_field_four = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_one = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_two = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_three = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_four = models.TextField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -3686,10 +3692,10 @@ class OCCVegetationStructure(models.Model):
     copied_ocr_vegetation_structure = models.ForeignKey(
         OCRVegetationStructure, on_delete=models.SET_NULL, null=True, blank=True
     )
-    free_text_field_one = models.TextField(null=True, blank=True)
-    free_text_field_two = models.TextField(null=True, blank=True)
-    free_text_field_three = models.TextField(null=True, blank=True)
-    free_text_field_four = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_one = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_two = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_three = models.TextField(null=True, blank=True)
+    vegetation_structure_layer_four = models.TextField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
