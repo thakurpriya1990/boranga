@@ -52,7 +52,7 @@
                         v-model="species_community.distribution.distribution" />
                 </div>
             </div>
-            <div class="row mb-3">
+            <!-- <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" @change="filterDistrict($event)"
@@ -62,8 +62,36 @@
                         </option>
                     </select>
                 </div>
-            </div>
+            </div> -->
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Region:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" 
+                        class="form-select" 
+                        v-model="species_community.regions"
+                        ref="regions_select">
+                        <option value="" selected disabled>Select region</option>
+                        <option v-for="option in region_list" :value="option.value" :key="option.value">
+                            {{ option.text }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div v-if="species_community.regions" class="row mb-3">
+                <label for="" class="col-sm-3 col-form-label">District:</label>
+                <div class="col-sm-9">
+                    <select :disabled="isReadOnly" 
+                    class="form-select" 
+                    v-model="species_community.districts"
+                    ref="districts_select">
+                        <option value="" selected disabled>Select district</option>
+                        <option v-for="option in district_list" :value="option.value" v-bind:key="option.value">
+                            {{ option.text }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <!-- <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">District:</label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="species_community.district_id"
@@ -73,7 +101,7 @@
                         </option>
                     </select>
                 </div>
-            </div>
+            </div> -->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Number of Occurrences:</label>
                 <div class="col-sm-6">
@@ -613,6 +641,84 @@ export default {
                 }
             });
         },
+        fetchRegions: function(){
+            let vm = this;
+
+            vm.$http.get(api_endpoints.regions).then((response) => {
+                    vm.api_regions = response.body;
+                    for (var i = 0; i < vm.api_regions.length; i++) {
+                        this.region_list.push( {text: vm.api_regions[i].name, value: vm.api_regions[i].id, districts: vm.api_regions[i].districts} );
+                    }
+                    // vm.setProposalData2(this.regions);
+                    if(vm.species_community.regions){
+                        vm.chainedSelectDistricts(vm.species_community.regions,"fetch");
+                    }
+            },(error) => {
+                console.log(error);
+            })
+        },
+        searchList: function(id, search_list){
+            /* Searches for dictionary in list */
+            for (var i = 0; i < search_list.length; i++) {
+                if (search_list[i].value == id) {
+                    return search_list[i];
+                }
+            }
+            return [];
+        },
+        chainedSelectDistricts: function(regions,action,deselect_region_id){
+            let vm = this;
+            if(action!= "fetch"){
+                vm.species_community.districts = []; //-----to remove the previous selection
+            }
+            vm.district_list = [];
+            if(regions){
+                for(let r of regions){
+                    var api_districts = this.searchList(r, vm.region_list).districts;
+                    if (api_districts.length > 0) {
+                        for (var i = 0; i < api_districts.length; i++) {
+                            this.district_list.push( {text: api_districts[i].name, value: api_districts[i].id} );
+                        }
+                    }
+                }
+            }
+        },
+        initialiseRegionSelect: function(){
+            let vm = this;
+            $(vm.$refs.regions_select).select2({
+                "theme": "bootstrap-5",
+                allowClear: true,
+                multiple: true,
+                placeholder:"Select Region",
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                vm.species_community.regions = selected.val();
+                vm.chainedSelectDistricts(vm.species_community.regions,"select");
+            }).
+            on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                vm.species_community.regions = selected.val();
+                vm.chainedSelectDistricts(vm.species_community.regions,"deselect");
+            });
+        },
+        initialiseDistrictSelect: function(){
+            let vm = this;
+            $(vm.$refs.districts_select).select2({
+                "theme": "bootstrap-5",
+                allowClear: true,
+                multiple: true,
+                placeholder:"Select District",
+            }).
+            on("select2:select",function (e) {
+                var selected = $(e.currentTarget);
+                vm.species_community.districts = selected.val();
+            }).
+            on("select2:unselect",function (e) {
+                var selected = $(e.currentTarget);
+                vm.species_community.districts = selected.val();
+            });
+        },
         checkDate: function () {
             let vm = this;
             if (vm.$refs.last_data_curration_date.value) {
@@ -840,17 +946,23 @@ export default {
                     id: null,
                     name: null,
                 });
-            const response = await Vue.http.get('/api/region_district_filter_dict/');
-            vm.filterRegionDistrict= response.body;
-            vm.region_list = vm.filterRegionDistrict.region_list;
-            vm.district_list= vm.filterRegionDistrict.district_list;
-            vm.region_list.splice(0,0,
-            {
-                id: null,
-                name: null,
-            });
-        this.filterDistrict();
+            //const response = await Vue.http.get('/api/region_district_filter_dict/');
+            //vm.filterRegionDistrict= response.body;
+            //vm.region_list = vm.filterRegionDistrict.region_list;
+            //vm.district_list= vm.filterRegionDistrict.district_list;
+            //vm.region_list.splice(0,0,
+            //{
+            //    id: null,
+            //    name: null,
+            //});
+            //this.filterDistrict();
+            vm.fetchRegions();
     },
+    mounted: function () {
+        let vm = this;
+        vm.initialiseRegionSelect();
+        vm.initialiseDistrictSelect();
+    }
 }
 </script>
 
