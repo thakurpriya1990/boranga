@@ -942,10 +942,10 @@ class Community(RevisionedMixin):
     # TODO the species is noy required as per the new requirements
     species = models.ManyToManyField(Species, blank=True)
     regions = models.ManyToManyField(
-        Region, null=True, blank=True, related_name="community_regions"
+        Region, blank=True, related_name="community_regions"
     )
     districts = models.ManyToManyField(
-        District, null=True, blank=True, related_name="community_districts"
+        District, blank=True, related_name="community_districts"
     )
     last_data_curration_date = models.DateField(blank=True, null=True)
     conservation_plan_exists = models.BooleanField(default=False)
