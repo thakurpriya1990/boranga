@@ -337,38 +337,6 @@ export default {
                 vm.loading.splice('Loading Department Users', 1);
             })
         },
-        initialiseSelects: function () {
-            let vm = this;
-            if (!vm.initialisedSelects) {
-                $(vm.$refs.department_users).select2({
-                    minimumInputLength: 2,
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder: "Select Referral",
-                    ajax: {
-                        url: api_endpoints.users_api + '/get_department_users/',
-                        dataType: 'json',
-                        data: function (params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                            }
-                            return query;
-                        },
-                    },
-                })
-                    .on("select2:select", function (e) {
-                        let data = e.params.data.id;
-                        vm.selected_referral = data;
-                    })
-                    .on("select2:unselect", function (e) {
-                        var selected = $(e.currentTarget);
-                        vm.selected_referral = null;
-                    })
-                vm.initialiseAssignedOfficerSelect();
-                vm.initialisedSelects = true;
-            }
-        },
         sendReferral: function () {
             let vm = this;
             let formData = new FormData(vm.form);
@@ -529,13 +497,6 @@ export default {
     mounted: function () {
         let vm = this;
         vm.fetchDeparmentUsers();
-    },
-    updated: function () {
-        let vm = this;
-        this.$nextTick(() => {
-            vm.initialiseSelects();
-            vm.form = document.forms.new_conservation_status;
-        });
     },
     created: function () {
         let vm = this;

@@ -27,7 +27,7 @@ from boranga.components.users.serializers import (
     SubmitterInformationSerializer,
     UserSerializer,
 )
-from boranga.permissions import IsApprover, IsAssessor
+from boranga.permissions import IsApprover, IsAssessor, IsInternal
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,7 @@ class DepartmentUserList(views.APIView):
     renderer_classes = [
         JSONRenderer,
     ]
+    permission_classes = [IsInternal]
 
     def get(self, request, format=None):
         data = cache.get("department_users")
