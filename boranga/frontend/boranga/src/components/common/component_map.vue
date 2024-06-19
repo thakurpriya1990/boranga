@@ -174,7 +174,7 @@
                                 </a>
                                 <div
                                     :id="`geometry-list-collapsible-${name}`"
-                                    class="collapse"
+                                    class="collapse overflow-auto max-vh-50"
                                     :class="
                                         getLayerDefinitionByName(name).collapse
                                             ? ''
@@ -2071,6 +2071,7 @@ export default {
             this.vectorLayerDefinitions().forEach((def) => {
                 sortedFeatures[def.name] = [];
             });
+            this.featureCount;
 
             for (let source in this.layerSources) {
                 const features = this.layerSources[source]
@@ -5261,5 +5262,8 @@ export default {
     scrollbar-width: thin;
     font-size: 1rem;
     line-height: 1;
+}
+.max-vh-50 {
+    max-height: 50vh;
 }
 </style>
