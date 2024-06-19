@@ -1309,7 +1309,7 @@ export default {
                 vm.conservation_status_obj = response.body;
                 swal.fire({
                     title: 'Referral Reminder',
-                    text: 'A reminder has been sent to ' + vm.department_users.find(d => d.id == r.referral).name,
+                    text: `A reminder has been sent to ${r.referral.fullname}`,
                     icon: 'success',
                     customClass: {
                         confirmButton: 'btn btn-primary',
@@ -1334,7 +1334,7 @@ export default {
                 vm.enablePopovers();
                 swal.fire({
                     title: 'Referral Recall',
-                    text: 'The referral has been recalled from ' + vm.department_users.find(d => d.id == r.referral).name,
+                    text: `The referral has been recalled from ${r.referral.fullname}`,
                     icon: 'success',
                     customClass: {
                         confirmButton: 'btn btn-primary',
@@ -1362,7 +1362,7 @@ export default {
                 vm.enablePopovers();
                 swal.fire({
                     title: 'Referral Resent',
-                    text: 'The referral has been resent to ' + vm.department_users.find(d => d.id == r.referral).name,
+                    text: `The referral has been resent to ${r.referral.fullname}`,
                     icon: 'success',
                     confirmButtonColor: '#226fbb'
                 });
