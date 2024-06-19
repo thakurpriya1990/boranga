@@ -173,7 +173,7 @@
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 "
                     @click.prevent="createCommunityConservationStatus"><i class="fa-solid fa-circle-plus"></i> Propose
-                    Conservation Satus</button>
+                    Conservation Status</button>
             </div>
         </div>
 

@@ -935,7 +935,7 @@ export default {
                 allowClear: true,
                 placeholder: "Search for Referree",
                 ajax: {
-                    url: api_endpoints.users_api + '/get_department_users/',
+                    url: api_endpoints.users_api + '/get_referees/',
                     dataType: 'json',
                     data: function (params) {
                         var query = {
