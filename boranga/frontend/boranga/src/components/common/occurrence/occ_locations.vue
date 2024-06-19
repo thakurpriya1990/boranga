@@ -35,6 +35,7 @@
                         api_url: ocrApiUrl,
                         ids: occurrenceReportIds,
                         geometry_name: 'ocr_geometry',
+                        collapse: true,
                     }"
                     :additional-layers-definitions="[
                         {
