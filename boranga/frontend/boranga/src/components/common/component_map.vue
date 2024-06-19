@@ -554,7 +554,11 @@
                                         "
                                         data-bs-toggle="tooltip"
                                         data-bs-placement="top"
-                                        data-bs-title="Copy selected"
+                                        :data-bs-title="`Copy selected to ${
+                                            layerNameTitles[
+                                                getDefaultQueryLayerName()
+                                            ]
+                                        } layer`"
                                         :title="`Copy selected to ${
                                             layerNameTitles[
                                                 getDefaultQueryLayerName()
