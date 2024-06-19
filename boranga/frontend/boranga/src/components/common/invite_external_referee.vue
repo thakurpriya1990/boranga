@@ -98,7 +98,7 @@ export default {
             required: true,
         },
     },
-    emits: ['refreshFromResponse'],
+    emits: ['externalRefereeInviteSent'],
     data: function () {
         return {
             isModalOpen: false,
@@ -160,7 +160,7 @@ export default {
                             confirmButton: 'btn btn-primary',
                         },
                     }).then((result) => {
-                        vm.$emit('refreshFromResponse', response);
+                        vm.$emit('externalRefereeInviteSent', response);
                         vm.close();
                     });
                 })
