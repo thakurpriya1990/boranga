@@ -503,21 +503,72 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- A new-point Button -->
-                            <div class="input-group-text justify-content-end">
-                                <button
-                                    type="button"
-                                    class="btn btn-primary btn-sm"
-                                    :class="
-                                        pointFeaturesSupported ? '' : 'disabled'
-                                    "
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    data-bs-title="Add a new point"
-                                    @click="addNewPoint(-31.0, 116.0)"
+
+                            <a
+                                class="btn btn-secondary mb-1 w-100"
+                                role="button"
+                                data-bs-toggle="collapse"
+                                :data-bs-target="`#geometry-list-collapsible-edit`"
+                                :href="`#geometry-list-collapsible-edit`"
+                                aria-expanded="true"
+                                :aria-controls="`geometry-list-collapsible-edit`"
+                            >
+                                <small>Edit</small>
+                            </a>
+                            <div
+                                :id="`geometry-list-collapsible-edit`"
+                                class="collapse overflow-auto max-vh-50"
+                            >
+                                <!-- A new-point Button -->
+                                <div
+                                    class="input-group-text justify-content-end"
                                 >
-                                    <i class="fa-solid fa-circle-plus"></i>
-                                </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary btn-sm"
+                                        :class="
+                                            pointFeaturesSupported
+                                                ? ''
+                                                : 'disabled'
+                                        "
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        data-bs-title="Add a new point"
+                                        title="Add a new point"
+                                        @click="addNewPoint(-31.0, 116.0)"
+                                    >
+                                        <i class="fa-solid fa-circle-plus"></i>
+                                    </button>
+                                </div>
+                                <!-- A copy-selected Button -->
+                                <div
+                                    class="input-group-text justify-content-end"
+                                >
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary btn-sm"
+                                        :class="
+                                            pointFeaturesSupported
+                                                ? ''
+                                                : 'disabled'
+                                        "
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        data-bs-title="Copy selected"
+                                        :title="`Copy selected to ${
+                                            layerNameTitles[
+                                                getDefaultQueryLayerName()
+                                            ]
+                                        } layer`"
+                                        @click="
+                                            copySelectedToLayer(
+                                                getDefaultQueryLayerName()
+                                            )
+                                        "
+                                    >
+                                        <i class="fa-solid fa-circle-plus"></i>
+                                    </button>
+                                </div>
                             </div>
                         </form>
                         <!-- </transition> -->
@@ -5110,6 +5161,31 @@ export default {
                     // The features name property is the model instance pk
                     return feature.getProperties().name == featureId;
                 });
+        },
+        copyFeatureToLayer(feature, layer) {
+            const copy = feature.clone();
+            copy.unset('id');
+            copy.unset('name');
+            copy.unset('label');
+            copy.unset('color');
+            copy.unset('stroke');
+            copy.unset('geometry_source');
+            copy.set('locked', false);
+
+            const color = this.styleByColor(copy, this.context, 'draw');
+            this.setFeaturePropertiesFromContext(copy, this.context, {
+                color: color,
+            });
+
+            layer.getSource().addFeature(copy);
+            return copy;
+        },
+        copySelectedToLayer(layer_name) {
+            console.log('Copying selected features to layer:', layer_name);
+            const targetLayer = this.getLayerByName(layer_name);
+            this.selectedFeatureCollection.getArray().map((feature) => {
+                this.copyFeatureToLayer(feature, targetLayer);
+            });
         },
     },
 };
