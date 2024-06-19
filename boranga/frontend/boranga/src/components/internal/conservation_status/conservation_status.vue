@@ -57,7 +57,7 @@
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Referrals</strong><br />
                                     <div class="form-group mb-3">
-                                        <select :disabled="!canLimitedAction" ref="department_users"
+                                        <select :disabled="!canLimitedAction" ref="referees"
                                             class="form-control">
                                         </select>
                                         <template v-if='!sendingReferral'>
@@ -109,7 +109,7 @@
                                                                 aria-hidden="true"></i>
                                                         </a>
                                                         <a role="button" data-bs-toggle="popover"
-                                                            data-bs-trigger="hover focus" :data-bs-content="'Recall the external referee invite sent to ' +
+                                                            data-bs-trigger="hover focus" :data-bs-content="'Retract the external referee invite sent to ' +
                                                                 external_referee_invite.full_name
                                                                 " data-bs-placement="bottom" @click.prevent="
                                                                     retractExternalRefereeInvite(
@@ -420,7 +420,7 @@
             :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse">
         </ProposeDelist>
         <InviteExternalReferee ref="inviteExternalReferee" :pk="conservation_status_obj.id" model="conservation_status"
-            :email="external_referee_email" @refreshFromResponse="refreshFromResponse" />
+            :email="external_referee_email" @externalRefereeInviteSent="externalRefereeInviteSent" />
     </div>
 </template>
 <script>
@@ -1127,7 +1127,7 @@ export default {
         initialiseSelects: function () {
             let vm = this;
             if (!vm.initialisedSelects) {
-                $(vm.$refs.department_users).select2({
+                $(vm.$refs.referees).select2({
                     minimumInputLength: 2,
                     "theme": "bootstrap-5",
                     allowClear: true,
@@ -1162,7 +1162,7 @@ export default {
                                         vm.external_referee_email =
                                             params.term;
                                         vm.$refs.inviteExternalReferee.isModalOpen = true;
-                                        $(vm.$refs.department_users).select2(
+                                        $(vm.$refs.referees).select2(
                                             'close'
                                         );
                                     }
@@ -1187,9 +1187,11 @@ export default {
                 vm.initialisedSelects = true;
             }
         },
-        externalRefereeInviteSent: function () {
+        externalRefereeInviteSent: function (response) {
             let vm = this;
-            $(vm.$refs.department_users).val(null).trigger("change");
+            vm.refreshFromResponse(response);
+            $(vm.$refs.referees).val(null).trigger("change");
+            vm.enablePopovers();
             vm.selected_referral = '';
             vm.referral_text = '';
         },
@@ -1219,7 +1221,7 @@ export default {
         },
         retractExternalRefereeInvite: function (external_referee_invite) {
             swal.fire({
-                title: 'Retract External Referral Invite',
+                title: 'Retract External Referee Invite',
                 text: `Are you sure you want to retract the invite sent to ${external_referee_invite.full_name} (${external_referee_invite.email})?`,
                 icon: 'warning',
                 showCancelButton: true,
@@ -1242,10 +1244,14 @@ export default {
                         .then((response) => {
                             this.fetchConservationStatus();
                             swal.fire({
-                                title: 'External Referral Invite Retracted',
+                                title: 'External Referee Invite Retracted',
                                 text: `The external referee invite that was sent to ${external_referee_invite.full_name} (${external_referee_invite.email}) has been successfully retracted.`,
                                 icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
+                            vm.enablePopovers();
                         })
                         .catch((error) => {
                             console.error(
@@ -1280,7 +1286,8 @@ export default {
                         icon: 'success',
                         confirmButtonColor: '#226fbb'
                     });
-                    $(vm.$refs.department_users).val(null).trigger("change");
+                    vm.enablePopovers();
+                    $(vm.$refs.referees).val(null).trigger("change");
                     vm.selected_referral = '';
                     vm.referral_text = '';
                 }, (error) => {
