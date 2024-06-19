@@ -159,25 +159,25 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-6 control-label">Vegetation Structure - Layer 1:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_1" placeholder="" v-model="occurrence_report_obj.vegetation_structure.free_text_field_one"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_1" placeholder="" v-model="occurrence_report_obj.vegetation_structure.vegetation_structure_layer_one"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-6 control-label">Vegetation Structure - Layer 2:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_2" placeholder="" v-model="occurrence_report_obj.vegetation_structure.free_text_field_two"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_2" placeholder="" v-model="occurrence_report_obj.vegetation_structure.vegetation_structure_layer_two"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-6 control-label">Vegetation Structure - Layer 3:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_3" placeholder="" v-model="occurrence_report_obj.vegetation_structure.free_text_field_three"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_3" placeholder="" v-model="occurrence_report_obj.vegetation_structure.vegetation_structure_layer_three"/>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-6 control-label">Vegetation Structure - Layer 4:</label>
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_4" placeholder="" v-model="occurrence_report_obj.vegetation_structure.free_text_field_four"/>
+                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="vegetation_structure_text_4" placeholder="" v-model="occurrence_report_obj.vegetation_structure.vegetation_structure_layer_four"/>
                 </div>
             </div>
             <div class="row mb-3">
