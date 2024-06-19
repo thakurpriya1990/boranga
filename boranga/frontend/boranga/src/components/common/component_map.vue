@@ -147,6 +147,7 @@
                     </div> -->
                     <!-- </transition> -->
                     <div
+                        v-if="featureCount"
                         id="submenu-geometries-list"
                         class="map-menu-submenu moved-menu-vertical"
                     >
