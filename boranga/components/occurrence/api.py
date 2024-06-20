@@ -35,7 +35,6 @@ from boranga.components.occurrence.filters import OccurrenceReportReferralFilter
 from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
     AnimalHealth,
-    BufferGeometry,
     CoordinationSource,
     CountedSubject,
     DeathReason,
@@ -98,10 +97,8 @@ from boranga.components.occurrence.models import (
 )
 from boranga.components.occurrence.serializers import (
     BackToAssessorSerializer,
-    BufferGeometrySerializer,
     CreateOccurrenceReportSerializer,
     CreateOccurrenceSerializer,
-    InternalOccurrenceReportReferralSerializer,
     InternalOccurrenceReportSerializer,
     InternalSaveOccurrenceReportDocumentSerializer,
     ListInternalOccurrenceReportSerializer,
@@ -117,6 +114,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceReportAmendmentRequestSerializer,
     OccurrenceReportDocumentSerializer,
     OccurrenceReportLogEntrySerializer,
+    OccurrenceReportProposalReferralSerializer,
     OccurrenceReportReferralSerializer,
     OccurrenceReportSerializer,
     OccurrenceReportUserActionSerializer,
@@ -663,6 +661,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def referred_to_me(self, request, *args, **kwargs):
+        self.serializer_class = OccurrenceReportReferralSerializer
         qs = (
             OccurrenceReportReferral.objects.filter(referral=request.user.id)
             if is_internal(self.request)
@@ -2296,7 +2295,9 @@ class OccurrenceReportViewSet(
     def referrals(self, request, *args, **kwargs):
         instance = self.get_object()
         qs = instance.referrals.all()
-        serializer = InternalOccurrenceReportReferralSerializer(qs, many=True)
+        serializer = OccurrenceReportProposalReferralSerializer(
+            qs, many=True, context={"request": self.request}
+        )
         return Response(serializer.data)
 
 
@@ -4770,11 +4771,6 @@ class OccurrenceReportReferralViewSet(
 ):
     queryset = OccurrenceReportReferral.objects.all()
     serializer_class = OccurrenceReportReferralSerializer
-
-    def get_serializer_class(self):
-        if is_internal(self.request):
-            return InternalOccurrenceReportReferralSerializer
-        return super().get_serializer_class()
 
     def get_queryset(self):
         qs = super().get_queryset()
