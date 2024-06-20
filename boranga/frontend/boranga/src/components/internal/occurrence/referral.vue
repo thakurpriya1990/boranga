@@ -1,13 +1,13 @@
 <template lang="html">
-    <div v-if="conservation_status_obj" class="container" id="internalCSReferral">
+    <div v-if="occurrence_report_obj" class="container" id="internalCSReferral">
         <div class="row">
-            <h3><span class="text-capitalize">{{ conservation_status_obj.group_type }}</span> {{
-                conservation_status_obj.conservation_status_number }} - Referral</h3>
+            <h3><span class="text-capitalize">{{ occurrence_report_obj.group_type }}</span> {{
+                occurrence_report_obj.occurrence_report_number }} - Referral</h3>
         </div>
         <div class="row">
             <div class="col-md-3">
                 <Submission :submitter_first_name="submitter_first_name" :submitter_last_name="submitter_last_name"
-                    :lodgement_date="conservation_status_obj.lodgement_date" class="mb-3" />
+                    :lodgement_date="occurrence_report_obj.lodgement_date" class="mb-3" />
                 <div class="card card-default sticky-top">
                     <div class="card-header">
                         Referral
@@ -17,7 +17,7 @@
                         {{ referral.processing_status }}
                     </div>
                     <template
-                        v-if="!isFinalised && referral.referral == conservation_status_obj.current_assessor.id && referral.can_be_completed">
+                        v-if="!isFinalised && referral.referral == occurrence_report_obj.current_assessor.id && referral.can_be_completed">
                         <div class="card-body border-top pb-0">
                             <strong>Referrer</strong>
                             <div class="alert alert-primary px-1 py-2 mt-2" role="alert">
@@ -48,7 +48,7 @@
                             <div class="row">
                                 <div class="col-sm-12">
                                     <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                        :disabled="conservation_status_obj.can_user_edit"
+                                        :disabled="occurrence_report_obj.can_user_edit"
                                         @click.prevent="completeReferral">Complete Referral
                                         Task</button>
                                 </div>
@@ -62,16 +62,19 @@
                     <template>
                         <div class="">
                             <div class="row">
-                                <form :action="species_community_cs_form_url" method="post"
-                                    name="new_conservation_status" enctype="multipart/form-data">
-                                    <ProposalConservationStatus ref="conservation_status"
-                                        :conservation_status_obj="conservation_status_obj" :referral="referral">
-                                    </ProposalConservationStatus>
+                                <form :action="species_community_ocr_form_url" method="post"
+                                    name="new_occurrence_report" enctype="multipart/form-data">
+                                    <ProposalOccurrenceReport v-if="occurrence_report_obj"
+                                        :occurrence_report_obj="occurrence_report_obj" id="OccurrenceReportStart"
+                                        :canEditStatus="canEditStatus" ref="occurrence_report" :referral="referral"
+                                        @refreshOccurrenceReport="refreshOccurrenceReport()"
+                                        @refreshFromResponse="refreshFromResponse">
+                                    </ProposalOccurrenceReport>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                                    <input type='hidden' name="conservation_status_id" :value="1" />
+                                    <input type='hidden' name="occurrence_report_id" :value="1" />
                                     <div class="row" style="margin-bottom: 50px">
                                         <div class="navbar fixed-bottom" style="background-color: #f5f5f5;"
-                                            v-if="!conservation_status_obj.can_user_edit && !isFinalised">
+                                            v-if="!occurrence_report_obj.can_user_edit && !isFinalised">
                                             <div v-if="!isFinalised" class="container">
                                                 <div class="col-md-12 text-end">
                                                     <button class="btn btn-primary pull-right" style="margin-top:5px;"
@@ -94,24 +97,24 @@
 import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import Submission from '@common-utils/submission.vue'
-import ProposalConservationStatus from '@/components/form_conservation_status.vue'
+import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
 import {
     api_endpoints,
     helpers
 }
     from '@/utils/hooks'
 export default {
-    name: 'ConservationStatusReferral',
+    name: 'OccurrenceReportReferral',
     data: function () {
         return {
-            savingConservationStatus: false,
+            savingOccurrenceReport: false,
             referral: null,
         }
     },
     components: {
         datatable,
         Submission,
-        ProposalConservationStatus,
+        ProposalOccurrenceReport,
     },
     props: {
         referralId: {
@@ -119,57 +122,60 @@ export default {
         },
     },
     computed: {
-        conservation_status_obj: function () {
-            return this.referral != null && this.referral != 'undefined' ? this.referral.conservation_status : null;
+        occurrence_report_obj: function () {
+            return this.referral != null && this.referral != 'undefined' ? this.referral.occurrence_report : null;
+        },
+        canEditStatus: function () {
+            return this.occurrence_report_obj ? this.occurrence_report_obj.can_user_edit : 'false';
         },
         csrf_token: function () {
             return helpers.getCookie('csrftoken')
         },
-        species_community_cs_form_url: function () {
-            return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_save.json`;
+        species_community_ocr_form_url: function () {
+            return `/api/occurrence_report/${this.occurrence_report_obj.id}/occurrence_report_save.json`;
         },
-        species_community_cs_referral_form_url: function () {
-            return `/api/cs_referrals/${this.referral.id}/conservation_status_referral_save.json`;
+        species_community_ocr_referral_form_url: function () {
+            return `/api/ocr_referrals/${this.referral.id}/occurrence_report_referral_save.json`;
         },
         submitter_first_name: function () {
-            if (this.conservation_status_obj.submitter) {
-                return this.conservation_status_obj.submitter.first_name
+            if (this.occurrence_report_obj.submitter) {
+                return this.occurrence_report_obj.submitter.first_name
             } else {
                 return ''
             }
         },
         submitter_last_name: function () {
-            if (this.conservation_status_obj.submitter) {
-                return this.conservation_status_obj.submitter.last_name
+            if (this.occurrence_report_obj.submitter) {
+                return this.occurrence_report_obj.submitter.last_name
             } else {
                 return ''
             }
         },
         isFinalised: function () {
-            return !(this.referral != null && this.referral.processing_status == 'Awaiting');
+            return this.referral.processing_status != 'Awaiting';
         },
     },
     methods: {
         save: async function () {
             let vm = this;
-            vm.savingConservationStatus = true;
+            vm.savingOccurrenceReport = true;
             let payload = new Object();
             Object.assign(payload, vm.referral);
-            vm.$http.post(vm.species_community_cs_referral_form_url, payload).then(res => {
+            vm.$http.post(vm.species_community_ocr_referral_form_url, payload).then(res => {
                 swal.fire({
                     title: 'Saved',
                     text: 'Your changes have been saved',
                     icon: 'success',
                     confirmButtonColor: '#226fbb'
                 });
-                vm.savingConservationStatus = false;
+                vm.savingOccurrenceReport = false;
             }, err => {
-                vm.savingConservationStatus = false;
+                vm.savingOccurrenceReport = false;
             });
         },
         refreshFromResponse: function (response) {
             let vm = this;
-            vm.conservation_status_obj = helpers.copyObject(response.body);
+            vm.occurrence_report_obj = helpers.copyObject(response.body);
         },
         completeReferral: function () {
             let vm = this;
@@ -202,8 +208,8 @@ export default {
                 if (result.isConfirmed) {
                     let payload = new Object();
                     Object.assign(payload, vm.referral);
-                    vm.$http.post(vm.species_community_cs_referral_form_url, payload).then(res => {
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, vm.$route.params.referral_id + '/complete')).then(res => {
+                    vm.$http.post(vm.species_community_ocr_referral_form_url, payload).then(res => {
+                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, vm.$route.params.referral_id + '/complete')).then(res => {
                             vm.referral = Object.assign({}, res.body);
                         },
                             error => {
@@ -223,9 +229,12 @@ export default {
                 console.log(error);
             });
         },
+        refreshOccurrenceReport: function () {
+            this.fetchOccurrenceReport(this.referral.occurrence_report.id);
+        },
         fetchReferral: function () {
             let vm = this;
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, vm.$route.params.referral_id)).then(res => {
+            Vue.http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, vm.$route.params.referral_id)).then(res => {
                 vm.referral = Object.assign({}, res.body);
             },
                 err => {
@@ -239,7 +248,7 @@ export default {
         }
     },
     beforeRouteEnter: function (to, from, next) {
-        Vue.http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, to.params.referral_id)).then(res => {
+        Vue.http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, to.params.referral_id)).then(res => {
             next(vm => {
                 vm.referral = res.body;
             });

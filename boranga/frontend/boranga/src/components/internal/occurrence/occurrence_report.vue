@@ -109,7 +109,7 @@
                                             {{ r.referral.last_name }}
                                         </td>
                                         <td>
-                                            {{ r.referral_status }}
+                                            {{ r.processing_status }}
                                         </td>
                                         <td class="text-center">
                                             <template v-if="'with_referral' == r.processing_status">

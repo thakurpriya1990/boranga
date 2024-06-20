@@ -35,7 +35,6 @@ from boranga.components.occurrence.filters import OccurrenceReportReferralFilter
 from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
     AnimalHealth,
-    BufferGeometry,
     CoordinationSource,
     CountedSubject,
     DeathReason,
@@ -98,10 +97,9 @@ from boranga.components.occurrence.models import (
 )
 from boranga.components.occurrence.serializers import (
     BackToAssessorSerializer,
-    BufferGeometrySerializer,
     CreateOccurrenceReportSerializer,
     CreateOccurrenceSerializer,
-    InternalOccurrenceReportReferralSerializer,
+    DTOccurrenceReportReferralSerializer,
     InternalOccurrenceReportSerializer,
     InternalSaveOccurrenceReportDocumentSerializer,
     ListInternalOccurrenceReportSerializer,
@@ -117,6 +115,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceReportAmendmentRequestSerializer,
     OccurrenceReportDocumentSerializer,
     OccurrenceReportLogEntrySerializer,
+    OccurrenceReportProposalReferralSerializer,
     OccurrenceReportReferralSerializer,
     OccurrenceReportSerializer,
     OccurrenceReportUserActionSerializer,
@@ -663,6 +662,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def referred_to_me(self, request, *args, **kwargs):
+        self.serializer_class = DTOccurrenceReportReferralSerializer
         qs = (
             OccurrenceReportReferral.objects.filter(referral=request.user.id)
             if is_internal(self.request)
@@ -673,7 +673,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
-        serializer = OccurrenceReportReferralSerializer(
+        serializer = DTOccurrenceReportReferralSerializer(
             result_page, context={"request": request}, many=True
         )
         return self.paginator.get_paginated_response(serializer.data)
@@ -2296,7 +2296,9 @@ class OccurrenceReportViewSet(
     def referrals(self, request, *args, **kwargs):
         instance = self.get_object()
         qs = instance.referrals.all()
-        serializer = InternalOccurrenceReportReferralSerializer(qs, many=True)
+        serializer = OccurrenceReportProposalReferralSerializer(
+            qs, many=True, context={"request": self.request}
+        )
         return Response(serializer.data)
 
 
@@ -4771,11 +4773,6 @@ class OccurrenceReportReferralViewSet(
     queryset = OccurrenceReportReferral.objects.all()
     serializer_class = OccurrenceReportReferralSerializer
 
-    def get_serializer_class(self):
-        if is_internal(self.request):
-            return InternalOccurrenceReportReferralSerializer
-        return super().get_serializer_class()
-
     def get_queryset(self):
         qs = super().get_queryset()
         if not is_internal(self.request):
@@ -4792,7 +4789,7 @@ class OccurrenceReportReferralViewSet(
     def is_authorised_to_referee(self):
         instance = self.get_object()
         user = self.request.user
-        if not instance.referral == user:
+        if not instance.referral == user.id:
             raise serializers.ValidationError(
                 "User is not the Referee for Occurrence Report Referral"
             )
