@@ -2018,13 +2018,6 @@ class ConservationStatusReferral(models.Model):
     def __str__(self):
         return f"Application {self.conservation_status.id} - Referral {self.id}"
 
-    # Methods
-    @property
-    def latest_referrals(self):
-        return ConservationStatusReferral.objects.filter(
-            sent_by=self.referral, conservation_status=self.conservation_status
-        )[:2]
-
     @property
     def can_be_completed(self):
         # Referral cannot be completed until second level referral sent by referral has been completed/recalled
