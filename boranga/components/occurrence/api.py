@@ -3201,13 +3201,17 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def combine_occurrence_name_lookup(self, request, *args, **kwargs):
 
         main_occurrence_id = request.GET.get("occurrence_id", None)
+        print(main_occurrence_id)
 
         if main_occurrence_id:
             try:
                 main_occurrence = self.get_queryset().get(id=main_occurrence_id)
                 queryset = self.get_queryset().exclude(
-                    id=main_occurrence_id,
+                    id=main_occurrence_id
+                ).exclude(
                     processing_status=OccurrenceReport.PROCESSING_STATUS_CLOSED,
+                ).exclude(
+                    processing_status=OccurrenceReport.PROCESSING_STATUS_DISCARDED,
                 ).filter(
                     group_type=main_occurrence.group_type
                 )
@@ -3236,10 +3240,28 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                         )
                         .filter(display_name__icontains=search_term)
                         .distinct()
-                        .values("id", "display_name")[:10]
+                        .values(
+                            "id",
+                            "display_name",
+                            "occurrence_number",
+                            "occurrence_name",
+                            "occurrence_source",
+                            "wild_status",
+                            "review_due_date",
+                            "comment",
+                        )[:10]
                     )
                     queryset = [
-                        {"id": occurrence["id"], "text": occurrence["display_name"]}
+                        {
+                            "id": occurrence["id"], 
+                            "text": occurrence["display_name"],
+                            "occurrence_number": occurrence["occurrence_number"],
+                            "occurrence_name": occurrence["occurrence_name"],
+                            "occurrence_source": occurrence["occurrence_source"],
+                            "wild_status_id": occurrence["wild_status"],
+                            "review_due_date": occurrence["review_due_date"],
+                            "comment": occurrence["comment"],
+                        }
                         for occurrence in queryset
                     ]
             except Exception as e:

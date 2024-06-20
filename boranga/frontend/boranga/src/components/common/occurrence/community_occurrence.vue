@@ -75,7 +75,6 @@ export default {
             select_community_name: "select_community_name" + vm.occurrence_obj.id,
             occ_profile_dict: {},
             community_list: [],
-            source_list: [],
             wild_status_list: [],
             occurrence_source_list: [],
         }

@@ -11,7 +11,7 @@
         >
 
         <!--OCC Selection Drop Down-->
-        <div class="row">
+        <div class="row" id="occurrence_name_lookup_form_group_id">
             <label class="col-sm-3 control-label" for="occurrence_name_lookup">
                 Add Occurrence:
             </label>
@@ -25,7 +25,6 @@
                 <button type="button" class="btn btn-primary" @click="addOccurrence">Add</button>
             </div>
         </div>
-
         <!--OCC Selection Table-->
 
         <!--Main OCC Form-->
@@ -56,6 +55,11 @@
             return {
                 isModalOpen: false,
                 selectedOccurrences: [this.main_occurrence_obj],
+                selectedOccurrenceIds: [this.main_occurrence_obj.id],
+                selectedAddOccurrence: null,
+                occ_profile_dict: {},
+                wild_status_list: [],
+                occurrence_source_list: [],
             }
         },
         methods: {
@@ -65,7 +69,14 @@
                 $('.has-error').removeClass('has-error');
             },
             addOccurrence: function () {
-                console.log(this.selectedOccurrences);
+                let vm = this;
+                console.log(vm.selectedOccurrenceIds);
+                if (!vm.selectedOccurrenceIds.includes(vm.selectedAddOccurrence.id)) {
+                    vm.selectedOccurrenceIds.push(vm.selectedAddOccurrence.id);
+                    vm.selectedOccurrences.push(vm.selectedAddOccurrence);
+                }
+                console.log(vm.selectedOccurrences);
+                vm.selectedAddOccurrence = null;
             },
             initialiseOccurrenceNameLookup: function () {
                 let vm = this;
@@ -74,6 +85,7 @@
                     minimumInputLength: 2,
                     theme: 'bootstrap-5',
                     allowClear: true,
+                    dropdownParent: $("#occurrence_name_lookup_form_group_id"),
                     placeholder: "Search Name of Occurrence",
                     ajax: {
                         url: api_endpoints.combine_occurrence_name_lookup,
@@ -88,15 +100,29 @@
                     },
                 }).
                 on("select2:select", function (e) {
-                    
+                    vm.selectedAddOccurrence = e.params.data;
                 }).
                 on("select2:open", function (e) {
-                   
+                    const searchField = $('[aria-controls="select2-occurrence_name_lookup-results"]')
+                    searchField[0].focus();
                 }).
                 on("select2:unselect", function (e) {
-                    
+                    vm.selectedAddOccurrence = null;
                 });
             },
+        },
+        created: async function () {
+            let vm = this;
+            let action = this.$route.query.action;
+            let dict_url = action == "view" ? api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type + '&action=' + action :
+                api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type
+            vm.$http.get(dict_url).then((response) => {
+                vm.occ_profile_dict = response.body;
+                vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
+                vm.occurrence_source_list = vm.occ_profile_dict.occurrence_source_list;
+            }, (error) => {
+                console.log(error);
+            })
         },
         mounted: function () {
             this.initialiseOccurrenceNameLookup();
