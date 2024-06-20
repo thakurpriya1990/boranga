@@ -1,7 +1,7 @@
 <template lang="html">
     <div>
         <div class="" :id="occurrenceReportBody">
-            <OCRProfile ref="ocr_profile" id="ocrProfile" :is_external="is_external"
+            <OCRProfile ref="ocr_profile" id="ocrProfile" :is_external="is_external" :referral="referral"
                 :occurrence_report_obj="occurrence_report_obj" @refreshOccurrenceReport="refreshOccurrenceReport()">
             </OCRProfile>
             <SubmitterInformation v-if="occurrence_report_obj.submitter_information" :key="reloadcount"
