@@ -87,7 +87,7 @@ import {
 }
     from '@/utils/hooks'
 export default {
-    name: 'InternalConservationStatusReferral',
+    name: 'ConservationStatusReferral',
     data: function () {
         return {
             savingConservationStatus: false,
