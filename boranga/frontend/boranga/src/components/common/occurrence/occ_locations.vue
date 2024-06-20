@@ -30,11 +30,12 @@
                         name: queryLayerName,
                         title: 'Occurrence Reports',
                         default: false,
-                        can_edit: true,
+                        can_edit: false,
                         can_buffer: false,
                         api_url: ocrApiUrl,
                         ids: occurrenceReportIds,
                         geometry_name: 'ocr_geometry',
+                        collapse: true,
                     }"
                     :additional-layers-definitions="[
                         {
@@ -55,7 +56,7 @@
                             processed: false,
                             can_edit: false,
                             can_buffer: false,
-                            handler: bufferGeometryHandler,
+                            handler: bufferGeometryHandler, // Buffer geometries are a property of occurrence geometry. This handler returns the buffer geometries from the occurrence geometries.
                         },
                     ]"
                     @features-loaded="mapFeaturesLoaded"
