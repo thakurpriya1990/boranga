@@ -374,7 +374,7 @@ urlpatterns = [
         name="internal-conservation-status-dashboard",
     ),
     url(
-        r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/cs_referral/(?P<referral_pk>\d+)/$",
+        r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.ConservationStatusReferralView.as_view(),
         name="internal-conservation-status-referral-detail",
     ),
