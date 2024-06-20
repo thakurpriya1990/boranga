@@ -38,14 +38,9 @@ from boranga.components.occurrence.models import (
     WildStatus,
 )
 from boranga.components.spatial.utils import (
-    projection,
     transform_geosgeometry_3857_to_4326,
     wkb_to_geojson,
 )
-
-
-import shapely.geometry as shp
-from shapely.ops import transform
 
 
 class GeometryField(forms.GeometryField):
@@ -150,7 +145,7 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
                         "locked",
                     ),
                     (
-                        "copied_from",
+                        # "copied_from",
                         "drawn_by",
                     ),
                 )
@@ -171,6 +166,9 @@ class OccurrenceGeometryInlineForm(forms.ModelForm):
     class Meta:
         model = OccurrenceGeometry
         fields = "__all__"
+
+
+# class
 
 
 class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
@@ -196,16 +194,24 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
                         "locked",
                     ),
                     (
-                        "copied_from",
+                        # "copied_from",
                         "drawn_by",
                     ),
                     ("buffer_radius",),
+                    (
+                        "object_id",
+                        "content_type",
+                    ),
                 )
             },
         ),
     )
 
-    readonly_fields = ["original_geometry", "area_sqm", "area_sqhm"]
+    readonly_fields = [
+        "original_geometry",
+        "area_sqm",
+        "area_sqhm",
+    ]
 
     inlines = [BufferGeometryInline, OccurrenceTenureInline]
 

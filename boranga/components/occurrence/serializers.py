@@ -710,7 +710,8 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
         return get_geometry_source(obj)
 
     def get_report_copied_from(self, obj):
-        if obj.copied_from:
+        if hasattr(obj, "copied_from") and obj.copied_from:
+            return None
             return ListOCRReportMinimalSerializer(
                 obj.copied_from.occurrence_report, context=self.context
             ).data
@@ -2884,7 +2885,8 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
         return get_geometry_source(obj)
 
     def get_copied_from(self, obj):
-        if obj.copied_from:
+        if hasattr(obj, "copied_from") and obj.copied_from:
+            return None
             return ListOCCMinimalSerializer(
                 obj.copied_from.occurrence, context=self.context
             ).data

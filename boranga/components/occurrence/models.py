@@ -4,6 +4,8 @@ from abc import abstractmethod
 
 import reversion
 from django.conf import settings
+from django.contrib.contenttypes import fields
+from django.contrib.contenttypes import models as ct_models
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
 from django.contrib.gis.geos import GEOSGeometry, Polygon
@@ -1626,8 +1628,25 @@ class GeometryBase(models.Model):
         blank=True, null=True, editable=True
     )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
 
+    content_type = models.ForeignKey(
+        ct_models.ContentType,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="content_type_%(class)s",
+    )
+    object_id = models.PositiveIntegerField(blank=True, null=True)
+    content_object = fields.GenericForeignKey("content_type", "object_id")
+
+    copied_from = fields.GenericRelation(
+        "self", related_query_name="copied_from_geometry"
+    )
+
     class Meta:
         abstract = True
+        indexes = [
+            models.Index(fields=["content_type", "object_id"]),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.geometry:
@@ -1719,9 +1738,9 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry
         null=True,
         related_name="ocr_geometry",
     )
-    copied_from = models.ForeignKey(
-        "self", on_delete=models.SET_NULL, blank=True, null=True
-    )
+    # copied_from = models.ForeignKey(
+    #     "self", on_delete=models.SET_NULL, blank=True, null=True
+    # )
     locked = models.BooleanField(default=False)
 
     class Meta:
@@ -3430,9 +3449,9 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
         null=True,
         related_name="occ_geometry",
     )
-    copied_from = models.ForeignKey(
-        "self", on_delete=models.SET_NULL, blank=True, null=True
-    )
+    # copied_from = models.ForeignKey(
+    #     "self", on_delete=models.SET_NULL, blank=True, null=True
+    # )
     locked = models.BooleanField(default=False)
     # TODO: possibly remove buffer radius from location models
     # when we go with the radius being a property of the geometry
