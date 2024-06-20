@@ -4789,7 +4789,7 @@ class OccurrenceReportReferralViewSet(
     def is_authorised_to_referee(self):
         instance = self.get_object()
         user = self.request.user
-        if not instance.referral == user:
+        if not instance.referral == user.id:
             raise serializers.ValidationError(
                 "User is not the Referee for Occurrence Report Referral"
             )
