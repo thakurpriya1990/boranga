@@ -256,7 +256,7 @@ export default {
         },
         column_status: function () {
             return {
-                data: "processing_status_display",
+                data: "processing_status",
                 orderable: true,
                 searchable: true,
                 visible: true,
