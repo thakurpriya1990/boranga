@@ -20,7 +20,7 @@
                         collapse: true,
                     }" :additional-layers-definitions="[
                         {
-                            name: 'processed_layer',
+                            name: occurrenceLayerName,
                             title: 'Occurrence',
                             default: true,
                             processed: true,
@@ -182,10 +182,19 @@
                     </OccurrenceTenureDatatable>
                 </div>
             </FormSection>
-            <RelatedReports v-if="occurrence_obj" ref="related_reports_datatable" :key="datatableRelatedOCRKey"
-                :is-read-only="isReadOnly" :occurrence_obj="occurrence_obj" :section_type="'location'"
-                :href-container-id="getMapContainerId" @copyUpdate="copyUpdate"
-                @highlight-on-map="highlightIdOnMapLayer" />
+            <RelatedReports
+                v-if="occurrence_obj"
+                ref="related_reports_datatable"
+                :key="datatableRelatedOCRKey"
+                :is-read-only="isReadOnly"
+                :occurrence_obj="occurrence_obj"
+                :section_type="'location'"
+                :href-container-id="getMapContainerId"
+                :target-map-layer-name-for-copy="occurrenceLayerName"
+                @copyUpdate="copyUpdate"
+                @highlight-on-map="highlightIdOnMapLayer"
+                @copy-to-map-layer="copyToMapLayer"
+            />
         </FormSection>
     </div>
 </template>
@@ -250,6 +259,7 @@ export default {
             mapReady: false,
             mapContainerId: false,
             queryLayerName: 'query_layer',
+            occurrenceLayerName: 'occurrence_layer',
         };
     },
     computed: {
@@ -524,6 +534,14 @@ export default {
             this.mapContainerId = this.$refs.component_map.map_container_id;
             this.mapReady = true;
         },
+        getMapFeatureById: function (id, layer_name) {
+            if (!layer_name) {
+                layer_name = this.queryLayerName;
+            }
+            const map = this.$refs.component_map;
+            const layer = map.getLayerByName(layer_name);
+            return map.getFeatureById(layer, id);
+        },
         highlightPointOnMap: function (coordinates) {
             if (!coordinates) {
                 console.warn('No coordinates found');
@@ -532,14 +550,18 @@ export default {
             this.$refs.component_map.highlightPointOnTenureLayer(coordinates);
         },
         highlightIdOnMapLayer: function (id) {
+            const feature = this.getMapFeatureById(id);
+            this.$refs.component_map.centerOnFeature(feature);
+        },
+        copyToMapLayer: function (id, target_layer) {
+            console.log('Copy to map layer:', id, target_layer);
             const map = this.$refs.component_map;
-            const layer = map.getLayerByName(this.queryLayerName);
-            const feature = map.getFeatureById(layer, id);
-            map.centerOnFeature(feature);
+            const feature = this.getMapFeatureById(id);
+            map.copyFeatureToLayer(feature, map.getLayerByName(target_layer));
         },
         bufferGeometryHandler: function () {
             const occurrence_features = this.$refs.component_map
-                .getLayerByName('processed_layer')
+                .getLayerByName(this.occurrenceLayerName)
                 .getSource()
                 .getFeatures();
 
