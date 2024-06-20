@@ -26,12 +26,15 @@
             </div>
         </div>
         <!--OCC Selection Table-->
+        <div class="row">
+        <OccurrenceCombineSelect :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id"/>
+        </div>
+
+        <!--OCC Tabs-->
 
         <!--Main OCC Form-->
 
         <!--Key Contacts Table-->
-
-        <!--OCC Tabs-->
 
         </modal>
     </div>
@@ -40,6 +43,7 @@
 <script>
     import modal from '@vue-utils/bootstrap-modal.vue';
     import { helpers, api_endpoints } from "@/utils/hooks.js"
+    import OccurrenceCombineSelect from './occurrence_combine_selection.vue'
     export default {
         name: 'OccurrenceCombine',
         props: {
@@ -50,6 +54,7 @@
         },
         components: {
             modal,
+            OccurrenceCombineSelect,
         },
         data: function () {
             return {
@@ -70,13 +75,14 @@
             },
             addOccurrence: function () {
                 let vm = this;
-                console.log(vm.selectedOccurrenceIds);
-                if (!vm.selectedOccurrenceIds.includes(vm.selectedAddOccurrence.id)) {
+                if (vm.selectedAddOccurrence != null &&
+                !vm.selectedOccurrenceIds.includes(vm.selectedAddOccurrence.id)) {
                     vm.selectedOccurrenceIds.push(vm.selectedAddOccurrence.id);
                     vm.selectedOccurrences.push(vm.selectedAddOccurrence);
                 }
-                console.log(vm.selectedOccurrences);
                 vm.selectedAddOccurrence = null;
+                $(vm.$refs.occurrence_name_lookup).val(null).trigger("change");
+
             },
             initialiseOccurrenceNameLookup: function () {
                 let vm = this;
@@ -107,6 +113,7 @@
                     searchField[0].focus();
                 }).
                 on("select2:unselect", function (e) {
+                    console.log(e)
                     vm.selectedAddOccurrence = null;
                 });
             },

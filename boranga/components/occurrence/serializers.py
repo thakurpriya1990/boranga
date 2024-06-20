@@ -77,6 +77,9 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     scientific_name = serializers.CharField(
         source="species.taxonomy.scientific_name", allow_null=True
     )
+    community_name = serializers.CharField(
+        source="community.name", allow_null=True
+    )
     species_taxonomy_id = serializers.IntegerField(
         source="species.taxonomy.id", allow_null=True
     )
