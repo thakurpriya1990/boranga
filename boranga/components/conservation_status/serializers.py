@@ -1210,7 +1210,6 @@ class SendReferralSerializer(serializers.Serializer):
 
 class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source="get_processing_status_display")
-    referral_status = serializers.CharField(source="get_processing_status_display")
     conservation_status_id = serializers.IntegerField(source="conservation_status.id")
     conservation_status_lodgement_date = serializers.CharField(
         source="conservation_status.lodgement_date"
@@ -1239,7 +1238,6 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "processing_status",
-            "referral_status",
             "conservation_status_id",
             "conservation_status_lodgement_date",
             "conservation_status_number",
@@ -1347,8 +1345,8 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
 class ConservationStatusReferralProposalSerializer(
     InternalConservationStatusSerializer
 ):
+
     def get_assessor_mode(self, obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
         try:
             referral = ConservationStatusReferral.objects.get(
@@ -1368,7 +1366,6 @@ class ConservationStatusReferralProposalSerializer(
 
 class ConservationStatusReferralSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source="get_processing_status_display")
-    latest_referrals = ConservationStatusProposalReferralSerializer(many=True)
     can_be_completed = serializers.BooleanField()
 
     class Meta:
