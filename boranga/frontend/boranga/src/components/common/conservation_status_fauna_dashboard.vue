@@ -635,7 +635,7 @@ export default {
                 visible: true,
                 'render': function (data, type, full) {
                     let value = full.conservation_status_number
-                    if (vfull.is_new_contributor) {
+                    if (full.is_new_contributor) {
                         value += ' <span class="badge bg-warning">New Contributor</span>'
                     }
                     return value
