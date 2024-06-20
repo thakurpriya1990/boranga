@@ -1129,7 +1129,7 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
     processing_status_display = serializers.CharField(
         source="get_processing_status_display"
     )
-    can_be_processed = serializers.BooleanField(read_only=True)
+    occurrence_report = OccurrenceReportSerializer(read_only=True)
 
     class Meta:
         model = OccurrenceReportReferral
@@ -1137,6 +1137,7 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_number",
             "occurrence_report_id",
+            "occurrence_report",
             "occurrence_name",
             "scientific_name",
             "community_name",
@@ -1161,11 +1162,10 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
             return None
 
 
-class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
+class OccurrenceReportProposalReferralSerializer(serializers.ModelSerializer):
     referral = serializers.SerializerMethodField()
     referral_comment = serializers.SerializerMethodField()
     referral_status = serializers.CharField(source="get_processing_status_display")
-    occurrence_report_id = serializers.IntegerField(source="occurrence_report.id")
 
     class Meta:
         model = OccurrenceReportReferral
@@ -1173,16 +1173,7 @@ class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
         datatables_always_serialize = (
             "id",
             "can_be_processed",
-            "occurrence_report_id",
         )
-
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     self.fields["occurrence_report"] = (
-    #         OccurrenceReportSerializer(
-    #             context={"request": self.context["request"]}
-    #         )
-    #     )
 
     def get_referral(self, obj):
         return EmailUserSerializer(retrieve_email_user(obj.referral)).data
@@ -1203,10 +1194,10 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         read_only=True, allow_null=True
     )
     assessor_mode = serializers.SerializerMethodField()
-    latest_referrals = InternalOccurrenceReportReferralSerializer(
+    latest_referrals = OccurrenceReportProposalReferralSerializer(
         many=True, read_only=True, allow_null=True
     )
-    referrals = InternalOccurrenceReportReferralSerializer(
+    referrals = OccurrenceReportProposalReferralSerializer(
         many=True, read_only=True, allow_null=True
     )
     readonly = serializers.SerializerMethodField(read_only=True)
