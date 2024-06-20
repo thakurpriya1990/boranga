@@ -1450,7 +1450,7 @@ class OccurrenceReportReferral(models.Model):
 
         send_occurrence_report_referral_complete_email_notification(self, request)
 
-    def can_assess_referral(self, user):
+    def can_assess_referral(self):
         return self.processing_status == self.PROCESSING_STATUS_WITH_REFERRAL
 
     @property
