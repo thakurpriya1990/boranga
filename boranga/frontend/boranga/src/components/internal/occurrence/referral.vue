@@ -18,9 +18,23 @@
                     </div>
                     <template
                         v-if="!isFinalised && referral.referral == occurrence_report_obj.current_assessor.id && referral.can_be_completed">
+                        <div class="card-body border-top pb-0">
+                            <strong>Referrer</strong>
+                            <div class="alert alert-primary px-1 py-2 mt-2" role="alert">
+                                <div class="mb-1">
+                                    <i class="bi bi-person-fill"></i> {{ referral.sent_by.fullname }}
+                                </div>
+                                <div>
+                                    <i class="bi bi-envelope"></i> <a :href="'mailto:' + referral.sent_by.email"
+                                        target="_balnk">{{ referral.sent_by.email }}</a>
+                                </div>
+                            </div>
+                        </div>
                         <div class="card-body border-top">
-                            <strong>Referer's Comments</strong><br />
-                            <textarea class="form-control" rows="6" v-model="referral.text" :disabled="true"></textarea>
+                            <strong>Referrer's Comments</strong>
+                            <div class="mt-2">
+                                <em class="text-muted">"{{ referral.text }}"</em>
+                            </div>
                         </div>
                         <div class="card-body border-top">
                             <strong>Your Comments</strong><br />
