@@ -243,6 +243,7 @@ def save_geometry(
 
         # Check if the feature has a buffer radius to later update or create a buffer geometry
         buffer_radius = feature.get("properties", {}).get("buffer_radius", None)
+        copied_from = feature.get("properties", {}).get("copied_from", None)
 
         geom_4326 = feature_json_to_geosgeometry(feature)
 
@@ -266,6 +267,7 @@ def save_geometry(
                 "geometry": geom[0],
                 "original_geometry_ewkb": geom[1].ewkb,
                 "buffer_radius": buffer_radius,
+                "copied_from": copied_from,
             }
 
             intersect_data = {}
