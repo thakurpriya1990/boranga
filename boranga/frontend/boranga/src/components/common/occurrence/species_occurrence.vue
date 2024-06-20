@@ -92,8 +92,6 @@ export default {
             select_wild_status: "select_wild_status" + vm._uid,
             common_name: null,
             occ_profile_dict: {},
-            species_list: [],
-            source_list: [],
             wild_status_list: [],
             occurrence_source_list: [],
         }
@@ -157,28 +155,17 @@ export default {
         },
         getSpeciesDisplay: function () {
             let vm = this;
-            if (vm.occurrence_obj.species != null) {
-                let species_display_url = api_endpoints.species_display +
-                    "?species_id=" + vm.occurrence_obj.species
+            if (vm.occurrence_obj.species_taxonomy_id != null) {
+                let species_display_url = api_endpoints.species_display + "?taxon_id=" + vm.occurrence_obj.species_taxonomy_id
                 vm.$http.get(species_display_url).then(
-                    (response) => {
-                        var newOption = new Option(response.body.name, response.body.id, false, true);
-                        $('#' + vm.scientific_name_lookup).append(newOption);
-                        vm.species_display = response.body.name;
-                        vm.taxon_previous_name = response.body.taxon_previous_name;
-                        vm.common_name = response.body.common_name;
-                    })
+                (response) => {
+                    var newOption = new Option(response.body.name, response.body.id, false, true);
+                    $('#' + vm.scientific_name_lookup).append(newOption);
+                    vm.species_display = response.body.name
+                    vm.taxon_previous_name = response.body.taxon_previous_name
+                    vm.common_name = response.body.common_name
+                })
             }
-            /*for(let choice of vm.species_list){
-                    if(choice.id === vm.occurrence_obj.species)
-                    {
-                        var newOption = new Option(choice.name, choice.id, false, true);
-                        $('#'+ vm.scientific_name_lookup).append(newOption);
-                        vm.species_display = choice.name;
-                        vm.taxon_previous_name = choice.taxon_previous_name;
-                        vm.common_name = choice.common_name;
-                    }
-                }*/
         },
         eventListeners: function () {
             let vm = this;
@@ -193,7 +180,6 @@ export default {
             api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type
         vm.$http.get(dict_url).then((response) => {
             vm.occ_profile_dict = response.body;
-            vm.species_list = vm.occ_profile_dict.species_list;
             vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
             vm.occurrence_source_list = vm.occ_profile_dict.occurrence_source_list;
             this.getSpeciesDisplay();

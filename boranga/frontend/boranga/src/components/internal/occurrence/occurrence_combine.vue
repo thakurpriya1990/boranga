@@ -114,8 +114,8 @@
         created: async function () {
             let vm = this;
             let action = this.$route.query.action;
-            let dict_url = action == "view" ? api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type + '&action=' + action :
-                api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type
+            let dict_url = action == "view" ? api_endpoints.occ_profile_dict + '?group_type=' + vm.main_occurrence_obj.group_type + '&action=' + action :
+                api_endpoints.occ_profile_dict + '?group_type=' + vm.main_occurrence_obj.group_type
             vm.$http.get(dict_url).then((response) => {
                 vm.occ_profile_dict = response.body;
                 vm.wild_status_list = vm.occ_profile_dict.wild_status_list;

@@ -2865,44 +2865,10 @@ class GetOCCProfileDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get("group_type", "")
 
-        species_list = []
-        if group_type:
-            exclude_status = ["draft"]
-            species = Species.objects.filter(
-                ~Q(processing_status__in=exclude_status)
-                & ~Q(taxonomy=None)
-                & Q(group_type__name=group_type)
-            )
-            if species:
-                for specimen in species:
-                    species_list.append(
-                        {
-                            "id": specimen.id,
-                            "name": specimen.taxonomy.scientific_name,
-                            "taxon_previous_name": specimen.taxonomy.taxon_previous_name,
-                            "common_name": specimen.taxonomy.taxon_vernacular_name,
-                        }
-                    )
-        community_list = []
-        exculde_status = ["draft"]
-        communities = CommunityTaxonomy.objects.filter(
-            ~Q(community__processing_status__in=exculde_status)
-        )  # TODO remove later as every community will have community name
-        if communities:
-            for specimen in communities:
-                community_list.append(
-                    {
-                        "id": specimen.community.id,
-                        "name": specimen.community_name,
-                    }
-                )
-
         wild_status_list = list(WildStatus.objects.all().values("id", "name"))
         occurrence_source_list = list(Occurrence.OCCURRENCE_SOURCE_CHOICES)
 
         res_json = {
-            "species_list": species_list,
-            "community_list": community_list,
             "wild_status_list": wild_status_list,
             "occurrence_source_list": occurrence_source_list,
         }
