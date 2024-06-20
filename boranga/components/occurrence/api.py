@@ -99,6 +99,7 @@ from boranga.components.occurrence.serializers import (
     BackToAssessorSerializer,
     CreateOccurrenceReportSerializer,
     CreateOccurrenceSerializer,
+    DTOccurrenceReportReferralSerializer,
     InternalOccurrenceReportSerializer,
     InternalSaveOccurrenceReportDocumentSerializer,
     ListInternalOccurrenceReportSerializer,
@@ -661,7 +662,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def referred_to_me(self, request, *args, **kwargs):
-        self.serializer_class = OccurrenceReportReferralSerializer
+        self.serializer_class = DTOccurrenceReportReferralSerializer
         qs = (
             OccurrenceReportReferral.objects.filter(referral=request.user.id)
             if is_internal(self.request)
@@ -672,7 +673,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
-        serializer = OccurrenceReportReferralSerializer(
+        serializer = DTOccurrenceReportReferralSerializer(
             result_page, context={"request": request}, many=True
         )
         return self.paginator.get_paginated_response(serializer.data)
