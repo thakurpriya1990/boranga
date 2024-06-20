@@ -1363,6 +1363,7 @@ class OccurrenceReportReferralProposalSerializer(InternalOccurrenceReportSeriali
 class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source="get_processing_status_display")
     can_be_completed = serializers.BooleanField()
+    sent_by = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReportReferral
@@ -1373,6 +1374,13 @@ class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
         self.fields["occurrence_report"] = OccurrenceReportReferralProposalSerializer(
             context={"request": self.context["request"]}
         )
+
+    def get_sent_by(self, obj):
+        if obj.sent_by:
+            email_user = retrieve_email_user(obj.sent_by)
+            if email_user:
+                return EmailUserSerializer(email_user).data
+        return None
 
 
 class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
