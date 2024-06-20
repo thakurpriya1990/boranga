@@ -544,6 +544,7 @@
                                 <!-- A copy-selected Button -->
                                 <div
                                     class="input-group-text justify-content-end"
+                                    title="Select geometries to copy"
                                 >
                                     <button
                                         type="button"
@@ -571,7 +572,7 @@
                                             )
                                         "
                                     >
-                                        <i class="fa-solid fa-circle-plus"></i>
+                                        <i class="fa-solid fa-copy"></i>
                                     </button>
                                 </div>
                             </div>
