@@ -367,18 +367,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         return self.customer_status in self.CUSTOMER_VIEWABLE_STATE
 
     @property
-    def is_discardable(self):
-        """
-        An occurrence report can be discarded by a customer if:
-        1 - It is a draft
-        2- or if the occurrence report has been pushed back to the user
-        """
-        return (
-            self.customer_status == "draft"
-            or self.processing_status == "awaiting_applicant_response"
-        )
-
-    @property
     def is_flora_application(self):
         if self.group_type.name == GroupType.GROUP_TYPE_FLORA:
             return True
