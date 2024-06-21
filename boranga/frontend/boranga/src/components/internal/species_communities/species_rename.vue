@@ -96,7 +96,7 @@ export default {
         discardSpecies: function (species_id) {
             let vm = this;
             try {
-                vm.$http.delete(api_endpoints.discard_species_proposal(species_id));
+                vm.$http.delete(api_endpoints.remove_species_proposal(species_id));
             }
             catch (err) {
                 console.log(err);
