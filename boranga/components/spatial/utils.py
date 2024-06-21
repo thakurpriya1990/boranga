@@ -380,12 +380,17 @@ def save_geometry(
                 )
             except BufferGeometry.DoesNotExist:
                 if buffer_radius:
+                    content_type_object = ct_models.ContentType.objects.get_for_model(
+                        geometry_instance
+                    )
                     # There is a buffer radius, but no buffer geometry, so create a buffer geometry
                     BufferGeometry.objects.create(
                         buffered_from_geometry=geometry_instance,
                         geometry=buffer_geos_geometry(
                             geometry_instance.geometry, buffer_radius
                         ),
+                        object_id=geometry_instance.id,
+                        content_type=content_type_object,
                     )
                     logger.info(
                         f"Created buffer geometry for {instance_model_name} geometry: {geometry_instance}"
