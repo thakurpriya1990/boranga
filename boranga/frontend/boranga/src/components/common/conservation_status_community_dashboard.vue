@@ -382,8 +382,10 @@ export default {
             filterCSCommunityInternationalRelevance: sessionStorage.getItem(this.filterCSCommunityInternationalRelevance_cache) ?
                 sessionStorage.getItem(this.filterCSCommunityInternationalRelevance_cache) : "false",
 
+            // filterCSCommunityApplicationStatus: sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) ?
+            //     sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : 'approved',
             filterCSCommunityApplicationStatus: sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : 'approved',
+                 sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : (this.is_for_agenda? 'ready_for_agenda' : 'approved'),
 
             filterCSCommunityAssessor: sessionStorage.getItem(this.filterCSCommunityAssessor_cache) ?
                 sessionStorage.getItem(this.filterCSCommunityAssessor_cache) : 'all',
