@@ -1,7 +1,4 @@
 var site_url = location.origin
-var t_class = 'Commercial operations'
-var filming = 'Filming'
-var event = 'Event'
 var group_type_flora = 'flora'
 var group_type_fauna = 'fauna'
 var group_type_community = 'community'
@@ -20,14 +17,12 @@ module.exports = {
     conservation_status_documents: "/api/conservation_status_documents.json",
     conservation_status: "/api/conservation_status",
     countries: '/api/countries',
+    cs_external_referee_invites: "/api/cs_external_referee_invites",
     cs_referrals: "/api/cs_referrals.json",
     department_users: '/api/department_users',
     districts: "/api/districts.json",
     document_categories_dict: "/api/document_categories_dict",
-    event_park_container: "/api/event_park_container",
-    event_trail_container: "/api/event_trail_container",
     filtered_organisations: '/api/filtered_organisations',
-    filtered_users: '/api/filtered_users',
     marine_treeview: "/api/marine_treeview",
     ocr_referrals: "/api/ocr_referrals.json",
     organisation_access_group_members: '/api/organisation_access_group_members',
@@ -35,10 +30,7 @@ module.exports = {
     organisation_requests: '/api/organisation_requests.json',
     organisations: '/api/organisations.json',
     overdue_invoices: "/api/overdue_invoices.json",
-    park_treeview: "/api/park_treeview",
-    parks: "/api/parks.json",
     profile: '/api/profile',
-    proposal_park: "/api/proposal_park.json",
     proposal_requirements: "/api/proposal_requirements.json",
     proposal_standard_requirements: "/api/proposal_standard_requirements.json",
     proposal_submit: "/api/proposal_submit.json",
@@ -52,24 +44,10 @@ module.exports = {
     species: "/api/species",
     submitter_categories: "/api/submitter_categories",
     taxonomy: "/api/taxonomy",
-    tclass_container_land: "/api/tclass_container_land",
-    tclass_container_marine: "/api/tclass_container_marine",
     threat: "/api/threat.json",
     trails: "/api/trails.json",
     users_api: '/api/users',
     users: '/api/users.json',
-    vehicles: "/api/vehicles.json",
-    vessels: "/api/vessels.json",
-
-    //filming
-    proposal_filming_parks: "/api/proposal_filming_parks.json",
-    district_proposals: "/api/district_proposals.json",
-
-    //Events
-    proposal_events_parks: "/api/proposal_events_parks.json",
-    abseiling_climbing_activities: "/api/abseiling_climbing_activities.json",
-    proposal_pre_event_parks: "/api/proposal_pre_event_parks.json",
-    proposal_events_trails: "/api/proposal_events_trails.json",
 
     // used in internal and external dashboards
     approvals_paginated_external: "/api/approval_paginated/approvals_external/?format=datatables",
@@ -142,9 +120,7 @@ module.exports = {
     filter_list_approvals: "/api/approvals/filter_list.json",
     filter_list_compliances: "/api/compliances/filter_list.json",
     filter_list_referrals: "/api/referrals/filter_list.json",
-    filter_list_parks: "/api/parks/filter_list.json",
     filter_list_district_proposals: "/api/district_proposals/filter_list.json",
-
     filter_list_cs_referrals: "/api/cs_referrals/filter_list.json",
     filter_list_cs_referrals_community: "/api/cs_referrals/community_filter_list.json",
 
@@ -177,39 +153,26 @@ module.exports = {
         return `/api/community/${id}.json`;
     },
     discard_species_proposal: function (id) {
-        return `/api/species/${id}.json`;
+        return `/api/species/${id}/discard/`;
+    },
+    remove_species_proposal: function (id) {
+        return `/api/species/${id}/remove/`;
     },
     discard_meeting: function (id) {
-        return `/api/meeting/${id}.json`;
+        return `/api/meeting/${id}/discard/`;
+    },
+    reinstate_meeting: function (id) {
+        return `/api/meeting/${id}/reinstate/`;
     },
     discard_ocr_proposal: function (id) {
-        return `/api/occurrence_report/${id}.json`;
+        return `/api/occurrence_report/${id}/discard/`;
+    },
+    reinstate_ocr_proposal: function (id) {
+        return `/api/occurrence_report/${id}/reinstate/`;
     },
     discard_observer_detail: function (id) {
         return `/api/observer_detail/${id}.json`;
     },
-    discard_vessel: function (id) {
-        return `/api/vessels/${id}.json`;
-    },
-    discard_vehicle: function (id) {
-        return `/api/vehicles/${id}.json`;
-    },
-    discard_abseiling_climbing: function (id) {
-        return `/api/abseiling_climbing_activities/${id}.json`;
-    },
-    discard_pre_event_park: function (id) {
-        return `/api/proposal_pre_event_parks/${id}.json`;
-    },
-    discard_event_park: function (id) {
-        return `/api/proposal_events_parks/${id}.json`;
-    },
-    discard_event_trail: function (id) {
-        return `/api/proposal_events_trails/${id}.json`;
-    },
-    discard_filming_park: function (id) {
-        return `/api/proposal_filming_parks/${id}.json`;
-    },
-
     lookup_history_species_document: function (id) {
       return `/api/history/boranga/species_communities/SpeciesDocument/${id}/`;
     },
@@ -268,15 +231,10 @@ module.exports = {
       return `/api/occurrence_report/${id}/section_values/?section=${model}`;
     },
 
-    event: event,
-    filming: filming,
     group_type_community: group_type_community,
     group_type_fauna: group_type_fauna,
     group_type_flora: group_type_flora,
     group_types: ['Fauna', 'Flora', 'Communities'],
-    payment_help_url: 'https://parks.dpaw.wa.gov.au/for-business/training-accreditation-insurance-fees',
-    proposal_type_help_url: ' https://parks.dbca.wa.gov.au/for-business/commercial-operations-licensing',
     site_url: site_url,
     system_name: 'Boranga System',
-    t_class: t_class,
 }

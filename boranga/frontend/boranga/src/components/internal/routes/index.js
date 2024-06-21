@@ -1,4 +1,3 @@
-import Search from '../search.vue'
 import User from '../users/manage.vue'
 import SpeciesCommunitiesDash from '../species_communities/dashboard.vue'
 import SpeciesCommunities from '../species_communities/species_communities.vue'
@@ -10,6 +9,7 @@ import Meeting from '../meetings/meeting.vue'
 import OccurrenceDash from '../occurrence/dashboard.vue'
 import Occurrence from '../occurrence/occurrence.vue'
 import OccurrenceReport from '../occurrence/occurrence_report.vue'
+import OccurrenceReportReferral from '../occurrence/referral.vue'
 
 export default
     {
@@ -56,14 +56,34 @@ export default
                 name: "internal-occurrence-detail"
             },
             {
-                path: 'occurrence_report/:occurrence_report_id',
-                component: OccurrenceReport,
-                name: "internal-occurrence-report-detail"
-            },
-            {
-                path: 'search',
-                component: Search,
-                name: "internal-search"
+                path: 'occurrence_report',
+                component: {
+                    render(c) {
+                        return c('router-view')
+                    },
+                },
+                children: [
+                    {
+                        path: ':occurrence_report_id',
+                        component: {
+                            render(c) {
+                                return c('router-view')
+                            },
+                        },
+                        children: [
+                            {
+                                path: '/',
+                                component: OccurrenceReport,
+                                name: "internal-occurrence-report-detail",
+                            },
+                            {
+                                path: 'referral/:referral_id',
+                                component: OccurrenceReportReferral,
+                                name: "internal-occurrence-report-referral"
+                            }
+                        ]
+                    },
+                ]
             },
             {
                 path: 'users',

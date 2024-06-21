@@ -103,7 +103,7 @@ export async function fetchProposals(
     proposalIds
 ) {
     if (!proposalApiUrl) {
-        console.error('No proposal API URL provided');
+        console.warn('No proposal API URL provided');
         return [];
     }
     if (!proposalIds) {

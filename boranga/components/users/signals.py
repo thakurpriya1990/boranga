@@ -5,6 +5,10 @@ from django.contrib.auth.signals import user_logged_in
 from django.db import transaction
 from ledger_api_client.managed_models import SystemGroup, SystemGroupPermission
 
+from boranga.components.conservation_status.models import (
+    ConservationStatusReferral,
+    CSExternalRefereeInvite,
+)
 from boranga.components.occurrence.models import (
     OccurrenceReportReferral,
     OCRExternalRefereeInvite,
@@ -49,6 +53,45 @@ def ocr_process_ocr_external_referee_invite(sender, user, request, **kwargs):
     )
 
 
+@transaction.atomic
+def cs_process_cs_external_referee_invite(sender, user, request, **kwargs):
+    """
+    Check if the user logging in has an external referee invite and if so, process it.
+    """
+    logger.info(
+        "user_logged_in_signal running cs_process_external_referee_invite function"
+    )
+    logger.info("Checking if there are any external referee invites for user: %s", user)
+    if not CSExternalRefereeInvite.objects.filter(
+        archived=False, email=user.email, datetime_first_logged_in__isnull=True
+    ).exists():
+        return
+
+    logger.info("External conservation status referee invite found for user: %s", user)
+
+    cs_external_referee_invite = CSExternalRefereeInvite.objects.get(email=user.email)
+    cs_external_referee_invite.datetime_first_logged_in = user.last_login
+    logger.info(
+        "Saving datetime_first_logged_in for conservation status external referee invite: %s",
+        cs_external_referee_invite,
+    )
+    cs_external_referee_invite.save()
+
+    ConservationStatusReferral.objects.create(
+        conservation_status=cs_external_referee_invite.conservation_status,
+        referral=user.id,
+        sent_by=cs_external_referee_invite.sent_by,
+        text=cs_external_referee_invite.invite_text,
+        assigned_officer=cs_external_referee_invite.sent_by,
+        is_external=True,
+    )
+
+
+def process_external_referee_invites(sender, user, request, **kwargs):
+    ocr_process_ocr_external_referee_invite(sender, user, request, **kwargs)
+    cs_process_cs_external_referee_invite(sender, user, request, **kwargs)
+
+
 def add_external_user_to_external_contributors_group(sender, user, request, **kwargs):
     logger.info(
         "user_logged_in_signal running add_external_user_to_external_contributors_group function"
@@ -87,6 +130,4 @@ def add_external_user_to_external_contributors_group(sender, user, request, **kw
 
 
 user_logged_in.connect(add_external_user_to_external_contributors_group)
-
-# Disabled for boranga phase 1
-# user_logged_in.connect(ocr_process_ocr_external_referee_invite)
+user_logged_in.connect(process_external_referee_invites)

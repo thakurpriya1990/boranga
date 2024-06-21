@@ -34,6 +34,8 @@
                         can_edit: true,
                         api_url: proposalApiUrl,
                         ids: [occurrence_report_obj.id],
+                        geometry_name: 'ocr_geometry',
+                        collapse: false,
                     }"
                     @validate-feature="validateFeature.bind(this)()"
                     @refreshFromResponse="refreshFromResponse"

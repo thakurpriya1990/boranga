@@ -65,7 +65,7 @@ export default {
                     },
                     {
                         title: 'Status',
-                        data: 'referral_status'
+                        data: 'processing_status'
                     },
                     {
                         title: 'Action',
@@ -76,7 +76,7 @@ export default {
                                 return result;
                             }
                             var user = full.referral.first_name + ' ' + full.referral.last_name;
-                            if (full.referral_status == 'Awaiting') {
+                            if (full.processing_status == 'Awaiting') {
                                 result = `<a href="" data-id="${data}" data-user="${user}" class="remindRef">Remind</a>/<a href="" data-id="${data}" data-user="${user}" class="recallRef">Recall</a>`;
                             }
                             else {

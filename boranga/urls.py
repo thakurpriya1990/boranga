@@ -125,6 +125,10 @@ router.register(
     r"conservation_status", conservation_status_api.ConservationStatusViewSet
 )
 router.register(
+    r"cs_external_referee_invites",
+    conservation_status_api.CSExternalRefereeInviteViewSet,
+)
+router.register(
     r"occurrence_report", occurrence_api.OccurrenceReportViewSet, "occurrence_report"
 )
 router.register(
@@ -160,7 +164,7 @@ router.register(r"users", users_api.UserViewSet)
 router.register(r"global_settings", main_api.GlobalSettingsViewSet)
 
 router.register(r"tile_layer", spatial_api.TileLayerViewSet, "tile_layer")
-router.register(r'regions', species_communities_api.RegionViewSet,"regions")
+router.register(r"regions", species_communities_api.RegionViewSet, "regions")
 
 router.register(
     r"occurrence_tenure_paginated",
@@ -185,11 +189,6 @@ api_patterns = [
         r"^api/department_users$",
         users_api.DepartmentUserList.as_view(),
         name="department-users-list",
-    ),
-    url(
-        r"^api/filtered_users$",
-        users_api.UserListFilterView.as_view(),
-        name="filtered_users",
     ),
     url(r"^api/", include(router.urls)),
     url(
@@ -375,7 +374,7 @@ urlpatterns = [
         name="internal-conservation-status-dashboard",
     ),
     url(
-        r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/cs_referral/(?P<referral_pk>\d+)/$",
+        r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.ConservationStatusReferralView.as_view(),
         name="internal-conservation-status-referral-detail",
     ),
@@ -410,7 +409,7 @@ urlpatterns = [
         name="internal-occurrence-report-detail",
     ),
     url(
-        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/ocr_referral/(?P<referral_pk>\d+)/$",
+        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.InternalOccurrenceReportReferralView.as_view(),
         name="internal-occurrence-report-referral-detail",
     ),

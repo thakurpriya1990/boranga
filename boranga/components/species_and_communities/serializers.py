@@ -46,7 +46,6 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     family = serializers.SerializerMethodField()
     genus = serializers.SerializerMethodField()
     phylogenetic_group = serializers.SerializerMethodField()
-    # TODO: Add new conservation status lists/catories
     regions = serializers.SerializerMethodField()
     districts = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
@@ -150,17 +149,13 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
 
     def get_regions(self, obj):
         if obj.regions:
-            regions_list = obj.regions.all().values_list(
-                    "name", flat=True
-                )
+            regions_list = obj.regions.all().values_list("name", flat=True)
             return ",".join(regions_list)
         return ""
 
     def get_districts(self, obj):
         if obj.districts:
-            districts_list = obj.districts.all().values_list(
-                    "name", flat=True
-                )
+            districts_list = obj.districts.all().values_list("name", flat=True)
             return ",".join(districts_list)
         return ""
 
@@ -231,9 +226,6 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField()
     community_migrated_id = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
-    # TODO: Add new conservation status lists/catories
-    #region = serializers.SerializerMethodField()
-    #district = serializers.SerializerMethodField()
     regions = serializers.SerializerMethodField()
     districts = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
@@ -309,32 +301,18 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
         except CommunityTaxonomy.DoesNotExist:
             return ""
 
-    # def get_region(self, obj):
-    #     if obj.region:
-    #         return obj.region.name
-    #     return ""
-
-    # def get_district(self, obj):
-    #     if obj.district:
-    #         return obj.district.name
-    #     return ""
-
     def get_regions(self, obj):
         if obj.regions:
-            regions_list = obj.regions.all().values_list(
-                    "name", flat=True
-                )
+            regions_list = obj.regions.all().values_list("name", flat=True)
             return ",".join(regions_list)
         return ""
 
     def get_districts(self, obj):
         if obj.districts:
-            districts_list = obj.districts.all().values_list(
-                    "name", flat=True
-                )
+            districts_list = obj.districts.all().values_list("name", flat=True)
             return ",".join(districts_list)
         return ""
-    
+
     def get_user_process(self, obj):
         # Check if currently logged in user has access to process the Community
         request = self.context["request"]
@@ -769,8 +747,8 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
 
     def get_regions(self, obj):
         return [r.id for r in obj.regions.all()]
-    
-    def get_districts(self,obj):
+
+    def get_districts(self, obj):
         return [d.id for d in obj.districts.all()]
 
     # TODO not used on the form yet as gives error for new species as taxonomy = null
@@ -1189,7 +1167,6 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
     conservation_attributes = serializers.SerializerMethodField()
     readonly = serializers.SerializerMethodField(read_only=True)
     image_doc = serializers.SerializerMethodField()
-    #regions = serializers.SerializerMethodField()
 
     class Meta:
         model = Community
@@ -1227,11 +1204,11 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
     def get_group_type(self, obj):
         return obj.group_type.name
-    
+
     def get_regions(self, obj):
         return [r.id for r in obj.regions.all()]
-    
-    def get_districts(self,obj):
+
+    def get_districts(self, obj):
         return [d.id for d in obj.districts.all()]
 
     # TODO not used on the form yet as gives error for new species as taxonomy = null
@@ -1464,20 +1441,12 @@ class CreateSpeciesSerializer(BaseSpeciesSerializer):
 
 
 class SaveCommunitySerializer(BaseCommunitySerializer):
-    # region_id = serializers.IntegerField(
-    #     required=False, allow_null=True, write_only=True
-    # )
-    # district_id = serializers.IntegerField(
-    #     required=False, allow_null=True, write_only=True
-    # )
 
     class Meta:
         model = Community
         fields = (
             "id",
             "group_type",
-            # "region_id",
-            # "district_id",
             "last_data_curration_date",
             "submitter",
             "readonly",

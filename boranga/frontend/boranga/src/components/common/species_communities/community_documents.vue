@@ -282,7 +282,7 @@ export default {
                     confirmButtonColor:'#d9534f'
                 }).then((result) => {
                     if(result.isConfirmed){
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.community_documents,id+'/discard'))
+                        vm.$http.patch(helpers.add_endpoint_json(api_endpoints.community_documents,id+'/discard'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -310,7 +310,7 @@ export default {
                     confirmButtonColor:'#226fbb',
                 }).then((result) => {
                     if(result.isConfirmed){
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.community_documents,id+'/reinstate'))
+                        vm.$http.patch(helpers.add_endpoint_json(api_endpoints.community_documents,id+'/reinstate'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',

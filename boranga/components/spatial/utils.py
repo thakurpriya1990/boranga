@@ -1,42 +1,44 @@
+import base64
+import json
 import logging
 import re
-
-from django.apps import apps
-from django.db.models import Q, F
-from django.db import IntegrityError
-from django.contrib.gis.geos import GEOSGeometry
-from django.core.cache import cache
-from django.core.exceptions import ValidationError
-from django.http import Http404, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-
-from boranga import settings
-from boranga.components.occurrence.models import OccurrenceTenure
-from boranga.components.spatial.models import Proxy, TileLayer
-from boranga.helpers import is_internal
-from wagov_utils.components.proxy.views import proxy_view
-
-from rest_framework import serializers
-
 import sys
-import json
-import geojson
-import base64
-import requests
 import urllib.parse
 from itertools import combinations
 
+import geojson
+import numpy as np
+import requests
 import shapely.geometry as shp
+from django.apps import apps
+from django.contrib.gis.geos import GEOSGeometry
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.db.models import Q
+from django.http import Http404, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import serializers
 from shapely import wkt
 from shapely.ops import transform, unary_union, voronoi_diagram
+from wagov_utils.components.proxy.views import proxy_view
 
-import numpy as np
-
+from boranga import settings
+from boranga.components.occurrence.models import (
+    BufferGeometry,
+    OccurrenceGeometry,
+    OccurrenceTenure,
+)
+from boranga.components.spatial.models import Proxy, TileLayer
+from boranga.helpers import is_internal
 
 logger = logging.getLogger(__name__)
 
 # Albers Equal Area projection string for Western Australia
-aea_wa_string = "+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+aea_wa_string = (
+    "+proj=aea +lat_1=-17.5 +lat_2=-31.5 +lat_0=0 +lon_0=121 +x_0=0 +y_0=0 "
+    "+ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+)
 
 
 def invert_xy_coordinates(geometries):
@@ -239,6 +241,9 @@ def save_geometry(
             f"Processing {instance_model_name} {instance} geometry feature type: {geometry_type}"
         )
 
+        # Check if the feature has a buffer radius to later update or create a buffer geometry
+        buffer_radius = feature.get("properties", {}).get("buffer_radius", None)
+
         geom_4326 = feature_json_to_geosgeometry(feature)
 
         original_geometry = feature.get("properties", {}).get("original_geometry")
@@ -260,6 +265,7 @@ def save_geometry(
                 f"{instance_fk_field_name}_id": instance.id,
                 "geometry": geom[0],
                 "original_geometry_ewkb": geom[1].ewkb,
+                "buffer_radius": buffer_radius,
             }
 
             intersect_data = {}
@@ -319,8 +325,43 @@ def save_geometry(
             serializer.is_valid(raise_exception=True)
             geometry_instance = serializer.save()
             logger.info(f"Saved {instance_model_name} geometry: {geometry_instance}")
-            # geometry_ids.append(geometry_instance.id)
+
             geometry_id_intersect_data[geometry_instance.id] = intersect_data
+
+            if not isinstance(geometry_instance, OccurrenceGeometry):
+                # Only occurrence geometries can have buffer geometries
+                continue
+
+            try:
+                buffer_geometry = BufferGeometry.objects.get(
+                    buffered_from_geometry=geometry_instance
+                )
+            except BufferGeometry.DoesNotExist:
+                if buffer_radius:
+                    # There is a buffer radius, but no buffer geometry, so create a buffer geometry
+                    BufferGeometry.objects.create(
+                        buffered_from_geometry=geometry_instance,
+                        geometry=buffer_geos_geometry(
+                            geometry_instance.geometry, buffer_radius
+                        ),
+                    )
+                    logger.info(
+                        f"Created buffer geometry for {instance_model_name} geometry: {geometry_instance}"
+                    )
+            else:
+                if buffer_radius:
+                    buffer_geometry.geometry = buffer_geos_geometry(
+                        geometry_instance.geometry, buffer_radius
+                    )
+                    buffer_geometry.save()
+                    logger.info(
+                        f"Updated buffer geometry for {instance_model_name} geometry: {geometry_instance}"
+                    )
+                else:
+                    buffer_geometry.delete()
+                    logger.info(
+                        f"Deleted buffer geometry for {instance_model_name} geometry: {geometry_instance}"
+                    )
 
     # Remove any ocr geometries from the db that are no longer in the ocr_geometry that was submitted
     # Prevent deletion of polygons that are locked after status change (e.g. after submit)
@@ -345,7 +386,10 @@ def wkb_to_geojson(wkb):
     geos_geometry = GEOSGeometry(wkb)
     shapely_geometry = loads(geos_geometry.wkt)
     geo_json = shp.mapping(shapely_geometry)
-    geo_json["properties"] = {"srid": geos_geometry.srid}
+    geo_json["properties"] = {
+        "srid": geos_geometry.srid,
+        "crs_projected": geos_geometry.crs.projected,
+    }
 
     return geo_json
 
@@ -433,7 +477,6 @@ def transform_geosgeometry_3857_to_4326(geometry):
 
     if geometry.srid != 3857:
         # Potentially have to make this function more generic and allow for other projections as well
-        logger.debug("Not transforming geometry, as it is not in SRID 3857.")
         return geometry
 
     geom_type = (
@@ -516,6 +559,19 @@ def buffer_geometries(geoms, distance, unit):
         )
 
     return json.dumps(feature_collection(buffered_geoms))
+
+
+def buffer_geos_geometry(geometry, buffer_radius, unit="m"):
+    buffer_geometry_json = buffer_geometries([geometry], buffer_radius, unit)
+    geosgeometries_list = features_json_to_geosgeometry(
+        json.loads(buffer_geometry_json).get("features")
+    )
+    if len(geosgeometries_list) == 1:
+        geometry_object = geosgeometries_list[0]
+    else:
+        geometry_object = GEOSGeometry(shp.MultiPolygon(geosgeometries_list).wkt)
+
+    return geometry_object
 
 
 def convex_hull(geoms, *args, **kwargs):

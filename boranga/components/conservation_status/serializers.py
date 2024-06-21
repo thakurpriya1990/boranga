@@ -12,6 +12,7 @@ from boranga.components.conservation_status.models import (
     ConservationStatusLogEntry,
     ConservationStatusReferral,
     ConservationStatusUserAction,
+    CSExternalRefereeInvite,
 )
 from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
@@ -660,6 +661,23 @@ class ConservationStatusProposalReferralSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
+class CSExternalRefereeInviteSerializer(serializers.ModelSerializer):
+    conservation_status_id = serializers.IntegerField(required=False)
+    full_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = CSExternalRefereeInvite
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "full_name",
+            "email",
+            "invite_text",
+            "conservation_status_id",
+        ]
+
+
 class ConservationStatusDeclinedDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConservationStatusDeclinedDetails
@@ -724,6 +742,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     conservation_status_under_review = CurrentConservationStatusSerializer(
         read_only=True, allow_null=True
     )
+    external_referral_invites = CSExternalRefereeInviteSerializer(many=True)
 
     class Meta:
         model = ConservationStatus
@@ -781,6 +800,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "current_conservation_status",
             "submitter_information",
             "conservation_status_under_review",
+            "external_referral_invites",
         )
 
     def get_submitter(self, obj):
@@ -810,9 +830,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         }
 
     def get_assessor_mode(self, obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
-        logger.debug(obj.assessor_comments_view(request))
         return {
             "assessor_mode": True,
             "has_assessor_mode": obj.has_assessor_mode(request),
@@ -1218,7 +1236,6 @@ class SendReferralSerializer(serializers.Serializer):
 
 class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source="get_processing_status_display")
-    referral_status = serializers.CharField(source="get_processing_status_display")
     conservation_status_id = serializers.IntegerField(source="conservation_status.id")
     conservation_status_lodgement_date = serializers.CharField(
         source="conservation_status.lodgement_date"
@@ -1247,7 +1264,6 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "processing_status",
-            "referral_status",
             "conservation_status_id",
             "conservation_status_lodgement_date",
             "conservation_status_number",
@@ -1355,8 +1371,8 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
 class ConservationStatusReferralProposalSerializer(
     InternalConservationStatusSerializer
 ):
+
     def get_assessor_mode(self, obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
         try:
             referral = ConservationStatusReferral.objects.get(
@@ -1376,8 +1392,8 @@ class ConservationStatusReferralProposalSerializer(
 
 class ConservationStatusReferralSerializer(serializers.ModelSerializer):
     processing_status = serializers.CharField(source="get_processing_status_display")
-    latest_referrals = ConservationStatusProposalReferralSerializer(many=True)
     can_be_completed = serializers.BooleanField()
+    sent_by = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatusReferral
@@ -1390,6 +1406,13 @@ class ConservationStatusReferralSerializer(serializers.ModelSerializer):
                 context={"request": self.context["request"]}
             )
         )
+
+    def get_sent_by(self, obj):
+        if obj.sent_by:
+            email_user = retrieve_email_user(obj.sent_by)
+            if email_user:
+                return EmailUserSerializer(email_user).data
+        return None
 
 
 class ConservationStatusAmendmentRequestDocumentSerializer(serializers.ModelSerializer):

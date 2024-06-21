@@ -256,7 +256,7 @@ export default {
         },
         column_status: function () {
             return {
-                data: "processing_status_display",
+                data: "processing_status",
                 orderable: true,
                 searchable: true,
                 visible: true,
@@ -265,18 +265,13 @@ export default {
         },
         column_action: function () {
             return {
-                data: "can_be_processed",
+                data: "id",
                 orderable: false,
                 searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
                     let links = "";
-                    if (full.can_be_processed) {
-                        links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Process</a><br/>`;
-                    }
-                    else {
-                        links += `<a href='/internal/occurrence_report/${full.id}?action=view'>View</a><br/>`;
-                    }
+                    links += full.can_be_processed ? `<a href='/internal/occurrence_report/${full.occurrence_report_id}/referral/${full.id}'>Process</a><br/>` : `<a href='/internal/occurrence_report/${full.occurrence_report_id}/referral/${full.id}'>View</a><br/>`;
                     return links;
                 },
             }

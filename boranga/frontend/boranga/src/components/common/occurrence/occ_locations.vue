@@ -30,9 +30,12 @@
                         name: queryLayerName,
                         title: 'Occurrence Reports',
                         default: false,
-                        can_edit: true,
+                        can_edit: false,
+                        can_buffer: false,
                         api_url: ocrApiUrl,
                         ids: occurrenceReportIds,
+                        geometry_name: 'ocr_geometry',
+                        collapse: true,
                     }"
                     :additional-layers-definitions="[
                         {
@@ -41,8 +44,19 @@
                             default: true,
                             processed: true,
                             can_edit: true,
+                            can_buffer: true,
                             api_url: occApiUrl,
                             ids: [occurrence_obj.id],
+                            geometry_name: 'occ_geometry',
+                        },
+                        {
+                            name: 'buffer_layer',
+                            title: 'Buffer Geometries',
+                            default: false,
+                            processed: false,
+                            can_edit: false,
+                            can_buffer: false,
+                            handler: bufferGeometryHandler, // Buffer geometries are a property of occurrence geometry. This handler returns the buffer geometries from the occurrence geometries.
                         },
                     ]"
                     @features-loaded="mapFeaturesLoaded"
@@ -359,6 +373,9 @@ export default {
         occApiUrl: function () {
             return api_endpoints.occurrence + 'list_for_map/';
         },
+        bufferGeometriesApiUrl: function () {
+            return api_endpoints.occurrence + 'buffer_geometries/';
+        },
         isReadOnly: function(){
             //override for split reports
             if(this.is_readonly){
@@ -606,6 +623,25 @@ export default {
             const layer = map.getLayerByName(this.queryLayerName);
             const feature = map.getFeatureById(layer, id);
             map.centerOnFeature(feature);
+        },
+        bufferGeometryHandler: function () {
+            const occurrence_features = this.$refs.component_map
+                .getLayerByName('processed_layer')
+                .getSource()
+                .getFeatures();
+
+            const features = [];
+            occurrence_features.forEach((feature) => {
+                features.push(feature.getProperties().buffer_geometry);
+            });
+
+            return [
+                {
+                    geometry: {
+                        features: features,
+                    },
+                },
+            ];
         },
     },
 };

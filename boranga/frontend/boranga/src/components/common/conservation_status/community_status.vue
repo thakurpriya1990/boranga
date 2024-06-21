@@ -39,10 +39,10 @@
                                             v-if="ref.box_view">
                                             <div class="col">
                                                 <div class="form-floating m-3 mt-1">
-                                                    <textarea v-if='!ref.readonly' :disabled="ref.readonly"
+                                                    <textarea v-if='!ref.readonly' :disabled="true"
                                                         :id="ref.name" :name="ref.name" class="form-control"
                                                         :placeholder="ref.label" v-model="referral.referral_comment" />
-                                                    <textarea v-else :disabled="ref.readonly" :name="ref.name"
+                                                    <textarea v-else :disabled="true" :name="ref.name"
                                                         :value="ref.value || ''" class="form-control"
                                                         :placeholder="ref.label" />
                                                     <label :for="ref.name" class="form-label">{{ ref.label }}</label>

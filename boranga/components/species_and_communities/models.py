@@ -402,6 +402,7 @@ class Species(RevisionedMixin):
     """
 
     PROCESSING_STATUS_DRAFT = "draft"
+    PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_ACTIVE = "active"
     PROCESSING_STATUS_HISTORICAL = "historical"
     PROCESSING_STATUS_TO_BE_SPLIT = "to_be_split"
@@ -409,6 +410,7 @@ class Species(RevisionedMixin):
     PROCESSING_STATUS_TO_BE_RENAMED = "to_be_renamed"
     PROCESSING_STATUS_CHOICES = (
         (PROCESSING_STATUS_DRAFT, "Draft"),
+        (PROCESSING_STATUS_DISCARDED, "Discarded"),
         (PROCESSING_STATUS_ACTIVE, "Active"),
         (PROCESSING_STATUS_HISTORICAL, "Historical"),
         (PROCESSING_STATUS_TO_BE_SPLIT, "To Be Split"),
@@ -435,11 +437,9 @@ class Species(RevisionedMixin):
         blank=True,
         related_name="species_image",
     )
-    regions = models.ManyToManyField(
-        Region, null=True, blank=True, related_name="species_regions"
-    )
+    regions = models.ManyToManyField(Region, blank=True, related_name="species_regions")
     districts = models.ManyToManyField(
-        District, null=True, blank=True, related_name="species_districts"
+        District, blank=True, related_name="species_districts"
     )
     last_data_curration_date = models.DateField(blank=True, null=True)
     conservation_plan_exists = models.BooleanField(default=False)
@@ -565,22 +565,7 @@ class Species(RevisionedMixin):
             return True
 
     @property
-    def is_discardable(self):
-        """
-        An application can be discarded by a customer if:
-        1 - It is a draft
-        2- or if the application has been pushed back to the user
-        """
-        # return self.customer_status == 'draft' or self.processing_status == 'awaiting_applicant_response'
-        return self.processing_status == "draft"
-
-    @property
     def is_deletable(self):
-        """
-        An application can be deleted only if it is a draft and it hasn't been lodged yet
-        :return:
-        """
-        # return self.customer_status == 'draft' and not self.species_number
         return self.processing_status == "draft" and not self.species_number
 
     @property
@@ -632,6 +617,24 @@ class Species(RevisionedMixin):
         if self.processing_status in status_without_assessor:
             return True
         return False
+
+    @transaction.atomic
+    def remove(self, request):
+        # Only used to remove a species such as those that are created automatically
+        # When the 'Split' action is taken on a species.
+        if not self.processing_status == self.PROCESSING_STATUS_DRAFT:
+            raise ValueError("Species must be in draft status to be removed")
+
+        if not is_species_communities_approver(request):
+            raise ValueError("User does not have permission to remove species")
+
+        # Log the action
+        self.log_user_action(
+            SpeciesUserAction.ACTION_DISCARD_SPECIES.format(self.species_number),
+            request,
+        )
+
+        self.delete()
 
     def has_user_edit_mode(self, request):
         officer_view_state = ["draft", "historical"]
@@ -827,6 +830,7 @@ class SpeciesLogEntry(CommunicationsLogEntry):
 
 class SpeciesUserAction(UserAction):
 
+    ACTION_DISCARD_SPECIES = "Discard Species {}"
     ACTION_EDIT_SPECIES = "Edit Species {}"
     ACTION_CREATE_SPECIES = "Create new species {}"
     ACTION_SAVE_SPECIES = "Save Species {}"
@@ -943,17 +947,12 @@ class Community(RevisionedMixin):
     group_type = models.ForeignKey(GroupType, on_delete=models.CASCADE)
     # TODO the species is noy required as per the new requirements
     species = models.ManyToManyField(Species, blank=True)
-    # taxonomy = models.ForeignKey(CommunityTaxonomy, on_delete=models.SET_NULL, unique=True, null=True, blank=True)
-    # region = models.ForeignKey(
-    #     Region, default=None, on_delete=models.CASCADE, null=True, blank=True
-    # )
-    # district = models.ForeignKey(
-    #     District, default=None, on_delete=models.CASCADE, null=True, blank=True
-    # )
     regions = models.ManyToManyField(
-        Region, null=True, blank=True, related_name="community_regions"
+        Region, blank=True, related_name="community_regions"
     )
-    districts = models.ManyToManyField(District, null=True, blank=True, related_name="community_districts")
+    districts = models.ManyToManyField(
+        District, blank=True, related_name="community_districts"
+    )
     last_data_curration_date = models.DateField(blank=True, null=True)
     conservation_plan_exists = models.BooleanField(default=False)
     conservation_plan_reference = models.CharField(
@@ -1077,16 +1076,6 @@ class Community(RevisionedMixin):
             return False
         else:
             return True
-
-    @property
-    def is_discardable(self):
-        """
-        An application can be discarded by a customer if:
-        1 - It is a draft
-        2- or if the application has been pushed back to the user
-        """
-        # return self.customer_status == 'draft' or self.processing_status == 'awaiting_applicant_response'
-        return self.processing_status == "draft"
 
     @property
     def is_deletable(self):

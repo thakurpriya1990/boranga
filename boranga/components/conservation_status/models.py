@@ -30,7 +30,6 @@ from boranga.components.main.models import (
     UserAction,
 )
 from boranga.components.main.related_item import RelatedItem
-from boranga.components.main.utils import get_department_user
 from boranga.components.species_and_communities.models import (
     Community,
     DocumentCategory,
@@ -722,10 +721,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         return self.customer_status in self.CUSTOMER_VIEWABLE_STATE
 
     @property
-    def is_discardable(self):
-        return self.customer_status == ConservationStatus.CUSTOMER_STATUS_DRAFT
-
-    @property
     def is_deletable(self):
         return (
             self.customer_status == ConservationStatus.CUSTOMER_STATUS_DRAFT
@@ -1072,17 +1067,15 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         self.processing_status = ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
         self.save()
         referral = None
+
         # Check if the user is in ledger
         try:
             user = EmailUser.objects.get(email__icontains=referral_email)
         except EmailUser.DoesNotExist:
-            # Validate if it is a deparment user
-            department_user = get_department_user(referral_email)
-            if not department_user:
-                raise ValidationError(
-                    "The user you want to send the referral to is not a member of the department"
-                )
-            # TODO Check if the user is in ledger or create (must be done via api in segregated system)
+            raise ValidationError(
+                f"There is no user with email {referral_email} in the ledger system. "
+                "Please check the email and try again."
+            )
 
         try:
             ConservationStatusReferral.objects.get(
@@ -1543,8 +1536,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 "are a member of the conservation status assessor group"
             )
 
-        logger.debug(request.data)
-
         self.effective_to = datetime.strptime(
             request.data.get("effective_to"), "%Y-%m-%d"
         )
@@ -1726,6 +1717,12 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             return False
 
         return is_conservation_status_approver(request)
+
+    @property
+    def external_referral_invites(self):
+        return self.external_referee_invites.filter(
+            archived=False, datetime_first_logged_in__isnull=True
+        )
 
 
 class ConservationStatusLogEntry(CommunicationsLogEntry):
@@ -2008,6 +2005,7 @@ class ConservationStatusReferral(models.Model):
         on_delete=models.SET_NULL,
     )
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
+    is_external = models.BooleanField(default=False)
 
     class Meta:
         app_label = "boranga"
@@ -2015,13 +2013,6 @@ class ConservationStatusReferral(models.Model):
 
     def __str__(self):
         return f"Application {self.conservation_status.id} - Referral {self.id}"
-
-    # Methods
-    @property
-    def latest_referrals(self):
-        return ConservationStatusReferral.objects.filter(
-            sent_by=self.referral, conservation_status=self.conservation_status
-        )[:2]
 
     @property
     def can_be_completed(self):
@@ -2142,25 +2133,21 @@ class ConservationStatusReferral(models.Model):
 
         # Check if the user is in ledger
         try:
-            user = EmailUser.objects.get(email__icontains=referral_email)
+            referee = EmailUser.objects.get(email__iexact=referral_email.strip())
         except EmailUser.DoesNotExist:
-            # Validate if it is a deparment user
-            department_user = get_department_user(referral_email)
-            if not department_user:
-                raise ValidationError(
-                    "The user you want to send the referral to is not a member of the department"
-                )
-
-            # TODO Check if the user is in ledger or create (must be done via api in segregated system)
+            raise ValidationError(
+                f"There is no user with email {referral_email} in the ledger system. "
+                "Please check the email and try again."
+            )
 
         qs = ConservationStatusReferral.objects.filter(
-            sent_by=user.id, conservation_status=self.conservation_status
+            sent_by=referee.id, conservation_status=self.conservation_status
         )
         if qs:
             raise ValidationError("You cannot send referral to this user")
         try:
             ConservationStatusReferral.objects.get(
-                referral=user.id,
+                referral=referee.id,
                 conservation_status=self.conservation_status,
             )
             raise ValidationError("A referral has already been sent to this user")
@@ -2168,7 +2155,7 @@ class ConservationStatusReferral(models.Model):
             # Create Referral
             referral = ConservationStatusReferral.objects.create(
                 conservation_status=self.conservation_status,
-                referral=user.id,
+                referral=referee.id,
                 sent_by=request.user.id,
                 sent_from=2,
                 text=referral_text,
@@ -2179,7 +2166,7 @@ class ConservationStatusReferral(models.Model):
             ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
                 referral.id,
                 self.conservation_status.conservation_status_number,
-                f"{user.get_full_name()}({user.email})",
+                f"{referee.get_full_name()}({referee.email})",
             ),
             request,
         )
@@ -2358,6 +2345,37 @@ class ConservationStatusAmendmentRequestDocument(Document):
     def delete(self):
         if self.can_delete:
             return super().delete()
+
+
+class CSExternalRefereeInvite(models.Model):
+    email = models.EmailField()
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    datetime_sent = models.DateTimeField(null=True, blank=True)
+    datetime_first_logged_in = models.DateTimeField(null=True, blank=True)
+    conservation_status = models.ForeignKey(
+        ConservationStatus,
+        related_name="external_referee_invites",
+        on_delete=models.CASCADE,
+    )
+    sent_by = models.IntegerField()
+    invite_text = models.TextField(blank=True)
+    archived = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "External Conservation Status Referral Invite"
+        verbose_name_plural = "External Conservation Status Referral Invites"
+
+    def __str__(self):
+        return_str = f"{self.first_name} {self.last_name} ({self.email})"
+        if self.archived:
+            return_str += " - Archived"
+        return return_str
+
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
 
 
 # Species Document History

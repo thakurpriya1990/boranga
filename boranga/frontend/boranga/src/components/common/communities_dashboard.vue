@@ -467,6 +467,7 @@ export default {
         column_region: function () {
             return {
                 data: "regions",
+                data: "regions",
                 orderable: true,
                 searchable: false,
                 visible: true,
@@ -484,7 +485,7 @@ export default {
             return {
                 data: "districts",
                 orderable: true,
-                searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
+                searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
                     if (full.districts) {

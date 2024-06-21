@@ -52,22 +52,11 @@
                         v-model="species_community.distribution.distribution" />
                 </div>
             </div>
-            <!-- <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Region:</label>
-                <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" @change="filterDistrict($event)"
-                        v-model="species_community.region_id" placeholder="Select Region">
-                        <option v-for="option in region_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
-                </div>
-            </div> -->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" 
-                        class="form-select" 
+                    <select :disabled="isReadOnly"
+                        class="form-select"
                         v-model="species_community.regions"
                         ref="regions_select">
                         <option value="" selected disabled>Select region</option>
@@ -80,8 +69,8 @@
             <div v-if="species_community.regions" class="row mb-3">
                 <label for="" class="col-sm-3 col-form-label">District:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" 
-                    class="form-select" 
+                    <select :disabled="isReadOnly"
+                    class="form-select"
                     v-model="species_community.districts"
                     ref="districts_select">
                         <option value="" selected disabled>Select district</option>
@@ -91,17 +80,6 @@
                     </select>
                 </div>
             </div>
-            <!-- <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">District:</label>
-                <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" v-model="species_community.district_id"
-                        placeholder="Select District">
-                        <option v-for="option in filtered_district_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
-                </div>
-            </div> -->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Number of Occurrences:</label>
                 <div class="col-sm-6">

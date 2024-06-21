@@ -4,7 +4,6 @@ from django.urls import reverse
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from boranga.components.species_and_communities.models import GroupType
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
@@ -12,6 +11,7 @@ from boranga.components.main.serializers import (
 )
 from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
+    BufferGeometry,
     GeometryType,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
@@ -44,6 +44,7 @@ from boranga.components.occurrence.models import (
     OCRAnimalObservation,
     OCRAssociatedSpecies,
     OCRConservationThreat,
+    OCRExternalRefereeInvite,
     OCRFireHistory,
     OCRHabitatComposition,
     OCRHabitatCondition,
@@ -55,7 +56,10 @@ from boranga.components.occurrence.models import (
     OCRVegetationStructure,
 )
 from boranga.components.spatial.utils import wkb_to_geojson
-from boranga.components.species_and_communities.models import CommunityTaxonomy
+from boranga.components.species_and_communities.models import (
+    CommunityTaxonomy,
+    GroupType,
+)
 from boranga.components.users.serializers import SubmitterInformationSerializer
 from boranga.helpers import (
     is_internal,
@@ -91,7 +95,10 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     model_name = serializers.SerializerMethodField()
     occurrence_reports = serializers.SerializerMethodField()
     occurrence_source = serializers.MultipleChoiceField(
-        choices=Occurrence.OCCURRENCE_SOURCE_CHOICES, allow_null=True, allow_blank=True, required=False
+        choices=Occurrence.OCCURRENCE_SOURCE_CHOICES,
+        allow_null=True,
+        allow_blank=True,
+        required=False,
     )
 
     class Meta:
@@ -450,10 +457,10 @@ class OCRVegetationStructureSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "occurrence_report_id",
-            "free_text_field_one",
-            "free_text_field_two",
-            "free_text_field_three",
-            "free_text_field_four",
+            "vegetation_structure_layer_one",
+            "vegetation_structure_layer_two",
+            "vegetation_structure_layer_three",
+            "vegetation_structure_layer_four",
         )
 
 
@@ -557,21 +564,18 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "action_taken",
             "action_required",
             "observation_detail_comment",
-            
             "alive_adult_male",
             "dead_adult_male",
             "alive_adult_female",
             "dead_adult_female",
             "alive_adult_unknown",
             "dead_adult_unknown",
-
             "alive_juvenile_male",
             "dead_juvenile_male",
             "alive_juvenile_female",
             "dead_juvenile_female",
             "alive_juvenile_unknown",
             "dead_juvenile_unknown",
-
             "alive_unsure_male",
             "dead_unsure_male",
             "alive_unsure_female",
@@ -1101,65 +1105,22 @@ class OccurrenceReportApprovalDetailsSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
-    occurrence_report_number = serializers.CharField(
-        source="occurrence_report.occurrence_report_number", allow_null=True
-    )
-    occurrence_name = serializers.CharField(
-        source="occurrence_report.occurrence.occurrence_number", allow_null=True
-    )
-    scientific_name = serializers.CharField(
-        source="occurrence_report.species.taxonomy.scientific_name", allow_null=True
-    )
-    community_name = serializers.CharField(
-        source="occurrence_report.community.taxonomy.community_name", allow_null=True
-    )
-    reported_date = serializers.DateTimeField(
-        source="occurrence_report.reported_date", format="%Y-%m-%d %H:%M:%S"
-    )
-    submitter = serializers.SerializerMethodField()
-    group_type = serializers.CharField(
-        source="occurrence_report.group_type.name", allow_null=True
-    )
-    processing_status_display = serializers.CharField(
-        source="get_processing_status_display"
-    )
-    can_be_processed = serializers.BooleanField(read_only=True)
-
-    class Meta:
-        model = OccurrenceReportReferral
-        fields = "__all__"
-        datatables_always_serialize = (
-            "id",
-            "can_be_processed",
-        )
-
-    def get_submitter(self, obj):
-        if obj.occurrence_report and obj.occurrence_report.submitter:
-            email_user = retrieve_email_user(obj.occurrence_report.submitter)
-            return email_user.get_full_name()
-        else:
-            return None
-
-
-class InternalOccurrenceReportReferralSerializer(serializers.ModelSerializer):
+class OccurrenceReportProposalReferralSerializer(serializers.ModelSerializer):
     referral = serializers.SerializerMethodField()
+    processing_status = serializers.CharField(source="get_processing_status_display")
     referral_comment = serializers.SerializerMethodField()
-    referral_status = serializers.CharField(source="get_processing_status_display")
 
     class Meta:
         model = OccurrenceReportReferral
         fields = "__all__"
-        datatables_always_serialize = (
-            "id",
-            "can_be_processed",
-        )
-
-    def get_referral(self, obj):
-        return EmailUserSerializer(retrieve_email_user(obj.referral)).data
 
     def get_referral_comment(self, obj):
         return obj.referral_comment if obj.referral_comment else ""
+
+    def get_referral(self, obj):
+        referral_email_user = retrieve_email_user(obj.referral)
+        serializer = EmailUserSerializer(referral_email_user)
+        return serializer.data
 
 
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
@@ -1174,10 +1135,10 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         read_only=True, allow_null=True
     )
     assessor_mode = serializers.SerializerMethodField()
-    latest_referrals = InternalOccurrenceReportReferralSerializer(
+    latest_referrals = OccurrenceReportProposalReferralSerializer(
         many=True, read_only=True, allow_null=True
     )
-    referrals = InternalOccurrenceReportReferralSerializer(
+    referrals = OccurrenceReportProposalReferralSerializer(
         many=True, read_only=True, allow_null=True
     )
     readonly = serializers.SerializerMethodField(read_only=True)
@@ -1320,6 +1281,108 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
         return is_new_external_contributor(obj.submitter)
 
 
+class DTOccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    occurrence_report_number = serializers.CharField(
+        source="occurrence_report.occurrence_report_number", allow_null=True
+    )
+    occurrence_report_id = serializers.IntegerField(source="occurrence_report.id")
+    occurrence_name = serializers.CharField(
+        source="occurrence_report.occurrence.occurrence_number", allow_null=True
+    )
+    scientific_name = serializers.CharField(
+        source="occurrence_report.species.taxonomy.scientific_name", allow_null=True
+    )
+    community_name = serializers.CharField(
+        source="occurrence_report.community.taxonomy.community_name", allow_null=True
+    )
+    reported_date = serializers.DateTimeField(
+        source="occurrence_report.reported_date", format="%Y-%m-%d %H:%M:%S"
+    )
+    submitter = serializers.SerializerMethodField()
+    group_type = serializers.CharField(
+        source="occurrence_report.group_type.name", allow_null=True
+    )
+    referral = serializers.SerializerMethodField()
+    processing_status = serializers.CharField(source="get_processing_status_display")
+
+    class Meta:
+        model = OccurrenceReportReferral
+        fields = (
+            "id",
+            "occurrence_report_number",
+            "occurrence_report_id",
+            "occurrence_report",
+            "occurrence_name",
+            "scientific_name",
+            "community_name",
+            "reported_date",
+            "submitter",
+            "group_type",
+            "processing_status",
+            "referral",
+            "referral_comment",
+            "text",
+            "can_be_processed",
+        )
+        datatables_always_serialize = (
+            "id",
+            "can_be_processed",
+            "occurrence_report_id",
+        )
+
+    def get_submitter(self, obj):
+        if obj.occurrence_report and obj.occurrence_report.submitter:
+            email_user = retrieve_email_user(obj.occurrence_report.submitter)
+            return email_user.get_full_name()
+        else:
+            return None
+
+    def get_referral(self, obj):
+        return EmailUserSerializer(retrieve_email_user(obj.referral)).data
+
+
+class OccurrenceReportReferralProposalSerializer(InternalOccurrenceReportSerializer):
+    def get_assessor_mode(self, obj):
+        request = self.context["request"]
+        try:
+            referral = OccurrenceReportReferral.objects.get(
+                occurrence_report=obj, referral=request.user.id
+            )
+        except OccurrenceReportReferral.DoesNotExist:
+            referral = None
+        return {
+            "assessor_mode": True,
+            "assessor_can_assess": (
+                referral.can_assess_referral() if referral else None
+            ),
+            "assessor_level": "referral",
+            "assessor_box_view": obj.assessor_comments_view(request),
+        }
+
+
+class OccurrenceReportReferralSerializer(serializers.ModelSerializer):
+    processing_status = serializers.CharField(source="get_processing_status_display")
+    can_be_completed = serializers.BooleanField()
+    sent_by = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OccurrenceReportReferral
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["occurrence_report"] = OccurrenceReportReferralProposalSerializer(
+            context={"request": self.context["request"]}
+        )
+
+    def get_sent_by(self, obj):
+        if obj.sent_by:
+            email_user = retrieve_email_user(obj.sent_by)
+            if email_user:
+                return EmailUserSerializer(email_user).data
+        return None
+
+
 class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
@@ -1383,10 +1446,10 @@ class SaveOCRVegetationStructureSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "occurrence_report_id",
-            "free_text_field_one",
-            "free_text_field_two",
-            "free_text_field_three",
-            "free_text_field_four",
+            "vegetation_structure_layer_one",
+            "vegetation_structure_layer_two",
+            "vegetation_structure_layer_three",
+            "vegetation_structure_layer_four",
         )
 
 
@@ -1506,21 +1569,18 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
             "action_taken",
             "action_required",
             "observation_detail_comment",
-            
             "alive_adult_male",
             "dead_adult_male",
             "alive_adult_female",
             "dead_adult_female",
             "alive_adult_unknown",
             "dead_adult_unknown",
-
             "alive_juvenile_male",
             "dead_juvenile_male",
             "alive_juvenile_female",
             "dead_juvenile_female",
             "alive_juvenile_unknown",
             "dead_juvenile_unknown",
-
             "alive_unsure_male",
             "dead_unsure_male",
             "alive_unsure_female",
@@ -2108,7 +2168,10 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
         required=False, allow_null=True, write_only=True
     )
     occurrence_source = serializers.MultipleChoiceField(
-        choices=Occurrence.OCCURRENCE_SOURCE_CHOICES, allow_null=True, allow_blank=True, required=False
+        choices=Occurrence.OCCURRENCE_SOURCE_CHOICES,
+        allow_null=True,
+        allow_blank=True,
+        required=False,
     )
 
     class Meta:
@@ -2125,30 +2188,30 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
             "can_user_edit",
             "review_due_date",
         )
-        read_only_fields = ("id","group_type")
+        read_only_fields = ("id", "group_type")
 
     def validate(self, data):
         obj = self.instance
-        if (obj.group_type and 
-            obj.group_type.name in 
-            [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_COMMUNITY] and
-            (data["occurrence_name"] == None or data["occurrence_name"] == "")):
-                raise serializers.ValidationError(
-                    "You must provide an Occurrence Name"
-                )
-        if (obj.group_type and 
-            obj.group_type.name in 
-            [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_FAUNA] and
-            (data["species"] == None)):
-                raise serializers.ValidationError(
-                    "You must provide a Scientific Name"
-                )
-        elif (obj.group_type and 
-            obj.group_type.name == GroupType.GROUP_TYPE_COMMUNITY and
-            (data["community"] == None)):
-                raise serializers.ValidationError(
-                    "You must provide a Community Name"
-                )
+        if (
+            obj.group_type
+            and obj.group_type.name
+            in [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_COMMUNITY]
+            and (data["occurrence_name"] is None or data["occurrence_name"] == "")
+        ):
+            raise serializers.ValidationError("You must provide an Occurrence Name")
+        if (
+            obj.group_type
+            and obj.group_type.name
+            in [GroupType.GROUP_TYPE_FLORA, GroupType.GROUP_TYPE_FAUNA]
+            and (data["species"] is None)
+        ):
+            raise serializers.ValidationError("You must provide a Scientific Name")
+        elif (
+            obj.group_type
+            and obj.group_type.name == GroupType.GROUP_TYPE_COMMUNITY
+            and (data["community"] is None)
+        ):
+            raise serializers.ValidationError("You must provide a Community Name")
 
         if data["occurrence_name"] == "":
             data["occurrence_name"] = None
@@ -2228,10 +2291,10 @@ class OCCVegetationStructureSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_id",
             "copied_ocr",
-            "free_text_field_one",
-            "free_text_field_two",
-            "free_text_field_three",
-            "free_text_field_four",
+            "vegetation_structure_layer_one",
+            "vegetation_structure_layer_two",
+            "vegetation_structure_layer_three",
+            "vegetation_structure_layer_four",
         )
 
     def get_copied_ocr(self, obj):
@@ -2250,10 +2313,10 @@ class SaveOCCVegetationStructureSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "occurrence_id",
-            "free_text_field_one",
-            "free_text_field_two",
-            "free_text_field_three",
-            "free_text_field_four",
+            "vegetation_structure_layer_one",
+            "vegetation_structure_layer_two",
+            "vegetation_structure_layer_three",
+            "vegetation_structure_layer_four",
         )
 
 
@@ -2392,21 +2455,18 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "action_taken",
             "action_required",
             "observation_detail_comment",
-            
             "alive_adult_male",
             "dead_adult_male",
             "alive_adult_female",
             "dead_adult_female",
             "alive_adult_unknown",
             "dead_adult_unknown",
-
             "alive_juvenile_male",
             "dead_juvenile_male",
             "alive_juvenile_female",
             "dead_juvenile_female",
             "alive_juvenile_unknown",
             "dead_juvenile_unknown",
-
             "alive_unsure_male",
             "dead_unsure_male",
             "alive_unsure_female",
@@ -2642,21 +2702,18 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
             "action_taken",
             "action_required",
             "observation_detail_comment",
-            
             "alive_adult_male",
             "dead_adult_male",
             "alive_adult_female",
             "dead_adult_female",
             "alive_adult_unknown",
             "dead_adult_unknown",
-
             "alive_juvenile_male",
             "dead_juvenile_male",
             "alive_juvenile_female",
             "dead_juvenile_female",
             "alive_juvenile_unknown",
             "dead_juvenile_unknown",
-
             "alive_unsure_male",
             "dead_unsure_male",
             "alive_unsure_female",
@@ -2744,12 +2801,58 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             return obj.copied_ocr_location.occurrence_report.occurrence_report_number
 
 
+class BufferGeometrySerializer(GeoFeatureModelSerializer):
+    geometry_source = serializers.SerializerMethodField()
+    srid = serializers.SerializerMethodField(read_only=True)
+    original_geometry = serializers.SerializerMethodField(read_only=True)
+    label = serializers.SerializerMethodField(read_only=True)
+    buffer_radius = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = BufferGeometry
+        geo_field = "geometry"
+        fields = (
+            "id",
+            "buffered_from_geometry",
+            "geometry",
+            "original_geometry",
+            "srid",
+            "area_sqm",
+            "area_sqhm",
+            "geometry_source",
+            "label",
+            "buffer_radius",
+        )
+
+    def get_srid(self, obj):
+        if obj.geometry:
+            return obj.geometry.srid
+        else:
+            return None
+
+    def get_geometry_source(self, obj):
+        return obj.buffered_from_geometry.occurrence.occurrence_number
+
+    def get_original_geometry(self, obj):
+        if obj.original_geometry_ewkb:
+            return wkb_to_geojson(obj.original_geometry_ewkb)
+        else:
+            return None
+
+    def get_label(self, obj):
+        return f"{obj.buffered_from_geometry.occurrence.occurrence_number} [Buffer]"
+
+    def get_buffer_radius(self, obj):
+        return obj.buffered_from_geometry.buffer_radius
+
+
 class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)
     geometry_source = serializers.SerializerMethodField()
     copied_from = serializers.SerializerMethodField(read_only=True)
     srid = serializers.SerializerMethodField(read_only=True)
     original_geometry = serializers.SerializerMethodField(read_only=True)
+    buffer_geometry = BufferGeometrySerializer(read_only=True)
 
     class Meta:
         model = OccurrenceGeometry
@@ -2767,6 +2870,7 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
             "locked",
             "copied_from",
             "buffer_radius",
+            "buffer_geometry",
         )
         read_only_fields = ("id",)
 
@@ -2903,6 +3007,7 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
             "intersects",
             "drawn_by",
             "locked",
+            "buffer_radius",
         )
         read_only_fields = ("id",)
 
@@ -2960,3 +3065,20 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "significant_to_occurrence",
             "tenure_area_centroid",
         )
+
+
+class OCRExternalRefereeInviteSerializer(serializers.ModelSerializer):
+    occurrence_report_id = serializers.IntegerField(required=False)
+    full_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = OCRExternalRefereeInvite
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "full_name",
+            "email",
+            "invite_text",
+            "occurrence_report_id",
+        ]

@@ -218,7 +218,7 @@ export default {
             vm.savingMeeting = true;
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            await vm.$http.post(vm.meeting_form_url, payload).then(res => {
+            await vm.$http.put(vm.meeting_form_url, payload).then(res => {
                 swal.fire({
                     title: 'Saved',
                     text: 'Your changes has been saved',
