@@ -3174,9 +3174,9 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                     queryset = self.get_queryset().exclude(
                         id=main_occurrence_id
                     ).exclude(
-                        processing_status=OccurrenceReport.PROCESSING_STATUS_CLOSED,
+                        processing_status=Occurrence.PROCESSING_STATUS_HISTORICAL,
                     ).exclude(
-                        processing_status=OccurrenceReport.PROCESSING_STATUS_DISCARDED,
+                        processing_status=Occurrence.PROCESSING_STATUS_DISCARDED,
                     ).filter(
                         group_type=main_occurrence.group_type
                     )
@@ -3223,7 +3223,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                                 "occurrence_number": occurrence["occurrence_number"],
                                 "occurrence_name": occurrence["occurrence_name"],
                                 "occurrence_source": occurrence["occurrence_source"],
-                                "wild_status_id": occurrence["wild_status"],
+                                "wild_status": occurrence["wild_status"],
                                 "review_due_date": occurrence["review_due_date"],
                                 "comment": occurrence["comment"],
                             }
