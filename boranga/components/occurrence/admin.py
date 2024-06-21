@@ -106,12 +106,24 @@ class BufferGeometryInline(nested_admin.NestedStackedInline):
                         "area_sqm",
                         "area_sqhm",
                     ),
+                    (
+                        "object_id",
+                        "content_type",
+                        "created_from",
+                    ),
                 )
             },
         ),
     )
 
-    readonly_fields = ["original_geometry", "area_sqm", "area_sqhm"]
+    readonly_fields = [
+        "original_geometry",
+        "area_sqm",
+        "area_sqhm",
+        "object_id",
+        "content_type",
+        "created_from",
+    ]
 
 
 class OccurrenceReportGeometryInlineForm(forms.ModelForm):
@@ -148,6 +160,11 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
                         # "copied_from",
                         "drawn_by",
                     ),
+                    (
+                        "object_id",
+                        "content_type",
+                        "created_from",
+                    ),
                 )
             },
         ),
@@ -157,6 +174,9 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
         "original_geometry",
         "area_sqm",
         "area_sqhm",
+        "object_id",
+        "content_type",
+        "created_from",
     ]
 
 
@@ -201,6 +221,7 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
                     (
                         "object_id",
                         "content_type",
+                        "created_from",
                     ),
                 )
             },
@@ -211,6 +232,9 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
         "original_geometry",
         "area_sqm",
         "area_sqhm",
+        "object_id",
+        "content_type",
+        "created_from",
     ]
 
     inlines = [BufferGeometryInline, OccurrenceTenureInline]
