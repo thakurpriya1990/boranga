@@ -36,13 +36,6 @@ def update_meeting_doc_filename(instance, filename):
 
 
 class MeetingRoom(models.Model):
-    """
-
-    The Room(Location) for a individual meeting scheduled
-    The Admin data
-
-    """
-
     room_name = models.CharField(max_length=128, blank=True, null=True)
 
     class Meta:
@@ -56,13 +49,6 @@ class MeetingRoom(models.Model):
 
 
 class Committee(models.Model):
-    """
-
-    The Commitee used for the meeting attendees
-    The Admin data
-
-    """
-
     name = models.CharField(max_length=328, blank=True, null=True)
 
     class Meta:
@@ -74,13 +60,6 @@ class Committee(models.Model):
 
 
 class CommitteeMembers(models.Model):
-    """
-
-    The Committee members info
-    The Admin data
-
-    """
-
     first_name = models.CharField(max_length=128, blank=True, null=True)
     last_name = models.CharField(max_length=128, blank=True, null=True)
     email = models.CharField(max_length=328, blank=True, null=True)
@@ -111,6 +90,7 @@ class Meeting(models.Model):
     PROCESSING_STATUS_DRAFT = "draft"
     PROCESSING_STATUS_SCHEDULED = "scheduled"
     PROCESSING_STATUS_COMPLETED = "completed"
+    PROCESSING_STATUS_DISCARDED = "discarded"
 
     MEETING_TYPE_CHOICES = (
         (MEETING, "Meeting"),
@@ -120,6 +100,7 @@ class Meeting(models.Model):
         (PROCESSING_STATUS_DRAFT, "Draft"),
         (PROCESSING_STATUS_SCHEDULED, "Scheduled"),
         (PROCESSING_STATUS_COMPLETED, "Completed"),
+        (PROCESSING_STATUS_DISCARDED, "Discarded"),
     )
 
     # List of statuses from above that allow a customer to view an application (read-only)
@@ -152,9 +133,6 @@ class Meeting(models.Model):
         related_name="committee",
     )
     selected_committee_members = models.ManyToManyField(CommitteeMembers, blank=True)
-    # Agenda items are all conservationstatus added to the meeting
-    # the below agenda field is not used to agenda items
-    # agenda = models.ManyToManyField(ConservationStatus, null=True, blank=True)
     processing_status = models.CharField(
         "Processing Status",
         max_length=30,
@@ -187,10 +165,6 @@ class Meeting(models.Model):
 
     @property
     def can_user_edit(self):
-        """
-        :return: True if the application is in one of the editable status.
-        """
-        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
         user_editable_state = [
             "draft",
         ]
@@ -198,17 +172,11 @@ class Meeting(models.Model):
 
     @property
     def can_user_view(self):
-        """
-        :return: True if the application is in one of the approved status.
-        """
         user_viewable_state = ["completed"]
         return self.processing_status in user_viewable_state
 
     @property
     def is_meeting_editable(self):
-        """
-        :return: True if the application is in one of the editable status other than draft status.
-        """
         user_editable_state = [
             "scheduled",
         ]
@@ -220,6 +188,66 @@ class Meeting(models.Model):
             return False
 
         return is_conservation_status_approver(request)
+
+    @transaction.atomic
+    def discard(self, request):
+        if not self.can_user_edit:
+            raise ValidationError("You can't edit this meeting at this moment")
+
+        self.processing_status = self.PROCESSING_STATUS_DISCARDED
+        self.save()
+
+        # Create a log entry for the meeting
+        self.log_user_action(
+            MeetingUserAction.ACTION_DISCARD_MEETING.format(self.meeting_number),
+            request,
+        )
+
+        # Create a log entry for the submitter
+        if self.submitter:
+            submitter = retrieve_email_user(self.submitter)
+            submitter.log_user_action(
+                MeetingUserAction.ACTION_DISCARD_MEETING.format(
+                    self.meeting_number,
+                ),
+                request,
+            )
+
+    @transaction.atomic
+    def reinstate(self, request):
+        logger.debug(self.processing_status)
+        if not self.processing_status == Meeting.PROCESSING_STATUS_DISCARDED:
+            raise ValidationError(
+                "You cannot reinstate a meeting that has not been discarded"
+            )
+
+        if not request.user.is_superuser and not request.user.id == self.submitter:
+            raise ValidationError("You cannot reinstate a meeting that is not yours")
+
+        if not is_conservation_status_approver(request):
+            raise ValidationError(
+                "You cannot reinstate a meeting unless you are in the "
+                "meeting approver group"
+            )
+
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_DRAFT
+        self.save()
+
+        # Create a log entry for the meeting
+        self.log_user_action(
+            MeetingUserAction.ACTION_REINSTATE_MEETING.format(self.meeting_number),
+            request,
+        )
+
+        # Create a log entry for the submitter
+        if self.submitter:
+            submitter = retrieve_email_user(self.submitter)
+            submitter.log_user_action(
+                MeetingUserAction.ACTION_REINSTATE_MEETING.format(
+                    self.meeting_number,
+                ),
+                request,
+            )
 
     @transaction.atomic
     def submit(self, request, viewset):
@@ -284,6 +312,8 @@ class MeetingUserAction(UserAction):
     ACTION_CREATE_MEETING = "Create meeting {}"
     ACTION_SAVE_MEETING = "Save Meeting {}"
     ACTION_SUBMIT_MEETING = "Submit Meeting {}"
+    ACTION_DISCARD_MEETING = "Discard Meeting {}"
+    ACTION_REINSTATE_MEETING = "Reinstate Meeting {}"
 
     # Minutes Document
     ACTION_ADD_MINUTE = "Minutes {} added for Meeting {}"

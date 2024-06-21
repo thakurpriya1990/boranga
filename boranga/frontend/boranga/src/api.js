@@ -156,7 +156,10 @@ module.exports = {
         return `/api/species/${id}.json`;
     },
     discard_meeting: function (id) {
-        return `/api/meeting/${id}.json`;
+        return `/api/meeting/${id}/discard/`;
+    },
+    reinstate_meeting: function (id) {
+        return `/api/meeting/${id}/reinstate/`;
     },
     discard_ocr_proposal: function (id) {
         return `/api/occurrence_report/${id}.json`;

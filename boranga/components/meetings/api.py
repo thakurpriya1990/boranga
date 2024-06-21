@@ -6,8 +6,6 @@ import pandas as pd
 from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponse
-from django.shortcuts import redirect
-from django.urls import reverse
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -241,7 +239,7 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    @detail_route(methods=["post"], detail=True)
+    @detail_route(methods=["PUT"], detail=True)
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
     def meeting_save(self, request, *args, **kwargs):
@@ -271,7 +269,7 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 request,
             )
 
-        return redirect(reverse("internal"))
+        return Response(serializer.data)
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -289,6 +287,38 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = EditMeetingSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.discard(request)
+        instance.log_user_action(
+            MeetingUserAction.ACTION_DISCARD_MEETING.format(instance.meeting_number),
+            request,
+        )
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reinstate(request)
+        serializer = self.get_serializer(instance)
+        instance.log_user_action(
+            MeetingUserAction.ACTION_REINSTATE_MEETING.format(instance.meeting_number),
+            request,
+        )
         return Response(serializer.data)
 
     # used form the meeting Queue section datatable to show the agenda items for the meeting
@@ -526,7 +556,7 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -545,7 +575,7 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
