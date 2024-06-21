@@ -10,13 +10,13 @@
 
                                 <ul v-if="is_internal" class="nav nav-pills mb-3" id="split-pills-tab" role="tablist">
                                     <li class="nav-item">
-                                        <a 
-                                            class="nav-link" 
-                                            id="pills-original-tab" 
-                                            data-bs-toggle="pill" 
-                                            :href="'#' + originalBody" 
-                                            role="tab" 
-                                            :aria-controls="originalBody" 
+                                        <a
+                                            class="nav-link"
+                                            id="pills-original-tab"
+                                            data-bs-toggle="pill"
+                                            :href="'#' + originalBody"
+                                            role="tab"
+                                            :aria-controls="originalBody"
                                             aria-selected="true">
                                             <!-- @click="tabClicked()"> -->
                                         Original {{ this.species_community_original?this.species_community_original.species_number:'' }}
@@ -26,26 +26,26 @@
                                         <button :class="0==index ? 'nav-link':'nav-link'" aria-current="page" href="#" data-bs-toggle="tab" :data-bs-target="'#nav-' + index" role="tab">{{ species.name }} Test</button>
                                     </li> -->
                                     <li class="nav-item" v-for="(species, index) in new_species_list" :key="'li' + species.id" >
-                                        <a 
-                                            class="nav-link" 
-                                            :id="'pills-species-' + index + '-tab'" 
-                                            data-bs-toggle="pill" 
-                                            :href="'#species-body-' + index" 
-                                            role="tab" 
-                                            :aria-controls="'species-body-' + index" 
+                                        <a
+                                            class="nav-link"
+                                            :id="'pills-species-' + index + '-tab'"
+                                            data-bs-toggle="pill"
+                                            :href="'#species-body-' + index"
+                                            role="tab"
+                                            :aria-controls="'species-body-' + index"
                                             aria-selected="false">
                                             <!-- @click="tabClicked()"> -->
                                         {{ species. species_number}}
                                         </a><span :id=index>x</span>
                                     </li>
                                     <!-- <li class="nav-item">
-                                        <a 
-                                            class="nav-link" 
-                                            id="pills-species2-tab" 
-                                            data-bs-toggle="pill" 
-                                            :href="'#' + species2Body" 
-                                            role="tab" 
-                                            :aria-controls="species2Body" 
+                                        <a
+                                            class="nav-link"
+                                            id="pills-species2-tab"
+                                            data-bs-toggle="pill"
+                                            :href="'#' + species2Body"
+                                            role="tab"
+                                            :aria-controls="species2Body"
                                             aria-selected="false">
                                         Species 2
                                         </a>
@@ -60,27 +60,27 @@
                                     <!-- <div class="tab-pane fade show active" :id="originalBody" role="tabpanel" aria-labelledby="pills-original-tab"></div> -->
                                     <div class="tab-pane" :id="originalBody" role="tabpanel" aria-labelledby="pills-original-tab">
                                         <SpeciesCommunitiesComponent v-if="species_community_original!=null"
-                                            ref="species_communities_original" 
-                                            :species_community.sync="species_community_original" 
-                                            id="species_original" 
+                                            ref="species_communities_original"
+                                            :species_community.sync="species_community_original"
+                                            id="species_original"
                                             :is_internal="true"
                                             :is_readonly="true"> <!-- this prop is only send from split species form to make the original species readonly -->
                                         </SpeciesCommunitiesComponent>
                                     </div>
                                     <div v-for="(species, index) in new_species_list" :key="'div' + species.id" class="tab-pane fade" :id="'species-body-' + index" role="tabpanel"  :aria-labelledby="'pills-species-' + index + '-tab'" >
                                         <SpeciesSplitForm
-                                            :ref="'species_communities_species' + index" 
+                                            :ref="'species_communities_species' + index"
                                             :species_community.sync="species"
-                                            :species_original="species_community_original" 
-                                            :id="'species-'+ index" 
+                                            :species_original="species_community_original"
+                                            :id="'species-'+ index"
                                             :is_internal="true">
                                         </SpeciesSplitForm>
                                     </div>
                                     <!-- <div class="tab-pane fade" :id="species2Body" role="tabpanel" aria-labelledby="pills-species2-tab">
                                         <SpeciesCommunitiesComponent v-if="new_species_list[1]!=null"
-                                            ref="species_communities_species2" 
-                                            :species_community.sync="new_species_list[1]" 
-                                            id="species_two" 
+                                            ref="species_communities_species2"
+                                            :species_community.sync="new_species_list[1]"
+                                            id="species_two"
                                             :is_internal="true">
                                         </SpeciesCommunitiesComponent>
                                     </div> -->
@@ -92,10 +92,9 @@
             </div>
 
             <div slot="footer">
-                <!-- <button type="button" class="btn btn-default" @click="ok">Submit</button> -->
+                <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
                 <button v-if="submitSpeciesSplit" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                <button v-else class="btn btn-default" @click.prevent="ok()" :disabled="submitSpeciesSplit">Submit</button>
-                <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
+                <button v-else class="btn btn-primary" @click.prevent="ok()" :disabled="submitSpeciesSplit">Submit</button>
             </div>
         </modal>
     </div>
@@ -197,7 +196,7 @@ export default {
             const result = await vm.$http.post(`/api/species/${new_species.id}/species_split_save.json`,payload).then(res=>{
                 return true;
             },err=>{
-                        var errorText=helpers.apiVueResourceError(err); 
+                        var errorText=helpers.apiVueResourceError(err);
                         swal.fire({
                             title: 'Submit Error',
                             text: errorText,
@@ -248,7 +247,7 @@ export default {
                 //vm.paySubmitting=false;
                 return false;
             }
-            
+
             vm.submitSpeciesSplit=true;
             swal.fire({
                 title: "Submit",
@@ -371,7 +370,7 @@ export default {
                     }
                 }
             });
-                    
+
         },
    },
    mounted:function () {
@@ -400,7 +399,7 @@ export default {
         // console.log("3 "+tabId)
         // // Show the last tab using Bootstrap's 'show' class
         // document.querySelector(tabId).classList.add('show', 'active');
-        
+
    },
 }
 </script>
@@ -451,7 +450,7 @@ export default {
         background: gray;
     }
     .nav-pills > li {
-    position:relative;    
+    position:relative;
     }
 
     .nav-pills > li > a {
