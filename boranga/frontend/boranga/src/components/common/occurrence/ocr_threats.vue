@@ -1,14 +1,16 @@
 <template lang="html">
     <div id="ocr_threats">
         <FormSection :formCollapse="false" label="Threats" :Index="threatBody">
-            <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
+            <CollapsibleFilters component_title="Filters" ref="collapsible_filters"
+                @created="collapsible_component_mounted" class="mb-2">
                 <div class="row">
                     <div class="col-md-3">
                         <div class="form-group">
                             <label for="">Category:</label>
                             <select class="form-select" v-model="filterThreatCategory">
                                 <option value="all">All</option>
-                                <option v-for="option in threat_category_filter_list" :value="option.id">{{option.name}}
+                                <option v-for="option in threat_category_filter_list" :value="option.id">{{ option.name
+                                    }}
                                 </option>
                             </select>
                         </div>
@@ -18,7 +20,8 @@
                             <label for="">Current Impact:</label>
                             <select class="form-select" v-model="filterThreatCurrentImpact">
                                 <option value="all">All</option>
-                                <option v-for="option in threat_current_impact_filter_list" :value="option.id">{{option.name}}
+                                <option v-for="option in threat_current_impact_filter_list" :value="option.id">
+                                    {{ option.name }}
                                 </option>
                             </select>
                         </div>
@@ -28,7 +31,8 @@
                             <label for="">Potential Impact:</label>
                             <select class="form-select" v-model="filterThreatPotentialImpact">
                                 <option value="all">All</option>
-                                <option v-for="option in threat_potential_impact_filter_list" :value="option.id">{{option.name}}
+                                <option v-for="option in threat_potential_impact_filter_list" :value="option.id">
+                                    {{ option.name }}
                                 </option>
                             </select>
                         </div>
@@ -38,7 +42,7 @@
                             <label for="">Status:</label>
                             <select class="form-select" v-model="filterThreatStatus">
                                 <option value="all">All</option>
-                                <option v-for="option in threat_status_filter_list" :value="option.id">{{option.name}}
+                                <option v-for="option in threat_status_filter_list" :value="option.id">{{ option.name }}
                                 </option>
                             </select>
                         </div>
@@ -46,13 +50,15 @@
                     <div class="col-md-3">
                         <div class="form-group">
                             <label for="">Date Observed From:</label>
-                            <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observed_from_date" v-model="filterObservedFromDate">
+                            <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observed_from_date"
+                                v-model="filterObservedFromDate">
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="form-group">
                             <label for="">Date Observed To:</label>
-                            <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observed_to_date" v-model="filterObservedToDate">
+                            <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observed_to_date"
+                                v-model="filterObservedToDate">
                         </div>
                     </div>
                 </div>
@@ -135,8 +141,8 @@ export default {
             threat_potential_impact_filter_list: [],
 
             threat_status_filter_list: [
-                {id:"active",name:"Active"},
-                {id:"removed",name:"Removed"},
+                { id: "active", name: "Active" },
+                { id: "removed", name: "Removed" },
             ],
 
             threats_headers: ['Number', 'Category', 'Date Observed', 'Threat Agent', 'Comments', 'Threat Source',
@@ -156,14 +162,14 @@ export default {
                 ajax: {
                     "url": helpers.add_endpoint_json(api_endpoints.occurrence_report, vm.occurrence_report_obj.id + '/threats'),
                     "dataSrc": '',
-                    "data": function ( d ) {
-                            d.filter_threat_category = vm.filterThreatCategory
-                            d.filter_threat_current_impact = vm.filterThreatCurrentImpact
-                            d.filter_threat_potential_impact = vm.filterThreatPotentialImpact
-                            d.filter_threat_status = vm.filterThreatStatus
-                            d.filter_observed_from_date = vm.filterObservedFromDate
-                            d.filter_observed_to_date = vm.filterObservedToDate
-                        },
+                    "data": function (d) {
+                        d.filter_threat_category = vm.filterThreatCategory
+                        d.filter_threat_current_impact = vm.filterThreatCurrentImpact
+                        d.filter_threat_potential_impact = vm.filterThreatPotentialImpact
+                        d.filter_threat_status = vm.filterThreatStatus
+                        d.filter_observed_from_date = vm.filterObservedFromDate
+                        d.filter_observed_to_date = vm.filterObservedToDate
+                    },
                 },
                 order: [[0, 'desc']],
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
@@ -297,20 +303,19 @@ export default {
                         mRender: function (data, type, full) {
                             let links = '';
                             if (!vm.isReadOnly) {
-                                    if (full.visible) {
-                                        links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
-                                        links += `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                        links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
-                                    }
-                                
+                                if (full.visible) {
+                                    links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
+                                    links += `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
+                                    links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
+                                }
+
                                 else {
                                     links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
                                 }
                             } else {
-                                links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;                               
+                                links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
                             }
-                            if (!vm.is_external)
-                            {
+                            if (!vm.is_external) {
                                 links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
                             }
                             return links;
@@ -337,74 +342,74 @@ export default {
         CollapsibleFilters,
     },
     computed: {
-        isReadOnly: function(){
+        isReadOnly: function () {
             //override for split reports
-            if(this.is_readonly){
+            if (this.is_readonly) {
                 return this.is_readonly;
             }
             return this.occurrence_report_obj.readonly
         },
-        filterApplied: function(){
-                if(this.filterThreatCategory === 'all' &&
+        filterApplied: function () {
+            if (this.filterThreatCategory === 'all' &&
                 this.filterThreatCurrentImpact === 'all' &&
                 this.filterThreatPotentialImpact === 'all' &&
                 this.filterThreatStatus === 'all' &&
                 this.filterObservedFromDate === '' &&
                 this.filterObservedToDate === ''
-                ){
-                    return false
-                } else {
-                    return true
-                }
-            },
+            ) {
+                return false
+            } else {
+                return true
+            }
+        },
     },
     watch: {
-        filterApplied: function(){
-            if (this.$refs.collapsible_filters){
+        filterApplied: function () {
+            if (this.$refs.collapsible_filters) {
                 // Collapsible component exists
                 this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
             }
         },
-        filterThreatCategory: function(){
+        filterThreatCategory: function () {
             let vm = this;
             vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
         },
-        filterThreatCurrentImpact: function(){
+        filterThreatCurrentImpact: function () {
             let vm = this;
             vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
         },
-        filterThreatPotentialImpact: function(){
+        filterThreatPotentialImpact: function () {
             let vm = this;
             vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
         },
-        filterThreatStatus: function(){
+        filterThreatStatus: function () {
             let vm = this;
             vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
         },
-        filterObservedFromDate: function(){
+        filterObservedFromDate: function () {
             let vm = this;
             vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
         },
-        filterObservedToDate: function(){
+        filterObservedToDate: function () {
             let vm = this;
             vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
         },
     },
     methods: {
-        collapsible_component_mounted: function(){
-                this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
+        collapsible_component_mounted: function () {
+            this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
         },
 
-        fetchFilterLists: function(){
-                let vm = this;
-                //Category, Current Impact, Potential Impact (generic to all threats)
-                vm.$http.get('/api/threat/threat_list_of_values/').then((response) => {
-                    vm.threat_category_filter_list= response.body["threat_category_lists"];
-                    vm.threat_current_impact_filter_list = response.body["current_impact_lists"];
-                    vm.threat_potential_impact_filter_list = response.body["potential_impact_lists"];
-                },(error) => {
-                    console.log(error);
-                })
+        fetchFilterLists: function () {
+            let vm = this;
+            //Category, Current Impact, Potential Impact (generic to all threats)
+            vm.$http.get('/api/threat/threat_list_of_values/').then((response) => {
+                vm.threat_category_filter_list = response.body["threat_category_lists"];
+                vm.threat_current_impact_filter_list = response.body["current_impact_lists"];
+                vm.threat_potential_impact_filter_list = response.body["potential_impact_lists"];
+            }, (error) => {
+                console.log(error);
+            })
         },
         newThreat: function () {
             let vm = this;
@@ -463,10 +468,14 @@ export default {
             swal.fire({
                 title: "Remove Threat",
                 text: "Are you sure you want to remove this Threat?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Threat',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
                     vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_threat, id + '/discard'))
@@ -498,7 +507,9 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Reinstate Threat',
-                confirmButtonColor: '#226fbb',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
             }).then((result) => {
                 if (result.isConfirmed) {
                     vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_threat, id + '/reinstate'))
@@ -507,7 +518,9 @@ export default {
                                 title: 'Reinstated',
                                 text: 'Your threat has been reinstated',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             }).then((result) => {
                                 vm.$refs.threats_datatable.vmDataTable.ajax.reload();
                                 if (vm.occurrence_report_obj.processing_status == "Unlocked") {

@@ -559,21 +559,27 @@ export default {
         discardOCCProposal: function (occurrence_id) {
             let vm = this;
             swal.fire({
-                title: "Discard Report",
-                text: "Are you sure you want to discard this report?",
-                icon: "warning",
+                title: "Discard Occurrence",
+                text: "Are you sure you want to discard this occurrence?",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Discard Report',
-                confirmButtonColor: '#d9534f'
+                confirmButtonText: 'Discard Occurrence',
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-primary'
+                },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
                     vm.$http.delete(api_endpoints.discard_occ_proposal(occurrence_id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
-                                text: 'Your report has been discarded',
+                                text: 'The occurrence has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-danger',
+                                },
                             });
                             vm.$refs.community_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {

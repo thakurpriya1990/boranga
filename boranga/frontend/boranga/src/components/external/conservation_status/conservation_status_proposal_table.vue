@@ -514,7 +514,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
@@ -546,7 +548,9 @@ export default {
                                 title: 'Reinstated',
                                 text: 'Your proposal has been reinstated. You may continue to work on it now.',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload();
                         }, (error) => {

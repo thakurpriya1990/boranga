@@ -66,8 +66,8 @@
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
                 <button v-if="updatingPublishing" class="btn btn-primary pull-right" style="margin-top:5px;"
                     disabled>Submit&nbsp;<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                <button v-else class="btn btn-primary" @click.prevent="ok()"
-                    :disabled="updatingPublishing">Make Public</button>
+                <button v-else class="btn btn-primary" @click.prevent="ok()" :disabled="updatingPublishing">Make
+                    Public</button>
             </div>
         </modal>
     </div>
@@ -154,7 +154,9 @@ export default {
                     title: 'Saved',
                     text: 'Record has been made public',
                     icon: 'success',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 }).then((swalresult) => {
                     vm.close()
                 });
@@ -164,7 +166,9 @@ export default {
                     title: 'Error',
                     text: 'Publishing settings cannot be updated because of the following error: ' + text,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.species_community.publishing_status = helpers.copyObject(vm.species_community_original.publishing_status);
                 vm.updatingPublishing = false;
@@ -208,7 +212,9 @@ export default {
                     title: 'Error',
                     text: 'Record already public',
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.updatingPublishing = false;
             }
