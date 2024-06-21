@@ -78,12 +78,12 @@
             />
         </FormSection>
 
-        <ThreatDetail ref="threat_detail" 
-        @refreshFromResponse="refreshFromResponse" 
+        <ThreatDetail ref="threat_detail"
+        @refreshFromResponse="refreshFromResponse"
         :url="threat_url"
         :change_warning="changeWarning"
-        >      
-        </ThreatDetail>  
+        >
+        </ThreatDetail>
         <div v-if="conservationThreatHistoryId">
             <ConservationThreatHistory
                 ref="conservation_threat_history"
@@ -328,7 +328,7 @@ export default {
                                     else{
                                         links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
                                         links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
-                                    }                            
+                                    }
                                 } else {
                                     links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
                                 }
@@ -510,7 +510,7 @@ export default {
                     confirmButtonColor:'#d9534f'
                 }).then((result) => {
                     if(result.isConfirmed){
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/discard'))
+                        vm.$http.patch(helpers.add_endpoint_json(api_endpoints.threat,id+'/discard'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -545,7 +545,7 @@ export default {
                     confirmButtonColor:'#226fbb',
                 }).then((result) => {
                     if(result.isConfirmed){
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/reinstate'))
+                        vm.$http.patch(helpers.add_endpoint_json(api_endpoints.threat,id+'/reinstate'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',

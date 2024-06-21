@@ -23,7 +23,8 @@
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterOCRFloraStatus">
                             <option value="all">All</option>
-                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
+                            <option v-for="status in processing_statuses" :value="status.value">{{ status.name }}
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -76,19 +77,14 @@
     </div>
 </template>
 <script>
-//require('@popperjs/core');
-//import { createPopper } from '@popperjs/core';
-//require('popperjs');
-//require('bootstrap');
+
 import "babel-polyfill"
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
 import OccurrenceReportHistory from '../internal/occurrence/species_occurrence_report_history.vue';
 import Vue from 'vue'
-// var select2 = require('select2');
-// require("select2/dist/css/select2.min.css");
-// require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
+
 import {
     api_endpoints,
     constants,
@@ -203,10 +199,9 @@ export default {
                 sessionStorage.getItem(this.filterOCRFloraSubmittedToDate_cache) : '',
 
             filterOCRFromFloraDueDate: sessionStorage.getItem(this.filterOCRFromFloraDueDate_cache) ?
-            sessionStorage.getItem(this.filterOCRFromFloraDueDate_cache) : '',
+                sessionStorage.getItem(this.filterOCRFromFloraDueDate_cache) : '',
             filterOCRToFloraDueDate: sessionStorage.getItem(this.filterOCRToFloraDueDate_cache) ?
-            sessionStorage.getItem(this.filterOCRToFloraDueDate_cache) : '',
-
+                sessionStorage.getItem(this.filterOCRToFloraDueDate_cache) : '',
 
             filterListsSpecies: {},
             occurrence_list: [],
@@ -215,17 +210,15 @@ export default {
             submissions_from_list: [],
             submissions_to_list: [],
 
-            // filtering options
-            internal_status: [
+            processing_statuses: [
                 { value: 'draft', name: 'Draft' },
+                { value: 'discarded', name: 'Discarded' },
                 { value: 'with_assessor', name: 'With Assessor' },
                 { value: 'with_referral', name: 'With Referral' },
                 { value: 'with_approver', name: 'With Approver' },
                 { value: 'approved', name: 'Approved' },
                 { value: 'declined', name: 'Declined' },
             ],
-
-            proposal_status: [],
         }
     },
     components: {
@@ -270,14 +263,14 @@ export default {
             vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRFloraSubmittedToDate_cache, vm.filterOCRFloraSubmittedToDate);
         },
-        filterOCRFromFloraDueDate: function(){
+        filterOCRFromFloraDueDate: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRFromFloraDueDate_cache, vm.filterOCRFromFloraDueDate);
         },
-        filterOCRToFloraDueDate: function(){
+        filterOCRToFloraDueDate: function () {
             let vm = this;
-            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCRToFloraDueDate_cache, vm.filterOCRToFloraDueDate);
         },
         filterApplied: function () {
@@ -303,34 +296,22 @@ export default {
                 return true
             }
         },
-        is_external: function () {
-            return this.level == 'external';
-        },
-        is_internal: function () {
-            return this.level == 'internal'
-        },
         addFloraOCRVisibility: function () {
             return this.profile && this.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS);
         },
         datatable_headers: function () {
-            if (this.is_internal) {
-                return ['Number', 'Occurrence', 'Scientific Name', 'Observation Date', 'Main Observer','Submission Date', 'Submitter', 'Status', 'Action']
-            }
+            return ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Observation Date', 'Main Observer', 'Submission Date', 'Submitter', 'Status', 'Action']
         },
         column_id: function () {
             return {
                 data: "id",
                 orderable: true,
                 searchable: false,
-                visible: false,
-                'render': function (data, type, full) {
-                    return full.id
-                },
+                visible: true,
                 name: "id",
             }
         },
         column_number: function () {
-            let vm = this;
             return {
                 data: "occurrence_report_number",
                 orderable: true,
@@ -338,7 +319,7 @@ export default {
                 visible: true,
                 'render': function (data, type, full) {
                     let value = full.occurrence_report_number
-                    if (vm.is_internal && full.is_new_contributor) {
+                    if (full.is_new_contributor) {
                         value += ' <span class="badge bg-warning">New Contributor</span>'
                     }
                     return value
@@ -384,12 +365,6 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    if (full.observation_date) {
-                        return full.observation_date;
-                    }
-                    return ''
-                },
                 name: "observation_date",
             }
         },
@@ -399,12 +374,6 @@ export default {
                 orderable: false,
                 searchable: false,
                 visible: true,
-                'render': function (data, type, full) {
-                    if (full.main_observer) {
-                        return full.main_observer;
-                    }
-                    return ''
-                },
                 name: "main_observer",
             }
         },
@@ -414,12 +383,6 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    if (full.reported_date) {
-                        return full.reported_date;
-                    }
-                    return ''
-                },
                 name: "reported_date",
             }
         },
@@ -429,12 +392,6 @@ export default {
                 orderable: false,
                 searchable: false,
                 visible: true,
-                'render': function (data, type, full) {
-                    if (full.submitter) {
-                        return full.submitter;
-                    }
-                    return ''
-                },
                 name: "submitter__first_name, submitter__last_name",
             }
         },
@@ -444,17 +401,10 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    if (full.processing_status_display) {
-                        return full.processing_status_display;
-                    }
-                    return ''
-                },
                 name: "processing_status",
             }
         },
         column_action: function () {
-            let vm = this
             return {
                 data: "internal_user_edit",
                 orderable: false,
@@ -462,21 +412,23 @@ export default {
                 visible: true,
                 'render': function (data, type, full) {
                     let links = "";
-                    if (!vm.is_external) {
-                        if (full.internal_user_edit) {
+                    if (full.internal_user_edit) {
+                        if (full.processing_status == 'discarded') {
+                            links += `<a href='#${full.id}' data-reinstate-ocr-proposal='${full.id}'>Reinstate</a><br/>`;
+                        } else {
                             links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Continue</a><br/>`;
                             links += `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
                             links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
                         }
-                        else {
-                            if (full.can_user_assess || full.can_user_approve) {
-                                links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Process</a><br/>`;
-                            }
-                            else {
-                                links += `<a href='/internal/occurrence_report/${full.id}?action=view'>View</a><br/>`;
-                            }
-                            links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
+                    }
+                    else {
+                        if (full.can_user_assess || full.can_user_approve) {
+                            links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Process</a><br/>`;
                         }
+                        else {
+                            links += `<a href='/internal/occurrence_report/${full.id}?action=view'>View</a><br/>`;
+                        }
+                        links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
                     }
                     return links;
                 }
@@ -484,7 +436,6 @@ export default {
         },
         datatable_options: function () {
             let vm = this
-
             let columns = []
             let search = null
             let buttons = [
@@ -503,20 +454,19 @@ export default {
                     }
                 }
             ]
-            if (vm.is_internal) {
-                columns = [
-                    vm.column_number,
-                    vm.column_occurrence,
-                    vm.column_scientific_name,
-                    vm.column_observation_date_time,
-                    vm.column_main_observer,
-                    vm.column_submission_date_time,
-                    vm.column_submitter,
-                    vm.column_status,
-                    vm.column_action,
-                ]
-                search = true
-            }
+            columns = [
+                vm.column_id,
+                vm.column_number,
+                vm.column_occurrence,
+                vm.column_scientific_name,
+                vm.column_observation_date_time,
+                vm.column_main_observer,
+                vm.column_submission_date_time,
+                vm.column_submitter,
+                vm.column_status,
+                vm.column_action,
+            ]
+            search = true
 
             return {
                 autoWidth: false,
@@ -532,15 +482,13 @@ export default {
                 searching: search,
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
-                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 1, targets: 1 },
                     { responsivePriority: 3, targets: -1 },
                     { responsivePriority: 2, targets: -2 }
                 ],
                 ajax: {
                     "url": this.url,
                     "dataSrc": 'data',
-
-                    // adding extra GET params for Custom filtering
                     "data": function (d) {
                         d.filter_group_type = vm.group_type_name;
                         d.filter_occurrence = vm.filterOCRFloraOccurrence;
@@ -552,15 +500,12 @@ export default {
                         d.filter_submitted_to_date = vm.filterOCRFloraSubmittedToDate;
                         d.filter_from_due_date = vm.filterOCRFromFloraDueDate;
                         d.filter_to_due_date = vm.filterOCRToFloraDueDate;
-                        d.is_internal = vm.is_internal;
                     }
                 },
-                //dom: 'lBfrtip',
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: buttons,
-
                 columns: columns,
                 processing: true,
                 initComplete: function () {
@@ -568,7 +513,6 @@ export default {
                 },
             }
         }
-
     },
     methods: {
         historyDocument: function (id) {
@@ -665,11 +609,6 @@ export default {
                 vm.status_list = vm.filterListsSpecies.status_list;
                 vm.submissions_from_list = vm.filterListsSpecies.submissions_from_list;
                 vm.submissions_to_list = vm.filterListsSpecies.submissions_to_list;
-                // vm.filterConservationCategory();
-                // vm.filterDistrict();
-                vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
-                    return a.name.trim().localeCompare(b.name.trim());
-                });
             }, (error) => {
                 console.log(error);
             })
@@ -699,9 +638,6 @@ export default {
                     }
                     catch (err) {
                         console.log(err);
-                        if (this.is_internal) {
-                            return err;
-                        }
                     }
                     this.$router.push({
                         name: 'internal-occurrence-report-detail',
@@ -715,13 +651,17 @@ export default {
             swal.fire({
                 title: "Discard Report",
                 text: "Are you sure you want to discard this report?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Report',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_ocr_proposal(occurrence_report_id))
+                    vm.$http.patch(api_endpoints.discard_ocr_proposal(occurrence_report_id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -735,7 +675,39 @@ export default {
                         });
                 }
             }, (error) => {
-
+                console.log(error);
+            });
+        },
+        reinstateOCRProposal: function (occurrence_report_id) {
+            let vm = this;
+            swal.fire({
+                title: "Reinstate Report",
+                text: "Are you sure you want to reinstate this report?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Reinstate Report',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true,
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    vm.$http.patch(api_endpoints.reinstate_ocr_proposal(occurrence_report_id))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'Your report has been reinstated',
+                                icon: 'success',
+                                confirmButtonColor: '#226fbb',
+                            });
+                            vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            }, (error) => {
+                console.log(error);
             });
         },
         addEventListeners: function () {
@@ -745,6 +717,11 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-ocr-proposal');
                 vm.discardOCRProposal(id);
+            });
+            vm.$refs.flora_ocr_datatable.vmDataTable.on('click', 'a[data-reinstate-ocr-proposal]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-reinstate-ocr-proposal');
+                vm.reinstateOCRProposal(id);
             });
             vm.$refs.flora_ocr_datatable.vmDataTable.on('click', 'a[data-history-occurrence-report]', function (e) {
                 e.preventDefault();
@@ -845,7 +822,6 @@ export default {
                 filter_submitted_to_date: vm.filterOCRFloraSubmittedToDate,
                 filter_from_due_date: vm.filterOCRFromFloraDueDate,
                 filter_to_due_date: vm.filterOCRToFloraDueDate,
-                is_internal: vm.is_internal,
                 export_format: format
             };
 
@@ -878,13 +854,11 @@ export default {
                         xhrFields: {
                             responseType: 'blob'
                         },
-
                         success: function (response, status, request) {
                             var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
                             var filename = contentDispositionHeader.split('filename=')[1];
                             window.URL = window.URL || window.webkitURL;
                             var blob = new Blob([response], { type: "application/vnd.ms-excel" });
-
                             var downloadUrl = window.URL.createObjectURL(blob);
                             var a = document.createElement("a");
                             a.href = downloadUrl;
@@ -924,14 +898,9 @@ export default {
             }
             catch (err) {
                 console.log(err);
-                if (vm.is_internal) {
-                    return err;
-                }
             }
         },
     },
-
-
     mounted: function () {
         this.fetchFilterLists();
         let vm = this;
@@ -944,18 +913,12 @@ export default {
         this.$nextTick(() => {
             vm.initialiseOccurrenceLookup();
             vm.initialiseScientificNameLookup();
-            //vm.initialiseSearch();
             vm.addEventListeners();
-
-            // -- to set the select2 field with the session value if exists onload()
             if (sessionStorage.getItem("filterOCRFloraOccurrence") != 'all' && sessionStorage.getItem("filterOCRFloraOccurrence") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterOCRFloraOccurrenceText"), vm.filterOCRFloraOccurrence, false, true);
                 $('#ocr_occurrence_lookup').append(newOption);
-                //$('#scientific_name_lookup').append(newOption).trigger('change');
             }
             if (sessionStorage.getItem("filterOCRFloraScientificName") != 'all' && sessionStorage.getItem("filterOCRFloraScientificName") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterOCRFloraScientificNameText"), vm.filterOCRFloraScientificName, false, true);
                 $('#ocr_scientific_name_lookup').append(newOption);
             }

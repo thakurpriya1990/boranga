@@ -153,13 +153,22 @@ module.exports = {
         return `/api/community/${id}.json`;
     },
     discard_species_proposal: function (id) {
-        return `/api/species/${id}.json`;
+        return `/api/species/${id}/discard/`;
+    },
+    remove_species_proposal: function (id) {
+        return `/api/species/${id}/remove/`;
     },
     discard_meeting: function (id) {
-        return `/api/meeting/${id}.json`;
+        return `/api/meeting/${id}/discard/`;
+    },
+    reinstate_meeting: function (id) {
+        return `/api/meeting/${id}/reinstate/`;
     },
     discard_ocr_proposal: function (id) {
-        return `/api/occurrence_report/${id}.json`;
+        return `/api/occurrence_report/${id}/discard/`;
+    },
+    reinstate_ocr_proposal: function (id) {
+        return `/api/occurrence_report/${id}/reinstate/`;
     },
     discard_observer_detail: function (id) {
         return `/api/observer_detail/${id}.json`;

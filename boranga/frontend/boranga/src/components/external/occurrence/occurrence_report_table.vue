@@ -136,8 +136,8 @@ export default {
             // filtering options
             external_status: [
                 { value: 'draft', name: 'Draft' },
+                { value: 'discarded', name: 'Discarded' },
                 { value: 'with_assessor', name: 'Under Review' },
-                // {value: 'with_approver', name: 'Under Review'},
                 { value: 'approved', name: 'Approved' },
                 { value: 'declined', name: 'Declined' },
                 { value: 'closed', name: 'Closed' },
@@ -189,18 +189,13 @@ export default {
                 return true
             }
         },
-        is_external: function () {
-            return this.level == 'external';
-        },
         addOCRVisibility: function () {
             let visibility = false;
             visibility = true;
             return visibility;
         },
         datatable_headers: function () {
-            if (this.is_external) {
-                return ['Number', 'Type', 'Scientific Name', 'Community Name', 'Status', 'Action']
-            }
+            return ['ID', 'Number', 'Type', 'Scientific Name', 'Community Name', 'Status', 'Action']
         },
         column_id: function () {
             return {
@@ -208,9 +203,6 @@ export default {
                 orderable: true,
                 searchable: false,
                 visible: false,
-                'render': function (data, type, full) {
-                    return full.id;
-                },
                 name: "id",
             }
         },
@@ -220,9 +212,6 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    return full.occurrence_report_number;
-                },
                 name: "id",
             }
         },
@@ -232,9 +221,6 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    return full.group_type;
-                },
                 name: "group_type__name",
             }
         },
@@ -266,25 +252,16 @@ export default {
         },
         column_status: function () {
             return {
-                // 9. Workflow Status
                 data: "customer_status",
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    if (full.customer_status) {
-                        return full.customer_status;
-                    }
-                    // Should not reach here
-                    return ''
-                },
                 name: "customer_status",
             }
         },
         column_action: function () {
             let vm = this
             return {
-                // 10. Action
                 data: "id",
                 orderable: false,
                 searchable: false,
@@ -292,20 +269,22 @@ export default {
                 'render': function (data, type, full) {
                     let links = "";
                     if (full.can_user_edit) {
-                        links += `<a href='/external/occurrence-report/${full.id}'>Continue</a><br/>`;
-                        links += `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
+                        if (full.processing_status == 'discarded') {
+                            links += `<a href='#${full.id}' data-reinstate-ocr-proposal='${full.id}'>Reinstate</a><br/>`;
+                        } else {
+                            links += `<a href='/external/occurrence-report/${full.id}'>Continue</a><br/>`;
+                            links += `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
+                        }
                     }
                     else if (full.can_user_view) {
                         links += `<a href='/external/occurrence-report/${full.id}'>View</a>`;
                     }
-
                     return links;
                 }
             }
         },
         datatable_options: function () {
             let vm = this
-
             let columns = []
             let search = null
             let buttons = [
@@ -324,18 +303,17 @@ export default {
                     }
                 }
             ]
-            if (vm.is_external) {
-                columns = [
-                    vm.column_number,
-                    vm.column_type,
-                    vm.column_scientific_name,
-                    vm.column_community_name,
-                    vm.column_status,
-                    vm.column_action,
-                ]
-                search = false
-                buttons = buttons
-            }
+            columns = [
+                vm.column_id,
+                vm.column_number,
+                vm.column_type,
+                vm.column_scientific_name,
+                vm.column_community_name,
+                vm.column_status,
+                vm.column_action,
+            ]
+            search = false
+            buttons = buttons
 
             return {
                 autoWidth: false,
@@ -350,15 +328,13 @@ export default {
                 serverSide: true,
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
-                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 1, targets: 1 },
                     { responsivePriority: 3, targets: -1 },
                     { responsivePriority: 2, targets: -2 }
                 ],
                 ajax: {
                     "url": this.url,
                     "dataSrc": 'data',
-
-                    // adding extra GET params for Custom filtering
                     "data": function (d) {
                         d.filter_group_type = vm.filterOCRGroupType;
                         d.filter_scientific_name = vm.filterOCRScientificName;
@@ -367,7 +343,6 @@ export default {
                         d.is_internal = vm.is_internal;
                     }
                 },
-                //dom: 'lBfrtip',
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
@@ -478,9 +453,6 @@ export default {
             }
             catch (err) {
                 console.log(err);
-                if (this.is_external) {
-                    return err;
-                }
             }
             this.$router.push({
                 name: 'draft_ocr_proposal',
@@ -492,13 +464,17 @@ export default {
             swal.fire({
                 title: "Discard Occurrence Report",
                 text: "Are you sure you want to discard this occurrence report?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Occurrence Report',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_ocr_proposal(occurrence_report_id))
+                    vm.$http.patch(api_endpoints.discard_ocr_proposal(occurrence_report_id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Occurrence Report Discarded',
@@ -513,6 +489,38 @@ export default {
                 }
             });
         },
+        reinstateOCRProposal: function (occurrence_report_id) {
+            let vm = this;
+            swal.fire({
+                title: "Reinstate Report",
+                text: "Are you sure you want to reinstate this report?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Reinstate Report',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true,
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    vm.$http.patch(api_endpoints.reinstate_ocr_proposal(occurrence_report_id))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'Your report has been reinstated',
+                                icon: 'success',
+                                confirmButtonColor: '#226fbb',
+                            });
+                            vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            }, (error) => {
+                console.log(error);
+            });
+        },
         addEventListeners: function () {
             let vm = this;
             // External Discard listener
@@ -521,8 +529,13 @@ export default {
                 var id = $(this).attr('data-discard-ocr-proposal');
                 vm.discardOCR(id);
             });
+            vm.$refs.occurrence_report_datatable.vmDataTable.on('click', 'a[data-reinstate-ocr-proposal]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-reinstate-ocr-proposal');
+                vm.reinstateOCRProposal(id);
+            });
             vm.$refs.occurrence_report_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
-                    helpers.enablePopovers();
+                helpers.enablePopovers();
             });
         },
         check_assessor: function (proposal) {
@@ -640,13 +653,11 @@ export default {
                         xhrFields: {
                             responseType: 'blob'
                         },
-
                         success: function (response, status, request) {
                             var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
                             var filename = contentDispositionHeader.split('filename=')[1];
                             window.URL = window.URL || window.webkitURL;
                             var blob = new Blob([response], { type: "application/vnd.ms-excel" });
-
                             var downloadUrl = window.URL.createObjectURL(blob);
                             var a = document.createElement("a");
                             a.href = downloadUrl;
@@ -669,7 +680,6 @@ export default {
                             var filename = contentDispositionHeader.split('filename=')[1];
                             window.URL = window.URL || window.webkitURL;
                             var blob = new Blob([response], { type: "text/csv" });
-
                             var downloadUrl = window.URL.createObjectURL(blob);
                             var a = document.createElement("a");
                             a.href = downloadUrl;
@@ -705,14 +715,11 @@ export default {
             vm.initialiseScientificNameLookup();
             vm.initialiseCommunityNameLookup();
             vm.addEventListeners();
-            // -- to set the select2 field with the session value if exists onload()
             if (sessionStorage.getItem("filterOCRScientificName") != 'all' && sessionStorage.getItem("filterOCRScientificName") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterOCRScientificNameText"), vm.filterOCRScientificName, false, true);
                 $('#ocr_scientific_name_lookup').append(newOption);
             }
             if (sessionStorage.getItem("filterOCRExCommunityName") != 'all' && sessionStorage.getItem("filterOCRExCommunityName") != null) {
-                // contructor new Option(text, value, defaultSelected, selected)
                 var newOption = new Option(sessionStorage.getItem("filterOCRExCommunityNameText"), vm.filterOCRExCommunityName, false, true);
                 $('#ocr_community_name_lookup').append(newOption);
             }

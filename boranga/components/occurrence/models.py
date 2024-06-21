@@ -136,6 +136,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     # List of statuses from above that allow a customer to edit an occurrence report.
     CUSTOMER_EDITABLE_STATE = [
         "draft",
+        "discarded",
         "amendment_required",
     ]
 
@@ -280,6 +281,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     class Meta:
         app_label = "boranga"
+        ordering = ["-id"]
 
     def __str__(self):
         return str(self.occurrence_report_number)  # TODO: is the most appropriate?
@@ -363,18 +365,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         :return: True if the occurrence report is in one of the approved status.
         """
         return self.customer_status in self.CUSTOMER_VIEWABLE_STATE
-
-    @property
-    def is_discardable(self):
-        """
-        An occurrence report can be discarded by a customer if:
-        1 - It is a draft
-        2- or if the occurrence report has been pushed back to the user
-        """
-        return (
-            self.customer_status == "draft"
-            or self.processing_status == "awaiting_applicant_response"
-        )
 
     @property
     def is_flora_application(self):
@@ -533,6 +523,40 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             # TODO: current requirment task allows assessors to unlock, is this too permissive?
             # Good question
             return is_occurrence_assessor(request) or is_occurrence_approver(request)
+
+    @transaction.atomic
+    def discard(self, request):
+        if not self.processing_status == OccurrenceReport.PROCESSING_STATUS_DRAFT:
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        self.processing_status = OccurrenceReport.PROCESSING_STATUS_DISCARDED
+        self.customer_status = OccurrenceReport.CUSTOMER_STATUS_DISCARDED
+        self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_DISCARD_PROPOSAL.format(
+                self.occurrence_report_number
+            ),
+            request,
+        )
+
+    @transaction.atomic
+    def reinstate(self, request):
+        if not self.processing_status == OccurrenceReport.PROCESSING_STATUS_DISCARDED:
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        self.processing_status = OccurrenceReport.PROCESSING_STATUS_DRAFT
+        self.customer_status = OccurrenceReport.CUSTOMER_STATUS_DRAFT
+        self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_DISCARD_PROPOSAL.format(
+                self.occurrence_report_number
+            ),
+            request,
+        )
 
     @transaction.atomic
     def assign_officer(self, request, officer):
