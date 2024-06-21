@@ -78,8 +78,8 @@
             />
         </FormSection>
 
-        <ThreatDetail ref="threat_detail" 
-        @refreshFromResponse="refreshFromResponse" 
+        <ThreatDetail ref="threat_detail"
+        @refreshFromResponse="refreshFromResponse"
         :url="threat_url"
         :change_warning="changeWarning"
         >
@@ -153,7 +153,7 @@ export default {
                 threat_category_filter_list: [],
                 threat_current_impact_filter_list: [],
                 threat_potential_impact_filter_list: [],
-                
+
                 threat_status_filter_list: [
                     {id:"active",name:"Active"},
                     {id:"removed",name:"Removed"},
@@ -513,7 +513,7 @@ export default {
                     confirmButtonColor:'#d9534f'
                 }).then((result) => {
                     if(result.isConfirmed){
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/discard'))
+                        vm.$http.patch(helpers.add_endpoint_json(api_endpoints.threat,id+'/discard'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -539,7 +539,7 @@ export default {
                 ) {
                     public_message = " Doing so will make the Species Record Private"
                 }
-                
+
                 swal.fire({
                     title: "Reinstate Threat",
                     text: "Are you sure you want to Reinstate this Threat?" + public_message,
@@ -549,7 +549,7 @@ export default {
                     confirmButtonColor:'#226fbb',
                 }).then((result) => {
                     if(result.isConfirmed){
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.threat,id+'/reinstate'))
+                        vm.$http.patch(helpers.add_endpoint_json(api_endpoints.threat,id+'/reinstate'))
                         .then((response) => {
                             swal.fire({
                                 title:'Reinstated',
