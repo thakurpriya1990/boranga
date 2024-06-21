@@ -153,7 +153,10 @@ module.exports = {
         return `/api/community/${id}.json`;
     },
     discard_species_proposal: function (id) {
-        return `/api/species/${id}.json`;
+        return `/api/species/${id}/discard/`;
+    },
+    remove_species_proposal: function (id) {
+        return `/api/species/${id}/remove/`;
     },
     discard_meeting: function (id) {
         return `/api/meeting/${id}/discard/`;
