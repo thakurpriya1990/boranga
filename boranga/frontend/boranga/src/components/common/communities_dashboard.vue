@@ -466,34 +466,20 @@ export default {
         },
         column_region: function () {
             return {
-                data: "region",
+                data: "regions",
                 orderable: true,
                 searchable: false,
                 visible: true,
-                'render': function (data, type, full) {
-                    if (full.region) {
-                        return full.region;
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "region__name",
+                name: "regions__name",
             }
         },
         column_district: function () {
             return {
-                data: "district",
+                data: "districts",
                 orderable: true,
-                searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
+                searchable: false,
                 visible: true,
-                'render': function (data, type, full) {
-                    if (full.district) {
-                        return full.district
-                    }
-                    // Should not reach here
-                    return ''
-                },
-                name: "district__name",
+                name: "districts__name",
             }
         },
         column_wa_legislative_list: function () {
