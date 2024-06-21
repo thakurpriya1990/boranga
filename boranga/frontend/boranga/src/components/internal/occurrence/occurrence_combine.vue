@@ -76,7 +76,87 @@
                         aria-labelledby="pills-occurrence-tab">
                         <!--Main OCC Form-->
                         <FormSection :formCollapse="false" label="Occurrence" Index="combine_occurrence">
-                            Main OCC Form
+                            <div class="row mb-3">
+                                <label for="" class="col-sm-3 control-label">Occurrence Name:</label>
+                                <div class="col-sm-9">
+                                    <select id="combine_occurrence_name" ref="combine_occurrence_name" class="form-select"
+                                        v-model="occ_combine_data.occurrence_name" :key="occ_form_key">
+                                        <option v-for="occurrence in selectedOccurrences" :value="occurrence.id"
+                                            v-bind:key="occurrence.id">
+                                            {{occurrence.occurrence_number}}: {{occurrence.occurrence_name}}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div v-if="main_occurrence_obj.group_type=='flora' || main_occurrence_obj.group_type=='fauna'" class="row mb-3">
+                                <label for="" class="col-sm-3 control-label">Scientific Name:</label>
+                                <div class="col-sm-9">
+                                    <textarea disabled class="form-control" rows="1" v-model="main_occurrence_obj.scientific_name"/>
+                                </div>
+                            </div>
+                            <div v-else class="row mb-3">
+                                <label for="" class="col-sm-3 control-label">Community Name:</label>
+                                <div class="col-sm-9">
+                                    <textarea disabled class="form-control" rows="1" v-model="main_occurrence_obj.community_name"/>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="" class="col-sm-3 control-label">Occurrence Source:</label>
+                                <div class="col-sm-9">
+                                    <select id="combine_occurrence_source" ref="combine_occurrence_source" class="form-select"
+                                        v-model="occ_combine_data.occurrence_source" :key="occ_form_key">
+                                        <option v-for="occurrence in selectedOccurrences" :value="occurrence.id"
+                                            v-bind:key="occurrence.id">
+                                            {{occurrence.occurrence_number}}: 
+                                            <span v-for="source in occurrence.occurrence_source">
+                                                <span v-for="occ_source in occurrence_source_list">                                                    
+                                                    <span v-if="occ_source[0] == source">{{occ_source[1]}}</span>             
+                                                </span>
+                                                <span v-if="source != occurrence.occurrence_source[occurrence.occurrence_source.length-1]">, </span>
+                                            </span>
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="" class="col-sm-3 control-label">Wild Status:</label>
+                                <div class="col-sm-9">
+                                    <select id="combine_wild_status" ref="combine_wild_status" class="form-select"
+                                        v-model="occ_combine_data.wild_status" :key="occ_form_key">
+                                        <option v-for="occurrence in selectedOccurrences" :value="occurrence.id"
+                                            v-bind:key="occurrence.id">
+                                            {{occurrence.occurrence_number}}:
+                                            <span v-for="wild_status in wild_status_list">
+                                            <span v-if="wild_status.id == occurrence.wild_status">{{wild_status.name}}</span>
+                                            </span>
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="" class="col-sm-3 control-label">Review Due Date:</label>
+                                <div class="col-sm-9">
+                                    <select id="combine_review_due_date" ref="combine_review_due_date" class="form-select"
+                                        v-model="occ_combine_data.review_due_date" :key="occ_form_key">
+                                        <option v-for="occurrence in selectedOccurrences" :value="occurrence.id"
+                                            v-bind:key="occurrence.id">
+                                            {{occurrence.occurrence_number}}: {{occurrence.review_due_date}}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="" class="col-sm-3 control-label">Comment:</label>
+                                <div class="col-sm-9">
+                                    <select id="combine_comment" ref="combine_comment" class="form-select"
+                                        v-model="occ_combine_data.comment" :key="occ_form_key">
+                                        <option v-for="occurrence in selectedOccurrences" :value="occurrence.id"
+                                            v-bind:key="occurrence.id">
+                                            {{occurrence.occurrence_number}}: {{occurrence.comment}}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
                         </FormSection>
                         <!--Key Contacts Table-->
                         <FormSection :formCollapse="true" label="Key Contacts" Index="combine_keyContacts">
@@ -119,11 +199,11 @@
                             Observation Details Form
                         </FormSection>
                         <!--Animal Observation Form (fauna only)-->
-                        <FormSection :formCollapse="true" label="Animal Observation" Index="combine_animal_observation">
+                        <FormSection v-if="main_occurrence_obj.group_type=='fauna'" :formCollapse="true" label="Animal Observation" Index="combine_animal_observation">
                             Animal Observation Form
                         </FormSection>
                         <!--Plant Count Form (flora only)-->
-                        <FormSection :formCollapse="true" label="Plant Count" Index="combine_plant_count">
+                        <FormSection v-if="main_occurrence_obj.group_type=='flora'" :formCollapse="true" label="Plant Count" Index="combine_plant_count">
                             <br/>Plant Count Form
                         </FormSection>
                         <!--Identification Form-->
@@ -172,6 +252,7 @@
         data: function () {
             let vm = this;
             return {
+                occ_form_key: 0,
                 reloadcount: 0,
                 locationBody: 'locationBody' + vm._uid,
                 habitatBody: 'habitatBody' + vm._uid,
@@ -194,11 +275,11 @@
                     combine_key_contact_ids: [],
                     combine_document_ids: [],
                     combine_threat_ids: [],
-                    occurrence_name: this.main_occurrence_obj.occurrence_name,
-                    occurrence_source: this.main_occurrence_obj.occurrence_source,
-                    wild_status: this.main_occurrence_obj.wild_status,
-                    review_due_date: this.main_occurrence_obj.review_due_date,
-                    comment: this.main_occurrence_obj.comment,
+                    occurrence_name: this.main_occurrence_obj.id,
+                    occurrence_source: this.main_occurrence_obj.id,
+                    wild_status: this.main_occurrence_obj.id,
+                    review_due_date: this.main_occurrence_obj.id,
+                    comment: this.main_occurrence_obj.id,
                     chosen_location_section: this.main_occurrence_obj.id,
                     chosen_habitat_composition_section: this.main_occurrence_obj.id,
                     chosen_habitat_condition_section: this.main_occurrence_obj.id,
@@ -230,6 +311,58 @@
                 }
                 vm.selectedAddOccurrence = null;
                 $(vm.$refs.occurrence_name_lookup).val(null).trigger("change");
+                vm.occ_form_key++;
+            },
+            checkFormValues: function () {
+                let vm = this;
+
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_location_section)) {
+                    vm.occ_combine_data.chosen_location_section = vm.main_occurrence_obj.id;
+                }
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_habitat_composition_section)) {
+                    vm.occ_combine_data.chosen_habitat_composition_section = vm.main_occurrence_obj.id;
+                }
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_habitat_condition_section)) {
+                    vm.occ_combine_data.chosen_habitat_condition_section = vm.main_occurrence_obj.id;
+                }
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_vegetation_structure_section)) {
+                    vm.occ_combine_data.chosen_vegetation_structure_section = vm.main_occurrence_obj.id;
+                }
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_fire_history_section)) {
+                    vm.occ_combine_data.chosen_fire_history_section = vm.main_occurrence_obj.id;
+                }
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_associated_species_section)) {
+                    vm.occ_combine_data.chosen_associated_species_section = vm.main_occurrence_obj.id;
+                }
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_observation_details)) {
+                    vm.occ_combine_data.chosen_observation_details = vm.main_occurrence_obj.id;
+                }
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_animal_observation)) {
+                    vm.occ_combine_data.chosen_animal_observation = vm.main_occurrence_obj.id;
+                }   
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_plant_count)) {
+                    vm.occ_combine_data.chosen_plant_count = vm.main_occurrence_obj.id;
+                }
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_identification)) {
+                    vm.occ_combine_data.chosen_identification = vm.main_occurrence_obj.id;
+                }
+
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.occurrence_name)) {
+                    vm.occ_combine_data.occurrence_name = vm.main_occurrence_obj.id;
+                }
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.occurrence_source)) {
+                    vm.occ_combine_data.occurrence_source = vm.main_occurrence_obj.id;
+                }
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.wild_status)) {
+                    vm.occ_combine_data.wild_status = vm.main_occurrence_obj.id;
+                }
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.review_due_date)) {
+                    vm.occ_combine_data.review_due_date = vm.main_occurrence_obj.id;
+                }
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.comment)) {
+                    vm.occ_combine_data.comment = vm.main_occurrence_obj.id;
+                }
+
             },
             getKeyContactIds: function() {
                 let vm = this;
@@ -247,7 +380,7 @@
                     //remove ids from combine list if not in new list
                     vm.occ_combine_data.combine_key_contact_ids.forEach(id => {
                         if (!response.body.id_list.includes(id)) {
-                            vm.occ_combine_data.combine_key_contact_ids.splice(indexOf(id), 1);
+                            vm.occ_combine_data.combine_key_contact_ids.splice(vm.occ_combine_data.combine_key_contact_ids.indexOf(id), 1);
                         }
                     });
                     //add new ids to combine list if not in old list
@@ -275,7 +408,7 @@
                     //remove ids from combine list if not in new list
                     vm.occ_combine_data.combine_document_ids.forEach(id => {
                         if (!response.body.id_list.includes(id)) {
-                            vm.occ_combine_data.combine_document_ids.splice(indexOf(id), 1);
+                            vm.occ_combine_data.combine_document_ids.splice(vm.occ_combine_data.combine_document_ids.indexOf(id), 1);
                         }
                     });
                     //add new ids to combine list if not in old list
@@ -303,7 +436,7 @@
                     //remove ids from combine list if not in new list
                     vm.occ_combine_data.combine_threat_ids.forEach(id => {
                         if (!response.body.id_list.includes(id)) {
-                            vm.occ_combine_data.combine_threat_ids.splice(indexOf(id), 1);
+                            vm.occ_combine_data.combine_threat_ids.splice(vm.occ_combine_data.combine_threat_ids.indexOf(id), 1);
                         }
                     });
                     //add new ids to combine list if not in old list
@@ -384,6 +517,8 @@
                 vm.getDocumentIds();
                 //get threat ids
                 vm.getThreatIds();
+                //check form values
+                vm.checkFormValues();
             }
         },
     }
