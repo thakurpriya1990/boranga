@@ -721,10 +721,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         return self.customer_status in self.CUSTOMER_VIEWABLE_STATE
 
     @property
-    def is_discardable(self):
-        return self.customer_status == ConservationStatus.CUSTOMER_STATUS_DRAFT
-
-    @property
     def is_deletable(self):
         return (
             self.customer_status == ConservationStatus.CUSTOMER_STATUS_DRAFT
