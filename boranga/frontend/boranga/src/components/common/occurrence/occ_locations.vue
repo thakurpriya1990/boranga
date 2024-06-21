@@ -422,6 +422,7 @@ export default {
             // adding occ_geometry from the map_component to payload
             if (vm.$refs.component_map) {
                 payload.occ_geometry = vm.$refs.component_map.getJSONFeatures();
+                vm.$refs.component_map.setLoadingMap(true);
             }
 
             // const res = await fetch(vm.proposal_form_url, {
@@ -472,7 +473,8 @@ export default {
                             },
                         });
                         vm.updatingLocationDetails = false;
-                    }
+                        vm.$refs.component_map.setLoadingMap(false);
+                }
                 );
         },
         incrementComponentMapKey: function () {
