@@ -675,7 +675,21 @@ class OCRLocationSerializer(serializers.ModelSerializer):
     #         return None
 
 
-class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
+class BaseTypeSerializer(serializers.Serializer):
+    model_class = serializers.SerializerMethodField()
+    model_id = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ["model_class", "model_id"]
+
+    def get_model_class(self, obj):
+        return obj.__class__.__name__
+
+    def get_model_id(self, obj):
+        return obj.id
+
+
+class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     occurrence_report_id = serializers.IntegerField(write_only=True, required=False)
     geometry_source = serializers.SerializerMethodField()
     report_copied_from = serializers.SerializerMethodField(read_only=True)
@@ -685,7 +699,7 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = OccurrenceReportGeometry
         geo_field = "geometry"
-        fields = (
+        fields = [
             "id",
             "occurrence_report_id",
             "geometry",
@@ -697,7 +711,10 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
             "geometry_source",
             "locked",
             "report_copied_from",
-        )
+            "object_id",
+            "content_type",
+            "created_from",
+        ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
     def get_srid(self, obj):
@@ -723,6 +740,11 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
             return wkb_to_geojson(obj.original_geometry_ewkb)
         else:
             return None
+
+    def get_created_from(self, obj):
+        if obj.created_from:
+            return obj.created_from.__str__()
+        return None
 
 
 class ListOCRReportMinimalSerializer(serializers.ModelSerializer):
@@ -1709,6 +1731,8 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
             "intersects",
             "drawn_by",
             "locked",
+            "content_type",
+            "object_id",
         )
         read_only_fields = ("id",)
 
@@ -2802,7 +2826,7 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             return obj.copied_ocr_location.occurrence_report.occurrence_report_number
 
 
-class BufferGeometrySerializer(GeoFeatureModelSerializer):
+class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     geometry_source = serializers.SerializerMethodField()
     srid = serializers.SerializerMethodField(read_only=True)
     original_geometry = serializers.SerializerMethodField(read_only=True)
@@ -2812,7 +2836,7 @@ class BufferGeometrySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = BufferGeometry
         geo_field = "geometry"
-        fields = (
+        fields = [
             "id",
             "buffered_from_geometry",
             "geometry",
@@ -2822,8 +2846,11 @@ class BufferGeometrySerializer(GeoFeatureModelSerializer):
             "area_sqhm",
             "geometry_source",
             "label",
+            "object_id",
+            "content_type",
             "buffer_radius",
-        )
+            "created_from",
+        ] + BaseTypeSerializer.Meta.fields
 
     def get_srid(self, obj):
         if obj.geometry:
@@ -2840,6 +2867,11 @@ class BufferGeometrySerializer(GeoFeatureModelSerializer):
         else:
             return None
 
+    def get_created_from(self, obj):
+        if obj.created_from:
+            return obj.created_from.__str__()
+        return None
+
     def get_label(self, obj):
         return f"{obj.buffered_from_geometry.occurrence.occurrence_number} [Buffer]"
 
@@ -2847,10 +2879,10 @@ class BufferGeometrySerializer(GeoFeatureModelSerializer):
         return obj.buffered_from_geometry.buffer_radius
 
 
-class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
+class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)
     geometry_source = serializers.SerializerMethodField()
-    copied_from = serializers.SerializerMethodField(read_only=True)
+    created_from = serializers.SerializerMethodField(read_only=True)
     srid = serializers.SerializerMethodField(read_only=True)
     original_geometry = serializers.SerializerMethodField(read_only=True)
     buffer_geometry = BufferGeometrySerializer(read_only=True)
@@ -2858,7 +2890,7 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = OccurrenceGeometry
         geo_field = "geometry"
-        fields = (
+        fields = [
             "id",
             "occurrence_id",
             "geometry",
@@ -2869,10 +2901,12 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
             "intersects",
             "geometry_source",
             "locked",
-            "copied_from",
+            "object_id",
+            "content_type",
             "buffer_radius",
             "buffer_geometry",
-        )
+            "created_from",
+        ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
     def get_srid(self, obj):
@@ -2898,6 +2932,11 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
             return wkb_to_geojson(obj.original_geometry_ewkb)
         else:
             return None
+
+    def get_created_from(self, obj):
+        if obj.created_from:
+            return obj.created_from.__str__()
+        return None
 
 
 class ListOCCMinimalSerializer(serializers.ModelSerializer):
@@ -3010,6 +3049,8 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
             "drawn_by",
             "locked",
             "buffer_radius",
+            "content_type",
+            "object_id",
         )
         read_only_fields = ("id",)
 
