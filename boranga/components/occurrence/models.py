@@ -1638,9 +1638,7 @@ class GeometryBase(models.Model):
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content_object = fields.GenericForeignKey("content_type", "object_id")
 
-    copied_from = fields.GenericRelation(
-        "self", related_query_name="copied_from_geometry"
-    )
+    copied_from = fields.GenericRelation("self", related_query_name="copied_to")
 
     class Meta:
         abstract = True
@@ -1716,6 +1714,19 @@ class GeometryBase(models.Model):
             return GEOSGeometry(self.original_geometry_ewkb).srid
         return None
 
+    @property
+    def created_from(self):
+        if not self.content_type or not self.object_id:
+            return None
+
+        InstanceModel = self.content_type.model_class()
+        try:
+            model_instance = InstanceModel.objects.get(id=self.object_id)
+        except InstanceModel.DoesNotExist:
+            return None
+        else:
+            return model_instance
+
 
 class DrawnByGeometry(models.Model):
     drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
@@ -1738,9 +1749,6 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry
         null=True,
         related_name="ocr_geometry",
     )
-    # copied_from = models.ForeignKey(
-    #     "self", on_delete=models.SET_NULL, blank=True, null=True
-    # )
     locked = models.BooleanField(default=False)
 
     class Meta:
@@ -3449,9 +3457,6 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
         null=True,
         related_name="occ_geometry",
     )
-    # copied_from = models.ForeignKey(
-    #     "self", on_delete=models.SET_NULL, blank=True, null=True
-    # )
     locked = models.BooleanField(default=False)
     # TODO: possibly remove buffer radius from location models
     # when we go with the radius being a property of the geometry
