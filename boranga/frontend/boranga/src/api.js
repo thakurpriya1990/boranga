@@ -162,7 +162,10 @@ module.exports = {
         return `/api/meeting/${id}/reinstate/`;
     },
     discard_ocr_proposal: function (id) {
-        return `/api/occurrence_report/${id}.json`;
+        return `/api/occurrence_report/${id}/discard/`;
+    },
+    reinstate_ocr_proposal: function (id) {
+        return `/api/occurrence_report/${id}/reinstate/`;
     },
     discard_observer_detail: function (id) {
         return `/api/observer_detail/${id}.json`;
