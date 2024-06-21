@@ -79,7 +79,7 @@ export default {
                 return null;
             }
         },
-        fileTypes: {
+        fileTypesOrig: {
             default: function () {
                 var file_types =
                     "image/*," +
@@ -92,6 +92,36 @@ export default {
                 return file_types;
             }
         },
+        fileTypes: {
+            default: function () {
+                return [
+                    "image/*",
+                    "video/*",
+                    "audio/*",
+                    "application/pdf",
+                    "text/csv",
+                    "application/msword",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "application/vnd.ms-excel",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "application/x-msaccess",
+                    "application/x-7z-compressed",
+                    "application/x-bzip",
+                    "application/x-bzip2",
+                    "application/zip",
+                    ".dbf",
+                    ".gdb",
+                    ".gpx",
+                    ".prj",
+                    ".shp",
+                    ".shx",
+                    ".json",
+                    ".kml",
+                    ".gpx"
+                ].join(',');
+            }
+        },
+
         isRepeatable: Boolean,
         readonly: Boolean,
         delete_url: String,

@@ -385,12 +385,12 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District',
+                return ['Id', 'Number', 'Community Id', 'Community Name', 'Regions', 'Districts',
                     'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
                     'International Conservation', 'Conservation Criteria', 'Action']
             }
             if (this.is_internal) {
-                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District',
+                return ['Id', 'Number', 'Community Id', 'Community Name', 'Regions', 'Districts',
                     'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
                     'International Conservation', 'Conservation Criteria', 'Status', 'Action']
             }
@@ -467,9 +467,17 @@ export default {
         column_region: function () {
             return {
                 data: "regions",
+                data: "regions",
                 orderable: true,
                 searchable: false,
                 visible: true,
+                'render': function (data, type, full) {
+                    if (full.regions) {
+                        return full.regions;
+                    }
+                    // Should not reach here
+                    return ''
+                },
                 name: "regions__name",
             }
         },
@@ -479,6 +487,13 @@ export default {
                 orderable: true,
                 searchable: false,
                 visible: true,
+                'render': function (data, type, full) {
+                    if (full.districts) {
+                        return full.districts
+                    }
+                    // Should not reach here
+                    return ''
+                },
                 name: "districts__name",
             }
         },
