@@ -1725,7 +1725,7 @@ class GeometryBase(models.Model):
         except InstanceModel.DoesNotExist:
             return None
         else:
-            return model_instance
+            return model_instance.__str__()
 
 
 class DrawnByGeometry(models.Model):
