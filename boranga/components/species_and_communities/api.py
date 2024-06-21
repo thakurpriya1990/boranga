@@ -1303,9 +1303,6 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             return qs
         return Species.objects.none()
 
-    # def get_serializer_class(self):
-    #    return SpeciesSerializer
-
     @detail_route(
         methods=[
             "GET",
@@ -1315,11 +1312,9 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def internal_species(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = InternalSpeciesSerializer(instance, context={"request": request})
-
         res_json = {"species_obj": serializer.data}
         res_json = json.dumps(res_json, cls=SetEncoder)
         return HttpResponse(res_json, content_type="application/json")
-        # return Response(d)
 
     @list_route(
         methods=[
@@ -1454,6 +1449,17 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = InternalSpeciesSerializer(instance, context={"request": request})
 
         return Response(serializer.data)
+
+    @detail_route(methods=["DELETE"], detail=True)
+    def remove(self, request, *args, **kwargs):
+        # In the case of split species, when the action button is pressed a new species is created
+        # and saved to the database then if the user presses the cancel button on the modal, the
+        # new species is deleted. As such I belive using the delete method is justifiable for now
+        # However if we have time we can change the split action to only create the new species
+        # on submit. Potential TODO
+        instance = self.get_object()
+        instance.remove()
+        return Response(status.HTTP_204_NO_CONTENT)
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -2022,12 +2028,6 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         request_data = request.data
         if request_data["submitter"]:
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
-        # if(request_data.get('species')):
-        #     species = request_data.get('species')
-        #     instance.species.clear()  # first clear all the species set relatedM:M to community instance
-        #     for species_id in species:
-        #         species_instance = Species.objects.get(pk=species_id)
-        #         instance.species.add(species_instance)
 
         if request_data.get("taxonomy_details"):
             taxonomy_instance, created = CommunityTaxonomy.objects.get_or_create(
@@ -2156,6 +2156,30 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             serializer.save()
 
             return Response(new_returned, status=status.HTTP_201_CREATED)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.discard(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reinstate(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
