@@ -2936,7 +2936,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = Occurrence.objects.all()
         if is_customer(self.request):
-            qs = qs.filter(submitter=self.request.user.id)
+            return Occurrence.objects.none()
         return qs
 
     @list_route(
@@ -3165,78 +3165,157 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def combine_occurrence_name_lookup(self, request, *args, **kwargs):
+        if is_internal(self.request): #TODO group auth
+            main_occurrence_id = request.GET.get("occurrence_id", None)
 
-        main_occurrence_id = request.GET.get("occurrence_id", None)
-        print(main_occurrence_id)
-
-        if main_occurrence_id:
-            try:
-                main_occurrence = self.get_queryset().get(id=main_occurrence_id)
-                queryset = self.get_queryset().exclude(
-                    id=main_occurrence_id
-                ).exclude(
-                    processing_status=OccurrenceReport.PROCESSING_STATUS_CLOSED,
-                ).exclude(
-                    processing_status=OccurrenceReport.PROCESSING_STATUS_DISCARDED,
-                ).filter(
-                    group_type=main_occurrence.group_type
-                )
-
-                if main_occurrence.group_type.name in [
-                    GroupType.GROUP_TYPE_FLORA,
-                    GroupType.GROUP_TYPE_FAUNA,
-                ]:
-                    #get species and all parents/children of those species
-                    species_ids = get_all_related_species(main_occurrence.species.id)
-                    queryset = queryset.filter(species_id__in=species_ids)
-
-                search_term = request.GET.get("term", None)
-                if search_term and main_occurrence_id:
-                    queryset = (
-                        queryset.annotate(
-                            display_name=Concat(
-                                "occurrence_number",
-                                Value(" - "),
-                                "occurrence_name",
-                                Value(" ("),
-                                "group_type__name",
-                                Value(")"),
-                                output_field=CharField(),
-                            ),
-                        )
-                        .filter(display_name__icontains=search_term)
-                        .distinct()
-                        .values(
-                            "id",
-                            "display_name",
-                            "occurrence_number",
-                            "occurrence_name",
-                            "occurrence_source",
-                            "wild_status",
-                            "review_due_date",
-                            "comment",
-                        )[:10]
+            if main_occurrence_id:
+                try:
+                    main_occurrence = self.get_queryset().get(id=main_occurrence_id)
+                    queryset = self.get_queryset().exclude(
+                        id=main_occurrence_id
+                    ).exclude(
+                        processing_status=OccurrenceReport.PROCESSING_STATUS_CLOSED,
+                    ).exclude(
+                        processing_status=OccurrenceReport.PROCESSING_STATUS_DISCARDED,
+                    ).filter(
+                        group_type=main_occurrence.group_type
                     )
-                    queryset = [
-                        {
-                            "id": occurrence["id"], 
-                            "text": occurrence["display_name"],
-                            "occurrence_number": occurrence["occurrence_number"],
-                            "occurrence_name": occurrence["occurrence_name"],
-                            "occurrence_source": occurrence["occurrence_source"],
-                            "wild_status_id": occurrence["wild_status"],
-                            "review_due_date": occurrence["review_due_date"],
-                            "comment": occurrence["comment"],
-                        }
-                        for occurrence in queryset
-                    ]
-            except Exception as e:
-                print(e)
+
+                    if main_occurrence.group_type.name in [
+                        GroupType.GROUP_TYPE_FLORA,
+                        GroupType.GROUP_TYPE_FAUNA,
+                    ]:
+                        #get species and all parents/children of those species
+                        species_ids = get_all_related_species(main_occurrence.species.id)
+                        queryset = queryset.filter(species_id__in=species_ids)
+
+                    search_term = request.GET.get("term", None)
+                    if search_term and main_occurrence_id:
+                        queryset = (
+                            queryset.annotate(
+                                display_name=Concat(
+                                    "occurrence_number",
+                                    Value(" - "),
+                                    "occurrence_name",
+                                    Value(" ("),
+                                    "group_type__name",
+                                    Value(")"),
+                                    output_field=CharField(),
+                                ),
+                            )
+                            .filter(display_name__icontains=search_term)
+                            .distinct()
+                            .values(
+                                "id",
+                                "display_name",
+                                "occurrence_number",
+                                "occurrence_name",
+                                "occurrence_source",
+                                "wild_status",
+                                "review_due_date",
+                                "comment",
+                            )[:10]
+                        )
+                        queryset = [
+                            {
+                                "id": occurrence["id"], 
+                                "text": occurrence["display_name"],
+                                "occurrence_number": occurrence["occurrence_number"],
+                                "occurrence_name": occurrence["occurrence_name"],
+                                "occurrence_source": occurrence["occurrence_source"],
+                                "wild_status_id": occurrence["wild_status"],
+                                "review_due_date": occurrence["review_due_date"],
+                                "comment": occurrence["comment"],
+                            }
+                            for occurrence in queryset
+                        ]
+                except Exception as e:
+                    print(e)
+                    queryset = self.get_queryset().none()
+            else:
                 queryset = self.get_queryset().none()
-        else:
-            queryset = self.get_queryset().none()
-        
-        return Response({"results": queryset})
+            
+            return Response({"results": queryset})
+        return Response()
+
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=False,
+    )
+    def combine_key_contacts_lookup(self, request, *args, **kwargs):
+        if is_internal(self.request):
+            occ_ids = json.loads(request.POST.get("occurrence_ids"))
+            contacts = OCCContactDetail.objects.filter(
+                occurrence__id__in=occ_ids
+            )
+            
+            values_list = list(contacts.values_list(
+                "id",
+                "contact_name",
+                "role",
+                "contact",
+                "organisation",
+                "notes",
+            ))
+            id_list = list(contacts.values_list("id", flat=True))
+
+            return Response({"values_list": values_list, "id_list": id_list})
+        return Response()
+
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=False,
+    )
+    def combine_documents_lookup(self, request, *args, **kwargs):
+        if is_internal(self.request):
+            occ_ids = json.loads(request.POST.get("occurrence_ids"))
+            documents = OccurrenceDocument.objects.filter(occurrence__id__in=occ_ids)
+
+            values_list = list(documents.values_list(
+                "id",
+                "document_number",
+                "document_category__document_category_name",
+                "document_sub_category__document_sub_category_name",
+                "name",
+                "_file",
+                "description",
+                "uploaded_date",
+            ))
+            id_list = list(documents.values_list("id", flat=True))
+
+            return Response({"values_list": values_list, "id_list": id_list})
+        return Response()
+
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=False,
+    )
+    def combine_threats_lookup(self, request, *args, **kwargs):
+        if is_internal(self.request):
+            occ_ids = json.loads(request.POST.get("occurrence_ids"))
+            threats = OCCConservationThreat.objects.filter(occurrence__id__in=occ_ids)
+
+            values_list = list(threats.values_list(
+                "id",
+                "threat_number",
+                "occurrence_report_threat__occurrence_report__occurrence_report_number",
+                "threat_category",
+                "date_observed",
+                "threat_agent",
+                "current_impact",
+                "potential_impact",
+                "comment",
+            ))
+            id_list = list(threats.values_list("id", flat=True))
+
+            return Response({"values_list": values_list, "id_list": id_list})
+        return Response()
 
     @detail_route(
         methods=[

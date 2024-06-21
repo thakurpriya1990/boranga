@@ -80,13 +80,9 @@ export default {
     methods: {
         removeOccurrence: function(id) {
             let vm=this;
-            console.log(id);
-            console.log(vm.selectedOccurrenceIds);
             if (vm.selectedOccurrenceIds.includes(parseInt(id))) {
-                console.log(id);
                 for (var i = 0; i < vm.selectedOccurrenceIds.length; i++) {
                     if (vm.selectedOccurrenceIds[i] == id) {
-                        console.log(vm.selectedOccurrenceIds[i])
                         vm.selectedOccurrenceIds.splice(i, 1);
                         break
                     }
@@ -97,12 +93,10 @@ export default {
                         break
                     }
                 }
-                console.log(vm.selectedOccurrenceIds);
             }
         }, 
         addEventListeners:function (){
-            let vm=this;
-            
+            let vm=this;     
             vm.$refs.occurrences_datatable.vmDataTable.on('click', 'a[data-remove-occurrence]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-remove-occurrence');

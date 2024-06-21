@@ -140,6 +140,10 @@ module.exports = {
     occ_threat: "/api/occ_threat.json",
     occ_profile_dict: "/api/occ_profile_dict",
 
+    combine_key_contacts_lookup: "/api/occurrence_paginated/combine_key_contacts_lookup/",
+    combine_documents_lookup: "/api/occurrence_paginated/combine_documents_lookup/",
+    combine_threats_lookup: "/api/occurrence_paginated/combine_threats_lookup/",
+
     tile_layer: "/api/tile_layer",
 
     discard_cs_proposal: function (id) {
