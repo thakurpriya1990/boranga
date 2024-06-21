@@ -3359,9 +3359,13 @@ export default {
                                 })
                             );
                             model.label ??= selected.getProperties().label;
-                            model.buffer_radius ??= `${
-                                selected.getProperties().buffer_radius
-                            }m`;
+                            // TODO: Check for null
+                            let selected_buffer_radius =
+                                selected.getProperties().buffer_radius;
+                            if (selected_buffer_radius) {
+                                selected_buffer_radius += 'm';
+                            }
+                            model.buffer_radius ??= selected_buffer_radius;
                         }
                         vm.selectedModel = model;
                         if (!isSelectedFeature(selected)) {
@@ -5178,9 +5182,14 @@ export default {
             copy.unset('geometry_source');
             copy.set('locked', false);
 
+            const props = feature.getProperties();
             const color = this.styleByColor(copy, this.context, 'draw');
             this.setFeaturePropertiesFromContext(copy, this.context, {
                 color: color,
+                copied_from: {
+                    model_class: props.model_class,
+                    model_id: props.model_id,
+                },
             });
 
             layer.getSource().addFeature(copy);
