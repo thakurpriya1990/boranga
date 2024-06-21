@@ -244,25 +244,25 @@ def save_geometry(
 
         # Check if the feature has a buffer radius to later update or create a buffer geometry
         buffer_radius = feature.get("properties", {}).get("buffer_radius", None)
-        copied_from = feature.get("properties", {}).get("copied_from", {})
+        created_from = feature.get("properties", {}).get("created_from_object", {})
         object_id = feature.get("properties", {}).get("object_id", None)
         content_type = feature.get("properties", {}).get("content_type", None)
 
         InstanceCopiedFrom = None
-        copied_from_model = None
+        created_from_model = None
         content_type_object = None
-        if copied_from:
+        if created_from:
             try:
                 InstanceCopiedFrom = apps.get_model(
-                    "boranga", copied_from.get("model_class", None)
+                    "boranga", created_from.get("model_class", None)
                 )
             except LookupError:
                 pass
             except ValueError:
                 pass
             else:
-                copied_from_model = InstanceCopiedFrom.objects.filter(
-                    id=copied_from.get("model_id")
+                created_from_model = InstanceCopiedFrom.objects.filter(
+                    id=created_from.get("model_id")
                 ).last()
                 content_type_object = ct_models.ContentType.objects.get_for_model(
                     InstanceCopiedFrom
@@ -286,7 +286,7 @@ def save_geometry(
 
         for geom in geoms:
             content_type_id = getattr(content_type_object, "id", content_type)
-            object_id = getattr(copied_from_model, "id", object_id)
+            object_id = getattr(created_from_model, "id", object_id)
 
             if not InstanceCopiedFrom:
                 try:

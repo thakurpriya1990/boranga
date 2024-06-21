@@ -5186,7 +5186,7 @@ export default {
             const color = this.styleByColor(copy, this.context, 'draw');
             this.setFeaturePropertiesFromContext(copy, this.context, {
                 color: color,
-                copied_from: {
+                created_from_object: {
                     model_class: props.model_class,
                     model_id: props.model_id,
                 },
