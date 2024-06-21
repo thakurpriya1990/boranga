@@ -19,8 +19,8 @@
                 </div>
             </div>
             <div slot="footer">
-                <button class="btn btn-primary" @click.prevent="ok()">ok</button>
-                <button type="button" class="btn btn-secondary" @click="cancel">Cancel</button>
+                <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
+                <button class="btn btn-primary" @click.prevent="ok()">Confirm Selection</button>
             </div>
         </modal>
     </div>
