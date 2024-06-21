@@ -385,12 +385,12 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District',
+                return ['Id', 'Number', 'Community Id', 'Community Name', 'Regions', 'Districts',
                     'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
                     'International Conservation', 'Conservation Criteria', 'Action']
             }
             if (this.is_internal) {
-                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District',
+                return ['Id', 'Number', 'Community Id', 'Community Name', 'Regions', 'Districts',
                     'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
                     'International Conservation', 'Conservation Criteria', 'Status', 'Action']
             }
@@ -466,34 +466,34 @@ export default {
         },
         column_region: function () {
             return {
-                data: "region",
+                data: "regions",
                 orderable: true,
                 searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
-                    if (full.region) {
-                        return full.region;
+                    if (full.regions) {
+                        return full.regions;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "region__name",
+                name: "regions__name",
             }
         },
         column_district: function () {
             return {
-                data: "district",
+                data: "districts",
                 orderable: true,
                 searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
                 visible: true,
                 'render': function (data, type, full) {
-                    if (full.district) {
-                        return full.district
+                    if (full.districts) {
+                        return full.districts
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "district__name",
+                name: "districts__name",
             }
         },
         column_wa_legislative_list: function () {

@@ -590,7 +590,7 @@ export default {
             );
         },
         datatable_headers: function () {
-            return ['Number', 'Community', 'Community Id', 'Community Name', 'Region', 'District', 'Change Type', 'WA Priority List',
+            return ['Number', 'Community', 'Community Id', 'Community Name', 'Regions', 'Districts', 'Change Type', 'WA Priority List',
                 'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
                 'Conservation Criteria',
                 'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
@@ -682,34 +682,34 @@ export default {
         },
         column_region: function () {
             return {
-                data: "region",
+                data: "regions",
                 orderable: true,
                 searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
-                    if (full.region) {
-                        return full.region;
+                    if (full.regions) {
+                        return full.regions;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "community__region__name",
+                name: "community__regions__name",
             }
         },
         column_district: function () {
             return {
-                data: "district",
+                data: "districts",
                 orderable: true,
                 searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
                 visible: true,
                 'render': function (data, type, full) {
-                    if (full.district) {
-                        return full.district
+                    if (full.districts) {
+                        return full.districts
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "community__district__name",
+                name: "community__districts__name",
             }
         },
         column_change_code: function () {

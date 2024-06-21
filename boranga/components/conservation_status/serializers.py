@@ -334,8 +334,8 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     community_name = serializers.SerializerMethodField()
     # TODO: Add new conservation status lists/catories
     processing_status = serializers.CharField(source="get_processing_status_display")
-    region = serializers.SerializerMethodField()
-    district = serializers.SerializerMethodField()
+    regions = serializers.SerializerMethodField()
+    districts = serializers.SerializerMethodField()
     assessor_process = serializers.SerializerMethodField(read_only=True)
     assessor_edit = serializers.SerializerMethodField(read_only=True)
     internal_user_edit = serializers.SerializerMethodField(read_only=True)
@@ -377,8 +377,8 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             "community_number",
             "community_migrated_id",
             "community_name",
-            "region",
-            "district",
+            "regions",
+            "districts",
             "processing_status",
             "customer_status",
             "can_user_edit",
@@ -410,8 +410,8 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             "group_type",
             "community_migrated_id",
             "community_name",
-            "region",
-            "district",
+            "regions",
+            "districts",
             "processing_status",
             "customer_status",
             "can_user_edit",
@@ -468,16 +468,24 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
                 return ""
         return ""
 
-    def get_region(self, obj):
+    def get_regions(self, obj):
         if obj.community:
-            if obj.community.region:
-                return obj.community.region.name
+            if obj.community.regions:
+                #return obj.community.region.name
+                regions_list = obj.community.regions.all().values_list(
+                    "name", flat=True
+                )
+            return ",".join(regions_list)
         return ""
 
-    def get_district(self, obj):
+    def get_districts(self, obj):
         if obj.community:
-            if obj.community.district:
-                return obj.community.district.name
+            if obj.community.districts:
+                #return obj.community.district.name
+                districts_list = obj.community.districts.all().values_list(
+                    "name", flat=True
+                )
+            return ",".join(districts_list)
         return ""
 
     def get_assessor_process(self, obj):
