@@ -277,28 +277,30 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
                 queryset = queryset.filter(customer_status=filter_application_status)
 
         fields = self.get_fields(request)
-        ordering = self.get_ordering(request, view, fields)
-        queryset = queryset.order_by(*ordering)
-        if len(ordering):
-            queryset = queryset.order_by(*ordering)
 
         search_text = request.GET.get("search[value]")
-        search_queryset = queryset
-        # for search values that cannot be accommodated by DRF
-        if search_text:
-            if "internal" in view.name:
-                observer_ids = (
-                    OCRObserverDetail.objects.filter(main_observer=True)
-                    .filter(observer_name__icontains=search_text)
-                    .values_list("occurrence_report__id", flat=True)
-                )
-                search_queryset = queryset.filter(
-                    Q(submitter_information__name__icontains=search_text)
-                    | Q(id__in=observer_ids)
-                )
+        search_queryset = None
 
-        super_queryset = super().filter_queryset(request, queryset, view)
-        queryset = search_queryset.union(super_queryset)
+        # for search values that cannot be accommodated by DRF
+        if search_text and "internal" in view.name:
+            observer_ids = (
+                OCRObserverDetail.objects.filter(main_observer=True)
+                .filter(observer_name__icontains=search_text)
+                .values_list("occurrence_report__id", flat=True)
+            )
+            search_queryset = queryset.filter(
+                Q(submitter_information__name__icontains=search_text)
+                | Q(id__in=observer_ids)
+            )
+
+        queryset = super().filter_queryset(request, queryset, view)
+
+        if search_queryset:
+            queryset = search_queryset.union(queryset)
+
+        ordering = self.get_ordering(request, view, fields)
+        if len(ordering):
+            queryset = queryset.order_by(*ordering)
 
         setattr(view, "_datatables_total_count", total_count)
         return queryset
@@ -765,6 +767,30 @@ class OccurrenceReportViewSet(
 
         serialized_obj = CreateOccurrenceReportSerializer(new_instance)
         return Response(serialized_obj.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.discard(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reinstate(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @list_route(
         methods=[
