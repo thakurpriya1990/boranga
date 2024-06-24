@@ -158,6 +158,9 @@ module.exports = {
     discard_species_proposal: function (id) {
         return `/api/species/${id}/discard/`;
     },
+    reinstate_species_proposal: function (id) {
+        return `/api/species/${id}/reinstate/`;
+    },
     remove_species_proposal: function (id) {
         return `/api/species/${id}/remove/`;
     },
