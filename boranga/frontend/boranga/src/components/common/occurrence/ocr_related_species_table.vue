@@ -1,34 +1,27 @@
 <template lang="html">
     <div :id="'related_species'">
 
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">NOMOS Lookup:</label>
-                <div class="col-sm-6" :id="select_scientific_name">
-                    <select :disabled="isReadOnly"
-                        :id="scientific_name_lookup"  
-                        :name="scientific_name_lookup"  
-                        :ref="scientific_name_lookup" 
-                        class="form-control" />
-                </div>
-                <div class="col-sm-12">
-                    <div class="text-end">
-                        <button :disabled="isReadOnly || adding_species" type="button" class="btn btn-primary mb-2"
-                            @click.prevent="addRelatedSpecies">
-                            <i class="fa-solid fa-circle-plus"></i>
-                            Add Related Species
-                        </button>
-                    </div>
+        <div class="row mb-3">
+            <label for="" class="col-sm-3 control-label">NOMOS Lookup:</label>
+            <div class="col-sm-6" :id="select_scientific_name">
+                <select :disabled="isReadOnly" :id="scientific_name_lookup" :name="scientific_name_lookup"
+                    :ref="scientific_name_lookup" class="form-control" />
+            </div>
+            <div class="col-sm-12">
+                <div class="text-end">
+                    <button :disabled="isReadOnly || adding_species" type="button" class="btn btn-primary mb-2"
+                        @click.prevent="addRelatedSpecies">
+                        <i class="fa-solid fa-circle-plus"></i>
+                        Add Related Species
+                    </button>
                 </div>
             </div>
+        </div>
 
-            <div>
-                <datatable
-                    ref="related_species_datatable"
-                    :id="datatable_id"
-                    :dtOptions="datatable_options"
-                    :dtHeaders="datatable_headers"
-                />
-            </div>
+        <div>
+            <datatable ref="related_species_datatable" :id="datatable_id" :dtOptions="datatable_options"
+                :dtHeaders="datatable_headers" />
+        </div>
     </div>
 </template>
 
@@ -41,7 +34,7 @@ import {
     api_endpoints,
     helpers,
 }
-from '@/utils/hooks'
+    from '@/utils/hooks'
 
 export default {
     name: 'TableRelatedSpecies',
@@ -49,11 +42,11 @@ export default {
         datatable,
     },
     props: {
-        occurrence_report_obj:{
+        occurrence_report_obj: {
             type: Object,
-            required:true
+            required: true
         },
-        isReadOnly:{
+        isReadOnly: {
             type: Boolean,
             default: false
         },
@@ -62,46 +55,46 @@ export default {
         let vm = this;
         return {
             scientific_name_lookup: 'scientific_name_lookup' + vm.occurrence_report_obj.id,
-            select_scientific_name: "select_scientific_name"+ vm.occurrence_report_obj.id,
+            select_scientific_name: "select_scientific_name" + vm.occurrence_report_obj.id,
             selected_scientific_name: null,
             adding_species: false,
-            uuid:0,
+            uuid: 0,
             datatable_id: uuid(),
         }
     },
     computed: {
-        column_scientific_name: function(){
+        column_scientific_name: function () {
             return {
                 data: 'scientific_name',
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(value, type){
+                'render': function (value, type) {
                     let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
+                    return type == 'export' ? value : result;
                 },
             }
         },
-        column_common_name: function(){
+        column_common_name: function () {
             return {
                 data: 'common_name',
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function(value, type){
+                'render': function (value, type) {
                     let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
+                    return type == 'export' ? value : result;
                 },
             }
         },
-        column_action: function(){
+        column_action: function () {
             let vm = this;
             return {
                 data: 'id',
                 orderable: false,
                 searchable: false,
                 visible: true,
-                'render': function(row, type, full){
+                'render': function (row, type, full) {
                     let links = '';
                     if (!vm.isReadOnly) {
                         links += `<a href='#' data-discard-species='${full.id}'>Remove</a><br>`;
@@ -110,7 +103,7 @@ export default {
                 }
             }
         },
-        datatable_options: function(){
+        datatable_options: function () {
             let vm = this
             let columns = [
                 vm.column_scientific_name,
@@ -132,14 +125,14 @@ export default {
                     "dataSrc": "",
                 },
                 dom: 'lBfrtip',
-                buttons:[ ],
+                buttons: [],
                 columns: columns,
                 processing: true,
-                initComplete: function(settings, json) {
+                initComplete: function (settings, json) {
                 },
             }
         },
-        datatable_headers: function(){
+        datatable_headers: function () {
             return [
                 'Scientific Name',
                 'Common Name',
@@ -147,36 +140,38 @@ export default {
             ]
         },
     },
-    methods:{
-        reload: function() {
+    methods: {
+        reload: function () {
             let vm = this;
             vm.$refs.related_species_datatable.vmDataTable.ajax.reload();
         },
-        addRelatedSpecies: function() {
+        addRelatedSpecies: function () {
             let vm = this;
             if (vm.selected_scientific_name && !vm.adding_species) {
                 vm.adding_species = true
-                vm.$http.get("/api/occurrence_report/" + this.occurrence_report_obj.id + '/add_related_species?species='+vm.selected_scientific_name)
-                .then((response) => {
-                    swal.fire({
-                        title: 'Added',
-                        text: 'Related Species has been added',
-                        icon: 'success',
-                        confirmButtonColor:'#226fbb'
+                vm.$http.get("/api/occurrence_report/" + this.occurrence_report_obj.id + '/add_related_species?species=' + vm.selected_scientific_name)
+                    .then((response) => {
+                        swal.fire({
+                            title: 'Added',
+                            text: 'Related Species has been added',
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        vm.$refs.related_species_datatable.vmDataTable.ajax.reload();
+                        vm.selected_scientific_name = null;
+                        vm.adding_species = false;
+                        if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                            vm.$router.go();
+                        }
+                    }, (error) => {
+                        console.log(error);
+                        vm.adding_species = false;
                     });
-                    vm.$refs.related_species_datatable.vmDataTable.ajax.reload();
-                    vm.selected_scientific_name = null;
-                    vm.adding_species = false;
-                    if (vm.occurrence_report_obj.processing_status == "Unlocked") {
-                        vm.$router.go();
-                    }
-                }, (error) => {
-                    console.log(error);
-                    vm.adding_species = false;
-                });
             }
         },
-        removeRelatedSpecies: function(id) {
+        removeRelatedSpecies: function (id) {
             let vm = this;
             swal.fire({
                 title: "Remove Related Species",
@@ -184,40 +179,46 @@ export default {
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Related Species',
-                confirmButtonColor:'#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true
             }).then((result) => {
-                if(result.isConfirmed){
-                    vm.$http.get("/api/occurrence_report/" + this.occurrence_report_obj.id + '/remove_related_species?species='+id)
-                    .then((response) => {
-                        swal.fire({
-                            title: 'Removed',
-                            text: 'Related Species has been removed',
-                            icon: 'success',
-                            confirmButtonColor:'#226fbb'
+                if (result.isConfirmed) {
+                    vm.$http.get("/api/occurrence_report/" + this.occurrence_report_obj.id + '/remove_related_species?species=' + id)
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Removed',
+                                text: 'Related Species has been removed',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.related_species_datatable.vmDataTable.ajax.reload();
+                            if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                                vm.$router.go();
+                            }
+                        }, (error) => {
+                            console.log(error);
                         });
-                        vm.$refs.related_species_datatable.vmDataTable.ajax.reload();
-                        if (vm.occurrence_report_obj.processing_status == "Unlocked") {
-                            vm.$router.go();
-                        }
-                    }, (error) => {
-                        console.log(error);
-                    });
                 }
-            },(error) => {
+            }, (error) => {
             });
         },
-        initialiseScientificNameLookup: function(){
+        initialiseScientificNameLookup: function () {
             let vm = this;
             $(vm.$refs[vm.scientific_name_lookup]).select2({
                 minimumInputLength: 2,
-                dropdownParent: $("#"+vm.select_scientific_name),
+                dropdownParent: $("#" + vm.select_scientific_name),
                 "theme": "bootstrap-5",
                 allowClear: true,
-                placeholder:"Select Scientific Name",
+                placeholder: "Select Scientific Name",
                 ajax: {
                     url: api_endpoints.scientific_name_lookup,
                     dataType: 'json',
-                    data: function(params) {
+                    data: function (params) {
                         var query = {
                             term: params.term,
                             type: 'public',
@@ -230,31 +231,31 @@ export default {
                     // },
                 },
             }).
-            on("select2:select", function (e) {
-                var selected = $(e.currentTarget);
-                let data = e.params.data.id;
-                vm.selected_scientific_name = data;
-            }).
-            on("select2:unselect",function (e) {
-                var selected = $(e.currentTarget);
-                vm.selected_scientific_name = null;
-            }).
-            on("select2:open",function (e) {
-                const searchField = $('[aria-controls="select2-'+vm.scientific_name_lookup+'-results"]')
-                // move focus to select2 field
-                searchField[0].focus();                   
-            });
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.selected_scientific_name = data;
+                }).
+                on("select2:unselect", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.selected_scientific_name = null;
+                }).
+                on("select2:open", function (e) {
+                    const searchField = $('[aria-controls="select2-' + vm.scientific_name_lookup + '-results"]')
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
         },
-        addEventListeners:function (){
-            let vm=this;
-            vm.$refs.related_species_datatable.vmDataTable.on('click', 'a[data-discard-species]', function(e) {
+        addEventListeners: function () {
+            let vm = this;
+            vm.$refs.related_species_datatable.vmDataTable.on('click', 'a[data-discard-species]', function (e) {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-species');
                 vm.removeRelatedSpecies(id);
             });
         }
     },
-    mounted: function(){
+    mounted: function () {
         let vm = this;
         this.$nextTick(() => {
             vm.initialiseScientificNameLookup();

@@ -362,8 +362,9 @@ export default {
                     title: 'Upload Image',
                     html: 'Please select an Image to upload.',
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                });
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                });
             } else {
                 if (this.species_community.group_type == 'community') {
                     var api_url = api_endpoints.community;
@@ -390,8 +391,9 @@ export default {
                         title: 'Upload ID',
                         html: 'There was an error uploading your ID.<br/>' + error_msg,
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
-                    });
+                        customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                    });
                 });
             }
         },
@@ -409,8 +411,9 @@ export default {
                     title: 'Delete Image',
                     html: 'No Image uploaded.',
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                });
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                });
             } else {
                 if (vm.species_community.image_doc) {
                     vm.$http.post(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/delete_image')), {
@@ -432,8 +435,9 @@ export default {
                             title: 'Delete Image',
                             html: 'There was an error deleting your image.<br/>' + error_msg,
                             icon: 'error',
-                            confirmButtonColor: '#226fbb'
-                        });
+                            customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                        });
                     });
                 }
 
@@ -484,8 +488,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                })
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                })
                 return false;
             }
             vm.savingSpeciesCommunity = true;
@@ -504,8 +509,9 @@ export default {
                     title: "Saved",
                     text: "Your changes has been saved" + was_public,
                     icon: "success",
-                    confirmButtonColor: '#226fbb'
-                });
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                });
                 vm.savingSpeciesCommunity = false;
                 vm.isSaved = true;
             }, err => {
@@ -514,8 +520,9 @@ export default {
                     title: 'Save Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                });
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                });
                 vm.savingSpeciesCommunity = false;
                 vm.isSaved = false;
             });
@@ -528,8 +535,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                })
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                })
                 //vm.paySubmitting=false;
                 return false;
             }
@@ -566,8 +574,9 @@ export default {
                     //helpers.apiVueResourceError(err),
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                })
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                })
                 vm.submitSpeciesCommunity = false;
                 vm.saveError = true;
                 //return false;
@@ -632,8 +641,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                })
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                })
                 //vm.paySubmitting=false;
                 return false;
             }
@@ -645,7 +655,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     let result = await vm.save_before_submit()
@@ -671,8 +685,9 @@ export default {
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor: '#226fbb'
-                            });
+                                customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                            });
                         });
                     }
                 }

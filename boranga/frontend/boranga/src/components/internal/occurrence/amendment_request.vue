@@ -158,7 +158,9 @@ export default {
                     title: 'Sent',
                     text: 'An email has been sent to applicant with the request to amend this Application',
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.amendingProposal = true;
                 vm.close();

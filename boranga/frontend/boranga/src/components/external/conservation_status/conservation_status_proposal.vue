@@ -48,7 +48,8 @@
                                             class="btn btn-primary me-2" value="Save and Exit"
                                             :disabled="savingCSProposal || paySubmitting" />
 
-                                        <button v-if="paySubmitting" type="button" class="btn btn-primary" disabled>Submit&nbsp;
+                                        <button v-if="paySubmitting" type="button" class="btn btn-primary"
+                                            disabled>Submit&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                         <input v-else type="button" @click.prevent="submit" class="btn btn-primary"
                                             :value="'Submit'" :disabled="saveExitCSProposal || savingCSProposal" />
@@ -159,7 +160,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -172,7 +175,9 @@ export default {
                     title: 'Proposal Saved',
                     text: 'Your conservation status proposal has been saved',
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });;
                 vm.savingCSProposal = false;
                 vm.isSaved = true;
@@ -182,7 +187,9 @@ export default {
                     title: 'Save Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingCSProposal = false;
                 vm.isSaved = false;
@@ -196,7 +203,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -232,7 +241,9 @@ export default {
                     title: 'Submit Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.paySubmitting = false;
                 vm.saveError = true;
@@ -311,7 +322,7 @@ export default {
                     blank_fields.push(' Community Name is required')
                 }
             }
-            if(!vm.conservation_status_obj.submitter_information.submitter_category){
+            if (!vm.conservation_status_obj.submitter_information.submitter_category) {
                 blank_fields.push(' Please select a submitter category')
             }
             if (check_action == "submit" && (vm.conservation_status_obj.species_taxonomy_id || vm.conservation_status_obj.community_id)) {
@@ -371,7 +382,9 @@ export default {
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                         });
                     }

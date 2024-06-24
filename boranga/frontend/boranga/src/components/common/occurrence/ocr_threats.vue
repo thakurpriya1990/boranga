@@ -484,7 +484,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your threat has been removed',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             }).then((result) => {
                                 vm.$refs.threats_datatable.vmDataTable.ajax.reload();
                                 if (vm.occurrence_report_obj.processing_status == "Unlocked") {

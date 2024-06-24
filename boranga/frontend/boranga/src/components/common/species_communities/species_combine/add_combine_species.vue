@@ -95,7 +95,9 @@ export default {
                             title: "Please fix following errors",
                             text: "Species To combine already exists",
                             icon: 'error',
-                            confirmButtonColor: '#226fbb'
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
                         })
                     }
                     else {

@@ -306,7 +306,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your document has been removed',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             }).then((result) => {
                                 vm.$refs.documents_datatable.vmDataTable.ajax.reload();
                                 if (vm.occurrence_report_obj.processing_status == "Unlocked") {
@@ -327,7 +329,10 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Reinstate Document',
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
             }).then((result) => {
                 if (result.isConfirmed) {
                     vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report_documents, id + '/reinstate'))
@@ -336,7 +341,9 @@ export default {
                                 title: 'Reinstated',
                                 text: 'Your document has been reinstated',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             }).then((result) => {
                                 vm.$refs.documents_datatable.vmDataTable.ajax.reload();
                                 if (vm.occurrence_report_obj.processing_status == "Unlocked") {

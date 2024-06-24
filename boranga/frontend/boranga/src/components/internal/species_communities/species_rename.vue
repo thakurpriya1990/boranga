@@ -118,8 +118,9 @@ export default {
                     title: 'Submit Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                });
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                });
                 vm.submitSpeciesRename = false;
                 vm.saveError = true;
                 return false;
@@ -133,8 +134,9 @@ export default {
                     title: "Please fix following errors",
                     text: "Species To Rename already exists",
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                })
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                })
             }
             else {
                 vm.submitSpeciesRename = true;
@@ -144,7 +146,11 @@ export default {
                     icon: "question",
                     showCancelButton: true,
                     confirmButtonText: "submit",
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
+                    },
+                    reverseButtons: true,
                 }).then(async (swalresult) => {
                     if (swalresult.isConfirmed) {
                         //---save and submit the new rename species
@@ -168,8 +174,9 @@ export default {
                                     title: 'Submit Error',
                                     text: helpers.apiVueResourceError(err),
                                     icon: 'error',
-                                    confirmButtonColor: '#226fbb'
-                                });
+                                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                                });
                                 vm.saveError = true;
                             });
                         }

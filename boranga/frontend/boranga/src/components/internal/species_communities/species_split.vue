@@ -161,8 +161,9 @@ export default {
                     title: 'Submit Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                });
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                });
                 vm.submitSpeciesSplit = false;
                 vm.saveError = true;
                 return false;
@@ -202,8 +203,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                })
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                })
                 return false;
             }
 
@@ -214,7 +216,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     for (let index = 0; index < vm.new_species_list.length; index++) {
@@ -238,8 +244,9 @@ export default {
                                     title: 'Submit Error',
                                     text: helpers.apiVueResourceError(err),
                                     icon: 'error',
-                                    confirmButtonColor: '#226fbb'
-                                });
+                                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                                });
                                 vm.saveError = true;
                             });
                         }
@@ -265,8 +272,9 @@ export default {
                     title: 'Submit Error',
                     text: helpers.apiVueResourceError(err),
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                });
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                });
             });
         },
         discardSpecies: function (species_id) {

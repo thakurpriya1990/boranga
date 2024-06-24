@@ -257,7 +257,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'The minutes have been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.minutes_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
@@ -289,7 +291,9 @@ export default {
                                 title: 'Reinstated',
                                 text: 'The minutes have been reinstated',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.minutes_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
