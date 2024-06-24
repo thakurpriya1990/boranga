@@ -35,8 +35,8 @@
                             <div class="row">
                                 <form :action="meeting_form_url" method="post" name="new_meeting"
                                     enctype="multipart/form-data">
-                                    <MeetingSection ref="meeting" :meeting_obj="meeting_obj"
-                                        :userCanEdit="userCanEdit" id="MeetingStart" :is_internal="true">
+                                    <MeetingSection ref="meeting" :meeting_obj="meeting_obj" :userCanEdit="userCanEdit"
+                                        id="MeetingStart" :is_internal="true">
                                         <!-- TODO add hasAssessorMode props to ProposalMeeting -->
                                     </MeetingSection>
                                     <CSQueue ref="cs_queue" :meeting_obj="meeting_obj" id="CSQueue" :is_internal="true">
@@ -210,7 +210,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -218,12 +220,14 @@ export default {
             vm.savingMeeting = true;
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            await vm.$http.post(vm.meeting_form_url, payload).then(res => {
+            await vm.$http.put(vm.meeting_form_url, payload).then(res => {
                 swal.fire({
                     title: 'Saved',
                     text: 'Your changes has been saved',
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingMeeting = false;
                 vm.isSaved = true;
@@ -233,7 +237,9 @@ export default {
                     title: 'Save Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingMeeting = false;
                 vm.isSaved = false;
@@ -247,7 +253,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -280,7 +288,9 @@ export default {
                     //helpers.apiVueResourceError(err),
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.submitMeeting = false;
                 vm.saveError = true;
@@ -329,7 +339,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -340,7 +352,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     let result = await vm.save_before_submit()
@@ -362,7 +378,9 @@ export default {
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                         });
                     }

@@ -6,6 +6,7 @@ from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_conservation_status_referee,
+    is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
     is_species_communities_approver,
@@ -56,3 +57,14 @@ class IsConservationStatusAssessor(BasePermission):
 class IsConservationStatusReferee(BasePermission):
     def has_permission(self, request, view):
         return is_conservation_status_referee(request)
+
+
+class IsInternal(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        return is_internal(request)

@@ -23,7 +23,6 @@ module.exports = {
     districts: "/api/districts.json",
     document_categories_dict: "/api/document_categories_dict",
     filtered_organisations: '/api/filtered_organisations',
-    filtered_users: '/api/filtered_users',
     marine_treeview: "/api/marine_treeview",
     ocr_referrals: "/api/ocr_referrals.json",
     organisation_access_group_members: '/api/organisation_access_group_members',
@@ -156,16 +155,31 @@ module.exports = {
         return `/api/conservation_status/${id}/delist/`;
     },
     discard_community_proposal: function (id) {
-        return `/api/community/${id}.json`;
+        return `/api/community/${id}/discard/`;
+    },
+    reinstate_community_proposal: function (id) {
+        return `/api/community/${id}/reinstate/`;
     },
     discard_species_proposal: function (id) {
-        return `/api/species/${id}.json`;
+        return `/api/species/${id}/discard/`;
+    },
+    reinstate_species_proposal: function (id) {
+        return `/api/species/${id}/reinstate/`;
+    },
+    remove_species_proposal: function (id) {
+        return `/api/species/${id}/remove/`;
     },
     discard_meeting: function (id) {
-        return `/api/meeting/${id}.json`;
+        return `/api/meeting/${id}/discard/`;
+    },
+    reinstate_meeting: function (id) {
+        return `/api/meeting/${id}/reinstate/`;
     },
     discard_ocr_proposal: function (id) {
-        return `/api/occurrence_report/${id}.json`;
+        return `/api/occurrence_report/${id}/discard/`;
+    },
+    reinstate_ocr_proposal: function (id) {
+        return `/api/occurrence_report/${id}/reinstate/`;
     },
     discard_observer_detail: function (id) {
         return `/api/observer_detail/${id}.json`;

@@ -277,10 +277,14 @@ export default {
             swal.fire({
                 title: "Discard Observer",
                 text: "Are you sure you want to discard this Observer?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Observer',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
                     vm.$http.post(helpers.add_endpoint_json(api_endpoints.observer_detail, id + '/discard'))
@@ -289,7 +293,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'The Observer has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             }).then((result) => {
                                 vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
                                 vm.$emit('refreshOccurrenceReport');
@@ -313,7 +319,9 @@ export default {
                         title: 'Reinstated',
                         text: 'The Observer has been reinstated',
                         icon: 'success',
-                        confirmButtonColor: '#226fbb',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     }).then((result) => {
                         vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
                         vm.$emit('refreshOccurrenceReport');

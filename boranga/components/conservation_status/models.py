@@ -30,7 +30,6 @@ from boranga.components.main.models import (
     UserAction,
 )
 from boranga.components.main.related_item import RelatedItem
-from boranga.components.main.utils import get_department_user
 from boranga.components.species_and_communities.models import (
     Community,
     DocumentCategory,
@@ -722,10 +721,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         return self.customer_status in self.CUSTOMER_VIEWABLE_STATE
 
     @property
-    def is_discardable(self):
-        return self.customer_status == ConservationStatus.CUSTOMER_STATUS_DRAFT
-
-    @property
     def is_deletable(self):
         return (
             self.customer_status == ConservationStatus.CUSTOMER_STATUS_DRAFT
@@ -1072,17 +1067,15 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         self.processing_status = ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
         self.save()
         referral = None
+
         # Check if the user is in ledger
         try:
             user = EmailUser.objects.get(email__icontains=referral_email)
         except EmailUser.DoesNotExist:
-            # Validate if it is a deparment user
-            department_user = get_department_user(referral_email)
-            if not department_user:
-                raise ValidationError(
-                    "The user you want to send the referral to is not a member of the department"
-                )
-            # TODO Check if the user is in ledger or create (must be done via api in segregated system)
+            raise ValidationError(
+                f"There is no user with email {referral_email} in the ledger system. "
+                "Please check the email and try again."
+            )
 
         try:
             ConservationStatusReferral.objects.get(
@@ -2021,13 +2014,6 @@ class ConservationStatusReferral(models.Model):
     def __str__(self):
         return f"Application {self.conservation_status.id} - Referral {self.id}"
 
-    # Methods
-    @property
-    def latest_referrals(self):
-        return ConservationStatusReferral.objects.filter(
-            sent_by=self.referral, conservation_status=self.conservation_status
-        )[:2]
-
     @property
     def can_be_completed(self):
         # Referral cannot be completed until second level referral sent by referral has been completed/recalled
@@ -2147,25 +2133,21 @@ class ConservationStatusReferral(models.Model):
 
         # Check if the user is in ledger
         try:
-            user = EmailUser.objects.get(email__icontains=referral_email)
+            referee = EmailUser.objects.get(email__iexact=referral_email.strip())
         except EmailUser.DoesNotExist:
-            # Validate if it is a deparment user
-            department_user = get_department_user(referral_email)
-            if not department_user:
-                raise ValidationError(
-                    "The user you want to send the referral to is not a member of the department"
-                )
-
-            # TODO Check if the user is in ledger or create (must be done via api in segregated system)
+            raise ValidationError(
+                f"There is no user with email {referral_email} in the ledger system. "
+                "Please check the email and try again."
+            )
 
         qs = ConservationStatusReferral.objects.filter(
-            sent_by=user.id, conservation_status=self.conservation_status
+            sent_by=referee.id, conservation_status=self.conservation_status
         )
         if qs:
             raise ValidationError("You cannot send referral to this user")
         try:
             ConservationStatusReferral.objects.get(
-                referral=user.id,
+                referral=referee.id,
                 conservation_status=self.conservation_status,
             )
             raise ValidationError("A referral has already been sent to this user")
@@ -2173,7 +2155,7 @@ class ConservationStatusReferral(models.Model):
             # Create Referral
             referral = ConservationStatusReferral.objects.create(
                 conservation_status=self.conservation_status,
-                referral=user.id,
+                referral=referee.id,
                 sent_by=request.user.id,
                 sent_from=2,
                 text=referral_text,
@@ -2184,7 +2166,7 @@ class ConservationStatusReferral(models.Model):
             ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
                 referral.id,
                 self.conservation_status.conservation_status_number,
-                f"{user.get_full_name()}({user.email})",
+                f"{referee.get_full_name()}({referee.email})",
             ),
             request,
         )

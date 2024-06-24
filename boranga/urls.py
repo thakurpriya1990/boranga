@@ -190,11 +190,6 @@ api_patterns = [
         users_api.DepartmentUserList.as_view(),
         name="department-users-list",
     ),
-    url(
-        r"^api/filtered_users$",
-        users_api.UserListFilterView.as_view(),
-        name="filtered_users",
-    ),
     url(r"^api/", include(router.urls)),
     url(
         r"^api/filter_lists_species",
@@ -379,7 +374,7 @@ urlpatterns = [
         name="internal-conservation-status-dashboard",
     ),
     url(
-        r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/cs_referral/(?P<referral_pk>\d+)/$",
+        r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.ConservationStatusReferralView.as_view(),
         name="internal-conservation-status-referral-detail",
     ),
@@ -414,7 +409,7 @@ urlpatterns = [
         name="internal-occurrence-report-detail",
     ),
     url(
-        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/ocr_referral/(?P<referral_pk>\d+)/$",
+        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.InternalOccurrenceReportReferralView.as_view(),
         name="internal-occurrence-report-referral-detail",
     ),

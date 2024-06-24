@@ -388,8 +388,10 @@ export default {
             filterCSFloraInternationalRelevance: sessionStorage.getItem(this.filterCSFloraInternationalRelevance_cache) ?
                 sessionStorage.getItem(this.filterCSFloraInternationalRelevance_cache) : "false",
 
+            //filterCSFloraApplicationStatus: sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) ?
+            //    sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) : 'approved',
             filterCSFloraApplicationStatus: sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) : 'approved',
+                sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) : (this.is_for_agenda? 'ready_for_agenda' : 'approved'),
 
             filterCSFloraAssessor: sessionStorage.getItem(this.filterCSFloraAssessor_cache) ?
                 sessionStorage.getItem(this.filterCSFloraAssessor_cache) : 'all',
@@ -1356,7 +1358,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {

@@ -79,7 +79,7 @@ export default {
                 return null;
             }
         },
-        fileTypes: {
+        fileTypesOrig: {
             default: function () {
                 var file_types =
                     "image/*," +
@@ -92,6 +92,36 @@ export default {
                 return file_types;
             }
         },
+        fileTypes: {
+            default: function () {
+                return [
+                    "image/*",
+                    "video/*",
+                    "audio/*",
+                    "application/pdf",
+                    "text/csv",
+                    "application/msword",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "application/vnd.ms-excel",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "application/x-msaccess",
+                    "application/x-7z-compressed",
+                    "application/x-bzip",
+                    "application/x-bzip2",
+                    "application/zip",
+                    ".dbf",
+                    ".gdb",
+                    ".gpx",
+                    ".prj",
+                    ".shp",
+                    ".shx",
+                    ".json",
+                    ".kml",
+                    ".gpx"
+                ].join(',');
+            }
+        },
+
         isRepeatable: Boolean,
         readonly: Boolean,
         delete_url: String,
@@ -198,10 +228,14 @@ export default {
             swal({
                 title: "Delete Document",
                 text: "Are you sure you want to delete this document?",
-                type: "warning",
+                type: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Delete Document',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then(() => {
                 vm.$http.post(vm.delete_url, data, {
                     emulateJSON: true,

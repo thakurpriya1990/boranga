@@ -4,14 +4,15 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="amendForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
+                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="row mb-3">
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
-                                        <label class="control-label pull-left"  for="Name">Reason</label>
-                                        <select class="form-select" name="reason" ref="reason" v-model="amendment.reason">
-                                            <option v-for="r in reason_choices" :value="r.key">{{r.value}}</option>
+                                        <label class="control-label pull-left" for="Name">Reason</label>
+                                        <select class="form-select" name="reason" ref="reason"
+                                            v-model="amendment.reason">
+                                            <option v-for="r in reason_choices" :value="r.key">{{ r.value }}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -19,8 +20,9 @@
                             <div class="row mb-3">
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
-                                        <label class="control-label pull-left"  for="Name">Details</label>
-                                        <textarea class="form-control" name="name" v-model="amendment.text" id="amendment_text"></textarea>
+                                        <label class="control-label pull-left" for="Name">Details</label>
+                                        <textarea class="form-control" name="name" v-model="amendment.text"
+                                            id="amendment_text"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -28,13 +30,10 @@
                                 <div class="col-sm-offset-2 col-sm-8">
                                     <div class="form-group">
                                         <div class="input-group date" ref="add_attachments" style="width: 70%;">
-                                            <FileField2
-                                            ref="filefield"
-                                            :uploaded_documents="amendment.cs_amendment_request_documents"
-                                            :delete_url="delete_url"
-                                            :proposal_id="conservation_status_id"
-                                            :isRepeatable="true"
-                                            name="amendment_request_file"/>
+                                            <FileField2 ref="filefield"
+                                                :uploaded_documents="amendment.cs_amendment_request_documents"
+                                                :delete_url="delete_url" :proposal_id="conservation_status_id"
+                                                :isRepeatable="true" name="amendment_request_file" />
                                         </div>
                                     </div>
                                 </div>
@@ -53,26 +52,26 @@ import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import FileField2 from '@/components/forms/filefield2.vue'
 
-import {helpers, api_endpoints} from "@/utils/hooks.js"
+import { helpers, api_endpoints } from "@/utils/hooks.js"
 export default {
-    name:'amendment-request',
-    components:{
+    name: 'amendment-request',
+    components: {
         modal,
         alert,
         FileField2,
     },
-    props:{
-            conservation_status_id:{
-                type:Number,
-            },
+    props: {
+        conservation_status_id: {
+            type: Number,
+        },
     },
-    data:function () {
+    data: function () {
         let vm = this;
         return {
-            isModalOpen:false,
-            form:null,
+            isModalOpen: false,
+            form: null,
             amendment: {
-                reason:'',
+                reason: '',
                 reason_id: null,
                 text: null,
                 amendingProposal: false,
@@ -88,27 +87,27 @@ export default {
         }
     },
     computed: {
-        showError: function() {
+        showError: function () {
             var vm = this;
             return vm.errors;
         },
-        delete_url: function() {
-            return (this.amendment.id) ? '/api/cs_amendment_request/'+this.amendment.id+'/delete_document/' : '';
+        delete_url: function () {
+            return (this.amendment.id) ? '/api/cs_amendment_request/' + this.amendment.id + '/delete_document/' : '';
         }
     },
-    methods:{
+    methods: {
 
-        ok:function () {
-            let vm =this;
-            if($(vm.form).valid()){
+        ok: function () {
+            let vm = this;
+            if ($(vm.form).valid()) {
                 vm.sendData();
             }
         },
-        cancel:function () {
+        cancel: function () {
             let vm = this;
             vm.close();
         },
-        close:function () {
+        close: function () {
             this.isModalOpen = false;
             this.amendment = {
                 reason: '',
@@ -121,15 +120,15 @@ export default {
 
             this.validation_form.resetForm();
         },
-        fetchAmendmentChoices: function(){
+        fetchAmendmentChoices: function () {
             let vm = this;
             vm.$http.get('/api/proposal_amendment_request_reason_choices.json').then((response) => {
                 vm.reason_choices = response.body;
-            },(error) => {
+            }, (error) => {
                 console.log(error);
-            } );
+            });
         },
-        sendData:function(){
+        sendData: function () {
             let vm = this;
             vm.errors = false;
             let amendment = JSON.parse(JSON.stringify(vm.amendment));
@@ -149,38 +148,39 @@ export default {
             formData.append('data', JSON.stringify(amendment));
 
             // vm.$http.post('/api/amendment_request.json',JSON.stringify(amendment),{
-                vm.$http.post('/api/cs_amendment_request.json', formData,{
-                        emulateJSON:true,
-                    }).then((response)=>{
-                        swal.fire({
-                            title: 'Sent',
-                             text: 'An email has been sent to applicant with the request to amend this Application',
-                             icon: 'success',
-                             confirmButtonColor:'#226fbb'
-                        });
-                        vm.amendingProposal = true;
-                        vm.close();
-                        //vm.$emit('refreshFromResponse',response);
-                        Vue.http.get(`/api/conservation_status/${vm.conservation_status_id}/internal_conservation_status.json`).then((response)=>
-                        {
-                            vm.$emit('refreshFromResponse',response);
+            vm.$http.post('/api/cs_amendment_request.json', formData, {
+                emulateJSON: true,
+            }).then((response) => {
+                swal.fire({
+                    title: 'Sent',
+                    text: 'An email has been sent to applicant with the request to amend this Application',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                vm.amendingProposal = true;
+                vm.close();
+                //vm.$emit('refreshFromResponse',response);
+                Vue.http.get(`/api/conservation_status/${vm.conservation_status_id}/internal_conservation_status.json`).then((response) => {
+                    vm.$emit('refreshFromResponse', response);
 
-                        },(error)=>{
-                            console.log(error);
-                        });
-                        vm.$router.push({ path: '/internal/conservation-status' }); //Navigate to dashboard after creating Amendment request
+                }, (error) => {
+                    console.log(error);
+                });
+                vm.$router.push({ path: '/internal/conservation-status' }); //Navigate to dashboard after creating Amendment request
 
-                    },(error)=>{
-                        console.log(error);
-                        vm.errors = true;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                        vm.amendingProposal = true;
+            }, (error) => {
+                console.log(error);
+                vm.errors = true;
+                vm.errorString = helpers.apiVueResourceError(error);
+                vm.amendingProposal = true;
 
-                    });
+            });
 
 
         },
-        addFormValidations: function() {
+        addFormValidations: function () {
             let vm = this;
             vm.validation_form = $(vm.form).validate({
                 rules: {
@@ -192,8 +192,8 @@ export default {
                     reason: "field is required",
 
                 },
-                showErrors: function(errorMap, errorList) {
-                    $.each(this.validElements(), function(index, element) {
+                showErrors: function (errorMap, errorList) {
+                    $.each(this.validElements(), function (index, element) {
                         var $element = $(element);
                         $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
                     });
@@ -212,42 +212,40 @@ export default {
                     }
                 }
             });
-       },
-       eventListerners:function () {
+        },
+        eventListerners: function () {
             let vm = this;
 
             // Intialise select2
             $(vm.$refs.reason).select2({
                 "theme": "bootstrap-5",
                 allowClear: true,
-                placeholder:"Select Reason",
+                placeholder: "Select Reason",
                 dropdownParent: $('#myModal .modal-body'),
             }).
-            on("select2:select",function (e) {
-                var selected = $(e.currentTarget);
-                vm.amendment.reason = selected.val();
-                vm.amendment.reason_id = selected.val();
-            }).
-            on("select2:unselect",function (e) {
-                var selected = $(e.currentTarget);
-                vm.amendment.reason = selected.val();
-                vm.amendment.reason_id = selected.val();
-            });
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.amendment.reason = selected.val();
+                    vm.amendment.reason_id = selected.val();
+                }).
+                on("select2:unselect", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.amendment.reason = selected.val();
+                    vm.amendment.reason_id = selected.val();
+                });
         }
-   },
-   mounted:function () {
-        let vm =this;
+    },
+    mounted: function () {
+        let vm = this;
         vm.form = document.forms.amendForm;
         vm.fetchAmendmentChoices();
         vm.addFormValidations();
-        this.$nextTick(()=>{
+        this.$nextTick(() => {
             vm.eventListerners();
         });
-    //console.log(validate);
-   }
+        //console.log(validate);
+    }
 }
 </script>
 
-<style lang="css">
-
-</style>
+<style lang="css"></style>

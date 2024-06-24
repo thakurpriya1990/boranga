@@ -50,7 +50,8 @@
                             <div class="row">
                                 <div class="col-sm-12">
                                     <strong>Status</strong><br />
-                                    {{ species_community.processing_status }} <span v-if="isActive"> - {{species_community.publishing_status.public_status}}</span>
+                                    {{ species_community.processing_status }} <span v-if="isActive"> -
+                                        {{ species_community.publishing_status.public_status }}</span>
                                 </div>
                             </div>
                         </div>
@@ -115,8 +116,10 @@
                                 <form :action="species_community_form_url" method="post" name="new_species"
                                     enctype="multipart/form-data">
                                     <ProposalSpeciesCommunities ref="species_communities"
-                                        :species_community="species_community" :species_community_original="species_community_original" id="speciesCommunityStart"
-                                        :is_internal="true" :is_readonly="species_community.readonly">
+                                        :species_community="species_community"
+                                        :species_community_original="species_community_original"
+                                        id="speciesCommunityStart" :is_internal="true"
+                                        :is_readonly="species_community.readonly">
                                     </ProposalSpeciesCommunities>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                     <input type='hidden' name="species_community_id" :value="1" />
@@ -177,8 +180,9 @@
             @refreshFromResponse="refreshFromResponse" />
         <SpeciesRename ref="species_rename" :species_community_original="species_community" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
-        <MakePublic ref="make_public" :species_community="species_community" :species_community_original="species_community_original"
-            :is_internal="true" @refreshFromResponse="refreshFromResponse" />
+        <MakePublic ref="make_public" :species_community="species_community"
+            :species_community_original="species_community_original" :is_internal="true"
+            @refreshFromResponse="refreshFromResponse" />
     </div>
 </template>
 <script>
@@ -298,7 +302,7 @@ export default {
                 return false;
             }
         },
-        isPublic: function() {
+        isPublic: function () {
             return (this.species_community.group_type === "community") ?
                 this.species_community.publishing_status.community_public ? true : false :
                 this.species_community.publishing_status.species_public ? true : false;
@@ -358,8 +362,9 @@ export default {
                     title: 'Upload Image',
                     html: 'Please select an Image to upload.',
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                });
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                });
             } else {
                 if (this.species_community.group_type == 'community') {
                     var api_url = api_endpoints.community;
@@ -386,8 +391,9 @@ export default {
                         title: 'Upload ID',
                         html: 'There was an error uploading your ID.<br/>' + error_msg,
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
-                    });
+                        customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                    });
                 });
             }
         },
@@ -405,8 +411,9 @@ export default {
                     title: 'Delete Image',
                     html: 'No Image uploaded.',
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                });
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                });
             } else {
                 if (vm.species_community.image_doc) {
                     vm.$http.post(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/delete_image')), {
@@ -428,8 +435,9 @@ export default {
                             title: 'Delete Image',
                             html: 'There was an error deleting your image.<br/>' + error_msg,
                             icon: 'error',
-                            confirmButtonColor: '#226fbb'
-                        });
+                            customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                        });
                     });
                 }
 
@@ -438,21 +446,27 @@ export default {
         discardSpeciesProposal: function () {
             let vm = this;
             swal.fire({
-                title: "Discard Application",
+                title: "Discard Proposal",
                 text: "Are you sure you want to discard this proposal?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Discard Application',
-                confirmButtonColor: '#d9534f'
+                confirmButtonText: 'Discard Proposal',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_species_proposal(vm.species_community.id))
+                    vm.$http.patch(api_endpoints.discard_species_proposal(vm.species_community.id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
-                                text: 'Your proposal has been discarded',
+                                text: 'The proposal has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$router.push({
                                 name: 'internal-species-communities-dash'
@@ -474,8 +488,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                })
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                })
                 return false;
             }
             vm.savingSpeciesCommunity = true;
@@ -483,8 +498,7 @@ export default {
             Object.assign(payload, vm.species_community);
 
             let was_public = "";
-            if (vm.species_community.publishing_status.public_status === "Public")
-            {
+            if (vm.species_community.publishing_status.public_status === "Public") {
                 was_public = " - record is now private"
             }
 
@@ -495,8 +509,9 @@ export default {
                     title: "Saved",
                     text: "Your changes has been saved" + was_public,
                     icon: "success",
-                    confirmButtonColor: '#226fbb'
-                });
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                });
                 vm.savingSpeciesCommunity = false;
                 vm.isSaved = true;
             }, err => {
@@ -505,8 +520,9 @@ export default {
                     title: 'Save Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                });
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                });
                 vm.savingSpeciesCommunity = false;
                 vm.isSaved = false;
             });
@@ -519,8 +535,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                })
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                })
                 //vm.paySubmitting=false;
                 return false;
             }
@@ -557,8 +574,9 @@ export default {
                     //helpers.apiVueResourceError(err),
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                })
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                })
                 vm.submitSpeciesCommunity = false;
                 vm.saveError = true;
                 //return false;
@@ -576,7 +594,7 @@ export default {
                 sc_no_ps.publishing_status = undefined;
                 sco_no_ps.publishing_status = undefined;
 
-                if (helpers.checkForChange(sco_no_ps,sc_no_ps)) {
+                if (helpers.checkForChange(sco_no_ps, sc_no_ps)) {
                     return ["No changes made"]
                 }
             }
@@ -600,10 +618,10 @@ export default {
                 if (vm.species_community.distribution.distribution == null || vm.species_community.distribution.distribution == '') {
                     blank_fields.push('Distribution is missing')
                 }
-                if (vm.species_community.region_id == null || vm.species_community.region_id == '') {
+                if (vm.species_community.regions==null ||vm.species_community.regions.length==0 || vm.species_community.regions == '') {
                     blank_fields.push('Region is missing')
                 }
-                if (vm.species_community.district_id == null || vm.species_community.district_id == '') {
+                if (vm.species_community.districts == null || vm.species_community.districts == '' || vm.species_community.districts.length ==0) {
                     blank_fields.push('District is missing')
                 }
             }
@@ -623,8 +641,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
-                })
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                })
                 //vm.paySubmitting=false;
                 return false;
             }
@@ -636,7 +655,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     let result = await vm.save_before_submit()
@@ -662,8 +685,9 @@ export default {
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor: '#226fbb'
-                            });
+                                customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },                            });
                         });
                     }
                 }
@@ -687,24 +711,24 @@ export default {
             let vm = this;
             if (vm.species_community.group_type === 'flora' || vm.species_community.group_type === "fauna") {
                 Vue.http.get(`/api/species/${vm.species_community.id}/internal_species.json`)
-                .then(res => {
-                    vm.species_community = res.body.species_obj;
-                    vm.species_community_original = helpers.copyObject(vm.species_community);
-                    vm.uploadedID = vm.species_community.image_doc;
-                },
-                err => {
-                    console.log(err);
-                });
+                    .then(res => {
+                        vm.species_community = res.body.species_obj;
+                        vm.species_community_original = helpers.copyObject(vm.species_community);
+                        vm.uploadedID = vm.species_community.image_doc;
+                    },
+                        err => {
+                            console.log(err);
+                        });
             } else {
                 Vue.http.get(`/api/community/${vm.species_community.id}/internal_community.json`)
-                .then(res => {
-                    vm.species_community = res.body.community_obj;
-                    vm.species_community_original = helpers.copyObject(vm.species_community);
-                    vm.uploadedID = vm.species_community.image_doc;
-                },
-                err => {
-                    console.log(err);
-                });
+                    .then(res => {
+                        vm.species_community = res.body.community_obj;
+                        vm.species_community_original = helpers.copyObject(vm.species_community);
+                        vm.uploadedID = vm.species_community.image_doc;
+                    },
+                        err => {
+                            console.log(err);
+                        });
             }
         },
         splitSpecies: async function () {
@@ -819,8 +843,8 @@ export default {
                 vm.species_community.publishing_status.species_public = false;
             }
             let data = JSON.stringify(vm.species_community.publishing_status)
-            vm.$http.post(helpers.add_endpoint_json(endpoint,(vm.species_community.id+'/update_publishing_status')),data,{
-                emulateJSON:true
+            vm.$http.post(helpers.add_endpoint_json(endpoint, (vm.species_community.id + '/update_publishing_status')), data, {
+                emulateJSON: true
             }).then((response) => {
                 vm.updatingPublishing = false;
                 vm.species_community.publishing_status = response.body;
@@ -829,16 +853,19 @@ export default {
                     title: 'Saved',
                     text: 'Record has been made private',
                     icon: 'success',
-                    confirmButtonColor:'#226fbb',
-
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             }, (error) => {
-                var text= helpers.apiVueResourceError(error);
+                var text = helpers.apiVueResourceError(error);
                 swal.fire({
                     title: 'Error',
-                    text: 'Publishing settings cannot be updated because of the following error: '+text,
+                    text: 'Publishing settings cannot be updated because of the following error: ' + text,
                     icon: 'error',
-                    confirmButtonColor:'#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.updatingPublishing = false;
             });

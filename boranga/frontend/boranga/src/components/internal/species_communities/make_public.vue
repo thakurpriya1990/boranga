@@ -4,38 +4,46 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="makePublicForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
+                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="row mb-3">
                             <label for="distribution_publishing" class="col-sm-6 control-label">Distribution: </label>
                             <div class="col-sm-6">
                                 <label for="distribution_publishing" class="me-2">Private</label>
                                 <input :disabled="!isActive" type="radio" :value="false" class="form-check-input me-2"
-                                    id="distribution_publishing" v-model="species_community.publishing_status.distribution_public">
+                                    id="distribution_publishing"
+                                    v-model="species_community.publishing_status.distribution_public">
                                 <label for="distribution_publishing" class="me-2">Public</label>
                                 <input :disabled="!isActive" type="radio" :value="true" class="form-check-input"
-                                    id="distribution_publishing" v-model="species_community.publishing_status.distribution_public">
+                                    id="distribution_publishing"
+                                    v-model="species_community.publishing_status.distribution_public">
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label for="conservation_status_publishing" class="col-sm-6 control-label">Conservation Status: </label>
+                            <label for="conservation_status_publishing" class="col-sm-6 control-label">Conservation
+                                Status: </label>
                             <div class="col-sm-6">
                                 <label for="conservation_status_publishing" class="me-2">Private</label>
                                 <input :disabled="!isActive" type="radio" :value="false" class="form-check-input me-2"
-                                    id="conservation_status_publishing" v-model="species_community.publishing_status.conservation_status_public">
+                                    id="conservation_status_publishing"
+                                    v-model="species_community.publishing_status.conservation_status_public">
                                 <label for="conservation_status_publishing" class="me-2">Public</label>
                                 <input :disabled="!isActive" type="radio" :value="true" class="form-check-input"
-                                    id="conservation_status_publishing" v-model="species_community.publishing_status.conservation_status_public">
+                                    id="conservation_status_publishing"
+                                    v-model="species_community.publishing_status.conservation_status_public">
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label for="conservation_attributes_publishing" class="col-sm-6 control-label">Conservation Attributes: </label>
+                            <label for="conservation_attributes_publishing" class="col-sm-6 control-label">Conservation
+                                Attributes: </label>
                             <div class="col-sm-6">
                                 <label for="conservation_attributes_publishing" class="me-2">Private</label>
                                 <input :disabled="!isActive" type="radio" :value="false" class="form-check-input me-2"
-                                    id="conservation_attributes_publishing" v-model="species_community.publishing_status.conservation_attributes_public">
+                                    id="conservation_attributes_publishing"
+                                    v-model="species_community.publishing_status.conservation_attributes_public">
                                 <label for="conservation_attributes_publishing" class="me-2">Public</label>
                                 <input :disabled="!isActive" type="radio" :value="true" class="form-check-input"
-                                    id="conservation_attributes_publishing" v-model="species_community.publishing_status.conservation_attributes_public">
+                                    id="conservation_attributes_publishing"
+                                    v-model="species_community.publishing_status.conservation_attributes_public">
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -43,21 +51,23 @@
                             <div class="col-sm-6">
                                 <label for="threats_publishing" class="me-2">Private</label>
                                 <input :disabled="!isActive" type="radio" :value="false" class="form-check-input me-2"
-                                    id="threats_publishing" v-model="species_community.publishing_status.threats_public">
+                                    id="threats_publishing"
+                                    v-model="species_community.publishing_status.threats_public">
                                 <label for="threats_publishing" class="me-2">Public</label>
                                 <input :disabled="!isActive" type="radio" :value="true" class="form-check-input"
-                                    id="threats_publishing" v-model="species_community.publishing_status.threats_public">
+                                    id="threats_publishing"
+                                    v-model="species_community.publishing_status.threats_public">
                             </div>
                         </div>
                     </form>
                 </div>
             </div>
-
             <div slot="footer">
-                <!-- <button type="button" class="btn btn-default" @click="ok">Submit</button> -->
-                <button v-if="updatingPublishing" class="btn btn-primary pull-right" style="margin-top:5px;" disabled >Submit&nbsp;<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                <button v-else class="btn btn-default" @click.prevent="ok()" :disabled="updatingPublishing">Submit</button>
-                <button type="button" class="btn btn-default" @click="cancel">Cancel</button>
+                <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
+                <button v-if="updatingPublishing" class="btn btn-primary pull-right" style="margin-top:5px;"
+                    disabled>Submit&nbsp;<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                <button v-else class="btn btn-primary" @click.prevent="ok()" :disabled="updatingPublishing">Make
+                    Public</button>
             </div>
         </modal>
     </div>
@@ -67,14 +77,14 @@
 
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
-import {helpers,api_endpoints} from "@/utils/hooks.js"
+import { helpers, api_endpoints } from "@/utils/hooks.js"
 export default {
-    name:'MakePublic',
-    components:{
+    name: 'MakePublic',
+    components: {
         modal,
         alert,
     },
-    props:{
+    props: {
         species_community: {
             type: Object,
             required: true
@@ -88,35 +98,34 @@ export default {
             required: true
         },
     },
-    data:function () {
+    data: function () {
         let vm = this;
         return {
             updatingPublishing: false,
-            isModalOpen:false,
-            form:null,
+            isModalOpen: false,
+            form: null,
             errors: false,
             errorString: '',
         }
     },
     computed: {
-        csrf_token: function() {
+        csrf_token: function () {
             return helpers.getCookie('csrftoken')
         },
-        showError: function() {
+        showError: function () {
             var vm = this;
             return vm.errors;
         },
-        title: function(){
-            //return this.processing_status == 'With Approver' ? 'Approve Conservation Status' : 'Propose to approve Conservation Status';
+        title: function () {
             return 'Make Public';
         },
         distribution_public: function () {
             return this.isPublic && this.species_community.publishing_status.distribution_public;
         },
-        conservation_status_public: function() {
+        conservation_status_public: function () {
             return this.isPublic && this.species_community.publishing_status.conservation_status_public;
         },
-        conservation_attributes_public: function() {
+        conservation_attributes_public: function () {
             return this.isPublic && this.species_community.publishing_status.conservation_attributes_public;
         },
         isActive: function () {
@@ -126,7 +135,7 @@ export default {
             return this.isActive && this.species_community.publishing_status.species_public ? true : false;
         },
     },
-    methods:{
+    methods: {
         updatePublishing(data) {
             let vm = this;
 
@@ -135,8 +144,8 @@ export default {
                 endpoint = api_endpoints.community;
             }
 
-            vm.$http.post(helpers.add_endpoint_json(endpoint,(vm.species_community.id+'/update_publishing_status')),data,{
-                emulateJSON:true
+            vm.$http.post(helpers.add_endpoint_json(endpoint, (vm.species_community.id + '/update_publishing_status')), data, {
+                emulateJSON: true
             }).then((response) => {
                 vm.updatingPublishing = false;
                 vm.species_community.publishing_status = response.body;
@@ -145,35 +154,43 @@ export default {
                     title: 'Saved',
                     text: 'Record has been made public',
                     icon: 'success',
-                    confirmButtonColor:'#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 }).then((swalresult) => {
                     vm.close()
                 });
             }, (error) => {
-                var text= helpers.apiVueResourceError(error);
+                var text = helpers.apiVueResourceError(error);
                 swal.fire({
                     title: 'Error',
-                    text: 'Publishing settings cannot be updated because of the following error: '+text,
+                    text: 'Publishing settings cannot be updated because of the following error: ' + text,
                     icon: 'error',
-                    confirmButtonColor:'#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.species_community.publishing_status = helpers.copyObject(vm.species_community_original.publishing_status);
                 vm.updatingPublishing = false;
             });
         },
-        ok:function () {
+        ok: function () {
             let vm = this;
             vm.updatingPublishing = true;
             //if not already public, we make it public (notify user first)
             //but only if it is active
             if (!vm.isPublic && vm.isActive) {
                 swal.fire({
-                    title: "Warning",
-                    text: "This record will be listed publicly",
+                    title: "Make Public",
+                    text: "Are you sure you want to make this record public?",
                     icon: "warning",
                     showCancelButton: true,
-                    confirmButtonText: 'ok',
-                    confirmButtonColor: '#d9534f'
+                    confirmButtonText: 'Make Public',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary'
+                    },
+                    reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
                         //send with make public set to true
@@ -182,7 +199,7 @@ export default {
                         } else {
                             vm.species_community.publishing_status.species_public = true;
                         }
-                        let data = JSON.stringify(vm.species_community.publishing_status)           
+                        let data = JSON.stringify(vm.species_community.publishing_status)
                         vm.updatePublishing(data);
                     } else {
                         vm.updatingPublishing = false;
@@ -195,90 +212,100 @@ export default {
                     title: 'Error',
                     text: 'Record already public',
                     icon: 'error',
-                    confirmButtonColor:'#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.updatingPublishing = false;
             }
         },
-        cancel:function () {
+        cancel: function () {
             this.close()
         },
-        close:function () {
-            let vm =this;
+        close: function () {
+            let vm = this;
             this.isModalOpen = false;
             this.errors = false;
         },
     },
-    mounted:function () {
-        let vm =this;
+    mounted: function () {
+        let vm = this;
         vm.form = document.forms.makePublicForm;
     },
 }
 </script>
 
 <style lang="css" scoped>
-    .section{
-        text-transform: capitalize;
-    }
-    .list-group{
-        margin-bottom: 0;
-    }
-    .fixed-top{
-        position: fixed;
-        top:56px;
-    }
+.section {
+    text-transform: capitalize;
+}
 
-    .nav-item {
-        margin-bottom: 2px;
-    }
+.list-group {
+    margin-bottom: 0;
+}
 
-    .nav-item>li>a {
-        background-color: yellow !important;
-        color: #fff;
-    }
+.fixed-top {
+    position: fixed;
+    top: 56px;
+}
 
-    .nav-item>li.active>a, .nav-item>li.active>a:hover, .nav-item>li.active>a:focus {
-      color: white;
-      background-color: blue;
-      border: 1px solid #888888;
-    }
+.nav-item {
+    margin-bottom: 2px;
+}
 
-    .admin > div {
-        display: inline-block;
-        vertical-align: top;
-        margin-right: 1em;
-    }
-    .nav-pills .nav-link {
-        border-bottom-left-radius: 0;
-        border-bottom-right-radius: 0;
-        border-top-left-radius: 0.5em;
-        border-top-right-radius: 0.5em;
-        margin-right: 0.25em;
-    }
-    .nav-pills .nav-link {
-        background: lightgray;
-    }
-    .nav-pills .nav-link.active {
-        background: gray;
-    }
-    .nav-pills > li {
-    position:relative;    
-    }
+.nav-item>li>a {
+    background-color: yellow !important;
+    color: #fff;
+}
 
-    .nav-pills > li > a {
-        display:inline-block;
-    }
+.nav-item>li.active>a,
+.nav-item>li.active>a:hover,
+.nav-item>li.active>a:focus {
+    color: white;
+    background-color: blue;
+    border: 1px solid #888888;
+}
 
-    .nav-pills > li > span {
-        display:none;
-        cursor:pointer;
-        position:absolute;
-        right: 6px;
-        top: 8px;
-        color: red;
-    }
+.admin>div {
+    display: inline-block;
+    vertical-align: top;
+    margin-right: 1em;
+}
 
-    .nav-pills > li:hover > span {
-        display: inline-block;
-    }
+.nav-pills .nav-link {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 0.5em;
+    border-top-right-radius: 0.5em;
+    margin-right: 0.25em;
+}
+
+.nav-pills .nav-link {
+    background: lightgray;
+}
+
+.nav-pills .nav-link.active {
+    background: gray;
+}
+
+.nav-pills>li {
+    position: relative;
+}
+
+.nav-pills>li>a {
+    display: inline-block;
+}
+
+.nav-pills>li>span {
+    display: none;
+    cursor: pointer;
+    position: absolute;
+    right: 6px;
+    top: 8px;
+    color: red;
+}
+
+.nav-pills>li:hover>span {
+    display: inline-block;
+}
 </style>

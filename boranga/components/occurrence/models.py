@@ -4,6 +4,8 @@ from abc import abstractmethod
 
 import reversion
 from django.conf import settings
+from django.contrib.contenttypes import fields
+from django.contrib.contenttypes import models as ct_models
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
 from django.contrib.gis.geos import GEOSGeometry, Polygon
@@ -58,7 +60,6 @@ from boranga.components.users.models import (
 )
 from boranga.helpers import (
     clone_model,
-    email_in_dept_domains,
     is_occurrence_approver,
     is_occurrence_assessor,
     member_ids,
@@ -137,6 +138,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     # List of statuses from above that allow a customer to edit an occurrence report.
     CUSTOMER_EDITABLE_STATE = [
         "draft",
+        "discarded",
         "amendment_required",
     ]
 
@@ -281,6 +283,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     class Meta:
         app_label = "boranga"
+        ordering = ["-id"]
 
     def __str__(self):
         return str(self.occurrence_report_number)  # TODO: is the most appropriate?
@@ -364,18 +367,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         :return: True if the occurrence report is in one of the approved status.
         """
         return self.customer_status in self.CUSTOMER_VIEWABLE_STATE
-
-    @property
-    def is_discardable(self):
-        """
-        An occurrence report can be discarded by a customer if:
-        1 - It is a draft
-        2- or if the occurrence report has been pushed back to the user
-        """
-        return (
-            self.customer_status == "draft"
-            or self.processing_status == "awaiting_applicant_response"
-        )
 
     @property
     def is_flora_application(self):
@@ -534,6 +525,40 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             # TODO: current requirment task allows assessors to unlock, is this too permissive?
             # Good question
             return is_occurrence_assessor(request) or is_occurrence_approver(request)
+
+    @transaction.atomic
+    def discard(self, request):
+        if not self.processing_status == OccurrenceReport.PROCESSING_STATUS_DRAFT:
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        self.processing_status = OccurrenceReport.PROCESSING_STATUS_DISCARDED
+        self.customer_status = OccurrenceReport.CUSTOMER_STATUS_DISCARDED
+        self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_DISCARD_PROPOSAL.format(
+                self.occurrence_report_number
+            ),
+            request,
+        )
+
+    @transaction.atomic
+    def reinstate(self, request):
+        if not self.processing_status == OccurrenceReport.PROCESSING_STATUS_DISCARDED:
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        self.processing_status = OccurrenceReport.PROCESSING_STATUS_DRAFT
+        self.customer_status = OccurrenceReport.CUSTOMER_STATUS_DRAFT
+        self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_DISCARD_PROPOSAL.format(
+                self.occurrence_report_number
+            ),
+            request,
+        )
 
     @transaction.atomic
     def assign_officer(self, request, officer):
@@ -895,16 +920,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         # Check if the user is in ledger
         try:
-            referee = EmailUser.objects.get(email__icontains=referral_email)
+            referee = EmailUser.objects.get(email__iexact=referral_email.strip())
         except EmailUser.DoesNotExist:
             raise ValidationError(
                 "The user you want to send the referral to does not exist in the ledger database"
-            )
-
-        # Validate if it is a deparment user
-        if not email_in_dept_domains(referral_email):
-            raise ValidationError(
-                "The user you want to send the referral to is not a member of the department"
             )
 
         # Check if the referral has already been sent to this user
@@ -1275,6 +1294,7 @@ class OccurrenceReportReferral(models.Model):
         on_delete=models.SET_NULL,
     )
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
+    is_external = models.BooleanField(default=False)
 
     class Meta:
         app_label = "boranga"
@@ -1456,7 +1476,7 @@ class OccurrenceReportReferral(models.Model):
 
         send_occurrence_report_referral_complete_email_notification(self, request)
 
-    def can_assess_referral(self, user):
+    def can_assess_referral(self):
         return self.processing_status == self.PROCESSING_STATUS_WITH_REFERRAL
 
     @property
@@ -1608,8 +1628,23 @@ class GeometryBase(models.Model):
         blank=True, null=True, editable=True
     )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
 
+    content_type = models.ForeignKey(
+        ct_models.ContentType,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="content_type_%(class)s",
+    )
+    object_id = models.PositiveIntegerField(blank=True, null=True)
+    content_object = fields.GenericForeignKey("content_type", "object_id")
+
+    copied_from = fields.GenericRelation("self", related_query_name="copied_to")
+
     class Meta:
         abstract = True
+        indexes = [
+            models.Index(fields=["content_type", "object_id"]),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.geometry:
@@ -1653,7 +1688,7 @@ class GeometryBase(models.Model):
                 if len(self.geometry.wkt) > 75
                 else self.geometry.wkt
             )
-        return f"{self.related_model_field()} Geometry: {wkt_ellipsis}"
+        return f"{self.__class__.__name__} of <{self.related_model_field()}>: {wkt_ellipsis}"
 
     @property
     def area_sqm(self):
@@ -1679,6 +1714,45 @@ class GeometryBase(models.Model):
             return GEOSGeometry(self.original_geometry_ewkb).srid
         return None
 
+    @property
+    def created_from(self):
+        """Returns the __str__-representation of the object that this geometry was created from."""
+
+        if not self.content_type or not self.object_id:
+            return None
+
+        InstanceModel = self.content_type.model_class()
+        try:
+            model_instance = InstanceModel.objects.get(id=self.object_id)
+        except InstanceModel.DoesNotExist:
+            return None
+        else:
+            return model_instance.__str__()
+
+    @property
+    def source_of(self):
+        """Returns a list of the __str__-representations of the objects that have been created from this geometry.
+        I.e. the geometry objects for which this geometry is the source.
+        """
+
+        content_type = ct_models.ContentType.objects.get_for_model(self.__class__)
+
+        parent_subclasses = self.__class__.__base__.__subclasses__()
+        # Get a list of content types for the parent classes of this geometry model
+        subclasses_content_types = [
+            ct_models.ContentType.objects.get_for_model(psc)
+            for psc in parent_subclasses
+        ]
+        # Get a list of filtered objects (the objects that have been created from self) for each subclass content type
+        source_of_objects = [
+            sc_ct.get_all_objects_for_this_type().filter(
+                content_type=content_type, object_id=self.id
+            )
+            for sc_ct in subclasses_content_types
+        ]
+
+        return [source.__str__() for qs in source_of_objects for source in qs]
+
 
 class DrawnByGeometry(models.Model):
     drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
@@ -1700,9 +1774,6 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry
         on_delete=models.CASCADE,
         null=True,
         related_name="ocr_geometry",
-    )
-    copied_from = models.ForeignKey(
-        "self", on_delete=models.SET_NULL, blank=True, null=True
     )
     locked = models.BooleanField(default=False)
 
@@ -2827,8 +2898,8 @@ class Occurrence(RevisionedMixin):
     OCCURRENCE_CHOICE_OCR = "ocr"
     OCCURRENCE_CHOICE_NON_OCR = "non-ocr"
     OCCURRENCE_SOURCE_CHOICES = (
-        (OCCURRENCE_CHOICE_OCR,"OCR"),
-        (OCCURRENCE_CHOICE_NON_OCR,"Non-OCR (describe in comments)")
+        (OCCURRENCE_CHOICE_OCR, "OCR"),
+        (OCCURRENCE_CHOICE_NON_OCR, "Non-OCR (describe in comments)"),
     )
 
     objects = OccurrenceManager()
@@ -2859,7 +2930,9 @@ class Occurrence(RevisionedMixin):
     wild_status = models.ForeignKey(
         WildStatus, on_delete=models.PROTECT, null=True, blank=True
     )
-    occurrence_source = MultiSelectField(max_length=250, blank=True, choices=OCCURRENCE_SOURCE_CHOICES, null=True)
+    occurrence_source = MultiSelectField(
+        max_length=250, blank=True, choices=OCCURRENCE_SOURCE_CHOICES, null=True
+    )
 
     comment = models.TextField(null=True, blank=True)
 
@@ -3409,9 +3482,6 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
         on_delete=models.CASCADE,
         null=True,
         related_name="occ_geometry",
-    )
-    copied_from = models.ForeignKey(
-        "self", on_delete=models.SET_NULL, blank=True, null=True
     )
     locked = models.BooleanField(default=False)
     # TODO: possibly remove buffer radius from location models

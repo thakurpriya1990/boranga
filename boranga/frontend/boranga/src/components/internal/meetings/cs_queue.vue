@@ -258,10 +258,14 @@ export default {
             swal.fire({
                 title: "Remove Agenda Item",
                 text: "Are you sure you want to remove this agenda item?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Agenda Item',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
                     let payload = new Object();
@@ -272,7 +276,9 @@ export default {
                                 title: 'Removed',
                                 text: 'Your agenda item is removed',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.meeting_obj.agenda_items_arr = res.body;
                             //vm.constructCSQueueTable();

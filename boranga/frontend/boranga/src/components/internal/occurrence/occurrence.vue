@@ -2,111 +2,110 @@
     <div class="container" id="internal-occurence-detail">
         <div class="row" style="padding-bottom: 50px;">
             <div v-if="occurrence" class="col">
-                <h3>Occurrence: {{ occurrence.occurrence_number }} - <span class="text-capitalize">{{ display_group_type }}</span></h3>
+                <h3>Occurrence: {{ occurrence.occurrence_number }} - <span class="text-capitalize">{{ display_group_type
+                        }}</span></h3>
                 <div class="row pb-4">
-                <div v-if="!comparing" class="col-md-3">
+                    <div v-if="!comparing" class="col-md-3">
 
-                    <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                        :disable_add_entry="false" class="mb-3" />
+                        <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
+                            :disable_add_entry="false" class="mb-3" />
 
-                    <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
-                        :submitter_last_name="submitter_last_name" :lodgement_date="occurrence.lodgement_date"
-                        class="mb-3" />
+                        <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
+                            :submitter_last_name="submitter_last_name" :lodgement_date="occurrence.lodgement_date"
+                            class="mb-3" />
 
-                    <div>
-                        <div class="card card-default">
-                            <div class="card-header">
-                                Workflow
-                            </div>
-                            <div class="card-body card-collapse">
-                                <div class="row">
-                                    <div class="col-sm-12">
-                                        <strong>Status</strong><br />
-                                        {{ occurrence.processing_status }}
-                                    </div>
-                                    <div class="col-sm-12">
-                                        <div class="separator"></div>
-                                    </div>
-                                    <div class="col-sm-12 top-buffer-s">
-                                        <template v-if="hasUserEditMode">
-                                            <div class="row">
+                        <div>
+                            <div class="card card-default">
+                                <div class="card-header">
+                                    Workflow
+                                </div>
+                                <div class="card-body card-collapse">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <strong>Status</strong><br />
+                                            {{ occurrence.processing_status }}
+                                        </div>
+                                        <div class="col-sm-12">
+                                            <div class="separator"></div>
+                                        </div>
+                                        <div class="col-sm-12 top-buffer-s">
+                                            <template v-if="hasUserEditMode">
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <strong>Action</strong><br />
+                                                    </div>
+                                                </div>
+                                                <div v-if="isDraft" class="row">
+                                                    <div class="col-sm-12">
+                                                        <button style="width:80%;" class="btn btn-primary mb-2"
+                                                            @click.prevent="activateOccurrence()">Activate</button><br />
+                                                    </div>
+                                                </div>
+                                                <div v-else class="row">
+                                                    <div v-if="canLock" class="col-sm-12">
+                                                        <button style="width:80%;" class="btn btn-primary mb-2"
+                                                            @click.prevent="lockOccurrence()">Lock</button><br />
+                                                    </div>
+                                                    <div class="col-sm-12">
+                                                        <button style="width:80%;" class="btn btn-primary mb-2"
+                                                            @click.prevent="splitOccurrence()">Split</button><br />
+                                                    </div>
+                                                    <div class="col-sm-12">
+                                                        <button style="width:80%;" class="btn btn-primary mb-2"
+                                                            @click.prevent="combineOccurrence()">Combine</button><br />
+                                                    </div>
+                                                    <div v-if="canClose" class="col-sm-12">
+                                                        <button style="width:80%;" class="btn btn-primary mb-2"
+                                                            @click.prevent="closeOccurrence()">Close</button><br />
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <template v-else-if="canUnlock">
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <strong>Action</strong><br />
+                                                    </div>
+                                                </div>
                                                 <div class="col-sm-12">
-                                                    <strong>Action</strong><br />
-                                                </div>
-                                            </div>
-                                            <div v-if="isDraft" class="row">
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="activateOccurrence()">Activate</button><br />
-                                                </div>
-                                            </div>
-                                            <div v-else class="row">
-                                                <div v-if="canLock" class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="lockOccurrence()">Lock</button><br />
-                                                </div>
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="splitOccurrence()">Split</button><br />
-                                                </div>
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="combineOccurrence()">Combine</button><br />
-                                                </div>
-                                                <div v-if="canClose" class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="closeOccurrence()">Close</button><br />
-                                                </div>
-                                            </div>
-                                        </template>
-                                        <template v-else-if="canUnlock">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <strong>Action</strong><br />
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="unlockOccurrence()">Unlock</button><br />
                                                 </div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-9">
-                    <template>
-                        <form :action="occurrence_form_url" method="post" name="occurrence"
-                            enctype="multipart/form-data">
-
-                            <ProposalOccurrence v-if="occurrence" :occurrence_obj="occurrence"
-                                id="OccurrenceStart"
-                                ref="occurrence" @refreshFromResponse="refreshFromResponse">
-                            </ProposalOccurrence>
-
-                            <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                            <input type='hidden' name="occurrence_id" :value="1"/>
-                            <div class="row" style="margin-bottom: 50px">
-                                <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                    <div v-if="hasUserEditMode" class="container">
-                                        <div class="col-md-12 text-end">
-                                            <button v-if="savingOccurrence"
-                                                class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                disabled>Save Changes&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                            <button v-else class="btn btn-primary pull-right"
-                                                style="margin-top:5px;" @click.prevent="save()">Save
-                                                Changes</button>
+                                            </template>
                                         </div>
                                     </div>
                                 </div>
+
                             </div>
-                        </form>
-                    </template>
-                </div>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <template>
+                            <form :action="occurrence_form_url" method="post" name="occurrence"
+                                enctype="multipart/form-data">
+
+                                <ProposalOccurrence v-if="occurrence" :occurrence_obj="occurrence" id="OccurrenceStart"
+                                    ref="occurrence" @refreshFromResponse="refreshFromResponse">
+                                </ProposalOccurrence>
+
+                                <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
+                                <input type='hidden' name="occurrence_id" :value="1" />
+                                <div class="row" style="margin-bottom: 50px">
+                                    <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                                        <div v-if="hasUserEditMode" class="container">
+                                            <div class="col-md-12 text-end">
+                                                <button v-if="savingOccurrence" class="btn btn-primary pull-right"
+                                                    style="margin-top:5px;" disabled>Save Changes&nbsp;
+                                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                <button v-else class="btn btn-primary pull-right"
+                                                    style="margin-top:5px;" @click.prevent="save()">Save
+                                                    Changes</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </template>
+                    </div>
                 </div>
             </div>
         </div>
@@ -180,7 +179,7 @@ export default {
             return `occurrence`;
         },
         display_group_type: function () {
-            if(this.occurrence && this.occurrence.group_type){
+            if (this.occurrence && this.occurrence.group_type) {
                 return this.occurrence.group_type;
             }
             return '';
@@ -247,7 +246,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -255,8 +256,11 @@ export default {
 
             // add map geometry to the occurrence
             if (vm.$refs.occurrence.$refs.occ_location.$refs.component_map) {
-                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.loadingMap = true;
-                vm.occurrence.occ_geometry = vm.$refs.occurrence.$refs.occ_location.$refs.component_map.getJSONFeatures();
+                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(
+                    true
+                );
+                vm.occurrence.occ_geometry =
+                    vm.$refs.occurrence.$refs.occ_location.$refs.component_map.getJSONFeatures();
             }
 
             let payload = new Object();
@@ -266,12 +270,14 @@ export default {
                     title: "Saved",
                     text: "Your changes has been saved",
                     icon: "success",
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingOccurrence = false;
                 vm.isSaved = true;
                 vm.refreshFromResponse(res);
-                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.loadingMap = false;
+                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(false);
                 vm.$refs.occurrence.$refs.occ_location.incrementComponentMapKey();
                 vm.$refs.occurrence.$refs.occ_location.refreshDatatables();
             }, err => {
@@ -280,10 +286,13 @@ export default {
                     title: 'Save Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingOccurrence = false;
                 vm.isSaved = false;
+                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(false);
             });
         },
         save_exit: async function (e) {
@@ -294,7 +303,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 //vm.paySubmitting=false;
                 return false;
@@ -327,7 +338,9 @@ export default {
                     //helpers.apiVueResourceError(err),
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 vm.submitOccurrence = false;
                 vm.saveError = true;
@@ -367,7 +380,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 //vm.paySubmitting=false;
                 return false;
@@ -380,7 +395,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     let result = await vm.save_before_submit()
@@ -398,7 +417,9 @@ export default {
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                         });
                     }
@@ -419,7 +440,9 @@ export default {
                     title: "Activated",
                     text: "Occurrence has been Activated",
                     icon: "success",
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 }).then(async (swalresult) => {
                     this.$router.go(this.$router.currentRoute);
                 });
@@ -429,7 +452,9 @@ export default {
                     title: 'Activate Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             });
         },
@@ -440,7 +465,9 @@ export default {
                     title: "Locked",
                     text: "Occurrence has been Locked",
                     icon: "success",
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 }).then(async (swalresult) => {
                     this.$router.go(this.$router.currentRoute);
                 });
@@ -450,7 +477,9 @@ export default {
                     title: 'Lock Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             });
         },
@@ -461,7 +490,9 @@ export default {
                     title: "Unlocked",
                     text: "Occurrence has been Unlocked",
                     icon: "success",
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 }).then(async (swalresult) => {
                     this.$router.go(this.$router.currentRoute);
                 });
@@ -471,7 +502,9 @@ export default {
                     title: 'Unlock Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             });
         },
@@ -483,7 +516,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "Close Occurrence",
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     await vm.$http.post(`/api/occurrence/${this.occurrence.id}/close_occurrence.json`).then(res => {
@@ -491,7 +528,9 @@ export default {
                             title: "Closed",
                             text: "Occurrence has been Closed",
                             icon: "success",
-                            confirmButtonColor: '#226fbb'
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
                         }).then(async (swalresult) => {
                             vm.$router.push({
                                 name: 'internal-occurrence-dash'
@@ -503,7 +542,9 @@ export default {
                             title: 'Close Error',
                             text: errorText,
                             icon: 'error',
-                            confirmButtonColor: '#226fbb'
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
                         });
                     });
                 }
@@ -529,9 +570,9 @@ export default {
                 vm.occurrence = res.body;
             });
         },
-        err => {
-            console.log(err);
-        });
+            err => {
+                console.log(err);
+            });
     },
 }
 </script>

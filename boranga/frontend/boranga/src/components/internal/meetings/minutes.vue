@@ -16,7 +16,8 @@
                 </div>
             </form>
         </FormSection>
-        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="minutes_url" :is_internal="is_internal">
+        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="minutes_url"
+            :is_internal="is_internal">
         </DocumentDetail>
         <div v-if="minutesHistoryId">
             <MinutesHistory ref="minutes_history" :key="minutesHistoryId" :minutes-id="minutesHistoryId"
@@ -36,7 +37,6 @@ import {
     helpers,
 }
     from '@/utils/hooks'
-
 
 export default {
     name: 'Minutes',
@@ -77,22 +77,7 @@ export default {
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: [
-                    // {
-                    //     extend: 'excel',
-                    //     text: '<i class="fa-solid fa-download"></i> Excel',
-                    //     className: 'btn btn-primary me-2 rounded',
-                    //     exportOptions: {
-                    //         orthogonal: 'export'
-                    //     }
-                    // },
-                    // {
-                    //     extend: 'csv',
-                    //     text: '<i class="fa-solid fa-download"></i> CSV',
-                    //     className: 'btn btn-primary rounded',
-                    //     exportOptions: {
-                    //         orthogonal: 'export'
-                    //     }
-                    // },
+
                 ],
                 columns: [
                     {
@@ -107,7 +92,6 @@ export default {
                                 return '<s>' + full.minutes_number + '</s>'
                             }
                         },
-
                     },
                     {
                         data: "document_category_name",
@@ -121,7 +105,6 @@ export default {
                                 return '<s>' + full.document_category_name + '</s>'
                             }
                         },
-
                     },
                     {
                         data: "document_sub_category_name",
@@ -135,7 +118,6 @@ export default {
                                 return '<s>' + full.document_sub_category_name + '</s>'
                             }
                         },
-
                     },
                     {
                         data: "name",
@@ -154,7 +136,6 @@ export default {
                             }
                             return links;
                         },
-
                     },
                     {
                         data: "description",
@@ -185,7 +166,7 @@ export default {
                             let links = '';
                             if (full.visible) {
                                 links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
-                                links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
+                                links += `<a href='#' data-discard-document='${full.id}'>Discard</a><br>`;
                                 links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                             }
                             else {
@@ -212,16 +193,10 @@ export default {
         DocumentDetail,
         MinutesHistory,
     },
-    computed: {
-    },
-    watch: {
-
-    },
     methods: {
         newDocument: function () {
             let vm = this;
             this.$refs.document_detail.document_id = '';
-            //this.$refs.edit_park.fetchPark(id);
             var new_document_another = {
                 meeting: vm.meeting_obj.id,
                 input_name: 'meeting_minutes_doc',
@@ -264,21 +239,27 @@ export default {
         discardDocument: function (id) {
             let vm = this;
             swal.fire({
-                title: "Remove Minutes",
-                text: "Are you sure you want to remove this Minutes?",
-                icon: "warning",
+                title: "Discard Minutes",
+                text: "Are you sure you want to discard these minutes?",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Remove Minutes',
-                confirmButtonColor: '#d9534f'
+                confirmButtonText: 'Discard Minutes',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.minutes, id + '/discard'))
+                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.minutes, id + '/discard'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
-                                text: 'Your Minutes has been removed',
+                                text: 'The minutes have been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.minutes_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
@@ -286,27 +267,33 @@ export default {
                         });
                 }
             }, (error) => {
-
+                console.log(error);
             });
         },
         reinstateDocument: function (id) {
             let vm = this;
             swal.fire({
                 title: "Reinstate Minutes",
-                text: "Are you sure you want to Reinstate this Minutes?",
+                text: "Are you sure you want to reinstate these minutes?",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Reinstate Minutes',
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.minutes, id + '/reinstate'))
+                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.minutes, id + '/reinstate'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',
-                                text: 'Your Minutes has been reinstated',
+                                text: 'The minutes have been reinstated',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.minutes_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
@@ -314,7 +301,7 @@ export default {
                         });
                 }
             }, (error) => {
-
+                console.log(error);
             });
         },
         updatedDocuments() {
@@ -356,7 +343,6 @@ export default {
         let vm = this;
         this.$nextTick(() => {
             vm.addEventListeners();
-            //vm.initialiseSearch();
         });
     },
 
@@ -364,10 +350,6 @@ export default {
 </script>
 
 <style lang="css" scoped>
-/*ul, li {
-        zoom:1;
-        display: inline;
-    }*/
 fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;

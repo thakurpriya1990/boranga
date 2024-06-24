@@ -150,10 +150,10 @@ export default {
                         mRender: function (data, type, full) {
                             let value = full.notes;
                             let result = helpers.dtPopover(value, 60, 'hover');
-                            if(full.visible){
+                            if (full.visible) {
                                 return result;
                             }
-                            else{
+                            else {
                                 return '<s>' + result + '</s>';
                             }
                         },
@@ -280,10 +280,14 @@ export default {
             swal.fire({
                 title: "Discard Contact",
                 text: "Are you sure you want to discard this Contact?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Contact',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
                     vm.$http.post(helpers.add_endpoint_json(api_endpoints.contact_detail, id + '/discard'))
@@ -292,7 +296,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'The Contact has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             }).then((result) => {
                                 vm.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
                                 vm.$emit('refreshOccurrenceReport');
@@ -316,7 +322,9 @@ export default {
                         title: 'Reinstated',
                         text: 'The Contact has been reinstated',
                         icon: 'success',
-                        confirmButtonColor: '#226fbb',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     }).then((result) => {
                         vm.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
                         vm.$emit('refreshOccurrenceReport');

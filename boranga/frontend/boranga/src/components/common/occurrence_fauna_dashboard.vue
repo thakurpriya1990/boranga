@@ -6,8 +6,7 @@
                 <div class="col-md-4">
                     <div class="form-group" id="occurrence_name_lookup_form_group_id">
                         <label for="occurrence_name_lookup">Name of Occurrence:</label>
-                        <select id="occurrence_name_lookup"
-                            name="occurrence_name_lookup" ref="occurrence_name_lookup"
+                        <select id="occurrence_name_lookup" name="occurrence_name_lookup" ref="occurrence_name_lookup"
                             class="form-control" />
                     </div>
                 </div>
@@ -33,7 +32,8 @@
 
         <div v-if="show_add_button" class="col-md-12">
             <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFaunaOccurrence"><i class="fa-solid fa-circle-plus"></i> Add Fauna Occurrence</button>
+                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFaunaOccurrence"><i
+                        class="fa-solid fa-circle-plus"></i> Add Fauna Occurrence</button>
             </div>
         </div>
 
@@ -44,11 +44,8 @@
             </div>
         </div>
         <div v-if="occurrenceHistoryId">
-            <OccurrenceHistory
-                ref="occurrence_history"
-                :key="occurrenceHistoryId"
-                :occurrence-id="occurrenceHistoryId"
-            />
+            <OccurrenceHistory ref="occurrence_history" :key="occurrenceHistoryId"
+                :occurrence-id="occurrenceHistoryId" />
         </div>
     </div>
 </template>
@@ -84,7 +81,7 @@ export default {
         group_type_id: {
             type: Number,
             required: true,
-            default:0
+            default: 0
         },
         url: {
             type: String,
@@ -128,7 +125,7 @@ export default {
     data() {
         let vm = this;
         return {
-            uuid:0,
+            uuid: 0,
             occurrenceHistoryId: null,
             datatable_id: 'occurrence-fauna-datatable-' + vm._uid,
 
@@ -143,9 +140,9 @@ export default {
                 sessionStorage.getItem(this.filterOCCFaunaStatus_cache) : 'all',
 
             filterOCCFromFaunaDueDate: sessionStorage.getItem(this.filterOCCFromFaunaDueDate_cache) ?
-            sessionStorage.getItem(this.filterOCCFromFaunaDueDate_cache) : '',
+                sessionStorage.getItem(this.filterOCCFromFaunaDueDate_cache) : '',
             filterOCCToFaunaDueDate: sessionStorage.getItem(this.filterOCCToFaunaDueDate_cache) ?
-            sessionStorage.getItem(this.filterOCCToFaunaDueDate_cache) : '',
+                sessionStorage.getItem(this.filterOCCToFaunaDueDate_cache) : '',
 
             filterListsSpecies: {},
             occurrence_list: [],
@@ -155,10 +152,10 @@ export default {
             submissions_to_list: [],
 
             // filtering options
-            internal_status:[
-                {value: 'active', name: 'Active'},
-                {value: 'locked', name: 'Locked'},
-                {value: 'historical', name: 'Historical'},
+            internal_status: [
+                { value: 'active', name: 'Active' },
+                { value: 'locked', name: 'Locked' },
+                { value: 'historical', name: 'Historical' },
             ],
 
             proposal_status: [],
@@ -192,14 +189,14 @@ export default {
                 this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
             }
         },
-        filterOCCFromFaunaDueDate: function(){
+        filterOCCFromFaunaDueDate: function () {
             let vm = this;
-            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCCFromFaunaDueDate_cache, vm.filterOCCFromFaunaDueDate);
         },
-        filterOCCToFaunaDueDate: function(){
+        filterOCCToFaunaDueDate: function () {
             let vm = this;
-            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers,false); // This calls ajax() backend call.
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterOCCToFaunaDueDate_cache, vm.filterOCCToFaunaDueDate);
         },
     },
@@ -233,7 +230,7 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_internal) {
-                return ['Number', 'Name of Occurrence', 'Scientific Name', 'Wild Status', 'Number of Reports', 'Review Due', 'Status', 'Action']
+                return ['ID', 'Number', 'Name of Occurrence', 'Scientific Name', 'Wild Status', 'Number of Reports', 'Review Due', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -252,7 +249,7 @@ export default {
                 visible: true,
             }
         },
-        column_occurrence_name: function(){
+        column_occurrence_name: function () {
             return {
                 data: "occurrence_name",
                 orderable: true,
@@ -302,7 +299,7 @@ export default {
                 searchable: false,
             }
         },
-        column_review_due_date: function(){
+        column_review_due_date: function () {
             return {
                 data: "review_due_date",
                 orderable: true,
@@ -360,6 +357,7 @@ export default {
             ]
             if (vm.is_internal) {
                 columns = [
+                    vm.column_id,
                     vm.column_number,
                     vm.column_occurrence_name,
                     vm.column_scientific_name,
@@ -386,7 +384,7 @@ export default {
                 searching: search,
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
-                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 1, targets: 1 },
                     { responsivePriority: 3, targets: -1 },
                     { responsivePriority: 2, targets: -2 }
                 ],
@@ -419,7 +417,7 @@ export default {
 
     },
     methods: {
-        historyDocument: function(id){
+        historyDocument: function (id) {
             this.occurrenceHistoryId = parseInt(id);
             this.uuid++;
             this.$nextTick(() => {
@@ -556,7 +554,11 @@ export default {
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Report',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
                     vm.$http.delete(api_endpoints.discard_occ_proposal(occurrence_id))
@@ -565,7 +567,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your report has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {
@@ -584,7 +588,7 @@ export default {
                 var id = $(this).attr('data-discard-occ-proposal');
                 vm.discardOCRProposal(id);
             });
-            vm.$refs.fauna_occ_datatable.vmDataTable.on('click', 'a[data-history-occurrence]', function(e) {
+            vm.$refs.fauna_occ_datatable.vmDataTable.on('click', 'a[data-history-occurrence]', function (e) {
                 e.preventDefault();
                 var id = $(this).attr('data-history-occurrence');
                 vm.historyDocument(id);

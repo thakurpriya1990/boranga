@@ -3,9 +3,9 @@
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Primary Detection Method:</label>
             <div class="col-sm-9">
-                <select :disabled="isReadOnly" 
+                <select :disabled="isReadOnly"
                     style="width:100%;" class="form-select input-sm"
-                    ref="primary_detection_select" 
+                    ref="primary_detection_select"
                     v-model="animal_observation.primary_detection_method">
                     <option v-for="option in primary_detection_method_list" :value="option.id" :key="option.id">
                         {{option.name}}
@@ -27,7 +27,7 @@
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Reproductive State:</label>
             <div class="col-sm-9">
-                <select :disabled="isReadOnly" class="form-select" 
+                <select :disabled="isReadOnly" class="form-select"
                     v-model="animal_observation.reproductive_state">
                     <option v-for="option in reprod_state_list" :value="option.id" :key="option.id">
                         {{option.name}}
@@ -40,7 +40,7 @@
             <div class="col-sm-9">
                 <select :disabled="isReadOnly" class="form-select" v-model="animal_observation.animal_health_id">
                     <option v-for="option in animal_health_list" :value="option.id" v-bind:key="option.id">
-                        {{ option.name }}                            
+                        {{ option.name }}
                     </option>
                 </select>
             </div>
@@ -50,10 +50,10 @@
             <div class="col-sm-9">
                 <select :disabled="isReadOnly" class="form-select" v-model="animal_observation.death_reason_id">
                     <option v-for="option in death_reason_list" :value="option.id" v-bind:key="option.id">
-                        {{ option.name }}                            
+                        {{ option.name }}
                     </option>
                 </select>
-                
+
             </div>
         </div>
 
@@ -88,7 +88,7 @@
         <label for="" class="col-lg-3 control-label fs-5 fw-bold">Animal Count :</label>
         <div class="row mb-3">
             <div class="col-sm-3">
-                
+
             </div>
             <div class="col-sm-2 fw-bold">
                 Adult
@@ -160,10 +160,10 @@
                 v-model="animal_observation.alive_unsure_unknown"/>
             </div>
         </div>
-        
+
         <div class="row mb-3">
             <div class="col-sm-3">
-                
+
             </div>
             <div class="col-sm-2 fw-bold">
                 Adult
@@ -397,8 +397,9 @@ export default {
                         title: 'Saved',
                         text: 'Animal Observation details have been saved',
                         icon: 'success',
-                        confirmButtonColor:'#226fbb',
-
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        },
                     }).then((result) => {
                         if (vm.processing_status == "Unlocked") {
                             vm.$router.go();
@@ -407,10 +408,12 @@ export default {
                 }, (error) => {
                     var text= helpers.apiVueResourceError(error);
                     swal.fire({
-                        title: 'Error', 
+                        title: 'Error',
                         text: 'Animal Observation details cannot be saved because of the following error: '+text,
                         icon: 'error',
-                        confirmButtonColor:'#226fbb',
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        },
                     });
                     vm.updatingAnimalOnservationDetails = false;
                 });
@@ -459,4 +462,3 @@ export default {
         width: 20%;
     }
 </style>
-

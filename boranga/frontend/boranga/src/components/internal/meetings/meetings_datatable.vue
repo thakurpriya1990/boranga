@@ -36,13 +36,15 @@
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterMeetingStatus">
                             <option value="all">All</option>
-                            <option v-for="status in meeting_status" :value="status.value">{{ status.name }}</option>
+                            <option v-for="status in processing_statuses" :value="status.value">{{ status.name }}
+                            </option>
                         </select>
                     </div>
                 </div>
             </div>
         </CollapsibleFilters>
-        <div v-if="profile && profile.groups.includes(constants.GROUPS.CONSERVATION_STATUS_APPROVERS)" class="col-md-12">
+        <div v-if="profile && profile.groups.includes(constants.GROUPS.CONSERVATION_STATUS_APPROVERS)"
+            class="col-md-12">
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createMeeting"><i
                         class="fa-solid fa-circle-plus"></i> Add Meeting</button>
@@ -115,13 +117,12 @@ export default {
 
             filterMeetingStatus: sessionStorage.getItem(this.filterMeetingStatus_cache) ? sessionStorage.getItem(this.filterMeetingStatus_cache) : 'all',
 
-            internal_status: [
+            processing_statuses: [
                 { value: 'draft', name: 'Draft' },
+                { value: 'discarded', name: 'Discarded' },
                 { value: 'scheduled', name: 'Scheduled' },
                 { value: 'completed', name: 'Completed' },
             ],
-
-            meeting_status: [],
 
             profile: null,
             constants: constants,
@@ -185,9 +186,6 @@ export default {
                 orderable: true,
                 searchable: false,
                 visible: true,
-                'render': function (data, type, full) {
-                    return full.meeting_number
-                },
                 name: "id",
             }
         },
@@ -197,9 +195,6 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    return full.location
-                },
                 name: "location",
             }
         },
@@ -209,9 +204,6 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    return full.title
-                },
                 name: "title",
             }
         },
@@ -219,14 +211,12 @@ export default {
             return {
                 data: "start_date",
                 orderable: true,
-                searchable: true, // handles by filter_queryset override method
+                searchable: true,
                 visible: true,
                 'render': function (data, type, full) {
                     if (full.start_date) {
-                        //return full.start_date
                         return moment(full.start_date).format('DD/MM/YYYY') + moment(full.start_date).format(' h:mm:ss a')
                     }
-                    // Should not reach here
                     return ''
                 },
                 name: "start_date",
@@ -236,14 +226,12 @@ export default {
             return {
                 data: "end_date",
                 orderable: true,
-                searchable: true, // handles by filter_queryset override method
+                searchable: true,
                 visible: true,
                 'render': function (data, type, full) {
                     if (full.end_date) {
-                        //return full.end_date
                         return moment(full.end_date).format('DD/MM/YYYY') + moment(full.end_date).format(' h:mm:ss a')
                     }
-                    // Should not reach here
                     return ''
                 },
                 name: "end_date",
@@ -251,40 +239,37 @@ export default {
         },
         column_status: function () {
             return {
-                // 9. Workflow Status
                 data: "processing_status",
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
-                    if (full.processing_status) {
-                        return full.processing_status;
-                    }
-                    // Should not reach here
-                    return ''
-                },
                 name: "processing_status",
             }
         },
         column_action: function () {
             let vm = this
             return {
-                // 10. Action
                 data: "id",
                 orderable: false,
                 searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
                     let links = "";
-                    if (full.can_user_edit) {
-                        links += `<a href='/internal/meetings/${full.id}'>Continue</a><br/>`;
-                        links += `<a href='#${full.id}' data-discard-meeting='${full.id}'>Discard</a><br/>`;
-                    }
-                    else {
-                        if (full.is_meeting_editable) {
-                            links += `<a href='/internal/meetings/${full.id}?action=edit'>Edit</a><br/>`;
+                    if (full.processing_status == 'Discarded') {
+                        links += `<a href='#${full.id}' data-reinstate-meeting='${full.id}'>Reinstate</a><br/>`;
+                    } else {
+                        if (full.can_user_edit) {
+                            links += `<a href='/internal/meetings/${full.id}'>Continue</a><br/>`;
+                            if (full.processing_status == 'Draft') {
+                                links += `<a href='#${full.id}' data-discard-meeting='${full.id}'>Discard</a><br/>`;
+                            }
                         }
-                        links += `<a href='/internal/meetings/${full.id}?action=view'>View</a><br/>`;
+                        else {
+                            if (full.is_meeting_editable) {
+                                links += `<a href='/internal/meetings/${full.id}?action=edit'>Edit</a><br/>`;
+                            }
+                            links += `<a href='/internal/meetings/${full.id}?action=view'>View</a><br/>`;
+                        }
                     }
                     return links;
                 }
@@ -385,9 +370,9 @@ export default {
                     newMeetingId = savedMeeting.body.id;
                 }
                 this.$router.push({
-                name: 'internal-meetings',
-                params: { meeting_id: newMeetingId },
-            });
+                    name: 'internal-meetings',
+                    params: { meeting_id: newMeetingId },
+                });
             }
             catch (err) {
                 console.log(err);
@@ -397,28 +382,62 @@ export default {
             }
 
         },
-        fetchFilterLists: function () {
-            let vm = this;
-            vm.meeting_status = vm.internal_status;
-        },
         discardMeeting: function (meeting_id) {
             let vm = this;
             swal.fire({
                 title: "Discard Meeting",
                 text: "Are you sure you want to discard this meeting?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Meeting',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_meeting(meeting_id))
+                    vm.$http.patch(api_endpoints.discard_meeting(meeting_id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
                                 text: 'Your meeting has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            });
+        },
+        reinstateMeeting: function (meeting_id) {
+            let vm = this;
+            swal.fire({
+                title: "Reinstate Meeting",
+                text: "Are you sure you want to reinstate this meeting?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Reinstate Meeting',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    vm.$http.patch(api_endpoints.reinstate_meeting(meeting_id))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'Your meeting has been reinstated',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.meetings_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {
@@ -434,6 +453,11 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-meeting');
                 vm.discardMeeting(id);
+            });
+            vm.$refs.meetings_datatable.vmDataTable.on('click', 'a[data-reinstate-meeting]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-reinstate-meeting');
+                vm.reinstateMeeting(id);
             });
             vm.$refs.meetings_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                 helpers.enablePopovers();
@@ -595,16 +619,12 @@ export default {
                 }
             }
         },
-        fetchProfile: function(){
+        fetchProfile: function () {
             let vm = this;
             Vue.http.get(api_endpoints.profile).then((response) => {
                 vm.profile = response.body;
             })
         },
-    },
-    mounted: function () {
-        let vm = this;
-        vm.fetchFilterLists();
     },
     created: function () {
         let vm = this;

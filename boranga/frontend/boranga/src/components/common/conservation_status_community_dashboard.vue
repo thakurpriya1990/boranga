@@ -19,26 +19,6 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="">Region:</label>
-                        <select class="form-select" v-model="filterCSCommunityRegion" @change="filterDistrict($event)">
-                            <option value="all">All</option>
-                            <option v-for="region in region_list" :value="region.id" v-bind:key="region.id">
-                                {{ region.name }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="">District:</label>
-                        <select class="form-select" v-model="filterCSCommunityDistrict">
-                            <option value="all">All</option>
-                            <option v-for="district in filtered_district_list" :value="district.id">{{ district.name }}
-                            </option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
                         <label for="change-type">Change Type:</label>
                         <select id="change-type" class="form-select" v-model="filterCSCommunityChangeCode">
                             <option value="all">All</option>
@@ -173,7 +153,7 @@
             <div class="text-end">
                 <button type="button" class="btn btn-primary mb-2 "
                     @click.prevent="createCommunityConservationStatus"><i class="fa-solid fa-circle-plus"></i> Propose
-                    Conservation Satus</button>
+                    Conservation Status</button>
             </div>
         </div>
 
@@ -251,16 +231,6 @@ export default {
             type: String,
             required: false,
             default: 'filterCSCommunityName',
-        },
-        filterCSCommunityRegion_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSCommunityRegion',
-        },
-        filterCSCommunityDistrict_cache: {
-            type: String,
-            required: false,
-            default: 'filterCSCommunityDistrict',
         },
         filterCSCommunityChangeCode_cache: {
             type: String,
@@ -358,12 +328,6 @@ export default {
             filterCSCommunityName: sessionStorage.getItem(this.filterCSCommunityName_cache) ?
                 sessionStorage.getItem(this.filterCSCommunityName_cache) : 'all',
 
-            filterCSCommunityRegion: sessionStorage.getItem(this.filterCSCommunityRegion_cache) ?
-                sessionStorage.getItem(this.filterCSCommunityRegion_cache) : 'all',
-
-            filterCSCommunityDistrict: sessionStorage.getItem(this.filterCSCommunityDistrict_cache) ?
-                sessionStorage.getItem(this.filterCSCommunityDistrict_cache) : 'all',
-
             filterCSCommunityChangeCode: sessionStorage.getItem(this.filterCSCommunityChangeCode_cache) ?
                 sessionStorage.getItem(this.filterCSCommunityChangeCode_cache) : 'all',
 
@@ -382,8 +346,10 @@ export default {
             filterCSCommunityInternationalRelevance: sessionStorage.getItem(this.filterCSCommunityInternationalRelevance_cache) ?
                 sessionStorage.getItem(this.filterCSCommunityInternationalRelevance_cache) : "false",
 
+            // filterCSCommunityApplicationStatus: sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) ?
+            //     sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : 'approved',
             filterCSCommunityApplicationStatus: sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : 'approved',
+                 sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : (this.is_for_agenda? 'ready_for_agenda' : 'approved'),
 
             filterCSCommunityAssessor: sessionStorage.getItem(this.filterCSCommunityAssessor_cache) ?
                 sessionStorage.getItem(this.filterCSCommunityAssessor_cache) : 'all',
@@ -412,10 +378,6 @@ export default {
             //Filter list for Community select box
             filterListsCommunities: {},
             communities_data_list: [],
-            filterRegionDistrict: {},
-            region_list: [],
-            district_list: [],
-            filtered_district_list: [],
             change_codes: [],
             submitter_categories: [],
             wa_legislative_lists: [],
@@ -452,16 +414,6 @@ export default {
             let vm = this;
             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
             sessionStorage.setItem(vm.filterCSCommunityName_cache, vm.filterCSCommunityName);
-        },
-        filterCSCommunityRegion: function () {
-            let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityRegion_cache, vm.filterCSCommunityRegion);
-        },
-        filterCSCommunityDistrict: function () {
-            let vm = this;
-            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterCSCommunityDistrict_cache, vm.filterCSCommunityDistrict);
         },
         filterCSFromCommunityEffectiveFromDate: function () {
             let vm = this;
@@ -554,8 +506,6 @@ export default {
         filterApplied: function () {
             if (this.filterCSCommunityMigratedId === 'all' &&
                 this.filterCSCommunityName === 'all' &&
-                this.filterCSCommunityRegion === 'all' &&
-                this.filterCSCommunityDistrict === 'all' &&
                 this.filterCSCommunityChangeCode === 'all' &&
                 this.filterCSCommunityWALegislativeList === 'all' &&
                 this.filterCSCommunityWALegislativeCategory === 'all' &&
@@ -588,7 +538,7 @@ export default {
             );
         },
         datatable_headers: function () {
-            return ['Number', 'Community', 'Community Id', 'Community Name', 'Region', 'District', 'Change Type', 'WA Priority List',
+            return ['Number', 'Community', 'Community Id', 'Community Name', 'Change Type', 'WA Priority List',
                 'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
                 'Conservation Criteria',
                 'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
@@ -680,34 +630,34 @@ export default {
         },
         column_region: function () {
             return {
-                data: "region",
+                data: "regions",
                 orderable: true,
                 searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
-                    if (full.region) {
-                        return full.region;
+                    if (full.regions) {
+                        return full.regions;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "community__region__name",
+                name: "community__regions__name",
             }
         },
         column_district: function () {
             return {
-                data: "district",
+                data: "districts",
                 orderable: true,
                 searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
                 visible: true,
                 'render': function (data, type, full) {
-                    if (full.district) {
-                        return full.district
+                    if (full.districts) {
+                        return full.districts
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "community__district__name",
+                name: "community__districts__name",
             }
         },
         column_change_code: function () {
@@ -916,8 +866,6 @@ export default {
                 vm.column_community_number,
                 vm.column_community_id,
                 vm.column_community_name,
-                vm.column_region,
-                vm.column_district,
                 vm.column_change_code,
                 vm.column_wa_priority_list,
                 vm.column_wa_priority_category,
@@ -968,8 +916,6 @@ export default {
                         d.filter_community_migrated_id = vm.filterCSCommunityMigratedId;
                         d.filter_community_name = vm.filterCSCommunityName;
                         d.filter_group_type = vm.group_type_name;
-                        d.filter_region = vm.filterCSCommunityRegion;
-                        d.filter_district = vm.filterCSCommunityDistrict;
                         d.filter_change_code = vm.filterCSCommunityChangeCode;
                         d.filter_wa_legislative_list = vm.filterCSCommunityWALegislativeList;
                         d.filter_wa_legislative_category = vm.filterCSCommunityWALegislativeCategory;
@@ -1163,7 +1109,6 @@ export default {
             vm.$http.get(api_endpoints.community_filter_dict + '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsCommunities = response.body;
                 vm.communities_data_list = vm.filterListsCommunities.community_data_list;
-                vm.filterDistrict();
                 vm.wa_legislative_lists = vm.filterListsCommunities.wa_legislative_lists;
                 vm.wa_legislative_categories = vm.filterListsCommunities.wa_legislative_categories;
                 vm.wa_priority_lists = vm.filterListsCommunities.wa_priority_lists;
@@ -1176,28 +1121,6 @@ export default {
             }, (error) => {
                 console.log(error);
             })
-            vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
-                vm.filterRegionDistrict = response.body;
-                vm.region_list = vm.filterRegionDistrict.region_list;
-                vm.district_list = vm.filterRegionDistrict.district_list;
-            }, (error) => {
-                console.log(error);
-            })
-        },
-        //-------filter district dropdown dependent on region selected
-        filterDistrict: function (event) {
-            this.$nextTick(() => {
-                if (event) {
-                    this.filterCSCommunityDistrict = 'all'; //-----to remove the previous selection
-                }
-                this.filtered_district_list = [];
-                //---filter districts as per region selected
-                for (let choice of this.district_list) {
-                    if (choice.region_id.toString() === this.filterCSCommunityRegion.toString()) {
-                        this.filtered_district_list.push(choice);
-                    }
-                }
-            });
         },
         createCommunityConservationStatus: async function () {
             let newCommunityCSId = null
@@ -1240,7 +1163,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {
@@ -1422,8 +1347,6 @@ export default {
                 filter_group_type: vm.group_type_name,
                 filter_community_name: vm.filterCSCommunityName,
                 filter_application_status: vm.filterCSCommunityApplicationStatus,
-                filter_region: vm.filterCSCommunityRegion,
-                filter_district: vm.filterCSCommunityDistrict,
                 filter_change_code: vm.filterCSCommunityChangeCode,
                 filter_wa_legislative_list: vm.filterCSCommunityWALegislativeList,
                 filter_wa_legislative_category: vm.filterCSCommunityWALegislativeCategory,

@@ -558,7 +558,7 @@ class TaxonomyViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TaxonomySerializer
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):
             qs = Taxonomy.objects.all()
             return qs
         return Taxonomy.objects.none()
@@ -654,7 +654,7 @@ class CommunityTaxonomyViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CommunityTaxonomySerializer
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):
             qs = CommunityTaxonomy.objects.all()
             return qs
         return CommunityTaxonomy.objects.none()
@@ -1221,7 +1221,7 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CommunitySerializer
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):
             qs = Community.objects.all()
             return qs
         else:
@@ -1259,7 +1259,7 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SpeciesSerializer
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):
             qs = Species.objects.all()
             return qs
         else:
@@ -1298,13 +1298,10 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     lookup_field = "id"
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):
             qs = Species.objects.all()
             return qs
         return Species.objects.none()
-
-    # def get_serializer_class(self):
-    #    return SpeciesSerializer
 
     @detail_route(
         methods=[
@@ -1315,11 +1312,9 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def internal_species(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = InternalSpeciesSerializer(instance, context={"request": request})
-
         res_json = {"species_obj": serializer.data}
         res_json = json.dumps(res_json, cls=SetEncoder)
         return HttpResponse(res_json, content_type="application/json")
-        # return Response(d)
 
     @list_route(
         methods=[
@@ -1454,6 +1449,17 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = InternalSpeciesSerializer(instance, context={"request": request})
 
         return Response(serializer.data)
+
+    @detail_route(methods=["DELETE"], detail=True)
+    def remove(self, request, *args, **kwargs):
+        # In the case of split species, when the action button is pressed a new species is created
+        # and saved to the database then if the user presses the cancel button on the modal, the
+        # new species is deleted. As such I belive using the delete method is justifiable for now
+        # However if we have time we can change the split action to only create the new species
+        # on submit. Potential TODO
+        instance = self.get_object()
+        instance.remove(request)
+        return Response(status.HTTP_204_NO_CONTENT)
 
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
@@ -1789,6 +1795,30 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @detail_route(
         methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.discard(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reinstate(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
             "GET",
         ],
         detail=True,
@@ -1929,13 +1959,10 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     lookup_field = "id"
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):
             qs = Community.objects.all()
             return qs
         return Community.objects.none()
-
-    # def get_serializer_class(self):
-    #    return CommunitySerializer
 
     @detail_route(
         methods=[
@@ -1946,11 +1973,9 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def internal_community(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = InternalCommunitySerializer(instance, context={"request": request})
-
         res_json = {"community_obj": serializer.data}
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
-        # return Response(d)
 
     @list_route(
         methods=[
@@ -2027,12 +2052,6 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         request_data = request.data
         if request_data["submitter"]:
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
-        # if(request_data.get('species')):
-        #     species = request_data.get('species')
-        #     instance.species.clear()  # first clear all the species set relatedM:M to community instance
-        #     for species_id in species:
-        #         species_instance = Species.objects.get(pk=species_id)
-        #         instance.species.add(species_instance)
 
         if request_data.get("taxonomy_details"):
             taxonomy_instance, created = CommunityTaxonomy.objects.get_or_create(
@@ -2161,6 +2180,30 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             serializer.save()
 
             return Response(new_returned, status=status.HTTP_201_CREATED)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.discard(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reinstate(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
@@ -2303,14 +2346,14 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
     serializer_class = SpeciesDocumentSerializer
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):
             qs = SpeciesDocument.objects.all().order_by("id")
             return qs
         return SpeciesDocument.objects.none()
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -2329,7 +2372,7 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -2385,14 +2428,14 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
     serializer_class = CommunityDocumentSerializer
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):
             qs = CommunityDocument.objects.all().order_by("id")
             return qs
         return CommunityDocument.objects.none()
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -2411,7 +2454,7 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -2528,7 +2571,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     filter_backends = (ConservationThreatFilterBackend,)
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request):
             qs = ConservationThreat.objects.all().order_by("id")
             return qs
         else:
@@ -2643,7 +2686,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -2675,7 +2718,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )

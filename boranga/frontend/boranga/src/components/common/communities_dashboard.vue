@@ -69,7 +69,8 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="wa-priority-category">WA Priority Category:</label>
-                        <select id="wa-priority-category" class="form-select" v-model="filterCommunityWAPriorityCategory">
+                        <select id="wa-priority-category" class="form-select"
+                            v-model="filterCommunityWAPriorityCategory">
                             <option value="all">All</option>
                             <option v-for="list in wa_priority_categories" :value="list.id">{{ list.code }}
                             </option>
@@ -156,7 +157,7 @@ export default {
             type: String,
             required: true
         },
-        profile:{
+        profile: {
             type: Object,
             default: null
         },
@@ -385,12 +386,12 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_external) {
-                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District',
+                return ['Id', 'Number', 'Community Id', 'Community Name', 'Regions', 'Districts',
                     'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
                     'International Conservation', 'Conservation Criteria', 'Action']
             }
             if (this.is_internal) {
-                return ['Id', 'Number', 'Community Id', 'Community Name', 'Region', 'District',
+                return ['Id', 'Number', 'Community Id', 'Community Name', 'Regions', 'Districts',
                     'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
                     'International Conservation', 'Conservation Criteria', 'Status', 'Action']
             }
@@ -454,7 +455,7 @@ export default {
                 'render': function (data, type, full) {
                     if (full.processing_status) {
                         if (full.processing_status === "Active" && full.publishing_status) {
-                            return full.processing_status +" - "+ full.publishing_status.public_status;
+                            return full.processing_status + " - " + full.publishing_status.public_status;
                         }
                         return full.processing_status;
                     }
@@ -466,34 +467,35 @@ export default {
         },
         column_region: function () {
             return {
-                data: "region",
+                data: "regions",
+                data: "regions",
                 orderable: true,
                 searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
-                    if (full.region) {
-                        return full.region;
+                    if (full.regions) {
+                        return full.regions;
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "region__name",
+                name: "regions__name",
             }
         },
         column_district: function () {
             return {
-                data: "district",
+                data: "districts",
                 orderable: true,
-                searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
+                searchable: false,
                 visible: true,
                 'render': function (data, type, full) {
-                    if (full.district) {
-                        return full.district
+                    if (full.districts) {
+                        return full.districts
                     }
                     // Should not reach here
                     return ''
                 },
-                name: "district__name",
+                name: "districts__name",
             }
         },
         column_wa_legislative_list: function () {
@@ -557,9 +559,13 @@ export default {
                     let links = "";
                     if (!vm.is_external) {
                         if (full.can_user_edit) {
-                            links += `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
-                            links += `<a href='#${full.id}' data-discard-community-proposal='${full.id}?group_type_name=${full.group_type}'>Discard</a><br/>`;
-                            links += `<a href='#' data-history-community='${full.id}'>History</a><br>`;
+                            if (full.processing_status == 'Discarded') {
+                                links += `<a href='#' data-reinstate-community-proposal='${full.id}'>Reinstate</a><br/>`;
+                            } else {
+                                links += `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
+                                links += `<a href='#${full.id}' data-discard-community-proposal='${full.id}'>Discard</a><br/>`;
+                                links += `<a href='#' data-history-community='${full.id}'>History</a><br>`;
+                            }
                         }
                         else {
                             if (full.user_process) {
@@ -570,7 +576,7 @@ export default {
                             links += `<a href='#' data-history-community='${full.id}'>History</a><br>`;
                         }
                     } else {
-                        links +=  `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
+                        links += `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
                     }
                     return links;
                 }
@@ -836,21 +842,27 @@ export default {
         discardCommunityProposal: function (species_id) {
             let vm = this;
             swal.fire({
-                title: "Discard Application",
+                title: "Discard Proposal",
                 text: "Are you sure you want to discard this proposal?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Discard Application',
-                confirmButtonColor: '#d9534f'
+                confirmButtonText: 'Discard Proposal',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_community_proposal(species_id))
+                    vm.$http.patch(api_endpoints.discard_community_proposal(species_id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {
@@ -858,7 +870,41 @@ export default {
                         });
                 }
             }, (error) => {
-
+                console.log(error);
+            });
+        },
+        reinstateCommunityProposal: function (species_id) {
+            let vm = this;
+            swal.fire({
+                title: "Reinstate Proposal",
+                text: "Are you sure you want to reinstate this proposal?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Reinstate Proposal',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    vm.$http.patch(api_endpoints.reinstate_community_proposal(species_id))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'Your proposal has been reinstated',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            }, (error) => {
+                console.log(error);
             });
         },
         addEventListeners: function () {
@@ -868,6 +914,11 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-community-proposal');
                 vm.discardCommunityProposal(id);
+            });
+            vm.$refs.communities_datatable.vmDataTable.on('click', 'a[data-reinstate-community-proposal]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-reinstate-community-proposal');
+                vm.reinstateCommunityProposal(id);
             });
             vm.$refs.communities_datatable.vmDataTable.on('click', 'a[data-history-community]', function (e) {
                 e.preventDefault();

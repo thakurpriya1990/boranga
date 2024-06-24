@@ -396,8 +396,10 @@ export default {
             filterCSFaunaSubmitterCategory: sessionStorage.getItem(this.filterCSFaunaSubmitterCategory_cache) ?
                 sessionStorage.getItem(this.filterCSFaunaSubmitterCategory_cache) : 'all',
 
+            //filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
+            //    sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'approved',
             filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'approved',
+                sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : (this.is_for_agenda? 'ready_for_agenda' : 'approved'),
 
             filterCSFromFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) ?
                 sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) : '',
@@ -635,7 +637,7 @@ export default {
                 visible: true,
                 'render': function (data, type, full) {
                     let value = full.conservation_status_number
-                    if (vfull.is_new_contributor) {
+                    if (full.is_new_contributor) {
                         value += ' <span class="badge bg-warning">New Contributor</span>'
                     }
                     return value
@@ -1367,7 +1369,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {

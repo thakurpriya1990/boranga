@@ -6,22 +6,22 @@
                     :collapsed="false">
                     <div class="row">
                         <div class="col rounded">
-                            <div class="row" v-if="true">
+                            <div class="row">
                                 <div class="col">
                                     <div class="form-floating m-3">
-                                        <textarea :disabled="false" class="form-control" id="assessor_deficiencies"
-                                            placeholder="Deficiency Comments"
+                                        <textarea :disabled="deficiency_readonly" class="form-control"
+                                            id="assessor_deficiencies" placeholder="Deficiency Comments"
                                             v-model="occurrence_report_obj.deficiency_data" />
                                         <label for="assessor_deficiencies" class="form-label">Deficiency
                                             Comments</label>
                                     </div>
                                 </div>
                             </div>
-                            <div class="row" v-if="true">
+                            <div class="row">
                                 <div class="col">
                                     <div class="form-floating m-3 mt-1">
-                                        <textarea :disabled="false" class="form-control" rows="3" id="assessor_comment"
-                                            placeholder="Assessor Comments"
+                                        <textarea :disabled="assessor_comment_readonly" class="form-control" rows="3"
+                                            id="assessor_comment" placeholder="Assessor Comments"
                                             v-model="occurrence_report_obj.assessor_data" />
                                         <label for="" class="col-sm-4 col-form-label">Assessor Comments</label>
                                     </div>
@@ -34,18 +34,18 @@
                                             <h6 class="text-muted">Referral Comments</h6>
                                         </div>
                                     </div>
-                                    <template v-for="referral in referral_comments_boxes">
+                                    <template v-for="ref in referral_comments_boxes">
                                         <div class="row mb-3">
                                             <div class="col">
                                                 <div class="form-floating m-3 mt-1">
-                                                    <textarea v-if='!referral.readonly' :disabled="referral.readonly"
-                                                        :id="referral.name" :name="referral.name" class="form-control"
-                                                        :placeholder="referral.label"
+                                                    <textarea v-if='!ref.readonly' :disabled="true"
+                                                        :id="ref.name" :name="ref.name" class="form-control"
+                                                        :placeholder="ref.label"
                                                         v-model="referral.referral_comment" />
-                                                    <textarea v-else :disabled="referral.readonly" :name="referral.name"
-                                                        :value="referral.value || ''" class="form-control"
-                                                        :placeholder="referral.label" />
-                                                    <label :for="referral.name" class="form-label">{{ referral.label
+                                                    <textarea v-else :disabled="true" :name="ref.name"
+                                                        :value="ref.value || ''" class="form-control"
+                                                        :placeholder="ref.label" />
+                                                    <label :for="ref.name" class="form-label">{{ ref.label
                                                         }}</label>
                                                 </div>
                                             </div>
@@ -137,6 +137,10 @@ export default {
         occurrence_report_obj: {
             type: Object,
             required: true
+        },
+        referral: {
+            type: Object,
+            required: false
         },
         is_external: {
             type: Boolean,
@@ -322,6 +326,7 @@ export default {
             return has_value;
         },
         generateReferralCommentBoxes: function () {
+            console.log('generateReferralCommentBoxes')
             var box_visibility =
                 this.occurrence_report_obj.assessor_mode.assessor_box_view;
             var assessor_mode =
@@ -329,7 +334,10 @@ export default {
             if (!this.occurrence_report_obj.can_user_edit) {
                 // eslint-disable-next-line no-unused-vars
                 let current_referral_present = false;
+                console.log(this.occurrence_report_obj.referrals)
+
                 $.each(this.occurrence_report_obj.referrals, (i, v) => {
+                    console.log(v)
                     var referral_name = `comment-field-Referral-${v.referral.email}`;
                     var referral_visibility =
                         assessor_mode == 'referral' &&
@@ -397,6 +405,20 @@ export default {
         },
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
+        },
+        deficiency_readonly: function () {
+            return !this.is_external &&
+                !this.occurrence_report_obj.can_user_edit &&
+                this.occurrence_report_obj.assessor_mode.assessor_level == 'assessor' &&
+                this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
+                !this.occurrence_report_obj.assessor_mode.status_without_assessor ? false : true;
+        },
+        assessor_comment_readonly: function () {
+            return !this.is_external &&
+                !this.occurrence_report_obj.can_user_edit &&
+                this.occurrence_report_obj.assessor_mode.assessor_level == 'assessor' &&
+                this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
+                !this.occurrence_report_obj.assessor_mode.status_without_assessor ? false : true
         },
     },
     mounted: function () {

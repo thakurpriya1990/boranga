@@ -1924,9 +1924,6 @@ class ConservationStatusReferralViewSet(
 
         return qs
 
-    def get_serializer_class(self):
-        return ConservationStatusReferralSerializer
-
     @list_route(
         methods=[
             "GET",
