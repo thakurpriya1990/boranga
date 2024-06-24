@@ -4,6 +4,8 @@ from abc import abstractmethod
 
 import reversion
 from django.conf import settings
+from django.contrib.contenttypes import fields
+from django.contrib.contenttypes import models as ct_models
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
 from django.contrib.gis.geos import GEOSGeometry, Polygon
@@ -1626,8 +1628,23 @@ class GeometryBase(models.Model):
         blank=True, null=True, editable=True
     )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
 
+    content_type = models.ForeignKey(
+        ct_models.ContentType,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="content_type_%(class)s",
+    )
+    object_id = models.PositiveIntegerField(blank=True, null=True)
+    content_object = fields.GenericForeignKey("content_type", "object_id")
+
+    copied_from = fields.GenericRelation("self", related_query_name="copied_to")
+
     class Meta:
         abstract = True
+        indexes = [
+            models.Index(fields=["content_type", "object_id"]),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.geometry:
@@ -1671,7 +1688,7 @@ class GeometryBase(models.Model):
                 if len(self.geometry.wkt) > 75
                 else self.geometry.wkt
             )
-        return f"{self.related_model_field()} Geometry: {wkt_ellipsis}"
+        return f"{self.__class__.__name__} of <{self.related_model_field()}>: {wkt_ellipsis}"
 
     @property
     def area_sqm(self):
@@ -1697,6 +1714,45 @@ class GeometryBase(models.Model):
             return GEOSGeometry(self.original_geometry_ewkb).srid
         return None
 
+    @property
+    def created_from(self):
+        """Returns the __str__-representation of the object that this geometry was created from."""
+
+        if not self.content_type or not self.object_id:
+            return None
+
+        InstanceModel = self.content_type.model_class()
+        try:
+            model_instance = InstanceModel.objects.get(id=self.object_id)
+        except InstanceModel.DoesNotExist:
+            return None
+        else:
+            return model_instance.__str__()
+
+    @property
+    def source_of(self):
+        """Returns a list of the __str__-representations of the objects that have been created from this geometry.
+        I.e. the geometry objects for which this geometry is the source.
+        """
+
+        content_type = ct_models.ContentType.objects.get_for_model(self.__class__)
+
+        parent_subclasses = self.__class__.__base__.__subclasses__()
+        # Get a list of content types for the parent classes of this geometry model
+        subclasses_content_types = [
+            ct_models.ContentType.objects.get_for_model(psc)
+            for psc in parent_subclasses
+        ]
+        # Get a list of filtered objects (the objects that have been created from self) for each subclass content type
+        source_of_objects = [
+            sc_ct.get_all_objects_for_this_type().filter(
+                content_type=content_type, object_id=self.id
+            )
+            for sc_ct in subclasses_content_types
+        ]
+
+        return [source.__str__() for qs in source_of_objects for source in qs]
+
 
 class DrawnByGeometry(models.Model):
     drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
@@ -1718,9 +1774,6 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry
         on_delete=models.CASCADE,
         null=True,
         related_name="ocr_geometry",
-    )
-    copied_from = models.ForeignKey(
-        "self", on_delete=models.SET_NULL, blank=True, null=True
     )
     locked = models.BooleanField(default=False)
 
@@ -3429,9 +3482,6 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
         on_delete=models.CASCADE,
         null=True,
         related_name="occ_geometry",
-    )
-    copied_from = models.ForeignKey(
-        "self", on_delete=models.SET_NULL, blank=True, null=True
     )
     locked = models.BooleanField(default=False)
     # TODO: possibly remove buffer radius from location models

@@ -259,8 +259,11 @@ export default {
 
             // add map geometry to the occurrence
             if (vm.$refs.occurrence.$refs.occ_location.$refs.component_map) {
-                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.loadingMap = true;
-                vm.occurrence.occ_geometry = vm.$refs.occurrence.$refs.occ_location.$refs.component_map.getJSONFeatures();
+                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(
+                    true
+                );
+                vm.occurrence.occ_geometry =
+                    vm.$refs.occurrence.$refs.occ_location.$refs.component_map.getJSONFeatures();
             }
 
             let payload = new Object();
@@ -277,7 +280,7 @@ export default {
                 vm.savingOccurrence = false;
                 vm.isSaved = true;
                 vm.refreshFromResponse(res);
-                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.loadingMap = false;
+                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(false);
                 vm.$refs.occurrence.$refs.occ_location.incrementComponentMapKey();
                 vm.$refs.occurrence.$refs.occ_location.refreshDatatables();
             }, err => {
@@ -292,6 +295,7 @@ export default {
                 });
                 vm.savingOccurrence = false;
                 vm.isSaved = false;
+                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(false);
             });
         },
         save_exit: async function (e) {
