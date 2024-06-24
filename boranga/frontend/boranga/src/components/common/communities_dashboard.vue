@@ -560,7 +560,7 @@ export default {
                     if (!vm.is_external) {
                         if (full.can_user_edit) {
                             if (full.processing_status == 'Discarded') {
-                                links += `<a href='#' data-reinstate-community-proposal='${full.id}?group_type_name=${full.group_type}'>Reinstate</a><br/>`;
+                                links += `<a href='#' data-reinstate-community-proposal='${full.id}'>Reinstate</a><br/>`;
                             } else {
                                 links += `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
                                 links += `<a href='#${full.id}' data-discard-community-proposal='${full.id}'>Discard</a><br/>`;
@@ -914,6 +914,11 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-community-proposal');
                 vm.discardCommunityProposal(id);
+            });
+            vm.$refs.communities_datatable.vmDataTable.on('click', 'a[data-reinstate-community-proposal]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-reinstate-community-proposal');
+                vm.reinstateCommunityProposal(id);
             });
             vm.$refs.communities_datatable.vmDataTable.on('click', 'a[data-history-community]', function (e) {
                 e.preventDefault();
