@@ -68,13 +68,6 @@
                                                         style="margin-top:5px;" @click.prevent="save_exit()"
                                                         :disabled="savingMeeting || submitMeeting">Save and
                                                         Exit</button>
-
-                                                    <button v-if="submitMeeting" class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" disabled>Submit&nbsp;
-                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" @click.prevent="submit()"
-                                                        :disbaled="saveExitMeeting || savingMeeting">Submit</button>
                                                 </div>
                                             </div>
 
@@ -397,6 +390,17 @@ export default {
             }, err => {
             });
         },
+    },
+    created: function () {
+        let vm = this;
+        if (!this.meeting_obj) {
+            Vue.http.get(`/api/meeting/${vm.$route.params.meeting_id}/internal_meeting.json`).then(res => {
+                vm.meeting_obj = res.body;
+            },
+                err => {
+                    console.log(err);
+                });
+        }
     },
     updated: function () {
         let vm = this;
