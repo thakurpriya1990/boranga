@@ -2,10 +2,12 @@
     <div>
         <div class="" :id="occurrenceReportBody">
             <OCRProfile ref="ocr_profile" id="ocrProfile" :is_external="is_external" :referral="referral"
+                :show_observer_contact_information="show_observer_contact_information"
                 :occurrence_report_obj="occurrence_report_obj" @refreshOccurrenceReport="refreshOccurrenceReport()">
             </OCRProfile>
             <SubmitterInformation v-if="occurrence_report_obj.submitter_information" :key="reloadcount"
                 ref="submitter_information" id="submitter_information"
+                :show_submitter_contact_details="show_submitter_contact_details"
                 :submitter_information="occurrence_report_obj.submitter_information"
                 :disabled="!occurrence_report_obj.can_user_edit" />
         </div>
@@ -118,6 +120,10 @@ export default {
             type: Boolean,
             default: true,
         },
+        show_observer_contact_information: {
+            type: Boolean,
+            default: true,
+        },
     },
     emits: ['refreshFromResponse', 'refreshOccurrenceReport'],
     data: function () {
@@ -135,6 +141,9 @@ export default {
         };
     },
     computed: {
+        show_submitter_contact_details: function () {
+            return 'OccurrenceReportReferral' != this.$parent.$options.name
+        },
         related_items_ajax_url: function () {
             return (
                 '/api/occurrence_report/' +

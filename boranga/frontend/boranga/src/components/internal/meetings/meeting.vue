@@ -68,13 +68,6 @@
                                                         style="margin-top:5px;" @click.prevent="save_exit()"
                                                         :disabled="savingMeeting || submitMeeting">Save and
                                                         Exit</button>
-
-                                                    <button v-if="submitMeeting" class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" disabled>Submit&nbsp;
-                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" @click.prevent="submit()"
-                                                        :disbaled="saveExitMeeting || savingMeeting">Submit</button>
                                                 </div>
                                             </div>
 
@@ -279,7 +272,7 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            const result = await vm.$http.post(vm.meeting_form_url, payload).then(res => {
+            const result = await vm.$http.put(vm.meeting_form_url, payload).then(res => {
                 //return true;
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
@@ -363,7 +356,7 @@ export default {
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.meeting_obj);
-                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/submit'), payload).then(res => {
+                        vm.$http.put(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/submit'), payload).then(res => {
                             vm.meeting_obj = res.body;
                             // vm.$router.push({
                             //     name: 'submit_cs_proposal',
@@ -393,10 +386,21 @@ export default {
             let vm = this;
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            vm.$http.post(vm.meeting_form_url, payload).then(res => {
+            vm.$http.put(vm.meeting_form_url, payload).then(res => {
             }, err => {
             });
         },
+    },
+    created: function () {
+        let vm = this;
+        if (!this.meeting_obj) {
+            Vue.http.get(`/api/meeting/${vm.$route.params.meeting_id}/internal_meeting.json`).then(res => {
+                vm.meeting_obj = res.body;
+            },
+                err => {
+                    console.log(err);
+                });
+        }
     },
     updated: function () {
         let vm = this;

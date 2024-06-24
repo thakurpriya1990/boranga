@@ -123,6 +123,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceTenureSerializer,
     OccurrenceUserActionSerializer,
     OCRConservationThreatSerializer,
+    OCRObserverDetailReferralSerializer,
     OCRObserverDetailSerializer,
     ProposeApproveSerializer,
     ProposeDeclineSerializer,
@@ -1769,9 +1770,14 @@ class OccurrenceReportViewSet(
     def observer_details(self, request, *args, **kwargs):
         instance = self.get_object()
         qs = instance.observer_detail.all()
-        serializer = OCRObserverDetailSerializer(
-            qs, many=True, context={"request": request}
-        )
+        if is_occurrence_assessor(request) or is_occurrence_approver(request):
+            serializer = OCRObserverDetailSerializer(
+                qs, many=True, context={"request": request}
+            )
+        else:
+            serializer = OCRObserverDetailReferralSerializer(
+                qs, many=True, context={"request": request}
+            )
         return Response(serializer.data)
 
     @list_route(methods=["GET"], detail=False)

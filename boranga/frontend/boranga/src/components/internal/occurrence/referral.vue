@@ -67,7 +67,7 @@
                                     <ProposalOccurrenceReport v-if="occurrence_report_obj"
                                         :occurrence_report_obj="occurrence_report_obj" id="OccurrenceReportStart"
                                         :canEditStatus="canEditStatus" ref="occurrence_report" :referral="referral"
-                                        @refreshOccurrenceReport="refreshOccurrenceReport()"
+                                        @refreshOccurrenceReport="refreshOccurrenceReport()" :show_observer_contact_information="false"
                                         @refreshFromResponse="refreshFromResponse">
                                     </ProposalOccurrenceReport>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />

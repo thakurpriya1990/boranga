@@ -271,7 +271,7 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         return Response(serializer.data)
 
-    @detail_route(methods=["post"], detail=True)
+    @detail_route(methods=["PUT"], detail=True)
     @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
         instance = self.get_object()
