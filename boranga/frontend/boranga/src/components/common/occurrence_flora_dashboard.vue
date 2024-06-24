@@ -523,26 +523,41 @@ export default {
             })
         },
         createFloraOccurrence: async function () {
-            let newFloraOCRId = null
-            try {
-                const createUrl = api_endpoints.occurrence;
-                let payload = new Object();
-                payload.group_type_id = this.group_type_id
-                payload.internal_application = true
-                let savedFloraOCR = await Vue.http.post(createUrl, payload);
-                if (savedFloraOCR) {
-                    newFloraOCRId = savedFloraOCR.body.id;
+            swal.fire({
+                title: `Add ${this.group_type_name} Occurrence`,
+                text: "Are you sure you want to add a new flora occurrence?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Add Occurrence',
+                reverseButtons: true,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let newFloraOCRId = null
+                    try {
+                        const createUrl = api_endpoints.occurrence;
+                        let payload = new Object();
+                        payload.group_type_id = this.group_type_id
+                        payload.internal_application = true
+                        let savedFloraOCR = await Vue.http.post(createUrl, payload);
+                        if (savedFloraOCR) {
+                            newFloraOCRId = savedFloraOCR.body.id;
+                        }
+                    }
+                    catch (err) {
+                        console.log(err);
+                        if (this.is_internal) {
+                            return err;
+                        }
+                    }
+                    this.$router.push({
+                        name: 'internal-occurrence-detail',
+                        params: { occurrence_id: newFloraOCRId },
+                    });
                 }
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-            this.$router.push({
-                name: 'internal-occurrence-detail',
-                params: { occurrence_id: newFloraOCRId },
             });
         },
         discardOCRProposal: function (occurrence_id) {
