@@ -110,6 +110,7 @@ class BufferGeometryInline(nested_admin.NestedStackedInline):
                         "object_id",
                         "content_type",
                         "created_from",
+                        "source_of",
                     ),
                 )
             },
@@ -123,6 +124,7 @@ class BufferGeometryInline(nested_admin.NestedStackedInline):
         "object_id",
         "content_type",
         "created_from",
+        "source_of",
     ]
 
 
@@ -164,6 +166,7 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
                         "object_id",
                         "content_type",
                         "created_from",
+                        "source_of",
                     ),
                 )
             },
@@ -177,6 +180,7 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
         "object_id",
         "content_type",
         "created_from",
+        "source_of",
     ]
 
 
@@ -222,6 +226,7 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
                         "object_id",
                         "content_type",
                         "created_from",
+                        "source_of",
                     ),
                 )
             },
@@ -235,6 +240,7 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
         "object_id",
         "content_type",
         "created_from",
+        "source_of",
     ]
 
     inlines = [BufferGeometryInline, OccurrenceTenureInline]

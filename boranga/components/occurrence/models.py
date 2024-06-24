@@ -1688,7 +1688,7 @@ class GeometryBase(models.Model):
                 if len(self.geometry.wkt) > 75
                 else self.geometry.wkt
             )
-        return f"{self.related_model_field()} Geometry: {wkt_ellipsis}"
+        return f"{self.__class__.__name__} of <{self.related_model_field()}>: {wkt_ellipsis}"
 
     @property
     def area_sqm(self):
@@ -1716,6 +1716,8 @@ class GeometryBase(models.Model):
 
     @property
     def created_from(self):
+        """Returns the __str__-representation of the object that this geometry was created from."""
+
         if not self.content_type or not self.object_id:
             return None
 
@@ -1726,6 +1728,30 @@ class GeometryBase(models.Model):
             return None
         else:
             return model_instance.__str__()
+
+    @property
+    def source_of(self):
+        """Returns a list of the __str__-representations of the objects that have been created from this geometry.
+        I.e. the geometry objects for which this geometry is the source.
+        """
+
+        content_type = ct_models.ContentType.objects.get_for_model(self.__class__)
+
+        parent_subclasses = self.__class__.__base__.__subclasses__()
+        # Get a list of content types for the parent classes of this geometry model
+        subclasses_content_types = [
+            ct_models.ContentType.objects.get_for_model(psc)
+            for psc in parent_subclasses
+        ]
+        # Get a list of filtered objects (the objects that have been created from self) for each subclass content type
+        source_of_objects = [
+            sc_ct.get_all_objects_for_this_type().filter(
+                content_type=content_type, object_id=self.id
+            )
+            for sc_ct in subclasses_content_types
+        ]
+
+        return [source.__str__() for qs in source_of_objects for source in qs]
 
 
 class DrawnByGeometry(models.Model):

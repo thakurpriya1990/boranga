@@ -714,6 +714,7 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
             "object_id",
             "content_type",
             "created_from",
+            "source_of",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -744,6 +745,11 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
     def get_created_from(self, obj):
         if obj.created_from:
             return obj.created_from.__str__()
+        return None
+
+    def get_source_of(self, obj):
+        if obj.source_of:
+            return obj.source_of.__str__()
         return None
 
 
@@ -2850,6 +2856,7 @@ class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
             "content_type",
             "buffer_radius",
             "created_from",
+            "source_of",
         ] + BaseTypeSerializer.Meta.fields
 
     def get_srid(self, obj):
@@ -2872,6 +2879,11 @@ class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
             return obj.created_from.__str__()
         return None
 
+    def get_source_of(self, obj):
+        if obj.source_of:
+            return obj.source_of.__str__()
+        return None
+
     def get_label(self, obj):
         return f"{obj.buffered_from_geometry.occurrence.occurrence_number} [Buffer]"
 
@@ -2883,6 +2895,7 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
     occurrence_id = serializers.IntegerField(write_only=True, required=False)
     geometry_source = serializers.SerializerMethodField()
     created_from = serializers.SerializerMethodField(read_only=True)
+    source_of = serializers.SerializerMethodField(read_only=True)
     srid = serializers.SerializerMethodField(read_only=True)
     original_geometry = serializers.SerializerMethodField(read_only=True)
     buffer_geometry = BufferGeometrySerializer(read_only=True)
@@ -2906,6 +2919,7 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
             "buffer_radius",
             "buffer_geometry",
             "created_from",
+            "source_of",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -2936,6 +2950,11 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
     def get_created_from(self, obj):
         if obj.created_from:
             return obj.created_from.__str__()
+        return None
+
+    def get_source_of(self, obj):
+        if obj.source_of:
+            return obj.source_of.__str__()
         return None
 
 
