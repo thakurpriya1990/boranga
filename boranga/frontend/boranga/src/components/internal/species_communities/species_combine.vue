@@ -140,7 +140,7 @@ export default {
         },
         close: function () {
             let vm = this;
-            vm.discardSpecies(vm.new_combine_species.id);
+            vm.removeSpecies(vm.new_combine_species.id);
             vm.original_species_combine_list = [];
             this.isModalOpen = false;
             this.errors = false;
@@ -253,9 +253,10 @@ export default {
             });
 
         },
-        discardSpecies: function (species_id) {
+        removeSpecies: function (species_id) {
             let vm = this;
             try {
+                // In this case we are allowing a http DELETE call to remove the species
                 vm.$http.delete(api_endpoints.remove_species_proposal(species_id));
             }
             catch (err) {
