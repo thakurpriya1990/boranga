@@ -537,13 +537,10 @@ class Species(RevisionedMixin):
 
     @property
     def can_user_edit(self):
-        """
-        :return: True if the application is in one of the editable status.
-        """
-        user_editable_state = [
-            "draft",
+        return self.processing_status in [
+            Species.PROCESSING_STATUS_DRAFT,
+            Species.PROCESSING_STATUS_DISCARDED,
         ]
-        return self.processing_status in user_editable_state
 
     @property
     def can_user_view(self):
@@ -796,6 +793,52 @@ class Species(RevisionedMixin):
                     request,
                 )
 
+    @transaction.atomic
+    def discard(self, request):
+        if not self.processing_status == Species.PROCESSING_STATUS_DRAFT:
+            raise ValidationError("You cannot discard a species that is not a draft")
+
+        if self.lodgement_date:
+            raise ValidationError(
+                "You cannot discard a species that has been submitted"
+            )
+
+        if not is_species_communities_approver(request):
+            raise ValidationError(
+                "You cannot discard a species unless you are a contributor"
+            )
+
+        self.processing_status = Species.PROCESSING_STATUS_DISCARDED
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            SpeciesUserAction.ACTION_DISCARD_SPECIES.format(self.species_number),
+            request,
+        )
+
+        # TODO create a log entry for the user
+
+    def reinstate(self, request):
+        if not self.processing_status == Species.PROCESSING_STATUS_DISCARDED:
+            raise ValidationError(
+                "You cannot reinstate a species that is not discarded"
+            )
+
+        if not is_species_communities_approver(request):
+            raise ValidationError(
+                "You cannot reinstate a species unless you are a species communities approver"
+            )
+
+        self.processing_status = Species.PROCESSING_STATUS_DRAFT
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            SpeciesUserAction.ACTION_REINSTATE_SPECIES.format(self.species_number),
+            request,
+        )
+
 
 class SpeciesLogDocument(Document):
     log_entry = models.ForeignKey(
@@ -832,6 +875,7 @@ class SpeciesLogEntry(CommunicationsLogEntry):
 class SpeciesUserAction(UserAction):
 
     ACTION_DISCARD_SPECIES = "Discard Species {}"
+    ACTION_REINSTATE_SPECIES = "Reinstate Species {}"
     ACTION_EDIT_SPECIES = "Edit Species {}"
     ACTION_CREATE_SPECIES = "Create new species {}"
     ACTION_SAVE_SPECIES = "Save Species {}"
@@ -1051,11 +1095,10 @@ class Community(RevisionedMixin):
 
     @property
     def can_user_edit(self):
-        user_editable_state = [
+        return self.processing_status in [
             Community.PROCESSING_STATUS_DRAFT,
             Community.PROCESSING_STATUS_DISCARDED,
         ]
-        return self.processing_status in user_editable_state
 
     @property
     def can_user_view(self):
