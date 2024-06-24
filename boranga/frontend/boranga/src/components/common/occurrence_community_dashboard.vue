@@ -147,6 +147,7 @@ export default {
             // external_status refers to CUSTOMER_STATUS_CHOICES
             // internal_status referes to PROCESSING_STATUS_CHOICES
             internal_status: [
+                { value: 'draft', name: 'Draft' },
                 { value: 'active', name: 'Active' },
                 { value: 'locked', name: 'Locked' },
                 { value: 'historical', name: 'Historical' },

@@ -153,6 +153,7 @@ export default {
 
             // filtering options
             internal_status: [
+                { value: 'draft', name: 'Draft' },
                 { value: 'active', name: 'Active' },
                 { value: 'locked', name: 'Locked' },
                 { value: 'historical', name: 'Historical' },
