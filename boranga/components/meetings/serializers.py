@@ -24,7 +24,6 @@ class ListMeetingSerializer(serializers.ModelSerializer):
     location = serializers.SerializerMethodField()
     processing_status = serializers.CharField(source="get_processing_status_display")
     can_user_edit = serializers.SerializerMethodField()
-    is_meeting_editable = serializers.SerializerMethodField()
 
     class Meta:
         model = Meeting
@@ -37,7 +36,6 @@ class ListMeetingSerializer(serializers.ModelSerializer):
             "title",
             "processing_status",
             "can_user_edit",
-            "is_meeting_editable",
         )
         datatables_always_serialize = (
             "id",
@@ -48,7 +46,6 @@ class ListMeetingSerializer(serializers.ModelSerializer):
             "title",
             "processing_status",
             "can_user_edit",
-            "is_meeting_editable",
         )
 
     def get_location(self, obj):
@@ -59,12 +56,6 @@ class ListMeetingSerializer(serializers.ModelSerializer):
     def get_can_user_edit(self, obj):
         request = self.context["request"]
         return obj.can_user_edit and is_conservation_status_approver(request)
-
-    def get_is_meeting_editable(self, obj):
-        request = self.context["request"]
-        if not is_conservation_status_approver(request):
-            return False
-        return obj.is_meeting_editable
 
 
 class CreateMeetingSerializer(serializers.ModelSerializer):

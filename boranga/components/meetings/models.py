@@ -177,13 +177,6 @@ class Meeting(models.Model):
         ]
         return self.processing_status in user_viewable_state
 
-    @property
-    def is_meeting_editable(self):
-        user_editable_state = [
-            Meeting.PROCESSING_STATUS_SCHEDULED,
-        ]
-        return self.processing_status in user_editable_state
-
     def has_user_edit_mode(self, request):
         officer_view_state = [
             Meeting.PROCESSING_STATUS_DRAFT,
