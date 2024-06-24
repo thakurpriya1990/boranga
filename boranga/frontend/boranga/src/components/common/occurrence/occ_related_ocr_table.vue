@@ -63,8 +63,13 @@ export default {
             required: false,
             default: '',
         },
+        targetMapLayerNameForCopy: {
+            type: String,
+            required: false,
+            default: 'query_layer',
+        },
     },
-    emits: ['copyUpdate', 'highlight-on-map'],
+    emits: ['copyUpdate', 'highlight-on-map', 'copy-to-map-layer'],
     data() {
         let vm = this;
         return {
@@ -158,6 +163,7 @@ export default {
                     let links = '';
                     if (vm.section_type == 'location') {
                         links += `<a href="#${vm.hrefContainerId}" data-highlight-on-map='${full.id}'>Highlight on Map</a><br>`;
+                        links += `<a href="#${vm.hrefContainerId}" data-copy-to-occ-layer='${full.id}'>Copy to OCC Layer</a><br>`;
                     }
                     links += `<a href='#' data-view-section='${full.id}'>View Section</a><br>`;
                     //links += `<a href='#' data-merge-section='${full.id}'>Copy Section Data (merge)</a><br>`;
@@ -318,9 +324,24 @@ export default {
                     vm.highlightOnMap(id);
                 }
             );
+            vm.$refs.related_ocr_datatable.vmDataTable.on(
+                'click',
+                'a[data-copy-to-occ-layer]',
+                function (e) {
+                    let id = $(this).attr('data-copy-to-occ-layer');
+                    id = id || null;
+                    if (!id) {
+                        e.preventDefault();
+                    }
+                    vm.copyToMapLayer(id);
+                }
+            );
         },
         highlightOnMap: function (id = null) {
             this.$emit('highlight-on-map', id);
+        },
+        copyToMapLayer: function (id = null) {
+            this.$emit('copy-to-map-layer', id, this.targetMapLayerNameForCopy);
         },
     },
     mounted: function(){

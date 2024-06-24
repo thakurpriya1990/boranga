@@ -578,8 +578,15 @@ export default {
             vm.savingOccurrenceReport = true;
 
             // add map geometry to the occurrence_report
-            if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
-                vm.occurrence_report.ocr_geometry = vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
+            if (
+                vm.$refs.occurrence_report.$refs.ocr_location.$refs
+                    .component_map
+            ) {
+                vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
+                    true
+                );
+                vm.occurrence_report.ocr_geometry =
+                    vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
             }
 
             let payload = { proposal: vm.occurrence_report };
@@ -595,6 +602,9 @@ export default {
                 vm.savingOccurrenceReport = false;
                 vm.isSaved = true;
                 vm.occurrence_report = res.body
+                vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
+                    false
+                );
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
@@ -607,6 +617,9 @@ export default {
                 });
                 vm.savingOccurrenceReport = false;
                 vm.isSaved = false;
+                vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
+                    false
+                );
             });
         },
         save_exit: async function (e) {

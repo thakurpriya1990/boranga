@@ -11,6 +11,7 @@ import numpy as np
 import requests
 import shapely.geometry as shp
 from django.apps import apps
+from django.contrib.contenttypes import models as ct_models
 from django.contrib.gis.geos import GEOSGeometry
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -243,6 +244,29 @@ def save_geometry(
 
         # Check if the feature has a buffer radius to later update or create a buffer geometry
         buffer_radius = feature.get("properties", {}).get("buffer_radius", None)
+        created_from = feature.get("properties", {}).get("created_from_object", {})
+        object_id = feature.get("properties", {}).get("object_id", None)
+        content_type = feature.get("properties", {}).get("content_type", None)
+
+        InstanceCopiedFrom = None
+        created_from_model = None
+        content_type_object = None
+        if created_from:
+            try:
+                InstanceCopiedFrom = apps.get_model(
+                    "boranga", created_from.get("model_class", None)
+                )
+            except LookupError:
+                pass
+            except ValueError:
+                pass
+            else:
+                created_from_model = InstanceCopiedFrom.objects.filter(
+                    id=created_from.get("model_id")
+                ).last()
+                content_type_object = ct_models.ContentType.objects.get_for_model(
+                    InstanceCopiedFrom
+                )
 
         geom_4326 = feature_json_to_geosgeometry(feature)
 
@@ -261,11 +285,29 @@ def save_geometry(
         geoms = [(geom_4326, geom_original)]
 
         for geom in geoms:
+            content_type_id = getattr(content_type_object, "id", content_type)
+            object_id = getattr(created_from_model, "id", object_id)
+
+            if not InstanceCopiedFrom:
+                try:
+                    content_type_model = ct_models.ContentType.objects.get(
+                        pk=content_type_id
+                    )
+                except ct_models.ContentType.DoesNotExist:
+                    pass
+                else:
+                    created_from_geometry = (
+                        content_type_model.model_class().objects.get(pk=object_id)
+                    )
+                    logger.info(f"Created from geometry: {created_from_geometry}")
+
             geometry_data = {
                 f"{instance_fk_field_name}_id": instance.id,
                 "geometry": geom[0],
                 "original_geometry_ewkb": geom[1].ewkb,
                 "buffer_radius": buffer_radius,
+                "object_id": object_id,
+                "content_type": content_type_id,
             }
 
             intersect_data = {}
@@ -338,12 +380,17 @@ def save_geometry(
                 )
             except BufferGeometry.DoesNotExist:
                 if buffer_radius:
+                    content_type_object = ct_models.ContentType.objects.get_for_model(
+                        geometry_instance
+                    )
                     # There is a buffer radius, but no buffer geometry, so create a buffer geometry
                     BufferGeometry.objects.create(
                         buffered_from_geometry=geometry_instance,
                         geometry=buffer_geos_geometry(
                             geometry_instance.geometry, buffer_radius
                         ),
+                        object_id=geometry_instance.id,
+                        content_type=content_type_object,
                     )
                     logger.info(
                         f"Created buffer geometry for {instance_model_name} geometry: {geometry_instance}"
