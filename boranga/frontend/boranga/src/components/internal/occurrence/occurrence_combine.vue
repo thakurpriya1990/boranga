@@ -173,7 +173,9 @@
                     aria-labelledby="pills-location-tab">
                         <!--Location Form-->
                         <FormSection :formCollapse="false" label="Location" Index="combine_location">
-                            Location Form
+                            <div class="row mb-3">
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_location_section" :section_type="'location'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            </div>
                         </FormSection>
                     </div>
                     <div :id="habitatBody" class="tab-pane fade" role="tabpanel" aria-labelledby="pills-habitat-tab">
@@ -311,6 +313,11 @@
             toggleKeyContacts: function () {
                 let vm = this;
                 vm.$refs.key_contacts_section.adjust_table_width();
+            },
+            updateChosenSection: function (id, sectionType) {
+                let vm = this;
+                vm.occ_combine_data["chosen_"+sectionType+"_section"] = parseInt(id);
+                console.log(vm.occ_combine_data["chosen_"+sectionType+"_section"]);
             },
             close: function () {
                 this.errorString = '';

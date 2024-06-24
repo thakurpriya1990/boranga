@@ -3804,6 +3804,77 @@ class OccurrenceViewSet(
         serialized_obj = CreateOccurrenceSerializer(new_instance)
         return Response(serialized_obj.data)
 
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def section_values(self, request, *args, **kwargs):
+
+        section = request.GET.get("section")
+        occ = self.get_object()
+        res_json = {}
+
+        if hasattr(occ, section):
+            section_value = getattr(occ, section)
+            section_fields = section_value._meta.get_fields()
+
+            for i in section_fields:
+                if (
+                    i.name == "id"
+                    or i.name == "occurrence"
+                    or isinstance(i, models.ManyToOneRel)
+                ):
+                    continue
+
+                # ensure many to many fields are assigned an appropriate __str__
+                if isinstance(i, models.ManyToManyField):
+                    sub_section_values = getattr(section_value, i.name)
+                    res_json[i.name] = []
+                    for j in sub_section_values.all():
+                        if j.__str__():
+                            res_json[i.name].append(j.__str__())
+                        else:
+                            res_json[i.name].append(j.id)
+
+                elif isinstance(i, models.ForeignKey):
+                    sub_section_value = getattr(section_value, i.name)
+                    if sub_section_value is not None:
+                        res_json[i.name] = {}
+                        sub_section_fields = sub_section_value._meta.get_fields()
+                        for j in sub_section_fields:
+                            if (
+                                j.name != "id"
+                                and not isinstance(j, models.ForeignKey)
+                                and not isinstance(j, models.ManyToOneRel)
+                                and not isinstance(j, models.ManyToManyRel)
+                                and getattr(sub_section_value, j.name) is not None
+                            ):
+                                res_json[i.name][j.name] = str(
+                                    getattr(sub_section_value, j.name)
+                                )
+                        # if the num sub section has only one value, assign as section
+                        if len(res_json[i.name]) == 1:
+                            res_json[i.name] = list(res_json[i.name].values())[0]
+                elif isinstance(i, MultiSelectField):
+                    if i.choices:
+                        choice_dict = dict(i.choices)
+                        id_list = getattr(section_value, i.name)
+                        values_list = []
+                        for id in id_list:
+                            if id.isdigit() and int(id) in choice_dict:
+                                values_list.append(choice_dict[int(id)])
+                        res_json[i.name] = values_list
+                    else:
+                        res_json[i.name] = getattr(section_value, i.name)
+
+                elif getattr(section_value, i.name) is not None:
+                    res_json[i.name] = str(getattr(section_value, i.name))
+
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
     @detail_route(
         methods=[
             "POST",

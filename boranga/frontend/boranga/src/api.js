@@ -242,6 +242,10 @@ module.exports = {
       return `/api/occurrence_report/${id}/section_values/?section=${model}`;
     },
 
+    lookup_occ_section_values: function (model,id) {
+      return `/api/occurrence/${id}/section_values/?section=${model}`;
+    },
+
     group_type_community: group_type_community,
     group_type_fauna: group_type_fauna,
     group_type_flora: group_type_flora,
