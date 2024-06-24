@@ -1723,6 +1723,21 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
         )
 
 
+class OCRObserverDetailReferralSerializer(OCRObserverDetailSerializer):
+
+    class Meta:
+        model = OCRObserverDetail
+        fields = (
+            "id",
+            "occurrence_report",
+            "observer_name",
+            "role",
+            "organisation",
+            "main_observer",
+            "visible",
+        )
+
+
 class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
     occurrence_report_id = serializers.IntegerField(write_only=True, required=False)
 
