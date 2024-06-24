@@ -5,7 +5,7 @@
                 :occurrence_report_obj="occurrence_report_obj" @refreshOccurrenceReport="refreshOccurrenceReport()">
             </OCRProfile>
             <SubmitterInformation v-if="occurrence_report_obj.submitter_information" :key="reloadcount"
-                ref="submitter_information" id="submitter_information"
+                ref="submitter_information" id="submitter_information" :show_submitter_contact_details="show_submitter_contact_details"
                 :submitter_information="occurrence_report_obj.submitter_information"
                 :disabled="!occurrence_report_obj.can_user_edit" />
         </div>
@@ -135,6 +135,9 @@ export default {
         };
     },
     computed: {
+        show_submitter_contact_details: function () {
+            return 'OccurrenceReportReferral' != this.$parent.$options.name
+        },
         related_items_ajax_url: function () {
             return (
                 '/api/occurrence_report/' +
