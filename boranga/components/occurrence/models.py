@@ -554,7 +554,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
-            OccurrenceReportUserAction.ACTION_DISCARD_PROPOSAL.format(
+            OccurrenceReportUserAction.ACTION_REINSTATE_PROPOSAL.format(
                 self.occurrence_report_number
             ),
             request,
@@ -1044,6 +1044,7 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_APPROVE = "Occurrence Report {} has been approved by {}"
     ACTION_CLOSE_OccurrenceReport = "De list occurrence report {}"
     ACTION_DISCARD_PROPOSAL = "Discard occurrence report {}"
+    ACTION_REINSTATE_PROPOSAL = "Reinstate occurrence report {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
 
     # Amendment
@@ -3047,6 +3048,38 @@ class Occurrence(RevisionedMixin):
                 + ", ".join(missing_values)
             )
 
+    @transaction.atomic
+    def discard(self, request):
+        if not self.processing_status == Occurrence.PROCESSING_STATUS_DRAFT:
+            raise exceptions.OccurrenceNotAuthorized()
+
+        self.processing_status = Occurrence.PROCESSING_STATUS_DISCARDED
+        self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_DISCARD_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
+    @transaction.atomic
+    def reinstate(self, request):
+        if not self.processing_status == Occurrence.PROCESSING_STATUS_DISCARDED:
+            raise exceptions.OccurrenceNotAuthorized()
+
+        self.processing_status = Occurrence.PROCESSING_STATUS_DRAFT
+        self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_REINSTATE_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
     def activate(self, request):
         self.validate_activate()
         if (
@@ -3094,8 +3127,9 @@ class Occurrence(RevisionedMixin):
 
     def can_user_edit(self, request):
         user_editable_state = [
-            "active",
-            "draft",
+            Occurrence.PROCESSING_STATUS_ACTIVE,
+            Occurrence.PROCESSING_STATUS_DRAFT,
+            Occurrence.PROCESSING_STATUS_DISCARDED,
         ]
         if self.processing_status not in user_editable_state:
             return False
@@ -3333,6 +3367,8 @@ class OccurrenceUserAction(UserAction):
     ACTION_VIEW_OCCURRENCE = "View occurrence {}"
     ACTION_SAVE_OCCURRENCE = "Save occurrence {}"
     ACTION_EDIT_OCCURRENCE = "Edit occurrence {}"
+    ACTION_DISCARD_OCCURRENCE = "Discard  occurrence {}"
+    ACTION_REINSTATE_OCCURRENCE = "Reinstate  occurrence {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for occurrence {}"

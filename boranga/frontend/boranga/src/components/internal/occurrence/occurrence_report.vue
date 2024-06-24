@@ -459,7 +459,7 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_ocr_proposal(vm.occurrence_report.id))
+                    vm.$http.patch(api_endpoints.discard_ocr_proposal(vm.occurrence_report.id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',

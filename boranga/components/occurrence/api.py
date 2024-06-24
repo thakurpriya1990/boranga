@@ -3680,6 +3680,30 @@ class OccurrenceViewSet(
 
     @detail_route(
         methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.discard(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reinstate(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
             "POST",
         ],
         detail=True,
