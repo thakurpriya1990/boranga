@@ -2,7 +2,7 @@
     <div id="minutes">
         <FormSection :formCollapse="false" label="Minutes" :Index="minutesBody">
             <form class="form-horizontal" action="index.html" method="post">
-                <div v-if="meeting_obj.can_user_edit" class="col-sm-12">
+                <div v-if="meeting_obj.can_user_add_minutes" class="col-sm-12">
                     <div class="text-end">
                         <button type="button" class="btn btn-primary mb-2 " @click.prevent="newDocument">
                             <i class="fa-solid fa-circle-plus"></i>
@@ -44,6 +44,10 @@ export default {
         meeting_obj: {
             type: Object,
             required: true
+        },
+        is_internal: {
+            type: Boolean,
+            default: false
         },
     },
     data: function () {
