@@ -759,10 +759,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         if (
             new_occurrence_name
-            and Occurrence.objects.filter(occurrence_name=new_occurrence_name).exists()
+            and (Occurrence.objects.filter(occurrence_name=new_occurrence_name).exists()
             or OccurrenceReportApprovalDetails.objects.filter(
                 new_occurrence_name=new_occurrence_name
-            ).exists()
+            ).exists())
         ):
             raise ValidationError(
                 f'Occurrence with name "{new_occurrence_name}" already exists or has been proposed for approval'
