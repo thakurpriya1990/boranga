@@ -159,8 +159,14 @@
                             </div>
                         </FormSection>
                         <!--Key Contacts Table-->
-                        <FormSection :formCollapse="true" label="Key Contacts" Index="combine_keyContacts">
-                            Key Contacts Table
+                        <FormSection :formCollapse="true" label="Key Contacts" Index="combine_keyContacts" @toggle-collapse="toggleKeyContacts">
+                            <div class="row mb-3">
+                            <OccurrenceCombineContacts 
+                            :selectedKeyContacts="key_contacts" 
+                            :combineKeyContactIds="occ_combine_data.combine_key_contact_ids" 
+                            :key="contact_table_key" 
+                            ref="key_contacts_section"/>
+                            </div>
                         </FormSection>
                     </div>
                     <div :id="locationBody" class="tab-pane fade" role="tabpanel"
@@ -236,6 +242,7 @@
     import FormSection from '@/components/forms/section_toggle.vue';
     import { helpers, api_endpoints } from "@/utils/hooks.js"
     import OccurrenceCombineSelect from './occurrence_combine_selection.vue'
+    import OccurrenceCombineContacts from './occurrence_combine_contacts.vue'
     export default {
         name: 'OccurrenceCombine',
         props: {
@@ -248,11 +255,15 @@
             modal,
             OccurrenceCombineSelect,
             FormSection,
+            OccurrenceCombineContacts,
         },
         data: function () {
             let vm = this;
             return {
                 occ_form_key: 0,
+                contact_table_key: 0,
+                document_table_key: 0,
+                threat_table_key: 0,
                 reloadcount: 0,
                 locationBody: 'locationBody' + vm._uid,
                 habitatBody: 'habitatBody' + vm._uid,
@@ -270,6 +281,9 @@
                 key_contact_ids: [],
                 document_ids: [],
                 threat_ids: [],
+                key_contacts: [],
+                documents: [],
+                threats: [],
                 occ_combine_data: {
                     combine_ids: [this.main_occurrence_obj.id],
                     combine_key_contact_ids: [],
@@ -294,6 +308,10 @@
             }
         },
         methods: {
+            toggleKeyContacts: function () {
+                let vm = this;
+                vm.$refs.key_contacts_section.adjust_table_width();
+            },
             close: function () {
                 this.errorString = '';
                 this.isModalOpen = false;
@@ -367,7 +385,6 @@
             getKeyContactIds: function() {
                 let vm = this;
                 let formData = new FormData()
-                console.log(vm.selectedOccurrenceIds)
                 formData.append("occurrence_ids", JSON.stringify(vm.selectedOccurrenceIds));
                 //get all key contact ids for all OCCs
                 vm.$http.post(
@@ -377,18 +394,32 @@
                     let old_list = vm.key_contact_ids;
                     //add to main list
                     vm.key_contact_ids = response.body.id_list;
+                    vm.key_contacts = response.body.values_list;
+
+                    let contact_names = {};
+                    let taken_names = [];
+                    vm.key_contacts.forEach(contact => {
+                        if (vm.occ_combine_data.combine_key_contact_ids.includes(contact.id)) {
+                            taken_names.push(contact.contact_name);
+                        }
+                        contact_names[contact.id] = contact.contact_name;
+                    });
+
                     //remove ids from combine list if not in new list
                     vm.occ_combine_data.combine_key_contact_ids.forEach(id => {
-                        if (!response.body.id_list.includes(id)) {
+                        if (!vm.key_contact_ids.includes(id)) {
                             vm.occ_combine_data.combine_key_contact_ids.splice(vm.occ_combine_data.combine_key_contact_ids.indexOf(id), 1);
                         }
                     });
-                    //add new ids to combine list if not in old list
+
+                    //add new ids to combine list if not in old list - unless they share a name
                     response.body.id_list.forEach(id => {
-                        if (!old_list.includes(id)) {
+                        if (!old_list.includes(id) && !taken_names.includes(contact_names[id])) {
                             vm.occ_combine_data.combine_key_contact_ids.push(id);
                         }
                     });
+
+                    vm.contact_table_key++;
                 }, (error) => {
                     console.error(error);
                 });                
@@ -405,6 +436,7 @@
                     let old_list = vm.document_ids;
                     //add to main list
                     vm.document_ids = response.body.id_list;
+                    vm.documents = response.body.values_list;
                     //remove ids from combine list if not in new list
                     vm.occ_combine_data.combine_document_ids.forEach(id => {
                         if (!response.body.id_list.includes(id)) {
@@ -433,6 +465,7 @@
                     let old_list = vm.threat_ids;
                     //add to main list
                     vm.threat_ids = response.body.id_list;
+                    vm.threats = response.body.values_list;
                     //remove ids from combine list if not in new list
                     vm.occ_combine_data.combine_threat_ids.forEach(id => {
                         if (!response.body.id_list.includes(id)) {
@@ -519,7 +552,7 @@
                 vm.getThreatIds();
                 //check form values
                 vm.checkFormValues();
-            }
+            },
         },
     }
 </script>

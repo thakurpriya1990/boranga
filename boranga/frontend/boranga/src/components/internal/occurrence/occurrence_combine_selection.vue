@@ -42,7 +42,7 @@ export default {
                     { responsivePriority: 1, targets: 0 },
                     { responsivePriority: 2, targets: -1 },
                 ],
-                data: this.selectedOccurrences,
+                data: vm.selectedOccurrences,
                 order: [],
                 buttons:[],
                 searching: false,

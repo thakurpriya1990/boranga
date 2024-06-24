@@ -243,7 +243,7 @@ export default {
     },
     methods:{
         toggleCollapse: function () {
-            console.log("toggle");
+            //console.log("toggle");
             this.adjust_table_width();
         },
         viewSection:function (id) {
