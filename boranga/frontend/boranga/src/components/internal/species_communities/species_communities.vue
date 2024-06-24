@@ -609,10 +609,10 @@ export default {
                 if (vm.species_community.distribution.distribution == null || vm.species_community.distribution.distribution == '') {
                     blank_fields.push('Distribution is missing')
                 }
-                if (vm.species_community.region_id == null || vm.species_community.region_id == '') {
+                if (vm.species_community.regions==null ||vm.species_community.regions.length==0 || vm.species_community.regions == '') {
                     blank_fields.push('Region is missing')
                 }
-                if (vm.species_community.district_id == null || vm.species_community.district_id == '') {
+                if (vm.species_community.districts == null || vm.species_community.districts == '' || vm.species_community.districts.length ==0) {
                     blank_fields.push('District is missing')
                 }
             }

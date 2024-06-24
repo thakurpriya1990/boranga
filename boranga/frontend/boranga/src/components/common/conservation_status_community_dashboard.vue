@@ -346,8 +346,10 @@ export default {
             filterCSCommunityInternationalRelevance: sessionStorage.getItem(this.filterCSCommunityInternationalRelevance_cache) ?
                 sessionStorage.getItem(this.filterCSCommunityInternationalRelevance_cache) : "false",
 
+            // filterCSCommunityApplicationStatus: sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) ?
+            //     sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : 'approved',
             filterCSCommunityApplicationStatus: sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : 'approved',
+                 sessionStorage.getItem(this.filterCSCommunityApplicationStatus_cache) : (this.is_for_agenda? 'ready_for_agenda' : 'approved'),
 
             filterCSCommunityAssessor: sessionStorage.getItem(this.filterCSCommunityAssessor_cache) ?
                 sessionStorage.getItem(this.filterCSCommunityAssessor_cache) : 'all',
@@ -536,7 +538,7 @@ export default {
             );
         },
         datatable_headers: function () {
-            return ['Number', 'Community', 'Community Id', 'Community Name', 'Change Type', 'WA Priority List',
+            return ['Number', 'Community', 'Community Id', 'Community Name', 'Regions', 'Districts', 'Change Type', 'WA Priority List',
                 'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
                 'Conservation Criteria',
                 'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
@@ -624,6 +626,38 @@ export default {
                     return ''
                 },
                 name: "processing_status",
+            }
+        },
+        column_region: function () {
+            return {
+                data: "regions",
+                orderable: true,
+                searchable: false,
+                visible: true,
+                'render': function (data, type, full) {
+                    if (full.regions) {
+                        return full.regions;
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "community__regions__name",
+            }
+        },
+        column_district: function () {
+            return {
+                data: "districts",
+                orderable: true,
+                searchable: false, // handles by filter_queryset override method - class ProposalFilterBackend
+                visible: true,
+                'render': function (data, type, full) {
+                    if (full.districts) {
+                        return full.districts
+                    }
+                    // Should not reach here
+                    return ''
+                },
+                name: "community__districts__name",
             }
         },
         column_change_code: function () {

@@ -396,8 +396,10 @@ export default {
             filterCSFaunaSubmitterCategory: sessionStorage.getItem(this.filterCSFaunaSubmitterCategory_cache) ?
                 sessionStorage.getItem(this.filterCSFaunaSubmitterCategory_cache) : 'all',
 
+            //filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
+            //    sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'approved',
             filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'approved',
+                sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : (this.is_for_agenda? 'ready_for_agenda' : 'approved'),
 
             filterCSFromFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) ?
                 sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) : '',
