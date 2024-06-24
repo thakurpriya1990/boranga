@@ -621,8 +621,9 @@ export default {
                 showCancelButton: true,
                 confirmButtonText: 'Add Occurrence Report',
                 reverseButtons: true,
-                confirmButtonColor: '#226fbb',
-
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     let newFloraOCRId = null
@@ -667,7 +668,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your report has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {
@@ -699,7 +702,9 @@ export default {
                                 title: 'Reinstated',
                                 text: 'Your report has been reinstated',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {

@@ -17,9 +17,11 @@
                     </div>
                     <template v-else>
                         <div class="mb-3 row">
-                            <label for="create_new_occurrence" class="col-sm-4 col-form-label">New Occurrence Name</label>
+                            <label for="create_new_occurrence" class="col-sm-4 col-form-label">New Occurrence
+                                Name</label>
                             <div class="col-sm-8">
-                                <input type="text" readonly class="form-control-plaintext" id="proposed_by" :value="approval_details.new_occurrence_name">
+                                <input type="text" readonly class="form-control-plaintext" id="proposed_by"
+                                    :value="approval_details.new_occurrence_name">
                             </div>
                         </div>
                     </template>
@@ -27,7 +29,8 @@
                     <div class="mb-3 row">
                         <label for="proposed_by" class="col-sm-4 col-form-label">Proposed By</label>
                         <div class="col-sm-8">
-                            <input type="text" readonly class="form-control-plaintext" id="proposed_by" :value="approval_details.officer_name">
+                            <input type="text" readonly class="form-control-plaintext" id="proposed_by"
+                                :value="approval_details.officer_name">
                         </div>
                     </div>
 
@@ -118,13 +121,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Approve',
-                confirmButtonColor: '#d9534f',
-                reverseButtons: true,
-                buttonsStyling: false,
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary me-2',
                 },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
                     vm.$http.post(helpers.add_endpoint_join(api_endpoints.occurrence_report, '/' + (vm.occurrence_report_id + '/approve/')), JSON.stringify(vm.approve))
@@ -133,7 +134,9 @@ export default {
                                 title: 'Occurrence Report Successfully Approved',
                                 text: `Occurrence Report: ${vm.occurrence_report_number} has been successfully approved.`,
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$router.push({
                                 name: 'internal-occurrence-dash'

@@ -93,12 +93,12 @@
             <div slot="footer">
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
                 <template v-if="document_id">
-                    <button type="button" v-if="updatingDocument" disabled class="btn btn-default" @click="ok"><i
+                    <button type="button" v-if="updatingDocument" disabled class="btn btn-primary" @click="ok"><i
                             class="fa fa-spinnner fa-spin"></i> Updating</button>
                     <button type="button" v-else class="btn btn-primary" @click="ok">Update</button>
                 </template>
                 <template v-else>
-                    <button type="button" v-if="addingDocument" disabled class="btn btn-default" @click="ok"><i
+                    <button type="button" v-if="addingDocument" disabled class="btn btn-primary" @click="ok"><i
                             class="fa fa-spinner fa-spin"></i> Adding</button>
                     <button type="button" v-else class="btn btn-primary" @click="ok">Add Document</button>
                 </template>

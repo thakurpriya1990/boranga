@@ -18,7 +18,8 @@
                 </div>
             </form>
         </FormSection>
-        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="ocr_document_url" :is_internal="is_internal">
+        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="ocr_document_url"
+            :is_internal="is_internal">
         </DocumentDetail>
         <div v-if="occurenceReportDocumentHistoryId">
             <OccurenceReportDocumentHistory ref="ocr_document_history" :key="occurenceReportDocumentHistoryId"
@@ -201,8 +202,7 @@ export default {
                                     links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
                                 }
                             }
-                            if (!vm.is_external)
-                            {
+                            if (!vm.is_external) {
                                 links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                             }
                             return links;
@@ -231,9 +231,9 @@ export default {
         OccurenceReportDocumentHistory,
     },
     computed: {
-        isReadOnly: function(){
+        isReadOnly: function () {
             //override for split reports
-            if(this.is_readonly){
+            if (this.is_readonly) {
                 return this.is_readonly;
             }
             return this.occurrence_report_obj.readonly
@@ -290,10 +290,14 @@ export default {
             swal.fire({
                 title: "Remove Document",
                 text: "Are you sure you want to remove this Document?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Document',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
                     vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report_documents, id + '/discard'))

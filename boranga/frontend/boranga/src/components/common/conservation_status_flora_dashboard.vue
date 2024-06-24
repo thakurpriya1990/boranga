@@ -1358,7 +1358,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {

@@ -33,8 +33,7 @@
                                         Occurrence:</label>
                                     <select id="occurrence_name_lookup_propose_approve"
                                         name="occurrence_name_lookup_propose_approve"
-                                        ref="occurrence_name_lookup_propose_approve" class="form-control" required 
-                                        />
+                                        ref="occurrence_name_lookup_propose_approve" class="form-control" required />
                                 </div>
                             </div>
                             <div v-else class="mt-3">
@@ -109,8 +108,8 @@ export default {
                         (this.occurrence_report.community_id !== null && this.occurrence_report.community_id === this.occurrence.community)
                     )
                 ) {
-                    var newOption = new Option(this.occurrence.occurrence_number + " - " + 
-                        this.occurrence.occurrence_name + " ("+ this.occurrence.group_type +")", 
+                    var newOption = new Option(this.occurrence.occurrence_number + " - " +
+                        this.occurrence.occurrence_name + " (" + this.occurrence.group_type + ")",
                         this.occurrence.id, false, true);
                     $(this.$refs.occurrence_name_lookup_propose_approve).append(newOption);
 
@@ -163,13 +162,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Propose Approve',
-                confirmButtonColor: '#d9534f',
-                reverseButtons: true,
-                buttonsStyling: false,
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary me-2',
                 },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
                     vm.$http.post(helpers.add_endpoint_join(api_endpoints.occurrence_report, '/' + (vm.occurrence_report.id + '/propose_approve/')), JSON.stringify(vm.propose_approve))
@@ -178,7 +175,9 @@ export default {
                                 title: 'Proposal to Approve Successful',
                                 text: `Your proposal to approve occurrence report ${vm.occurrence_report_number} has been successfully submitted.`,
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             }).then((result) => {
                                 vm.$router.go();
                             });

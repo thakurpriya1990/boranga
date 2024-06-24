@@ -57,8 +57,7 @@
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Referrals</strong><br />
                                     <div class="form-group mb-3">
-                                        <select :disabled="!canLimitedAction" ref="referees"
-                                            class="form-control">
+                                        <select :disabled="!canLimitedAction" ref="referees" class="form-control">
                                         </select>
                                         <template v-if='!sendingReferral'>
                                             <template v-if="selected_referral">
@@ -691,7 +690,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$router.push({
                                 name: 'internal-conservation_status-dash'
@@ -747,7 +748,9 @@ export default {
                                 title: 'Delisted',
                                 text: `Conservation Status ${this.conservation_status_obj.conservation_status_number} has been delisted.`,
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$router.push({
                                 name: 'internal-conservation_status-dash'
@@ -834,7 +837,9 @@ export default {
                     title: 'Saved',
                     text: 'Your changes has been saved',
                     icon: 'success',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingConservationStatus = false;
                 vm.isSaved = true;

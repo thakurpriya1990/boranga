@@ -1,33 +1,16 @@
 <!-- eslint-disable vue/no-mutating-props -->
 <template lang="html">
     <div id="ocrLocation">
-        <FormSection
-            :form-collapse="false"
-            label="Location"
-            Index="occurrence_report_location"
-        >
+        <FormSection :form-collapse="false" label="Location" Index="occurrence_report_location">
             <div class="row mb-3">
-                <MapComponent
-                    ref="component_map"
-                    :key="componentMapKey"
-                    class="me-3"
-                    :context="occurrence_report_obj"
-                    :is_external="is_external"
-                    :point-features-supported="true"
-                    :polygon-features-supported="isFauna == false"
-                    :drawable="true"
-                    :editable="true"
-                    level="external"
-                    style-by="assessor"
-                    :map-info-text="
-                        is_internal
-                            ? ''
-                            : 'Use the <b>draw</b> tool to draw the area of the report on the map.</br>You can <b>save</b> the report and continue at a later time.'
-                    "
-                    :selectable="true"
-                    :coordinate-reference-systems="coordinateReferenceSystems"
-                    :tile-layer-api-url="tileLayerApiUrl"
-                    :query-layer-definition="{
+                <MapComponent ref="component_map" :key="componentMapKey" class="me-3" :context="occurrence_report_obj"
+                    :is_external="is_external" :point-features-supported="true"
+                    :polygon-features-supported="isFauna == false" :drawable="true" :editable="true" level="external"
+                    style-by="assessor" :map-info-text="is_internal
+                        ? ''
+                        : 'Use the <b>draw</b> tool to draw the area of the report on the map.</br>You can <b>save</b> the report and continue at a later time.'
+                        " :selectable="true" :coordinate-reference-systems="coordinateReferenceSystems"
+                    :tile-layer-api-url="tileLayerApiUrl" :query-layer-definition="{
                         name: 'query_layer',
                         title: 'Occurrence Report',
                         default: true,
@@ -36,11 +19,8 @@
                         ids: [occurrence_report_obj.id],
                         geometry_name: 'ocr_geometry',
                         collapse: false,
-                    }"
-                    @validate-feature="validateFeature.bind(this)()"
-                    @refreshFromResponse="refreshFromResponse"
-                    @crs-select-search="searchForCRS"
-                ></MapComponent>
+                    }" @validate-feature="validateFeature.bind(this)()" @refreshFromResponse="refreshFromResponse"
+                    @crs-select-search="searchForCRS"></MapComponent>
             </div>
 
             <div class="row mb-3">
@@ -66,56 +46,26 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Locality:</label
-                >
+                <label for="" class="col-sm-3 control-label">Locality:</label>
                 <div class="col-sm-9">
-                    <textarea
-                        id="locality"
-                        v-model="
-                            occurrence_report_obj.location.locality
-                        "
-                        :disabled="isReadOnly"
-                        class="form-control"
-                        rows="1"
-                        placeholder=""
-                    />
+                    <textarea id="locality" v-model="occurrence_report_obj.location.locality
+                        " :disabled="isReadOnly" class="form-control" rows="1" placeholder="" />
                 </div>
             </div>
 
             <!-- -------------------------------- -->
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Location Description:</label
-                >
+                <label for="" class="col-sm-3 control-label">Location Description:</label>
                 <div class="col-sm-9">
-                    <textarea
-                        id="loc_description"
-                        v-model="
-                            occurrence_report_obj.location.location_description
-                        "
-                        :disabled="isReadOnly"
-                        class="form-control"
-                        rows="2"
-                        placeholder=""
-                    />
+                    <textarea id="loc_description" v-model="occurrence_report_obj.location.location_description
+                        " :disabled="isReadOnly" class="form-control" rows="2" placeholder="" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Boundary Description:</label
-                >
+                <label for="" class="col-sm-3 control-label">Boundary Description:</label>
                 <div class="col-sm-9">
-                    <textarea
-                        id="boundary_descr"
-                        v-model="
-                            occurrence_report_obj.location.boundary_description
-                        "
-                        :disabled="isReadOnly"
-                        class="form-control"
-                        rows="2"
-                        placeholder=""
-                    />
+                    <textarea id="boundary_descr" v-model="occurrence_report_obj.location.boundary_description
+                        " :disabled="isReadOnly" class="form-control" rows="2" placeholder="" />
                 </div>
             </div>
             <!--<div class="row mb-3">
@@ -145,8 +95,10 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Map Data Type</label>
                 <div class="col-sm-6">
-                    <label class="me-2">Boundary</label><input disabled type="radio" :checked="occurrence_report_obj.location.has_boundary" class="form-check-input me-2">
-                    <label class="me-2">Point/s</label><input disabled type="radio" :checked="occurrence_report_obj.location.has_points" class="form-check-input me-2">
+                    <label class="me-2">Boundary</label><input disabled type="radio"
+                        :checked="occurrence_report_obj.location.has_boundary" class="form-check-input me-2">
+                    <label class="me-2">Point/s</label><input disabled type="radio"
+                        :checked="occurrence_report_obj.location.has_points" class="form-check-input me-2">
                 </div>
             </div>
 
@@ -188,23 +140,12 @@
                 </div>
             </div>-->
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Coordination Source:</label
-                >
+                <label for="" class="col-sm-3 control-label">Coordination Source:</label>
                 <div class="col-sm-9">
-                    <select
-                        v-model="
-                            occurrence_report_obj.location
-                                .coordination_source_id
-                        "
-                        :disabled="isReadOnly"
-                        class="form-select"
-                    >
-                        <option
-                            v-for="option in coordination_source_list"
-                            :key="option.id"
-                            :value="option.id"
-                        >
+                    <select v-model="occurrence_report_obj.location
+                        .coordination_source_id
+                        " :disabled="isReadOnly" class="form-select">
+                        <option v-for="option in coordination_source_list" :key="option.id" :value="option.id">
                             {{ option.name }}
                         </option>
                     </select>
@@ -244,22 +185,11 @@
                 </div>
             </div>-->
             <div v-if="canAssess" class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Location Accuracy:</label
-                >
+                <label for="" class="col-sm-3 control-label">Location Accuracy:</label>
                 <div class="col-sm-9">
-                    <select
-                        v-model="
-                            occurrence_report_obj.location.location_accuracy_id
-                        "
-                        :disabled="isReadOnly"
-                        class="form-select"
-                    >
-                        <option
-                            v-for="option in location_accuracy_list"
-                            :key="option.id"
-                            :value="option.id"
-                        >
+                    <select v-model="occurrence_report_obj.location.location_accuracy_id
+                        " :disabled="isReadOnly" class="form-select">
+                        <option v-for="option in location_accuracy_list" :key="option.id" :value="option.id">
                             {{ option.name }}
                         </option>
                     </select>
@@ -269,12 +199,8 @@
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingLocationDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
-                    <button
-                        v-if="!updatingLocationDetails"
-                        class="btn btn-primary btn-sm float-end"
-                        @click.prevent="updateLocationDetails()"
-                        :disabled="isReadOnly"
-                    >
+                    <button v-if="!updatingLocationDetails" class="btn btn-primary btn-sm float-end"
+                        @click.prevent="updateLocationDetails()" :disabled="isReadOnly">
                         Update
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
@@ -351,22 +277,22 @@ export default {
 
             deficiency_readonly:
                 !this.is_external &&
-                !this.occurrence_report_obj.can_user_edit &&
-                this.occurrence_report_obj.assessor_mode.assessor_level ==
+                    !this.occurrence_report_obj.can_user_edit &&
+                    this.occurrence_report_obj.assessor_mode.assessor_level ==
                     'assessor' &&
-                this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
-                !this.occurrence_report_obj.assessor_mode
-                    .status_without_assessor
+                    this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
+                    !this.occurrence_report_obj.assessor_mode
+                        .status_without_assessor
                     ? false
                     : true,
             assessor_comment_readonly:
                 !this.is_external &&
-                !this.occurrence_report_obj.can_user_edit &&
-                this.occurrence_report_obj.assessor_mode.assessor_level ==
+                    !this.occurrence_report_obj.can_user_edit &&
+                    this.occurrence_report_obj.assessor_mode.assessor_level ==
                     'assessor' &&
-                this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
-                !this.occurrence_report_obj.assessor_mode
-                    .status_without_assessor
+                    this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
+                    !this.occurrence_report_obj.assessor_mode
+                        .status_without_assessor
                     ? false
                     : true,
 
@@ -391,13 +317,13 @@ export default {
                 return false;
             }
         },
-        isReadOnly: function(){
-                //override for split reports
-                if(this.is_readonly){
-                    return this.is_readonly;
-                }
-                return this.occurrence_report_obj.readonly
-            },
+        isReadOnly: function () {
+            //override for split reports
+            if (this.is_readonly) {
+                return this.is_readonly;
+            }
+            return this.occurrence_report_obj.readonly
+        },
         componentMapKey: function () {
             return `component-map-${this.uuid}`;
         },
@@ -539,7 +465,9 @@ export default {
                             title: 'Saved',
                             text: 'Location details have been saved',
                             icon: 'success',
-                            confirmButtonColor: '#226fbb',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
                         }).then((result) => {
                             if (vm.occurrence_report_obj.processing_status == "Unlocked") {
                                 vm.$router.go();
@@ -555,7 +483,9 @@ export default {
                                 'Location details cannot be saved because of the following error: ' +
                                 text,
                             icon: 'error',
-                            confirmButtonColor: '#226fbb',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
                         });
                         vm.updatingLocationDetails = false;
                     }
@@ -618,6 +548,7 @@ export default {
 
 <style lang="css" scoped>
 @import 'vue-select/dist/vue-select.css';
+
 /*ul, li {
         zoom:1;
         display: inline;
@@ -629,19 +560,25 @@ fieldset.scheduler-border {
     -webkit-box-shadow: 0px 0px 0px 0px #000;
     box-shadow: 0px 0px 0px 0px #000;
 }
+
 legend.scheduler-border {
-    width: inherit; /* Or auto */
-    padding: 0 10px; /* To give a bit of padding on the left and right */
+    width: inherit;
+    /* Or auto */
+    padding: 0 10px;
+    /* To give a bit of padding on the left and right */
     border-bottom: none;
 }
+
 input[type='text'],
 select {
     width: 100%;
     padding: 0.375rem 2.25rem 0.375rem 0.75rem;
 }
+
 input[type='number'] {
     width: 50%;
 }
+
 input.ocr_number {
     width: 20%;
 }

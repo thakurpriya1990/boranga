@@ -1458,7 +1458,7 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # However if we have time we can change the split action to only create the new species
         # on submit. Potential TODO
         instance = self.get_object()
-        instance.remove()
+        instance.remove(request)
         return Response(status.HTTP_204_NO_CONTENT)
 
     @detail_route(methods=["post"], detail=True)
@@ -1792,6 +1792,30 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             serializer.save()
 
             return Response(new_returned, status=status.HTTP_201_CREATED)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.discard(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reinstate(request)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @detail_route(
         methods=[

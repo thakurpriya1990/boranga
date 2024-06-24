@@ -686,9 +686,13 @@ export default {
                     let links = "";
                     if (!vm.is_external) {
                         if (full.can_user_edit) {
-                            links += `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
-                            links += `<a href='#${full.id}' data-discard-species-proposal='${full.id}?group_type_name=${full.group_type}'>Discard</a><br/>`;
-                            links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
+                            if (full.processing_status == 'Discarded') {
+                                links += `<a href='#${full.id}' data-reinstate-species-proposal='${full.id}'>Reinstate</a><br/>`;
+                            } else {
+                                links += `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
+                                links += `<a href='#${full.id}' data-discard-species-proposal='${full.id}'>Discard</a><br/>`;
+                                links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
+                            }
                         }
                         else {
                             if (full.user_process) {
@@ -1325,24 +1329,30 @@ export default {
                 }
             }
         },
-        discardSpeciesProposal: function (species_id) {
+        discardSpecies: function (species_id) {
             let vm = this;
             swal.fire({
-                title: "Discard Application",
-                text: "Are you sure you want to discard this proposal?",
-                icon: "warning",
+                title: "Discard Flora",
+                text: "Are you sure you want to discard this flora record?",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Discard Application',
-                confirmButtonColor: '#d9534f'
+                confirmButtonText: 'Discard Flora',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_species_proposal(species_id))
+                    vm.$http.patch(api_endpoints.discard_species_proposal(species_id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
-                                text: 'Your proposal has been discarded',
+                                text: 'The flora record has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {
@@ -1350,7 +1360,41 @@ export default {
                         });
                 }
             }, (error) => {
-
+                console.log(error);
+            });
+        },
+        reinstateSpecies: function (species_id) {
+            let vm = this;
+            swal.fire({
+                title: "Reinstate Flora",
+                text: "Are you sure you want to reinstate this flora record?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Reinstate Flora',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    vm.$http.patch(api_endpoints.reinstate_species_proposal(species_id))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'The flora record has been reinstated',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.flora_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            }, (error) => {
+                console.log(error);
             });
         },
         addEventListeners: function () {
@@ -1359,7 +1403,12 @@ export default {
             vm.$refs.flora_datatable.vmDataTable.on('click', 'a[data-discard-species-proposal]', function (e) {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-species-proposal');
-                vm.discardSpeciesProposal(id);
+                vm.discardSpecies(id);
+            });
+            vm.$refs.flora_datatable.vmDataTable.on('click', 'a[data-reinstate-species-proposal]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-reinstate-species-proposal');
+                vm.reinstateSpecies(id);
             });
             vm.$refs.flora_datatable.vmDataTable.on('click', 'a[data-history-species]', function (e) {
                 e.preventDefault();

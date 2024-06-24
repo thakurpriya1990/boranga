@@ -25,8 +25,7 @@
 
                 <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name" :lodgement_date="occurrence_report.lodgement_date"
-                    :is_new_contributor="occurrence_report.is_new_contributor"
-                    class="mb-3" />
+                    :is_new_contributor="occurrence_report.is_new_contributor" class="mb-3" />
 
                 <div class="card card-default sticky-top">
                     <div class="card-header">
@@ -41,7 +40,8 @@
                         <template v-if="with_approver">
                             <select ref="assigned_officer" :disabled="!occurrence_report.can_user_approve"
                                 class="form-select mb-2" v-model="occurrence_report.assigned_approver">
-                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id" :selected="member.id==occurrence_report.assigned_approver">
+                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id"
+                                    :selected="member.id == occurrence_report.assigned_approver">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
                             <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
@@ -51,7 +51,8 @@
                         <template v-else>
                             <select ref="assigned_officer" :disabled="!occurrence_report.can_user_assess"
                                 class="form-select mb-2" v-model="occurrence_report.assigned_officer">
-                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id" :selected="member.id==occurrence_report.current_assessor.id">
+                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id"
+                                    :selected="member.id == occurrence_report.current_assessor.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
                             <a v-if="(with_assessor || with_referral || unlocked) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
@@ -170,8 +171,8 @@
                             <button v-if="display_decline_button" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="decline()">Decline</button>
 
-                            <button v-if="with_assessor || with_approver" style="width:80%;" class="btn btn-primary mb-2"
-                                @click.prevent="splitSpecies()">Split</button><br />
+                            <button v-if="with_assessor || with_approver" style="width:80%;"
+                                class="btn btn-primary mb-2" @click.prevent="splitSpecies()">Split</button><br />
                             <button v-if="canDiscard" style="width:80%;" class="btn btn-primary mb-2"
                                 @click.prevent="discardOCRProposal()">Discard</button>
 
@@ -189,14 +190,16 @@
                         enctype="multipart/form-data">
                         <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
                             id="OccurrenceReportStart" :canEditStatus="false" :is_external="false" :is_internal="true"
-                            ref="occurrence_report" @refreshFromResponse="refreshFromResponse" @refreshOccurrenceReport="refreshOccurrenceReport()">
+                            ref="occurrence_report" @refreshFromResponse="refreshFromResponse"
+                            @refreshOccurrenceReport="refreshOccurrenceReport()">
                         </ProposalOccurrenceReport>
 
                         <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                         <input type='hidden' name="occurrence_report_id" :value="1" />
                         <div class="row" style="margin-bottom: 50px">
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit" class="container">
+                                <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit"
+                                    class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
                                             style="margin-top:5px;" disabled>Save and Continue&nbsp;
@@ -222,7 +225,8 @@
                                             :disabled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
                                 </div>
-                                <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)" class="container">
+                                <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)"
+                                    class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Save Changes&nbsp;
@@ -246,8 +250,9 @@
             @refreshFromResponse="refreshFromResponse">
         </BackToAssessor>
         <ProposeAppprove ref="propose_approve" :occurrence_report="occurrence_report"
-            :occurrence_report_number="occurrence_report.occurrence_report_number" :occurrence="occurrence_report.occurrence"
-            :group_type_id="occurrence_report.group_type_id" @refreshFromResponse="refreshFromResponse">
+            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            :occurrence="occurrence_report.occurrence" :group_type_id="occurrence_report.group_type_id"
+            @refreshFromResponse="refreshFromResponse">
         </ProposeAppprove>
         <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="occurrence_report.occurrence_report_number"
@@ -446,17 +451,23 @@ export default {
                 text: "Are you sure you want to discard this report?",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonText: 'Discard Application',
-                confirmButtonColor: '#d9534f'
+                confirmButtonText: 'Discard Report',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
                     vm.$http.delete(api_endpoints.discard_ocr_proposal(vm.occurrence_report.id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
-                                text: 'Your proposal has been discarded',
+                                text: 'Your report has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$router.push({
                                 name: 'internal-species-communities-dash'
@@ -477,7 +488,11 @@ export default {
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Unlock Report',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
                     vm.$http.post(`/api/occurrence_report/${vm.occurrence_report.id}/unlock_occurrence_report.json`)
@@ -486,7 +501,9 @@ export default {
                                 title: 'Unlocked',
                                 text: 'The approved occurrence report has been unlocked for editing',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.occurrence_report = response.body;
                         }, (error) => {
@@ -505,7 +522,11 @@ export default {
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Lock Report',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
                     vm.$http.post(`/api/occurrence_report/${vm.occurrence_report.id}/lock_occurrence_report.json`)
@@ -514,7 +535,9 @@ export default {
                                 title: 'Locked',
                                 text: 'The approved occurrence report has been locked from editing',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.occurrence_report = response.body;
                         }, (error) => {
@@ -648,7 +671,7 @@ export default {
             }
             if (check_action == 'submit') {
                 //TODO add validation for fields required before submit
-                if(!vm.occurrence_report.submitter_information.submitter_category){
+                if (!vm.occurrence_report.submitter_information.submitter_category) {
                     blank_fields.push(' Please select a submitter category')
                 }
             }

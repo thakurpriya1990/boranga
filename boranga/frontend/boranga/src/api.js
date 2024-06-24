@@ -150,10 +150,16 @@ module.exports = {
         return `/api/conservation_status/${id}/delist/`;
     },
     discard_community_proposal: function (id) {
-        return `/api/community/${id}.json`;
+        return `/api/community/${id}/discard/`;
+    },
+    reinstate_community_proposal: function (id) {
+        return `/api/community/${id}/reinstate/`;
     },
     discard_species_proposal: function (id) {
         return `/api/species/${id}/discard/`;
+    },
+    reinstate_species_proposal: function (id) {
+        return `/api/species/${id}/reinstate/`;
     },
     remove_species_proposal: function (id) {
         return `/api/species/${id}/remove/`;

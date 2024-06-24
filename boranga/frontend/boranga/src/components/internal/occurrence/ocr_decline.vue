@@ -7,8 +7,8 @@
                     <form class="form-horizontal" name="decline-form">
                         <alert v-if="errorString" type="danger"><strong>{{ errorString }}</strong></alert>
                         <label class="control-label mb-3" for="reason">Reason</label>
-                        <textarea class="form-control" name="reason" v-model="decline.reason" id="reason"
-                            ref="reason" required></textarea>
+                        <textarea class="form-control" name="reason" v-model="decline.reason" id="reason" ref="reason"
+                            required></textarea>
                     </form>
                 </div>
             </div>
@@ -54,7 +54,7 @@ export default {
             if (val) {
                 this.$nextTick(() => {
                     this.$refs.reason.focus();
-                    if(this.declined_details){
+                    if (this.declined_details) {
                         this.decline.reason = this.declined_details.reason;
                     }
                 });
@@ -87,13 +87,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Decline',
-                confirmButtonColor: '#d9534f',
-                reverseButtons: true,
-                buttonsStyling: false,
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary me-2',
                 },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
                     vm.$http.post(helpers.add_endpoint_join(api_endpoints.occurrence_report, '/' + (vm.occurrence_report_id + '/decline/')), JSON.stringify(vm.decline))
@@ -102,7 +100,9 @@ export default {
                                 title: 'Occurrence Report Successfully Declined',
                                 text: `Occurrence Report ${vm.occurrence_report_number} has been successfully declined. The applicant has been notified via email.`,
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$router.push({
                                 name: 'internal-occurrence-dash'

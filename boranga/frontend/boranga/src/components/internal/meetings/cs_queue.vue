@@ -258,10 +258,14 @@ export default {
             swal.fire({
                 title: "Remove Agenda Item",
                 text: "Are you sure you want to remove this agenda item?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Agenda Item',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
                     let payload = new Object();

@@ -1393,15 +1393,19 @@ export default {
         discardSpeciesProposal:function (species_id) {
             let vm = this;
             swal.fire({
-                title: "Discard Application",
+                title: "Discard Proposal",
                 text: "Are you sure you want to discard this proposal?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Discard Application',
-                confirmButtonColor:'#d9534f'
+                confirmButtonText: 'Discard Proposal',
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-primary'
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if(result.isConfirmed){
-                    vm.$http.delete(api_endpoints.discard_species_proposal(species_id))
+                    vm.$http.patch(api_endpoints.discard_species_proposal(species_id))
                     .then((response) => {
                         swal.fire({
                             title: 'Discarded',

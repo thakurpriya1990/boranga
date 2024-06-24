@@ -129,7 +129,9 @@ export default {
                     title: 'Referral Reminder',
                     text: 'A reminder has been sent to ' + user,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             },
                 error => {

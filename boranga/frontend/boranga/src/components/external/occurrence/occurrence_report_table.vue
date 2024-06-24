@@ -480,7 +480,9 @@ export default {
                                 title: 'Occurrence Report Discarded',
                                 text: 'The occurrence report has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
@@ -510,7 +512,9 @@ export default {
                                 title: 'Reinstated',
                                 text: 'Your report has been reinstated',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {

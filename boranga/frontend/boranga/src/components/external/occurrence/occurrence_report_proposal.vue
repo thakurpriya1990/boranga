@@ -40,8 +40,8 @@
             </div>
 
             <ProposalOccurrenceReport v-if="occurrence_report_obj" :occurrence_report_obj="occurrence_report_obj"
-                id="OccurrenceReportStart" :canEditStatus="canEditStatus" :is_external="true" ref="occurrence_report" @refreshOccurrenceReport="refreshOccurrenceReport()"
-                @refreshFromResponse="refreshFromResponse">
+                id="OccurrenceReportStart" :canEditStatus="canEditStatus" :is_external="true" ref="occurrence_report"
+                @refreshOccurrenceReport="refreshOccurrenceReport()" @refreshFromResponse="refreshFromResponse">
             </ProposalOccurrenceReport>
 
             <div>
@@ -166,7 +166,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -231,7 +233,9 @@ export default {
                     title: 'Save Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingOCRProposal = false;
                 vm.isSaved = false;
@@ -246,7 +250,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -320,7 +326,9 @@ export default {
                     title: 'Submit Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.submitting = false;
                 vm.saveError = true;
@@ -455,7 +463,7 @@ export default {
                     blank_fields.push(' Community Name is missing')
                 }
             }
-            if(!vm.occurrence_report_obj.submitter_information.submitter_category){
+            if (!vm.occurrence_report_obj.submitter_information.submitter_category) {
                 blank_fields.push(' Please select a submitter category')
             }
             if (check_action == "submit") {
@@ -472,7 +480,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -486,7 +496,9 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: vm.submit_text(),
-                confirmButtonColor: '#226fbb',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
@@ -505,7 +517,9 @@ export default {
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                         });
                     }
