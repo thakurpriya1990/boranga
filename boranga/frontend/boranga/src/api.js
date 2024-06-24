@@ -152,6 +152,9 @@ module.exports = {
     discard_community_proposal: function (id) {
         return `/api/community/${id}/discard/`;
     },
+    reinstate_community_proposal: function (id) {
+        return `/api/community/${id}/reinstate/`;
+    },
     discard_species_proposal: function (id) {
         return `/api/species/${id}/discard/`;
     },
