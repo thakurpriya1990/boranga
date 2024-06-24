@@ -1051,12 +1051,9 @@ class Community(RevisionedMixin):
 
     @property
     def can_user_edit(self):
-        """
-        :return: True if the application is in one of the editable status.
-        """
-        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
         user_editable_state = [
-            "draft",
+            Community.PROCESSING_STATUS_DRAFT,
+            Community.PROCESSING_STATUS_DISCARDED,
         ]
         return self.processing_status in user_editable_state
 
@@ -1223,6 +1220,28 @@ class Community(RevisionedMixin):
 
         # TODO create a log entry for the user
 
+    def reinstate(self, request):
+        if not self.processing_status == Community.PROCESSING_STATUS_DISCARDED:
+            raise ValidationError(
+                "You cannot reinstate a community that is not discarded"
+            )
+
+        if not is_species_communities_approver(request):
+            raise ValidationError(
+                "You cannot reinstate a community unless you are a species communities approver"
+            )
+
+        self.processing_status = Community.PROCESSING_STATUS_DRAFT
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            CommunityUserAction.ACTION_REINSTATE_COMMUNITY.format(
+                self.community_number
+            ),
+            request,
+        )
+
     def log_user_action(self, action, request):
         return CommunityUserAction.log_action(self, action, request.user.id)
 
@@ -1308,6 +1327,7 @@ class CommunityUserAction(UserAction):
 
     ACTION_EDIT_COMMUNITY = "Edit Community {}"
     ACTION_DISCARD_COMMUNITY = "Discard Community {}"
+    ACTION_REINSTATE_COMMUNITY = "Reinstate Community {}"
     ACTION_CREATE_COMMUNITY = "Create new community {}"
     ACTION_SAVE_COMMUNITY = "Save Community {}"
     ACTION_IMAGE_UPDATE = "Community Image document updated for Community {}"
