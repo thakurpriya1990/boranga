@@ -165,25 +165,30 @@ class Meeting(models.Model):
 
     @property
     def can_user_edit(self):
-        user_editable_state = [
-            "draft",
+        return self.processing_status in [
+            Meeting.PROCESSING_STATUS_DRAFT,
+            Meeting.PROCESSING_STATUS_SCHEDULED,
         ]
-        return self.processing_status in user_editable_state
 
     @property
     def can_user_view(self):
-        user_viewable_state = ["completed"]
+        user_viewable_state = [
+            Meeting.PROCESSING_STATUS_COMPLETED,
+        ]
         return self.processing_status in user_viewable_state
 
     @property
     def is_meeting_editable(self):
         user_editable_state = [
-            "scheduled",
+            Meeting.PROCESSING_STATUS_SCHEDULED,
         ]
         return self.processing_status in user_editable_state
 
     def has_user_edit_mode(self, request):
-        officer_view_state = ["draft", "completed"]
+        officer_view_state = [
+            Meeting.PROCESSING_STATUS_DRAFT,
+            Meeting.PROCESSING_STATUS_COMPLETED,
+        ]
         if self.processing_status in officer_view_state:
             return False
 
