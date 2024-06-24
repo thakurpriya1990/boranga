@@ -538,7 +538,7 @@ export default {
             );
         },
         datatable_headers: function () {
-            return ['Number', 'Community', 'Community Id', 'Community Name', 'Regions', 'Districts', 'Change Type', 'WA Priority List',
+            return ['Number', 'Community', 'Community Id', 'Community Name', 'Change Type', 'WA Priority List',
                 'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
                 'Conservation Criteria',
                 'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
