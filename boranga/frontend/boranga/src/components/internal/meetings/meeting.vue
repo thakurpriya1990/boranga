@@ -279,7 +279,7 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            const result = await vm.$http.post(vm.meeting_form_url, payload).then(res => {
+            const result = await vm.$http.put(vm.meeting_form_url, payload).then(res => {
                 //return true;
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
@@ -363,7 +363,7 @@ export default {
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.meeting_obj);
-                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/submit'), payload).then(res => {
+                        vm.$http.put(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/submit'), payload).then(res => {
                             vm.meeting_obj = res.body;
                             // vm.$router.push({
                             //     name: 'submit_cs_proposal',
@@ -393,7 +393,7 @@ export default {
             let vm = this;
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            vm.$http.post(vm.meeting_form_url, payload).then(res => {
+            vm.$http.put(vm.meeting_form_url, payload).then(res => {
             }, err => {
             });
         },
