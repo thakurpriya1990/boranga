@@ -272,7 +272,6 @@ class Meeting(models.Model):
                 request,
             )
 
-        self.processing_status = self.PROCESSING_STATUS_SCHEDULED
         self.save()
 
 
