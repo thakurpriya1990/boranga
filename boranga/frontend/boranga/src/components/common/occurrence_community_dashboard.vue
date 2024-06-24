@@ -119,7 +119,7 @@ export default {
         return {
             uuid: 0,
             occurrenceHistoryId: null,
-            datatable_id: 'community_ocr-datatable-' + vm._uid,
+            datatable_id: 'occurrence-community-datatable-' + vm._uid,
 
             // selected values for filtering
             filterOCCCommunityOccurrenceName: sessionStorage.getItem(this.filterOCCCommunityOccurrenceName_cache) ?
@@ -148,6 +148,7 @@ export default {
             // internal_status referes to PROCESSING_STATUS_CHOICES
             internal_status: [
                 { value: 'draft', name: 'Draft' },
+                { value: 'discarded', name: 'Discarded' },
                 { value: 'active', name: 'Active' },
                 { value: 'locked', name: 'Locked' },
                 { value: 'historical', name: 'Historical' },
@@ -338,7 +339,15 @@ export default {
                     let links = "";
                     if (vm.is_internal) {
                         if (full.can_user_edit) {
-                            links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
+                            if (full.processing_status == 'discarded') {
+                                links += `<a href='#' data-reinstate-occ-proposal='${full.id}'>Reinstate</a><br/>`;
+                                return links;
+                            } else {
+                                links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
+                                if (full.processing_status == 'draft') {
+                                    links += `<a href='#' data-discard-occ-proposal='${full.id}'>Discard</a><br/>`;
+                                }
+                            }
                         } else {
                             links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
                         }
@@ -572,7 +581,7 @@ export default {
                 }
             });
         },
-        discardOCCProposal: function (occurrence_id) {
+        discardOCC: function (occurrence_id) {
             let vm = this;
             swal.fire({
                 title: "Discard Occurrence",
@@ -581,20 +590,20 @@ export default {
                 showCancelButton: true,
                 confirmButtonText: 'Discard Occurrence',
                 customClass: {
-                    confirmButton: 'btn btn-danger',
-                    cancelButton: 'btn btn-primary'
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
                 },
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_occ_proposal(occurrence_id))
+                    vm.$http.patch(api_endpoints.discard_occ_proposal(occurrence_id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
                                 text: 'The occurrence has been discarded',
                                 icon: 'success',
                                 customClass: {
-                                    confirmButton: 'btn btn-danger',
+                                    confirmButton: 'btn btn-primary',
                                 },
                             });
                             vm.$refs.community_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
@@ -603,16 +612,55 @@ export default {
                         });
                 }
             }, (error) => {
-
+                console.log(error);
+            });
+        },
+        reinstateOCC: function (occurrence_id) {
+            let vm = this;
+            swal.fire({
+                title: "Reinstate Occurrence",
+                text: "Are you sure you want to reinstate this occurrence?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Reinstate Occurrence',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    vm.$http.patch(api_endpoints.reinstate_occ_proposal(occurrence_id))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'Your report has been reinstated',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.community_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            }, (error) => {
+                console.log(error);
             });
         },
         addEventListeners: function () {
             let vm = this;
             // internal Discard listener
-            vm.$refs.community_occ_datatable.vmDataTable.on('click', 'a[data-discard-ocr-proposal]', function (e) {
+            vm.$refs.community_occ_datatable.vmDataTable.on('click', 'a[data-discard-occ-proposal]', function (e) {
                 e.preventDefault();
-                var id = $(this).attr('data-discard-ocr-proposal');
-                vm.discardOCCProposal(id);
+                var id = $(this).attr('data-discard-occ-proposal');
+                vm.discardOCC(id);
+            });
+            vm.$refs.community_occ_datatable.vmDataTable.on('click', 'a[data-reinstate-occ-proposal]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-reinstate-occ-proposal');
+                vm.reinstateOCC(id);
             });
             vm.$refs.community_occ_datatable.vmDataTable.on('click', 'a[data-history-occurrence]', function (e) {
                 e.preventDefault();

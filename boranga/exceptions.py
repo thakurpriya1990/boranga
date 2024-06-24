@@ -53,6 +53,11 @@ class OccurrenceReportReferralCannotBeSent(PermissionDenied):
     default_code = "occurrence_report_referral_cannot_be_sent"
 
 
+class OccurrenceNotAuthorized(PermissionDenied):
+    default_detail = "You are not authorised to work on this occurrence"
+    default_code = "occurrence_not_authorized"
+
+
 def custom_exception_handler(exc, context):
     """Custom django rest framework exception handler
     That makes sure all the exception responses are in json format since many django
