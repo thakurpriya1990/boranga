@@ -1,6 +1,7 @@
 <template lang="html">
     <div id="internal-ocr-back-to-assessor">
-        <modal id="myModal" transition="modal fade" @ok="ok()" @cancel="cancel()" title="Back to Assessor" okText="Back to Assessor" large>
+        <modal id="myModal" transition="modal fade" @ok="ok()" @cancel="cancel()" title="Back to Assessor"
+            okText="Back to Assessor" large>
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="back-to-assessor-form">
@@ -93,7 +94,9 @@ export default {
                     title: 'Sent Back',
                     text: `${vm.occurrence_report_number} has been sent back to the assessor with the provided reason.`,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 }).then((result) => {
                     vm.$router.go();
                 });

@@ -302,7 +302,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your document has been removed',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary'
+                                },
                             });
                             vm.$refs.documents_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
@@ -321,7 +323,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Reinstate Document',
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
                     vm.$http.get(helpers.add_endpoint_json(api_endpoints.conservation_status_documents, id + '/reinstate'))
@@ -330,7 +336,9 @@ export default {
                                 title: 'Reinstated',
                                 text: 'Your document has been reinstated',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary'
+                                },
                             });
                             vm.$refs.documents_datatable.vmDataTable.ajax.reload();
                         }, (error) => {

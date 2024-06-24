@@ -13,7 +13,7 @@
                                             :href="'#' + newSpeciesBody" role="tab" :aria-controls="newSpeciesBody"
                                             aria-selected="true">
                                             New Species {{
-                                                this.new_combine_species ? this.new_combine_species.species_number:'' }}
+                                                this.new_combine_species ? this.new_combine_species.species_number : '' }}
                                         </a>
                                     </li>
                                     <li class="nav-item" v-for="(species, index) in original_species_combine_list"
@@ -59,8 +59,8 @@
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
                 <button v-if="submitSpeciesCombine" class="btn btn-primary pull-right" style="margin-top:5px;"
                     disabled>Submit&nbsp;<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                <button v-else class="btn btn-primary" @click.prevent="ok()"
-                    :disabled="submitSpeciesCombine">Combine Species</button>
+                <button v-else class="btn btn-primary" @click.prevent="ok()" :disabled="submitSpeciesCombine">Combine
+                    Species</button>
             </div>
         </modal>
 
@@ -159,7 +159,9 @@ export default {
                     title: 'Submit Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.submitSpeciesCombine = false;
                 vm.saveError = true;
@@ -197,7 +199,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -209,7 +213,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     //---save and submit the new combine species
@@ -232,7 +240,9 @@ export default {
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.saveError = true;
                         });

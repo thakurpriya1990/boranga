@@ -160,7 +160,9 @@ export default {
                     title: 'Saved',
                     text: 'Your changes have been saved',
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingConservationStatus = false;
             }, err => {
@@ -211,7 +213,9 @@ export default {
                                     title: 'Referral Error',
                                     text: helpers.apiVueResourceError(error),
                                     icon: 'error',
-                                    confirmButtonColor: '#226fbb'
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
                                 });
                             });
 

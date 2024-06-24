@@ -276,7 +276,9 @@ export default {
                                 title: 'Removed',
                                 text: 'Your agenda item is removed',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.meeting_obj.agenda_items_arr = res.body;
                             //vm.constructCSQueueTable();

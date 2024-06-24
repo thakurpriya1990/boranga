@@ -569,7 +569,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -586,7 +588,9 @@ export default {
                     title: "Saved",
                     text: "Your changes has been saved",
                     icon: "success",
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingOccurrenceReport = false;
                 vm.isSaved = true;
@@ -597,7 +601,9 @@ export default {
                     title: 'Save Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingOccurrenceReport = false;
                 vm.isSaved = false;
@@ -611,7 +617,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 //vm.paySubmitting=false;
                 return false;
@@ -648,7 +656,9 @@ export default {
                     //helpers.apiVueResourceError(err),
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 vm.submitOccurrenceReport = false;
                 vm.saveError = true;
@@ -691,7 +701,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 //vm.paySubmitting=false;
                 return false;
@@ -704,7 +716,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     let result = await vm.save_before_submit()
@@ -722,7 +738,9 @@ export default {
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.submitOccurrenceReport = false;
                         });
@@ -859,7 +877,9 @@ export default {
                     title: 'Referral Sent',
                     text: `The referral has been sent to ${vm.selected_referral}`,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 $(vm.$refs.department_users).val(null).trigger("change");
                 vm.selected_referral = '';
@@ -870,7 +890,9 @@ export default {
                     title: 'Referral Error',
                     text: helpers.apiVueResourceError(error),
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.sendingReferral = false;
             });
@@ -884,7 +906,9 @@ export default {
                     title: 'Referral Reminder',
                     text: 'A reminder has been sent to ' + vm.department_users.find(d => d.id == r.referral.id).name,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             },
                 error => {
@@ -892,7 +916,9 @@ export default {
                         title: 'Referral Reminder Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
         },
@@ -907,7 +933,9 @@ export default {
                     title: 'Referral Recall',
                     text: 'The referral has been recalled from ' + vm.department_users.find(d => d.id == r.referral.id).name,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             },
                 error => {
@@ -915,7 +943,9 @@ export default {
                         title: 'Referral Recall Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
         },
@@ -930,7 +960,9 @@ export default {
                     title: 'Referral Resent',
                     text: 'The referral has been resent to ' + vm.department_users.find(d => d.id == r.referral.id).name,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             },
                 error => {
@@ -938,7 +970,9 @@ export default {
                         title: 'Referral Resent Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
         },
@@ -1054,7 +1088,9 @@ export default {
                         title: 'Application Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
             }
@@ -1071,7 +1107,9 @@ export default {
                             title: 'Application Error',
                             text: helpers.apiVueResourceError(error),
                             icon: 'error',
-                            confirmButtonColor: '#226fbb'
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
                         });
                     });
             }
@@ -1093,7 +1131,9 @@ export default {
                         title: 'Application Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
         },
