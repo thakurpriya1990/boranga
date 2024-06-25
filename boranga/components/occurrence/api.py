@@ -16,7 +16,7 @@ from multiselectfield import MultiSelectField
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import mixins, serializers, views, viewsets
+from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -31,6 +31,7 @@ from boranga.components.conservation_status.serializers import SendReferralSeria
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import validate_threat_request
+from boranga.components.occurrence.email import send_external_referee_invite_email
 from boranga.components.occurrence.filters import OccurrenceReportReferralFilterBackend
 from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
@@ -71,6 +72,7 @@ from boranga.components.occurrence.models import (
     OCRAnimalObservation,
     OCRAssociatedSpecies,
     OCRConservationThreat,
+    OCRExternalRefereeInvite,
     OCRFireHistory,
     OCRHabitatComposition,
     OCRHabitatCondition,
@@ -123,6 +125,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceTenureSerializer,
     OccurrenceUserActionSerializer,
     OCRConservationThreatSerializer,
+    OCRExternalRefereeInviteSerializer,
     OCRObserverDetailReferralSerializer,
     OCRObserverDetailSerializer,
     ProposeApproveSerializer,
@@ -5080,3 +5083,35 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+class OCRExternalRefereeInviteViewSet(viewsets.ModelViewSet):
+    queryset = OCRExternalRefereeInvite.objects.filter(archived=False)
+    serializer_class = OCRExternalRefereeInviteSerializer
+
+    def get_queryset(self):
+        qs = self.queryset
+        if not is_occurrence_assessor(self.request):
+            qs = OCRExternalRefereeInvite.objects.none()
+        return qs
+
+    @detail_route(methods=["post"], detail=True)
+    def remind(self, request, *args, **kwargs):
+        instance = self.get_object()
+        send_external_referee_invite_email(
+            instance.conservation_status, request, instance, reminder=True
+        )
+        return Response(
+            status=status.HTTP_200_OK,
+            data={"message": f"Reminder sent to {instance.email} successfully"},
+        )
+
+    @detail_route(methods=["patch"], detail=True)
+    def retract(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.archived = True
+        instance.save()
+        serializer = InternalOccurrenceReportSerializer(
+            instance.conservation_status, context={"request": request}
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
