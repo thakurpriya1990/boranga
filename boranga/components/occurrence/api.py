@@ -2337,6 +2337,32 @@ class OccurrenceReportViewSet(
         )
         return Response(serializer.data)
 
+    @detail_route(methods=["post"], detail=True)
+    def external_referee_invite(self, request, *args, **kwargs):
+        instance = self.get_object()
+        request.data["occurrence_report_id"] = instance.id
+        serializer = OCRExternalRefereeInviteSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        if OCRExternalRefereeInvite.objects.filter(
+            archived=False, email=request.data["email"]
+        ).exists():
+            raise serializers.ValidationError(
+                "An external referee invitation has already been sent to {email}".format(
+                    email=request.data["email"]
+                ),
+                code="invalid",
+            )
+        external_referee_invite = OCRExternalRefereeInvite.objects.create(
+            sent_by=request.user.id, **request.data
+        )
+        send_external_referee_invite_email(instance, request, external_referee_invite)
+
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
+
 
 class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OCRObserverDetail.objects.none()
@@ -5099,7 +5125,7 @@ class OCRExternalRefereeInviteViewSet(viewsets.ModelViewSet):
     def remind(self, request, *args, **kwargs):
         instance = self.get_object()
         send_external_referee_invite_email(
-            instance.conservation_status, request, instance, reminder=True
+            instance.occurrence_report, request, instance, reminder=True
         )
         return Response(
             status=status.HTTP_200_OK,
@@ -5112,6 +5138,6 @@ class OCRExternalRefereeInviteViewSet(viewsets.ModelViewSet):
         instance.archived = True
         instance.save()
         serializer = InternalOccurrenceReportSerializer(
-            instance.conservation_status, context={"request": request}
+            instance.occurrence_report, context={"request": request}
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
