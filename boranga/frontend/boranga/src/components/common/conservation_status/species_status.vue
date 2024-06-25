@@ -596,8 +596,8 @@ export default {
                     this.conservation_status_obj.assigned_officer == this.conservation_status_obj.current_assessor.id;
             }
             if (this.conservation_status_obj.processing_status != 'Draft') {
-                return this.conservation_status_obj.assigned_opprover &&
-                    this.conservation_status_obj.assigned_opprover == this.conservation_status_obj.current_assessor.id;
+                return Boolean(this.conservation_status_obj.assigned_approver) &&
+                    this.conservation_status_obj.assigned_approver == this.conservation_status_obj.current_assessor.id;
             }
             return false;
         },
