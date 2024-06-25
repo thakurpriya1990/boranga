@@ -1239,11 +1239,6 @@ export default {
                 })
                 .catch((error) => {
                     console.error(`Error sending reminder. ${error}`);
-                    swal.fire({
-                        title: 'Reminder Email Failed',
-                        text: `${constants.API_ERROR}`,
-                        icon: 'warning',
-                    });
                 });
         },
         retractExternalRefereeInvite: function (external_referee_invite) {
@@ -1284,11 +1279,6 @@ export default {
                             console.error(
                                 `Error retracting external referee invite. ${error}`
                             );
-                            swal.fire({
-                                title: 'Retract External Referee Invite Failed',
-                                text: `${constants.API_ERROR}`,
-                                icon: 'error',
-                            });
                         });
                 }
             });
