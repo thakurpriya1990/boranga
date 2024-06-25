@@ -82,6 +82,52 @@
                                 </span>
                             </template>
                         </div>
+                        <div v-if="
+                            occurrence_report.external_referral_invites &&
+                            occurrence_report.external_referral_invites.length > 0
+                        ">
+                            <div class="fw-bold mb-1">External Referee Invites</div>
+                            <table class="table table-sm table-hover table-referrals">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Referee</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="external_referee_invite in occurrence_report.external_referral_invites"
+                                        :key="external_referee_invite.id">
+                                        <td class="truncate-name">
+                                            {{ external_referee_invite.full_name }}
+                                        </td>
+                                        <td>Pending</td>
+                                        <td class="text-center">
+                                            <a role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
+                                                :data-bs-content="'Send a reminder to ' +
+                                                    external_referee_invite.full_name
+                                                    " data-bs-placement="bottom" @click.prevent="
+                                                                    remindExternalReferee(
+                                                                        external_referee_invite
+                                                                    )
+                                                                    "><i class="fa fa-bell text-warning"
+                                                    aria-hidden="true"></i>
+                                            </a>
+                                            <a role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
+                                                :data-bs-content="'Retract the external referee invite sent to ' +
+                                                    external_referee_invite.full_name
+                                                    " data-bs-placement="bottom" @click.prevent="
+                                                                    retractExternalRefereeInvite(
+                                                                        external_referee_invite
+                                                                    )
+                                                                    "><i class="fa fa-times-circle text-danger"
+                                                    aria-hidden="true"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     <div v-if="display_referral_actions &&
                         isAssignedOfficer &&
@@ -266,8 +312,8 @@
             :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="occurrence_report.occurrence_report_number"
             :approval_details="occurrence_report.approval_details" @refreshFromResponse="refreshFromResponse"></Approve>
-
-
+        <InviteExternalReferee ref="inviteExternalReferee" :pk="occurrence_report.id" model="occurrence_report"
+            :email="external_referee_email" @externalRefereeInviteSent="externalRefereeInviteSent" />
     </div>
     <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
@@ -289,6 +335,7 @@ import AmendmentRequest from './amendment_request.vue'
 import BackToAssessor from './back_to_assessor.vue'
 import ProposeDecline from './ocr_propose_decline.vue'
 import ProposeAppprove from './ocr_propose_approve.vue'
+import InviteExternalReferee from '@common-utils/invite_external_referee.vue'
 import Decline from './ocr_decline.vue'
 import Approve from './ocr_approve.vue'
 
@@ -321,6 +368,7 @@ export default {
             isSaved: false,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             department_users: null,
+            external_referee_email: '',
         }
     },
     components: {
@@ -336,6 +384,7 @@ export default {
         ProposeAppprove,
         Decline,
         Approve,
+        InviteExternalReferee,
         // SpeciesSplit,
         // SpeciesCombine,
         // SpeciesRename,
@@ -767,6 +816,10 @@ export default {
             let vm = this;
             vm.original_occurrence = helpers.copyObject(response.body);
             vm.occurrence_report = helpers.copyObject(response.body);
+            vm.$nextTick(() => {
+                vm.initialiseAssignedOfficerSelect(true);
+                vm.updateAssignedOfficerSelect();
+            });
         },
         splitSpecies: async function () {
             this.$refs.species_split.occurrence_original = this.occurrence_report;
@@ -1014,6 +1067,34 @@ export default {
                         }
                         return query;
                     },
+                    processResults: function (data, params) {
+                        if (Object.keys(data.results).length == 0) {
+                            swal.fire({
+                                title: 'No Referee Found',
+                                text: 'Would you like to invite a new external referee to the system?',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                reverseButtons: true,
+                                confirmButtonText: 'Yes',
+                                cancelButtonText: 'No',
+                                buttonsStyling: false,
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                    cancelButton: 'btn btn-secondary me-2',
+                                },
+                            }).then(async (result) => {
+                                if (result.isConfirmed) {
+                                    vm.external_referee_email =
+                                        params.term;
+                                    vm.$refs.inviteExternalReferee.isModalOpen = true;
+                                    $(vm.$refs.referees).select2(
+                                        'close'
+                                    );
+                                }
+                            });
+                        }
+                        return data;
+                    },
                 },
             })
                 .on("select2:select", function (e) {
@@ -1027,6 +1108,75 @@ export default {
                     var selected = $(e.currentTarget);
                     vm.selected_referral = null;
                 })
+        },
+        externalRefereeInviteSent: function (response) {
+            let vm = this;
+            vm.refreshFromResponse(response);
+            $(vm.$refs.referees).val(null).trigger("change");
+            vm.enablePopovers();
+            vm.selected_referral = '';
+            vm.referral_text = '';
+        },
+        remindExternalReferee: function (external_referee_invite) {
+            let vm = this;
+            vm.$http.post(
+                helpers.add_endpoint_join(
+                    api_endpoints.ocr_external_referee_invites,
+                    `/${external_referee_invite.id}/remind/`
+                ),
+            )
+                .then((response) => {
+                    swal.fire({
+                        title: 'Reminder Email Sent',
+                        text: `A reminder email was successfully sent to ${external_referee_invite.full_name} (${external_referee_invite.email}).`,
+                        icon: 'success',
+                    });
+                })
+                .catch((error) => {
+                    console.error(`Error sending reminder. ${error}`);
+                });
+        },
+        retractExternalRefereeInvite: function (external_referee_invite) {
+            swal.fire({
+                title: 'Retract External Referee Invite',
+                text: `Are you sure you want to retract the invite sent to ${external_referee_invite.full_name} (${external_referee_invite.email})?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Retract Email',
+                reverseButtons: true,
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let vm = this;
+                    vm.$http.patch(
+                        helpers.add_endpoint_join(
+                            api_endpoints.ocr_external_referee_invites,
+                            `/${external_referee_invite.id}/retract/`
+                        ),
+                    )
+                        .then((response) => {
+                            this.refreshOccurrenceReport();
+                            swal.fire({
+                                title: 'External Referee Invite Retracted',
+                                text: `The external referee invite that was sent to ${external_referee_invite.full_name} (${external_referee_invite.email}) has been successfully retracted.`,
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.enablePopovers();
+                        })
+                        .catch((error) => {
+                            console.error(
+                                `Error retracting external referee invite. ${error}`
+                            );
+                        });
+                }
+            });
         },
         initialiseAssignedOfficerSelect: function (reinit = false) {
             let vm = this;
