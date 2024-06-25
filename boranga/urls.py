@@ -132,6 +132,10 @@ router.register(
     r"occurrence_report", occurrence_api.OccurrenceReportViewSet, "occurrence_report"
 )
 router.register(
+    r"ocr_external_referee_invites",
+    occurrence_api.OCRExternalRefereeInviteViewSet,
+)
+router.register(
     r"occurrence_report_referrals",
     occurrence_api.OccurrenceReportReferralViewSet,
     "occurrence_report_referrals",
