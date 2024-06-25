@@ -1152,6 +1152,23 @@ class OccurrenceReportProposalReferralSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
+class OCRExternalRefereeInviteSerializer(serializers.ModelSerializer):
+    occurrence_report_id = serializers.IntegerField(required=False)
+    full_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = OCRExternalRefereeInvite
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "full_name",
+            "email",
+            "invite_text",
+            "occurrence_report_id",
+        ]
+
+
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     can_user_approve = serializers.SerializerMethodField()
     can_user_assess = serializers.SerializerMethodField()
@@ -1173,6 +1190,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     is_new_contributor = serializers.SerializerMethodField()
     submitter_information = SubmitterInformationSerializer(read_only=True)
+    external_referral_invites = OCRExternalRefereeInviteSerializer(many=True)
 
     class Meta:
         model = OccurrenceReport
@@ -1231,6 +1249,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "observation_date",
             "site",
             "submitter_information",
+            "external_referral_invites",
         )
 
     def get_readonly(self, obj):
@@ -3142,20 +3161,3 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "significant_to_occurrence",
             "tenure_area_centroid",
         )
-
-
-class OCRExternalRefereeInviteSerializer(serializers.ModelSerializer):
-    occurrence_report_id = serializers.IntegerField(required=False)
-    full_name = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = OCRExternalRefereeInvite
-        fields = [
-            "id",
-            "first_name",
-            "last_name",
-            "full_name",
-            "email",
-            "invite_text",
-            "occurrence_report_id",
-        ]
