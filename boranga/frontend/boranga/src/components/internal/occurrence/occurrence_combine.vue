@@ -181,54 +181,84 @@
                     <div :id="habitatBody" class="tab-pane fade" role="tabpanel" aria-labelledby="pills-habitat-tab">
                         <!--Habitat Composition Form-->
                         <FormSection :formCollapse="true" label="Habitat Composition" Index="combine_habitat_composition">
-                            Habitat Composition Form
+                            <div class="row mb-3">
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_habitat_composition_section" :section_type="'habitat_composition'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            </div>
                         </FormSection>
                         <!--Habitat Condition Form-->
                         <FormSection :formCollapse="true" label="Habitat Condition" Index="combine_habitat_condition">
-                            Habitat Condition Form
+                            <div class="row mb-3">
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_habitat_condition_section" :section_type="'habitat_condition'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            </div>
                         </FormSection>
                         <!--Vegetation Structure Form-->
                         <FormSection :formCollapse="true" label="Vegetation Structure" Index="combine_vegetation_structure">
-                            Vegetation Structure Form
+                            <div class="row mb-3">
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_vegetation_structure_section" :section_type="'vegetation_structure'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            </div>
                         </FormSection>
                         <!--Fire History Form-->
                         <FormSection :formCollapse="true" label="Fire History" Index="combine_fire_history">
-                            Fire History Form
+                            <div class="row mb-3">
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_fire_history_section" :section_type="'fire_history'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            </div>
                         </FormSection>
                         <!--Associated Species Form-->
                         <FormSection :formCollapse="true" label="Associated Species" Index="combine_associated_species">
-                            Associated Species Form
+                            <div class="row mb-3">
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_associated_species_section" :section_type="'associated_species'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            </div>
                         </FormSection>
                     </div>
                     <div :id="observationBody" class="tab-pane fade" role="tabpanel"
                         aria-labelledby="pills-observation-tab">
                         <!--Observation Details Form-->
                         <FormSection :formCollapse="true" label="Observation Details" Index="combine_observation_details">
-                            Observation Details Form
+                            <div class="row mb-3">
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_observation_details" :section_type="'observation_detail'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            </div>
                         </FormSection>
                         <!--Animal Observation Form (fauna only)-->
                         <FormSection v-if="main_occurrence_obj.group_type=='fauna'" :formCollapse="true" label="Animal Observation" Index="combine_animal_observation">
-                            Animal Observation Form
+                            <div class="row mb-3">
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_animal_observation" :section_type="'animal_observation'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            </div>
                         </FormSection>
                         <!--Plant Count Form (flora only)-->
                         <FormSection v-if="main_occurrence_obj.group_type=='flora'" :formCollapse="true" label="Plant Count" Index="combine_plant_count">
-                            <br/>Plant Count Form
+                            <div class="row mb-3">
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_plant_count" :section_type="'plant_count'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            </div>
                         </FormSection>
                         <!--Identification Form-->
                         <FormSection :formCollapse="true" label="Identification" Index="combine_identification">
-                            <br/>Identification Form
+                            <div class="row mb-3">
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_identification" :section_type="'identification'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            </div>
                         </FormSection>
                     </div>
                     <div :id="documentBody" class="tab-pane fade" role="tabpanel" aria-labelledby="pills-documents-tab">
                         <!--Documents Table-->
-                        <FormSection :formCollapse="false" label="Documents" Index="combine_documents">
-                            Documents Table
+                        <FormSection :formCollapse="false" label="Documents" Index="combine_documents" @toggle-collapse="toggleDocuments">
+                            <div class="row mb-3">
+                            <OccurrenceCombineDocuments
+                            :selectedDocuments="documents" 
+                            :combineDocumentIds="occ_combine_data.combine_document_ids" 
+                            :key="document_table_key" 
+                            ref="documents_section"/>
+                            </div>
                         </FormSection>
                     </div>
                     <div :id="threatBody" class="tab-pane fade" role="tabpanel" aria-labelledby="pills-threats-tab">
                         <!--Threats Table-->
                         <FormSection :formCollapse="false" label="Threats" Index="combine_threats">
-                            Threats Table
+                            <div class="row mb-3">
+                            <OccurrenceCombineThreats
+                            :selectedThreats="threats" 
+                            :combineThreatIds="occ_combine_data.combine_threat_ids" 
+                            :key="threat_table_key" 
+                            ref="threats_section"/>
+                            </div>
                         </FormSection>
                     </div>
                 </div>
@@ -245,6 +275,8 @@
     import { helpers, api_endpoints } from "@/utils/hooks.js"
     import OccurrenceCombineSelect from './occurrence_combine_selection.vue'
     import OccurrenceCombineContacts from './occurrence_combine_contacts.vue'
+    import OccurrenceCombineDocuments from './occurrence_combine_documents.vue'
+    import OccurrenceCombineThreats from './occurrence_combine_threats.vue'
     export default {
         name: 'OccurrenceCombine',
         props: {
@@ -258,6 +290,8 @@
             OccurrenceCombineSelect,
             FormSection,
             OccurrenceCombineContacts,
+            OccurrenceCombineDocuments,
+            OccurrenceCombineThreats,
         },
         data: function () {
             let vm = this;
@@ -314,6 +348,14 @@
                 let vm = this;
                 vm.$refs.key_contacts_section.adjust_table_width();
             },
+            toggleDocuments: function () {
+                let vm = this;
+                vm.$refs.documents_section.adjust_table_width();
+            },
+            toggleThreats: function () {
+                let vm = this;
+                vm.$refs.threats_section.adjust_table_width();
+            },
             updateChosenSection: function (id, sectionType) {
                 let vm = this;
                 vm.occ_combine_data["chosen_"+sectionType+"_section"] = parseInt(id);
@@ -325,7 +367,17 @@
                 $('.has-error').removeClass('has-error');
             },
             tabClicked: function (param) {
-                this.reloadcount = this.reloadcount + 1;
+                let vm = this;
+                this.reloadcount++;
+                this.occ_form_key++;
+                this.contact_table_key++;
+                this.document_table_key++;
+                this.threat_table_key++;
+
+                setTimeout(function () {
+                    vm.toggleDocuments();
+                    vm.toggleThreats();
+                }, 200); //set to 200 due to the tab fade (TODO: consider better handling of this)
             },
             addOccurrence: function () {
                 let vm = this;
@@ -422,7 +474,7 @@
                     //add new ids to combine list if not in old list - unless they share a name
                     response.body.id_list.forEach(id => {
                         if (!old_list.includes(id) && !taken_names.includes(contact_names[id])) {
-                            vm.occ_combine_data.combine_key_contact_ids.push(id);
+                            vm.occ_combine_data.combine_key_contact_ids.push(id);      
                         }
                     });
 
@@ -456,6 +508,8 @@
                             vm.occ_combine_data.combine_document_ids.push(id);
                         }
                     });
+
+                    vm.document_table_key++;
                 }, (error) => {
                     console.error(error);
                 });
@@ -485,6 +539,7 @@
                             vm.occ_combine_data.combine_threat_ids.push(id);
                         }
                     });
+                    vm.threat_table_key++;
                 }, (error) => {
                     console.error(error);
                 });

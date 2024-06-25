@@ -3277,7 +3277,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             occ_ids = json.loads(request.POST.get("occurrence_ids"))
             contacts = OCCContactDetail.objects.filter(
                 occurrence__id__in=occ_ids
-            )
+            ).filter(visible=True)
             
             values_list = list(contacts.values(
                 "id",
@@ -3301,7 +3301,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def combine_documents_lookup(self, request, *args, **kwargs):
         if is_internal(self.request):
             occ_ids = json.loads(request.POST.get("occurrence_ids"))
-            documents = OccurrenceDocument.objects.filter(occurrence__id__in=occ_ids)
+            documents = OccurrenceDocument.objects.filter(occurrence__id__in=occ_ids).filter(visible=True)
 
             values_list = list(documents.values(
                 "id",
@@ -3327,17 +3327,17 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def combine_threats_lookup(self, request, *args, **kwargs):
         if is_internal(self.request):
             occ_ids = json.loads(request.POST.get("occurrence_ids"))
-            threats = OCCConservationThreat.objects.filter(occurrence__id__in=occ_ids)
+            threats = OCCConservationThreat.objects.filter(occurrence__id__in=occ_ids).filter(visible=True)
 
             values_list = list(threats.values(
                 "id",
                 "threat_number",
                 "occurrence_report_threat__occurrence_report__occurrence_report_number",
-                "threat_category",
+                "threat_category__name",
                 "date_observed",
-                "threat_agent",
-                "current_impact",
-                "potential_impact",
+                "threat_agent__name",
+                "current_impact__name",
+                "potential_impact__name",
                 "comment",
             ))
             id_list = list(threats.values_list("id", flat=True))
