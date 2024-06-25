@@ -3884,6 +3884,20 @@ class OccurrenceViewSet(
         ],
         detail=True,
     )
+    def combine(self, request, *args, **kwargs):
+        self.is_authorised_to_update()
+        #print(json.loads(request.POST.get("data")))
+        instance = self.get_object()
+        instance.combine(request)
+
+        return Response()
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
     def activate(self, request, *args, **kwargs):
         self.is_authorised_to_update()
         instance = self.get_object()

@@ -3003,6 +3003,27 @@ class Occurrence(RevisionedMixin):
     def number_of_reports(self):
         return self.occurrence_report_count
 
+    def combine(self, request):
+        #only Active OCCs may be combined to
+        if not (self.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
+            raise ValidationError("Occurrence not Active, cannot be combined to")
+
+        occ_combine_data = json.loads(request.POST.get("data"))
+
+        #OCCs being combined must not be discarded or historical
+        combine_occurrences = Occurrence.objects.exclude(id=self.id).filter(id__in=occ_combine_data["combine_ids"])
+        
+        if not combine_occurrences.exists():
+            raise ValidationError("No Occurrences selected to be combined")
+
+        if (combine_occurrences.filter(
+            Q(processing_status=Occurrence.PROCESSING_STATUS_DISCARDED)|
+            Q(processing_status=Occurrence.PROCESSING_STATUS_HISTORICAL)
+            ).exists()
+        ):
+            raise ValidationError("Closed or Discarded Occurrences may not be combined")
+            
+
     def validate_activate(self):
         missing_values = []
 

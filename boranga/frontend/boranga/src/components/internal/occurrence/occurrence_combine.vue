@@ -5,7 +5,7 @@
             :title="'Combine Occurrences'"
             :large="true"
             :full="true"
-            :showOK="false"
+            @ok="ok()"
             cancel-text="Close"
             @cancel="close()"
         >
@@ -344,6 +344,65 @@
             }
         },
         methods: {
+            sendData: function () {
+                let vm = this;
+                let formData = new FormData();
+                formData.append('data', JSON.stringify(vm.occ_combine_data));
+                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence,vm.main_occurrence_obj.id+'/combine'), formData)
+                .then((response) => {
+                    swal.fire({
+                        title: 'Combined',
+                        text: 'Selected Occurrences have been combined.',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },                            
+                });
+                }, (err) => {
+                    var errorText = helpers.apiVueResourceError(err);
+                    swal.fire({
+                        title: 'Submit Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.paySubmitting = false;
+                    vm.saveError = true;
+                });
+            },
+            ok: function () {
+                let vm = this;
+
+                //make sure there is at least two selected occurrences
+                if (this.occ_combine_data.combine_ids.length < 2) {
+                    swal.fire({
+                        title: 'Submit Error',
+                        text: "No additional Occurrences have been selected to combine.",
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                } else {
+                    //confirm before sending
+                    swal.fire({
+                        title: "Combine Occurrences",
+                        text: "Are you sure you want to combine the selected Occurrences, with the selected sections, fields, and table rows?",
+                        icon: "question",
+                        showCancelButton: true,
+                        confirmButtonText: 'Combine Occurrences',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                            cancelButton: 'btn btn-danger'
+                        },
+                        reverseButtons: true,
+                    }).then((swalresult) => {
+                        vm.sendData();
+                    });
+                }
+            },
             toggleKeyContacts: function () {
                 let vm = this;
                 vm.$refs.key_contacts_section.adjust_table_width();
