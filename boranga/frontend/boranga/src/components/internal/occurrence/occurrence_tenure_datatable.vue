@@ -39,7 +39,7 @@
                         >
                         <select
                             ref="cs_linked_with_occurrence_lookup"
-                            v-model="filterCSRefCommunityApplicationStatus"
+                            v-model="filterStatus"
                             class="form-select"
                         >
                             <option value="all">All</option>
@@ -110,12 +110,8 @@ export default {
                 { value: 'current', name: 'Current' },
                 { value: 'historical', name: 'Historical' },
             ],
-            filterCSRefCommunityApplicationStatus: sessionStorage.getItem(
-                this.filterCSRefCommunityApplicationStatus_cache
-            )
-                ? sessionStorage.getItem(
-                      this.filterCSRefCommunityApplicationStatus_cache
-                  )
+            filterStatus: sessionStorage.getItem(this.filterStatus_cache)
+                ? sessionStorage.getItem(this.filterStatus_cache)
                 : 'all',
         };
     },
@@ -123,7 +119,7 @@ export default {
         filterApplied: function () {
             if (
                 // this.filterCSRefCommunityMigratedId === 'all' &&
-                this.filterCSRefCommunityApplicationStatus === 'all'
+                this.filterStatus === 'all'
             ) {
                 return false;
             } else {
@@ -269,15 +265,12 @@ export default {
         },
     },
     watch: {
-        filterCSRefCommunityApplicationStatus: function () {
+        filterStatus: function () {
             this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
                 helpers.enablePopovers,
                 false
             );
-            sessionStorage.setItem(
-                this.filterCSRefCommunityApplicationStatus_cache,
-                this.filterCSRefCommunityApplicationStatus
-            );
+            sessionStorage.setItem(this.filterStatus_cache, this.filterStatus);
         },
         filterApplied: function () {
             if (this.$refs.collapsible_filters) {
