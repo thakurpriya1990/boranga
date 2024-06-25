@@ -5245,11 +5245,39 @@ class OccurrenceReportReferralViewSet(
         return redirect(reverse("internal"))
 
 
+class OccurrenceTenureFilterBackend(DatatablesFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        total_count = queryset.count()
+
+        query_params = {
+            p: request.query_params[p]
+            for p in request.query_params
+            if request.query_params[p] not in ["all"]
+        }
+
+        filter_status = query_params.get("filter_status", None)
+        if filter_status:
+            queryset = queryset.filter(status=filter_status)
+
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
+        queryset = queryset.order_by(*ordering)
+        if len(ordering):
+            queryset = queryset.order_by(*ordering)
+
+        queryset = super().filter_queryset(request, queryset, view)
+
+        setattr(view, "_datatables_total_count", total_count)
+        return queryset
+
+
 class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = OccurrenceTenure.objects.none()
     serializer_class = OccurrenceTenureSerializer
     pagination_class = DatatablesPageNumberPagination
-    # filter_backends = [OccurrenceTenureFilterBackend,]
+    filter_backends = [
+        OccurrenceTenureFilterBackend,
+    ]
     page_size = 10
 
     def get_serializer_class(self):

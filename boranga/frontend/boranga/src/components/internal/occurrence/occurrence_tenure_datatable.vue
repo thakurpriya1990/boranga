@@ -248,9 +248,8 @@ export default {
                 ajax: {
                     url: url,
                     dataSrc: 'data',
-                    // eslint-disable-next-line no-unused-vars
-                    data: function (d) {
-                        // d.filter_xyz = this.xyz
+                    data: (d) => {
+                        d.filter_status = this.filterStatus;
                     },
                 },
                 dom: 'lBfrtip',
