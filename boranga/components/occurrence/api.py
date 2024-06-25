@@ -178,6 +178,7 @@ from boranga.helpers import (
     is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
+    is_occurrence_report_referee,
 )
 
 logger = logging.getLogger(__name__)
@@ -2338,6 +2339,31 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OCRObserverDetail.objects.none()
     serializer_class = OCRObserverDetailSerializer
 
+    def get_serializer_class(self):
+        if (
+            not is_occurrence_assessor(self.request)
+            and not is_occurrence_approver(self.request)
+            and not is_external_contributor(self.request)
+        ):
+            return OCRObserverDetailReferralSerializer
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        qs = OCRObserverDetail.objects.none()
+
+        if is_occurrence_assessor(self.request) or is_occurrence_approver(self.request):
+            qs = OCRObserverDetail.objects.all().order_by("id")
+        elif is_external_contributor(self.request):
+            qs = OCRObserverDetail.objects.filter(
+                occurrence_report__submitter=self.request.user.id
+            ).order_by("id")
+        elif is_occurrence_report_referee(self.request):
+            qs = OCRObserverDetail.objects.filter(
+                occurrence_report__referrals__referral=self.request.user.id
+            ).order_by("id")
+
+        return qs
+
     def is_authorised_to_update(self, occurrence_report):
         user = self.request.user
         if not (
@@ -2367,17 +2393,6 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             )
             serializer.is_valid(raise_exception=True)
             occurrence_report.back_to_assessor(request, serializer.validated_data)
-
-    def get_queryset(self):
-        qs = OCRObserverDetail.objects.none()
-
-        if is_internal(self.request):
-            qs = OCRObserverDetail.objects.all().order_by("id")
-        elif is_customer(self.request):
-            # not sure what qs it should be for api security check
-            qs = OCRObserverDetail.objects.all().order_by("id")
-            return qs
-        return qs
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
