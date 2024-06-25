@@ -157,6 +157,22 @@ def is_conservation_status_referee(request, cs_proposal=None):
     return qs.exists()
 
 
+def is_occurrence_report_referee(request, occurrence_report=None):
+    if not request.user.is_authenticated:
+        return False
+
+    if request.user.is_superuser:
+        return True
+
+    from boranga.components.occurrence.models import OccurrenceReportReferral
+
+    qs = OccurrenceReportReferral.objects.filter(referral=request.user.id)
+    if occurrence_report:
+        qs = qs.filter(occurrence_report=occurrence_report)
+
+    return qs.exists()
+
+
 def in_dbca_domain(request):
     user = request.user
     domain = user.email.split("@")[1]
