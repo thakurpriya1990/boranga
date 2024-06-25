@@ -579,30 +579,33 @@
             },
         },
         created: async function () {
-            let vm = this;
-            let action = this.$route.query.action;
-
-            //get key contact ids
-            vm.getKeyContactIds();
-            //get document ids
-            vm.getDocumentIds();
-            //get threat ids
-            vm.getThreatIds();
-
-            let dict_url = action == "view" ? api_endpoints.occ_profile_dict + '?group_type=' + vm.main_occurrence_obj.group_type + '&action=' + action :
-                api_endpoints.occ_profile_dict + '?group_type=' + vm.main_occurrence_obj.group_type
-            vm.$http.get(dict_url).then((response) => {
-                vm.occ_profile_dict = response.body;
-                vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
-                vm.occurrence_source_list = vm.occ_profile_dict.occurrence_source_list;
-            }, (error) => {
-                console.log(error);
-            })
+            
         },
         mounted: function () {
             this.initialiseOccurrenceNameLookup();
         },
         watch: {
+            isModalOpen: function() {
+                if (this.isModalOpen) {
+                    let vm = this;
+
+                    //get key contact ids
+                    vm.getKeyContactIds();
+                    //get document ids
+                    vm.getDocumentIds();
+                    //get threat ids
+                    vm.getThreatIds();
+
+                    let dict_url = api_endpoints.occ_profile_dict + '?group_type=' + vm.main_occurrence_obj.group_type
+                    vm.$http.get(dict_url).then((response) => {
+                        vm.occ_profile_dict = response.body;
+                        vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
+                        vm.occurrence_source_list = vm.occ_profile_dict.occurrence_source_list;
+                    }, (error) => {
+                        console.log(error);
+                    })
+                }
+            },
             selectedOccurrenceIds: function() {
                 let vm = this;
                 vm.occ_combine_data.combine_ids = vm.selectedOccurrenceIds;

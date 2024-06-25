@@ -112,7 +112,7 @@
         <!-- <OccurrenceSplit ref="occurrence_split" :occurrence="occurrence" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />-->
         <OccurrenceCombine v-if="occurrence" ref="occurrence_combine" :main_occurrence_obj="occurrence" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" />
+            @refreshFromResponse="refreshFromResponse" :key="combine_key"/>
     </div>
 
 </template>
@@ -145,7 +145,7 @@ export default {
             submitOccurrence: false,
             imageURL: '',
             isSaved: false,
-
+            combine_key: 0,
 
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comparing: false,
@@ -432,6 +432,7 @@ export default {
             let vm = this;
             vm.original_occurrence = helpers.copyObject(response.body);
             vm.occurrence = helpers.copyObject(response.body);
+            vm.combine_key++;
         },
         activateOccurrence: async function () {
             let vm = this;
