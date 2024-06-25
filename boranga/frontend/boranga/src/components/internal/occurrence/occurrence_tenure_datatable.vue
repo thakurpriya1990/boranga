@@ -1,5 +1,60 @@
 <template id="occurrence_tenure_datatable_template">
     <div>
+        <CollapsibleFilters
+            ref="collapsible_filters"
+            component_title="Filters"
+            @created="collapsible_component_mounted"
+        >
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="cs_ref_tenure_type_lookup"
+                            >Tenure Type:</label
+                        >
+                        <select
+                            id="cs_ref_tenure_type_lookup"
+                            ref="cs_ref_tenure_type_lookup"
+                            name="cs_ref_tenure_type_lookup"
+                            class="form-control"
+                        />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="cs_ref_area_id_lookup">Area ID:</label>
+                        <select
+                            id="cs_ref_area_id_lookup"
+                            ref="cs_ref_area_id_lookup"
+                            name="cs_ref_area_id_lookup"
+                            class="form-control"
+                        />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label
+                            for="cs_linked_with_occurrence_lookup"
+                            class="text-nowrap"
+                            >Linked with Occurrence:</label
+                        >
+                        <select
+                            ref="cs_linked_with_occurrence_lookup"
+                            v-model="filterCSRefCommunityApplicationStatus"
+                            class="form-select"
+                        >
+                            <option value="all">All</option>
+                            <option
+                                v-for="status in tenure_statuses"
+                                :key="status.value"
+                                :value="status.value"
+                            >
+                                {{ status.name }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </CollapsibleFilters>
         <datatable
             :id="datatable_id"
             ref="occurrence_tenure_datatable"
@@ -10,14 +65,16 @@
 </template>
 
 <script>
-import { api_endpoints, constants } from '@/utils/hooks';
+import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import datatable from '@/utils/vue/datatable.vue';
 import { v4 as uuid } from 'uuid';
+import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
 
 export default {
     name: 'OccurrenceTenureDatatable',
     components: {
         datatable,
+        CollapsibleFilters,
     },
     emit: ['highlight-on-map', 'edit-tenure-details'],
     props: {
@@ -49,9 +106,30 @@ export default {
                 // 'Owner Count',
                 'Action',
             ],
+            tenure_statuses: [
+                { value: 'current', name: 'Current' },
+                { value: 'historical', name: 'Historical' },
+            ],
+            filterCSRefCommunityApplicationStatus: sessionStorage.getItem(
+                this.filterCSRefCommunityApplicationStatus_cache
+            )
+                ? sessionStorage.getItem(
+                      this.filterCSRefCommunityApplicationStatus_cache
+                  )
+                : 'all',
         };
     },
     computed: {
+        filterApplied: function () {
+            if (
+                // this.filterCSRefCommunityMigratedId === 'all' &&
+                this.filterCSRefCommunityApplicationStatus === 'all'
+            ) {
+                return false;
+            } else {
+                return true;
+            }
+        },
         column_featureid: function () {
             return {
                 data: 'featureid',
@@ -190,6 +268,25 @@ export default {
             };
         },
     },
+    watch: {
+        filterCSRefCommunityApplicationStatus: function () {
+            this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            );
+            sessionStorage.setItem(
+                this.filterCSRefCommunityApplicationStatus_cache,
+                this.filterCSRefCommunityApplicationStatus
+            );
+        },
+        filterApplied: function () {
+            if (this.$refs.collapsible_filters) {
+                this.$refs.collapsible_filters.show_warning_icon(
+                    this.filterApplied
+                );
+            }
+        },
+    },
     mounted: function () {
         this.$nextTick(() => {
             this.addEventListeners();
@@ -228,6 +325,11 @@ export default {
         },
         editTenureDetails: function (id) {
             this.$emit('edit-tenure-details', id);
+        },
+        collapsible_component_mounted: function () {
+            this.$refs.collapsible_filters.show_warning_icon(
+                this.filterApplied
+            );
         },
     },
 };
