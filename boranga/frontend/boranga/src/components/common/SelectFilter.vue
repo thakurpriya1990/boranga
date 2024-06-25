@@ -234,4 +234,8 @@ export default {
 
 <style scoped>
 @import 'vue-select/dist/vue-select.css';
+
+* {
+    --vs-dropdown-z-index: 9001 !important;
+}
 </style>

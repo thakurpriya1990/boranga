@@ -1715,10 +1715,7 @@ class GeometryBase(models.Model):
             return GEOSGeometry(self.original_geometry_ewkb).srid
         return None
 
-    @property
-    def created_from(self):
-        """Returns the __str__-representation of the object that this geometry was created from."""
-
+    def created_from_instance(self):
         if not self.content_type or not self.object_id:
             return None
 
@@ -1728,14 +1725,18 @@ class GeometryBase(models.Model):
         except InstanceModel.DoesNotExist:
             return None
         else:
-            return model_instance.__str__()
+            return model_instance
 
     @property
-    def source_of(self):
-        """Returns a list of the __str__-representations of the objects that have been created from this geometry.
-        I.e. the geometry objects for which this geometry is the source.
-        """
+    def created_from(self):
+        """Returns the __str__-representation of the object that this geometry was created from."""
 
+        instance = self.created_from_instance()
+        if instance:
+            return instance.__str__()
+        return None
+
+    def source_of_objects(self):
         content_type = ct_models.ContentType.objects.get_for_model(self.__class__)
 
         parent_subclasses = self.__class__.__base__.__subclasses__()
@@ -1751,8 +1752,15 @@ class GeometryBase(models.Model):
             )
             for sc_ct in subclasses_content_types
         ]
+        return [soo for soo in source_of_objects if soo.exists()]
 
-        return [source.__str__() for qs in source_of_objects for source in qs]
+    @property
+    def source_of(self):
+        """Returns a list of the __str__-representations of the objects that have been created from this geometry.
+        I.e. the geometry objects for which this geometry is the source.
+        """
+
+        return [source.__str__() for qs in self.source_of_objects() for source in qs]
 
 
 class DrawnByGeometry(models.Model):

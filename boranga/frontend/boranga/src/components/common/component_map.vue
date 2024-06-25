@@ -175,12 +175,15 @@
                                 </a>
                                 <div
                                     :id="`geometry-list-collapsible-${name}`"
-                                    class="collapse overflow-auto max-vh-50"
-                                    :class="
+                                    class="collapse max-vh-50"
+                                    :class="[
                                         getLayerDefinitionByName(name).collapse
                                             ? ''
-                                            : 'show'
-                                    "
+                                            : 'show',
+                                        features.length >= 4
+                                            ? 'overflow-auto'
+                                            : '',
+                                    ]"
                                 >
                                     <div
                                         v-for="feature in features"
