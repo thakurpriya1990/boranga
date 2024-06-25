@@ -3280,6 +3280,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             ).filter(visible=True)
             
             values_list = list(contacts.values(
+                "occurrence__occurrence_number",
                 "id",
                 "contact_name",
                 "role",
@@ -3304,6 +3305,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             documents = OccurrenceDocument.objects.filter(occurrence__id__in=occ_ids).filter(visible=True)
 
             values_list = list(documents.values(
+                "occurrence__occurrence_number",
                 "id",
                 "document_number",
                 "document_category__document_category_name",
@@ -3330,6 +3332,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             threats = OCCConservationThreat.objects.filter(occurrence__id__in=occ_ids).filter(visible=True)
 
             values_list = list(threats.values(
+                "occurrence__occurrence_number",
                 "id",
                 "threat_number",
                 "occurrence_report_threat__occurrence_report__occurrence_report_number",

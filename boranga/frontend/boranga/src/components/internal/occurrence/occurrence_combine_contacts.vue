@@ -26,7 +26,7 @@ export default {
         return{
             panelBody: "contact-combine-select-"+vm._uid,
             checkedContactNames: [],
-            contacts_headers:["Name", "Role", "Contact Details", "Organisation", "Notes", "Action"],
+            contacts_headers:["Occurrence", "Name", "Role", "Contact Details", "Organisation", "Notes", "Action"],
             contacts_options:{
                 autowidth: true,
                 language:{
@@ -46,6 +46,9 @@ export default {
                         "<'row'<'col-sm-12'tr>>" +
                         "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: [
+                    {
+                        data: "occurrence__occurrence_number",
+                    },
                     {
                         data: "contact_name",
                     },

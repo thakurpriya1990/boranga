@@ -172,7 +172,7 @@
                     <div :id="locationBody" class="tab-pane fade" role="tabpanel"
                     aria-labelledby="pills-location-tab">
                         <!--Location Form-->
-                        <FormSection :formCollapse="false" label="Location" Index="combine_location">
+                        <FormSection :formCollapse="false" label="Location" :subtitle="' - OCC'+occ_combine_data.chosen_location_section" Index="combine_location">
                             <div class="row mb-3">
                             <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_location_section" :section_type="'location'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
                             </div>
@@ -180,31 +180,31 @@
                     </div>
                     <div :id="habitatBody" class="tab-pane fade" role="tabpanel" aria-labelledby="pills-habitat-tab">
                         <!--Habitat Composition Form-->
-                        <FormSection :formCollapse="true" label="Habitat Composition" Index="combine_habitat_composition">
+                        <FormSection :formCollapse="true" label="Habitat Composition" :subtitle="' - OCC'+occ_combine_data.chosen_habitat_composition_section" Index="combine_habitat_composition">
                             <div class="row mb-3">
                             <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_habitat_composition_section" :section_type="'habitat_composition'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
                             </div>
                         </FormSection>
                         <!--Habitat Condition Form-->
-                        <FormSection :formCollapse="true" label="Habitat Condition" Index="combine_habitat_condition">
+                        <FormSection :formCollapse="true" label="Habitat Condition" :subtitle="' - OCC'+occ_combine_data.chosen_habitat_condition_section" Index="combine_habitat_condition">
                             <div class="row mb-3">
                             <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_habitat_condition_section" :section_type="'habitat_condition'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
                             </div>
                         </FormSection>
                         <!--Vegetation Structure Form-->
-                        <FormSection :formCollapse="true" label="Vegetation Structure" Index="combine_vegetation_structure">
+                        <FormSection :formCollapse="true" label="Vegetation Structure" :subtitle="' - OCC'+occ_combine_data.chosen_vegetation_structure_section" Index="combine_vegetation_structure">
                             <div class="row mb-3">
                             <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_vegetation_structure_section" :section_type="'vegetation_structure'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
                             </div>
                         </FormSection>
                         <!--Fire History Form-->
-                        <FormSection :formCollapse="true" label="Fire History" Index="combine_fire_history">
+                        <FormSection :formCollapse="true" label="Fire History" :subtitle="' - OCC'+occ_combine_data.chosen_fire_history_section" Index="combine_fire_history">
                             <div class="row mb-3">
                             <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_fire_history_section" :section_type="'fire_history'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
                             </div>
                         </FormSection>
                         <!--Associated Species Form-->
-                        <FormSection :formCollapse="true" label="Associated Species" Index="combine_associated_species">
+                        <FormSection :formCollapse="true" label="Associated Species" :subtitle="' - OCC'+occ_combine_data.chosen_associated_species_section" Index="combine_associated_species">
                             <div class="row mb-3">
                             <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_associated_species_section" :section_type="'associated_species'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
                             </div>
@@ -213,27 +213,27 @@
                     <div :id="observationBody" class="tab-pane fade" role="tabpanel"
                         aria-labelledby="pills-observation-tab">
                         <!--Observation Details Form-->
-                        <FormSection :formCollapse="true" label="Observation Details" Index="combine_observation_details">
+                        <FormSection :formCollapse="true" label="Observation Details" :subtitle="' - OCC'+occ_combine_data.chosen_observation_detail_section" Index="combine_observation_details">
                             <div class="row mb-3">
-                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_observation_details" :section_type="'observation_detail'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_observation_detail_section" :section_type="'observation_detail'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
                             </div>
                         </FormSection>
                         <!--Animal Observation Form (fauna only)-->
-                        <FormSection v-if="main_occurrence_obj.group_type=='fauna'" :formCollapse="true" label="Animal Observation" Index="combine_animal_observation">
+                        <FormSection v-if="main_occurrence_obj.group_type=='fauna'" :formCollapse="true" label="Animal Observation" :subtitle="' - OCC'+occ_combine_data.chosen_animal_observation_section" Index="combine_animal_observation">
                             <div class="row mb-3">
-                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_animal_observation" :section_type="'animal_observation'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_animal_observation_section" :section_type="'animal_observation'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
                             </div>
                         </FormSection>
                         <!--Plant Count Form (flora only)-->
-                        <FormSection v-if="main_occurrence_obj.group_type=='flora'" :formCollapse="true" label="Plant Count" Index="combine_plant_count">
+                        <FormSection v-if="main_occurrence_obj.group_type=='flora'" :formCollapse="true" label="Plant Count" :subtitle="' - OCC'+occ_combine_data.chosen_plant_count_section" Index="combine_plant_count">
                             <div class="row mb-3">
-                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_plant_count" :section_type="'plant_count'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_plant_count_section" :section_type="'plant_count'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
                             </div>
                         </FormSection>
                         <!--Identification Form-->
-                        <FormSection :formCollapse="true" label="Identification" Index="combine_identification">
+                        <FormSection :formCollapse="true" label="Identification" :subtitle="' - OCC'+occ_combine_data.chosen_identification_section" Index="combine_identification">
                             <div class="row mb-3">
-                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_identification" :section_type="'identification'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_identification_section" :section_type="'identification'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
                             </div>
                         </FormSection>
                     </div>
@@ -336,10 +336,10 @@
                     chosen_vegetation_structure_section: this.main_occurrence_obj.id,
                     chosen_fire_history_section: this.main_occurrence_obj.id,
                     chosen_associated_species_section: this.main_occurrence_obj.id,
-                    chosen_observation_details: this.main_occurrence_obj.id,
-                    chosen_animal_observation: this.main_occurrence_obj.id,
-                    chosen_plant_count: this.main_occurrence_obj.id,
-                    chosen_identification: this.main_occurrence_obj.id,
+                    chosen_observation_detail_section: this.main_occurrence_obj.id,
+                    chosen_animal_observation_section: this.main_occurrence_obj.id,
+                    chosen_plant_count_section: this.main_occurrence_obj.id,
+                    chosen_identification_section: this.main_occurrence_obj.id,
                 },
             }
         },
@@ -411,17 +411,17 @@
                 if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_associated_species_section)) {
                     vm.occ_combine_data.chosen_associated_species_section = vm.main_occurrence_obj.id;
                 }
-                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_observation_details)) {
-                    vm.occ_combine_data.chosen_observation_details = vm.main_occurrence_obj.id;
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_observation_detail_section)) {
+                    vm.occ_combine_data.chosen_observation_detail_section = vm.main_occurrence_obj.id;
                 }
-                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_animal_observation)) {
-                    vm.occ_combine_data.chosen_animal_observation = vm.main_occurrence_obj.id;
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_animal_observation_section)) {
+                    vm.occ_combine_data.chosen_animal_observation_section = vm.main_occurrence_obj.id;
                 }   
-                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_plant_count)) {
-                    vm.occ_combine_data.chosen_plant_count = vm.main_occurrence_obj.id;
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_plant_count_section)) {
+                    vm.occ_combine_data.chosen_plant_count_section = vm.main_occurrence_obj.id;
                 }
-                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_identification)) {
-                    vm.occ_combine_data.chosen_identification = vm.main_occurrence_obj.id;
+                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_identification_section)) {
+                    vm.occ_combine_data.chosen_identification_section = vm.main_occurrence_obj.id;
                 }
 
                 if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.occurrence_name)) {

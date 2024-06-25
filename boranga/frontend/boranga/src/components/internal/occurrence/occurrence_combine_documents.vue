@@ -26,7 +26,7 @@ export default {
         return{
             panelBody: "document-combine-select-"+vm._uid,
             checkedDocumentNames: [],
-            documents_headers:["Number", "Category", "Sub Category", "Document", "Description", "Date/Time", "Action"],
+            documents_headers:["Occurrence", "Number", "Category", "Sub Category", "Document", "Description", "Date/Time", "Action"],
             documents_options:{
                 autowidth: true,
                 language:{
@@ -46,6 +46,9 @@ export default {
                         "<'row'<'col-sm-12'tr>>" +
                         "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: [
+                    {
+                        data: "occurrence__occurrence_number",
+                    },
                     {
                         data: "document_number",
                     },

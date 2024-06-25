@@ -26,7 +26,7 @@ export default {
         return{
             panelBody: "threat-combine-select-"+vm._uid,
             checkedThreatNames: [],
-            threats_headers:["Number", "Original Report", "Category", "Date Observed", "Threat Agent", "Current Impact", "Potential Impact", "Comments", "Action"],
+            threats_headers:["Occurrence", "Number", "Original Report", "Category", "Date Observed", "Threat Agent", "Current Impact", "Potential Impact", "Comments", "Action"],
             threats_options:{
                 autowidth: true,
                 language:{
@@ -46,6 +46,9 @@ export default {
                         "<'row'<'col-sm-12'tr>>" +
                         "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: [
+                    {
+                        data: "occurrence__occurrence_number",
+                    },
                     {
                         data: "threat_number",
                     },
