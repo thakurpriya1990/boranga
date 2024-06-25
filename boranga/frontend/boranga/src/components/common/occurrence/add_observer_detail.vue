@@ -25,7 +25,7 @@
                                             v-model="observerObj.role" />
                                     </div>
                                 </div>
-                                <div class="row mb-3">
+                                <div v-if="observerObj.contact" class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left">Contact Details</label>
                                     </div>
