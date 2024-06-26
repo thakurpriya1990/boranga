@@ -175,6 +175,12 @@ module.exports = {
     reinstate_meeting: function (id) {
         return `/api/meeting/${id}/reinstate/`;
     },
+    discard_occ_proposal: function (id) {
+        return `/api/occurrence/${id}/discard/`;
+    },
+    reinstate_occ_proposal: function (id) {
+        return `/api/occurrence/${id}/reinstate/`;
+    },
     discard_ocr_proposal: function (id) {
         return `/api/occurrence_report/${id}/discard/`;
     },

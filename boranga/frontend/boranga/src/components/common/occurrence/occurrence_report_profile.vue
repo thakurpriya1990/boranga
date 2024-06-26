@@ -38,9 +38,8 @@
                                         <div class="row mb-3">
                                             <div class="col">
                                                 <div class="form-floating m-3 mt-1">
-                                                    <textarea v-if='!ref.readonly' :disabled="true"
-                                                        :id="ref.name" :name="ref.name" class="form-control"
-                                                        :placeholder="ref.label"
+                                                    <textarea v-if='!ref.readonly' :disabled="true" :id="ref.name"
+                                                        :name="ref.name" class="form-control" :placeholder="ref.label"
                                                         v-model="referral.referral_comment" />
                                                     <textarea v-else :disabled="true" :name="ref.name"
                                                         :value="ref.value || ''" class="form-control"
@@ -113,6 +112,7 @@
             </div>
             <ObserverDatatable ref="observer_datatable" :occurrence_report_obj="occurrence_report_obj"
                 :is_external="is_external" :is-read-only="isReadOnly"
+                :show_observer_contact_information="show_observer_contact_information"
                 @refreshOccurrenceReport="refreshOccurrenceReport()">
             </ObserverDatatable>
         </FormSection>
@@ -145,6 +145,10 @@ export default {
         is_external: {
             type: Boolean,
             default: false,
+        },
+        show_observer_contact_information: {
+            type: Boolean,
+            default: true,
         },
     },
     emits: ['refreshOccurrenceReport'],

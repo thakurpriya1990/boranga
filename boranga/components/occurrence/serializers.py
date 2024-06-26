@@ -299,6 +299,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     location_accuracy = serializers.SerializerMethodField()
     identification_certainty = serializers.SerializerMethodField()
     main_observer = serializers.SerializerMethodField()
+    copied_to_occurrence = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -328,6 +329,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "identification_certainty",
             "site",
             "main_observer",
+            "copied_to_occurrence",
         )
         datatables_always_serialize = (
             "id",
@@ -346,6 +348,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "can_user_assess",
             "internal_user_edit",
             "is_new_contributor",
+            "copied_to_occurrence",
         )
 
     def get_scientific_name(self, obj):
@@ -412,6 +415,15 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             return obj.observer_detail.filter(main_observer=True).first().observer_name
         else:
             return ""
+
+    def get_copied_to_occurrence(self, obj):
+        occs_copied_to = [
+            [occ_geom.occurrence_id for occ_geom in dest]
+            for geom in obj.ocr_geometry.all()
+            for dest in geom.source_of_objects()
+        ]
+
+        return list(set([i for o in occs_copied_to for i in o]))
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
@@ -1731,6 +1743,21 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             "observer_name",
             "role",
             "contact",
+            "organisation",
+            "main_observer",
+            "visible",
+        )
+
+
+class OCRObserverDetailReferralSerializer(OCRObserverDetailSerializer):
+
+    class Meta:
+        model = OCRObserverDetail
+        fields = (
+            "id",
+            "occurrence_report",
+            "observer_name",
+            "role",
             "organisation",
             "main_observer",
             "visible",

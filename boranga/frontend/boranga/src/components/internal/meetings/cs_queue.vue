@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="cs_queue">
-        <FormSection :formCollapse="false" label="Queue" :Index="csQueueBody">
+        <FormSection :formCollapse="false" label="Agenda" :Index="csQueueBody">
             <div v-if="meeting_obj.can_user_edit" class="col-sm-12">
                 <div class="text-end">
                     <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 "

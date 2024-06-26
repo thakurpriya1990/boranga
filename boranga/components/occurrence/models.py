@@ -554,7 +554,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
-            OccurrenceReportUserAction.ACTION_DISCARD_PROPOSAL.format(
+            OccurrenceReportUserAction.ACTION_REINSTATE_PROPOSAL.format(
                 self.occurrence_report_number
             ),
             request,
@@ -1044,6 +1044,7 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_APPROVE = "Occurrence Report {} has been approved by {}"
     ACTION_CLOSE_OccurrenceReport = "De list occurrence report {}"
     ACTION_DISCARD_PROPOSAL = "Discard occurrence report {}"
+    ACTION_REINSTATE_PROPOSAL = "Reinstate occurrence report {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
 
     # Amendment
@@ -1714,10 +1715,7 @@ class GeometryBase(models.Model):
             return GEOSGeometry(self.original_geometry_ewkb).srid
         return None
 
-    @property
-    def created_from(self):
-        """Returns the __str__-representation of the object that this geometry was created from."""
-
+    def created_from_instance(self):
         if not self.content_type or not self.object_id:
             return None
 
@@ -1727,14 +1725,18 @@ class GeometryBase(models.Model):
         except InstanceModel.DoesNotExist:
             return None
         else:
-            return model_instance.__str__()
+            return model_instance
 
     @property
-    def source_of(self):
-        """Returns a list of the __str__-representations of the objects that have been created from this geometry.
-        I.e. the geometry objects for which this geometry is the source.
-        """
+    def created_from(self):
+        """Returns the __str__-representation of the object that this geometry was created from."""
 
+        instance = self.created_from_instance()
+        if instance:
+            return instance.__str__()
+        return None
+
+    def source_of_objects(self):
         content_type = ct_models.ContentType.objects.get_for_model(self.__class__)
 
         parent_subclasses = self.__class__.__base__.__subclasses__()
@@ -1750,8 +1752,15 @@ class GeometryBase(models.Model):
             )
             for sc_ct in subclasses_content_types
         ]
+        return [soo for soo in source_of_objects if soo.exists()]
 
-        return [source.__str__() for qs in source_of_objects for source in qs]
+    @property
+    def source_of(self):
+        """Returns a list of the __str__-representations of the objects that have been created from this geometry.
+        I.e. the geometry objects for which this geometry is the source.
+        """
+
+        return [source.__str__() for qs in self.source_of_objects() for source in qs]
 
 
 class DrawnByGeometry(models.Model):
@@ -3068,6 +3077,38 @@ class Occurrence(RevisionedMixin):
                 + ", ".join(missing_values)
             )
 
+    @transaction.atomic
+    def discard(self, request):
+        if not self.processing_status == Occurrence.PROCESSING_STATUS_DRAFT:
+            raise exceptions.OccurrenceNotAuthorized()
+
+        self.processing_status = Occurrence.PROCESSING_STATUS_DISCARDED
+        self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_DISCARD_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
+    @transaction.atomic
+    def reinstate(self, request):
+        if not self.processing_status == Occurrence.PROCESSING_STATUS_DISCARDED:
+            raise exceptions.OccurrenceNotAuthorized()
+
+        self.processing_status = Occurrence.PROCESSING_STATUS_DRAFT
+        self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_REINSTATE_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
     def activate(self, request):
         self.validate_activate()
         if (
@@ -3115,8 +3156,9 @@ class Occurrence(RevisionedMixin):
 
     def can_user_edit(self, request):
         user_editable_state = [
-            "active",
-            "draft",
+            Occurrence.PROCESSING_STATUS_ACTIVE,
+            Occurrence.PROCESSING_STATUS_DRAFT,
+            Occurrence.PROCESSING_STATUS_DISCARDED,
         ]
         if self.processing_status not in user_editable_state:
             return False
@@ -3354,6 +3396,8 @@ class OccurrenceUserAction(UserAction):
     ACTION_VIEW_OCCURRENCE = "View occurrence {}"
     ACTION_SAVE_OCCURRENCE = "Save occurrence {}"
     ACTION_EDIT_OCCURRENCE = "Edit occurrence {}"
+    ACTION_DISCARD_OCCURRENCE = "Discard  occurrence {}"
+    ACTION_REINSTATE_OCCURRENCE = "Reinstate  occurrence {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for occurrence {}"

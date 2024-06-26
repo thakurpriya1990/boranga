@@ -140,7 +140,7 @@ export default {
             let vm = this;
             if (vm.new_species_list.length > 0) {
                 for (var index = 0; index < vm.new_species_list.length; index++) {
-                    vm.discardSpecies((vm.new_species_list[index]).id);
+                    vm.removeSpecies((vm.new_species_list[index]).id);
                 }
             }
             vm.new_species_list = [];
@@ -277,9 +277,10 @@ export default {
                     },                });
             });
         },
-        discardSpecies: function (species_id) {
+        removeSpecies: function (species_id) {
             let vm = this;
             try {
+                // In this case we are allowing a http DELETE call to remove the species
                 vm.$http.delete(api_endpoints.remove_species_proposal(species_id));
             }
             catch (err) {
@@ -293,7 +294,7 @@ export default {
             let vm = this;
             $(".nav-pills").on("click", "span", function () {
                 let species_obj = vm.new_species_list[$(this).attr('id')];
-                vm.discardSpecies(species_obj.id);
+                vm.removeSpecies(species_obj.id);
                 vm.new_species_list.splice($(this).attr('id'), 1);
             });
 

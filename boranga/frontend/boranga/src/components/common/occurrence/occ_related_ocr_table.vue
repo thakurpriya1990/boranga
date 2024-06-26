@@ -151,6 +151,17 @@ export default {
                 }
             }
         },
+        copied_to_occurrence: function () {
+            return {
+                data: 'copied_to_occurrence',
+                orderable: true,
+                searchable: false,
+                visible: true,
+                render: function (data, type, row) {
+                    return data.includes(row.occurrence) ? 'Yes' : 'No';
+                },
+            };
+        },
         column_copy_action: function(){
             const vm = this;
             return {
@@ -190,6 +201,7 @@ export default {
                 vm.column_location_accuracy,
                 vm.column_identification_certainty,
                 vm.column_site,
+                vm.copied_to_occurrence,
                 action,
             ]
             return {
@@ -243,6 +255,7 @@ export default {
                 'Location Accuracy',
                 'Identification Certainty',
                 'Site',
+                'Copied to OCC',
                 'Action',
             ]
         },

@@ -1066,26 +1066,41 @@ export default {
             });
         },
         createFauna: async function () {
-            let newFaunaId = null
-            try {
-                const createUrl = api_endpoints.species + "/";
-                let payload = new Object();
-                payload.group_type_id = this.group_type_id
-                let savedFauna = await Vue.http.post(createUrl, payload);
-                if (savedFauna) {
-                    newFaunaId = savedFauna.body.id;
+            swal.fire({
+                title: `Add Fauna`,
+                text: "Are you sure you want to add a new fauna?",
+                icon: "question",
+                showCancelButton: true,
+            confirmButtonText: 'Add Fauna',
+                reverseButtons: true,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let newFaunaId = null
+                    try {
+                        const createUrl = api_endpoints.species + "/";
+                        let payload = new Object();
+                        payload.group_type_id = this.group_type_id
+                        let savedFauna = await Vue.http.post(createUrl, payload);
+                        if (savedFauna) {
+                            newFaunaId = savedFauna.body.id;
+                        }
+                    }
+                    catch (err) {
+                        console.log(err);
+                        if (this.is_internal) {
+                            return err;
+                        }
+                    }
+                    this.$router.push({
+                        name: 'internal-species-communities',
+                        params: { species_community_id: newFaunaId },
+                        query: { group_type_name: this.group_type_name },
+                    });
                 }
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-            this.$router.push({
-                name: 'internal-species-communities',
-                params: { species_community_id: newFaunaId },
-                query: { group_type_name: this.group_type_name },
             });
         },
         exportData: function (format) {

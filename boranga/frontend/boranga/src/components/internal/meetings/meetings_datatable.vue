@@ -259,15 +259,16 @@ export default {
                         links += `<a href='#${full.id}' data-reinstate-meeting='${full.id}'>Reinstate</a><br/>`;
                     } else {
                         if (full.can_user_edit) {
-                            links += `<a href='/internal/meetings/${full.id}'>Continue</a><br/>`;
+                            if (full.processing_status == 'Scheduled') {
+                                links += `<a href='/internal/meetings/${full.id}?action=edit'>Edit</a><br/>`;
+                            } else {
+                                links += `<a href='/internal/meetings/${full.id}'>Continue</a><br/>`;
+                            }
                             if (full.processing_status == 'Draft') {
                                 links += `<a href='#${full.id}' data-discard-meeting='${full.id}'>Discard</a><br/>`;
                             }
                         }
                         else {
-                            if (full.is_meeting_editable) {
-                                links += `<a href='/internal/meetings/${full.id}?action=edit'>Edit</a><br/>`;
-                            }
                             links += `<a href='/internal/meetings/${full.id}?action=view'>View</a><br/>`;
                         }
                     }

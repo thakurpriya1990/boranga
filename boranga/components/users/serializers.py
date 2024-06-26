@@ -15,6 +15,7 @@ from boranga.components.users.models import (
     SubmitterCategory,
     SubmitterInformation,
 )
+from boranga.helpers import is_occurrence_approver, is_occurrence_assessor
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -214,3 +215,12 @@ class SubmitterInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubmitterInformation
         fields = "__all__"
+
+    def to_representation(self, instance):
+        # Submitter information is shown to users that are referees but they should
+        # not see the contact details of the submitter
+        ret = super().to_representation(instance)
+        request = self.context.get("request")
+        if not is_occurrence_assessor(request) and not is_occurrence_approver(request):
+            ret.pop("contact_details")
+        return ret
