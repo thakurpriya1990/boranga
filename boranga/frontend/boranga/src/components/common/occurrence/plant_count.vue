@@ -257,7 +257,7 @@
             <label class="col-sm-3 control-label">Ripe Fruit present?</label>
             <div class="col-sm-1">
                 <input :disabled="isReadOnly" id="ripeFruitPresentYes" type="radio"
-                    v-model="plant_count.immature_fruit_present" value="true">&nbsp;
+                    v-model="plant_count.ripe_fruit_present" value="true">&nbsp;
                 <label for="ripeFruitPresentYes">Yes</label>
             </div>
             <div class="col-sm-1">
