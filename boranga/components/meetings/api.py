@@ -43,7 +43,12 @@ from boranga.components.meetings.serializers import (
     SaveMeetingSerializer,
     SaveMinutesSerializer,
 )
-from boranga.helpers import is_conservation_status_approver, is_internal
+from boranga.helpers import (
+    is_conservation_status_approver,
+    is_conservation_status_assessor,
+    is_internal,
+    is_readonly_user,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +97,11 @@ class MeetingPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = Meeting.objects.none()
 
-        if is_internal(self.request):
+        if (
+            is_conservation_status_assessor(self.request)
+            or is_conservation_status_approver(self.request)
+            or is_readonly_user(self.request)
+        ):
             qs = Meeting.objects.all()
 
         return qs
@@ -200,7 +209,11 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     serializer_class = MeetingSerializer
 
     def get_queryset(self):
-        if is_internal(self.request):
+        if (
+            is_conservation_status_assessor(self.request)
+            or is_conservation_status_approver(self.request)
+            or is_readonly_user(self.request)
+        ):
             qs = Meeting.objects.all()
             return qs
         return Meeting.objects.none()
