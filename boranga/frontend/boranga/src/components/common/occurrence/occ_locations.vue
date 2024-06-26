@@ -3,7 +3,7 @@
         <FormSection :form-collapse="false" label="Location" Index="occurrence_location">
             <div class="row mb-3">
                 <div class="col">
-                    <span class="text-danger">*</span> <span class="text-muted">You must indicate the location for your occurrence report</span>
+                    <span class="text-danger">*</span> <span class="text-muted">You must indicate the location for your occurrence</span>
                 </div>
             </div>
             <div class="row mb-3">
