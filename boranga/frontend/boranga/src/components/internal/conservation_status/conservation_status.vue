@@ -20,7 +20,7 @@
                             <strong>Status</strong><br />
                             {{ conservation_status_obj.processing_status }}
                         </div>
-                        <div class="card-body border-top">
+                        <div v-if="conservation_status_obj.processing_status!='Draft'" class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Currently assigned to</strong><br />
@@ -37,7 +37,7 @@
                                                 @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
                                                 to me</a>
                                         </template>
-                                        <template v-else>
+                                        <template v-else-if="['With Assessor', 'With Referral'].includes(conservation_status_obj.processing_status)">
                                             <select ref="assigned_officer" :disabled="!canAction" class="form-control"
                                                 v-model="conservation_status_obj.assigned_officer">
                                                 <option v-for="member in conservation_status_obj.allowed_assessors"
@@ -564,7 +564,7 @@ export default {
                         this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver)
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess;
             }
-            else if (['With Assessor', 'Approved'].includes(this.conservation_status_obj.processing_status)) {
+            else if (['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status)) {
                 return this.conservation_status_obj
                     && (
                         this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer)
