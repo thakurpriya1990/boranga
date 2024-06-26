@@ -8,24 +8,35 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="cs_ref_tenure_type_lookup"
-                            >Tenure Type:</label
-                        >
+                        <label for="cs_ref_vesting_lookup">Vesting:</label>
                         <select
-                            id="cs_ref_tenure_type_lookup"
-                            ref="cs_ref_tenure_type_lookup"
-                            name="cs_ref_tenure_type_lookup"
+                            id="cs_ref_vesting_lookup"
+                            ref="cs_ref_vesting_lookup"
+                            name="cs_ref_vesting_lookup"
                             class="form-control"
                         />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="cs_ref_area_id_lookup">Area ID:</label>
+                        <label for="cs_ref_purpose_lookup">Purpose:</label>
                         <select
-                            id="cs_ref_area_id_lookup"
-                            ref="cs_ref_area_id_lookup"
-                            name="cs_ref_area_id_lookup"
+                            id="cs_ref_purpose_lookup"
+                            ref="cs_ref_purpose_lookup"
+                            name="cs_ref_purpose_lookup"
+                            class="form-control"
+                        />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="occurrence_tenure_feature_id_lookup"
+                            >Feature ID:</label
+                        >
+                        <select
+                            id="occurrence_tenure_feature_id_lookup"
+                            ref="occurrence_tenure_feature_id_lookup"
+                            name="occurrence_tenure_feature_id_lookup"
                             class="form-control"
                         />
                     </div>
@@ -33,12 +44,12 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label
-                            for="cs_linked_with_occurrence_lookup"
+                            for="occurrence_tenure_status_lookup"
                             class="text-nowrap"
-                            >Linked with Occurrence:</label
+                            >Status:</label
                         >
                         <select
-                            ref="cs_linked_with_occurrence_lookup"
+                            ref="occurrence_tenure_status_lookup"
                             v-model="filterStatus"
                             class="form-select"
                         >
@@ -113,6 +124,11 @@ export default {
             filterStatus: sessionStorage.getItem(this.filterStatus_cache)
                 ? sessionStorage.getItem(this.filterStatus_cache)
                 : 'all',
+            filterStatus_cache: 'occurrence_tenure_status_filter_cache',
+            filterFeatureId: sessionStorage.getItem(this.filterFeatureId_cache)
+                ? sessionStorage.getItem(this.filterFeatureId_cache)
+                : 'all',
+            filterFeatureId_cache: 'occurrence_tenure_feature_id_filter_cache',
         };
     },
     computed: {
@@ -250,6 +266,7 @@ export default {
                     dataSrc: 'data',
                     data: (d) => {
                         d.filter_status = this.filterStatus;
+                        d.tenure_area_id = this.filterFeatureId;
                     },
                 },
                 dom: 'lBfrtip',
@@ -271,6 +288,13 @@ export default {
             );
             sessionStorage.setItem(this.filterStatus_cache, this.filterStatus);
         },
+        filterFeatureId: function () {
+            this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            );
+            sessionStorage.setItem(this.filterFeatureId_cache, this.filterFeatureId);
+        },
         filterApplied: function () {
             if (this.$refs.collapsible_filters) {
                 this.$refs.collapsible_filters.show_warning_icon(
@@ -281,7 +305,24 @@ export default {
     },
     mounted: function () {
         this.$nextTick(() => {
+            // Make this a loop
+            // this.initialiseFilterLookup('occurrence_tenure_status_lookup', 'filterStatus');
+            this.initialiseFilterLookup('occurrence_tenure_feature_id_lookup', 'filterFeatureId');
+
             this.addEventListeners();
+            if (
+                !['all', null].includes(
+                    sessionStorage.getItem(`${'filterFeatureId'}Text`)
+                )
+            ) {
+                const newOption = new Option(
+                    sessionStorage.getItem(`${'filterFeatureId'}Text`),
+                    this.filterCSRefCommunityName,
+                    false,
+                    true
+                );
+                $('#occurrence_tenure_feature_id_lookup').append(newOption);
+            }
         });
     },
     methods: {
@@ -322,6 +363,52 @@ export default {
             this.$refs.collapsible_filters.show_warning_icon(
                 this.filterApplied
             );
+        },
+        initialiseFilterLookup: function (ref, vModelDataProperty, placeholder = 'Select a value') {
+            const vm = this;
+            $(this.$refs[ref])
+                .select2({
+                    minimumInputLength: 2,
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: placeholder,
+                    ajax: {
+                        // url: api_endpoints.occurrence_tenure_feature_id_lookup,
+                        url: api_endpoints[ref],
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                occurrence_id: vm.occurrenceId,
+                            };
+                            return query;
+                        },
+                    },
+                })
+                .on('select2:select', function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    // vm.filterStatus = data;
+                    vm[vModelDataProperty] = data;
+                    sessionStorage.setItem(
+                        `${vModelDataProperty}Text`,
+                        // 'filterStatusText',
+                        e.params.data.text
+                    );
+                })
+                .on('select2:unselect', function (e) {
+                    var selected = $(e.currentTarget);
+                    // vm.filterStatus = 'all';
+                    vm[vModelDataProperty] = 'all';
+                    sessionStorage.setItem(`${vModelDataProperty}Text`, '');
+                })
+                .on('select2:open', function (e) {
+                    const searchField = $(
+                        `[aria-controls="select2-${ref}-results"]`
+                    );
+                    searchField[0].focus();
+                });
         },
     },
 };

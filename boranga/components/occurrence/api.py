@@ -5256,8 +5256,14 @@ class OccurrenceTenureFilterBackend(DatatablesFilterBackend):
         }
 
         filter_status = query_params.get("filter_status", None)
-        if filter_status:
-            queryset = queryset.filter(status=filter_status)
+        tenure_area_id = query_params.get("tenure_area_id", None)
+
+        queryset = queryset.filter(status=filter_status) if filter_status else queryset
+        queryset = (
+            queryset.filter(tenure_area_id=tenure_area_id)
+            if tenure_area_id
+            else queryset
+        )
 
         fields = self.get_fields(request)
         ordering = self.get_ordering(request, view, fields)
@@ -5313,6 +5319,49 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = Serializer(result_page, context={"request": request}, many=True)
 
         return self.paginator.get_paginated_response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_tenure_feature_id_lookup(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        search_term = request.GET.get("term", "")
+        occurrence_id = request.GET.get("occurrence_id", None)
+
+        if occurrence_id:
+            queryset.filter(
+                models.Q(occurrence_geometry__occurrence_id=occurrence_id)
+                | models.Q(
+                    ("historical_occurrence", occurrence_id),
+                    ("status", OccurrenceTenure.STATUS_HISTORICAL),
+                    _connector=models.Q.AND,
+                )
+            )
+
+        if search_term:
+            feature_id = models.Func(
+                models.F("tenure_area_id"),
+                Value("([0-9]+$)"),
+                function="substring",
+                output=models.TextField(),
+            )
+            queryset = queryset.annotate(feature_id=feature_id)
+
+            queryset = (
+                queryset.filter(feature_id__icontains=search_term)
+                .distinct()
+                .values("tenure_area_id", "feature_id")[:10]
+            )
+            results = [
+                {"id": row["tenure_area_id"], "text": row["feature_id"]}
+                for row in queryset
+            ]
+
+        return Response({"results": results})
 
 
 class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
