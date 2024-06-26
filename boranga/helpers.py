@@ -173,6 +173,12 @@ def is_occurrence_report_referee(request, occurrence_report=None):
     return qs.exists()
 
 
+def is_referee(request):
+    return is_conservation_status_referee(request) or is_occurrence_report_referee(
+        request
+    )
+
+
 def in_dbca_domain(request):
     user = request.user
     domain = user.email.split("@")[1]
@@ -205,8 +211,8 @@ def is_customer(request):
 
 
 def is_internal(request):
-    return is_departmentUser(request) and belongs_to_groups(
-        request, settings.INTERNAL_GROUPS
+    return is_departmentUser(request) and (
+        belongs_to_groups(request, settings.INTERNAL_GROUPS) or is_referee(request)
     )
 
 
