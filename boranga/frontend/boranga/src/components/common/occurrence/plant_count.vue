@@ -190,93 +190,107 @@
         <label for="" class="col-lg-3 control-label fs-5 fw-bold"></label>
         <div class="row mb-3">
             <label class="col-sm-3 control-label">Clonal Reproduction present?</label>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="reprodPresentYes" type="radio"
-                    v-model="plant_count.clonal_reproduction_present" value="true">&nbsp;
-                <label for="reprodPresentYes">Yes</label>
-            </div>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="reprodPresentNo" type="radio"
-                    v-model="plant_count.clonal_reproduction_present" value="false">&nbsp;
-                <label for="reprodPresentNo">No</label>
+            <div class="col">
+                <div class="form-check form-check-inline">
+                    <label for="reprodPresentYes">Yes</label>
+                    <input :disabled="isReadOnly" id="reprodPresentYes" class="form-check-input" type="radio"
+                        v-model="plant_count.clonal_reproduction_present" value="true">&nbsp;
+                </div>
+                <div class="form-check form-check-inline">
+                    <label for="reprodPresentNo">No</label>
+                    <input :disabled="isReadOnly" id="reprodPresentNo" class="form-check-input" type="radio"
+                        v-model="plant_count.clonal_reproduction_present" value="false">&nbsp;
+                </div>
             </div>
         </div>
         <div class="row mb-3">
             <label class="col-sm-3 control-label">Vegetative State present?</label>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="vegStatePresentYes" type="radio"
-                    v-model="plant_count.vegetative_state_present" value="true">&nbsp;
-                <label for="vegStatePresentYes">Yes</label>
-            </div>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="vegStatePresentNo" type="radio"
-                    v-model="plant_count.vegetative_state_present" value="false">&nbsp;
-                <label for="vegStatePresentNo">No</label>
+            <div class="col">
+                <div class="form-check form-check-inline">
+                    <label for="vegStatePresentYes">Yes</label>
+                    <input :disabled="isReadOnly" id="vegStatePresentYes" class="form-check-input" type="radio"
+                        v-model="plant_count.vegetative_state_present" value="true">&nbsp;
+                </div>
+                <div class="form-check form-check-inline">
+                    <label for="vegStatePresentNo">No</label>
+                    <input :disabled="isReadOnly" id="vegStatePresentNo" class="form-check-input" type="radio"
+                        v-model="plant_count.vegetative_state_present" value="false">&nbsp;
+                </div>
             </div>
         </div>
         <div class="row mb-3">
             <label class="col-sm-3 control-label">Flower Buds present?</label>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="flowerBudsPresentYes" type="radio"
-                    v-model="plant_count.flower_bud_present" value="true">&nbsp;
-                <label for="flowerBudsPresentYes">Yes</label>
-            </div>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="flowerBudsPresentNo" type="radio"
-                    v-model="plant_count.flower_bud_present" value="false">&nbsp;
-                <label for="flowerBudsPresentNo">No</label>
+            <div class="col">
+                <div class="form-check form-check-inline">
+                    <label for="flowerBudsPresentYes">Yes</label>
+                    <input :disabled="isReadOnly" id="flowerBudsPresentYes" class="form-check-input" type="radio"
+                        v-model="plant_count.flower_bud_present" value="true">&nbsp;
+                </div>
+                <div class="form-check form-check-inline">
+                    <label for="flowerBudsPresentNo">No</label>
+                    <input :disabled="isReadOnly" id="flowerBudsPresentNo" class="form-check-input" type="radio"
+                        v-model="plant_count.flower_bud_present" value="false">&nbsp;
+                </div>
             </div>
         </div>
         <div class="row mb-3">
             <label class="col-sm-3 control-label">Flowers present?</label>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="flowerPresentYes" type="radio" v-model="plant_count.flower_present"
-                    value="true">&nbsp;
-                <label for="flowerPresentYes">Yes</label>
-            </div>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="flowerPresentNo" type="radio" v-model="plant_count.flower_present"
-                    value="false">&nbsp;
-                <label for="flowerPresentNo">No</label>
+            <div class="col">
+                <div class="form-check form-check-inline">
+                    <label for="flowerPresentYes">Yes</label>
+                    <input :disabled="isReadOnly" id="flowerPresentYes" class="form-check-input" type="radio"
+                        v-model="plant_count.flower_present" value="true">&nbsp;
+                </div>
+                <div class="form-check form-check-inline">
+                    <label for="flowerPresentNo">No</label>
+                    <input :disabled="isReadOnly" id="flowerPresentNo" class="form-check-input" type="radio"
+                        v-model="plant_count.flower_present" value="false">&nbsp;
+                </div>
             </div>
         </div>
         <div class="row mb-3">
             <label class="col-sm-3 control-label">Immature Fruit present?</label>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="immFruitPresentYes" type="radio"
-                    v-model="plant_count.immature_fruit_present" value="true">&nbsp;
-                <label for="immFruitPresentYes">Yes</label>
-            </div>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="immFruitPresentNo" type="radio"
-                    v-model="plant_count.immature_fruit_present" value="false">&nbsp;
-                <label for="immFruitPresentNo">No</label>
+            <div class="col">
+                <div class="form-check form-check-inline">
+                    <label for="immFruitPresentYes">Yes</label>
+                    <input :disabled="isReadOnly" id="immFruitPresentYes" class="form-check-input" type="radio"
+                        v-model="plant_count.immature_fruit_present" value="true">&nbsp;
+                </div>
+                <div class="form-check form-check-inline">
+                    <label for="immFruitPresentNo">No</label>
+                    <input :disabled="isReadOnly" id="immFruitPresentNo" class="form-check-input" type="radio"
+                        v-model="plant_count.immature_fruit_present" value="false">&nbsp;
+                </div>
             </div>
         </div>
         <div class="row mb-3">
             <label class="col-sm-3 control-label">Ripe Fruit present?</label>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="ripeFruitPresentYes" type="radio"
-                    v-model="plant_count.ripe_fruit_present" value="true">&nbsp;
-                <label for="ripeFruitPresentYes">Yes</label>
-            </div>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="ripeFruitPresentNo" type="radio"
-                    v-model="plant_count.ripe_fruit_present" value="false">&nbsp;
-                <label for="ripeFruitPresentNo">No</label>
+            <div class="col">
+                <div class="form-check form-check-inline">
+                    <label for="ripeFruitPresentYes">Yes</label>
+                    <input :disabled="isReadOnly" id="ripeFruitPresentYes" class="form-check-input" type="radio"
+                        v-model="plant_count.ripe_fruit_present" value="true">&nbsp;
+                </div>
+                <div class="form-check form-check-inline">
+                    <label for="ripeFruitPresentNo">No</label>
+                    <input :disabled="isReadOnly" id="ripeFruitPresentNo" class="form-check-input" type="radio"
+                        v-model="plant_count.ripe_fruit_present" value="false">&nbsp;
+                </div>
             </div>
         </div>
         <div class="row mb-3">
             <label class="col-sm-3 control-label">Dehisced Fruit present?</label>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="dehFruitPresentYes" type="radio"
-                    v-model="plant_count.dehisced_fruit_present" value="true">&nbsp;
-                <label for="dehFruitPresentYes">Yes</label>
-            </div>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="dehFruitPresentNo" type="radio"
-                    v-model="plant_count.dehisced_fruit_present" value="false">&nbsp;
-                <label for="dehFruitPresentNo">No</label>
+            <div class="col">
+                <div class="form-check form-check-inline">
+                    <label for="dehFruitPresentYes">Yes</label>
+                    <input :disabled="isReadOnly" id="dehFruitPresentYes" class="form-check-input" type="radio"
+                        v-model="plant_count.dehisced_fruit_present" value="true">&nbsp;
+                </div>
+                <div class="form-check form-check-inline">
+                    <label for="dehFruitPresentNo">No</label>
+                    <input :disabled="isReadOnly" id="dehFruitPresentNo" class="form-check-input" type="radio"
+                        v-model="plant_count.dehisced_fruit_present" value="false">&nbsp;
+                </div>
             </div>
         </div>
         <div class="row mb-3">
