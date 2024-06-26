@@ -126,7 +126,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceUserActionSerializer,
     OCRConservationThreatSerializer,
     OCRExternalRefereeInviteSerializer,
-    OCRObserverDetailReferralSerializer,
+    OCRObserverDetailLimitedSerializer,
     OCRObserverDetailSerializer,
     ProposeApproveSerializer,
     ProposeDeclineSerializer,
@@ -183,6 +183,7 @@ from boranga.helpers import (
     is_occurrence_approver,
     is_occurrence_assessor,
     is_occurrence_report_referee,
+    is_readonly_user,
 )
 
 logger = logging.getLogger(__name__)
@@ -1775,9 +1776,13 @@ class OccurrenceReportViewSet(
     def observer_details(self, request, *args, **kwargs):
         instance = self.get_object()
         qs = instance.observer_detail.all()
+        serializer = OCRObserverDetailLimitedSerializer(
+            qs, many=True, context={"request": request}
+        )
         if (
             is_occurrence_assessor(request)
             or is_occurrence_approver(request)
+            or is_occurrence_report_referee(request, instance)
             or (
                 (is_external_contributor(request) or is_internal_contributor(request))
                 and instance.submitter == request.user.id
@@ -1786,10 +1791,7 @@ class OccurrenceReportViewSet(
             serializer = OCRObserverDetailSerializer(
                 qs, many=True, context={"request": request}
             )
-        else:
-            serializer = OCRObserverDetailReferralSerializer(
-                qs, many=True, context={"request": request}
-            )
+
         return Response(serializer.data)
 
     @list_route(methods=["GET"], detail=False)
@@ -2374,23 +2376,31 @@ class OccurrenceReportViewSet(
 
 class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OCRObserverDetail.objects.none()
-    serializer_class = OCRObserverDetailSerializer
+    serializer_class = OCRObserverDetailLimitedSerializer
 
     def get_serializer_class(self):
         if (
-            not is_occurrence_assessor(self.request)
-            and not is_occurrence_approver(self.request)
-            and not is_external_contributor(self.request)
+            is_occurrence_assessor(self.request)
+            or is_occurrence_approver(self.request)
+            or is_external_contributor(self.request)
+            or is_internal_contributor(self.request)
+            or is_readonly_user(self.request)
         ):
-            return OCRObserverDetailReferralSerializer
+            return OCRObserverDetailSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
         qs = OCRObserverDetail.objects.none()
 
-        if is_occurrence_assessor(self.request) or is_occurrence_approver(self.request):
+        if (
+            is_occurrence_assessor(self.request)
+            or is_occurrence_approver(self.request)
+            or is_readonly_user(self.request)
+        ):
             qs = OCRObserverDetail.objects.all().order_by("id")
-        elif is_external_contributor(self.request):
+        elif is_external_contributor(self.request) or is_internal_contributor(
+            self.request
+        ):
             qs = OCRObserverDetail.objects.filter(
                 occurrence_report__submitter=self.request.user.id
             ).order_by("id")
