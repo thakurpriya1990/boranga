@@ -47,6 +47,7 @@ export default {
                 "Number",
                 "Type",
                 "Scientific Name",
+                "Change Type",
                 "CS Number",
                 "Action",
             ],
@@ -115,6 +116,16 @@ export default {
                             return type == 'export' ? value : result;
                         },
                         orderable: false
+                    },
+                    {
+                        data: "change_code",
+                        searchable: true,
+                        'render': function (value, type, full) {
+                            let result = helpers.dtPopover(value, 30, 'hover');
+                            return type == 'export' ? value : result;
+                        },
+                        orderable: false,
+                        name: "conservation_status__change_code__code"
                     },
                     {
                         data: "conservation_status_number",
