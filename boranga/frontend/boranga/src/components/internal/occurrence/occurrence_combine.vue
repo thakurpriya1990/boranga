@@ -584,7 +584,7 @@
                     let threat_original_reports = {};
                     let taken_reports = [];
                     vm.threats.forEach(threat => {
-                        if (vm.occ_combine_data.combine_threat_ids.includes(threat.id)) {
+                        if (vm.occ_combine_data.combine_threat_ids.includes(threat.id) && threat.occurrence_report_threat__threat_number != null) {
                             taken_reports.push(threat.occurrence_report_threat__threat_number);
                         }
                         threat_original_reports[threat.id] = threat.occurrence_report_threat__threat_number;
