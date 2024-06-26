@@ -86,25 +86,16 @@ export default {
                         data: "id",
                         mRender: function (data, type, full) {
                             let links = '';
-                            // TODO check permission to change the order
-                            //if (vm.proposal.assessor_mode.has_assessor_mode){
-                            links += `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="bi bi-caret-up-fill"></i></a><br/>`;
-                            links += `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="bi bi-caret-down-fill"></i></a><br/>`;
-                            //}
+                            if (!vm.isReadOnly) {
+                                links += `<a class="dtMoveUp" data-id="${full.id}" href='#'><i class="bi bi-caret-up-fill"></i></a><br/>`;
+                                links += `<a class="dtMoveDown" data-id="${full.id}" href='#'><i class="bi bi-caret-down-fill"></i></a><br/>`;
+                            }
                             return links;
                         },
                         orderable: false
                     },
                     {
                         data: null,
-                        // the below is simple incremental index column but doesn't work if you are sorting
-                        // data: "id",
-                        // searchable: true,
-                        // 'render': function(data, type, row,meta){
-                        //     //return meta.row+1;
-                        //     return data.meta+1;
-                        // },
-                        // orderable: false
                     },
                     {
                         data: "group_type",
@@ -141,11 +132,8 @@ export default {
                             let links = '';
                             if (!vm.isReadOnly) {
                                 links += `<a href='#${full.conservation_status_id}' data-remove-agenda-item='${full.conservation_status_id}'>Remove</a><br/>`
-                                links += `<a href='/internal/conservation_status/${full.conservation_status_id}?action=view'>View</a><br/>`;
                             }
-                            else {
-                                links += `<a href='/internal/conservation_status/${full.conservation_status_id}?action=view'>View</a><br/>`;
-                            }
+                            links += `<a target="_blank" href='/internal/conservation_status/${full.conservation_status_id}?action=view'>View <i class="bi bi-arrow-up-right-square"></i></a><br/>`;
                             return links;
 
                         },
@@ -180,9 +168,6 @@ export default {
         FormSection,
         AgendaModal,
     },
-    watch: {
-
-    },
     computed: {
         isReadOnly: function () {
             let action = this.$route.query.action;
@@ -197,8 +182,6 @@ export default {
     methods: {
         updateAgendaItems() {
             let vm = this;
-            // vm.constructCSQueueTable();
-            // vm.addTableListeners, is passed to table relaod function as to call that function to set the sort arrow correctly
             vm.$refs.cs_queue_datatable.vmDataTable.ajax.reload(vm.addTableListeners, false);
         },
         // This function was used to call api and then add row to datatable manually on ANY ACTION
@@ -281,8 +264,6 @@ export default {
                                 },
                             });
                             vm.meeting_obj.agenda_items_arr = res.body;
-                            //vm.constructCSQueueTable();
-                            // vm.addTableListeners, is passed to table relaod function as to call that function to set the sort arrow correctly
                             vm.$refs.cs_queue_datatable.vmDataTable.ajax.reload(vm.addTableListeners, false);
                         }, (error) => {
                             console.log(error);
@@ -308,17 +289,9 @@ export default {
         async sendDirection(req, direction) {
             let vm = this;
             let movement = direction == 'down' ? 'move_down' : 'move_up';
-            // this.$http.get(helpers.add_endpoint_json(api_endpoints.meeting_agenda_items,req+'/'+movement)).then((response) => {
-            // },(error) => {
-            //     console.log(error);
-
-            // })
             try {
                 const res = await fetch(helpers.add_endpoint_json(api_endpoints.meeting_agenda_items, req + '/' + movement))
                 this.$parent.uuid++;
-                //await this.$refs.requirements_datatable.vmDataTable.ajax.reload();
-                //this.$refs.requirements_datatable.vmDataTable.page(0).draw(false);
-                //this.$refs.requirements_datatable.vmDataTable.draw();
             } catch (error) {
                 console.log(error);
             }
@@ -380,7 +353,6 @@ export default {
                             var filename = contentDispositionHeader.split('filename=')[1];
                             window.URL = window.URL || window.webkitURL;
                             var blob = new Blob([response], { type: "application/vnd.ms-excel" });
-
                             var downloadUrl = window.URL.createObjectURL(blob);
                             var a = document.createElement("a");
                             a.href = downloadUrl;
@@ -436,11 +408,9 @@ export default {
     mounted: function () {
         let vm = this;
         this.$nextTick(() => {
-            //vm.constructCSQueueTable();
             vm.addEventListeners();
             vm.hideOrderColumn();
         });
     },
 }
 </script>
-<style scoped></style>
