@@ -391,8 +391,8 @@ export default {
 
             vm.submitOccurrence = true;
             swal.fire({
-                title: "Submit",
-                text: "Are you sure you want to submit this application?",
+                title: "Submit Occurrence",
+                text: "Are you sure you want to submit this Occurrence?",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
