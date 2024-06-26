@@ -109,10 +109,15 @@ class OccurrenceSerializer(serializers.ModelSerializer):
         allow_blank=True,
         required=False,
     )
+    combined_occurrence_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Occurrence
         fields = "__all__"
+
+    def get_combined_occurrence_id(self, obj):
+        if obj.combined_occurrence:
+            return obj.combined_occurrence.id
 
     def get_processing_status(self, obj):
         return obj.get_processing_status_display()

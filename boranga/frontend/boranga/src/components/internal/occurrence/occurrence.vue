@@ -4,6 +4,14 @@
             <div v-if="occurrence" class="col">
                 <h3>Occurrence: {{ occurrence.occurrence_number }} - <span class="text-capitalize">{{ display_group_type
                         }}</span></h3>
+                    <h4 v-if="occurrence.combined_occurrence" class="text-muted mb-3">
+                    Combined in to Occurrence:
+                    <template>
+                        OCC{{ occurrence.combined_occurrence_id }} <small><a
+                                :href="`/internal/occurrence/${occurrence.combined_occurrence_id}?group_type_name=${occurrence.group_type}&action=view`"
+                                target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
+                    </template>
+                </h4>
                 <div class="row pb-4">
                     <div v-if="!comparing" class="col-md-3">
 

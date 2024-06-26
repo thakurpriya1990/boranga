@@ -2959,6 +2959,12 @@ class Occurrence(RevisionedMixin):
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     updated_date = models.DateTimeField(auto_now=True, null=False, blank=False)
 
+    combined_occurrence = models.ForeignKey("self", 
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="combined_occurrences")
+
     PROCESSING_STATUS_DRAFT = "draft"
     PROCESSING_STATUS_ACTIVE = "active"
     PROCESSING_STATUS_LOCKED = "locked"
@@ -3104,7 +3110,7 @@ class Occurrence(RevisionedMixin):
                                 value = getattr(src_section, i.name)
                                 setattr(section, i.name, value)
                             #print(i.name," - ",value)
-                    #section.save()
+                    section.save()
                 except Exception as e:
                     print(e)
                 
@@ -3136,11 +3142,21 @@ class Occurrence(RevisionedMixin):
         ocrs.update(occurrence=self)
 
         #update combined OCCs to note that they have been combined and close
+        for i in combine_occurrences:
+            i.processing_status = Occurrence.PROCESSING_STATUS_HISTORICAL
+            i.combined_occurrence = self
+            i.save(version_user=request.user)
 
         #save
         self.save(version_user=request.user)
 
         #action log
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_COMBINE_OCCURRENCE.format(
+                ", ".join(list(combine_occurrences.values_list("occurrence_number",flat=True))), self.occurrence_number
+            ),
+            request,
+        )
 
     def validate_activate(self):
         missing_values = []
@@ -3507,6 +3523,7 @@ class OccurrenceUserAction(UserAction):
     ACTION_EDIT_OCCURRENCE = "Edit occurrence {}"
     ACTION_DISCARD_OCCURRENCE = "Discard  occurrence {}"
     ACTION_REINSTATE_OCCURRENCE = "Reinstate  occurrence {}"
+    ACTION_COMBINE_OCCURRENCE = "{} combined in to occurrence {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for occurrence {}"
