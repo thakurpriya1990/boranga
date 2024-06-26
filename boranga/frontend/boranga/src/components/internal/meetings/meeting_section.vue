@@ -4,28 +4,29 @@
             <alert type="danger" v-if="!isMeetingDateValid"><strong>Please select End Date that is later than Start
                     Date</strong></alert>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Title:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">Title: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="title" ref="title" placeholder=""
                         v-model="meeting_obj.title" autofocus />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Start Date/ Time:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">Start Date/ Time: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
+
                     <input :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date"
                         ref="start_date" v-model="meeting_obj.start_date" @change="validateMeetingDate()" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">End Date/ Time:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">End Date/ Time: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <input :disabled="isReadOnly" type="datetime-local" class="form-control" id="end_date"
                         v-model="meeting_obj.end_date" @change="validateMeetingDate()" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Meeting Type:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">Meeting Type: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" style="width:100%;" class="form-select"
                         v-model="meeting_obj.meeting_type" @change="toggleAttendees(meeting_obj.meeting_type)">
@@ -36,7 +37,7 @@
                 </div>
             </div>
             <div v-show="!isCommitteeMeeting" class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Attendees:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">Attendees: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="title" placeholder=""
                         v-model="meeting_obj.attendees" />
@@ -44,7 +45,7 @@
             </div>
             <div v-show="isCommitteeMeeting">
                 <div class="row mb-3">
-                    <label for="" class="col-sm-4 control-label">Committee:</label>
+                    <label for="" class="col-sm-4 control-label fw-bold">Committee: <span class="text-danger">*</span></label>
                     <div class="col-sm-8">
                         <select :disabled="isReadOnly" style="width:100%;" class="form-select"
                             v-model="meeting_obj.committee_id" @change="renderMembersTable()">
@@ -60,7 +61,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Location:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">Location: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" style="width:100%;" class="form-select"
                         v-model="meeting_obj.location_id">
@@ -71,7 +72,7 @@
                 </div>
             </div>
             <div class="row mb-3" v-if="meetingStatusEditable">
-                <label for="" class="col-sm-4 control-label">Meeting status:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">Meeting status: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" style="width:100%;" class="form-select"
                         v-model="meeting_obj.processing_status">
