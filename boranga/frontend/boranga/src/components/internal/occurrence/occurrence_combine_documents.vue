@@ -19,13 +19,16 @@ export default {
         combineDocumentIds: {
             type: Array,
             required: true
-        }
+        },
+        mainOccurrenceId: {
+            type: Number,
+            required: true
+        },
     },
     data:function () {
         let vm = this;
         return{
             panelBody: "document-combine-select-"+vm._uid,
-            checkedDocumentNames: [],
             documents_headers:["Occurrence", "Number", "Category", "Sub Category", "Document", "Description", "Date/Time", "Action"],
             documents_options:{
                 autowidth: true,
@@ -85,9 +88,13 @@ export default {
                         data: "id",
                         mRender:function (data,type,full){
                             if (vm.combineDocumentIds.includes(full.id)) {
-                                return `<input id='${full.id}' data-document-checkbox='${full.id}' document-name='${full.document_name}' type='checkbox' checked/>`
+                                if (full.occurrence__id == vm.mainOccurrenceId) {
+                                    return `<input id='${full.id}' data-document-checkbox='${full.id}' type='checkbox' checked disabled/>`
+                                } else {
+                                    return `<input id='${full.id}' data-document-checkbox='${full.id}' type='checkbox' checked/>`
+                                }
                             } else {
-                                return `<input id='${full.id}' data-document-checkbox='${full.id}' document-name='${full.document_name}' type='checkbox'/>`
+                                return `<input id='${full.id}' data-document-checkbox='${full.id}' type='checkbox'/>`
                             }
                         }
                     },

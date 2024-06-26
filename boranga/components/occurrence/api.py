@@ -3287,6 +3287,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             
             values_list = list(contacts.values(
                 "occurrence__occurrence_number",
+                "occurrence__id",
                 "id",
                 "contact_name",
                 "role",
@@ -3312,6 +3313,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
             values_list = list(documents.values(
                 "occurrence__occurrence_number",
+                "occurrence__id",
                 "id",
                 "document_number",
                 "document_category__document_category_name",
@@ -3339,9 +3341,11 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
             values_list = list(threats.values(
                 "occurrence__occurrence_number",
+                "occurrence__id",
                 "id",
                 "threat_number",
                 "occurrence_report_threat__occurrence_report__occurrence_report_number",
+                "occurrence_report_threat__threat_number",
                 "threat_category__name",
                 "date_observed",
                 "threat_agent__name",
@@ -3894,9 +3898,25 @@ class OccurrenceViewSet(
         self.is_authorised_to_update()
         #print(json.loads(request.POST.get("data")))
         instance = self.get_object()
+        occ_combine_data = json.loads(request.POST.get("data"))
+        combine_occurrences = Occurrence.objects.exclude(
+            id=instance.id
+        ).filter(
+            id__in=occ_combine_data["combine_ids"]
+        )
+        #validate species
+        if instance.group_type.name in [
+            GroupType.GROUP_TYPE_FLORA,
+            GroupType.GROUP_TYPE_FAUNA,
+        ]:
+            #get species and all parents/children of those species
+            species_ids = get_all_related_species(instance.species.id)
+            if combine_occurrences.filter(species_id__in=species_ids).count() != combine_occurrences.count():
+                raise serializers.ValidationError("Selected Occurrence has invalid Species")
+
         instance.combine(request)
 
-        return Response()
+        return redirect(reverse("internal"))
 
     @detail_route(
         methods=[

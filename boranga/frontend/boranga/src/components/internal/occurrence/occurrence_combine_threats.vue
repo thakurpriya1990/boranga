@@ -19,13 +19,17 @@ export default {
         combineThreatIds: {
             type: Array,
             required: true
-        }
+        },
+        mainOccurrenceId: {
+            type: Number,
+            required: true
+        },
     },
     data:function () {
         let vm = this;
         return{
+            checkedOriginalReports: [],
             panelBody: "threat-combine-select-"+vm._uid,
-            checkedThreatNames: [],
             threats_headers:["Occurrence", "Number", "Original Report", "Category", "Date Observed", "Threat Agent", "Current Impact", "Potential Impact", "Comments", "Action"],
             threats_options:{
                 autowidth: true,
@@ -54,6 +58,12 @@ export default {
                     },
                     {
                         data: "occurrence_report_threat__occurrence_report__occurrence_report_number",
+                        mRender:function (data,type,full){
+                            if (full.occurrence_report_threat__occurrence_report__occurrence_report_number) {
+                                return full.occurrence_report_threat__occurrence_report__occurrence_report_number + ' - ' + full.occurrence_report_threat__threat_number;
+                            }
+                            return ""
+                        }
                     },
                     {
                         data: "threat_category__name",
@@ -83,10 +93,23 @@ export default {
                     {
                         data: "id",
                         mRender:function (data,type,full){
+                            let original_threat = "";
+                            if (full.occurrence_report_threat__threat_number != null) {
+                                original_threat = `original-threat='${full.occurrence_report_threat__threat_number}'`
+                            }
                             if (vm.combineThreatIds.includes(full.id)) {
-                                return `<input id='${full.id}' data-threat-checkbox='${full.id}' threat-name='${full.threat_name}' type='checkbox' checked/>`
+                                if (full.occurrence__id == vm.mainOccurrenceId) {
+                                    return `<input id='${full.id}' data-threat-checkbox='${full.id}' `+original_threat+` type='checkbox' checked disabled/>`
+                                } else {
+                                    return `<input id='${full.id}' data-threat-checkbox='${full.id}' `+original_threat+` type='checkbox' checked/>`
+                                }
                             } else {
-                                return `<input id='${full.id}' data-threat-checkbox='${full.id}' threat-name='${full.threat_name}' type='checkbox'/>`
+                                
+                                if (vm.checkedOriginalReports.includes(full.occurrence_report_threat__threat_number)) {
+                                    return `<input id='${full.id}' data-threat-checkbox='${full.id}' `+original_threat+` type='checkbox' disabled/>`
+                                } else {
+                                    return `<input id='${full.id}' data-threat-checkbox='${full.id}' `+original_threat+` type='checkbox'/>`
+                                }
                             }
                         },
                     },
@@ -111,16 +134,28 @@ export default {
         datatable,
     },
     methods: {
+        getSelectedOriginalReports: function () {
+            let vm=this;   
+            let reports = []
+            vm.selectedThreats.forEach(threat => {
+                if (vm.combineThreatIds.includes(threat.id) && !reports.includes(threat.occurrence_report_threat__threat_number)) {
+                    reports.push(threat.occurrence_report_threat__threat_number);
+                }
+            })
+            vm.checkedOriginalReports = reports;
+        },
         adjust_table_width: function () {
             if (this.$refs.threats_datatable !== undefined) { this.$refs.threats_datatable.vmDataTable.columns.adjust().responsive.recalc() };
         },
         removeThreat: function(id) {
             let vm=this;   
             vm.combineThreatIds.splice(vm.combineThreatIds.indexOf(id), 1);
+            vm.getSelectedOriginalReports();
         }, 
         addThreat: function(id) {
             let vm=this;   
             vm.combineThreatIds.push(id);
+            vm.getSelectedOriginalReports();
         }, 
         addEventListeners:function (){
             let vm=this;     
@@ -129,11 +164,27 @@ export default {
                 var id = parseInt($(this).attr('data-threat-checkbox'));
                 if($(this).prop('checked')) {
                     vm.addThreat(id);
+                    vm.selectedThreats.forEach(threat=> {
+                        let checkbox = vm.$refs.threats_datatable.vmDataTable.$("#"+threat.id);
+                        if (id != checkbox.attr('data-threat-checkbox') && checkbox.attr('original-threat') !== undefined && checkbox.attr('original-threat') == $(this).attr('original-threat')) {
+                            checkbox.prop('disabled', true);
+                        }
+                    });
                 } else {
                     vm.removeThreat(id);
+                    vm.selectedThreats.forEach(threat=> {
+                        let checkbox = vm.$refs.threats_datatable.vmDataTable.$("#"+threat.id);
+                        if (id != checkbox.attr('data-threat-checkbox') && checkbox.attr('original-threat') !== undefined && checkbox.attr('original-threat') == $(this).attr('original-threat')) {
+                            checkbox.prop('disabled', false);
+                        }
+                    });
                 }
             });
         }
+    },
+    created: function(){
+        let vm = this;    
+        vm.getSelectedOriginalReports();
     },
     mounted: function() {
         let vm = this;    

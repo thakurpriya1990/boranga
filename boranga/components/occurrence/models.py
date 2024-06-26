@@ -1830,6 +1830,7 @@ class OCRObserverDetail(models.Model):
         unique_together = (
             "observer_name",
             "occurrence_report",
+            "visible",
         )
 
     def __str__(self):
@@ -3012,15 +3013,21 @@ class Occurrence(RevisionedMixin):
     def number_of_reports(self):
         return self.occurrence_report_count
 
+    @transaction.atomic
     def combine(self, request):
         #only Active OCCs may be combined to
         if not (self.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
             raise ValidationError("Occurrence not Active, cannot be combined to")
 
         occ_combine_data = json.loads(request.POST.get("data"))
+        #print(occ_combine_data)
 
         #OCCs being combined must not be discarded or historical
-        combine_occurrences = Occurrence.objects.exclude(id=self.id).filter(id__in=occ_combine_data["combine_ids"])
+        combine_occurrences = Occurrence.objects.exclude(
+            id=self.id
+        ).filter(
+            id__in=occ_combine_data["combine_ids"]
+        )
         
         if not combine_occurrences.exists():
             raise ValidationError("No Occurrences selected to be combined")
@@ -3031,7 +3038,109 @@ class Occurrence(RevisionedMixin):
             ).exists()
         ):
             raise ValidationError("Closed or Discarded Occurrences may not be combined")
+        
+        #validate species/community
+        if (combine_occurrences.exclude(
+            group_type=self.group_type
+            ).exists()
+        ):
+            raise ValidationError("Selected Occurrence has mismatched group type")
             
+        #dictionary pairing request value keys with corresponding model attrs/foreign relations
+        FORM_KEYS = {
+            "occurrence_source":"occurrence_source",
+            "wild_status":"wild_status",
+            "review_due_date":"review_due_date",
+            "comment":"comment",
+        }
+        SECTION_KEYS = {
+            "chosen_location_section":"location",
+            "chosen_habitat_composition_section":"habitat_composition",
+            "chosen_habitat_condition_section":"habitat_condition",
+            "chosen_vegetation_structure_section":"vegetation_structure",
+            "chosen_fire_history_section":"fire_history",
+            "chosen_associated_species_section":"associated_species",
+            "chosen_observation_detail_section":"observation_detail",
+            "chosen_animal_observation_section":"animal_observation",
+            "chosen_plant_count_section":"plant_count",
+            "chosen_identification_section":"identification",
+        }
+        COPY_TABLE_KEYS = {
+            "combine_key_contact_ids":OCCContactDetail,
+            "combine_document_ids":OccurrenceDocument,
+        }
+        MOVE_TABLE_KEYS = {"combine_threat_ids":OCCConservationThreat}
+
+        #assess and assign form values
+        for key in FORM_KEYS:
+            if key in occ_combine_data and occ_combine_data[key] != self.id:
+                #print("set", key, "to that in OCC", occ_combine_data[key])
+                try: #handle in case somehow the combined occurrence record does not exist
+                    setattr(self,key,getattr(combine_occurrences.get(id=occ_combine_data[key]),key))
+                except Exception as e:
+                    print(e)
+
+        #assess and copy section values
+        for key in SECTION_KEYS:
+            if key in occ_combine_data and occ_combine_data[key] != self.id:
+                #print("copy", key, "from OCC", occ_combine_data[key])
+                try: #handle in case somehow the combined occurrence record does not exist or does not have the specified section
+                    src_section = getattr(combine_occurrences.get(id=occ_combine_data[key]),SECTION_KEYS[key])
+                    section = getattr(self,SECTION_KEYS[key])
+                    section_fields = type(section)._meta.get_fields()
+                    for i in section_fields:
+                        if (
+                            i.name != "id"
+                            and i.name != "occurrence"
+                            and hasattr(section, i.name)
+                        ):
+                            if isinstance(i, models.ManyToManyField):
+                                src_value = getattr(src_section, i.name)
+                                value = getattr(section, i.name)
+                                value.clear()
+                                for i in src_value.all():
+                                    value.add(i)
+                            else:
+                                value = getattr(src_section, i.name)
+                                setattr(section, i.name, value)
+                            #print(i.name," - ",value)
+                    #section.save()
+                except Exception as e:
+                    print(e)
+                
+        #assess and copy table values (contacts and documents) TODO: sites and tenures
+        for key in COPY_TABLE_KEYS:
+            if key in occ_combine_data:
+                #print("Copy",key,"with ids",occ_combine_data[key],"if not already in OCC")
+                for record in  COPY_TABLE_KEYS[key].objects.filter(id__in=occ_combine_data[key]).exclude(occurrence=self):
+                    copy = clone_model(
+                        COPY_TABLE_KEYS[key],
+                        COPY_TABLE_KEYS[key],
+                        record,
+                    )
+                    if copy:
+                        copy.occurrence = self
+                        copy.save()
+
+        #assess and move threat table values
+        for key in MOVE_TABLE_KEYS:
+            if key in occ_combine_data:
+                #print("Move",key,"with ids",occ_combine_data[key],"if not already in OCC")
+                for record in  MOVE_TABLE_KEYS[key].objects.filter(id__in=occ_combine_data[key]).exclude(occurrence=self):
+                    record.occurrence = self
+                    record.save()
+
+        #NOTE: not validating OCR species/community - already validated at OCC level
+        #move OCRs
+        ocrs = OccurrenceReport.objects.filter(occurrence__in=combine_occurrences)
+        ocrs.update(occurrence=self)
+
+        #update combined OCCs to note that they have been combined and close
+
+        #save
+        self.save(version_user=request.user)
+
+        #action log
 
     def validate_activate(self):
         missing_values = []
@@ -3596,6 +3705,7 @@ class OCCContactDetail(models.Model):
         unique_together = (
             "contact_name",
             "occurrence",
+            "visible",
         )
 
     def __str__(self):

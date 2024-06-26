@@ -79,13 +79,7 @@
                             <div class="row mb-3">
                                 <label for="" class="col-sm-3 control-label">Occurrence Name:</label>
                                 <div class="col-sm-9">
-                                    <select id="combine_occurrence_name" ref="combine_occurrence_name" class="form-select"
-                                        v-model="occ_combine_data.occurrence_name" :key="occ_form_key">
-                                        <option v-for="occurrence in selectedOccurrences" :value="occurrence.id"
-                                            v-bind:key="occurrence.id">
-                                            {{occurrence.occurrence_number}}: {{occurrence.occurrence_name}}
-                                        </option>
-                                    </select>
+                                    <textarea disabled class="form-control" rows="1" v-model="main_occurrence_obj.occurrence_name"/>
                                 </div>
                             </div>
                             <div v-if="main_occurrence_obj.group_type=='flora' || main_occurrence_obj.group_type=='fauna'" class="row mb-3">
@@ -164,6 +158,7 @@
                             <OccurrenceCombineContacts 
                             :selectedKeyContacts="key_contacts" 
                             :combineKeyContactIds="occ_combine_data.combine_key_contact_ids" 
+                            :mainOccurrenceId="main_occurrence_obj.id"
                             :key="contact_table_key" 
                             ref="key_contacts_section"/>
                             </div>
@@ -244,6 +239,7 @@
                             <OccurrenceCombineDocuments
                             :selectedDocuments="documents" 
                             :combineDocumentIds="occ_combine_data.combine_document_ids" 
+                            :mainOccurrenceId="main_occurrence_obj.id"
                             :key="document_table_key" 
                             ref="documents_section"/>
                             </div>
@@ -256,6 +252,7 @@
                             <OccurrenceCombineThreats
                             :selectedThreats="threats" 
                             :combineThreatIds="occ_combine_data.combine_threat_ids" 
+                            :mainOccurrenceId="main_occurrence_obj.id"
                             :key="threat_table_key" 
                             ref="threats_section"/>
                             </div>
@@ -325,7 +322,6 @@
                     combine_key_contact_ids: [],
                     combine_document_ids: [],
                     combine_threat_ids: [],
-                    occurrence_name: this.main_occurrence_obj.id,
                     occurrence_source: this.main_occurrence_obj.id,
                     wild_status: this.main_occurrence_obj.id,
                     review_due_date: this.main_occurrence_obj.id,
@@ -357,7 +353,9 @@
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },                            
-                });
+                    }).then((swalresult) => {
+                        vm.$router.go();
+                    });
                 }, (err) => {
                     var errorText = helpers.apiVueResourceError(err);
                     swal.fire({
@@ -482,10 +480,6 @@
                 if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_identification_section)) {
                     vm.occ_combine_data.chosen_identification_section = vm.main_occurrence_obj.id;
                 }
-
-                if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.occurrence_name)) {
-                    vm.occ_combine_data.occurrence_name = vm.main_occurrence_obj.id;
-                }
                 if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.occurrence_source)) {
                     vm.occ_combine_data.occurrence_source = vm.main_occurrence_obj.id;
                 }
@@ -586,15 +580,25 @@
                     //add to main list
                     vm.threat_ids = response.body.id_list;
                     vm.threats = response.body.values_list;
+
+                    let threat_original_reports = {};
+                    let taken_reports = [];
+                    vm.threats.forEach(threat => {
+                        if (vm.occ_combine_data.combine_threat_ids.includes(threat.id)) {
+                            taken_reports.push(threat.occurrence_report_threat__threat_number);
+                        }
+                        threat_original_reports[threat.id] = threat.occurrence_report_threat__threat_number;
+                    });
+
                     //remove ids from combine list if not in new list
                     vm.occ_combine_data.combine_threat_ids.forEach(id => {
                         if (!response.body.id_list.includes(id)) {
                             vm.occ_combine_data.combine_threat_ids.splice(vm.occ_combine_data.combine_threat_ids.indexOf(id), 1);
                         }
                     });
-                    //add new ids to combine list if not in old list
+                    //add new ids to combine list if not in old list - unless they share an original report
                     response.body.id_list.forEach(id => {
-                        if (!old_list.includes(id)) {
+                        if (!old_list.includes(id) && !taken_reports.includes(threat_original_reports[id])) {
                             vm.occ_combine_data.combine_threat_ids.push(id);
                         }
                     });

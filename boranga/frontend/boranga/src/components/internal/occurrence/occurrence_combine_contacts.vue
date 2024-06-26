@@ -19,7 +19,11 @@ export default {
         combineKeyContactIds: {
             type: Array,
             required: true
-        }
+        },
+        mainOccurrenceId: {
+            type: Number,
+            required: true
+        },
     },
     data:function () {
         let vm = this;
@@ -78,7 +82,11 @@ export default {
                         data: "id",
                         mRender:function (data,type,full){
                             if (vm.combineKeyContactIds.includes(full.id)) {
-                                return `<input id='${full.id}' data-contact-checkbox='${full.id}' contact-name='${full.contact_name}' type='checkbox' checked/>`
+                                if (full.occurrence__id == vm.mainOccurrenceId) {
+                                    return `<input id='${full.id}' data-contact-checkbox='${full.id}' contact-name='${full.contact_name}' type='checkbox' checked disabled/>`
+                                } else {
+                                    return `<input id='${full.id}' data-contact-checkbox='${full.id}' contact-name='${full.contact_name}' type='checkbox' checked/>`
+                                }
                             } else {
                                 //console.log(vm.checkedContactNames)
                                 if (vm.checkedContactNames.includes(full.contact_name)) {
