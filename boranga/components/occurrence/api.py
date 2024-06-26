@@ -179,6 +179,7 @@ from boranga.helpers import (
     is_customer,
     is_external_contributor,
     is_internal,
+    is_internal_contributor,
     is_occurrence_approver,
     is_occurrence_assessor,
     is_occurrence_report_referee,
@@ -1774,7 +1775,14 @@ class OccurrenceReportViewSet(
     def observer_details(self, request, *args, **kwargs):
         instance = self.get_object()
         qs = instance.observer_detail.all()
-        if is_occurrence_assessor(request) or is_occurrence_approver(request):
+        if (
+            is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+            or (
+                (is_external_contributor(request) or is_internal_contributor(request))
+                and instance.submitter == request.user.id
+            )
+        ):
             serializer = OCRObserverDetailSerializer(
                 qs, many=True, context={"request": request}
             )
