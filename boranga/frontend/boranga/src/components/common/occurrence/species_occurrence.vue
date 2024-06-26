@@ -2,14 +2,14 @@
     <div id="speciesOccurrence">
         <FormSection :formCollapse="false" label="Occurrence" Index="occurrence">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Occurrence Name:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Occurrence Name: <span class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <textarea class="form-control" :disabled="isReadOnly" rows="1" id="occurrence_name" placeholder=""
                         v-model="occurrence_obj.occurrence_name" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Scientific Name:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Scientific Name: <span class="text-danger">*</span></label>
                 <div class="col-sm-9" :id="select_scientific_name">
                     <select :disabled="isReadOnly" :id="scientific_name_lookup" :name="scientific_name_lookup"
                         :ref="scientific_name_lookup" class="form-control" />
@@ -32,8 +32,8 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Wild Status:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" 
-                        class="form-select" 
+                    <select :disabled="isReadOnly"
+                        class="form-select"
                         v-model="occurrence_obj.wild_status">
                         <option value="" selected disabled>Select Wild Status</option>
                         <option v-for="option in wild_status_list" :value="option.id" :key="option.id">
