@@ -328,7 +328,6 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
-import Workflow from '@common-utils/workflow.vue'
 import ShowAllReferrals from '@common-utils/occurrence/ocr_more_referrals.vue'
 import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
 import AmendmentRequest from './amendment_request.vue'
@@ -375,7 +374,6 @@ export default {
         datatable,
         CommsLogs,
         Submission,
-        Workflow,
         ShowAllReferrals,
         ProposalOccurrenceReport,
         AmendmentRequest,

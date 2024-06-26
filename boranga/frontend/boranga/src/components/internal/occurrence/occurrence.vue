@@ -123,7 +123,6 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
-import Workflow from '@common-utils/workflow.vue'
 import ProposalOccurrence from '@/components/form_occurrence.vue'
 
 // import OccurrenceSplit from './occurrence_split.vue'
@@ -157,7 +156,6 @@ export default {
         datatable,
         CommsLogs,
         Submission,
-        Workflow,
         ProposalOccurrence,
         // OccurrenceSplit,
         // OccurrenceCombine,

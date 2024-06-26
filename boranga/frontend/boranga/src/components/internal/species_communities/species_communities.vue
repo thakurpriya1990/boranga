@@ -190,7 +190,6 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
-import Workflow from '@common-utils/workflow.vue'
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
 import SpeciesSplit from './species_split.vue'
 import SpeciesCombine from './species_combine.vue'
@@ -215,8 +214,6 @@ export default {
             uploadedID: null,
             imageURL: '',
             isSaved: false,
-
-
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comparing: false,
         }
@@ -225,7 +222,6 @@ export default {
         datatable,
         CommsLogs,
         Submission,
-        Workflow,
         ProposalSpeciesCommunities,
         SpeciesSplit,
         SpeciesCombine,

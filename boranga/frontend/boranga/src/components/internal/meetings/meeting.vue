@@ -97,7 +97,6 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
-import Workflow from '@common-utils/workflow.vue'
 import MeetingSection from './meeting_section.vue'
 import Minutes from './minutes.vue'
 import CSQueue from './cs_queue.vue';
@@ -131,7 +130,6 @@ export default {
         datatable,
         CommsLogs,
         Submission,
-        Workflow,
         MeetingSection,
         Minutes,
         CSQueue,
