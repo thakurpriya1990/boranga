@@ -134,28 +134,32 @@
         <label for="" class="col-lg-3 control-label fs-5 fw-bold">Quadrats</label>
         <div class="row mb-3">
             <label class="col-sm-3 control-label">Quadrats Present?</label>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="quadratsPresentYes" type="radio"
-                    v-model="plant_count.quadrats_present" value="true">&nbsp;
-                <label for="quadratsPresentYes">Yes</label>
-            </div>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="quadratsPresentNo" type="radio" v-model="plant_count.quadrats_present"
-                    value="false">&nbsp;
-                <label for="quadratsPresentNo">No</label>
+            <div class="col">
+                <div class="form-check form-check-inline">
+                    <label for="quadratsPresentYes">Yes</label>
+                    <input :disabled="isReadOnly" id="quadratsPresentYes" class="form-check-input" type="radio"
+                        v-model="plant_count.quadrats_present" value="true">&nbsp;
+                </div>
+                <div class="form-check form-check-inline">
+                    <label for="quadratsPresentNo">No</label>
+                    <input :disabled="isReadOnly" id="quadratsPresentNo" class="form-check-input" type="radio"
+                        v-model="plant_count.quadrats_present" value="false">&nbsp;
+                </div>
             </div>
         </div>
         <div class="row mb-3">
             <label class="col-sm-3 control-label">Quadrats Data attached?</label>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="quadratsDataYes" type="radio"
-                    v-model="plant_count.quadrats_data_attached" value="true">&nbsp;
-                <label for="quadratsDataYes">Yes</label>
-            </div>
-            <div class="col-sm-1">
-                <input :disabled="isReadOnly" id="quadratsDataNo" type="radio"
-                    v-model="plant_count.quadrats_data_attached" value="false">&nbsp;
-                <label for="quadratsDataNo">No</label>
+            <div class="col">
+                <div class="form-check form-check-inline">
+                    <label for="quadratsDataYes">Yes</label>
+                    <input :disabled="isReadOnly" id="quadratsDataYes" class="form-check-input" type="radio"
+                        v-model="plant_count.quadrats_data_attached" value="true">&nbsp;
+                </div>
+                <div class="form-check form-check-inline">
+                    <label for="quadratsDataNo">No</label>
+                    <input :disabled="isReadOnly" id="quadratsDataNo" class="form-check-input" type="radio"
+                        v-model="plant_count.quadrats_data_attached" value="false">&nbsp;
+                </div>
             </div>
         </div>
         <div class="row mb-3">
