@@ -414,7 +414,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             for dest in geom.source_of_objects()
         ]
 
-        return list(set([i for o in occs_copied_to for i in o]))
+        return list({i for o in occs_copied_to for i in o})
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
@@ -1754,7 +1754,8 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
         )
 
 
-class OCRObserverDetailReferralSerializer(OCRObserverDetailSerializer):
+class OCRObserverDetailLimitedSerializer(OCRObserverDetailSerializer):
+    # contact fields removed as it contains personally identifiable information
 
     class Meta:
         model = OCRObserverDetail
