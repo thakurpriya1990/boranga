@@ -771,7 +771,7 @@ export default {
 
             vm.submitOccurrenceReport = true;
             swal.fire({
-                title: "Submit",
+                title: "Submit Occurrece Report",
                 text: "Are you sure you want to submit this occurrence report?",
                 icon: "question",
                 showCancelButton: true,
