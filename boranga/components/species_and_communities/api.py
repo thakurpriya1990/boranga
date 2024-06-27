@@ -18,6 +18,7 @@ from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -128,6 +129,8 @@ class SetEncoder(json.JSONEncoder):
 
 
 class GetGroupTypeDict(views.APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         group_type_list = []
         group_types = GroupType.objects.all()
@@ -445,6 +448,8 @@ class GetCommunityName(views.APIView):
 
 
 class GetSpeciesFilterDict(views.APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         # Note: Passing flora or fauna group type will return the same data (i.e. species)
         group_type = GroupType.GROUP_TYPE_FLORA
@@ -468,6 +473,8 @@ class GetSpeciesFilterDict(views.APIView):
 
 
 class GetCommunityFilterDict(views.APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         group_type = GroupType.GROUP_TYPE_COMMUNITY
         res_json = {
@@ -490,6 +497,8 @@ class GetCommunityFilterDict(views.APIView):
 
 
 class GetRegionDistrictFilterDict(views.APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         region_list = []
         regions = Region.objects.all()
@@ -675,6 +684,8 @@ class CommunityTaxonomyViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class GetCommunityProfileDict(views.APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         post_fire_habitatat_interactions_list = []
         types = PostFireHabitatInteraction.objects.all()
@@ -839,6 +850,7 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     @list_route(
         methods=["GET", "POST"],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def species_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
@@ -1102,6 +1114,7 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def communities_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
@@ -1211,6 +1224,7 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Community.objects.none()
     serializer_class = CommunitySerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         if is_internal(self.request):
@@ -1249,6 +1263,7 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
 class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Species.objects.none()
     serializer_class = SpeciesSerializer
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         if is_internal(self.request):
@@ -2817,8 +2832,10 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.all().order_by("id")
     serializer_class = DistrictSerializer
+    permission_classes = [AllowAny]
 
 
 class RegionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Region.objects.order_by("id")
     serializer_class = RegionSerializer
+    permission_classes = [AllowAny]

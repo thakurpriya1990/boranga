@@ -24,7 +24,8 @@
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_occ_url"
                         :profile="profile" />
                 </FormSection>
-                <FormSection :formCollapse="false" label="Occurrence Report - Flora" Index="occurrence-report-flora">
+                <FormSection v-if="show_occurrence_reports" :formCollapse="false" label="Occurrence Report - Flora"
+                    Index="occurrence-report-flora">
                     <OccurrenceReportFloraDashTable v-if="isFlora" ref="flora_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_url"
                         :profile="profile" />
@@ -46,7 +47,8 @@
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_occ_url"
                         :profile="profile" />
                 </FormSection>
-                <FormSection :formCollapse="false" label="Occurrence Report - Fauna" Index="fauna">
+                <FormSection v-if="show_occurrence_reports" :formCollapse="false" label="Occurrence Report - Fauna"
+                    Index="fauna">
                     <OccurrenceReportFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_url"
                         :profile="profile" />
@@ -68,7 +70,8 @@
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="community_occ_url"
                         :profile="profile" />
                 </FormSection>
-                <FormSection :formCollapse="false" label="Occurrence Report - Community" Index="community">
+                <FormSection v-if="show_occurrence_reports" :formCollapse="false" label="Occurrence Report - Community"
+                    Index="community">
                     <OccurrenceReportCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="community_ocr_url"
                         :profile="profile" />
@@ -134,10 +137,24 @@ export default {
     },
     computed: {
         show_occurrences: function () {
-            return this.profile && this.profile.groups.find((i) => [
-                constants.GROUPS.SPECIES_AND_COMMUNITIES_APPROVERS,
+            return this.profile && this.profile.groups.some(i => [
+                constants.GROUPS.READ_ONLY_USERS,
+                constants.GROUPS.CONSERVATION_STATUS_ASSESSORS,
+                constants.GROUPS.CONSERVATION_STATUS_APPROVERS,
                 constants.GROUPS.OCCURRENCE_APPROVERS,
-                constants.GROUPS.OCCURRENCE_ASSESSORS
+                constants.GROUPS.OCCURRENCE_ASSESSORS,
+                constants.GROUPS.SPECIES_AND_COMMUNITIES_APPROVERS,
+            ].includes(i));
+        },
+        show_occurrence_reports: function () {
+            return this.profile && this.profile.groups.some(i => [
+                constants.GROUPS.READ_ONLY_USERS,
+                constants.GROUPS.CONSERVATION_STATUS_ASSESSORS,
+                constants.GROUPS.CONSERVATION_STATUS_APPROVERS,
+                constants.GROUPS.OCCURRENCE_APPROVERS,
+                constants.GROUPS.OCCURRENCE_ASSESSORS,
+                constants.GROUPS.SPECIES_AND_COMMUNITIES_APPROVERS,
+                constants.GROUPS.INTERNAL_CONTRIBUTORS
             ].includes(i));
         },
         showFloraTab: function () {

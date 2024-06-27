@@ -129,7 +129,6 @@ module.exports = {
     meeting: "/api/meeting",
     meeting_dict: "/api/meeting_dict",
     minutes: "/api/minutes.json",
-    committee: "/api/committee",
 
     occurrence_report: "/api/occurrence_report",
     observer_detail: "/api/observer_detail.json",

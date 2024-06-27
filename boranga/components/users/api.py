@@ -96,7 +96,7 @@ class SaveSubmitterInformation(views.APIView):
             raise PermissionDenied("You do not have permission to perform this action.")
 
         serializer = SubmitterInformationSerializer(
-            instance=instance, data=request.data
+            instance=instance, data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
