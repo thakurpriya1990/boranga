@@ -9,6 +9,7 @@ from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_conservation_status_referee,
+    is_contributor,
     is_django_admin,
     is_external_contributor,
     is_internal,
@@ -207,7 +208,7 @@ class MeetingPermission(BasePermission):
 class ConservationStatusPermission(BasePermission):
     def has_permission(self, request, view):
         if hasattr(view, "action") and view.action == "create":
-            return is_internal_contributor(request) or is_external_contributor(request)
+            return is_contributor(request)
 
         return (
             is_readonly_user(request)
@@ -216,8 +217,7 @@ class ConservationStatusPermission(BasePermission):
             or is_species_communities_approver(request)
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
-            or is_internal_contributor(request)
-            or is_external_contributor(request)
+            or is_contributor(request)
         )
 
     def has_object_permission(self, request, view, obj):
@@ -225,7 +225,7 @@ class ConservationStatusPermission(BasePermission):
             return True
 
         if obj.submitter == request.user.id:
-            return is_internal_contributor(request) or is_external_contributor(request)
+            return is_contributor(request)
 
         return is_conservation_status_assessor(
             request
@@ -273,7 +273,7 @@ class ConservationStatusReferralPermission(BasePermission):
 
 class ConservationStatusAmendmentRequestPermission(BasePermission):
     def has_permission(self, request, view):
-        if view.action == "create":
+        if hasattr(view, "action") and view.action == "create":
             return is_conservation_status_assessor(request)
 
         return (
@@ -283,8 +283,7 @@ class ConservationStatusAmendmentRequestPermission(BasePermission):
             or is_species_communities_approver(request)
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
-            or is_external_contributor(request)
-            or is_internal_contributor(request)
+            or is_contributor(request)
         )
 
     def has_object_permission(self, request, view, obj):
@@ -296,12 +295,11 @@ class ConservationStatusAmendmentRequestPermission(BasePermission):
 
 class ConservationStatusDocumentPermission(BasePermission):
     def has_permission(self, request, view):
-        if view.action in ["create"]:
+        if hasattr(view, "action") and view.action in ["create"]:
             return (
                 is_conservation_status_assessor(request)
                 or is_conservation_status_approver(request)
-                or is_internal_contributor(request)
-                or is_external_contributor(request)
+                or is_contributor(request)
             )
 
         return (
@@ -311,8 +309,7 @@ class ConservationStatusDocumentPermission(BasePermission):
             or is_species_communities_approver(request)
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
-            or is_external_contributor(request)
-            or is_internal_contributor(request)
+            or is_contributor(request)
         )
 
     def has_object_permission(self, request, view, obj):
