@@ -16,7 +16,6 @@ from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -99,7 +98,6 @@ class GetSpeciesDisplay(views.APIView):
     permission_classes = [ConservationStatusPermission]
 
     def get(self, request, format=None):
-        # TODO: Consider adding throttling to any endpoints that are open to unauthenticated users
         res_json = {}
 
         species_id = request.GET.get("species_id", "")
@@ -169,8 +167,6 @@ class GetCSProfileDict(views.APIView):
 
 
 class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
-    # TODO - Instead of having all the if else statements just make two separate classes
-    # and then do the splitting logic in the get_filter_class of the viewset...
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
 
@@ -1786,9 +1782,6 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def documents(self, request, *args, **kwargs):
         instance = self.get_object()
-        if not is_internal and not is_external_contributor(request):
-            raise PermissionDenied  # TODO: Replace with permission class
-
         qs = instance.documents.all()
         qs = qs.exclude(input_name="conservation_status_approval_doc")
         if not is_internal(request) and is_external_contributor(request):
@@ -1947,9 +1940,7 @@ class ConservationStatusReferralViewSet(
                 .values_list("conservation_status__species__taxonomy", flat=True)
                 .distinct()
             )
-            names = Taxonomy.objects.filter(
-                id__in=taxonomy_qs
-            )  # TODO will need to filter according to  group  selection
+            names = Taxonomy.objects.filter(id__in=taxonomy_qs)
             if names:
                 for name in names:
                     scientific_name_list.append(
@@ -2011,9 +2002,7 @@ class ConservationStatusReferralViewSet(
                 .values_list("informal_groups__classification_system_fk", flat=True)
                 .distinct()
             )
-            phylo_groups = ClassificationSystem.objects.filter(
-                id__in=phylo_group_qs
-            )  # TODO will need to filter according to  group  selection
+            phylo_groups = ClassificationSystem.objects.filter(id__in=phylo_group_qs)
             if phylo_groups:
                 for group in phylo_groups:
                     phylogenetic_group_list.append(
@@ -2079,9 +2068,7 @@ class ConservationStatusReferralViewSet(
                 .values_list("conservation_status__community__taxonomy", flat=True)
                 .distinct()
             )
-            names = CommunityTaxonomy.objects.filter(
-                id__in=taxonomy_qs
-            )  # TODO will need to filter according to  group  selection
+            names = CommunityTaxonomy.objects.filter(id__in=taxonomy_qs)
             if names:
                 for name in names:
                     community_data_list.append(
