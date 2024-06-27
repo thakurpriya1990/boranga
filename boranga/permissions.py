@@ -213,6 +213,7 @@ class ConservationStatusPermission(BasePermission):
             or is_species_communities_approver(request)
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
+            or is_internal_contributor(request)
         )
 
     def has_object_permission(self, request, view, obj):
