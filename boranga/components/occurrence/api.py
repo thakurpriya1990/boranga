@@ -5265,6 +5265,13 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         )
         serializer.is_valid(raise_exception=True)
         occurrence = serializer.validated_data["occurrence"]
+        contact_name = serializer.validated_data["contact_name"]
+
+        if OCCContactDetail.objects.filter(
+            Q(contact_name=contact_name) & Q(occurrence=occurrence) & Q(visible=True)
+        ).exists():
+            raise serializers.ValidationError("Contact with this name already exists for this occurrence")
+
         self.is_authorised_to_update(occurrence)
         serializer.save()
 
@@ -5294,6 +5301,12 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
         self.is_authorised_to_update(instance.occurrence)
+        
+        if OCCContactDetail.objects.filter(
+            Q(contact_name=instance.contact_name) & Q(occurrence=instance.occurrence) & Q(visible=True)
+        ).exists():
+            raise serializers.ValidationError("Active contact with this name already exists for this occurrence")
+
         instance.visible = True
         instance.save()
 

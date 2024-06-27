@@ -3719,11 +3719,11 @@ class OCCContactDetail(models.Model):
 
     class Meta:
         app_label = "boranga"
-        unique_together = (
-            "contact_name",
-            "occurrence",
-            "visible",
-        )
+        #unique_together = (
+        #    "contact_name",
+        #    "occurrence",
+        #    "visible",
+        #)
 
     def __str__(self):
         return str(self.occurrence)  # TODO: is the most appropriate?
