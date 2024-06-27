@@ -1,43 +1,21 @@
-<template id="occurrence_tenure_datatable_template">
-    <div>
-        <CollapsibleFilters
-            ref="collapsible_filters"
-            component_title="Filters"
-            :collapsed="!filterApplied"
-            @created="collapsible_component_mounted"
-        >
+<template>
+    <div id="occurrence_tenure_datatable_template">
+        <CollapsibleFilters ref="collapsible_filters" component_title="Filters" :collapsed="!filterApplied"
+            @created="collapsible_component_mounted">
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="occurrence_tenure_feature_id_lookup"
-                            >Feature ID:</label
-                        >
-                        <select
-                            id="occurrence_tenure_feature_id_lookup"
-                            ref="occurrence_tenure_feature_id_lookup"
-                            name="occurrence_tenure_feature_id_lookup"
-                            class="form-control"
-                        />
+                        <label for="occurrence_tenure_feature_id_lookup">Feature ID:</label>
+                        <select id="occurrence_tenure_feature_id_lookup" ref="occurrence_tenure_feature_id_lookup"
+                            name="occurrence_tenure_feature_id_lookup" class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label
-                            for="occurrence_tenure_status_lookup"
-                            class="text-nowrap"
-                            >Status:</label
-                        >
-                        <select
-                            ref="occurrence_tenure_status_lookup"
-                            v-model="filterStatus"
-                            class="form-select"
-                        >
+                        <label for="occurrence_tenure_status_lookup" class="text-nowrap">Status:</label>
+                        <select ref="occurrence_tenure_status_lookup" v-model="filterStatus" class="form-select">
                             <option value="all">All</option>
-                            <option
-                                v-for="status in tenure_statuses"
-                                :key="status.value"
-                                :value="status.value"
-                            >
+                            <option v-for="status in tenure_statuses" :key="status.value" :value="status.value">
                                 {{ status.name }}
                             </option>
                         </select>
@@ -45,38 +23,21 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="occurrence_tenure_vesting_lookup"
-                            >Vesting:</label
-                        >
-                        <select
-                            id="occurrence_tenure_vesting_lookup"
-                            ref="occurrence_tenure_vesting_lookup"
-                            name="occurrence_tenure_vesting_lookup"
-                            class="form-control"
-                        />
+                        <label for="occurrence_tenure_vesting_lookup">Vesting:</label>
+                        <select id="occurrence_tenure_vesting_lookup" ref="occurrence_tenure_vesting_lookup"
+                            name="occurrence_tenure_vesting_lookup" class="form-control" />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="occurence_tenure_purpose_lookup"
-                            >Purpose:</label
-                        >
-                        <select
-                            id="occurence_tenure_purpose_lookup"
-                            ref="occurence_tenure_purpose_lookup"
-                            name="occurence_tenure_purpose_lookup"
-                            class="form-control"
-                        />
+                        <label for="occurence_tenure_purpose_lookup">Purpose:</label>
+                        <select id="occurence_tenure_purpose_lookup" ref="occurence_tenure_purpose_lookup"
+                            name="occurence_tenure_purpose_lookup" class="form-control" />
                     </div>
                 </div>
             </div>
         </CollapsibleFilters>
-        <datatable
-            :id="datatable_id"
-            ref="occurrence_tenure_datatable"
-            :dt-options="options"
-            :dt-headers="headers"
-        />
+        <datatable :id="datatable_id" ref="occurrence_tenure_datatable" :dt-options="options" :dt-headers="headers" />
     </div>
 </template>
 
@@ -85,7 +46,6 @@ import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import datatable from '@/utils/vue/datatable.vue';
 import { v4 as uuid } from 'uuid';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
-import { filter } from 'vue/types/umd';
 
 export default {
     name: 'OccurrenceTenureDatatable',
