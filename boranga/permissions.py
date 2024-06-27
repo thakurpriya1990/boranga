@@ -202,3 +202,81 @@ class MeetingPermission(BasePermission):
             return True
 
         return is_conservation_status_approver(request)
+
+
+class ConservationStatusPermission(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            is_readonly_user(request)
+            or is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+        )
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        if obj.submitter == request.user.id:
+            return is_internal_contributor(request)
+
+        return is_conservation_status_assessor(
+            request
+        ) or is_conservation_status_approver(request)
+
+
+class ExternalConservationStatusPermission(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            is_readonly_user(request)
+            or is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+            # The following groups are not allowed to access the conservation status
+            # however the queryset is filtered to only include the conservation statuses
+            # they submitted
+            or is_external_contributor(request)
+            or is_internal_contributor(request)
+        )
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        if obj.submitter == request.user.id:
+            return is_external_contributor(request)
+
+        return is_conservation_status_assessor(
+            request
+        ) or is_conservation_status_approver(request)
+
+
+class ConservationStatusReferralPermission(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            is_readonly_user(request)
+            or is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+            # The following group has access to the conservation status referral
+            # however the queryset is filtered to only include the conservation status referrals
+            # they are assigned to
+            or is_conservation_status_referee(request)
+        )
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        return (
+            obj.referral == request.user.id
+            and obj.processing_status
+            not in [ConservationStatusReferral.PROCESSING_STATUS_RECALLED]
+            or is_conservation_status_assessor(request)
+        )
