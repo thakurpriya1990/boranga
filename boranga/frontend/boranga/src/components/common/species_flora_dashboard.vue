@@ -328,7 +328,6 @@ export default {
             common_name_list: [],
             family_list: [],
             phylogenetic_group_list: [],
-            conservation_list_dict: [],
             filterRegionDistrict: {},
             region_list: [],
             district_list: [],
