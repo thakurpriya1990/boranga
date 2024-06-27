@@ -1,6 +1,5 @@
 <template>
     <div class="container" id="internalConservationStatusDash">
-
         <ul class="nav nav-pills" id="pills-tab" role="tablist">
             <li class="nav-item">
                 <a class="nav-link" id="pills-flora-tab" data-bs-toggle="pill" href="#pills-flora" role="tab"
@@ -19,9 +18,10 @@
 
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
-                <FormSection :formCollapse="false" label="Conservation Status - Flora" Index="flora">
+                <FormSection v-if="showConservationStatusDatatables" :formCollapse="false" label="Conservation Status - Flora" Index="flora">
                     <ConservationStatusFloraDashTable v-if="isFlora" ref="flora_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_cs_url" :profile="profile" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_cs_url"
+                        :profile="profile" />
                 </FormSection>
                 <FormSection :formCollapse="false" label="Conservation Status - Flora Applications Referred To Me"
                     Index="flora_cs">
@@ -30,9 +30,10 @@
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
-                <FormSection :formCollapse="false" label="Conservation Status - Fauna" Index="fauna">
+                <FormSection v-if="showConservationStatusDatatables" :formCollapse="false" label="Conservation Status - Fauna" Index="fauna">
                     <ConservationStatusFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_cs_url" :profile="profile" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="species_cs_url"
+                        :profile="profile" />
                 </FormSection>
                 <FormSection :formCollapse="false" label="Conservation Status - Fauna Applications Referred To Me"
                     Index="fauna_cs">
@@ -41,9 +42,10 @@
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
-                <FormSection :formCollapse="false" label="Conservation Status - Community" Index="community">
+                <FormSection v-if="showConservationStatusDatatables" :formCollapse="false" label="Conservation Status - Community" Index="community">
                     <ConservationStatusCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
-                        :group_type_name="group_name" :group_type_id="getGroupId" :url="community_cs_url" :profile="profile" />
+                        :group_type_name="group_name" :group_type_id="getGroupId" :url="community_cs_url"
+                        :profile="profile" />
                 </FormSection>
                 <FormSection :formCollapse="false" label="Conservation Status - Community Applications Referred To Me"
                     Index="community_cs">
@@ -65,6 +67,7 @@ import CSCommunityReferralsDashTable from '@common-utils/cs_community_referrals_
 import FormSection from '@/components/forms/section_toggle.vue'
 import {
     api_endpoints,
+    constants
 }
     from '@/utils/hooks'
 
@@ -120,8 +123,17 @@ export default {
                     return this.group_types[i].id;
                 }
             }
+        },
+        showConservationStatusDatatables: function () {
+            return this.profile && this.profile.groups.includes(
+                constants.READ_ONLY_USERS,
+                constants.CONSERVATION_STATUS_ASSESSORS,
+                constants.CONSERVATION_STATUS_APPROVERS,
+                constants.OCCURRENCE_APPROVERS,
+                constants.OCCURRENCE_ASSESSORS,
+                constants.SPECIES_AND_COMMUNITIES_APPROVERS
+            )
         }
-
     },
     methods: {
         set_active_tab: function (group_name) {
