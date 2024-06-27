@@ -297,6 +297,8 @@ export default {
                     data: (d) => {
                         d.filter_status = this.filterStatus;
                         d.tenure_area_id = this.filterFeatureId;
+                        d.vesting = this.filterVesting;
+                        d.purpose = this.filterPurpose;
                     },
                 },
                 dom: 'lBfrtip',
