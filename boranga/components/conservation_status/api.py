@@ -79,35 +79,25 @@ from boranga.components.users.models import SubmitterCategory
 from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
+    is_conservation_status_referee,
     is_external_contributor,
     is_internal,
+    is_internal_contributor,
+)
+from boranga.permissions import (
+    ConservationStatusAmendmentRequestPermission,
+    ConservationStatusDocumentPermission,
+    ConservationStatusPermission,
+    ConservationStatusReferralPermission,
+    ExternalConservationStatusPermission,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class GetConservationListDict(views.APIView):
-    def get(self, request, format=None):
-        # TODO: Check where this is used and add group type filtering if necessary
-        group_type = None
-        res_json = {
-            "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
-            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
-                group_type
-            ),
-            "wa_legislative_lists": WALegislativeList.get_lists_dict(group_type),
-            "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
-                group_type
-            ),
-            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
-                group_type
-            ),
-        }
-        res_json = json.dumps(res_json)
-        return HttpResponse(res_json, content_type="application/json")
-
-
 class GetSpeciesDisplay(views.APIView):
+    permission_classes = [ConservationStatusPermission]
+
     def get(self, request, format=None):
         # TODO: Consider adding throttling to any endpoints that are open to unauthenticated users
         res_json = {}
@@ -134,6 +124,8 @@ class GetSpeciesDisplay(views.APIView):
 
 
 class GetCommunityDisplay(views.APIView):
+    permission_classes = [ConservationStatusPermission]
+
     def get(self, request, format=None):
         res_json = {}
 
@@ -152,6 +144,8 @@ class GetCommunityDisplay(views.APIView):
 
 
 class GetCSProfileDict(views.APIView):
+    permission_classes = [ConservationStatusPermission]
+
     def get(self, request, format=None):
         group_type = request.GET.get("group_type", "")
 
@@ -458,18 +452,15 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
 class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (SpeciesConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = ConservationStatus.objects.none()
+    queryset = ConservationStatus.objects.all()
     serializer_class = ListSpeciesConservationStatusSerializer
     page_size = 10
+    permission_classes = [ConservationStatusPermission]
 
     def get_queryset(self):
-        qs = ConservationStatus.objects.none()
-
-        if is_internal(self.request):
-            qs = ConservationStatus.objects.exclude(
-                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
-            )
-
+        qs = self.queryset
+        if is_internal_contributor(self.request):
+            qs = qs.filter(submitter=self.request.user.id)
         return qs
 
     @list_route(
@@ -628,6 +619,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "POST",
         ],
         detail=False,
+        permission_classes=[ConservationStatusReferralPermission],
     )
     def species_cs_referrals_internal(self, request, *args, **kwargs):
         """
@@ -1015,18 +1007,12 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
 class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (CommunityConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = ConservationStatus.objects.none()
+    queryset = ConservationStatus.objects.exclude(
+        processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+    )
     serializer_class = ListCommunityConservationStatusSerializer
     page_size = 10
-
-    def get_queryset(self):
-        qs = ConservationStatus.objects.none()
-
-        if is_internal(self.request):
-            qs = ConservationStatus.objects.exclude(
-                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
-            )
-        return qs
+    permission_classes = [ConservationStatusPermission]
 
     @list_route(
         methods=["POST", "GET"],
@@ -1178,6 +1164,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             "POST",
         ],
         detail=False,
+        permission_classes=[ConservationStatusReferralPermission],
     )
     def community_cs_referrals_internal(self, request, *args, **kwargs):
         qs = (
@@ -1200,6 +1187,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             "POST",
         ],
         detail=False,
+        permission_classes=[ConservationStatusReferralPermission],
     )
     def community_cs_referrals_internal_export(self, request, *args, **kwargs):
         qs = (
@@ -1346,20 +1334,20 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
 class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (ConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = ConservationStatus.objects.none()
+    queryset = ConservationStatus.objects.all()
     serializer_class = ListConservationStatusSerializer
     page_size = 10
+    permission_classes = [ConservationStatusPermission]
 
     def get_queryset(self):
         qs = self.queryset
 
-        if is_external_contributor(self.request):
+        if not is_internal(self.request) and (
+            is_external_contributor(self.request)
+            or is_internal_contributor(self.request)
+        ):
             qs = ConservationStatus.objects.filter(submitter=self.request.user.id)
 
-        if is_internal(self.request):
-            qs = ConservationStatus.objects.exclude(
-                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
-            )
         return qs
 
     @list_route(
@@ -1367,6 +1355,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "GET",
         ],
         detail=False,
+        permission_classes=[ExternalConservationStatusPermission],
     )
     def conservation_status_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
@@ -1385,6 +1374,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     queryset = ConservationStatus.objects.none()
     serializer_class = ConservationStatusSerializer
     lookup_field = "id"
+    permission_classes = [ConservationStatusPermission]
 
     def get_queryset(self):
         qs = self.queryset
@@ -1914,13 +1904,14 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 class ConservationStatusReferralViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin
 ):
-    queryset = ConservationStatusReferral.objects.none()
+    queryset = ConservationStatusReferral.objects.all()
     serializer_class = ConservationStatusReferralSerializer
+    permission_classes = [ConservationStatusReferralPermission]
 
     def get_queryset(self):
         qs = self.queryset
-        if is_internal(self.request):
-            qs = ConservationStatusReferral.objects.all()
+        if is_conservation_status_referee(self.request):
+            qs = qs.filter(referral=self.request.user.id)
 
         return qs
 
@@ -2257,14 +2248,17 @@ class ConservationStatusReferralViewSet(
 class ConservationStatusAmendmentRequestViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin
 ):
-    queryset = ConservationStatusAmendmentRequest.objects.none()
+    queryset = ConservationStatusAmendmentRequest.objects.all()
     serializer_class = ConservationStatusAmendmentRequestSerializer
+    permission_classes = [ConservationStatusAmendmentRequestPermission]
 
     def get_queryset(self):
-        if is_internal(self.request):
-            qs = ConservationStatusAmendmentRequest.objects.all().order_by("id")
-            return qs
-        return ConservationStatusAmendmentRequest.objects.none()
+        qs = self.queryset
+        if is_external_contributor(self.request) or is_internal_contributor(
+            self.request
+        ):
+            qs = qs.filter(conservation_status__submitter=self.request.user.id)
+        return qs
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=json.loads(request.data.get("data")))
@@ -2298,22 +2292,21 @@ class ConservationStatusAmendmentRequestViewSet(
 class ConservationStatusDocumentViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin
 ):
-    queryset = ConservationStatusDocument.objects.none()
+    queryset = ConservationStatusDocument.objects.all()
     serializer_class = ConservationStatusDocumentSerializer
+    permission_classes = [ConservationStatusDocumentPermission]
 
     def get_queryset(self):
-        if is_internal(self.request):
-            return ConservationStatusDocument.objects.all().order_by("id")
-        if is_external_contributor(self.request):
-            return ConservationStatusDocument.objects.filter(
+        qs = self.queryset
+        if is_external_contributor(self.request) or is_internal_contributor(
+            self.request
+        ):
+            qs = qs.filter(
                 conservation_status__submitter=self.request.user.id,
                 visible=True,
                 can_submitter_access=True,
             )
-        return ConservationStatusDocument.objects.none()
-
-    def get_serializer_class(self):
-        return super().get_serializer_class()
+        return qs
 
     @detail_route(
         methods=[
@@ -2356,9 +2349,6 @@ class ConservationStatusDocumentViewSet(
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        if not is_internal(self.request) and not is_external_contributor(self.request):
-            raise PermissionDenied()
-
         data = json.loads(request.data.get("data"))
         serializer = SaveConservationStatusDocumentSerializer(data=data)
         if is_internal(self.request):

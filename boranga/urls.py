@@ -295,11 +295,6 @@ api_patterns = [
         name="get-cs-profile-dict",
     ),
     url(
-        r"^api/conservation_list_dict",
-        conservation_status_api.GetConservationListDict.as_view(),
-        name="get-conservation-list-dict",
-    ),
-    url(
         r"^api/proposal_amendment_request_reason_choices",
         conservation_status_api.AmendmentRequestReasonChoicesView.as_view(),
         name="amendment_request_reason_choices",
