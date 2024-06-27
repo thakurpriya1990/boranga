@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="observerTable">
         <div v-if="!isReadOnly" class="row mb-3">
-            <label for="" class="col-sm-3 control-label fw-bold">Observation Details:</label>
+            <label for="" class="col-sm-3 control-label fw-bold">Observation Details: <span class="text-danger">*</span></label>
             <div class="col-sm-9 text-end">
                 <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 "
                     @click.prevent="newObserverDetail">

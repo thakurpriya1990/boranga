@@ -818,11 +818,11 @@ export default {
         },
         createCommunity: async function () {
             swal.fire({
-                title: `Add Fauna`,
-                text: "Are you sure you want to add a new fauna?",
+                title: `Add Community`,
+                text: "Are you sure you want to add a new community?",
                 icon: "question",
                 showCancelButton: true,
-                confirmButtonText: 'Add Fauna',
+                confirmButtonText: 'Add Community',
                 reverseButtons: true,
                 customClass: {
                     confirmButton: 'btn btn-primary',

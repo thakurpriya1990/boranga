@@ -2,7 +2,7 @@
     <div id="species">
         <FormSection :formCollapse="false" label="Taxonomy" :Index="taxonBody">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Scientific Name:</label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">Scientific Name: <span class="text-danger">*</span></label>
                 <div class="col-sm-9" :id="select_scientific_name">
                     <select :disabled="rename_species ? false : isReadOnly" :id="scientific_name_lookup"
                         :name="scientific_name_lookup" :ref="scientific_name_lookup" class="form-select" />
@@ -74,14 +74,14 @@
         <FormSection v-if="distribution_public || is_internal" :formCollapse="false" label="Distribution"
             :Index="distributionBody">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Distribution:</label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">Distribution: <span class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" class="form-control" rows="1" id="distribution" placeholder=""
                         v-model="species_community.distribution.distribution" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Region:</label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">Region: <span class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="species_community.regions"
                         ref="regions_select">
@@ -93,7 +93,7 @@
                 </div>
             </div>
             <div v-if="species_community.regions" class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">District:</label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">District: <span class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="species_community.districts"
                         ref="districts_select">

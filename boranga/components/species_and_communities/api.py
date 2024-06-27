@@ -739,14 +739,6 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         if filter_district and not filter_district.lower() == "all":
             queryset = queryset.filter(districts__id=filter_district)
 
-        filter_region = request.POST.get("filter_region")
-        if filter_region and not filter_region.lower() == "all":
-            queryset = queryset.filter(region=filter_region)
-
-        filter_district = request.POST.get("filter_district")
-        if filter_district and not filter_district.lower() == "all":
-            queryset = queryset.filter(district=filter_district)
-
         filter_wa_legislative_list = request.POST.get("filter_wa_legislative_list")
         if (
             filter_wa_legislative_list
@@ -1002,11 +994,11 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
 
         filter_region = request.GET.get("filter_region")
         if filter_region and not filter_region.lower() == "all":
-            queryset = queryset.filter(region=filter_region)
+            queryset = queryset.filter(regions__id=filter_region)
 
         filter_district = request.GET.get("filter_district")
         if filter_district and not filter_district.lower() == "all":
-            queryset = queryset.filter(district=filter_district)
+            queryset = queryset.filter(districts__id=filter_district)
 
         filter_wa_legislative_list = request.GET.get("filter_wa_legislative_list")
         if (

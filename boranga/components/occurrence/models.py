@@ -963,6 +963,12 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         # send email
         send_occurrence_report_referral_email_notification(referral, request)
 
+    @property
+    def external_referral_invites(self):
+        return self.external_referee_invites.filter(
+            archived=False, datetime_first_logged_in__isnull=True
+        )
+
 
 class OccurrenceReportDeclinedDetails(models.Model):
     occurrence_report = models.OneToOneField(

@@ -2,6 +2,11 @@
     <div id="occLocations">
         <FormSection :form-collapse="false" label="Location" Index="occurrence_location">
             <div class="row mb-3">
+                <div class="col">
+                    <span class="text-danger">*</span> <span class="text-muted">You must indicate the location for your occurrence</span>
+                </div>
+            </div>
+            <div class="row mb-3">
                 <MapComponent ref="component_map" :key="componentMapKey" class="me-3" :context="occurrence_obj"
                     :is_external="false" :point-features-supported="true" :polygon-features-supported="true"
                     :drawable="true" :editable="true" :file-upload-disabled="true" level="internal" style-by="model"
@@ -75,7 +80,8 @@
 
             <!-- -------------------------------- -->
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Location Description:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Location Description: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <textarea id="loc_description" v-model="occurrence_obj.location.location_description
                         " :disabled="isReadOnly" class="form-control" rows="2" placeholder="" />
@@ -182,19 +188,11 @@
                     </OccurrenceTenureDatatable>
                 </div>
             </FormSection>
-            <RelatedReports
-                v-if="occurrence_obj"
-                ref="related_reports_datatable"
-                :key="datatableRelatedOCRKey"
-                :is-read-only="isReadOnly"
-                :occurrence_obj="occurrence_obj"
-                :section_type="'location'"
-                :href-container-id="getMapContainerId"
-                :target-map-layer-name-for-copy="occurrenceLayerName"
-                @copyUpdate="copyUpdate"
-                @highlight-on-map="highlightIdOnMapLayer"
-                @copy-to-map-layer="copyToMapLayer"
-            />
+            <RelatedReports v-if="occurrence_obj" ref="related_reports_datatable" :key="datatableRelatedOCRKey"
+                :is-read-only="isReadOnly" :occurrence_obj="occurrence_obj" :section_type="'location'"
+                :href-container-id="getMapContainerId" :target-map-layer-name-for-copy="occurrenceLayerName"
+                @copyUpdate="copyUpdate" @highlight-on-map="highlightIdOnMapLayer"
+                @copy-to-map-layer="copyToMapLayer" />
         </FormSection>
     </div>
 </template>
@@ -474,7 +472,7 @@ export default {
                         });
                         vm.updatingLocationDetails = false;
                         vm.$refs.component_map.setLoadingMap(false);
-                }
+                    }
                 );
         },
         incrementComponentMapKey: function () {

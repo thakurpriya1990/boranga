@@ -2,14 +2,16 @@
     <div id="community">
         <FormSection :formCollapse="false" label="Taxonomy" Index="taxonomy">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Community Name:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Community Name: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" class="form-control" rows="1" id="community_name" placeholder=""
                         v-model="species_community.taxonomy_details.community_name" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Community ID:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Community ID: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="community_migrated_id"
                         placeholder="" v-model="species_community.taxonomy_details.community_migrated_id" />
@@ -47,14 +49,15 @@
         <FormSection v-if="distribution_public || is_internal" :formCollapse="false" label="Distribution"
             Index="distribution">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Distribution:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Distribution: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" class="form-control" rows="1" id="distribution" placeholder=""
                         v-model="species_community.distribution.distribution" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Region:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Region: <span class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="species_community.regions"
                         ref="regions_select">
@@ -66,7 +69,8 @@
                 </div>
             </div>
             <div v-if="species_community.regions" class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">District:</label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">District: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="species_community.districts"
                         ref="districts_select">
@@ -186,54 +190,54 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Minimum Fire Interval:</label>
                 <div class="col-sm-3">
-                    <input class="form-check-input" type="checkbox" name="minimum_fire_interval_range"
-                        id="minimum_fire_interval_range" v-model="minimum_fire_interval_range" :disabled="isReadOnly"
-                        @change="handleMinimumFireIntervalRange()" />
-                    <label for="" class="control-label">Range</label>
+                    <div class="form-check form-check-inline">
+                        <label for="" class="control-label">Range</label>
+                        <input class="form-check-input" type="checkbox" name="minimum_fire_interval_range"
+                            id="minimum_fire_interval_range" v-model="minimum_fire_interval_range"
+                            :disabled="isReadOnly" @change="handleMinimumFireIntervalRange()" />
+                    </div>
                 </div>
                 <label for="" class="col-sm-6 control-label" style="color: red;">{{ errors.minimum_fire_interval_error
                     }}</label>
             </div>
             <div class="row mb-3" v-if="!minimum_fire_interval_range">
                 <label for="" class="col-sm-3 control-label"></label>
-                <div class="col-sm-3 interval-margin">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_from"
-                        placeholder="" @change="validateMinimumFireIntervalRange()"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
-                </div>
-                <div class="col-sm-2">
-                    <select :disabled="isReadOnly" class="form-select" @change="validateMinimumFireIntervalRange()"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
-                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                <div class="col-sm-3">
+                    <div class="input-group">
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_from"
+                            placeholder="" @change="validateMinimumFireIntervalRange()"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
+                        <select :disabled="isReadOnly" class="form-select" @change="validateMinimumFireIntervalRange()"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
                 <div class="col-sm-4">
                     <label for="" class="control-label">{{ minFireIntervalMonthsComputed }}</label>
                 </div>
             </div>
             <div class="row mb-3" v-else>
-                <label for="" class="col-sm-3 control-label"></label>
-                <label for="" class="col-sm-2 control-label">From:</label>
-                <div class="col-sm-2 interval-range-true-input">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_from"
-                        placeholder="" @change="validateMinimumFireIntervalRange()"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
-                </div>
-                <label for="" class="col-sm-2 control-label">To:</label>
-                <div class="col-sm-2 interval-range-true-input">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_to"
-                        placeholder="" @change="validateMinimumFireIntervalRange()"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_to" />
-                </div>
-                <div class="col-sm-2">
-                    <select :disabled="isReadOnly" class="form-select" @change="validateMinimumFireIntervalRange()"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
-                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                <div class="col-sm-3"></div>
+                <div class="col-sm-6">
+                    <div class="input-group">
+                        <label for="" class="input-group-text">From</label>
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_from"
+                            placeholder="" @change="validateMinimumFireIntervalRange()"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
+                        <label for="" class="input-group-text">to</label>
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_to"
+                            placeholder="" @change="validateMinimumFireIntervalRange()"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_to" />
+                        <select :disabled="isReadOnly" class="form-select" @change="validateMinimumFireIntervalRange()"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
@@ -1002,13 +1006,5 @@ input[type=text],
 select {
     width: 100%;
     padding: 0.375rem 2.25rem 0.375rem 0.75rem;
-}
-
-.interval-margin {
-    width: 20%;
-}
-
-.interval-range-true-input {
-    margin-left: -70px;
 }
 </style>

@@ -129,7 +129,6 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
-import Workflow from '@common-utils/workflow.vue'
 import ProposalOccurrence from '@/components/form_occurrence.vue'
 
 // import OccurrenceSplit from './occurrence_split.vue'
@@ -163,7 +162,6 @@ export default {
         datatable,
         CommsLogs,
         Submission,
-        Workflow,
         ProposalOccurrence,
         // OccurrenceSplit,
         OccurrenceCombine,
@@ -398,8 +396,8 @@ export default {
 
             vm.submitOccurrence = true;
             swal.fire({
-                title: "Submit",
-                text: "Are you sure you want to submit this application?",
+                title: "Submit Occurrence",
+                text: "Are you sure you want to submit this Occurrence?",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",

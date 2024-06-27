@@ -56,7 +56,7 @@
                     </CollapsibleComponent>
                 </template>
                 <div class="row mb-3">
-                    <label :for="scientific_name_lookup" class="col-sm-4 col-form-label">Scientific Name:</label>
+                    <label :for="scientific_name_lookup" class="col-sm-4 col-form-label fw-bold">Scientific Name: <span class="text-danger">*</span></label>
                     <div class="col-sm-8" :id="select_scientific_name">
                         <select :disabled="isReadOnly" :id="scientific_name_lookup" :name="scientific_name_lookup"
                             :ref="scientific_name_lookup" class="form-control" />
@@ -596,8 +596,8 @@ export default {
                     this.conservation_status_obj.assigned_officer == this.conservation_status_obj.current_assessor.id;
             }
             if (this.conservation_status_obj.processing_status != 'Draft') {
-                return this.conservation_status_obj.assigned_opprover &&
-                    this.conservation_status_obj.assigned_opprover == this.conservation_status_obj.current_assessor.id;
+                return Boolean(this.conservation_status_obj.assigned_approver) &&
+                    this.conservation_status_obj.assigned_approver == this.conservation_status_obj.current_assessor.id;
             }
             return false;
         },

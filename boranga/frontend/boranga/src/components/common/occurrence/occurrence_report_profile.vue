@@ -58,7 +58,7 @@
             </template>
             <div v-show="!isCommunity">
                 <div class="row mb-3">
-                    <label for="" class="col-sm-3 control-label">Scientific Name:</label>
+                    <label for="" class="col-sm-3 control-label fw-bold">Scientific Name: <span class="text-danger">*</span></label>
                     <div :id="select_scientific_name" class="col-sm-9">
                         <select :id="scientific_name_lookup" :ref="scientific_name_lookup" :disabled="isReadOnly"
                             :name="scientific_name_lookup" class="form-control" />
@@ -103,7 +103,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Observation Date:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Observation Date: <span class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <input v-model="occurrence_report_obj.observation_date
                         " :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date"

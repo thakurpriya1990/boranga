@@ -491,14 +491,17 @@ export default {
             vm.submitting = true;
 
             swal.fire({
-                title: vm.submit_text() + " Report",
-                text: "Are you sure you want to " + vm.submit_text().toLowerCase() + " this report?",
+                title: vm.submit_text() + " Occurrence Report",
+                text: "Are you sure you want to " + vm.submit_text().toLowerCase() + " this occurrence report?",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: vm.submit_text(),
                 customClass: {
                     confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
                 },
+                reverseButtons: true,
+                buttonsStyling: false,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
@@ -524,6 +527,7 @@ export default {
                         });
                     }
                 }
+                vm.submitting = false;
             }, (error) => {
                 vm.submitting = false;
             });

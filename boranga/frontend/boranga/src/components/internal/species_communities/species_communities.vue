@@ -190,7 +190,6 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
-import Workflow from '@common-utils/workflow.vue'
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
 import SpeciesSplit from './species_split.vue'
 import SpeciesCombine from './species_combine.vue'
@@ -215,8 +214,6 @@ export default {
             uploadedID: null,
             imageURL: '',
             isSaved: false,
-
-
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comparing: false,
         }
@@ -225,7 +222,6 @@ export default {
         datatable,
         CommsLogs,
         Submission,
-        Workflow,
         ProposalSpeciesCommunities,
         SpeciesSplit,
         SpeciesCombine,
@@ -602,27 +598,27 @@ export default {
             let blank_fields = []
             if (vm.species_community.group_type == 'flora' || vm.species_community.group_type == 'fauna') {
                 if (vm.species_community.taxonomy_id == null || vm.species_community.taxonomy_id == '') {
-                    blank_fields.push('Scientific Name is missing')
+                    blank_fields.push(' Scientific Name is required')
                 }
             }
             else {
                 if (vm.species_community.taxonomy_details.community_name == null || vm.species_community.taxonomy_details.community_name == '') {
-                    blank_fields.push('Community Name is missing')
+                    blank_fields.push(' Community Name is required')
                 }
                 if (vm.species_community.taxonomy_details.community_migrated_id == null || vm.species_community.taxonomy_details.community_migrated_id == '') {
-                    blank_fields.push('Community ID is missing')
+                    blank_fields.push(' Community ID is required')
                 }
             }
             if (check_action == 'submit') {
                 //TODO add validation for fields required before submit
                 if (vm.species_community.distribution.distribution == null || vm.species_community.distribution.distribution == '') {
-                    blank_fields.push('Distribution is missing')
+                    blank_fields.push(' Distribution is required')
                 }
                 if (vm.species_community.regions==null ||vm.species_community.regions.length==0 || vm.species_community.regions == '') {
-                    blank_fields.push('Region is missing')
+                    blank_fields.push(' Region is required')
                 }
                 if (vm.species_community.districts == null || vm.species_community.districts == '' || vm.species_community.districts.length ==0) {
-                    blank_fields.push('District is missing')
+                    blank_fields.push(' District is required')
                 }
             }
             if (blank_fields.length == 0) {
