@@ -132,6 +132,9 @@ REST_FRAMEWORK = {
         "rest_framework_datatables.renderers.DatatablesRenderer",
     ),
     "EXCEPTION_HANDLER": "boranga.exceptions.custom_exception_handler",
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
 }
 
 MIDDLEWARE_CLASSES += [
