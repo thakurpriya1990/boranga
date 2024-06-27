@@ -146,6 +146,7 @@ from boranga.components.occurrence.serializers import (
     SaveOccurrenceReportDocumentSerializer,
     SaveOccurrenceReportSerializer,
     SaveOccurrenceSerializer,
+    SaveOccurrenceSiteSerializer,
     SaveOCCVegetationStructureSerializer,
     SaveOCRAnimalObservationSerializer,
     SaveOCRAssociatedSpeciesSerializer,
@@ -5146,6 +5147,20 @@ class OccurrenceViewSet(
             qs, many=True, context={"request": request}
         )
         return Response(serializer.data)
+    
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def sites(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = instance.sites.all()
+        serializer = OccurrenceSiteSerializer(
+            qs, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
 
 
 class OccurrenceReportReferralViewSet(
@@ -5445,7 +5460,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         
         self.is_authorised_to_update(instance.occurrence)
-        serializer = OccurrenceSiteSerializer(
+        serializer = SaveOccurrenceSiteSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
         serializer.is_valid(raise_exception=True)
@@ -5454,7 +5469,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        serializer = OccurrenceSiteSerializer(
+        serializer = SaveOccurrenceSiteSerializer(
             data=json.loads(request.data.get("data"))
         )
         serializer.is_valid(raise_exception=True)

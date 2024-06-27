@@ -3203,13 +3203,16 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = OccurrenceSite
         fields = (
+            "id",
             "site_number",
+            "occurrence",
             "occurrence_number",
             "site_name",
             "point_coord1",
             "point_coord2",
             "site_type",
             "comments",
+            "related_occurrence_reports",
             "related_occurrence_report_numbers",
         )
 
@@ -3218,3 +3221,18 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
     
     def get_related_occurrence_report_numbers(self,obj):
         return list(obj.related_occurrence_reports.all().values_list("occurrence_report_number", flat=True))
+    
+class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OccurrenceSite
+        fields = (
+            "id",
+            "occurrence",
+            "site_name",
+            "point_coord1",
+            "point_coord2",
+            "site_type",
+            "comments",
+            "related_occurrence_reports",
+        )

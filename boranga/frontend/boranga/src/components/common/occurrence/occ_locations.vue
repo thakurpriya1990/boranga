@@ -179,6 +179,13 @@
                     </button>
                 </div>
             </div>
+            <FormSection :form-collapse="false" label="Occurrence Sites" Index="occurrence_sites_datatable">
+                <div>
+                    <OccurrenceSiteDatatable v-if="occurrence_obj" ref="occurrence_sites_datatable"
+                        :key="datatableOCCSiteKey" :occurrence_obj="occurrence_obj">
+                    </OccurrenceSiteDatatable>
+                </div>
+            </FormSection>
             <!-- Occurrence Tenure Datatable -->
             <FormSection :form-collapse="false" label="Occurrence Tenures" Index="occurrence_tenure_datatable">
                 <div>
@@ -204,6 +211,7 @@ import FormSection from '@/components/forms/section_toggle.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 import MapComponent from '../component_map.vue';
 import { VueSelect } from 'vue-select';
+import OccurrenceSiteDatatable from '@/components/internal/occurrence/occurrence_site_datatable.vue';
 import OccurrenceTenureDatatable from '@/components/internal/occurrence/occurrence_tenure_datatable.vue';
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 
@@ -213,6 +221,7 @@ export default {
         MapComponent,
         FormSection,
         VueSelect,
+        OccurrenceSiteDatatable,
         OccurrenceTenureDatatable,
         RelatedReports,
     },
@@ -244,6 +253,7 @@ export default {
         return {
             uuid_component_map: uuid(),
             uuid_datatable_ocr: uuid(),
+            uuid_datatable_occ_site: uuid(),
             uuid_datatable_occ_tenure: uuid(),
             crs: [],
             region_list: [],
@@ -266,6 +276,9 @@ export default {
         },
         datatableRelatedOCRKey: function () {
             return `datatable-ocr-${this.uuid_datatable_ocr}`;
+        },
+        datatableOCCSiteKey: function () {
+            return `datatable-occ-site-${this.uuid_datatable_occ_site}`;
         },
         datatableOCCTenureKey: function () {
             return `datatable-occ-tenure-${this.uuid_datatable_occ_tenure}`;
@@ -483,6 +496,7 @@ export default {
         },
         refreshDatatables: function () {
             this.uuid_datatable_ocr = uuid();
+            this.uuid_datatable_occ_site = uuid();
             this.uuid_datatable_occ_tenure = uuid();
         },
         searchForCRS: function (search, loading) {
