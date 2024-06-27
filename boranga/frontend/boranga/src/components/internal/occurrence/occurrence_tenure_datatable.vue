@@ -3,6 +3,7 @@
         <CollapsibleFilters
             ref="collapsible_filters"
             component_title="Filters"
+            :collapsed="!filterApplied"
             @created="collapsible_component_mounted"
         >
             <div class="row">
@@ -99,6 +100,16 @@ export default {
             required: false,
             default: '',
         },
+        filterStatusCache: {
+            type: String,
+            required: false,
+            default: 'occurrence_tenure_status_filter_cache',
+        },
+        filterFeatureIdCache: {
+            type: String,
+            required: false,
+            default: 'occurrence_tenure_feature_id_filter_cache',
+        },
     },
     data: function () {
         return {
@@ -121,26 +132,22 @@ export default {
                 { value: 'current', name: 'Current' },
                 { value: 'historical', name: 'Historical' },
             ],
-            filterStatus: sessionStorage.getItem(this.filterStatus_cache)
-                ? sessionStorage.getItem(this.filterStatus_cache)
+            filterStatus: sessionStorage.getItem(this.filterStatusCache)
+                ? sessionStorage.getItem(this.filterStatusCache)
                 : 'all',
-            filterStatus_cache: 'occurrence_tenure_status_filter_cache',
-            filterFeatureId: sessionStorage.getItem(this.filterFeatureId_cache)
-                ? sessionStorage.getItem(this.filterFeatureId_cache)
+            filterFeatureId: sessionStorage.getItem(this.filterFeatureIdCache)
+                ? sessionStorage.getItem(this.filterFeatureIdCache)
                 : 'all',
-            filterFeatureId_cache: 'occurrence_tenure_feature_id_filter_cache',
         };
     },
     computed: {
         filterApplied: function () {
-            if (
-                // this.filterCSRefCommunityMigratedId === 'all' &&
-                this.filterStatus === 'all'
-            ) {
-                return false;
-            } else {
-                return true;
-            }
+            let allFiltersAreAll = [
+                this.filterFeatureId,
+                this.filterStatus,
+            ].every((filter) => ['all'].includes(filter));
+
+            return !allFiltersAreAll;
         },
         column_featureid: function () {
             return {
@@ -286,14 +293,17 @@ export default {
                 helpers.enablePopovers,
                 false
             );
-            sessionStorage.setItem(this.filterStatus_cache, this.filterStatus);
+            sessionStorage.setItem(this.filterStatusCache, this.filterStatus);
         },
         filterFeatureId: function () {
             this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
                 helpers.enablePopovers,
                 false
             );
-            sessionStorage.setItem(this.filterFeatureId_cache, this.filterFeatureId);
+            sessionStorage.setItem(
+                this.filterFeatureIdCache,
+                this.filterFeatureId
+            );
         },
         filterApplied: function () {
             if (this.$refs.collapsible_filters) {
@@ -306,23 +316,12 @@ export default {
     mounted: function () {
         this.$nextTick(() => {
             // Make this a loop
-            // this.initialiseFilterLookup('occurrence_tenure_status_lookup', 'filterStatus');
-            this.initialiseFilterLookup('occurrence_tenure_feature_id_lookup', 'filterFeatureId');
+            this.initialiseFilterLookup(
+                'occurrence_tenure_feature_id_lookup',
+                'filterFeatureId'
+            );
 
             this.addEventListeners();
-            if (
-                !['all', null].includes(
-                    sessionStorage.getItem(`${'filterFeatureId'}Text`)
-                )
-            ) {
-                const newOption = new Option(
-                    sessionStorage.getItem(`${'filterFeatureId'}Text`),
-                    this.filterCSRefCommunityName,
-                    false,
-                    true
-                );
-                $('#occurrence_tenure_feature_id_lookup').append(newOption);
-            }
         });
     },
     methods: {
@@ -364,7 +363,17 @@ export default {
                 this.filterApplied
             );
         },
-        initialiseFilterLookup: function (ref, vModelDataProperty, placeholder = 'Select a value') {
+        /**
+         * Initialises the select2 dropdown for this filter lookup
+         * @param {String} ref The ref of the select html element
+         * @param {String} vModelDataProperty The selected value will be stored in this property or v-model
+         * @param {String=} placeholder A placeholder text for the select2 dropdown
+         */
+        initialiseFilterLookup: function (
+            ref,
+            vModelDataProperty,
+            placeholder = 'Select a value'
+        ) {
             const vm = this;
             $(this.$refs[ref])
                 .select2({
@@ -373,7 +382,6 @@ export default {
                     allowClear: true,
                     placeholder: placeholder,
                     ajax: {
-                        // url: api_endpoints.occurrence_tenure_feature_id_lookup,
                         url: api_endpoints[ref],
                         dataType: 'json',
                         data: function (params) {
@@ -387,28 +395,38 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
-                    // vm.filterStatus = data;
                     vm[vModelDataProperty] = data;
                     sessionStorage.setItem(
                         `${vModelDataProperty}Text`,
-                        // 'filterStatusText',
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
-                    // vm.filterStatus = 'all';
+                .on('select2:unselect', function () {
                     vm[vModelDataProperty] = 'all';
                     sessionStorage.setItem(`${vModelDataProperty}Text`, '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         `[aria-controls="select2-${ref}-results"]`
                     );
                     searchField[0].focus();
                 });
+
+            // Add the stored selected value to the select2 dropdown if it exists
+            if (
+                !['all', null].includes(
+                    sessionStorage.getItem(`${vModelDataProperty}Text`)
+                )
+            ) {
+                const newOption = new Option(
+                    sessionStorage.getItem(`${vModelDataProperty}Text`),
+                    this[vModelDataProperty],
+                    false,
+                    true
+                );
+                $(`#${ref}`).append(newOption);
+            }
         },
     },
 };
