@@ -42,7 +42,7 @@
             </div>
         </div>
         <div class="row mb-3">
-            <label for="" class="col-sm-3 control-label">Plant Condition:</label>
+            <label for="" class="col-sm-3 control-label">Condition of Plants:</label>
             <div class="col-sm-9">
                 <select :disabled="isReadOnly" class="form-select" v-model="plant_count.plant_condition_id">
                     <option v-for="option in plant_condition_list" :value="option.id" v-bind:key="option.id">
