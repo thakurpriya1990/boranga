@@ -2383,10 +2383,23 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         self.is_authorised_to_update(instance.occurrence_report)
+
+        if not instance.visible:
+            raise serializers.ValidationError("Discarded observer cannot be updated.")
+
         serializer = OCRObserverDetailSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
         serializer.is_valid(raise_exception=True)
+
+        occurrence_report = serializer.validated_data["occurrence_report"]
+        observer_name = serializer.validated_data["observer_name"]
+
+        if OCRObserverDetail.objects.exclude(id=instance.id).filter(
+            Q(observer_name=observer_name) & Q(occurrence_report=occurrence_report) & Q(visible=True)
+        ).exists():
+            raise serializers.ValidationError("Observer with this name already exists for this occurrence report")
+
         serializer.save()
 
         if (
@@ -5264,11 +5277,24 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+
+        if not instance.visible:
+            raise serializers.ValidationError("Discarded contact cannot be updated.")
+        
         self.is_authorised_to_update(instance.occurrence)
         serializer = OCCContactDetailSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
         serializer.is_valid(raise_exception=True)
+
+        occurrence = serializer.validated_data["occurrence"]
+        contact_name = serializer.validated_data["contact_name"]
+
+        if OCCContactDetail.objects.exclude(id=instance.id).filter(
+            Q(contact_name=contact_name) & Q(occurrence=occurrence) & Q(visible=True)
+        ).exists():
+            raise serializers.ValidationError("Contact with this name already exists for this occurrence")
+        
         serializer.save()
 
         return Response(serializer.data)
