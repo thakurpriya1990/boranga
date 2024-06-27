@@ -5257,6 +5257,8 @@ class OccurrenceTenureFilterBackend(DatatablesFilterBackend):
 
         filter_status = query_params.get("filter_status", None)
         tenure_area_id = query_params.get("tenure_area_id", None)
+        vesting = query_params.get("vesting", None)
+        purpose = query_params.get("purpose", None)
 
         queryset = queryset.filter(status=filter_status) if filter_status else queryset
         queryset = (
@@ -5264,6 +5266,9 @@ class OccurrenceTenureFilterBackend(DatatablesFilterBackend):
             if tenure_area_id
             else queryset
         )
+        # TODO: Implement vesting filtering after implementing the vesting field
+        # queryset = queryset.filter(vesting=vesting) if vesting else queryset
+        queryset = queryset.filter(purpose=purpose) if purpose else queryset
 
         fields = self.get_fields(request)
         ordering = self.get_ordering(request, view, fields)
@@ -5303,6 +5308,16 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             )
         return OccurrenceTenure.objects.all()
 
+    def current_and_historical_tenures(self, queryset, occurrence_id):
+        return queryset.filter(
+            models.Q(occurrence_geometry__occurrence_id=occurrence_id)
+            | models.Q(
+                ("historical_occurrence", occurrence_id),
+                ("status", OccurrenceTenure.STATUS_HISTORICAL),
+                _connector=models.Q.AND,
+            )
+        )
+
     @list_route(
         methods=[
             "GET",
@@ -5333,14 +5348,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         occurrence_id = request.GET.get("occurrence_id", None)
 
         if occurrence_id:
-            queryset.filter(
-                models.Q(occurrence_geometry__occurrence_id=occurrence_id)
-                | models.Q(
-                    ("historical_occurrence", occurrence_id),
-                    ("status", OccurrenceTenure.STATUS_HISTORICAL),
-                    _connector=models.Q.AND,
-                )
-            )
+            queryset = self.current_and_historical_tenures(queryset, occurrence_id)
 
         if search_term:
             feature_id = models.Func(
@@ -5359,6 +5367,57 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             results = [
                 {"id": row["tenure_area_id"], "text": row["feature_id"]}
                 for row in queryset
+            ]
+
+        return Response({"results": results})
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_tenure_vesting_lookup(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        search_term = request.GET.get("term", "")
+        occurrence_id = request.GET.get("occurrence_id", None)
+
+        if occurrence_id:
+            queryset = self.current_and_historical_tenures(queryset, occurrence_id)
+
+        results = []
+        if search_term:
+            # TODO: Implement vesting filtering after implementing the vesting field
+            # queryset = queryset.filter(vesting__icontains=search_term).distinct()[:10]
+            # results = [
+            #     {"id": row.vesting, "text": row.vesting} for row in queryset
+            # ]
+            results = [{"id": 1, "text": queryset[0].vesting}]
+
+        return Response({"results": results})
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_tenure_purpose_lookup(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        search_term = request.GET.get("term", "")
+        occurrence_id = request.GET.get("occurrence_id", None)
+
+        if occurrence_id:
+            queryset = self.current_and_historical_tenures(queryset, occurrence_id)
+
+        if search_term:
+            queryset = queryset.filter(
+                purpose__purpose__icontains=search_term
+            ).distinct()[:10]
+            results = [
+                {"id": row.purpose.id, "text": row.purpose.purpose} for row in queryset
             ]
 
         return Response({"results": results})
