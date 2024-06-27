@@ -66,6 +66,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportGeometry,
     OccurrenceReportReferral,
     OccurrenceReportUserAction,
+    OccurrenceSite,
     OccurrenceTenure,
     OccurrenceUserAction,
     OCCVegetationStructure,
@@ -122,6 +123,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceReportSerializer,
     OccurrenceReportUserActionSerializer,
     OccurrenceSerializer,
+    OccurrenceSiteSerializer,
     OccurrenceTenureSerializer,
     OccurrenceUserActionSerializer,
     OCRConservationThreatSerializer,
@@ -5413,6 +5415,54 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance.save()
 
         serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
+class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+    queryset = OccurrenceSite.objects.none()
+    serializer_class = OccurrenceSiteSerializer
+
+    def is_authorised_to_update(self, occurrence):
+        if not (
+            is_occurrence_approver(self.request)
+            and (
+                occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+                or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+            )
+        ):
+            raise serializers.ValidationError(
+                "User not authorised to update Occurrence"
+            )
+
+    def get_queryset(self):
+        qs = OccurrenceSite.objects.none()
+
+        if is_internal(self.request):
+            qs = OccurrenceSite.objects.all().order_by("id")
+        return qs
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        self.is_authorised_to_update(instance.occurrence)
+        serializer = OccurrenceSiteSerializer(
+            instance, data=json.loads(request.data.get("data"))
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = OccurrenceSiteSerializer(
+            data=json.loads(request.data.get("data"))
+        )
+        serializer.is_valid(raise_exception=True)
+        occurrence = serializer.validated_data["occurrence"]
+
+        self.is_authorised_to_update(occurrence)
+        serializer.save()
+
         return Response(serializer.data)
 
 

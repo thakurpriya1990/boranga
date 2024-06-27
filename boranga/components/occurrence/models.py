@@ -4424,6 +4424,61 @@ class BufferGeometry(GeometryBase):
     def related_model_field(self):
         return self.buffered_from_geometry
 
+class SiteType(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - OccurrenceSite
+
+    """
+
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Site Type"
+        verbose_name_plural = "Site Type"
+        ordering = ["name"]
+
+    def __str__(self):
+        return str(self.name)
+
+class OccurrenceSite(models.Model):
+    site_number = models.CharField(max_length=9, blank=True, default="")
+    occurrence = models.ForeignKey(
+        "Occurrence", related_name="sites", on_delete=models.CASCADE
+    )
+    
+    site_name = models.CharField(max_length=255, null=True, blank=True)
+    
+    point_coord1 = models.FloatField(null=True, blank=True, default=0)
+    point_coord2 =models.FloatField(null=True, blank=True, default=0)
+
+    site_type = models.ForeignKey(
+        SiteType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    related_occurrence_reports = models.ManyToManyField(OccurrenceReport, blank=True)
+
+    comments = models.TextField(blank=True, null=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Site"
+        unique_together = (
+            "occurrence",
+            "site_name",
+        )
+
+    def save(self, *args, **kwargs):
+        # Prefix "ST" char to site_number.
+        if self.site_number == "":
+            new_site_id = f"ST{str(self.pk)}"
+            self.site_number = new_site_id
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
 # Occurrence Report Document
 reversion.register(OccurrenceReportDocument)
