@@ -392,6 +392,10 @@ export default {
             if (!apiEndpoint) {
                 apiEndpoint = ref;
             }
+
+            const sessionStorageText =
+                this.sessionStorageText(vModelDataProperty);
+
             $(this.$refs[ref])
                 .select2({
                     minimumInputLength: 2,
@@ -415,13 +419,13 @@ export default {
                     let data = e.params.data.id;
                     vm[vModelDataProperty] = data;
                     sessionStorage.setItem(
-                        `${vModelDataProperty}Text`,
+                        sessionStorageText,
                         e.params.data.text
                     );
                 })
                 .on('select2:unselect', function () {
                     vm[vModelDataProperty] = 'all';
-                    sessionStorage.setItem(`${vModelDataProperty}Text`, '');
+                    sessionStorage.setItem(sessionStorageText, '');
                 })
                 .on('select2:open', function () {
                     const searchField = $(
@@ -431,19 +435,21 @@ export default {
                 });
 
             // Add the stored selected value to the select2 dropdown if it exists
-            if (
-                !['all', null].includes(
-                    sessionStorage.getItem(`${vModelDataProperty}Text`)
-                )
-            ) {
+            const sessionStorageItem = sessionStorage.getItem(
+                this.sessionStorageText(vModelDataProperty)
+            );
+            if (!['all', null].includes(sessionStorageItem)) {
                 const newOption = new Option(
-                    sessionStorage.getItem(`${vModelDataProperty}Text`),
+                    sessionStorageItem,
                     this[vModelDataProperty],
                     false,
                     true
                 );
                 this.$refs[ref].append(newOption);
             }
+        },
+        sessionStorageText: function (key) {
+            return `${key}Text`;
         },
     },
 };
