@@ -23,7 +23,6 @@ from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.meetings.models import (
     AgendaItem,
     Committee,
-    CommitteeMembers,
     Meeting,
     MeetingRoom,
     MeetingUserAction,
@@ -31,7 +30,6 @@ from boranga.components.meetings.models import (
 )
 from boranga.components.meetings.serializers import (
     AgendaItemSerializer,
-    CommitteeMembersSerializer,
     CreateMeetingSerializer,
     EditMeetingSerializer,
     ListAgendaItemSerializer,
@@ -631,35 +629,6 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 instance.minutes_number, instance.meeting.meeting_number
             ),
             request,
-        )
-        return Response(serializer.data)
-
-
-# TODO: review - what is this used for and how should it work?
-# Right now selecting a committee does not appear to have any persistent effect
-class CommitteeViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = Committee.objects.none()
-    serializer_class = None
-
-    def get_queryset(self):
-        if is_internal(self.request):
-            qs = Committee.objects.all()
-            return qs
-        return Committee.objects.none()
-
-    @detail_route(
-        methods=[
-            "GET",
-        ],
-        detail=True,
-    )
-    def committee_members(self, request, *args, **kwargs):
-        instance = self.get_object()
-        qs = CommitteeMembers.objects.filter(committee=instance)
-        # qs = instance.members.all()
-        qs = qs.order_by("-first_name")
-        serializer = CommitteeMembersSerializer(
-            qs, many=True, context={"request": request}
         )
         return Response(serializer.data)
 
