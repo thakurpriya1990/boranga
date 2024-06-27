@@ -9,28 +9,6 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="cs_ref_vesting_lookup">Vesting:</label>
-                        <select
-                            id="cs_ref_vesting_lookup"
-                            ref="cs_ref_vesting_lookup"
-                            name="cs_ref_vesting_lookup"
-                            class="form-control"
-                        />
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="cs_ref_purpose_lookup">Purpose:</label>
-                        <select
-                            id="cs_ref_purpose_lookup"
-                            ref="cs_ref_purpose_lookup"
-                            name="cs_ref_purpose_lookup"
-                            class="form-control"
-                        />
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
                         <label for="occurrence_tenure_feature_id_lookup"
                             >Feature ID:</label
                         >
@@ -63,6 +41,28 @@
                                 {{ status.name }}
                             </option>
                         </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="cs_ref_vesting_lookup">Vesting:</label>
+                        <select
+                            id="cs_ref_vesting_lookup"
+                            ref="cs_ref_vesting_lookup"
+                            name="cs_ref_vesting_lookup"
+                            class="form-control"
+                        />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="cs_ref_purpose_lookup">Purpose:</label>
+                        <select
+                            id="cs_ref_purpose_lookup"
+                            ref="cs_ref_purpose_lookup"
+                            name="cs_ref_purpose_lookup"
+                            class="form-control"
+                        />
                     </div>
                 </div>
             </div>
