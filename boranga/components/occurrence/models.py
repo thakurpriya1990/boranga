@@ -4296,6 +4296,9 @@ class OccurrenceTenurePurpose(models.Model):
         verbose_name = "Occurrence Tenure Purpose"
         verbose_name_plural = "Occurrence Tenure Purposes"
 
+    def __str__(self):
+        return self.purpose
+
 
 def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
     sub_objs.update(status="historical")
