@@ -18,7 +18,8 @@
 
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
-                <FormSection v-if="showConservationStatusDatatables" :formCollapse="false" label="Conservation Status - Flora" Index="flora">
+                <FormSection v-if="showConservationStatusDatatables" :formCollapse="false"
+                    label="Conservation Status - Flora" Index="flora">
                     <ConservationStatusFloraDashTable v-if="isFlora" ref="flora_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_cs_url"
                         :profile="profile" />
@@ -30,7 +31,8 @@
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-fauna" role="tabpanel" aria-labelledby="pills-fauna-tab">
-                <FormSection v-if="showConservationStatusDatatables" :formCollapse="false" label="Conservation Status - Fauna" Index="fauna">
+                <FormSection v-if="showConservationStatusDatatables" :formCollapse="false"
+                    label="Conservation Status - Fauna" Index="fauna">
                     <ConservationStatusFaunaDashTable v-if="isFauna" ref="fauna_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_cs_url"
                         :profile="profile" />
@@ -42,7 +44,8 @@
                 </FormSection>
             </div>
             <div class="tab-pane" id="pills-community" role="tabpanel" aria-labelledby="pills-community-tab">
-                <FormSection v-if="showConservationStatusDatatables" :formCollapse="false" label="Conservation Status - Community" Index="community">
+                <FormSection v-if="showConservationStatusDatatables" :formCollapse="false"
+                    label="Conservation Status - Community" Index="community">
                     <ConservationStatusCommunityDashTable v-if="isCommunity" ref="community_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="community_cs_url"
                         :profile="profile" />
@@ -125,14 +128,15 @@ export default {
             }
         },
         showConservationStatusDatatables: function () {
-            return this.profile && this.profile.groups.includes(
-                constants.READ_ONLY_USERS,
-                constants.CONSERVATION_STATUS_ASSESSORS,
-                constants.CONSERVATION_STATUS_APPROVERS,
-                constants.OCCURRENCE_APPROVERS,
-                constants.OCCURRENCE_ASSESSORS,
-                constants.SPECIES_AND_COMMUNITIES_APPROVERS
-            )
+            return this.profile && this.profile.groups.some(i => [
+                constants.GROUPS.READ_ONLY_USERS,
+                constants.GROUPS.CONSERVATION_STATUS_ASSESSORS,
+                constants.GROUPS.CONSERVATION_STATUS_APPROVERS,
+                constants.GROUPS.OCCURRENCE_APPROVERS,
+                constants.GROUPS.OCCURRENCE_ASSESSORS,
+                constants.GROUPS.SPECIES_AND_COMMUNITIES_APPROVERS,
+                constants.GROUPS.INTERNAL_CONTRIBUTORS
+            ].includes(i));
         }
     },
     methods: {
