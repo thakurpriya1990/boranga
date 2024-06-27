@@ -76,6 +76,7 @@ module.exports = {
     meetings_paginated: "/api/meeting_paginated/?format=datatables",
     occurrence_lookup: "/api/occurrence_paginated/occurrence_lookup",
     occurrence_name_lookup: "/api/occurrence_paginated/occurrence_name_lookup",
+    combine_occurrence_name_lookup: "/api/occurrence_paginated/combine_occurrence_name_lookup",
     occurrence_internal_export: "/api/occurrence_paginated/occurrence_internal_export",
     occurrence_paginated_internal: "/api/occurrence_paginated/occurrence_internal?format=datatables",
     occurrence_report_external_export: "/api/occurrence_report_paginated/occurrence_report_external_export",
@@ -138,6 +139,10 @@ module.exports = {
     ocr_threat: "/api/ocr_threat.json",
     occ_threat: "/api/occ_threat.json",
     occ_profile_dict: "/api/occ_profile_dict",
+
+    combine_key_contacts_lookup: "/api/occurrence_paginated/combine_key_contacts_lookup/",
+    combine_documents_lookup: "/api/occurrence_paginated/combine_documents_lookup/",
+    combine_threats_lookup: "/api/occurrence_paginated/combine_threats_lookup/",
 
     tile_layer: "/api/tile_layer",
 
@@ -242,6 +247,10 @@ module.exports = {
 
     lookup_ocr_section_values: function (model,id) {
       return `/api/occurrence_report/${id}/section_values/?section=${model}`;
+    },
+
+    lookup_occ_section_values: function (model,id) {
+      return `/api/occurrence/${id}/section_values/?section=${model}`;
     },
 
     group_type_community: group_type_community,

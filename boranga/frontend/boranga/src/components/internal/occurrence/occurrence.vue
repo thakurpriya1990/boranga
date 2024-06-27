@@ -4,6 +4,14 @@
             <div v-if="occurrence" class="col">
                 <h3>Occurrence: {{ occurrence.occurrence_number }} - <span class="text-capitalize">{{ display_group_type
                         }}</span></h3>
+                    <h4 v-if="occurrence.combined_occurrence" class="text-muted mb-3">
+                    Combined in to Occurrence:
+                    <template>
+                        OCC{{ occurrence.combined_occurrence_id }} <small><a
+                                :href="`/internal/occurrence/${occurrence.combined_occurrence_id}?group_type_name=${occurrence.group_type}&action=view`"
+                                target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
+                    </template>
+                </h4>
                 <div class="row pb-4">
                     <div v-if="!comparing" class="col-md-3">
 
@@ -110,11 +118,9 @@
             </div>
         </div>
         <!-- <OccurrenceSplit ref="occurrence_split" :occurrence="occurrence" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" />
-        <OccurrenceCombine ref="occurrence_combine" :occurrence="occurrence" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" />
-        <OccurrenceRename ref="occurrence_rename" :occurrence_original="occurrence" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" /> -->
+            @refreshFromResponse="refreshFromResponse" />-->
+        <OccurrenceCombine v-if="occurrence" ref="occurrence_combine" :main_occurrence_obj="occurrence" :is_internal="true"
+            @refreshFromResponse="refreshFromResponse" :key="combine_key"/>
     </div>
 
 </template>
@@ -126,7 +132,7 @@ import Submission from '@common-utils/submission.vue'
 import ProposalOccurrence from '@/components/form_occurrence.vue'
 
 // import OccurrenceSplit from './occurrence_split.vue'
-// import OccurrenceCombine from './occurrence_combine.vue'
+import OccurrenceCombine from './occurrence_combine.vue'
 // import OccurrenceRename from './occurrence_rename.vue'
 
 import {
@@ -146,7 +152,7 @@ export default {
             submitOccurrence: false,
             imageURL: '',
             isSaved: false,
-
+            combine_key: 0,
 
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comparing: false,
@@ -158,8 +164,7 @@ export default {
         Submission,
         ProposalOccurrence,
         // OccurrenceSplit,
-        // OccurrenceCombine,
-        // OccurrenceRename,
+        OccurrenceCombine,
     },
     filters: {
         formatDate: function (data) {
@@ -433,6 +438,7 @@ export default {
             let vm = this;
             vm.original_occurrence = helpers.copyObject(response.body);
             vm.occurrence = helpers.copyObject(response.body);
+            vm.combine_key++;
         },
         activateOccurrence: async function () {
             let vm = this;
@@ -552,93 +558,9 @@ export default {
             });
         },
         splitOccurrence: async function () {
-            this.$refs.occurrence_split.occurrence_original = this.occurrence;
-            let newOccurrenceId1 = null
-            try {
-                const createUrl = api_endpoints.occurrence + "/";
-                let payload = new Object();
-                payload.group_type_id = this.occurrence.group_type_id;
-                let savedOccurrence = await Vue.http.post(createUrl, payload);
-                if (savedOccurrence) {
-                    newOccurrenceId1 = savedOccurrence.body.id;
-                    Vue.http.get(`/api/occurrence/${newOccurrenceId1}/internal_occurrence.json`).then(res => {
-                        let occurrence_obj = res.body.occurrence_obj;
-                        //--- to add empty documents array
-                        occurrence_obj.documents = []
-                        //---empty threats array added to store the select threat ids in from the child component
-                        occurrence_obj.threats = []
-                        this.$refs.occurrence_split.occurrence_list.push(occurrence_obj); //--temp occurrence_obj
-                    },
-                        err => {
-                            console.log(err);
-                        });
-                }
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-            let newOccurrenceId2 = null
-            try {
-                const createUrl = api_endpoints.occurrence + "/";
-                let payload = new Object();
-                payload.group_type_id = this.occurrence.group_type_id
-                let savedOccurrence = await Vue.http.post(createUrl, payload);
-                if (savedOccurrence) {
-                    newOccurrenceId2 = savedOccurrence.body.id;
-                    Vue.http.get(`/api/occurrence/${newOccurrenceId2}/internal_occurrence.json`).then(res => {
-                        let occurrence_obj = res.body.occurrence_obj;
-                        // to add documents id array from original occurrence
-                        occurrence_obj.documents = []
-                        //---empty threats array added to store the select threat ids in from the child component
-                        occurrence_obj.threats = []
-                        this.$refs.occurrence_split.occurrence_list.push(occurrence_obj); //--temp occurrence_obj
-                    },
-                        err => {
-                            console.log(err);
-                        });
-                }
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-            this.$refs.occurrence_split.isModalOpen = true;
+            //this.$refs.occurrence_split.isModalOpen = true;
         },
         combineOccurrence: async function () {
-            this.$refs.occurrence_combine.original_occurrence_combine_list.push(this.occurrence); //--push current original into the array
-            let newOccurrenceId = null
-            try {
-                const createUrl = api_endpoints.occurrence + "/";
-                let payload = new Object();
-                payload.group_type_id = this.occurrence.group_type_id;
-                let savedOccurrence = await Vue.http.post(createUrl, payload);
-                if (savedOccurrence) {
-                    newOccurrenceId = savedOccurrence.body.id;
-                    Vue.http.get(`/api/occurrence/${newOccurrenceId}/internal_occurrence.json`).then(res => {
-                        let occurrence_obj = res.body.occurrence_obj;
-                        //--- to add empty documents array
-                        occurrence_obj.documents = []
-                        //---empty threats array added to store the selected threat ids in from the child component
-                        occurrence_obj.threats = []
-                        this.$refs.occurrence_combine.new_combine_occurrence = occurrence_obj; //---assign the new created occurrence to the modal obj
-                    },
-                        err => {
-                            console.log(err);
-                        });
-                }
-
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
             this.$refs.occurrence_combine.isModalOpen = true;
         },
     },

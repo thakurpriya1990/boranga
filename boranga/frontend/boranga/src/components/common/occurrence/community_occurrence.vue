@@ -74,8 +74,6 @@ export default {
             community_name_lookup: 'community_name_lookup' + vm.occurrence_obj.id,
             select_community_name: "select_community_name" + vm.occurrence_obj.id,
             occ_profile_dict: {},
-            community_list: [],
-            source_list: [],
             wild_status_list: [],
             occurrence_source_list: [],
         }
@@ -132,13 +130,15 @@ export default {
         },
         getCommunityDisplay: function () {
             let vm = this;
-            for (let choice of vm.community_list) {
-                if (choice.id === vm.occurrence_obj.community) {
-                    var newOption = new Option(choice.name, choice.id, false, true);
-                    $('#' + vm.community_name_lookup).append(newOption);
-                    vm.community_display = choice.name;
-                    vm.taxon_previous_name = choice.taxon_previous_name;
-                }
+            if (vm.occurrence_obj?.community_id) {
+                let community_display_url = api_endpoints.community_display +
+                    "?community_id=" + vm.occurrence_obj.community_id
+                vm.$http.get(community_display_url).then(
+                    (response) => {
+                        var newOption = new Option(response.body.name, response.body.id, false, true);
+                        $('#' + vm.community_name_lookup).append(newOption);
+                        vm.community_display = response.body.name
+                    })
             }
         },
         eventListeners: function () {
@@ -149,11 +149,10 @@ export default {
     created: async function () {
         let vm = this;
         let action = this.$route.query.action;
-        let dict_url = action == "view" ? api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type + '&action=' + action :
-            api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type
+        let dict_url = action == "view" ? api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type_id + '&action=' + action :
+            api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type_id
         vm.$http.get(dict_url).then((response) => {
             vm.occ_profile_dict = response.body;
-            vm.community_list = vm.occ_profile_dict.community_list;
             vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
             vm.occurrence_source_list = vm.occ_profile_dict.occurrence_source_list;
             this.getCommunityDisplay();

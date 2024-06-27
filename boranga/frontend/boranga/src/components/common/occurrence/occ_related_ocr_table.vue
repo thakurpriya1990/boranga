@@ -29,7 +29,7 @@ import Vue from 'vue'
 import { v4 as uuid } from 'uuid'
 import datatable from '@/utils/vue/datatable.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
-import SectionModal from '@/components/common/occurrence/section_modal.vue'
+import SectionModal from '@/components/common/occurrence/ocr_section_modal.vue'
 import {
     constants,
     api_endpoints,
@@ -262,7 +262,7 @@ export default {
     },
     methods:{
         toggleCollapse: function () {
-            console.log("toggle");
+            //console.log("toggle");
             this.adjust_table_width();
         },
         viewSection:function (id) {
