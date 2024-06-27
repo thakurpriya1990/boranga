@@ -45,22 +45,26 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="cs_ref_vesting_lookup">Vesting:</label>
+                        <label for="occurrence_tenure_vesting_lookup"
+                            >Vesting:</label
+                        >
                         <select
-                            id="cs_ref_vesting_lookup"
-                            ref="cs_ref_vesting_lookup"
-                            name="cs_ref_vesting_lookup"
+                            id="occurrence_tenure_vesting_lookup"
+                            ref="occurrence_tenure_vesting_lookup"
+                            name="occurrence_tenure_vesting_lookup"
                             class="form-control"
                         />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="cs_ref_purpose_lookup">Purpose:</label>
+                        <label for="occurence_tenure_purpose_lookup"
+                            >Purpose:</label
+                        >
                         <select
-                            id="cs_ref_purpose_lookup"
-                            ref="cs_ref_purpose_lookup"
-                            name="cs_ref_purpose_lookup"
+                            id="occurence_tenure_purpose_lookup"
+                            ref="occurence_tenure_purpose_lookup"
+                            name="occurence_tenure_purpose_lookup"
                             class="form-control"
                         />
                     </div>
@@ -81,6 +85,7 @@ import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import datatable from '@/utils/vue/datatable.vue';
 import { v4 as uuid } from 'uuid';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
+import { filter } from 'vue/types/umd';
 
 export default {
     name: 'OccurrenceTenureDatatable',
@@ -110,6 +115,16 @@ export default {
             required: false,
             default: 'occurrence_tenure_feature_id_filter_cache',
         },
+        filterVestingCache: {
+            type: String,
+            required: false,
+            default: 'occurrence_tenure_vesting_filter_cache',
+        },
+        filterPurposeCache: {
+            type: String,
+            required: false,
+            default: 'occurrence_tenure_purpose_filter_cache',
+        },
     },
     data: function () {
         return {
@@ -138,6 +153,12 @@ export default {
             filterFeatureId: sessionStorage.getItem(this.filterFeatureIdCache)
                 ? sessionStorage.getItem(this.filterFeatureIdCache)
                 : 'all',
+            filterVesting: sessionStorage.getItem(this.filterVestingCache)
+                ? sessionStorage.getItem(this.filterVestingCache)
+                : 'all',
+            filterPurpose: sessionStorage.getItem(this.filterPurposeCache)
+                ? sessionStorage.getItem(this.filterPurposeCache)
+                : 'all',
         };
     },
     computed: {
@@ -145,6 +166,8 @@ export default {
             let allFiltersAreAll = [
                 this.filterFeatureId,
                 this.filterStatus,
+                this.filterVesting,
+                this.filterPurpose,
             ].every((filter) => ['all'].includes(filter));
 
             return !allFiltersAreAll;
@@ -305,6 +328,20 @@ export default {
                 this.filterFeatureId
             );
         },
+        filterVesting: function () {
+            this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            );
+            sessionStorage.setItem(this.filterVestingCache, this.filterVesting);
+        },
+        filterPurpose: function () {
+            this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            );
+            sessionStorage.setItem(this.filterPurposeCache, this.filterPurpose);
+        },
         filterApplied: function () {
             if (this.$refs.collapsible_filters) {
                 this.$refs.collapsible_filters.show_warning_icon(
@@ -316,10 +353,26 @@ export default {
     mounted: function () {
         this.$nextTick(() => {
             // Make this a loop
-            this.initialiseFilterLookup(
-                'occurrence_tenure_feature_id_lookup',
-                'filterFeatureId'
-            );
+            const filterLookupParameters = [
+                {
+                    ref: 'occurrence_tenure_feature_id_lookup',
+                    vModelDataProperty: 'filterFeatureId',
+                    placeholder: 'Select a feature ID',
+                },
+                {
+                    ref: 'occurrence_tenure_vesting_lookup',
+                    vModelDataProperty: 'filterVesting',
+                    placeholder: 'Select a vesting',
+                },
+                {
+                    ref: 'occurence_tenure_purpose_lookup',
+                    vModelDataProperty: 'filterPurpose',
+                    placeholder: 'Select a purpose',
+                },
+            ];
+            filterLookupParameters.forEach((parameters) => {
+                this.initialiseFilterLookup(...Object.values(parameters));
+            });
 
             this.addEventListeners();
         });
