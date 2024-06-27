@@ -16,7 +16,7 @@ from multiselectfield import MultiSelectField
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils.dataframe import dataframe_to_rows
-from rest_framework import mixins, serializers, views, viewsets
+from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
@@ -31,6 +31,7 @@ from boranga.components.conservation_status.serializers import SendReferralSeria
 from boranga.components.main.api import search_datums
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import validate_threat_request
+from boranga.components.occurrence.email import send_external_referee_invite_email
 from boranga.components.occurrence.filters import OccurrenceReportReferralFilterBackend
 from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
@@ -71,6 +72,7 @@ from boranga.components.occurrence.models import (
     OCRAnimalObservation,
     OCRAssociatedSpecies,
     OCRConservationThreat,
+    OCRExternalRefereeInvite,
     OCRFireHistory,
     OCRHabitatComposition,
     OCRHabitatCondition,
@@ -123,7 +125,8 @@ from boranga.components.occurrence.serializers import (
     OccurrenceTenureSerializer,
     OccurrenceUserActionSerializer,
     OCRConservationThreatSerializer,
-    OCRObserverDetailReferralSerializer,
+    OCRExternalRefereeInviteSerializer,
+    OCRObserverDetailLimitedSerializer,
     OCRObserverDetailSerializer,
     ProposeApproveSerializer,
     ProposeDeclineSerializer,
@@ -176,8 +179,11 @@ from boranga.helpers import (
     is_customer,
     is_external_contributor,
     is_internal,
+    is_internal_contributor,
     is_occurrence_approver,
     is_occurrence_assessor,
+    is_occurrence_report_referee,
+    is_readonly_user,
 )
 
 logger = logging.getLogger(__name__)
@@ -1770,14 +1776,22 @@ class OccurrenceReportViewSet(
     def observer_details(self, request, *args, **kwargs):
         instance = self.get_object()
         qs = instance.observer_detail.all()
-        if is_occurrence_assessor(request) or is_occurrence_approver(request):
+        serializer = OCRObserverDetailLimitedSerializer(
+            qs, many=True, context={"request": request}
+        )
+        if (
+            is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+            or is_occurrence_report_referee(request, instance)
+            or (
+                (is_external_contributor(request) or is_internal_contributor(request))
+                and instance.submitter == request.user.id
+            )
+        ):
             serializer = OCRObserverDetailSerializer(
                 qs, many=True, context={"request": request}
             )
-        else:
-            serializer = OCRObserverDetailReferralSerializer(
-                qs, many=True, context={"request": request}
-            )
+
         return Response(serializer.data)
 
     @list_route(methods=["GET"], detail=False)
@@ -2333,10 +2347,69 @@ class OccurrenceReportViewSet(
         )
         return Response(serializer.data)
 
+    @detail_route(methods=["post"], detail=True)
+    def external_referee_invite(self, request, *args, **kwargs):
+        instance = self.get_object()
+        request.data["occurrence_report_id"] = instance.id
+        serializer = OCRExternalRefereeInviteSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        if OCRExternalRefereeInvite.objects.filter(
+            archived=False, email=request.data["email"]
+        ).exists():
+            raise serializers.ValidationError(
+                "An external referee invitation has already been sent to {email}".format(
+                    email=request.data["email"]
+                ),
+                code="invalid",
+            )
+        external_referee_invite = OCRExternalRefereeInvite.objects.create(
+            sent_by=request.user.id, **request.data
+        )
+        send_external_referee_invite_email(instance, request, external_referee_invite)
+
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
+
 
 class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OCRObserverDetail.objects.none()
-    serializer_class = OCRObserverDetailSerializer
+    serializer_class = OCRObserverDetailLimitedSerializer
+
+    def get_serializer_class(self):
+        if (
+            is_occurrence_assessor(self.request)
+            or is_occurrence_approver(self.request)
+            or is_external_contributor(self.request)
+            or is_internal_contributor(self.request)
+            or is_readonly_user(self.request)
+        ):
+            return OCRObserverDetailSerializer
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        qs = OCRObserverDetail.objects.none()
+
+        if (
+            is_occurrence_assessor(self.request)
+            or is_occurrence_approver(self.request)
+            or is_readonly_user(self.request)
+        ):
+            qs = OCRObserverDetail.objects.all().order_by("id")
+        elif is_external_contributor(self.request) or is_internal_contributor(
+            self.request
+        ):
+            qs = OCRObserverDetail.objects.filter(
+                occurrence_report__submitter=self.request.user.id
+            ).order_by("id")
+        elif is_occurrence_report_referee(self.request):
+            qs = OCRObserverDetail.objects.filter(
+                occurrence_report__referrals__referral=self.request.user.id
+            ).order_by("id")
+
+        return qs
 
     def is_authorised_to_update(self, occurrence_report):
         user = self.request.user
@@ -2367,17 +2440,6 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             )
             serializer.is_valid(raise_exception=True)
             occurrence_report.back_to_assessor(request, serializer.validated_data)
-
-    def get_queryset(self):
-        qs = OCRObserverDetail.objects.none()
-
-        if is_internal(self.request):
-            qs = OCRObserverDetail.objects.all().order_by("id")
-        elif is_customer(self.request):
-            # not sure what qs it should be for api security check
-            qs = OCRObserverDetail.objects.all().order_by("id")
-            return qs
-        return qs
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -5065,3 +5127,35 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+class OCRExternalRefereeInviteViewSet(viewsets.ModelViewSet):
+    queryset = OCRExternalRefereeInvite.objects.filter(archived=False)
+    serializer_class = OCRExternalRefereeInviteSerializer
+
+    def get_queryset(self):
+        qs = self.queryset
+        if not is_occurrence_assessor(self.request):
+            qs = OCRExternalRefereeInvite.objects.none()
+        return qs
+
+    @detail_route(methods=["post"], detail=True)
+    def remind(self, request, *args, **kwargs):
+        instance = self.get_object()
+        send_external_referee_invite_email(
+            instance.occurrence_report, request, instance, reminder=True
+        )
+        return Response(
+            status=status.HTTP_200_OK,
+            data={"message": f"Reminder sent to {instance.email} successfully"},
+        )
+
+    @detail_route(methods=["patch"], detail=True)
+    def retract(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.archived = True
+        instance.save()
+        serializer = InternalOccurrenceReportSerializer(
+            instance.occurrence_report, context={"request": request}
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)

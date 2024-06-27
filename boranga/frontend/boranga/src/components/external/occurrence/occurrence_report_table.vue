@@ -46,7 +46,7 @@
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="ocr_type">
                     <li v-for="group in group_types">
-                        <a class="dropdown-item" role="button" @click.prevent="createOccurrenceReport(group.id)">{{
+                        <a class="dropdown-item" role="button" @click.prevent="createOccurrenceReport(group.id, group.display)">{{
                             group.display }}
                         </a>
                     </li>
@@ -440,23 +440,37 @@ export default {
                 console.log(error);
             });
         },
-        createOccurrenceReport: async function (group_type) {
-            let newOCRId = null
-            try {
-                const createUrl = api_endpoints.occurrence_report + "/";
-                let payload = new Object();
-                payload.group_type_id = group_type
-                let savedOCR = await Vue.http.post(createUrl, payload);
-                if (savedOCR) {
-                    newOCRId = savedOCR.body;
+        createOccurrenceReport: async function (group_type, group_type_name) {
+            swal.fire({
+                title: `Add ${group_type_name} Occurrence Report`,
+                text: `Are you sure you want to add a new ${group_type_name} Occurrence Report?`,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: `Add ${group_type_name} Occurrence Report`,
+                reverseButtons: true,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let newOCRId = null
+                    try {
+                        const createUrl = api_endpoints.occurrence_report + "/";
+                        let payload = new Object();
+                        payload.group_type_id = group_type
+                        let savedOCR = await Vue.http.post(createUrl, payload);
+                        if (savedOCR) {
+                            newOCRId = savedOCR.body;
+                        }
+                    }
+                    catch (err) {
+                        console.log(err);
+                    }
+                    this.$router.push({
+                        name: 'draft_ocr_proposal',
+                        params: { occurrence_report_id: newOCRId.id },
+                    });
                 }
-            }
-            catch (err) {
-                console.log(err);
-            }
-            this.$router.push({
-                name: 'draft_ocr_proposal',
-                params: { occurrence_report_id: newOCRId.id },
             });
         },
         discardOCR: function (occurrence_report_id) {

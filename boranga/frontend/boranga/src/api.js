@@ -24,6 +24,7 @@ module.exports = {
     document_categories_dict: "/api/document_categories_dict",
     filtered_organisations: '/api/filtered_organisations',
     marine_treeview: "/api/marine_treeview",
+    ocr_external_referee_invites: "/api/ocr_external_referee_invites",
     ocr_referrals: "/api/ocr_referrals.json",
     organisation_access_group_members: '/api/organisation_access_group_members',
     organisation_contacts: '/api/organisation_contacts.json',

@@ -71,6 +71,9 @@ class ListAgendaItemSerializer(serializers.ModelSerializer):
     conservation_status_number = serializers.SerializerMethodField(read_only=True)
     scientific_name = serializers.SerializerMethodField(read_only=True)
     community_name = serializers.SerializerMethodField(read_only=True)
+    change_code = serializers.CharField(
+        source="conservation_status.change_code.code", allow_null=True, read_only=True
+    )
 
     class Meta:
         model = AgendaItem
@@ -82,6 +85,7 @@ class ListAgendaItemSerializer(serializers.ModelSerializer):
             "conservation_status_number",
             "scientific_name",
             "community_name",
+            "change_code",
         )
 
     def get_conservation_status_number(self, obj):

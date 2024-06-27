@@ -503,6 +503,9 @@ export default {
         },
     },
     computed: {
+        defaultApplicationStatus: function () {
+            return this.is_for_agenda ? 'ready_for_agenda' : 'approved';
+        },
         filterApplied: function () {
             if (this.filterCSCommunityMigratedId === 'all' &&
                 this.filterCSCommunityName === 'all' &&
@@ -515,7 +518,7 @@ export default {
                 this.filterCSCommunityAssessor === 'all' &&
                 this.filterCSCommunitySubmitter === 'all' &&
                 this.filterCSCommunitySubmitterCategory === 'all' &&
-                this.filterCSCommunityApplicationStatus === 'approved' &&
+                this.filterCSCommunityApplicationStatus === this.defaultApplicationStatus &&
                 this.filterCSFromCommunityEffectiveFromDate === '' &&
                 this.filterCSToCommunityEffectiveFromDate === '' &&
                 this.filterCSFromCommunityEffectiveToDate === '' &&

@@ -157,6 +157,28 @@ def is_conservation_status_referee(request, cs_proposal=None):
     return qs.exists()
 
 
+def is_occurrence_report_referee(request, occurrence_report=None):
+    if not request.user.is_authenticated:
+        return False
+
+    if request.user.is_superuser:
+        return True
+
+    from boranga.components.occurrence.models import OccurrenceReportReferral
+
+    qs = OccurrenceReportReferral.objects.filter(referral=request.user.id)
+    if occurrence_report:
+        qs = qs.filter(occurrence_report=occurrence_report)
+
+    return qs.exists()
+
+
+def is_referee(request):
+    return is_conservation_status_referee(request) or is_occurrence_report_referee(
+        request
+    )
+
+
 def in_dbca_domain(request):
     user = request.user
     domain = user.email.split("@")[1]
@@ -189,8 +211,8 @@ def is_customer(request):
 
 
 def is_internal(request):
-    return is_departmentUser(request) and belongs_to_groups(
-        request, settings.INTERNAL_GROUPS
+    return is_departmentUser(request) and (
+        belongs_to_groups(request, settings.INTERNAL_GROUPS) or is_referee(request)
     )
 
 

@@ -3,6 +3,11 @@
     <div id="ocrLocation">
         <FormSection :form-collapse="false" label="Location" Index="occurrence_report_location">
             <div class="row mb-3">
+                <div class="col">
+                    <span class="text-danger">*</span> <span class="text-muted">You must indicate the location for your occurrence report</span>
+                </div>
+            </div>
+            <div class="row mb-3">
                 <MapComponent ref="component_map" :key="componentMapKey" class="me-3" :context="occurrence_report_obj"
                     :is_external="is_external" :point-features-supported="true"
                     :polygon-features-supported="isFauna == false" :drawable="true" :editable="true" level="external"
@@ -55,7 +60,7 @@
 
             <!-- -------------------------------- -->
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Location Description:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Location Description: <span class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <textarea id="loc_description" v-model="occurrence_report_obj.location.location_description
                         " :disabled="isReadOnly" class="form-control" rows="2" placeholder="" />

@@ -571,6 +571,9 @@ export default {
         },
     },
     computed: {
+        defaultApplicationStatus: function () {
+            return this.is_for_agenda ? 'ready_for_agenda' : 'approved';
+        },
         filterApplied: function () {
             if (this.filterCSFaunaScientificName === 'all' &&
                 this.filterCSFaunaCommonName === 'all' &&
@@ -586,7 +589,7 @@ export default {
                 this.filterCSFaunaAssessor === 'all' &&
                 this.filterCSFaunaSubmitter === 'all' &&
                 this.filterCSFaunaSubmitterCategory === 'all' &&
-                this.filterCSFaunaApplicationStatus === 'approved' &&
+                this.filterCSFaunaApplicationStatus === this.defaultApplicationStatus &&
                 this.filterCSFromFaunaEffectiveFromDate === '' &&
                 this.filterCSToFaunaEffectiveFromDate === '' &&
                 this.filterCSFromFaunaEffectiveToDate === '' &&

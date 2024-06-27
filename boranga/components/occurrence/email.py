@@ -3,6 +3,7 @@ import logging
 from django.conf import settings
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import smart_text
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
@@ -263,6 +264,40 @@ def send_approver_back_to_assessor_email_notification(
     sender = get_sender_user()
 
     _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
+
+def send_external_referee_invite_email(
+    occurrence_report, request, external_referee_invite, reminder=False
+):
+    subject = (
+        f"Referral Request for DBCA's Boranga System "
+        f"Occurrence Report: {occurrence_report.occurrence_report_number}"
+    )
+    if reminder:
+        subject = f"Reminder: {subject}"
+    email = TemplateEmailBase(
+        subject=subject,
+        html_template="boranga/emails/ocr_proposals/send_external_referee_invite.html",
+        txt_template="boranga/emails/ocr_proposals/send_external_referee_invite.txt",
+    )
+
+    url = request.build_absolute_uri(reverse("external"))
+    context = {
+        "external_referee_invite": external_referee_invite,
+        "occurrence_report": occurrence_report,
+        "url": url,
+        "reminder": reminder,
+    }
+
+    msg = email.send(
+        external_referee_invite.email,
+        context=context,
+    )
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
+    external_referee_invite.datetime_sent = timezone.now()
+    external_referee_invite.save()
 
 
 def _log_occurrence_report_email(email_message, occurrence_report, sender=None):
