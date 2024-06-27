@@ -2404,6 +2404,14 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer.is_valid(raise_exception=True)
         occurrence_report = serializer.validated_data["occurrence_report"]
         self.is_authorised_to_update(occurrence_report)
+
+        observer_name = serializer.validated_data["observer_name"]
+
+        if OCRObserverDetail.objects.filter(
+            Q(observer_name=observer_name) & Q(occurrence_report=occurrence_report) & Q(visible=True)
+        ).exists():
+            raise serializers.ValidationError("Observer with this name already exists for this occurrence report")
+
         serializer.save()
 
         if (
@@ -2444,6 +2452,12 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         self.is_authorised_to_update(instance.occurrence_report)
         instance.visible = True
+
+        if OCRObserverDetail.objects.filter(
+            Q(observer_name=instance.observer_name) & Q(occurrence_report=instance.occurrence_report) & Q(visible=True)
+        ).exists():
+            raise serializers.ValidationError("Active observer with this name already exists for this occurrence report")
+
         instance.save()
 
         serializer = self.get_serializer(instance)

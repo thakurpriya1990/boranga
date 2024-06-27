@@ -1827,11 +1827,6 @@ class OCRObserverDetail(models.Model):
 
     class Meta:
         app_label = "boranga"
-        unique_together = (
-            "observer_name",
-            "occurrence_report",
-            "visible",
-        )
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
@@ -3719,11 +3714,6 @@ class OCCContactDetail(models.Model):
 
     class Meta:
         app_label = "boranga"
-        #unique_together = (
-        #    "contact_name",
-        #    "occurrence",
-        #    "visible",
-        #)
 
     def __str__(self):
         return str(self.occurrence)  # TODO: is the most appropriate?
