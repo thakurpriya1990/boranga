@@ -41,12 +41,8 @@ from boranga.components.meetings.serializers import (
     SaveMeetingSerializer,
     SaveMinutesSerializer,
 )
-from boranga.helpers import (
-    is_conservation_status_approver,
-    is_conservation_status_assessor,
-    is_internal,
-    is_readonly_user,
-)
+from boranga.helpers import is_conservation_status_approver
+from boranga.permissions import MeetingPermission
 
 logger = logging.getLogger(__name__)
 
@@ -88,21 +84,10 @@ class MeetingFilterBackend(DatatablesFilterBackend):
 class MeetingPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (MeetingFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = Meeting.objects.none()
+    queryset = Meeting.objects.all()
     serializer_class = ListMeetingSerializer
     page_size = 10
-
-    def get_queryset(self):
-        qs = Meeting.objects.none()
-
-        if (
-            is_conservation_status_assessor(self.request)
-            or is_conservation_status_approver(self.request)
-            or is_readonly_user(self.request)
-        ):
-            qs = Meeting.objects.all()
-
-        return qs
+    permission_classes = [MeetingPermission]
 
     @list_route(
         methods=[
@@ -203,25 +188,11 @@ class MeetingPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = Meeting.objects.none()
+    queryset = Meeting.objects.all()
     serializer_class = MeetingSerializer
-
-    def get_queryset(self):
-        if (
-            is_conservation_status_assessor(self.request)
-            or is_conservation_status_approver(self.request)
-            or is_readonly_user(self.request)
-        ):
-            qs = Meeting.objects.all()
-            return qs
-        return Meeting.objects.none()
+    permission_classes = [MeetingPermission]
 
     def create(self, request, *args, **kwargs):
-        if not is_conservation_status_approver(request):
-            return Response(
-                {"message": "You do not have permission to create a meeting"},
-                status=403,
-            )
         serializer = CreateMeetingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
@@ -521,6 +492,7 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
 
 class GetMeetingDict(views.APIView):
+    permission_classes = [MeetingPermission]
 
     def get(self, request, format=None):
         location_list = []
@@ -556,14 +528,9 @@ class GetMeetingDict(views.APIView):
 
 
 class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = Minutes.objects.none()
+    queryset = Minutes.objects.all()
     serializer_class = MinutesSerializer
-
-    def get_queryset(self):
-        if is_internal(self.request):
-            qs = Minutes.objects.all().order_by("id")
-            return qs
-        return Minutes.objects.none()
+    permission_classes = [MeetingPermission]
 
     @detail_route(
         methods=[
@@ -634,14 +601,9 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
 
 class AgendaItemViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = AgendaItem.objects.none()
+    queryset = AgendaItem.objects.all()
     serializer_class = AgendaItemSerializer
-
-    def get_queryset(self):
-        if is_internal(self.request):
-            qs = AgendaItem.objects.all()
-            return qs
-        return AgendaItem.objects.none()
+    permission_classes = [MeetingPermission]
 
     @detail_route(
         methods=[
