@@ -368,13 +368,30 @@ export default {
          * @param {String} ref The ref of the select html element
          * @param {String} vModelDataProperty The selected value will be stored in this property or v-model
          * @param {String=} placeholder A placeholder text for the select2 dropdown
+         * @param {String=} apiEndpoint The api endpoint to fetch the data from, defaults to `ref`
          */
         initialiseFilterLookup: function (
             ref,
             vModelDataProperty,
-            placeholder = 'Select a value'
+            placeholder = 'Select a value',
+            apiEndpoint = null
         ) {
             const vm = this;
+            if (!this.$refs[ref]) {
+                console.error(
+                    `The ref ${ref} does not exist in the component.`
+                );
+                return;
+            }
+            if (vm[vModelDataProperty] === undefined) {
+                console.error(
+                    `The property ${vModelDataProperty} does not exist in the component.`
+                );
+                return;
+            }
+            if (!apiEndpoint) {
+                apiEndpoint = ref;
+            }
             $(this.$refs[ref])
                 .select2({
                     minimumInputLength: 2,
@@ -382,7 +399,7 @@ export default {
                     allowClear: true,
                     placeholder: placeholder,
                     ajax: {
-                        url: api_endpoints[ref],
+                        url: api_endpoints[apiEndpoint],
                         dataType: 'json',
                         data: function (params) {
                             var query = {
@@ -425,7 +442,7 @@ export default {
                     false,
                     true
                 );
-                $(`#${ref}`).append(newOption);
+                this.$refs[ref].append(newOption);
             }
         },
     },
