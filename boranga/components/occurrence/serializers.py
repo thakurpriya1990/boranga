@@ -3142,6 +3142,7 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
 
 class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
     vesting = serializers.SerializerMethodField()
+    purpose = serializers.SerializerMethodField()
     featureid = serializers.SerializerMethodField()
     status_display = serializers.CharField(read_only=True, source="get_status_display")
 
@@ -3156,6 +3157,11 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
 
     def get_featureid(self, obj):
         return obj.featureid
+
+    def get_purpose(self, obj):
+        if obj.purpose:
+            return obj.purpose.purpose
+        return None
 
 
 class OccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
