@@ -168,7 +168,6 @@ export default {
                 vm.occurrence_report_obj.group_type === 'community'
                     ? true
                     : false,
-            species_list: [],
             species_display: '',
             community_display: '',
             taxon_previous_name: '',
@@ -233,9 +232,8 @@ export default {
         },
         getSpeciesDisplay: function () {
             let vm = this;
-            if (vm.occurrence_report_obj.species_id != null) {
-                let species_display_url = api_endpoints.species_display +
-                    "?species_id=" + vm.occurrence_report_obj.species_id
+            if (vm.occurrence_report_obj.species_taxonomy_id != null) {
+                let species_display_url = api_endpoints.species_display + "?taxon_id=" + vm.occurrence_report_obj.species_taxonomy_id
                 vm.$http.get(species_display_url).then(
                     (response) => {
                         var newOption = new Option(response.body.name, response.body.id, false, true);
@@ -293,11 +291,13 @@ export default {
         },
         getCommunityDisplay: function () {
             let vm = this;
-            if (vm.occurrence_report_obj.community_id != null) {
+            if (vm.occurrence_report_obj?.community_id) {
                 let community_display_url = api_endpoints.community_display +
                     "?community_id=" + vm.occurrence_report_obj.community_id
                 vm.$http.get(community_display_url).then(
                     (response) => {
+                        var newOption = new Option(response.body.name, response.body.id, false, true);
+                        $('#' + vm.community_name_lookup).append(newOption);
                         vm.community_display = response.body.name
                     })
             }

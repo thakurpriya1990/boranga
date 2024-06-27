@@ -77,6 +77,15 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     scientific_name = serializers.CharField(
         source="species.taxonomy.scientific_name", allow_null=True
     )
+    community_name = serializers.CharField(
+        source="community.name", allow_null=True
+    )
+    species_taxonomy_id = serializers.IntegerField(
+        source="species.taxonomy.id", allow_null=True
+    )
+    community_id = serializers.IntegerField(
+        source="community.id", allow_null=True
+    )
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
     group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
     can_user_edit = serializers.SerializerMethodField()
@@ -100,10 +109,15 @@ class OccurrenceSerializer(serializers.ModelSerializer):
         allow_blank=True,
         required=False,
     )
+    combined_occurrence_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Occurrence
         fields = "__all__"
+
+    def get_combined_occurrence_id(self, obj):
+        if obj.combined_occurrence:
+            return obj.combined_occurrence.id
 
     def get_processing_status(self, obj):
         return obj.get_processing_status_display()
@@ -924,6 +938,9 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
     # group_type_id = serializers.SerializerMethodField(read_only=True)
+    species_taxonomy_id = serializers.IntegerField(
+        source="species.taxonomy.id", allow_null=True
+    )
     allowed_assessors = EmailUserSerializer(many=True)
     location = serializers.SerializerMethodField()
     habitat_composition = serializers.SerializerMethodField()
@@ -953,6 +970,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "group_type",
             "group_type_id",
             "species_id",
+            "species_taxonomy_id",
             "community_id",
             "occurrence_report_number",
             "reported_date",
@@ -1211,6 +1229,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "group_type",
             "group_type_id",
             "species_id",
+            "species_taxonomy_id",
             "community_id",
             "occurrence_report_number",
             "reported_date",

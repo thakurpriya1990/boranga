@@ -338,7 +338,15 @@ export default {
                         }
                     });
                 }, (error) => {
-                    console.log(error);
+                    var errorText = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
         },
         updatedObserverDetails() {
