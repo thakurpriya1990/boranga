@@ -52,11 +52,11 @@ geom AS (
 )
 SELECT
     occ.occurrence_number,
-    occ.occurrence_name AS name,
+    occ.occurrence_name AS occ_name,
     gt.name AS group_type,
     geom.geometry AS geometry,
-    geom.geometry_type AS geometry_type,
-    geom.data_type AS geometry_data_type
+    geom.geometry_type AS geom_type,
+    geom.data_type AS g_datatype
 FROM
     occ
     RIGHT JOIN geom ON occ.id = geom.occurrence_id
