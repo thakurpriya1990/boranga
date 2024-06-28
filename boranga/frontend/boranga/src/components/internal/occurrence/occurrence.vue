@@ -4,7 +4,7 @@
             <div v-if="occurrence" class="col">
                 <h3>Occurrence: {{ occurrence.occurrence_number }} - <span class="text-capitalize">{{ display_group_type
                         }}</span></h3>
-                    <h4 v-if="occurrence.combined_occurrence" class="text-muted mb-3">
+                <h4 v-if="occurrence.combined_occurrence" class="text-muted mb-3">
                     Combined in to Occurrence:
                     <template>
                         OCC{{ occurrence.combined_occurrence_id }} <small><a
@@ -28,58 +28,53 @@
                                     Workflow
                                 </div>
                                 <div class="card-body card-collapse">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <strong>Status</strong><br />
-                                            {{ occurrence.processing_status }}
-                                        </div>
-                                        <div class="col-sm-12">
-                                            <div class="separator"></div>
-                                        </div>
-                                        <div class="col-sm-12 top-buffer-s">
-                                            <template v-if="hasUserEditMode">
-                                                <div class="row">
-                                                    <div class="col-sm-12">
-                                                        <strong>Action</strong><br />
-                                                    </div>
+                                    <strong>Status</strong><br />
+                                    {{ occurrence.processing_status }}
+                                </div>
+                                <div class="card-body border-top">
+                                    <div class="col-sm-12">
+                                        <template v-if="hasUserEditMode">
+                                            <div class="row mb-2">
+                                                <div class="col-sm-12">
+                                                    <strong>Action</strong><br />
                                                 </div>
-                                                <div v-if="isDraft" class="row">
-                                                    <div class="col-sm-12">
-                                                        <button style="width:80%;" class="btn btn-primary mb-2"
-                                                            @click.prevent="activateOccurrence()">Activate</button><br />
-                                                    </div>
+                                            </div>
+                                            <div v-if="isDraft" class="row">
+                                                <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="activateOccurrence()">Activate</button><br />
                                                 </div>
-                                                <div v-else class="row">
-                                                    <div v-if="canLock" class="col-sm-12">
-                                                        <button style="width:80%;" class="btn btn-primary mb-2"
-                                                            @click.prevent="lockOccurrence()">Lock</button><br />
-                                                    </div>
-                                                    <div class="col-sm-12">
-                                                        <button style="width:80%;" class="btn btn-primary mb-2"
-                                                            @click.prevent="splitOccurrence()">Split</button><br />
-                                                    </div>
-                                                    <div class="col-sm-12">
-                                                        <button style="width:80%;" class="btn btn-primary mb-2"
-                                                            @click.prevent="combineOccurrence()">Combine</button><br />
-                                                    </div>
-                                                    <div v-if="canClose" class="col-sm-12">
-                                                        <button style="width:80%;" class="btn btn-primary mb-2"
-                                                            @click.prevent="closeOccurrence()">Close</button><br />
-                                                    </div>
-                                                </div>
-                                            </template>
-                                            <template v-else-if="canUnlock">
-                                                <div class="row">
-                                                    <div class="col-sm-12">
-                                                        <strong>Action</strong><br />
-                                                    </div>
+                                            </div>
+                                            <div v-else class="row">
+                                                <div v-if="canLock" class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="lockOccurrence()">Lock</button><br />
                                                 </div>
                                                 <div class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="unlockOccurrence()">Unlock</button><br />
+                                                        @click.prevent="splitOccurrence()">Split</button><br />
                                                 </div>
-                                            </template>
-                                        </div>
+                                                <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="combineOccurrence()">Combine</button><br />
+                                                </div>
+                                                <div v-if="canClose" class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="closeOccurrence()">Close</button><br />
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template v-else-if="canUnlock">
+                                            <div class="row mb-2">
+                                                <div class="col-sm-12">
+                                                    <strong>Action</strong><br />
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary mb-2"
+                                                    @click.prevent="unlockOccurrence()">Unlock</button><br />
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
 
@@ -119,8 +114,8 @@
         </div>
         <!-- <OccurrenceSplit ref="occurrence_split" :occurrence="occurrence" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />-->
-        <OccurrenceCombine v-if="occurrence" ref="occurrence_combine" :main_occurrence_obj="occurrence" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" :key="combine_key"/>
+        <OccurrenceCombine v-if="occurrence" ref="occurrence_combine" :main_occurrence_obj="occurrence"
+            :is_internal="true" @refreshFromResponse="refreshFromResponse" :key="combine_key" />
     </div>
 
 </template>
@@ -563,6 +558,20 @@ export default {
         combineOccurrence: async function () {
             this.$refs.occurrence_combine.isModalOpen = true;
         },
+        fetchOccurrence: function () {
+            let vm = this;
+            Vue.http.get(`/api/occurrence/${this.$route.params.occurrence_id}/`).then(res => {
+                vm.occurrence = res.body;
+            },
+                err => {
+                    console.log(err);
+                });
+        },
+    },
+    created: function () {
+        if (!this.occurrence) {
+            this.fetchOccurrence();
+        }
     },
     updated: function () {
         let vm = this;
