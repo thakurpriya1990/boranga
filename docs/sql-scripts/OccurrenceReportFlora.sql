@@ -21,7 +21,10 @@ ocr AS (
         processing_status,
         group_type_id,
         species_id,
-        community_id
+        community_id,
+        observation_date,
+        reported_date,
+        lodgement_date
     FROM
         boranga_occurrencereport,
         constants
@@ -40,8 +43,8 @@ geom AS (
         id,
         CASE
             ST_GeometryType(geometry)
-            WHEN 'ST_Point' THEN ST_AsText(ST_Buffer(geometry, 0.00001)) -- 0.00001 deg ~= 1.1m
-            ELSE ST_AsText(geometry)
+            WHEN 'ST_Point' THEN ST_Buffer(geometry, 0.00001) -- 0.00001 deg ~= 1.1m
+            ELSE geometry
         END AS geometry,
         ST_GeometryType(geometry) AS geometry_type,
         occurrence_report_id,
@@ -72,7 +75,10 @@ SELECT
     geom.geometry_type AS geometry_type,
     geom.data_type AS geometry_data_type,
     species.species_number AS species_number,
-    community.community_number AS community_number
+    community.community_number AS community_number,
+    ocr.observation_date,
+    ocr.reported_date,
+    ocr.lodgement_date
 FROM
     ocr
     RIGHT JOIN geom ON ocr.id = geom.occurrence_report_id
