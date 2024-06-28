@@ -218,6 +218,10 @@ export default {
                     title: 'Saved',
                     text: 'Your report has been saved',
                     icon: 'success',
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingOCRProposal = false;
                 const resData = res.data;
