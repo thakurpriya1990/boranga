@@ -231,10 +231,7 @@ export default {
     },
     computed: {
         show_document_actions: function () {
-            if (!this.is_internal) {
-                return this.conservation_status_obj.can_user_edit;
-            }
-            return this.conservation_status_obj.assessor_mode.assessor_can_assess;
+            return this.conservation_status_obj.can_user_edit || this.conservation_status_obj.assessor_mode.assessor_can_assess;
         }
     },
     methods: {

@@ -1,23 +1,57 @@
-<template id="occurrence_tenure_datatable_template">
-    <div>
-        <datatable
-            :id="datatable_id"
-            ref="occurrence_tenure_datatable"
-            :dt-options="options"
-            :dt-headers="headers"
-        />
+<template>
+    <div id="occurrence_tenure_datatable_template">
+        <CollapsibleFilters ref="collapsible_filters" component_title="Filters" :collapsed="!filterApplied"
+            @created="collapsible_component_mounted">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="occurrence_tenure_feature_id_lookup">Feature ID:</label>
+                        <select id="occurrence_tenure_feature_id_lookup" ref="occurrence_tenure_feature_id_lookup"
+                            name="occurrence_tenure_feature_id_lookup" class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="occurrence_tenure_status_lookup" class="text-nowrap">Status:</label>
+                        <select ref="occurrence_tenure_status_lookup" v-model="filterStatus" class="form-select">
+                            <option value="all">All</option>
+                            <option v-for="status in tenure_statuses" :key="status.value" :value="status.value">
+                                {{ status.name }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="occurrence_tenure_vesting_lookup">Vesting:</label>
+                        <select id="occurrence_tenure_vesting_lookup" ref="occurrence_tenure_vesting_lookup"
+                            name="occurrence_tenure_vesting_lookup" class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="occurence_tenure_purpose_lookup">Purpose:</label>
+                        <select id="occurence_tenure_purpose_lookup" ref="occurence_tenure_purpose_lookup"
+                            name="occurence_tenure_purpose_lookup" class="form-control" />
+                    </div>
+                </div>
+            </div>
+        </CollapsibleFilters>
+        <datatable :id="datatable_id" ref="occurrence_tenure_datatable" :dt-options="options" :dt-headers="headers" />
     </div>
 </template>
 
 <script>
-import { api_endpoints, constants } from '@/utils/hooks';
+import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import datatable from '@/utils/vue/datatable.vue';
 import { v4 as uuid } from 'uuid';
+import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
 
 export default {
     name: 'OccurrenceTenureDatatable',
     components: {
         datatable,
+        CollapsibleFilters,
     },
     emit: ['highlight-on-map', 'edit-tenure-details'],
     props: {
@@ -30,6 +64,26 @@ export default {
             type: String,
             required: false,
             default: '',
+        },
+        filterStatusCache: {
+            type: String,
+            required: false,
+            default: 'occurrence_tenure_status_filter_cache',
+        },
+        filterFeatureIdCache: {
+            type: String,
+            required: false,
+            default: 'occurrence_tenure_feature_id_filter_cache',
+        },
+        filterVestingCache: {
+            type: String,
+            required: false,
+            default: 'occurrence_tenure_vesting_filter_cache',
+        },
+        filterPurposeCache: {
+            type: String,
+            required: false,
+            default: 'occurrence_tenure_purpose_filter_cache',
         },
     },
     data: function () {
@@ -49,9 +103,35 @@ export default {
                 // 'Owner Count',
                 'Action',
             ],
+            tenure_statuses: [
+                { value: 'current', name: 'Current' },
+                { value: 'historical', name: 'Historical' },
+            ],
+            filterStatus: sessionStorage.getItem(this.filterStatusCache)
+                ? sessionStorage.getItem(this.filterStatusCache)
+                : 'all',
+            filterFeatureId: sessionStorage.getItem(this.filterFeatureIdCache)
+                ? sessionStorage.getItem(this.filterFeatureIdCache)
+                : 'all',
+            filterVesting: sessionStorage.getItem(this.filterVestingCache)
+                ? sessionStorage.getItem(this.filterVestingCache)
+                : 'all',
+            filterPurpose: sessionStorage.getItem(this.filterPurposeCache)
+                ? sessionStorage.getItem(this.filterPurposeCache)
+                : 'all',
         };
     },
     computed: {
+        filterApplied: function () {
+            let allFiltersAreAll = [
+                this.filterFeatureId,
+                this.filterStatus,
+                this.filterVesting,
+                this.filterPurpose,
+            ].every((filter) => ['all'].includes(filter));
+
+            return !allFiltersAreAll;
+        },
         column_featureid: function () {
             return {
                 data: 'featureid',
@@ -171,9 +251,11 @@ export default {
                 ajax: {
                     url: url,
                     dataSrc: 'data',
-                    // eslint-disable-next-line no-unused-vars
-                    data: function (d) {
-                        // d.filter_xyz = this.xyz
+                    data: (d) => {
+                        d.filter_status = this.filterStatus;
+                        d.tenure_area_id = this.filterFeatureId;
+                        d.vesting = this.filterVesting;
+                        d.purpose = this.filterPurpose;
                     },
                 },
                 dom: 'lBfrtip',
@@ -187,8 +269,70 @@ export default {
             };
         },
     },
+    watch: {
+        filterStatus: function () {
+            this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            );
+            sessionStorage.setItem(this.filterStatusCache, this.filterStatus);
+        },
+        filterFeatureId: function () {
+            this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            );
+            sessionStorage.setItem(
+                this.filterFeatureIdCache,
+                this.filterFeatureId
+            );
+        },
+        filterVesting: function () {
+            this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            );
+            sessionStorage.setItem(this.filterVestingCache, this.filterVesting);
+        },
+        filterPurpose: function () {
+            this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            );
+            sessionStorage.setItem(this.filterPurposeCache, this.filterPurpose);
+        },
+        filterApplied: function () {
+            if (this.$refs.collapsible_filters) {
+                this.$refs.collapsible_filters.show_warning_icon(
+                    this.filterApplied
+                );
+            }
+        },
+    },
     mounted: function () {
         this.$nextTick(() => {
+            // Make this a loop
+            const filterLookupParameters = [
+                {
+                    ref: 'occurrence_tenure_feature_id_lookup',
+                    vModelDataProperty: 'filterFeatureId',
+                    placeholder: 'Select a feature ID',
+                },
+                {
+                    ref: 'occurrence_tenure_vesting_lookup',
+                    vModelDataProperty: 'filterVesting',
+                    placeholder: 'Select a vesting',
+                },
+                {
+                    ref: 'occurence_tenure_purpose_lookup',
+                    vModelDataProperty: 'filterPurpose',
+                    placeholder: 'Select a purpose',
+                },
+            ];
+            filterLookupParameters.forEach((parameters) => {
+                this.initialiseFilterLookup(...Object.values(parameters));
+            });
+
             this.addEventListeners();
         });
     },
@@ -225,6 +369,99 @@ export default {
         },
         editTenureDetails: function (id) {
             this.$emit('edit-tenure-details', id);
+        },
+        collapsible_component_mounted: function () {
+            this.$refs.collapsible_filters.show_warning_icon(
+                this.filterApplied
+            );
+        },
+        /**
+         * Initialises the select2 dropdown for this filter lookup
+         * @param {String} ref The ref of the select html element
+         * @param {String} vModelDataProperty The selected value will be stored in this property or v-model
+         * @param {String=} placeholder A placeholder text for the select2 dropdown
+         * @param {String=} apiEndpoint The api endpoint to fetch the data from, defaults to `ref`
+         */
+        initialiseFilterLookup: function (
+            ref,
+            vModelDataProperty,
+            placeholder = 'Select a value',
+            apiEndpoint = null
+        ) {
+            const vm = this;
+            if (!this.$refs[ref]) {
+                console.error(
+                    `The ref ${ref} does not exist in the component.`
+                );
+                return;
+            }
+            if (vm[vModelDataProperty] === undefined) {
+                console.error(
+                    `The property ${vModelDataProperty} does not exist in the component.`
+                );
+                return;
+            }
+            if (!apiEndpoint) {
+                apiEndpoint = ref;
+            }
+
+            const sessionStorageText =
+                this.sessionStorageText(vModelDataProperty);
+
+            $(this.$refs[ref])
+                .select2({
+                    minimumInputLength: 2,
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: placeholder,
+                    ajax: {
+                        url: api_endpoints[apiEndpoint],
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                occurrence_id: vm.occurrenceId,
+                            };
+                            return query;
+                        },
+                    },
+                })
+                .on('select2:select', function (e) {
+                    let data = e.params.data.id;
+                    vm[vModelDataProperty] = data;
+                    sessionStorage.setItem(
+                        sessionStorageText,
+                        e.params.data.text
+                    );
+                })
+                .on('select2:unselect', function () {
+                    vm[vModelDataProperty] = 'all';
+                    sessionStorage.setItem(sessionStorageText, '');
+                })
+                .on('select2:open', function () {
+                    const searchField = $(
+                        `[aria-controls="select2-${ref}-results"]`
+                    );
+                    searchField[0].focus();
+                });
+
+            // Add the stored selected value to the select2 dropdown if it exists
+            const sessionStorageItem = sessionStorage.getItem(
+                this.sessionStorageText(vModelDataProperty)
+            );
+            if (!['all', null].includes(sessionStorageItem)) {
+                const newOption = new Option(
+                    sessionStorageItem,
+                    this[vModelDataProperty],
+                    false,
+                    true
+                );
+                this.$refs[ref].append(newOption);
+            }
+        },
+        sessionStorageText: function (key) {
+            return `${key}Text`;
         },
     },
 };

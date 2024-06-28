@@ -11,8 +11,8 @@
                 Contributor</span>
         </div>
         <div v-if="lodgement_date" class="card-body border-top py-2">
-            <strong>Lodged on</strong>
-            {{ lodgement_date | formatDate }}
+            <strong>Submitted on</strong><br />
+            {{ lodgement_date | formatDateDay }} <span class="fw-light">at</span> {{ lodgement_date | formatDateTime }}
         </div>
         <div v-if="enableHistory" class="card-body border-top py-2">
             <table class="table small-table">
@@ -52,8 +52,11 @@ export default {
         },
     },
     filters: {
-        formatDate: function (data) {
-            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss') : '';
+        formatDateDay: function (data) {
+            return data ? moment(data).format('DD/MM/YYYY') : '';
+        },
+        formatDateTime: function (data) {
+            return data ? moment(data).format('HH:mm:ss A') : '';
         }
     },
 }

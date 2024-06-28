@@ -108,6 +108,12 @@ module.exports = {
     wild_status_lookup: "/api/wild_status_lookup",
     occurrence_tenure_paginated_internal:
         '/api/occurrence_tenure_paginated/occurrence_tenure_internal/?format=datatables',
+    occurrence_tenure_feature_id_lookup:
+        '/api/occurrence_tenure_paginated/occurrence_tenure_feature_id_lookup',
+    occurrence_tenure_vesting_lookup:
+        '/api/occurrence_tenure_paginated/occurrence_tenure_vesting_lookup',
+    occurence_tenure_purpose_lookup:
+        '/api/occurrence_tenure_paginated/occurrence_tenure_purpose_lookup',
 
     // Pending - need to create viewsets for the below when working on search filters for OR dashboard
     or_status_lookup: "/api/or_status_lookup",
@@ -129,7 +135,6 @@ module.exports = {
     meeting: "/api/meeting",
     meeting_dict: "/api/meeting_dict",
     minutes: "/api/minutes.json",
-    committee: "/api/committee",
 
     occurrence_report: "/api/occurrence_report",
     observer_detail: "/api/observer_detail.json",

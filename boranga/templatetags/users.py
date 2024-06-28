@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 import pytz
@@ -9,6 +10,9 @@ from boranga import helpers as boranga_helpers
 from boranga.components.main.models import SystemMaintenance
 
 register = Library()
+
+
+logger = logging.getLogger(__name__)
 
 
 @register.simple_tag(takes_context=True)
@@ -73,7 +77,7 @@ def is_internal_contributor(context):
 
 
 @register.simple_tag(takes_context=True)
-def show_internal_primary_menu_items(context):
+def show_internal_species_communities_menu_item(context):
     request = context["request"]
     if not request.user.is_authenticated:
         return False
@@ -86,6 +90,42 @@ def show_internal_primary_menu_items(context):
         or boranga_helpers.is_occurrence_assessor(request)
         or boranga_helpers.is_readonly_user(request)
         or boranga_helpers.is_species_communities_approver(request)
+    )
+
+
+@register.simple_tag(takes_context=True)
+def show_internal_occurences_menu_item(context):
+    request = context["request"]
+    if not request.user.is_authenticated:
+        return False
+    return (
+        request.user.is_superuser
+        or boranga_helpers.is_conservation_status_approver(request)
+        or boranga_helpers.is_conservation_status_assessor(request)
+        or boranga_helpers.is_internal_contributor(request)
+        or boranga_helpers.is_occurrence_approver(request)
+        or boranga_helpers.is_occurrence_assessor(request)
+        or boranga_helpers.is_readonly_user(request)
+        or boranga_helpers.is_species_communities_approver(request)
+        or boranga_helpers.is_occurrence_report_referee(request)
+    )
+
+
+@register.simple_tag(takes_context=True)
+def show_internal_conservation_status_menu_item(context):
+    request = context["request"]
+    if not request.user.is_authenticated:
+        return False
+    return (
+        request.user.is_superuser
+        or boranga_helpers.is_conservation_status_approver(request)
+        or boranga_helpers.is_conservation_status_assessor(request)
+        or boranga_helpers.is_internal_contributor(request)
+        or boranga_helpers.is_occurrence_approver(request)
+        or boranga_helpers.is_occurrence_assessor(request)
+        or boranga_helpers.is_readonly_user(request)
+        or boranga_helpers.is_species_communities_approver(request)
+        or boranga_helpers.is_conservation_status_referee(request)
     )
 
 

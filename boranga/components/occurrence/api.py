@@ -162,10 +162,10 @@ from boranga.components.occurrence.serializers import (
     SaveOCRVegetationStructureSerializer,
 )
 from boranga.components.occurrence.utils import (
+    get_all_related_species,
     ocr_proposal_submit,
     process_shapefile_document,
     validate_map_files,
-    get_all_related_species,
 )
 from boranga.components.spatial.utils import (
     populate_occurrence_tenure_data,
@@ -173,12 +173,7 @@ from boranga.components.spatial.utils import (
     spatially_process_geometry,
     transform_json_geometry,
 )
-from boranga.components.species_and_communities.models import (
-    CommunityTaxonomy,
-    GroupType,
-    Species,
-    Taxonomy,
-)
+from boranga.components.species_and_communities.models import GroupType, Taxonomy
 from boranga.components.species_and_communities.serializers import TaxonomySerializer
 from boranga.helpers import (
     is_customer,
@@ -236,19 +231,19 @@ class OccurrenceReportFilterBackend(DatatablesFilterBackend):
 
             if filter_submitted_from_date and not filter_submitted_to_date:
                 queryset = queryset.filter(
-                    reported_date__gte=filter_submitted_from_date
+                    lodgement_date__gte=filter_submitted_from_date
                 )
 
             if filter_submitted_from_date and filter_submitted_to_date:
                 queryset = queryset.filter(
-                    reported_date__range=[
+                    lodgement_date__range=[
                         filter_submitted_from_date,
                         filter_submitted_to_date,
                     ]
                 )
 
             if filter_submitted_to_date and not filter_submitted_from_date:
-                queryset = queryset.filter(reported_date__lte=filter_submitted_to_date)
+                queryset = queryset.filter(lodgement_date__lte=filter_submitted_to_date)
 
             filter_from_observation_date = request.GET.get(
                 "filter_observation_from_date"
@@ -2461,10 +2456,18 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         occurrence_report = serializer.validated_data["occurrence_report"]
         observer_name = serializer.validated_data["observer_name"]
 
-        if OCRObserverDetail.objects.exclude(id=instance.id).filter(
-            Q(observer_name=observer_name) & Q(occurrence_report=occurrence_report) & Q(visible=True)
-        ).exists():
-            raise serializers.ValidationError("Observer with this name already exists for this occurrence report")
+        if (
+            OCRObserverDetail.objects.exclude(id=instance.id)
+            .filter(
+                Q(observer_name=observer_name)
+                & Q(occurrence_report=occurrence_report)
+                & Q(visible=True)
+            )
+            .exists()
+        ):
+            raise serializers.ValidationError(
+                "Observer with this name already exists for this occurrence report"
+            )
 
         serializer.save()
 
@@ -2487,9 +2490,13 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         observer_name = serializer.validated_data["observer_name"]
 
         if OCRObserverDetail.objects.filter(
-            Q(observer_name=observer_name) & Q(occurrence_report=occurrence_report) & Q(visible=True)
+            Q(observer_name=observer_name)
+            & Q(occurrence_report=occurrence_report)
+            & Q(visible=True)
         ).exists():
-            raise serializers.ValidationError("Observer with this name already exists for this occurrence report")
+            raise serializers.ValidationError(
+                "Observer with this name already exists for this occurrence report"
+            )
 
         serializer.save()
 
@@ -2533,9 +2540,13 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance.visible = True
 
         if OCRObserverDetail.objects.filter(
-            Q(observer_name=instance.observer_name) & Q(occurrence_report=instance.occurrence_report) & Q(visible=True)
+            Q(observer_name=instance.observer_name)
+            & Q(occurrence_report=instance.occurrence_report)
+            & Q(visible=True)
         ).exists():
-            raise serializers.ValidationError("Active observer with this name already exists for this occurrence report")
+            raise serializers.ValidationError(
+                "Active observer with this name already exists for this occurrence report"
+            )
 
         instance.save()
 
@@ -2991,7 +3002,9 @@ class OCRConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
 class GetOCCProfileDict(views.APIView):
     def get(self, request, format=None):
         group_type = request.GET.get("group_type", "")
-
+        logger.debug(
+            "group_type: %s" % group_type
+        )  # TODO: Unused variable here. Use or remove.
         wild_status_list = list(WildStatus.objects.all().values("id", "name"))
         occurrence_source_list = list(Occurrence.OCCURRENCE_SOURCE_CHOICES)
 
@@ -3292,28 +3305,32 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def combine_occurrence_name_lookup(self, request, *args, **kwargs):
-        if is_internal(self.request): #TODO group auth
+        if is_internal(self.request):  # TODO group auth
             main_occurrence_id = request.GET.get("occurrence_id", None)
 
             if main_occurrence_id:
                 try:
                     main_occurrence = self.get_queryset().get(id=main_occurrence_id)
-                    queryset = self.get_queryset().exclude(
-                        id=main_occurrence_id
-                    ).exclude(
-                        processing_status=Occurrence.PROCESSING_STATUS_HISTORICAL,
-                    ).exclude(
-                        processing_status=Occurrence.PROCESSING_STATUS_DISCARDED,
-                    ).filter(
-                        group_type=main_occurrence.group_type
+                    queryset = (
+                        self.get_queryset()
+                        .exclude(id=main_occurrence_id)
+                        .exclude(
+                            processing_status=Occurrence.PROCESSING_STATUS_HISTORICAL,
+                        )
+                        .exclude(
+                            processing_status=Occurrence.PROCESSING_STATUS_DISCARDED,
+                        )
+                        .filter(group_type=main_occurrence.group_type)
                     )
 
                     if main_occurrence.group_type.name in [
                         GroupType.GROUP_TYPE_FLORA,
                         GroupType.GROUP_TYPE_FAUNA,
                     ]:
-                        #get species and all parents/children of those species
-                        species_ids = get_all_related_species(main_occurrence.species.id)
+                        # get species and all parents/children of those species
+                        species_ids = get_all_related_species(
+                            main_occurrence.species.id
+                        )
                         queryset = queryset.filter(species_id__in=species_ids)
 
                     search_term = request.GET.get("term", None)
@@ -3345,7 +3362,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                         )
                         queryset = [
                             {
-                                "id": occurrence["id"], 
+                                "id": occurrence["id"],
                                 "text": occurrence["display_name"],
                                 "occurrence_number": occurrence["occurrence_number"],
                                 "occurrence_name": occurrence["occurrence_name"],
@@ -3361,7 +3378,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                     queryset = self.get_queryset().none()
             else:
                 queryset = self.get_queryset().none()
-            
+
             return Response({"results": queryset})
         return Response()
 
@@ -3377,17 +3394,19 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             contacts = OCCContactDetail.objects.filter(
                 occurrence__id__in=occ_ids
             ).filter(visible=True)
-            
-            values_list = list(contacts.values(
-                "occurrence__occurrence_number",
-                "occurrence__id",
-                "id",
-                "contact_name",
-                "role",
-                "contact",
-                "organisation",
-                "notes",
-            ))
+
+            values_list = list(
+                contacts.values(
+                    "occurrence__occurrence_number",
+                    "occurrence__id",
+                    "id",
+                    "contact_name",
+                    "role",
+                    "contact",
+                    "organisation",
+                    "notes",
+                )
+            )
             id_list = list(contacts.values_list("id", flat=True))
 
             return Response({"values_list": values_list, "id_list": id_list})
@@ -3402,20 +3421,24 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def combine_documents_lookup(self, request, *args, **kwargs):
         if is_internal(self.request):
             occ_ids = json.loads(request.POST.get("occurrence_ids"))
-            documents = OccurrenceDocument.objects.filter(occurrence__id__in=occ_ids).filter(visible=True)
+            documents = OccurrenceDocument.objects.filter(
+                occurrence__id__in=occ_ids
+            ).filter(visible=True)
 
-            values_list = list(documents.values(
-                "occurrence__occurrence_number",
-                "occurrence__id",
-                "id",
-                "document_number",
-                "document_category__document_category_name",
-                "document_sub_category__document_sub_category_name",
-                "name",
-                "_file",
-                "description",
-                "uploaded_date",
-            ))
+            values_list = list(
+                documents.values(
+                    "occurrence__occurrence_number",
+                    "occurrence__id",
+                    "id",
+                    "document_number",
+                    "document_category__document_category_name",
+                    "document_sub_category__document_sub_category_name",
+                    "name",
+                    "_file",
+                    "description",
+                    "uploaded_date",
+                )
+            )
             id_list = list(documents.values_list("id", flat=True))
 
             return Response({"values_list": values_list, "id_list": id_list})
@@ -3430,22 +3453,26 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def combine_threats_lookup(self, request, *args, **kwargs):
         if is_internal(self.request):
             occ_ids = json.loads(request.POST.get("occurrence_ids"))
-            threats = OCCConservationThreat.objects.filter(occurrence__id__in=occ_ids).filter(visible=True)
+            threats = OCCConservationThreat.objects.filter(
+                occurrence__id__in=occ_ids
+            ).filter(visible=True)
 
-            values_list = list(threats.values(
-                "occurrence__occurrence_number",
-                "occurrence__id",
-                "id",
-                "threat_number",
-                "occurrence_report_threat__occurrence_report__occurrence_report_number",
-                "occurrence_report_threat__threat_number",
-                "threat_category__name",
-                "date_observed",
-                "threat_agent__name",
-                "current_impact__name",
-                "potential_impact__name",
-                "comment",
-            ))
+            values_list = list(
+                threats.values(
+                    "occurrence__occurrence_number",
+                    "occurrence__id",
+                    "id",
+                    "threat_number",
+                    "occurrence_report_threat__occurrence_report__occurrence_report_number",
+                    "occurrence_report_threat__threat_number",
+                    "threat_category__name",
+                    "date_observed",
+                    "threat_agent__name",
+                    "current_impact__name",
+                    "potential_impact__name",
+                    "comment",
+                )
+            )
             id_list = list(threats.values_list("id", flat=True))
 
             return Response({"values_list": values_list, "id_list": id_list})
@@ -3989,23 +4016,26 @@ class OccurrenceViewSet(
     )
     def combine(self, request, *args, **kwargs):
         self.is_authorised_to_update()
-        #print(json.loads(request.POST.get("data")))
+        # print(json.loads(request.POST.get("data")))
         instance = self.get_object()
         occ_combine_data = json.loads(request.POST.get("data"))
-        combine_occurrences = Occurrence.objects.exclude(
-            id=instance.id
-        ).filter(
+        combine_occurrences = Occurrence.objects.exclude(id=instance.id).filter(
             id__in=occ_combine_data["combine_ids"]
         )
-        #validate species
+        # validate species
         if instance.group_type.name in [
             GroupType.GROUP_TYPE_FLORA,
             GroupType.GROUP_TYPE_FAUNA,
         ]:
-            #get species and all parents/children of those species
+            # get species and all parents/children of those species
             species_ids = get_all_related_species(instance.species.id)
-            if combine_occurrences.filter(species_id__in=species_ids).count() != combine_occurrences.count():
-                raise serializers.ValidationError("Selected Occurrence has invalid Species")
+            if (
+                combine_occurrences.filter(species_id__in=species_ids).count()
+                != combine_occurrences.count()
+            ):
+                raise serializers.ValidationError(
+                    "Selected Occurrence has invalid Species"
+                )
 
         instance.combine(request)
 
@@ -5290,11 +5320,51 @@ class OccurrenceReportReferralViewSet(
         return redirect(reverse("internal"))
 
 
+class OccurrenceTenureFilterBackend(DatatablesFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        total_count = queryset.count()
+
+        query_params = {
+            p: request.query_params[p]
+            for p in request.query_params
+            if request.query_params[p] not in ["all"]
+        }
+
+        filter_status = query_params.get("filter_status", None)
+        tenure_area_id = query_params.get("tenure_area_id", None)
+        vesting = query_params.get("vesting", None)
+        purpose = query_params.get("purpose", None)
+
+        queryset = queryset.filter(status=filter_status) if filter_status else queryset
+        queryset = (
+            queryset.filter(tenure_area_id=tenure_area_id)
+            if tenure_area_id
+            else queryset
+        )
+        # TODO: Implement vesting filtering after implementing the vesting field
+        logger.debug(f"vesting: {vesting}")  # use variable or remove
+        # queryset = queryset.filter(vesting=vesting) if vesting else queryset
+        queryset = queryset.filter(purpose=purpose) if purpose else queryset
+
+        fields = self.get_fields(request)
+        ordering = self.get_ordering(request, view, fields)
+        queryset = queryset.order_by(*ordering)
+        if len(ordering):
+            queryset = queryset.order_by(*ordering)
+
+        queryset = super().filter_queryset(request, queryset, view)
+
+        setattr(view, "_datatables_total_count", total_count)
+        return queryset
+
+
 class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = OccurrenceTenure.objects.none()
     serializer_class = OccurrenceTenureSerializer
     pagination_class = DatatablesPageNumberPagination
-    # filter_backends = [OccurrenceTenureFilterBackend,]
+    filter_backends = [
+        OccurrenceTenureFilterBackend,
+    ]
     page_size = 10
 
     def get_serializer_class(self):
@@ -5314,6 +5384,16 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             )
         return OccurrenceTenure.objects.all()
 
+    def current_and_historical_tenures(self, queryset, occurrence_id):
+        return queryset.filter(
+            models.Q(occurrence_geometry__occurrence_id=occurrence_id)
+            | models.Q(
+                ("historical_occurrence", occurrence_id),
+                ("status", OccurrenceTenure.STATUS_HISTORICAL),
+                _connector=models.Q.AND,
+            )
+        )
+
     @list_route(
         methods=[
             "GET",
@@ -5330,6 +5410,93 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = Serializer(result_page, context={"request": request}, many=True)
 
         return self.paginator.get_paginated_response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_tenure_feature_id_lookup(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        search_term = request.GET.get("term", "")
+        occurrence_id = request.GET.get("occurrence_id", None)
+
+        if occurrence_id:
+            queryset = self.current_and_historical_tenures(queryset, occurrence_id)
+
+        if search_term:
+            feature_id = models.Func(
+                models.F("tenure_area_id"),
+                Value("([0-9]+$)"),
+                function="substring",
+                output=models.TextField(),
+            )
+            queryset = queryset.annotate(feature_id=feature_id)
+
+            queryset = (
+                queryset.filter(feature_id__icontains=search_term)
+                .distinct()
+                .values("tenure_area_id", "feature_id")[:10]
+            )
+            results = [
+                {"id": row["tenure_area_id"], "text": row["feature_id"]}
+                for row in queryset
+            ]
+
+        return Response({"results": results})
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_tenure_vesting_lookup(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        search_term = request.GET.get("term", "")
+        occurrence_id = request.GET.get("occurrence_id", None)
+
+        if occurrence_id:
+            queryset = self.current_and_historical_tenures(queryset, occurrence_id)
+
+        results = []
+        if search_term:
+            # TODO: Implement vesting filtering after implementing the vesting field
+            # queryset = queryset.filter(vesting__icontains=search_term).distinct()[:10]
+            # results = [
+            #     {"id": row.vesting, "text": row.vesting} for row in queryset
+            # ]
+            results = [{"id": 1, "text": queryset[0].vesting}]
+
+        return Response({"results": results})
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_tenure_purpose_lookup(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        search_term = request.GET.get("term", "")
+        occurrence_id = request.GET.get("occurrence_id", None)
+
+        if occurrence_id:
+            queryset = self.current_and_historical_tenures(queryset, occurrence_id)
+
+        if search_term:
+            queryset = queryset.filter(
+                purpose__purpose__icontains=search_term
+            ).distinct()[:10]
+            results = [
+                {"id": row.purpose.id, "text": row.purpose.purpose} for row in queryset
+            ]
+
+        return Response({"results": results})
 
 
 class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
@@ -5360,7 +5527,7 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         if not instance.visible:
             raise serializers.ValidationError("Discarded contact cannot be updated.")
-        
+
         self.is_authorised_to_update(instance.occurrence)
         serializer = OCCContactDetailSerializer(
             instance, data=json.loads(request.data.get("data"))
@@ -5370,11 +5537,19 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         occurrence = serializer.validated_data["occurrence"]
         contact_name = serializer.validated_data["contact_name"]
 
-        if OCCContactDetail.objects.exclude(id=instance.id).filter(
-            Q(contact_name=contact_name) & Q(occurrence=occurrence) & Q(visible=True)
-        ).exists():
-            raise serializers.ValidationError("Contact with this name already exists for this occurrence")
-        
+        if (
+            OCCContactDetail.objects.exclude(id=instance.id)
+            .filter(
+                Q(contact_name=contact_name)
+                & Q(occurrence=occurrence)
+                & Q(visible=True)
+            )
+            .exists()
+        ):
+            raise serializers.ValidationError(
+                "Contact with this name already exists for this occurrence"
+            )
+
         serializer.save()
 
         return Response(serializer.data)
@@ -5390,7 +5565,9 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if OCCContactDetail.objects.filter(
             Q(contact_name=contact_name) & Q(occurrence=occurrence) & Q(visible=True)
         ).exists():
-            raise serializers.ValidationError("Contact with this name already exists for this occurrence")
+            raise serializers.ValidationError(
+                "Contact with this name already exists for this occurrence"
+            )
 
         self.is_authorised_to_update(occurrence)
         serializer.save()
@@ -5421,11 +5598,15 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
         self.is_authorised_to_update(instance.occurrence)
-        
+
         if OCCContactDetail.objects.filter(
-            Q(contact_name=instance.contact_name) & Q(occurrence=instance.occurrence) & Q(visible=True)
+            Q(contact_name=instance.contact_name)
+            & Q(occurrence=instance.occurrence)
+            & Q(visible=True)
         ).exists():
-            raise serializers.ValidationError("Active contact with this name already exists for this occurrence")
+            raise serializers.ValidationError(
+                "Active contact with this name already exists for this occurrence"
+            )
 
         instance.visible = True
         instance.save()

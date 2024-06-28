@@ -180,9 +180,7 @@ export default {
             }
         },
         canSeeSubmission: function () {
-            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
-            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
-            return true
+            return this.meeting_obj && this.meeting_obj.lodgement_date
         },
         userCanEdit: function () {
             return this.meeting_obj.can_user_edit;
