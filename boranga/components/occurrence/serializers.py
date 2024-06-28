@@ -961,6 +961,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     submitter_information = SubmitterInformationSerializer()
+    number_of_observers = serializers.IntegerField(read_only=True)
+    has_main_observer = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -1006,7 +1008,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "observation_date",
             "site",
             "submitter_information",
-            "submitter_information",
+            "number_of_observers",
+            "has_main_observer",
         )
 
     def get_readonly(self, obj):
@@ -1283,6 +1286,8 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "site",
             "submitter_information",
             "external_referral_invites",
+            "number_of_observers",
+            "has_main_observer",
         )
 
     def get_readonly(self, obj):
