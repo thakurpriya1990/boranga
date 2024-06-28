@@ -79,9 +79,14 @@ from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_conservation_status_referee,
+    is_contributor,
     is_external_contributor,
     is_internal,
     is_internal_contributor,
+    is_occurrence_approver,
+    is_occurrence_assessor,
+    is_readonly_user,
+    is_species_communities_approver,
 )
 from boranga.permissions import (
     ConservationStatusAmendmentRequestPermission,
@@ -455,6 +460,15 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = self.queryset
+        if (
+            is_readonly_user(self.request)
+            or is_conservation_status_assessor(self.request)
+            or is_conservation_status_approver(self.request)
+            or is_species_communities_approver(self.request)
+            or is_occurrence_assessor(self.request)
+            or is_occurrence_approver(self.request)
+        ):
+            return qs
         if is_internal_contributor(self.request):
             qs = qs.filter(submitter=self.request.user.id)
         return qs
@@ -1010,6 +1024,21 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
     page_size = 10
     permission_classes = [ConservationStatusPermission]
 
+    def get_queryset(self):
+        qs = self.queryset
+        if (
+            is_readonly_user(self.request)
+            or is_conservation_status_assessor(self.request)
+            or is_conservation_status_approver(self.request)
+            or is_species_communities_approver(self.request)
+            or is_occurrence_assessor(self.request)
+            or is_occurrence_approver(self.request)
+        ):
+            return qs
+        if is_internal_contributor(self.request):
+            qs = qs.filter(submitter=self.request.user.id)
+        return qs
+
     @list_route(
         methods=["POST", "GET"],
         detail=False,
@@ -1337,13 +1366,17 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = self.queryset
-
-        if not is_internal(self.request) and (
-            is_external_contributor(self.request)
-            or is_internal_contributor(self.request)
+        if (
+            is_readonly_user(self.request)
+            or is_conservation_status_assessor(self.request)
+            or is_conservation_status_approver(self.request)
+            or is_species_communities_approver(self.request)
+            or is_occurrence_assessor(self.request)
+            or is_occurrence_approver(self.request)
         ):
-            qs = ConservationStatus.objects.filter(submitter=self.request.user.id)
-
+            return qs
+        if is_contributor(self.request):
+            qs = qs.filter(submitter=self.request.user.id)
         return qs
 
     @list_route(
@@ -1367,21 +1400,26 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = ConservationStatus.objects.none()
+    queryset = ConservationStatus.objects.all()
     serializer_class = ConservationStatusSerializer
     lookup_field = "id"
     permission_classes = [ConservationStatusPermission]
 
     def get_queryset(self):
         qs = self.queryset
-
-        if is_external_contributor(self.request):
-            qs = ConservationStatus.objects.filter(submitter=self.request.user.id)
-
-        if is_internal(self.request):
-            qs = ConservationStatus.objects.exclude(
+        if (
+            is_readonly_user(self.request)
+            or is_conservation_status_assessor(self.request)
+            or is_conservation_status_approver(self.request)
+            or is_species_communities_approver(self.request)
+            or is_occurrence_assessor(self.request)
+            or is_occurrence_approver(self.request)
+        ):
+            return ConservationStatus.objects.exclude(
                 processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
             )
+        if is_contributor(self.request):
+            qs = qs.filter(submitter=self.request.user.id)
         return qs
 
     def internal_serializer_class(self):
@@ -1903,9 +1941,12 @@ class ConservationStatusReferralViewSet(
 
     def get_queryset(self):
         qs = self.queryset
+        if is_conservation_status_assessor(
+            self.request
+        ) or is_conservation_status_approver(self.request):
+            return qs
         if is_conservation_status_referee(self.request):
             qs = qs.filter(referral=self.request.user.id)
-
         return qs
 
     @list_route(
@@ -2241,9 +2282,9 @@ class ConservationStatusAmendmentRequestViewSet(
 
     def get_queryset(self):
         qs = self.queryset
-        if is_external_contributor(self.request) or is_internal_contributor(
-            self.request
-        ):
+        if is_conservation_status_assessor(self.request):
+            return qs
+        if is_conservation_status_referee(self.request):
             qs = qs.filter(conservation_status__submitter=self.request.user.id)
         return qs
 
