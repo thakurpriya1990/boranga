@@ -80,8 +80,7 @@
 
             <!-- -------------------------------- -->
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label fw-bold">Location Description: <span
-                        class="text-danger">*</span></label>
+                <label for="" class="col-sm-3 control-label">Location Description:</label>
                 <div class="col-sm-9">
                     <textarea id="loc_description" v-model="occurrence_obj.location.location_description
                         " :disabled="isReadOnly" class="form-control" rows="2" placeholder="" />
@@ -151,7 +150,8 @@
                 </div>
             </div>-->
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Location Accuracy:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Location Accuracy: <span
+                    class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <select v-model="occurrence_obj.location.location_accuracy_id
                         " :disabled="isReadOnly" class="form-select">

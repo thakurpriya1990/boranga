@@ -256,11 +256,11 @@ export default {
             this.$refs.observer_detail.observer_detail_action = 'add';
             this.$refs.observer_detail.isModalOpen = true;
         },
-        editObserverDetail: function (id) {
+        editObserverDetail: async function (id) {
             let vm = this;
             this.$refs.observer_detail.observer_detail_id = id;
             this.$refs.observer_detail.observer_detail_action = 'edit';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then((response) => {
+            await Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then((response) => {
                 this.$refs.observer_detail.observerObj = response.body;
             },
                 err => {
@@ -268,11 +268,11 @@ export default {
                 });
             this.$refs.observer_detail.isModalOpen = true;
         },
-        viewObserverDetail: function (id) {
+        viewObserverDetail: async function (id) {
             let vm = this;
             this.$refs.observer_detail.observer_detail_id = id;
             this.$refs.observer_detail.observer_detail_action = 'view';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then((response) => {
+            await Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then((response) => {
                 this.$refs.observer_detail.observerObj = response.body;
             },
                 err => {
