@@ -27,14 +27,14 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Observation Date Range:</label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observation_from_date"
                             v-model="filterOCRCommunityObservationFromDate">
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label for=""></label>
                         <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observation_from_date"
