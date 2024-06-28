@@ -42,7 +42,7 @@ geom AS (
     UNION
     SELECT
         bg.id AS id,
-        bg.geometry,
+        bg.geometry AS geometry,
         ST_GeometryType(bg.geometry) AS geometry_type,
         og.occurrence_id AS occurrence_id,
         'buffer geometry' AS data_type
