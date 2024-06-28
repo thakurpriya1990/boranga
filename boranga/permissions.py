@@ -192,6 +192,15 @@ class IsApprover(BasePermission):
 
 class MeetingPermission(BasePermission):
     def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        if hasattr(view, "action") and view.action == "create":
+            return is_conservation_status_approver(request)
+
         return (
             is_readonly_user(request)
             or is_conservation_status_assessor(request)
@@ -207,6 +216,12 @@ class MeetingPermission(BasePermission):
 
 class ConservationStatusPermission(BasePermission):
     def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
         if hasattr(view, "action") and view.action == "create":
             return is_contributor(request)
 
@@ -234,6 +249,12 @@ class ConservationStatusPermission(BasePermission):
 
 class ExternalConservationStatusPermission(BasePermission):
     def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
         return is_external_contributor(request)
 
     def has_object_permission(self, request, view, obj):
@@ -246,6 +267,12 @@ class ExternalConservationStatusPermission(BasePermission):
 
 class ConservationStatusReferralPermission(BasePermission):
     def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
         return (
             is_readonly_user(request)
             or is_conservation_status_assessor(request)
@@ -273,6 +300,12 @@ class ConservationStatusReferralPermission(BasePermission):
 
 class ConservationStatusAmendmentRequestPermission(BasePermission):
     def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
         if hasattr(view, "action") and view.action == "create":
             return is_conservation_status_assessor(request)
 
@@ -295,6 +328,12 @@ class ConservationStatusAmendmentRequestPermission(BasePermission):
 
 class ConservationStatusDocumentPermission(BasePermission):
     def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
         if hasattr(view, "action") and view.action in ["create"]:
             return (
                 is_conservation_status_assessor(request)

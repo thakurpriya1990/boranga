@@ -4,7 +4,7 @@
             <div class='row show_hide_switch' :id="'show_hide_switch_' + section_body_id" aria-expanded="true"
                 :aria-controls="section_body_id" @click="toggle_show_hide">
                 <div class='col-11' :style="'color:' + customColor">
-                    {{ label }} <span class="h6">{{ subtitle }}</span>
+                    {{ label }} <span v-if="subtitle" class="h6" :class="subtitleClass">{{ subtitle }}</span>
                     <!-- to display the assessor and referral comments textboxes -->
                     <template v-if="displayCommentSection">
                         <template v-if="!isShowComment">
@@ -38,6 +38,10 @@ export default {
         subtitle: {
             type: String,
             default: '',
+        },
+        subtitleClass: {
+            type: String,
+            default: 'text-muted',
         },
         Index: {},
         hideHeader: {},
