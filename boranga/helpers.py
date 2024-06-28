@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -27,11 +28,20 @@ def superuser_ids_list():
 
 
 def belongs_to_by_user_id(user_id, group_name):
-    if user_id in superuser_ids_list():
-        return True
+    cache_key = settings.CACHE_KEY_USER_BELONGS_TO_GROUP.format(
+        **{"user_id": user_id, "group_name": group_name}
+    )
+    belongs_to = cache.get(cache_key)
+    if belongs_to is None:
+        if user_id in superuser_ids_list():
+            return True
 
-    system_group = SystemGroup.objects.filter(name=group_name).first()
-    return system_group and user_id in system_group.get_system_group_member_ids()
+        system_group = SystemGroup.objects.filter(name=group_name).first()
+        belongs_to = (
+            system_group and user_id in system_group.get_system_group_member_ids()
+        )
+        cache.set(cache_key, belongs_to, settings.CACHE_TIMEOUT_5_SECONDS)
+    return belongs_to
 
 
 def belongs_to(request, group_name, internal_only=False, external_only=False):
@@ -43,8 +53,6 @@ def belongs_to(request, group_name, internal_only=False, external_only=False):
         return False
     if external_only and is_internal(request):
         return False
-
-    return belongs_to_by_user_id(request.user.id, group_name)
 
 
 def belongs_to_groups(request, group_names: list) -> bool:
