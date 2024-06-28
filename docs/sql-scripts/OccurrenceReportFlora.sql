@@ -52,7 +52,8 @@ loc AS (
         cs.name AS coordination_source_name,
         la.name AS location_accuracy_name
     FROM
-        boranga_ocrlocation l LEFT JOIN boranga_region r ON l.region_id = r.id
+        boranga_ocrlocation l
+        LEFT JOIN boranga_region r ON l.region_id = r.id
         LEFT JOIN boranga_district d ON l.district_id = d.id
         LEFT JOIN boranga_coordinationsource cs ON l.coordination_source_id = cs.id
         LEFT JOIN boranga_locationaccuracy la ON l.location_accuracy_id = la.id
