@@ -11,7 +11,7 @@
                 Contributor</span>
         </div>
         <div v-if="lodgement_date" class="card-body border-top py-2">
-            <strong>Lodged on</strong>
+            <strong>Submitted on</strong>
             {{ lodgement_date | formatDate }}
         </div>
         <div v-if="enableHistory" class="card-body border-top py-2">
