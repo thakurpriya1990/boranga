@@ -93,6 +93,7 @@ from boranga.components.occurrence.models import (
     SampleDestination,
     SampleType,
     SecondarySign,
+    SiteType,
     SoilColour,
     SoilCondition,
     SoilType,
@@ -5479,6 +5480,22 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer.save()
 
         return Response(serializer.data)
+    
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def site_list_of_values(self, request, *args, **kwargs):
+        
+        site_type_list = list(SiteType.objects.values("id","name"))
+
+        res_json = {
+            "site_type_list": site_type_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
 
 
 class OCRExternalRefereeInviteViewSet(viewsets.ModelViewSet):
