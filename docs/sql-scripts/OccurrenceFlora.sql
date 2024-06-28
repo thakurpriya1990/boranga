@@ -31,7 +31,7 @@ geom AS (
         id,
         CASE
             ST_GeometryType(geometry)
-            WHEN 'ST_Point' THEN ST_Buffer(geometry, 0.00001) -- 0.00001 deg ~= 1.1m
+            WHEN 'ST_Point' THEN ST_Buffer(geometry, 0.00001)
             ELSE geometry
         END AS geometry,
         ST_GeometryType(geometry) AS geometry_type,
