@@ -74,7 +74,8 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Identification Certainty:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Identification Certainty: <span
+                    class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select"
                         v-model="occurrence_obj.identification.identification_certainty_id">
