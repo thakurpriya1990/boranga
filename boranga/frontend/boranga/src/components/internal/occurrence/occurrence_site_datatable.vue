@@ -98,7 +98,9 @@ export default {
                         coord2 += ".0"; 
                     }
 
-                    return coord1 + " - " + coord2
+                    let value = coord1 + " - " + coord2;
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type == 'export' ? value : result;
                 },
             }
         },
@@ -153,6 +155,7 @@ export default {
                     processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
+                serverSide: false,
                 searching: true,
                 ordering: true,
                 order: [
@@ -163,10 +166,6 @@ export default {
                     { responsivePriority: 1, targets: 0 },
                     { responsivePriority: 2, targets: -1 },
                 ],
-                paging: true,
-                scrollCollapse: true,
-                scrollX: true,
-                scrollY: false,
                 ajax: {
                     "url": helpers.add_endpoint_json(api_endpoints.occurrence, vm.occurrence_obj.id + '/sites'),
                     "dataSrc": ''
@@ -237,7 +236,7 @@ export default {
             this.$refs.site_detail.isModalOpen = true;
         },
         updatedSites: function() {
-            this.$refs.sites_datatable.vmDataTable.ajax.reload();
+            this.$refs.occurrence_site_datatable.vmDataTable.ajax.reload();
         },
         addEventListeners: function () {
             const vm = this;

@@ -23,7 +23,7 @@
                                 <label for="" class="col-sm-3 control-label"
                                     >Point Coordinate :</label
                                 >
-                                <div class="col-sm-2">
+                                <div class="col-sm-4">
                                     <input
                                         id="point_coord1"
                                         :disabled="isReadOnly"
@@ -34,7 +34,7 @@
                                     />
                                 </div>
                                 -
-                                <div class="col-sm-2">
+                                <div class="col-sm-4">
                                     <input
                                         id="point_coord2"
                                         :disabled="isReadOnly"

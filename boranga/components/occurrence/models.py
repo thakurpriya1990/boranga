@@ -4474,6 +4474,8 @@ class OccurrenceSite(models.Model):
     def save(self, *args, **kwargs):
         # Prefix "ST" char to site_number.
         if self.site_number == "":
+            force_insert = kwargs.pop("force_insert", False)
+            super().save(force_insert=force_insert)
             new_site_id = f"ST{str(self.pk)}"
             self.site_number = new_site_id
             self.save(*args, **kwargs)
