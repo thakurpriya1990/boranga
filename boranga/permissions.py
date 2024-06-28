@@ -198,6 +198,9 @@ class MeetingPermission(BasePermission):
         if request.user.is_superuser:
             return True
 
+        if hasattr(view, "action") and view.action == "create":
+            return is_conservation_status_approver(request)
+
         return (
             is_readonly_user(request)
             or is_conservation_status_assessor(request)
