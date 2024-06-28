@@ -22,20 +22,24 @@ logger = logging.getLogger(__name__)
 
 
 def superuser_ids_list():
-    return list(
-        EmailUser.objects.filter(is_superuser=True).values_list("id", flat=True)
-    )
+    cache_key = settings.CACHE_KEY_SUPERUSER_IDS
+    superuser_ids = cache.get(cache_key)
+    if superuser_ids is None:
+        superuser_ids = list(
+            EmailUser.objects.filter(is_superuser=True).values_list("id", flat=True)
+        )
+        cache.set(cache_key, superuser_ids, settings.CACHE_TIMEOUT_5_SECONDS)
+    return superuser_ids
 
 
 def belongs_to_by_user_id(user_id, group_name):
+    if user_id in superuser_ids_list():
+        return True
     cache_key = settings.CACHE_KEY_USER_BELONGS_TO_GROUP.format(
         **{"user_id": user_id, "group_name": group_name}
     )
     belongs_to = cache.get(cache_key)
     if belongs_to is None:
-        if user_id in superuser_ids_list():
-            return True
-
         system_group = SystemGroup.objects.filter(name=group_name).first()
         belongs_to = (
             system_group and user_id in system_group.get_system_group_member_ids()
