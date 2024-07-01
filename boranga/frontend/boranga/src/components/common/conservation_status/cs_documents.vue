@@ -190,21 +190,15 @@ export default {
                         data: "id",
                         mRender: function (data, type, full) {
                             let links = '';
-                            if (full.can_action) {
+                            if (full.can_action && vm.show_document_actions) {
                                 if (full.visible) {
-                                    if (vm.show_document_actions) {
-                                        links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
-                                        links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
-                                    }
+                                    links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
+                                    links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
                                 }
                                 else {
-                                    if (vm.show_document_actions) {
-                                        links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
-                                    }
+                                    links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
                                 }
-                                if (vm.show_document_actions && vm.is_internal) {
-                                    links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
-                                }
+                                links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                             }
                             return links;
                         }
@@ -233,7 +227,9 @@ export default {
     },
     computed: {
         show_document_actions: function () {
-            return this.conservation_status_obj.can_user_edit || this.conservation_status_obj.assessor_mode.assessor_can_assess;
+            return this.conservation_status_obj.can_user_edit || (
+                this.conservation_status_obj.assessor_mode.assessor_can_assess && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor'
+            );
         }
     },
     methods: {
