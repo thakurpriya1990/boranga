@@ -1351,7 +1351,7 @@ export default {
         },
         recallReferral: function (r) {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/recall')).then(response => {
+            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/recall')).then(response => {
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
                 $(".popover").hide()
