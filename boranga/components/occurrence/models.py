@@ -3244,6 +3244,14 @@ class Occurrence(RevisionedMixin):
             self.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
             self.save(version_user=request.user)
 
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_ACTIVATE_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
     def lock(self, request):
         if (
             is_occurrence_approver(request)
@@ -3251,6 +3259,14 @@ class Occurrence(RevisionedMixin):
         ):
             self.processing_status = Occurrence.PROCESSING_STATUS_LOCKED
             self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_LOCK_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
 
     def unlock(self, request):
         if (
@@ -3260,6 +3276,14 @@ class Occurrence(RevisionedMixin):
             self.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
             self.save(version_user=request.user)
 
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_UNLOCK_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
     def close(self, request):
         if (
             is_occurrence_approver(request)
@@ -3267,6 +3291,14 @@ class Occurrence(RevisionedMixin):
         ):
             self.processing_status = Occurrence.PROCESSING_STATUS_HISTORICAL
             self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_CLOSE_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
 
     # if this function is called and the OCC has no associated OCRs, discard it
     def check_ocr_count_for_discard(self, request):
@@ -3522,9 +3554,13 @@ class OccurrenceUserAction(UserAction):
     ACTION_VIEW_OCCURRENCE = "View occurrence {}"
     ACTION_SAVE_OCCURRENCE = "Save occurrence {}"
     ACTION_EDIT_OCCURRENCE = "Edit occurrence {}"
-    ACTION_DISCARD_OCCURRENCE = "Discard  occurrence {}"
-    ACTION_REINSTATE_OCCURRENCE = "Reinstate  occurrence {}"
+    ACTION_DISCARD_OCCURRENCE = "Discard occurrence {}"
+    ACTION_REINSTATE_OCCURRENCE = "Reinstate occurrence {}"
     ACTION_COMBINE_OCCURRENCE = "{} combined in to occurrence {}"
+    ACTION_ACTIVATE_OCCURRENCE = "Activate occurrence {}"
+    ACTION_LOCK_OCCURRENCE = "Lock occurrence {}"
+    ACTION_UNLOCK_OCCURRENCE = "Unlock occurrence {}"
+    ACTION_CLOSE_OCCURRENCE = "Close occurrence {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for occurrence {}"
