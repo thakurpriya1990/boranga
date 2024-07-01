@@ -3273,8 +3273,8 @@ class Occurrence(RevisionedMixin):
         discardable = [Occurrence.PROCESSING_STATUS_DRAFT]
         if (
             self.processing_status in discardable
-            and is_occurrence_assessor(request)
-            or is_occurrence_approver(request)
+            and (is_occurrence_assessor(request)
+            or is_occurrence_approver(request))
             and OccurrenceReport.objects.filter(occurrence=self).count() < 1
         ):
             self.processing_status = Occurrence.PROCESSING_STATUS_DISCARDED
