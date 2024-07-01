@@ -40,8 +40,8 @@
             </div>
 
             <ProposalOccurrenceReport v-if="occurrence_report_obj" :occurrence_report_obj="occurrence_report_obj"
-                id="OccurrenceReportStart" :canEditStatus="canEditStatus" :is_external="true" ref="occurrence_report" @refreshOccurrenceReport="refreshOccurrenceReport()"
-                @refreshFromResponse="refreshFromResponse">
+                id="OccurrenceReportStart" :canEditStatus="canEditStatus" :is_external="true" ref="occurrence_report"
+                @refreshOccurrenceReport="refreshOccurrenceReport()" @refreshFromResponse="refreshFromResponse">
             </ProposalOccurrenceReport>
 
             <div>
@@ -166,7 +166,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -216,6 +218,10 @@ export default {
                     title: 'Saved',
                     text: 'Your report has been saved',
                     icon: 'success',
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingOCRProposal = false;
                 const resData = res.data;
@@ -231,7 +237,9 @@ export default {
                     title: 'Save Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingOCRProposal = false;
                 vm.isSaved = false;
@@ -246,7 +254,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -320,7 +330,9 @@ export default {
                     title: 'Submit Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.submitting = false;
                 vm.saveError = true;
@@ -455,7 +467,7 @@ export default {
                     blank_fields.push(' Community Name is missing')
                 }
             }
-            if(!vm.occurrence_report_obj.submitter_information.submitter_category){
+            if (!vm.occurrence_report_obj.submitter_information.submitter_category) {
                 blank_fields.push(' Please select a submitter category')
             }
             if (check_action == "submit") {
@@ -472,7 +484,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -481,12 +495,17 @@ export default {
             vm.submitting = true;
 
             swal.fire({
-                title: vm.submit_text() + " Report",
-                text: "Are you sure you want to " + vm.submit_text().toLowerCase() + " this report?",
+                title: vm.submit_text() + " Occurrence Report",
+                text: "Are you sure you want to " + vm.submit_text().toLowerCase() + " this occurrence report?",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: vm.submit_text(),
-                confirmButtonColor: '#226fbb',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
+                buttonsStyling: false,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
@@ -505,11 +524,14 @@ export default {
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                         });
                     }
                 }
+                vm.submitting = false;
             }, (error) => {
                 vm.submitting = false;
             });

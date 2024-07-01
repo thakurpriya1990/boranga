@@ -175,12 +175,15 @@
                                 </a>
                                 <div
                                     :id="`geometry-list-collapsible-${name}`"
-                                    class="collapse overflow-auto max-vh-50"
-                                    :class="
+                                    class="collapse max-vh-50"
+                                    :class="[
                                         getLayerDefinitionByName(name).collapse
                                             ? ''
-                                            : 'show'
-                                    "
+                                            : 'show',
+                                        features.length >= 4
+                                            ? 'overflow-auto'
+                                            : '',
+                                    ]"
                                 >
                                     <div
                                         v-for="feature in features"
@@ -544,6 +547,7 @@
                                 <!-- A copy-selected Button -->
                                 <div
                                     class="input-group-text justify-content-end"
+                                    title="Select geometries to copy"
                                 >
                                     <button
                                         type="button"
@@ -571,7 +575,7 @@
                                             )
                                         "
                                     >
-                                        <i class="fa-solid fa-circle-plus"></i>
+                                        <i class="fa-solid fa-copy"></i>
                                     </button>
                                 </div>
                             </div>
@@ -3358,9 +3362,13 @@ export default {
                                 })
                             );
                             model.label ??= selected.getProperties().label;
-                            model.buffer_radius ??= `${
-                                selected.getProperties().buffer_radius
-                            }m`;
+                            // TODO: Check for null
+                            let selected_buffer_radius =
+                                selected.getProperties().buffer_radius;
+                            if (selected_buffer_radius) {
+                                selected_buffer_radius += 'm';
+                            }
+                            model.buffer_radius ??= selected_buffer_radius;
                         }
                         vm.selectedModel = model;
                         if (!isSelectedFeature(selected)) {
@@ -5177,9 +5185,14 @@ export default {
             copy.unset('geometry_source');
             copy.set('locked', false);
 
+            const props = feature.getProperties();
             const color = this.styleByColor(copy, this.context, 'draw');
             this.setFeaturePropertiesFromContext(copy, this.context, {
                 color: color,
+                created_from_object: {
+                    model_class: props.model_class,
+                    model_id: props.model_id,
+                },
             });
 
             layer.getSource().addFeature(copy);

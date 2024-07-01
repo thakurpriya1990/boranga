@@ -77,6 +77,11 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     scientific_name = serializers.CharField(
         source="species.taxonomy.scientific_name", allow_null=True
     )
+    community_name = serializers.CharField(source="community.name", allow_null=True)
+    species_taxonomy_id = serializers.IntegerField(
+        source="species.taxonomy.id", allow_null=True
+    )
+    community_id = serializers.IntegerField(source="community.id", allow_null=True)
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
     group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
     can_user_edit = serializers.SerializerMethodField()
@@ -100,10 +105,15 @@ class OccurrenceSerializer(serializers.ModelSerializer):
         allow_blank=True,
         required=False,
     )
+    combined_occurrence_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Occurrence
         fields = "__all__"
+
+    def get_combined_occurrence_id(self, obj):
+        if obj.combined_occurrence:
+            return obj.combined_occurrence.id
 
     def get_processing_status(self, obj):
         return obj.get_processing_status_display()
@@ -274,7 +284,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         source="get_processing_status_display"
     )
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
-    reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    lodgement_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     assessor_edit = serializers.SerializerMethodField(read_only=True)
     internal_user_edit = serializers.SerializerMethodField()
     can_user_approve = serializers.SerializerMethodField()
@@ -290,6 +300,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     location_accuracy = serializers.SerializerMethodField()
     identification_certainty = serializers.SerializerMethodField()
     main_observer = serializers.SerializerMethodField()
+    copied_to_occurrence = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -302,6 +313,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "scientific_name",
             "community_name",
             "reported_date",
+            "lodgement_date",
             "submitter",
             "processing_status",
             "processing_status_display",
@@ -319,6 +331,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "identification_certainty",
             "site",
             "main_observer",
+            "copied_to_occurrence",
         )
         datatables_always_serialize = (
             "id",
@@ -328,6 +341,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "community",
             "community_name",
             "reported_date",
+            "lodgement_date",
             "submitter",
             "processing_status",
             "processing_status_display",
@@ -337,6 +351,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "can_user_assess",
             "internal_user_edit",
             "is_new_contributor",
+            "copied_to_occurrence",
         )
 
     def get_scientific_name(self, obj):
@@ -403,6 +418,15 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             return obj.observer_detail.filter(main_observer=True).first().observer_name
         else:
             return ""
+
+    def get_copied_to_occurrence(self, obj):
+        occs_copied_to = [
+            [occ_geom.occurrence_id for occ_geom in dest]
+            for geom in obj.ocr_geometry.all()
+            for dest in geom.source_of_objects()
+        ]
+
+        return list({i for o in occs_copied_to for i in o})
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
@@ -675,7 +699,21 @@ class OCRLocationSerializer(serializers.ModelSerializer):
     #         return None
 
 
-class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
+class BaseTypeSerializer(serializers.Serializer):
+    model_class = serializers.SerializerMethodField()
+    model_id = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ["model_class", "model_id"]
+
+    def get_model_class(self, obj):
+        return obj.__class__.__name__
+
+    def get_model_id(self, obj):
+        return obj.id
+
+
+class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     occurrence_report_id = serializers.IntegerField(write_only=True, required=False)
     geometry_source = serializers.SerializerMethodField()
     report_copied_from = serializers.SerializerMethodField(read_only=True)
@@ -685,7 +723,7 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = OccurrenceReportGeometry
         geo_field = "geometry"
-        fields = (
+        fields = [
             "id",
             "occurrence_report_id",
             "geometry",
@@ -697,7 +735,11 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
             "geometry_source",
             "locked",
             "report_copied_from",
-        )
+            "object_id",
+            "content_type",
+            "created_from",
+            "source_of",
+        ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
     def get_srid(self, obj):
@@ -710,7 +752,8 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
         return get_geometry_source(obj)
 
     def get_report_copied_from(self, obj):
-        if obj.copied_from:
+        if hasattr(obj, "copied_from") and obj.copied_from:
+            return None
             return ListOCRReportMinimalSerializer(
                 obj.copied_from.occurrence_report, context=self.context
             ).data
@@ -722,6 +765,16 @@ class OccurrenceReportGeometrySerializer(GeoFeatureModelSerializer):
             return wkb_to_geojson(obj.original_geometry_ewkb)
         else:
             return None
+
+    def get_created_from(self, obj):
+        if obj.created_from:
+            return obj.created_from.__str__()
+        return None
+
+    def get_source_of(self, obj):
+        if obj.source_of:
+            return obj.source_of.__str__()
+        return None
 
 
 class ListOCRReportMinimalSerializer(serializers.ModelSerializer):
@@ -883,6 +936,9 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
     # group_type_id = serializers.SerializerMethodField(read_only=True)
+    species_taxonomy_id = serializers.IntegerField(
+        source="species.taxonomy.id", allow_null=True
+    )
     allowed_assessors = EmailUserSerializer(many=True)
     location = serializers.SerializerMethodField()
     habitat_composition = serializers.SerializerMethodField()
@@ -903,7 +959,10 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
         format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     )
     observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     submitter_information = SubmitterInformationSerializer()
+    number_of_observers = serializers.IntegerField(read_only=True)
+    has_main_observer = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -912,11 +971,11 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "group_type",
             "group_type_id",
             "species_id",
+            "species_taxonomy_id",
             "community_id",
             "occurrence_report_number",
             "reported_date",
             "lodgement_date",
-            "reported_date",
             "applicant_type",
             "applicant",
             "submitter",
@@ -949,7 +1008,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "observation_date",
             "site",
             "submitter_information",
-            "submitter_information",
+            "number_of_observers",
+            "has_main_observer",
         )
 
     def get_readonly(self, obj):
@@ -1123,6 +1183,23 @@ class OccurrenceReportProposalReferralSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
+class OCRExternalRefereeInviteSerializer(serializers.ModelSerializer):
+    occurrence_report_id = serializers.IntegerField(required=False)
+    full_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = OCRExternalRefereeInvite
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "full_name",
+            "email",
+            "invite_text",
+            "occurrence_report_id",
+        ]
+
+
 class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     can_user_approve = serializers.SerializerMethodField()
     can_user_assess = serializers.SerializerMethodField()
@@ -1144,6 +1221,12 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     is_new_contributor = serializers.SerializerMethodField()
     submitter_information = SubmitterInformationSerializer(read_only=True)
+    external_referral_invites = OCRExternalRefereeInviteSerializer(many=True)
+    lodgement_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    )
+    observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 
     class Meta:
         model = OccurrenceReport
@@ -1152,11 +1235,11 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "group_type",
             "group_type_id",
             "species_id",
+            "species_taxonomy_id",
             "community_id",
             "occurrence_report_number",
             "reported_date",
             "lodgement_date",
-            "reported_date",
             "applicant_type",
             "applicant",
             "submitter",
@@ -1202,6 +1285,9 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "observation_date",
             "site",
             "submitter_information",
+            "external_referral_invites",
+            "number_of_observers",
+            "has_main_observer",
         )
 
     def get_readonly(self, obj):
@@ -1694,6 +1780,22 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
         )
 
 
+class OCRObserverDetailLimitedSerializer(OCRObserverDetailSerializer):
+    # contact fields removed as it contains personally identifiable information
+
+    class Meta:
+        model = OCRObserverDetail
+        fields = (
+            "id",
+            "occurrence_report",
+            "observer_name",
+            "role",
+            "organisation",
+            "main_observer",
+            "visible",
+        )
+
+
 class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
     occurrence_report_id = serializers.IntegerField(write_only=True, required=False)
 
@@ -1708,6 +1810,8 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
             "intersects",
             "drawn_by",
             "locked",
+            "content_type",
+            "object_id",
         )
         read_only_fields = ("id",)
 
@@ -2801,7 +2905,7 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             return obj.copied_ocr_location.occurrence_report.occurrence_report_number
 
 
-class BufferGeometrySerializer(GeoFeatureModelSerializer):
+class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     geometry_source = serializers.SerializerMethodField()
     srid = serializers.SerializerMethodField(read_only=True)
     original_geometry = serializers.SerializerMethodField(read_only=True)
@@ -2811,7 +2915,7 @@ class BufferGeometrySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = BufferGeometry
         geo_field = "geometry"
-        fields = (
+        fields = [
             "id",
             "buffered_from_geometry",
             "geometry",
@@ -2821,8 +2925,12 @@ class BufferGeometrySerializer(GeoFeatureModelSerializer):
             "area_sqhm",
             "geometry_source",
             "label",
+            "object_id",
+            "content_type",
             "buffer_radius",
-        )
+            "created_from",
+            "source_of",
+        ] + BaseTypeSerializer.Meta.fields
 
     def get_srid(self, obj):
         if obj.geometry:
@@ -2839,6 +2947,16 @@ class BufferGeometrySerializer(GeoFeatureModelSerializer):
         else:
             return None
 
+    def get_created_from(self, obj):
+        if obj.created_from:
+            return obj.created_from.__str__()
+        return None
+
+    def get_source_of(self, obj):
+        if obj.source_of:
+            return obj.source_of.__str__()
+        return None
+
     def get_label(self, obj):
         return f"{obj.buffered_from_geometry.occurrence.occurrence_number} [Buffer]"
 
@@ -2846,10 +2964,11 @@ class BufferGeometrySerializer(GeoFeatureModelSerializer):
         return obj.buffered_from_geometry.buffer_radius
 
 
-class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
+class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)
     geometry_source = serializers.SerializerMethodField()
-    copied_from = serializers.SerializerMethodField(read_only=True)
+    created_from = serializers.SerializerMethodField(read_only=True)
+    source_of = serializers.SerializerMethodField(read_only=True)
     srid = serializers.SerializerMethodField(read_only=True)
     original_geometry = serializers.SerializerMethodField(read_only=True)
     buffer_geometry = BufferGeometrySerializer(read_only=True)
@@ -2857,7 +2976,7 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
     class Meta:
         model = OccurrenceGeometry
         geo_field = "geometry"
-        fields = (
+        fields = [
             "id",
             "occurrence_id",
             "geometry",
@@ -2868,10 +2987,13 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
             "intersects",
             "geometry_source",
             "locked",
-            "copied_from",
+            "object_id",
+            "content_type",
             "buffer_radius",
             "buffer_geometry",
-        )
+            "created_from",
+            "source_of",
+        ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
     def get_srid(self, obj):
@@ -2884,7 +3006,8 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
         return get_geometry_source(obj)
 
     def get_copied_from(self, obj):
-        if obj.copied_from:
+        if hasattr(obj, "copied_from") and obj.copied_from:
+            return None
             return ListOCCMinimalSerializer(
                 obj.copied_from.occurrence, context=self.context
             ).data
@@ -2896,6 +3019,16 @@ class OccurrenceGeometrySerializer(GeoFeatureModelSerializer):
             return wkb_to_geojson(obj.original_geometry_ewkb)
         else:
             return None
+
+    def get_created_from(self, obj):
+        if obj.created_from:
+            return obj.created_from.__str__()
+        return None
+
+    def get_source_of(self, obj):
+        if obj.source_of:
+            return obj.source_of.__str__()
+        return None
 
 
 class ListOCCMinimalSerializer(serializers.ModelSerializer):
@@ -3008,12 +3141,15 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
             "drawn_by",
             "locked",
             "buffer_radius",
+            "content_type",
+            "object_id",
         )
         read_only_fields = ("id",)
 
 
 class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
     vesting = serializers.SerializerMethodField()
+    purpose = serializers.SerializerMethodField()
     featureid = serializers.SerializerMethodField()
     status_display = serializers.CharField(read_only=True, source="get_status_display")
 
@@ -3028,6 +3164,11 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
 
     def get_featureid(self, obj):
         return obj.featureid
+
+    def get_purpose(self, obj):
+        if obj.purpose:
+            return obj.purpose.purpose
+        return None
 
 
 class OccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
@@ -3065,20 +3206,3 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "significant_to_occurrence",
             "tenure_area_centroid",
         )
-
-
-class OCRExternalRefereeInviteSerializer(serializers.ModelSerializer):
-    occurrence_report_id = serializers.IntegerField(required=False)
-    full_name = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = OCRExternalRefereeInvite
-        fields = [
-            "id",
-            "first_name",
-            "last_name",
-            "full_name",
-            "email",
-            "invite_text",
-            "occurrence_report_id",
-        ]

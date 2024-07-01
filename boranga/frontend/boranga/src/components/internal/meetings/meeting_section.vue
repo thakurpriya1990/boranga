@@ -4,29 +4,29 @@
             <alert type="danger" v-if="!isMeetingDateValid"><strong>Please select End Date that is later than Start
                     Date</strong></alert>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Title:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">Title: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="title" ref="title" placeholder=""
                         v-model="meeting_obj.title" autofocus />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Start Date/ Time:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">Start Date/ Time: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
-                    <!-- <input :disabled="meeting_obj.readonly" type="datetime-local" class="form-control"  id="start_time" v-model="meeting_obj.start_date"> -->
+
                     <input :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date"
                         ref="start_date" v-model="meeting_obj.start_date" @change="validateMeetingDate()" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">End Date/ Time:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">End Date/ Time: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <input :disabled="isReadOnly" type="datetime-local" class="form-control" id="end_date"
                         v-model="meeting_obj.end_date" @change="validateMeetingDate()" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Meeting Type:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">Meeting Type: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" style="width:100%;" class="form-select"
                         v-model="meeting_obj.meeting_type" @change="toggleAttendees(meeting_obj.meeting_type)">
@@ -37,7 +37,7 @@
                 </div>
             </div>
             <div v-show="!isCommitteeMeeting" class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Attendees:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">Attendees: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="title" placeholder=""
                         v-model="meeting_obj.attendees" />
@@ -45,7 +45,7 @@
             </div>
             <div v-show="isCommitteeMeeting">
                 <div class="row mb-3">
-                    <label for="" class="col-sm-4 control-label">Committee:</label>
+                    <label for="" class="col-sm-4 control-label fw-bold">Committee: <span class="text-danger">*</span></label>
                     <div class="col-sm-8">
                         <select :disabled="isReadOnly" style="width:100%;" class="form-select"
                             v-model="meeting_obj.committee_id" @change="renderMembersTable()">
@@ -60,9 +60,8 @@
                         :dtHeaders="members_headers" />
                 </div>
             </div>
-
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Location:</label>
+                <label for="" class="col-sm-4 control-label fw-bold">Location: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" style="width:100%;" class="form-select"
                         v-model="meeting_obj.location_id">
@@ -72,8 +71,8 @@
                     </select>
                 </div>
             </div>
-            <div class="row mb-3" v-show="!isStatusDraft">
-                <label for="" class="col-sm-4 control-label">Meeting status:</label>
+            <div class="row mb-3" v-if="meetingStatusEditable">
+                <label for="" class="col-sm-4 control-label fw-bold">Meeting status: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" style="width:100%;" class="form-select"
                         v-model="meeting_obj.processing_status">
@@ -129,6 +128,8 @@ export default {
             isMeetingDateValid: true,
             isShowComment: false,
             isCommitteeMeeting: false,
+            meetingStatusEditable: true,
+
             //----list of values dictionary
             meeting_dict: {},
             location_list: [],
@@ -151,31 +152,11 @@ export default {
                     { responsivePriority: 1, targets: 0 },
                     { responsivePriority: 2, targets: -1 },
                 ],
-                // ajax:{
-                //     "url": helpers.add_endpoint_json(api_endpoints.committee,vm.meeting_obj.committee_id+'/committee_members'),
-                //     "dataSrc": ''
-                // },
                 order: [],
                 dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: [
-                    // {
-                    //     extend: 'excel',
-                    //     text: '<i class="fa-solid fa-download"></i> Excel',
-                    //     className: 'btn btn-primary ml-2',
-                    //     exportOptions: {
-                    //         orthogonal: 'export'
-                    //     }
-                    // },
-                    // {
-                    //     extend: 'csv',
-                    //     text: '<i class="fa-solid fa-download"></i> CSV',
-                    //     className: 'btn btn-primary',
-                    //     exportOptions: {
-                    //         orthogonal: 'export'
-                    //     }
-                    // },
                 ],
                 columns: [
                     {
@@ -204,7 +185,6 @@ export default {
                         mRender: function (data, type, full) {
                             return full.last_name;
                         },
-
                     },
                     {
                         data: "email",
@@ -376,6 +356,9 @@ export default {
         //------fetch list of values
         vm.$http.get(api_endpoints.meeting_dict).then((response) => {
             vm.meeting_dict = response.body;
+            if(vm.meeting_obj.processing_status=='completed'){
+                vm.meetingStatusEditable=false;
+            }
             //--meeting room list
             vm.location_list = vm.meeting_dict.location_list;
             vm.location_list.splice(0, 0,
@@ -415,10 +398,6 @@ export default {
 </script>
 
 <style lang="css" scoped>
-/*ul, li {
-        zoom:1;
-        display: inline;
-    }*/
 fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;

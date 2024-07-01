@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="observerTable">
-        <div class="row mb-3">
-            <label for="" class="col-sm-3 control-label fw-bold">Observation Details:</label>
+        <div v-if="!isReadOnly" class="row mb-3">
+            <label for="" class="col-sm-3 control-label fw-bold">Observation Details: <span class="text-danger">*</span></label>
             <div class="col-sm-9 text-end">
                 <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 "
                     @click.prevent="newObserverDetail">
@@ -45,13 +45,103 @@ export default {
             type: Boolean,
             default: true
         },
+        show_observer_contact_information: {
+            type: Boolean,
+            default: true
+        },
     },
     emits: ['refreshOccurrenceReport'],
     data: function () {
         let vm = this;
+        let columns = [
+            {
+                data: "observer_name",
+                orderable: true,
+                searchable: true,
+                mRender: function (data, type, full) {
+                    if (full.visible) {
+                        return full.observer_name;
+                    } else {
+                        return '<s>' + full.observer_name + '</s>'
+                    }
+                },
+            },
+            {
+                data: "role",
+                orderable: true,
+                searchable: true,
+                mRender: function (data, type, full) {
+                    if (full.visible) {
+                        return full.role;
+                    } else {
+                        return '<s>' + full.role + '</s>'
+                    }
+                },
+            },
+            {
+                data: "contact",
+                orderable: true,
+                searchable: true,
+                mRender: function (data, type, full) {
+                    if (full.visible) {
+                        let value = full.contact;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return type == 'export' ? value : result;
+                    } else {
+                        let value = full.contact;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return '<s>' + type == 'export' ? value : result + '</s>'
+                    }
+                },
+            },
+            {
+                data: "organisation",
+                orderable: true,
+                searchable: true,
+                mRender: function (data, type, full) {
+                    if (full.visible) {
+                        return full.organisation;
+                    } else {
+                        return '<s>' + full.organisation + '</s>'
+                    }
+                },
+            },
+            {
+                data: "main_observer",
+                orderable: true,
+                searchable: true,
+                mRender: function (data, type, full) {
+                    if (full.visible) {
+                        return full.main_observer;
+                    } else {
+                        return '<s>' + full.main_observer; + '</s>'
+                    }
+                },
+            },
+            {
+                data: "id",
+                mRender: function (data, type, full) {
+                    let links = '';
+                    if (full.visible) {
+                        if (!vm.isReadOnly) {
+                            links += `<a href='#${full.id}' data-edit-observer_det='${full.id}'>Edit</a><br/>`;
+                            links += `<a href='#' data-delete-observer_det='${full.id}'>Discard</a><br>`;
+                        } else {
+                            links += `<a href='#${full.id}' data-view-observer_det='${full.id}'>View</a><br/>`;
+                        }
+                    } else if (!vm.isReadOnly) {
+                        links += `<a href='#' data-reinstate-observer_det='${full.id}'>Reinstate</a><br>`;
+                    }
+                    return links;
+                }
+            },
+        ]
+        if (!vm.show_observer_contact_information) {
+            columns.splice(2, 1);
+        }
         return {
             observer_detail_url: api_endpoints.observer_detail,
-            observer_detail_headers: ['Contact Name', 'Observer Role', 'Contact Detail', 'Organisation', 'Main Observer', 'Action'],
+            observer_detail_headers: vm.show_observer_contact_information ? ['Contact Name', 'Observer Role', 'Contact Detail', 'Organisation', 'Main Observer', 'Action'] : ['Contact Name', 'Observer Role', 'Organisation', 'Main Observer', 'Action'],
             observer_detail_options: {
                 autowidth: false,
                 language: {
@@ -90,89 +180,7 @@ export default {
                         }
                     },
                 ],
-                columns: [
-                    {
-                        data: "observer_name",
-                        orderable: true,
-                        searchable: true,
-                        mRender: function (data, type, full) {
-                            if (full.visible) {
-                                return full.observer_name;
-                            } else {
-                                return '<s>' + full.observer_name + '</s>'
-                            }
-                        },
-                    },
-                    {
-                        data: "role",
-                        orderable: true,
-                        searchable: true,
-                        mRender: function (data, type, full) {
-                            if (full.visible) {
-                                return full.role;
-                            } else {
-                                return '<s>' + full.role + '</s>'
-                            }
-                        },
-                    },
-                    {
-                        data: "contact",
-                        orderable: true,
-                        searchable: true,
-                        mRender: function (data, type, full) {
-                            if (full.visible) {
-                                let value = full.contact;
-                                let result = helpers.dtPopover(value, 30, 'hover');
-                                return type == 'export' ? value : result;
-                            } else {
-                                let value = full.contact;
-                                let result = helpers.dtPopover(value, 30, 'hover');
-                                return '<s>' + type == 'export' ? value : result + '</s>'
-                            }
-                        },
-                    },
-                    {
-                        data: "organisation",
-                        orderable: true,
-                        searchable: true,
-                        mRender: function (data, type, full) {
-                            if (full.visible) {
-                                return full.organisation;
-                            } else {
-                                return '<s>' + full.organisation + '</s>'
-                            }
-                        },
-                    },
-                    {
-                        data: "main_observer",
-                        orderable: true,
-                        searchable: true,
-                        mRender: function (data, type, full) {
-                            if (full.visible) {
-                                return full.main_observer;
-                            } else {
-                                return '<s>' + full.main_observer; + '</s>'
-                            }
-                        },
-                    },
-                    {
-                        data: "id",
-                        mRender: function (data, type, full) {
-                            let links = '';
-                            if (full.visible) {
-                                if (!vm.isReadOnly) {
-                                    links += `<a href='#${full.id}' data-edit-observer_det='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-delete-observer_det='${full.id}'>Discard</a><br>`;
-                                } else {
-                                    links += `<a href='#${full.id}' data-view-observer_det='${full.id}'>View</a><br/>`;
-                                }
-                            } else if (!vm.isReadOnly) {
-                                links += `<a href='#' data-reinstate-observer_det='${full.id}'>Reinstate</a><br>`;
-                            }
-                            return links;
-                        }
-                    },
-                ],
+                columns: columns,
                 processing: true,
                 drawCallback: function () {
                     helpers.enablePopovers();
@@ -248,11 +256,11 @@ export default {
             this.$refs.observer_detail.observer_detail_action = 'add';
             this.$refs.observer_detail.isModalOpen = true;
         },
-        editObserverDetail: function (id) {
+        editObserverDetail: async function (id) {
             let vm = this;
             this.$refs.observer_detail.observer_detail_id = id;
             this.$refs.observer_detail.observer_detail_action = 'edit';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then((response) => {
+            await Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then((response) => {
                 this.$refs.observer_detail.observerObj = response.body;
             },
                 err => {
@@ -260,11 +268,11 @@ export default {
                 });
             this.$refs.observer_detail.isModalOpen = true;
         },
-        viewObserverDetail: function (id) {
+        viewObserverDetail: async function (id) {
             let vm = this;
             this.$refs.observer_detail.observer_detail_id = id;
             this.$refs.observer_detail.observer_detail_action = 'view';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then((response) => {
+            await Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then((response) => {
                 this.$refs.observer_detail.observerObj = response.body;
             },
                 err => {
@@ -277,10 +285,14 @@ export default {
             swal.fire({
                 title: "Discard Observer",
                 text: "Are you sure you want to discard this Observer?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Observer',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
                     vm.$http.post(helpers.add_endpoint_json(api_endpoints.observer_detail, id + '/discard'))
@@ -289,7 +301,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'The Observer has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             }).then((result) => {
                                 vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
                                 vm.$emit('refreshOccurrenceReport');
@@ -313,7 +327,9 @@ export default {
                         title: 'Reinstated',
                         text: 'The Observer has been reinstated',
                         icon: 'success',
-                        confirmButtonColor: '#226fbb',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     }).then((result) => {
                         vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
                         vm.$emit('refreshOccurrenceReport');
@@ -322,7 +338,15 @@ export default {
                         }
                     });
                 }, (error) => {
-                    console.log(error);
+                    var errorText = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
         },
         updatedObserverDetails() {

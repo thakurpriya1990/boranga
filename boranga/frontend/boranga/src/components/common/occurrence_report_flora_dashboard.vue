@@ -300,7 +300,7 @@ export default {
             return this.profile && this.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS);
         },
         datatable_headers: function () {
-            return ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Observation Date', 'Main Observer', 'Submission Date', 'Submitter', 'Status', 'Action']
+            return ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Observation Date', 'Main Observer', 'Submitted on', 'Submitter', 'Status', 'Action']
         },
         column_id: function () {
             return {
@@ -377,13 +377,13 @@ export default {
                 name: "main_observer",
             }
         },
-        column_submission_date_time: function () {
+        column_lodgement_date: function () {
             return {
-                data: "reported_date",
+                data: "lodgement_date",
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: "reported_date",
+                name: "lodgement_date",
             }
         },
         column_submitter: function () {
@@ -461,7 +461,7 @@ export default {
                 vm.column_scientific_name,
                 vm.column_observation_date_time,
                 vm.column_main_observer,
-                vm.column_submission_date_time,
+                vm.column_lodgement_date,
                 vm.column_submitter,
                 vm.column_status,
                 vm.column_action,
@@ -621,8 +621,9 @@ export default {
                 showCancelButton: true,
                 confirmButtonText: 'Add Occurrence Report',
                 reverseButtons: true,
-                confirmButtonColor: '#226fbb',
-
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     let newFloraOCRId = null
@@ -667,7 +668,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your report has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {
@@ -699,7 +702,9 @@ export default {
                                 title: 'Reinstated',
                                 text: 'Your report has been reinstated',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.flora_ocr_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {

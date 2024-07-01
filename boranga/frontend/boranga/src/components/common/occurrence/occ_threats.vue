@@ -1,14 +1,15 @@
 <template lang="html">
     <div id="occ_threats">
         <FormSection :formCollapse="false" label="Threats" :Index="threatBody">
-            <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted" class="mb-2">
+            <CollapsibleFilters component_title="Filters" ref="collapsible_filters"
+                @created="collapsible_component_mounted" class="mb-2">
                 <div class="row">
                     <div class="col-md-3">
                         <div class="form-group">
                             <label for="">Threat Source:</label>
                             <select class="form-select" v-model="filterThreatSource">
                                 <option value="all">All</option>
-                                <option v-for="option in threat_source_filter_list" :value="option">{{option}}
+                                <option v-for="option in threat_source_filter_list" :value="option">{{ option }}
                                 </option>
                             </select>
                         </div>
@@ -18,7 +19,8 @@
                             <label for="">Category:</label>
                             <select class="form-select" v-model="filterThreatCategory">
                                 <option value="all">All</option>
-                                <option v-for="option in threat_category_filter_list" :value="option.id">{{option.name}}
+                                <option v-for="option in threat_category_filter_list" :value="option.id">{{ option.name
+                                    }}
                                 </option>
                             </select>
                         </div>
@@ -28,7 +30,8 @@
                             <label for="">Current Impact:</label>
                             <select class="form-select" v-model="filterThreatCurrentImpact">
                                 <option value="all">All</option>
-                                <option v-for="option in threat_current_impact_filter_list" :value="option.id">{{option.name}}
+                                <option v-for="option in threat_current_impact_filter_list" :value="option.id">
+                                    {{ option.name }}
                                 </option>
                             </select>
                         </div>
@@ -38,7 +41,8 @@
                             <label for="">Potential Impact:</label>
                             <select class="form-select" v-model="filterThreatPotentialImpact">
                                 <option value="all">All</option>
-                                <option v-for="option in threat_potential_impact_filter_list" :value="option.id">{{option.name}}
+                                <option v-for="option in threat_potential_impact_filter_list" :value="option.id">
+                                    {{ option.name }}
                                 </option>
                             </select>
                         </div>
@@ -48,7 +52,7 @@
                             <label for="">Status:</label>
                             <select class="form-select" v-model="filterThreatStatus">
                                 <option value="all">All</option>
-                                <option v-for="option in threat_status_filter_list" :value="option.id">{{option.name}}
+                                <option v-for="option in threat_status_filter_list" :value="option.id">{{ option.name }}
                                 </option>
                             </select>
                         </div>
@@ -56,13 +60,15 @@
                     <div class="col-md-3">
                         <div class="form-group">
                             <label for="">Date Observed From:</label>
-                            <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observed_from_date" v-model="filterObservedFromDate">
+                            <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observed_from_date"
+                                v-model="filterObservedFromDate">
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="form-group">
                             <label for="">Date Observed To:</label>
-                            <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observed_to_date" v-model="filterObservedToDate">
+                            <input type="date" class="form-control" placeholder="DD/MM/YYYY" id="observed_to_date"
+                                v-model="filterObservedToDate">
                         </div>
                     </div>
                 </div>
@@ -70,33 +76,33 @@
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12">
                     <div class="text-end">
-                        <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 " @click.prevent="newThreat">
+                        <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 "
+                            @click.prevent="newThreat">
                             <i class="fa-solid fa-circle-plus"></i>
-                                Add New Threat
+                            Add New Threat
                         </button>
                         &nbsp;
-                        <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 " @click.prevent="existingThreat">
+                        <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 "
+                            @click.prevent="existingThreat">
                             <i class="fa-solid fa-circle-plus"></i>
-                                Add Existing Threat
+                            Add Existing Threat
                         </button>
                     </div>
                 </div>
                 <div>
                     <datatable ref="threats_datatable" :id="panelBody" :dtOptions="threats_options"
-                    :dtHeaders="threats_headers"/>
+                        :dtHeaders="threats_headers" />
                 </div>
             </form>
         </FormSection>
-        <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="occ_threat_url"></ThreatDetail>
+        <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="occ_threat_url">
+        </ThreatDetail>
         <div v-if="showExisting">
-            <ExistingThreat ref="existing_threats" :occurrenceId="occurrence_obj.id"/>
+            <ExistingThreat ref="existing_threats" :occurrenceId="occurrence_obj.id" />
         </div>
         <div v-if="occConservationThreatHistoryId">
-            <ConservationThreatHistory
-                ref="occ_conservation_threat_history"
-                :key="occConservationThreatHistoryId"
-                :threat-id="occConservationThreatHistoryId"
-            />
+            <ConservationThreatHistory ref="occ_conservation_threat_history" :key="occConservationThreatHistoryId"
+                :threat-id="occConservationThreatHistoryId" />
         </div>
     </div>
 </template>
@@ -113,535 +119,548 @@ import {
     api_endpoints,
     helpers,
 }
-from '@/utils/hooks'
+    from '@/utils/hooks'
 
 
 export default {
-        name: 'OCCThreats',
-        props:{
-            occurrence_obj:{
-                type: Object,
-                required:true
-            },
-            // this prop is only send from split species form to make the original species readonly
-            is_readonly:{
-              type: Boolean,
-              default: false
-            },
+    name: 'OCCThreats',
+    props: {
+        occurrence_obj: {
+            type: Object,
+            required: true
         },
-        data:function () {
-            let vm = this;
-            return{
-                uuid:0,
-                occConservationThreatHistoryId: null,
-                showExisting: false,
-                threatBody: "threatBody"+ vm._uid,
-                panelBody: "species-threats-"+ vm._uid,
-                values:null,
-                occ_threat_url: api_endpoints.occ_threat,
+        // this prop is only send from split species form to make the original species readonly
+        is_readonly: {
+            type: Boolean,
+            default: false
+        },
+    },
+    data: function () {
+        let vm = this;
+        return {
+            uuid: 0,
+            occConservationThreatHistoryId: null,
+            showExisting: false,
+            threatBody: "threatBody" + vm._uid,
+            panelBody: "species-threats-" + vm._uid,
+            values: null,
+            occ_threat_url: api_endpoints.occ_threat,
 
-                filterThreatSource: 'all',
-                filterThreatCategory: 'all',
-                filterThreatCurrentImpact: 'all',
-                filterThreatPotentialImpact: 'all',
-                filterThreatStatus: 'all',
-                filterObservedFromDate: '',
-                filterObservedToDate: '',
+            filterThreatSource: 'all',
+            filterThreatCategory: 'all',
+            filterThreatCurrentImpact: 'all',
+            filterThreatPotentialImpact: 'all',
+            filterThreatStatus: 'all',
+            filterObservedFromDate: '',
+            filterObservedToDate: '',
 
-                threat_source_filter_list: [],
-                threat_category_filter_list: [],
-                threat_current_impact_filter_list: [],
-                threat_potential_impact_filter_list: [],
+            threat_source_filter_list: [],
+            threat_category_filter_list: [],
+            threat_current_impact_filter_list: [],
+            threat_potential_impact_filter_list: [],
 
-                threat_status_filter_list: [
-                    {id:"active",name:"Active"},
-                    {id:"removed",name:"Removed"},
-                ],
+            threat_status_filter_list: [
+                { id: "active", name: "Active" },
+                { id: "removed", name: "Removed" },
+            ],
 
-                threats_headers:['Number', 'Original Report','Category','Date Observed', 'Threat Agent', 'Comments', 'Threat Source',
-                                'Current Impact', 'Potential Impact','Action'],
-                threats_options:{
-                    autowidth: false,
-                    language:{
-                        processing: constants.DATATABLE_PROCESSING_HTML
-                    },
-                    responsive: true,
-                    serverSide: false,
-                    searching: true,
-                    //  to show the "workflow Status","Action" columns always in the last position
-                    columnDefs: [
-                        { responsivePriority: 1, targets: 0 },
-                        { responsivePriority: 2, targets: -1 },
-                    ],
-                    ajax:{
-                        "url": helpers.add_endpoint_json(api_endpoints.occurrence,vm.occurrence_obj.id+'/threats'),
-                        "dataSrc": '',
-                        "data": function ( d ) {
-                            d.filter_threat_source = vm.filterThreatSource
-                            d.filter_threat_category = vm.filterThreatCategory
-                            d.filter_threat_current_impact = vm.filterThreatCurrentImpact
-                            d.filter_threat_potential_impact = vm.filterThreatPotentialImpact
-                            d.filter_threat_status = vm.filterThreatStatus
-                            d.filter_observed_from_date = vm.filterObservedFromDate
-                            d.filter_observed_to_date = vm.filterObservedToDate
-                        },
-                    },
-                    order: [[0, 'desc']],
-                    dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
-                     "<'row'<'col-sm-12'tr>>" +
-                     "<'d-flex align-items-center'<'me-auto'i>p>",
-                    buttons:[
-                        {
-                            extend: 'excel',
-                            text: '<i class="fa-solid fa-download"></i> Excel',
-                            className: 'btn btn-primary me-2 rounded',
-                            exportOptions: {
-                                orthogonal: 'export'
-                            }
-                        },
-                        {
-                            extend: 'csv',
-                            text: '<i class="fa-solid fa-download"></i> CSV',
-                            className: 'btn btn-primary rounded',
-                            exportOptions: {
-                                orthogonal: 'export'
-                            }
-                        },
-                    ],
-                    columns: [
-                        {
-                            data: "threat_number",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.visible){
-                                    return "OCC" + full.occurrence + " - " + full.threat_number;
-                                }
-                                else{
-                                    return '<s>'+ "OCC" + full.occurrence + " - " + full.threat_number + '</s>'
-                                }
-                            },
-
-                        },
-                        {
-                            data: "original_report",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.original_report != null){
-                                    if (full.visible) {
-                                        return full.original_report + " - " + full.original_threat;
-                                    }
-                                    else {
-                                        return '<s>'+ full.original_report + " - " + full.original_threat + '</s>';
-                                    }
-                                }
-                                else{
-                                    return ""
-                                }
-                            },
-
-                        },
-                        {
-                            data: "threat_category",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.visible){
-                                    return full.threat_category;
-                                }
-                                else{
-                                    return '<s>'+ full.threat_category + '</s>'
-                                }
-                            },
-
-                        },
-                        {
-                            data: "date_observed",
-                            mRender:function (data,type,full){
-                                if(full.visible){
-                                    return data != '' && data != null ? moment(data).format('DD/MM/YYYY'):'';
-                                }
-                                else{
-                                    return data != '' && data != null ? '<s>'+ moment(data).format('DD/MM/YYYY'):'' + '</s>'
-                                }
-                            }
-                        },
-                        {
-                            data: "threat_agent",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.visible){
-                                    return full.threat_agent;
-                                }
-                                else{
-                                    return '<s>'+ full.threat_agent + '</s>'
-                                }
-                            },
-
-                        },
-                        {
-                            data: "comment",
-                            orderable: true,
-                            searchable: true,
-                            'render': function(value, type, full){
-                                let result = helpers.dtPopover(value, 30, 'hover');
-                                if(full.visible){
-                                    return type=='export' ? value : result;
-                                }
-                                else{
-                                    return type=='export' ? '<s>' + value + '</s>' : '<s>' + result + '</s>';
-                                }
-                            },
-                        },
-                        {
-                            data: "source",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.visible){
-                                    return full.source;
-                                }
-                                else{
-                                    return '<s>'+ full.source + '</s>'
-                                }
-                            },
-
-                        },
-                        {
-                            data: "current_impact_name",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.visible){
-                                    return full.current_impact_name;
-                                }
-                                else{
-                                    return '<s>'+ full.current_impact_name + '</s>'
-                                }
-                            },
-
-                        },
-                        {
-                            data: "potential_impact_name",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.visible){
-                                    return full.potential_impact_name;
-                                }
-                                else{
-                                    return '<s>'+ full.potential_impact_name + '</s>'
-                                }
-                            },
-                        },
-                        {
-                            data: "id",
-                            mRender:function (data,type,full){
-                                let links = '';
-                                if(full.visible){
-                                    links +=  `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
-                                    if (!vm.isReadOnly) {
-                                        links +=  `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                        links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
-                                    }
-                                }
-                                else{
-                                    links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
-                                    
-                                }
-                                links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
-                                return links;
-                            }
-                        },
-                    ],
-                    processing:true,
-                    drawCallback: function() {
-                    helpers.enablePopovers(); 
+            threats_headers: ['Number', 'Original Report', 'Category', 'Date Observed', 'Threat Agent', 'Comments', 'Threat Source',
+                'Current Impact', 'Potential Impact', 'Action'],
+            threats_options: {
+                autowidth: false,
+                language: {
+                    processing: constants.DATATABLE_PROCESSING_HTML
                 },
-                initComplete: function() {
-                        helpers.enablePopovers();
-                        // another option to fix the responsive table overflow css on tab switch
-                        // vm.$refs.threats_datatable.vmDataTable.draw('page');
-                        setTimeout(function (){
-                            vm.adjust_table_width();
-                        },100);
+                responsive: true,
+                serverSide: false,
+                searching: true,
+                //  to show the "workflow Status","Action" columns always in the last position
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 2, targets: -1 },
+                ],
+                ajax: {
+                    "url": helpers.add_endpoint_json(api_endpoints.occurrence, vm.occurrence_obj.id + '/threats'),
+                    "dataSrc": '',
+                    "data": function (d) {
+                        d.filter_threat_source = vm.filterThreatSource
+                        d.filter_threat_category = vm.filterThreatCategory
+                        d.filter_threat_current_impact = vm.filterThreatCurrentImpact
+                        d.filter_threat_potential_impact = vm.filterThreatPotentialImpact
+                        d.filter_threat_status = vm.filterThreatStatus
+                        d.filter_observed_from_date = vm.filterObservedFromDate
+                        d.filter_observed_to_date = vm.filterObservedToDate
                     },
-                }
+                },
+                order: [[0, 'desc']],
+                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fa-solid fa-download"></i> Excel',
+                        className: 'btn btn-primary me-2 rounded',
+                        exportOptions: {
+                            orthogonal: 'export'
+                        }
+                    },
+                    {
+                        extend: 'csv',
+                        text: '<i class="fa-solid fa-download"></i> CSV',
+                        className: 'btn btn-primary rounded',
+                        exportOptions: {
+                            orthogonal: 'export'
+                        }
+                    },
+                ],
+                columns: [
+                    {
+                        data: "threat_number",
+                        orderable: true,
+                        searchable: true,
+                        mRender: function (data, type, full) {
+                            if (full.visible) {
+                                return "OCC" + full.occurrence + " - " + full.threat_number;
+                            }
+                            else {
+                                return '<s>' + "OCC" + full.occurrence + " - " + full.threat_number + '</s>'
+                            }
+                        },
+
+                    },
+                    {
+                        data: "original_report",
+                        orderable: true,
+                        searchable: true,
+                        mRender: function (data, type, full) {
+                            if (full.original_report != null) {
+                                if (full.visible) {
+                                    return full.original_report + " - " + full.original_threat;
+                                }
+                                else {
+                                    return '<s>' + full.original_report + " - " + full.original_threat + '</s>';
+                                }
+                            }
+                            else {
+                                return ""
+                            }
+                        },
+
+                    },
+                    {
+                        data: "threat_category",
+                        orderable: true,
+                        searchable: true,
+                        mRender: function (data, type, full) {
+                            if (full.visible) {
+                                return full.threat_category;
+                            }
+                            else {
+                                return '<s>' + full.threat_category + '</s>'
+                            }
+                        },
+
+                    },
+                    {
+                        data: "date_observed",
+                        mRender: function (data, type, full) {
+                            if (full.visible) {
+                                return data != '' && data != null ? moment(data).format('DD/MM/YYYY') : '';
+                            }
+                            else {
+                                return data != '' && data != null ? '<s>' + moment(data).format('DD/MM/YYYY') : '' + '</s>'
+                            }
+                        }
+                    },
+                    {
+                        data: "threat_agent",
+                        orderable: true,
+                        searchable: true,
+                        mRender: function (data, type, full) {
+                            if (full.visible) {
+                                return full.threat_agent;
+                            }
+                            else {
+                                return '<s>' + full.threat_agent + '</s>'
+                            }
+                        },
+
+                    },
+                    {
+                        data: "comment",
+                        orderable: true,
+                        searchable: true,
+                        'render': function (value, type, full) {
+                            let result = helpers.dtPopover(value, 30, 'hover');
+                            if (full.visible) {
+                                return type == 'export' ? value : result;
+                            }
+                            else {
+                                return type == 'export' ? '<s>' + value + '</s>' : '<s>' + result + '</s>';
+                            }
+                        },
+                    },
+                    {
+                        data: "source",
+                        orderable: true,
+                        searchable: true,
+                        mRender: function (data, type, full) {
+                            if (full.visible) {
+                                return full.source;
+                            }
+                            else {
+                                return '<s>' + full.source + '</s>'
+                            }
+                        },
+
+                    },
+                    {
+                        data: "current_impact_name",
+                        orderable: true,
+                        searchable: true,
+                        mRender: function (data, type, full) {
+                            if (full.visible) {
+                                return full.current_impact_name;
+                            }
+                            else {
+                                return '<s>' + full.current_impact_name + '</s>'
+                            }
+                        },
+
+                    },
+                    {
+                        data: "potential_impact_name",
+                        orderable: true,
+                        searchable: true,
+                        mRender: function (data, type, full) {
+                            if (full.visible) {
+                                return full.potential_impact_name;
+                            }
+                            else {
+                                return '<s>' + full.potential_impact_name + '</s>'
+                            }
+                        },
+                    },
+                    {
+                        data: "id",
+                        mRender: function (data, type, full) {
+                            let links = '';
+                            if (full.visible) {
+                                links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
+                                if (!vm.isReadOnly) {
+                                    links += `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
+                                    links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
+                                }
+                            }
+                            else {
+                                links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
+
+                            }
+                            links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
+                            return links;
+                        }
+                    },
+                ],
+                processing: true,
+                drawCallback: function () {
+                    helpers.enablePopovers();
+                },
+                initComplete: function () {
+                    helpers.enablePopovers();
+                    // another option to fix the responsive table overflow css on tab switch
+                    // vm.$refs.threats_datatable.vmDataTable.draw('page');
+                    setTimeout(function () {
+                        vm.adjust_table_width();
+                    }, 100);
+                },
             }
+        }
+    },
+    components: {
+        FormSection,
+        datatable,
+        ThreatDetail,
+        ConservationThreatHistory,
+        ExistingThreat,
+        CollapsibleFilters,
+    },
+    computed: {
+        isReadOnly: function () {
+            return !(this.occurrence_obj.can_user_edit);
         },
-        components: {
-            FormSection,
-            datatable,
-            ThreatDetail,
-            ConservationThreatHistory,
-            ExistingThreat,
-            CollapsibleFilters,
-        },
-        computed: {
-            isReadOnly: function () {
-                return !(this.occurrence_obj.can_user_edit);
-            },
-            filterApplied: function(){
-                if(this.filterThreatSource === 'all' &&
+        filterApplied: function () {
+            if (this.filterThreatSource === 'all' &&
                 this.filterThreatCategory === 'all' &&
                 this.filterThreatCurrentImpact === 'all' &&
                 this.filterThreatPotentialImpact === 'all' &&
                 this.filterThreatStatus === 'all' &&
                 this.filterObservedFromDate === '' &&
                 this.filterObservedToDate === ''
-                ){
-                    return false
-                } else {
-                    return true
-                }
-            },
+            ) {
+                return false
+            } else {
+                return true
+            }
         },
-        watch:{
-            filterApplied: function(){
-                if (this.$refs.collapsible_filters){
-                    // Collapsible component exists
-                    this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
-                }
-            },
-            filterThreatSource: function(){
-                let vm = this;
-                vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            },
-            filterThreatCategory: function(){
-                let vm = this;
-                vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            },
-            filterThreatCurrentImpact: function(){
-                let vm = this;
-                vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            },
-            filterThreatPotentialImpact: function(){
-                let vm = this;
-                vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            },
-            filterThreatStatus: function(){
-                let vm = this;
-                vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            },
-            filterObservedFromDate: function(){
-                let vm = this;
-                vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            },
-            filterObservedToDate: function(){
-                let vm = this;
-                vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            },
-        },
-        methods:{
-            collapsible_component_mounted: function(){
+    },
+    watch: {
+        filterApplied: function () {
+            if (this.$refs.collapsible_filters) {
+                // Collapsible component exists
                 this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
-            },
+            }
+        },
+        filterThreatSource: function () {
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
+        filterThreatCategory: function () {
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
+        filterThreatCurrentImpact: function () {
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
+        filterThreatPotentialImpact: function () {
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
+        filterThreatStatus: function () {
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
+        filterObservedFromDate: function () {
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
+        filterObservedToDate: function () {
+            let vm = this;
+            vm.$refs.threats_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+        },
+    },
+    methods: {
+        collapsible_component_mounted: function () {
+            this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
+        },
 
-            fetchFilterLists: function(){
-                let vm = this;
+        fetchFilterLists: function () {
+            let vm = this;
 
-                //Threat Source filter list (specific to instance)
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence,vm.occurrence_obj.id+'/threat_source_list')).then((response) => {
-                    vm.threat_source_filter_list = response.body;
-                },(error) => {
-                    console.log(error);
-                })
+            //Threat Source filter list (specific to instance)
+            vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence, vm.occurrence_obj.id + '/threat_source_list')).then((response) => {
+                vm.threat_source_filter_list = response.body;
+            }, (error) => {
+                console.log(error);
+            })
 
-                //Category, Current Impact, Potential Impact (generic to all threats)
-                vm.$http.get('/api/threat/threat_list_of_values/').then((response) => {
-                    vm.threat_category_filter_list= response.body["threat_category_lists"];
-                    vm.threat_current_impact_filter_list = response.body["current_impact_lists"];
-                    vm.threat_potential_impact_filter_list = response.body["potential_impact_lists"];
-                },(error) => {
-                    console.log(error);
-                })
+            //Category, Current Impact, Potential Impact (generic to all threats)
+            vm.$http.get('/api/threat/threat_list_of_values/').then((response) => {
+                vm.threat_category_filter_list = response.body["threat_category_lists"];
+                vm.threat_current_impact_filter_list = response.body["current_impact_lists"];
+                vm.threat_potential_impact_filter_list = response.body["potential_impact_lists"];
+            }, (error) => {
+                console.log(error);
+            })
 
+        },
+        newThreat: function () {
+            let vm = this;
+            this.$refs.threat_detail.threat_id = '';
+            //----for adding new species Threat
+            var new_occ_threat = {
+                occurrence: vm.occurrence_obj.id,
+                threat_category: '',
+                threat_agent: '',
+                comment: '',
+                source: vm.occurrence_obj.occurrence_number,
+                current_impact: '',
+                potential_impact: '',
+                potential_threat_onset: '',
+                date_observed: null,
+            }
+            this.$refs.threat_detail.threatObj = new_occ_threat;
+            this.$refs.threat_detail.threat_action = 'add';
+            this.$refs.threat_detail.isModalOpen = true;
+        },
+        existingThreat: function () {
+            this.showExisting = true;
+            this.uuid++;
+            this.$nextTick(() => {
+                this.$refs.existing_threats.isModalOpen = true;
+            })
+        },
+        editThreat: function (id) {
+            let vm = this;
+            this.$refs.threat_detail.threat_id = id;
+            this.$refs.threat_detail.threat_action = 'edit';
+            Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_threat, id)).then((response) => {
+                this.$refs.threat_detail.threatObj = response.body;
+                this.$refs.threat_detail.threatObj.date_observed = response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD') : '';
             },
-            newThreat: function(){
-                let vm=this;
-                this.$refs.threat_detail.threat_id = '';
-                //----for adding new species Threat
-                var new_occ_threat={
-                    occurrence: vm.occurrence_obj.id,                    
-                    threat_category: '',
-                    threat_agent: '',
-                    comment: '',
-                    source:  vm.occurrence_obj.occurrence_number,
-                    current_impact: '',
-                    potential_impact: '',
-                    potential_threat_onset: '',
-                    date_observed: null,
-                }
-                this.$refs.threat_detail.threatObj=new_occ_threat;
-                this.$refs.threat_detail.threat_action='add';
-                this.$refs.threat_detail.isModalOpen = true;
-            },
-            existingThreat: function(){
-                this.showExisting = true;
-                this.uuid++;
-                this.$nextTick(() => {
-                    this.$refs.existing_threats.isModalOpen = true;
-                })
-            },
-            editThreat: function(id){
-                let vm=this;
-                this.$refs.threat_detail.threat_id = id;
-                this.$refs.threat_detail.threat_action='edit';
-                Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_threat,id)).then((response) => {
-                      this.$refs.threat_detail.threatObj=response.body;
-                      this.$refs.threat_detail.threatObj.date_observed =  response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
-                    },
-                  err => {
-                            console.log(err);
-                      });
-                this.$refs.threat_detail.isModalOpen = true;
-            },
-            viewThreat: function(id){
-                let vm=this;
-                this.$refs.threat_detail.threat_id = id;
-                this.$refs.threat_detail.threat_action='view';
-                Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_threat,id)).then((response) => {
-                      this.$refs.threat_detail.threatObj=response.body;
-                      this.$refs.threat_detail.threatObj.date_observed =  response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
-                    },
-                  err => {
-                            console.log(err);
-                      });
-                this.$refs.threat_detail.isModalOpen = true;
-            },
-            historyThreat: function(id){
-                this.occConservationThreatHistoryId = parseInt(id);
-                this.uuid++;
-                this.$nextTick(() => {
-                    this.$refs.occ_conservation_threat_history.isModalOpen = true;
+                err => {
+                    console.log(err);
                 });
+            this.$refs.threat_detail.isModalOpen = true;
+        },
+        viewThreat: function (id) {
+            let vm = this;
+            this.$refs.threat_detail.threat_id = id;
+            this.$refs.threat_detail.threat_action = 'view';
+            Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_threat, id)).then((response) => {
+                this.$refs.threat_detail.threatObj = response.body;
+                this.$refs.threat_detail.threatObj.date_observed = response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD') : '';
             },
-            discardThreat:function (id) {
-                let vm = this;
-                swal.fire({
-                    title: "Remove Threat",
-                    text: "Are you sure you want to remove this Threat?",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: 'Remove Threat',
-                    confirmButtonColor:'#d9534f'
-                }).then((result) => {
-                    if(result.isConfirmed){
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.occ_threat,id+'/discard'))
+                err => {
+                    console.log(err);
+                });
+            this.$refs.threat_detail.isModalOpen = true;
+        },
+        historyThreat: function (id) {
+            this.occConservationThreatHistoryId = parseInt(id);
+            this.uuid++;
+            this.$nextTick(() => {
+                this.$refs.occ_conservation_threat_history.isModalOpen = true;
+            });
+        },
+        discardThreat: function (id) {
+            let vm = this;
+            swal.fire({
+                title: "Remove Threat",
+                text: "Are you sure you want to remove this Threat?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: 'Remove Threat',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.occ_threat, id + '/discard'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
                                 text: 'Your threat has been removed',
-                                icon:'success',
-                                confirmButtonColor:'#226fbb'
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.threats_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
                             console.log(error);
                         });
-                    }
-                },(error) => {
+                }
+            }, (error) => {
 
-                });
-            },
-            reinstateThreat:function (id) {
-                let vm = this;
-                swal.fire({
-                    title: "Reinstate Threat",
-                    text: "Are you sure you want to Reinstate this Threat?",
-                    icon: "question",
-                    showCancelButton: true,
-                    confirmButtonText: 'Reinstate Threat',
-                    confirmButtonColor:'#226fbb',
-                }).then((result) => {
-                    if(result.isConfirmed){
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.occ_threat,id+'/reinstate'))
+            });
+        },
+        reinstateThreat: function (id) {
+            let vm = this;
+            swal.fire({
+                title: "Reinstate Threat",
+                text: "Are you sure you want to Reinstate this Threat?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Reinstate Threat',
+                customClass: {
+                    confirmButton: 'btn btn-primary'
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.occ_threat, id + '/reinstate'))
                         .then((response) => {
                             swal.fire({
-                                title:'Reinstated',
-                                text:'Your threat has been reinstated',
-                                icon:'success',
-                                confirmButtonColor:'#226fbb',
+                                title: 'Reinstated',
+                                text: 'Your threat has been reinstated',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary'
+                                },
                             });
                             vm.$refs.threats_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
                             console.log(error);
                         });
-                    }
-                },(error) => {
+                }
+            }, (error) => {
 
-                });
-            },
-            updatedThreats(){
-                this.$refs.threats_datatable.vmDataTable.ajax.reload();
-            },
-            addEventListeners:function (){
-                let vm=this;
-                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-edit-threat]', function(e) {
-                    e.preventDefault();
-                    var id = $(this).attr('data-edit-threat');
-                    vm.editThreat(id);
-                });
-                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-view-threat]', function(e) {
-                    e.preventDefault();
-                    var id = $(this).attr('data-view-threat');
-                    vm.viewThreat(id);
-                });
-                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-history-threat]', function(e) {
-                    e.preventDefault();
-                    var id = $(this).attr('data-history-threat');
-                    vm.historyThreat(id);
-                });
-                // External Discard listener
-                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-discard-threat]', function(e) {
-                    e.preventDefault();
-                    var id = $(this).attr('data-discard-threat');
-                    vm.discardThreat(id);
-                });
-                // External Reinstate listener
-                vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-reinstate-threat]', function(e) {
-                    e.preventDefault();
-                    var id = $(this).attr('data-reinstate-threat');
-                    vm.reinstateThreat(id);
-                });
-                vm.$refs.threats_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
-                    helpers.enablePopovers();
-                });
-            },
-            refreshFromResponse: function(){
-                this.$refs.threats_datatable.vmDataTable.ajax.reload();
-            },
-            adjust_table_width: function(){
-                if (this.$refs.threats_datatable !== undefined) {this.$refs.threats_datatable.vmDataTable.columns.adjust().responsive.recalc();}
-            },
+            });
         },
-        mounted: function(){
-            this.fetchFilterLists();
+        updatedThreats() {
+            this.$refs.threats_datatable.vmDataTable.ajax.reload();
+        },
+        addEventListeners: function () {
             let vm = this;
-            this.$nextTick(() => {
-                vm.addEventListeners();
+            vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-edit-threat]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-edit-threat');
+                vm.editThreat(id);
+            });
+            vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-view-threat]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-view-threat');
+                vm.viewThreat(id);
+            });
+            vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-history-threat]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-history-threat');
+                vm.historyThreat(id);
+            });
+            // External Discard listener
+            vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-discard-threat]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-discard-threat');
+                vm.discardThreat(id);
+            });
+            // External Reinstate listener
+            vm.$refs.threats_datatable.vmDataTable.on('click', 'a[data-reinstate-threat]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-reinstate-threat');
+                vm.reinstateThreat(id);
+            });
+            vm.$refs.threats_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
+            });
+        },
+        refreshFromResponse: function () {
+            this.$refs.threats_datatable.vmDataTable.ajax.reload();
+        },
+        adjust_table_width: function () {
+            if (this.$refs.threats_datatable !== undefined) { this.$refs.threats_datatable.vmDataTable.columns.adjust().responsive.recalc(); }
+        },
+    },
+    mounted: function () {
+        this.fetchFilterLists();
+        let vm = this;
+        this.$nextTick(() => {
+            vm.addEventListeners();
         });
-        }
     }
+}
 </script>
 
 <style lang="css" scoped>
-    /*ul, li {
+/*ul, li {
         zoom:1;
         display: inline;
     }*/
-    fieldset.scheduler-border {
+fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;
     margin: 0 0 1.5em 0 !important;
-    -webkit-box-shadow:  0px 0px 0px 0px #000;
-            box-shadow:  0px 0px 0px 0px #000;
-    }
-    legend.scheduler-border {
-    width:inherit; /* Or auto */
-    padding:0 10px; /* To give a bit of padding on the left and right */
-    border-bottom:none;
-    }
+    -webkit-box-shadow: 0px 0px 0px 0px #000;
+    box-shadow: 0px 0px 0px 0px #000;
+}
+
+legend.scheduler-border {
+    width: inherit;
+    /* Or auto */
+    padding: 0 10px;
+    /* To give a bit of padding on the left and right */
+    border-bottom: none;
+}
 </style>

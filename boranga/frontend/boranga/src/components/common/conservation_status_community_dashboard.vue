@@ -503,6 +503,9 @@ export default {
         },
     },
     computed: {
+        defaultApplicationStatus: function () {
+            return this.is_for_agenda ? 'ready_for_agenda' : 'approved';
+        },
         filterApplied: function () {
             if (this.filterCSCommunityMigratedId === 'all' &&
                 this.filterCSCommunityName === 'all' &&
@@ -515,7 +518,7 @@ export default {
                 this.filterCSCommunityAssessor === 'all' &&
                 this.filterCSCommunitySubmitter === 'all' &&
                 this.filterCSCommunitySubmitterCategory === 'all' &&
-                this.filterCSCommunityApplicationStatus === 'approved' &&
+                this.filterCSCommunityApplicationStatus === this.defaultApplicationStatus &&
                 this.filterCSFromCommunityEffectiveFromDate === '' &&
                 this.filterCSToCommunityEffectiveFromDate === '' &&
                 this.filterCSFromCommunityEffectiveToDate === '' &&
@@ -538,7 +541,7 @@ export default {
             );
         },
         datatable_headers: function () {
-            return ['Number', 'Community', 'Community Id', 'Community Name', 'Regions', 'Districts', 'Change Type', 'WA Priority List',
+            return ['Number', 'Community', 'Community Id', 'Community Name', 'Change Type', 'WA Priority List',
                 'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
                 'Conservation Criteria',
                 'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
@@ -1163,7 +1166,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {

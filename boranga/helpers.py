@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -21,17 +22,31 @@ logger = logging.getLogger(__name__)
 
 
 def superuser_ids_list():
-    return list(
-        EmailUser.objects.filter(is_superuser=True).values_list("id", flat=True)
-    )
+    cache_key = settings.CACHE_KEY_SUPERUSER_IDS
+    superuser_ids = cache.get(cache_key)
+    if superuser_ids is None:
+        superuser_ids = list(
+            EmailUser.objects.filter(is_superuser=True).values_list("id", flat=True)
+        )
+        cache.set(cache_key, superuser_ids, settings.CACHE_TIMEOUT_5_SECONDS)
+    return superuser_ids
 
 
 def belongs_to_by_user_id(user_id, group_name):
-    if user_id in superuser_ids_list():
+    superuser_ids = superuser_ids_list()
+    if superuser_ids and user_id in superuser_ids:
         return True
-
-    system_group = SystemGroup.objects.filter(name=group_name).first()
-    return system_group and user_id in system_group.get_system_group_member_ids()
+    cache_key = settings.CACHE_KEY_USER_BELONGS_TO_GROUP.format(
+        **{"user_id": user_id, "group_name": group_name}
+    )
+    belongs_to = cache.get(cache_key)
+    if belongs_to is None:
+        system_group = SystemGroup.objects.filter(name=group_name).first()
+        belongs_to = (
+            system_group and user_id in system_group.get_system_group_member_ids()
+        )
+        cache.set(cache_key, belongs_to, settings.CACHE_TIMEOUT_5_SECONDS)
+    return belongs_to
 
 
 def belongs_to(request, group_name, internal_only=False, external_only=False):
@@ -148,13 +163,51 @@ def is_conservation_status_referee(request, cs_proposal=None):
     if request.user.is_superuser:
         return True
 
-    from boranga.components.conservation_status.models import ConservationStatusReferral
+    cache_key = settings.CACHE_KEY_USER_BELONGS_TO_GROUP.format(
+        **{"user_id": request.user.id, "group_name": "conservation_status_referees"}
+    )
+    belongs_to = cache.get(cache_key)
+    if belongs_to is None:
+        from boranga.components.conservation_status.models import (
+            ConservationStatusReferral,
+        )
 
-    qs = ConservationStatusReferral.objects.filter(referral=request.user.id)
-    if cs_proposal:
-        qs = qs.filter(conservation_status=cs_proposal)
+        qs = ConservationStatusReferral.objects.filter(referral=request.user.id)
+        if cs_proposal:
+            qs = qs.filter(conservation_status=cs_proposal)
 
-    return qs.exists()
+        belongs_to = qs.exists()
+        cache.set(cache_key, belongs_to, settings.CACHE_TIMEOUT_5_SECONDS)
+    return belongs_to
+
+
+def is_occurrence_report_referee(request, occurrence_report=None):
+    if not request.user.is_authenticated:
+        return False
+
+    if request.user.is_superuser:
+        return True
+
+    cache_key = settings.CACHE_KEY_USER_BELONGS_TO_GROUP.format(
+        **{"user_id": request.user.id, "group_name": "occurrence_report_referees"}
+    )
+    belongs_to = cache.get(cache_key)
+    if belongs_to is None:
+        from boranga.components.occurrence.models import OccurrenceReportReferral
+
+        qs = OccurrenceReportReferral.objects.filter(referral=request.user.id)
+        if occurrence_report:
+            qs = qs.filter(occurrence_report=occurrence_report)
+
+        belongs_to = qs.exists()
+        cache.set(cache_key, belongs_to, settings.CACHE_TIMEOUT_5_SECONDS)
+    return belongs_to
+
+
+def is_referee(request):
+    return is_conservation_status_referee(request) or is_occurrence_report_referee(
+        request
+    )
 
 
 def in_dbca_domain(request):
@@ -189,8 +242,8 @@ def is_customer(request):
 
 
 def is_internal(request):
-    return is_departmentUser(request) and belongs_to_groups(
-        request, settings.INTERNAL_GROUPS
+    return is_departmentUser(request) and (
+        belongs_to_groups(request, settings.INTERNAL_GROUPS) or is_referee(request)
     )
 
 

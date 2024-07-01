@@ -38,14 +38,9 @@ from boranga.components.occurrence.models import (
     WildStatus,
 )
 from boranga.components.spatial.utils import (
-    projection,
     transform_geosgeometry_3857_to_4326,
     wkb_to_geojson,
 )
-
-
-import shapely.geometry as shp
-from shapely.ops import transform
 
 
 class GeometryField(forms.GeometryField):
@@ -111,12 +106,26 @@ class BufferGeometryInline(nested_admin.NestedStackedInline):
                         "area_sqm",
                         "area_sqhm",
                     ),
+                    (
+                        "object_id",
+                        "content_type",
+                        "created_from",
+                        "source_of",
+                    ),
                 )
             },
         ),
     )
 
-    readonly_fields = ["original_geometry", "area_sqm", "area_sqhm"]
+    readonly_fields = [
+        "original_geometry",
+        "area_sqm",
+        "area_sqhm",
+        "object_id",
+        "content_type",
+        "created_from",
+        "source_of",
+    ]
 
 
 class OccurrenceReportGeometryInlineForm(forms.ModelForm):
@@ -150,8 +159,14 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
                         "locked",
                     ),
                     (
-                        "copied_from",
+                        # "copied_from",
                         "drawn_by",
+                    ),
+                    (
+                        "object_id",
+                        "content_type",
+                        "created_from",
+                        "source_of",
                     ),
                 )
             },
@@ -162,6 +177,10 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
         "original_geometry",
         "area_sqm",
         "area_sqhm",
+        "object_id",
+        "content_type",
+        "created_from",
+        "source_of",
     ]
 
 
@@ -171,6 +190,9 @@ class OccurrenceGeometryInlineForm(forms.ModelForm):
     class Meta:
         model = OccurrenceGeometry
         fields = "__all__"
+
+
+# class
 
 
 class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
@@ -196,16 +218,30 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
                         "locked",
                     ),
                     (
-                        "copied_from",
+                        # "copied_from",
                         "drawn_by",
                     ),
                     ("buffer_radius",),
+                    (
+                        "object_id",
+                        "content_type",
+                        "created_from",
+                        "source_of",
+                    ),
                 )
             },
         ),
     )
 
-    readonly_fields = ["original_geometry", "area_sqm", "area_sqhm"]
+    readonly_fields = [
+        "original_geometry",
+        "area_sqm",
+        "area_sqhm",
+        "object_id",
+        "content_type",
+        "created_from",
+        "source_of",
+    ]
 
     inlines = [BufferGeometryInline, OccurrenceTenureInline]
 

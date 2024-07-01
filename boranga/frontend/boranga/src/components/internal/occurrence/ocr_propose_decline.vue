@@ -82,13 +82,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Propose Decline',
-                confirmButtonColor: '#d9534f',
-                reverseButtons: true,
-                buttonsStyling: false,
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary me-2',
                 },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
                     vm.$http.post(helpers.add_endpoint_join(api_endpoints.occurrence_report, '/' + (vm.occurrence_report_id + '/propose_decline/')), JSON.stringify(vm.propose_decline))
@@ -97,7 +95,9 @@ export default {
                                 title: 'Proposal to Decline Successful',
                                 text: `Your proposal to decline occurrence report ${vm.occurrence_report_number} has been successfully submitted.`,
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             }).then((result) => {
                                 vm.$router.go();
                             });

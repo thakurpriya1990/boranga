@@ -2,14 +2,16 @@
     <div id="community">
         <FormSection :formCollapse="false" label="Taxonomy" Index="taxonomy">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Community Name:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Community Name: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" class="form-control" rows="1" id="community_name" placeholder=""
                         v-model="species_community.taxonomy_details.community_name" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Community ID:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Community ID: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="community_migrated_id"
                         placeholder="" v-model="species_community.taxonomy_details.community_migrated_id" />
@@ -44,20 +46,20 @@
                 </div>
             </div>
         </FormSection>
-        <FormSection v-if="distribution_public || is_internal" :formCollapse="false" label="Distribution" Index="distribution">
+        <FormSection v-if="distribution_public || is_internal" :formCollapse="false" label="Distribution"
+            Index="distribution">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Distribution:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Distribution: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" class="form-control" rows="1" id="distribution" placeholder=""
                         v-model="species_community.distribution.distribution" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Region:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Region: <span class="text-danger">*</span></label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly"
-                        class="form-select"
-                        v-model="species_community.regions"
+                    <select :disabled="isReadOnly" class="form-select" v-model="species_community.regions"
                         ref="regions_select">
                         <option value="" selected disabled>Select region</option>
                         <option v-for="option in region_list" :value="option.value" :key="option.value">
@@ -67,12 +69,11 @@
                 </div>
             </div>
             <div v-if="species_community.regions" class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">District:</label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">District: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly"
-                    class="form-select"
-                    v-model="species_community.districts"
-                    ref="districts_select">
+                    <select :disabled="isReadOnly" class="form-select" v-model="species_community.districts"
+                        ref="districts_select">
                         <option value="" selected disabled>Select district</option>
                         <option v-for="option in district_list" :value="option.value" v-bind:key="option.value">
                             {{ option.text }}
@@ -174,9 +175,11 @@
                 </div>
             </div>
         </FormSection>
-        <BasicConservationStatus v-if="species_community.conservation_status && (conservation_status_public || is_internal)"
+        <BasicConservationStatus
+            v-if="species_community.conservation_status && (conservation_status_public || is_internal)"
             :conservation_status="species_community.conservation_status" :is_internal="is_internal" />
-        <FormSection v-if="conservation_attributes_public || is_internal" :formCollapse="false" label="Conservation Attributes" Index="conservation_attributes">
+        <FormSection v-if="conservation_attributes_public || is_internal" :formCollapse="false"
+            label="Conservation Attributes" Index="conservation_attributes">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Pollinator Information:</label>
                 <div class="col-sm-9">
@@ -187,54 +190,54 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Minimum Fire Interval:</label>
                 <div class="col-sm-3">
-                    <input class="form-check-input" type="checkbox" name="minimum_fire_interval_range"
-                        id="minimum_fire_interval_range" v-model="minimum_fire_interval_range" :disabled="isReadOnly"
-                        @change="handleMinimumFireIntervalRange()" />
-                    <label for="" class="control-label">Range</label>
+                    <div class="form-check form-check-inline">
+                        <label for="" class="control-label">Range</label>
+                        <input class="form-check-input" type="checkbox" name="minimum_fire_interval_range"
+                            id="minimum_fire_interval_range" v-model="minimum_fire_interval_range"
+                            :disabled="isReadOnly" @change="handleMinimumFireIntervalRange()" />
+                    </div>
                 </div>
                 <label for="" class="col-sm-6 control-label" style="color: red;">{{ errors.minimum_fire_interval_error
                     }}</label>
             </div>
             <div class="row mb-3" v-if="!minimum_fire_interval_range">
                 <label for="" class="col-sm-3 control-label"></label>
-                <div class="col-sm-3 interval-margin">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_from"
-                        placeholder="" @change="validateMinimumFireIntervalRange()"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
-                </div>
-                <div class="col-sm-2">
-                    <select :disabled="isReadOnly" class="form-select" @change="validateMinimumFireIntervalRange()"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
-                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                <div class="col-sm-3">
+                    <div class="input-group">
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_from"
+                            placeholder="" @change="validateMinimumFireIntervalRange()"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
+                        <select :disabled="isReadOnly" class="form-select" @change="validateMinimumFireIntervalRange()"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
                 <div class="col-sm-4">
                     <label for="" class="control-label">{{ minFireIntervalMonthsComputed }}</label>
                 </div>
             </div>
             <div class="row mb-3" v-else>
-                <label for="" class="col-sm-3 control-label"></label>
-                <label for="" class="col-sm-2 control-label">From:</label>
-                <div class="col-sm-2 interval-range-true-input">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_from"
-                        placeholder="" @change="validateMinimumFireIntervalRange()"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
-                </div>
-                <label for="" class="col-sm-2 control-label">To:</label>
-                <div class="col-sm-2 interval-range-true-input">
-                    <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_to"
-                        placeholder="" @change="validateMinimumFireIntervalRange()"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_to" />
-                </div>
-                <div class="col-sm-2">
-                    <select :disabled="isReadOnly" class="form-select" @change="validateMinimumFireIntervalRange()"
-                        v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
-                        <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                <div class="col-sm-3"></div>
+                <div class="col-sm-6">
+                    <div class="input-group">
+                        <label for="" class="input-group-text">From</label>
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_from"
+                            placeholder="" @change="validateMinimumFireIntervalRange()"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
+                        <label for="" class="input-group-text">to</label>
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_to"
+                            placeholder="" @change="validateMinimumFireIntervalRange()"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_to" />
+                        <select :disabled="isReadOnly" class="form-select" @change="validateMinimumFireIntervalRange()"
+                            v-model="species_community.conservation_attributes.minimum_fire_interval_choice">
+                            <option v-for="option in interval_choice" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
@@ -343,50 +346,62 @@
                 <label for="distribution_publishing" class="col-sm-3 control-label">Distribution: </label>
                 <div class="col-sm-9">
                     <label for="distribution_publishing" class="me-2">Private</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
-                        id="distribution_publishing" v-model="species_community.publishing_status.distribution_public">
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false"
+                        class="form-check-input me-2" id="distribution_publishing"
+                        v-model="species_community.publishing_status.distribution_public">
                     <label for="distribution_publishing" class="me-2">Public</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
-                        id="distribution_publishing" v-model="species_community.publishing_status.distribution_public">
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true"
+                        class="form-check-input" id="distribution_publishing"
+                        v-model="species_community.publishing_status.distribution_public">
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="conservation_status_publishing" class="col-sm-3 control-label">Conservation Status: </label>
                 <div class="col-sm-9">
                     <label for="conservation_status_publishing" class="me-2">Private</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
-                        id="conservation_status_publishing" v-model="species_community.publishing_status.conservation_status_public">
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false"
+                        class="form-check-input me-2" id="conservation_status_publishing"
+                        v-model="species_community.publishing_status.conservation_status_public">
                     <label for="conservation_status_publishing" class="me-2">Public</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
-                        id="conservation_status_publishing" v-model="species_community.publishing_status.conservation_status_public">
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true"
+                        class="form-check-input" id="conservation_status_publishing"
+                        v-model="species_community.publishing_status.conservation_status_public">
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="conservation_attributes_publishing" class="col-sm-3 control-label">Conservation Attributes: </label>
+                <label for="conservation_attributes_publishing" class="col-sm-3 control-label">Conservation Attributes:
+                </label>
                 <div class="col-sm-9">
                     <label for="conservation_attributes_publishing" class="me-2">Private</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
-                        id="conservation_attributes_publishing" v-model="species_community.publishing_status.conservation_attributes_public">
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false"
+                        class="form-check-input me-2" id="conservation_attributes_publishing"
+                        v-model="species_community.publishing_status.conservation_attributes_public">
                     <label for="conservation_attributes_publishing" class="me-2">Public</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
-                        id="conservation_attributes_publishing" v-model="species_community.publishing_status.conservation_attributes_public">
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true"
+                        class="form-check-input" id="conservation_attributes_publishing"
+                        v-model="species_community.publishing_status.conservation_attributes_public">
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="threats_publishing" class="col-sm-3 control-label">Threats: </label>
                 <div class="col-sm-9">
                     <label for="threats_publishing" class="me-2">Private</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false" class="form-check-input me-2"
-                        id="threats_publishing" v-model="species_community.publishing_status.threats_public">
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="false"
+                        class="form-check-input me-2" id="threats_publishing"
+                        v-model="species_community.publishing_status.threats_public">
                     <label for="threats_publishing" class="me-2">Public</label>
-                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true" class="form-check-input"
-                        id="threats_publishing" v-model="species_community.publishing_status.threats_public">
+                    <input :disabled="isReadOnly || !isPublic || !isActive" type="radio" :value="true"
+                        class="form-check-input" id="threats_publishing"
+                        v-model="species_community.publishing_status.threats_public">
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
-                    <button v-if="!updatingPublishing" :disabled="isReadOnly || !isPublic || !isActive" class="btn btn-primary btn-sm float-end" @click.prevent="updatePublishingDetails()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary"><i class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                    <button v-if="!updatingPublishing" :disabled="isReadOnly || !isPublic || !isActive"
+                        class="btn btn-primary btn-sm float-end"
+                        @click.prevent="updatePublishingDetails()">Update</button>
+                    <button v-else disabled class="float-end btn btn-primary"><i
+                            class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
                 </div>
             </div>
         </FormSection>
@@ -403,7 +418,7 @@ import {
     helpers
 }
 
-from '@/utils/hooks'
+    from '@/utils/hooks'
 export default {
     name: 'Community',
     props: {
@@ -448,10 +463,10 @@ export default {
         distribution_public: function () {
             return this.isPublic && this.species_community.publishing_status.distribution_public;
         },
-        conservation_status_public: function() {
+        conservation_status_public: function () {
             return this.isPublic && this.species_community.publishing_status.conservation_status_public;
         },
-        conservation_attributes_public: function() {
+        conservation_attributes_public: function () {
             return this.isPublic && this.species_community.publishing_status.conservation_attributes_public;
         },
         isReadOnly: function () {
@@ -548,8 +563,8 @@ export default {
     methods: {
         updatePublishing(data) {
             let vm = this;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.community,(vm.species_community.id+'/update_publishing_status')),data,{
-                emulateJSON:true
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.community, (vm.species_community.id + '/update_publishing_status')), data, {
+                emulateJSON: true
             }).then((response) => {
                 vm.updatingPublishing = false;
                 vm.species_community.publishing_status = response.body;
@@ -558,31 +573,36 @@ export default {
                     title: 'Saved',
                     text: 'Publishing settings have been updated',
                     icon: 'success',
-                    confirmButtonColor:'#226fbb',
-
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             }, (error) => {
-                var text= helpers.apiVueResourceError(error);
+                var text = helpers.apiVueResourceError(error);
                 swal.fire({
                     title: 'Error',
-                    text: 'Publishing settings cannot be updated because of the following error: '+text,
+                    text: 'Publishing settings cannot be updated because of the following error: ' + text,
                     icon: 'error',
-                    confirmButtonColor:'#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.updatingPublishing = false;
             });
         },
-        updatePublishingDetails: function() {
+        updatePublishingDetails: function () {
             let vm = this;
             vm.updatingPublishing = true;
             //if not already public, we make it public (notify user first)
             //but only if it is active
-            if (helpers.checkForChange(vm.species_community_original.publishing_status,vm.species_community.publishing_status)) {
+            if (helpers.checkForChange(vm.species_community_original.publishing_status, vm.species_community.publishing_status)) {
                 swal.fire({
                     title: 'Error',
                     text: 'No changes made',
                     icon: 'error',
-                    confirmButtonColor:'#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.updatingPublishing = false;
             }
@@ -595,7 +615,9 @@ export default {
                     title: 'Error',
                     text: 'Record not active and cannot be made public',
                     icon: 'error',
-                    confirmButtonColor:'#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.updatingPublishing = false;
             }
@@ -619,23 +641,23 @@ export default {
                 }
             });
         },
-        fetchRegions: function(){
+        fetchRegions: function () {
             let vm = this;
 
             vm.$http.get(api_endpoints.regions).then((response) => {
-                    vm.api_regions = response.body;
-                    for (var i = 0; i < vm.api_regions.length; i++) {
-                        this.region_list.push( {text: vm.api_regions[i].name, value: vm.api_regions[i].id, districts: vm.api_regions[i].districts} );
-                    }
-                    // vm.setProposalData2(this.regions);
-                    if(vm.species_community.regions){
-                        vm.chainedSelectDistricts(vm.species_community.regions,"fetch");
-                    }
-            },(error) => {
+                vm.api_regions = response.body;
+                for (var i = 0; i < vm.api_regions.length; i++) {
+                    this.region_list.push({ text: vm.api_regions[i].name, value: vm.api_regions[i].id, districts: vm.api_regions[i].districts });
+                }
+                // vm.setProposalData2(this.regions);
+                if (vm.species_community.regions) {
+                    vm.chainedSelectDistricts(vm.species_community.regions, "fetch");
+                }
+            }, (error) => {
                 console.log(error);
             })
         },
-        searchList: function(id, search_list){
+        searchList: function (id, search_list) {
             /* Searches for dictionary in list */
             for (var i = 0; i < search_list.length; i++) {
                 if (search_list[i].value == id) {
@@ -644,58 +666,58 @@ export default {
             }
             return [];
         },
-        chainedSelectDistricts: function(regions,action,deselect_region_id){
+        chainedSelectDistricts: function (regions, action, deselect_region_id) {
             let vm = this;
-            if(action!= "fetch"){
+            if (action != "fetch") {
                 vm.species_community.districts = []; //-----to remove the previous selection
             }
             vm.district_list = [];
-            if(regions){
-                for(let r of regions){
+            if (regions) {
+                for (let r of regions) {
                     var api_districts = this.searchList(r, vm.region_list).districts;
                     if (api_districts.length > 0) {
                         for (var i = 0; i < api_districts.length; i++) {
-                            this.district_list.push( {text: api_districts[i].name, value: api_districts[i].id} );
+                            this.district_list.push({ text: api_districts[i].name, value: api_districts[i].id });
                         }
                     }
                 }
             }
         },
-        initialiseRegionSelect: function(){
+        initialiseRegionSelect: function () {
             let vm = this;
             $(vm.$refs.regions_select).select2({
                 "theme": "bootstrap-5",
                 allowClear: true,
                 multiple: true,
-                placeholder:"Select Region",
+                placeholder: "Select Region",
             }).
-            on("select2:select",function (e) {
-                var selected = $(e.currentTarget);
-                vm.species_community.regions = selected.val();
-                vm.chainedSelectDistricts(vm.species_community.regions,"select");
-            }).
-            on("select2:unselect",function (e) {
-                var selected = $(e.currentTarget);
-                vm.species_community.regions = selected.val();
-                vm.chainedSelectDistricts(vm.species_community.regions,"deselect");
-            });
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.species_community.regions = selected.val();
+                    vm.chainedSelectDistricts(vm.species_community.regions, "select");
+                }).
+                on("select2:unselect", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.species_community.regions = selected.val();
+                    vm.chainedSelectDistricts(vm.species_community.regions, "deselect");
+                });
         },
-        initialiseDistrictSelect: function(){
+        initialiseDistrictSelect: function () {
             let vm = this;
             $(vm.$refs.districts_select).select2({
                 "theme": "bootstrap-5",
                 allowClear: true,
                 multiple: true,
-                placeholder:"Select District",
+                placeholder: "Select District",
             }).
-            on("select2:select",function (e) {
-                var selected = $(e.currentTarget);
-                vm.species_community.districts = selected.val();
-            }).
-            on("select2:unselect",function (e) {
-                var selected = $(e.currentTarget);
-                vm.species_community.districts = selected.val();
-            });
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.species_community.districts = selected.val();
+                }).
+                on("select2:unselect", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.species_community.districts = selected.val();
+                });
         },
         checkDate: function () {
             let vm = this;
@@ -738,10 +760,14 @@ export default {
                 swal.fire({
                     title: "Warning",
                     text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
-                    icon: "warning",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'ok',
-                    confirmButtonColor: '#d9534f'
+                    confirmButtonText: 'Proceed',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary me-2',
+                    },
+                    reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
                         vm.species_community.distribution.number_of_occurrences = vm.species_community.distribution.cal_number_of_occurrences;
@@ -773,10 +799,14 @@ export default {
                 swal.fire({
                     title: "Warning",
                     text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
-                    icon: "warning",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'ok',
-                    confirmButtonColor: '#d9534f'
+                    confirmButtonText: 'Proceed',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary me-2',
+                    },
+                    reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
                         // set EOO field to calculted_EOO vale
@@ -814,10 +844,14 @@ export default {
                 swal.fire({
                     title: "Warning",
                     text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
-                    icon: "warning",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'ok',
-                    confirmButtonColor: '#d9534f'
+                    confirmButtonText: 'Proceed',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary me-2',
+                    },
+                    reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
                         // set AOO field to calculated_AOO value
@@ -855,10 +889,14 @@ export default {
                 swal.fire({
                     title: "Warning",
                     text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
-                    icon: "warning",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'ok',
-                    confirmButtonColor: '#d9534f'
+                    confirmButtonText: 'Proceed',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary me-2',
+                    },
+                    reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
                         // set AOOActual field to calculted_AOOActual vale
@@ -876,65 +914,64 @@ export default {
                         vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.area_of_occupancy_actual;
                     }
 
-                    }, (error) => {
-                        console.error('Error:', error);
-                    });
-                }
-                else {
-                    // set AOOActual value to null if manual selected
-                    vm.species_community.distribution.area_of_occupancy_actual=null;
-                    document.getElementById("aoo_actual_manual").checked = true;
-                    document.getElementById("aoo_actual_auto").checked = false;
-                    // set aoo_actual to false to fire the change of value so the AOOActual input box will be editable
-                    vm.species_community.distribution.aoo_actual_auto= false;
-                }
-            },
-        },
-        created: async function () {
-            let vm = this;
-            //----set the distribution field values if auto onload
-            if (vm.species_community.distribution) {
-                if(vm.species_community.distribution.noo_auto == true) {
-                    vm.species_community.distribution.number_of_occurrences = vm.species_community.distribution.cal_number_of_occurrences;
-                }
-                if(vm.species_community.distribution.eoo_auto == true) {
-                    vm.species_community.distribution.extent_of_occurrences = vm.species_community.distribution.cal_extent_of_occurrences;
-                }
-                if(vm.species_community.distribution.aoo_actual_auto == true) {
-                    vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.cal_area_of_occupancy_actual;
-                }
-                if(vm.species_community.distribution.aoo_auto == true) {
-                    vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
-                }
-            }
-            if (vm.species_community.conservation_attributes) {
-                if(vm.species_community.conservation_attributes.minimum_fire_interval_to != null &&
-                    vm.species_community.conservation_attributes.minimum_fire_interval_to != "" &&
-                        vm.species_community.conservation_attributes.minimum_fire_interval_to != undefined)
-                {
-                    vm.minimum_fire_interval_range = true;
-                }
-            }
-            //------fetch list of values
-            const res_obj = await Vue.http.get('/api/community_profile_dict/');
-            vm.community_profile_dict = res_obj.body;
-            vm.post_fire_habitatat_interactions_list = vm.community_profile_dict.post_fire_habitatat_interactions_list;
-            vm.post_fire_habitatat_interactions_list.splice(0,0,
-                {
-                    id: null,
-                    name: null,
+                }, (error) => {
+                    console.error('Error:', error);
                 });
-            //const response = await Vue.http.get('/api/region_district_filter_dict/');
-            //vm.filterRegionDistrict= response.body;
-            //vm.region_list = vm.filterRegionDistrict.region_list;
-            //vm.district_list= vm.filterRegionDistrict.district_list;
-            //vm.region_list.splice(0,0,
-            //{
-            //    id: null,
-            //    name: null,
-            //});
-            //this.filterDistrict();
-            vm.fetchRegions();
+            }
+            else {
+                // set AOOActual value to null if manual selected
+                vm.species_community.distribution.area_of_occupancy_actual = null;
+                document.getElementById("aoo_actual_manual").checked = true;
+                document.getElementById("aoo_actual_auto").checked = false;
+                // set aoo_actual to false to fire the change of value so the AOOActual input box will be editable
+                vm.species_community.distribution.aoo_actual_auto = false;
+            }
+        },
+    },
+    created: async function () {
+        let vm = this;
+        //----set the distribution field values if auto onload
+        if (vm.species_community.distribution) {
+            if (vm.species_community.distribution.noo_auto == true) {
+                vm.species_community.distribution.number_of_occurrences = vm.species_community.distribution.cal_number_of_occurrences;
+            }
+            if (vm.species_community.distribution.eoo_auto == true) {
+                vm.species_community.distribution.extent_of_occurrences = vm.species_community.distribution.cal_extent_of_occurrences;
+            }
+            if (vm.species_community.distribution.aoo_actual_auto == true) {
+                vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.cal_area_of_occupancy_actual;
+            }
+            if (vm.species_community.distribution.aoo_auto == true) {
+                vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
+            }
+        }
+        if (vm.species_community.conservation_attributes) {
+            if (vm.species_community.conservation_attributes.minimum_fire_interval_to != null &&
+                vm.species_community.conservation_attributes.minimum_fire_interval_to != "" &&
+                vm.species_community.conservation_attributes.minimum_fire_interval_to != undefined) {
+                vm.minimum_fire_interval_range = true;
+            }
+        }
+        //------fetch list of values
+        const res_obj = await Vue.http.get('/api/community_profile_dict/');
+        vm.community_profile_dict = res_obj.body;
+        vm.post_fire_habitatat_interactions_list = vm.community_profile_dict.post_fire_habitatat_interactions_list;
+        vm.post_fire_habitatat_interactions_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+        //const response = await Vue.http.get('/api/region_district_filter_dict/');
+        //vm.filterRegionDistrict= response.body;
+        //vm.region_list = vm.filterRegionDistrict.region_list;
+        //vm.district_list= vm.filterRegionDistrict.district_list;
+        //vm.region_list.splice(0,0,
+        //{
+        //    id: null,
+        //    name: null,
+        //});
+        //this.filterDistrict();
+        vm.fetchRegions();
     },
     mounted: function () {
         let vm = this;
@@ -969,13 +1006,5 @@ input[type=text],
 select {
     width: 100%;
     padding: 0.375rem 2.25rem 0.375rem 0.75rem;
-}
-
-.interval-margin {
-    width: 20%;
-}
-
-.interval-range-true-input {
-    margin-left: -70px;
 }
 </style>

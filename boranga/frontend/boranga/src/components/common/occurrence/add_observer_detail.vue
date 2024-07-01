@@ -3,7 +3,7 @@
         <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large>
             <div class="container-fluid">
                 <div class="row">
-                    <form class="form-horizontal needs-validation" name="observerDetailForm" novalidate>
+                    <form v-if="showForm" class="form-horizontal needs-validation" name="observerDetailForm" novalidate>
                         <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
@@ -13,7 +13,7 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <input type="text" class="form-control" :disabled="isReadOnly"
-                                            v-model="observerObj.observer_name" ref="observer_name" required />
+                                            v-model="observerObj.observer_name" ref="observer_name" required autofocus />
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -25,7 +25,7 @@
                                             v-model="observerObj.role" />
                                     </div>
                                 </div>
-                                <div class="row mb-3">
+                                <div v-if="'contact' in observerObj" class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left">Contact Details</label>
                                     </div>
@@ -67,7 +67,9 @@
                                     <div v-if="!isReadOnly" class="col-sm-9">
                                         <button type="button" class="btn btn-primary mb-2" @click="clearForm">Clear
                                             Form</button><br />
-                                        <button type="button" class="btn btn-primary" @click="populateWithSubmitterInformation()">Populate Form with Submitter Details</button>
+                                        <button type="button" class="btn btn-primary"
+                                            @click="populateWithSubmitterInformation()">Populate Form with Submitter
+                                            Details</button>
                                     </div>
                                 </div>
                             </div>
@@ -150,13 +152,22 @@ export default {
         },
         isReadOnly: function () {
             return this.observer_detail_action === "view" ? true : false;
+        },
+        showForm: function () {
+            if (['view', 'edit'].includes(this.observer_detail_action)) {
+                return this.observerObj.id ? true : false;
+            } else {
+                return true;
+            }
         }
     },
     watch: {
         isModalOpen: function (val) {
             if (val) {
                 this.$nextTick(() => {
-                    this.$refs.observer_name.focus();
+                    if(this.$refs.observer_name){
+                        this.$refs.observer_name.focus();
+                    }
                     if (this.occurrence_report.has_main_observer) {
                         this.observerObj.main_observer = false;
                     } else {
@@ -241,7 +252,8 @@ export default {
         clearForm: function () {
             this.observerObj = {
                 occurrence_report: this.occurrence_report.id,
-                main_observer: true
+                main_observer: true,
+                contact: '',
             };
             this.$refs.observer_name.focus();
         },

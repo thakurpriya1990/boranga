@@ -67,7 +67,7 @@
                                     <ProposalOccurrenceReport v-if="occurrence_report_obj"
                                         :occurrence_report_obj="occurrence_report_obj" id="OccurrenceReportStart"
                                         :canEditStatus="canEditStatus" ref="occurrence_report" :referral="referral"
-                                        @refreshOccurrenceReport="refreshOccurrenceReport()"
+                                        @refreshOccurrenceReport="refreshOccurrenceReport()" :show_observer_contact_information="false"
                                         @refreshFromResponse="refreshFromResponse">
                                     </ProposalOccurrenceReport>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
@@ -166,7 +166,9 @@ export default {
                     title: 'Saved',
                     text: 'Your changes have been saved',
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingOccurrenceReport = false;
             }, err => {
@@ -217,7 +219,9 @@ export default {
                                     title: 'Referral Error',
                                     text: helpers.apiVueResourceError(error),
                                     icon: 'error',
-                                    confirmButtonColor: '#226fbb'
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
                                 });
                             });
 

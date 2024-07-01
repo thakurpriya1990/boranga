@@ -4,6 +4,8 @@ from abc import abstractmethod
 
 import reversion
 from django.conf import settings
+from django.contrib.contenttypes import fields
+from django.contrib.contenttypes import models as ct_models
 from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
 from django.contrib.gis.geos import GEOSGeometry, Polygon
@@ -552,7 +554,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
-            OccurrenceReportUserAction.ACTION_DISCARD_PROPOSAL.format(
+            OccurrenceReportUserAction.ACTION_REINSTATE_PROPOSAL.format(
                 self.occurrence_report_number
             ),
             request,
@@ -757,10 +759,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         if (
             new_occurrence_name
-            and Occurrence.objects.filter(occurrence_name=new_occurrence_name).exists()
+            and (Occurrence.objects.filter(occurrence_name=new_occurrence_name).exists()
             or OccurrenceReportApprovalDetails.objects.filter(
                 new_occurrence_name=new_occurrence_name
-            ).exists()
+            ).exists())
         ):
             raise ValidationError(
                 f'Occurrence with name "{new_occurrence_name}" already exists or has been proposed for approval'
@@ -961,6 +963,12 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         # send email
         send_occurrence_report_referral_email_notification(referral, request)
 
+    @property
+    def external_referral_invites(self):
+        return self.external_referee_invites.filter(
+            archived=False, datetime_first_logged_in__isnull=True
+        )
+
 
 class OccurrenceReportDeclinedDetails(models.Model):
     occurrence_report = models.OneToOneField(
@@ -1042,6 +1050,7 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_APPROVE = "Occurrence Report {} has been approved by {}"
     ACTION_CLOSE_OccurrenceReport = "De list occurrence report {}"
     ACTION_DISCARD_PROPOSAL = "Discard occurrence report {}"
+    ACTION_REINSTATE_PROPOSAL = "Reinstate occurrence report {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
 
     # Amendment
@@ -1626,8 +1635,23 @@ class GeometryBase(models.Model):
         blank=True, null=True, editable=True
     )  # original geometry as uploaded by the user in EWKB format (keeps the srid)
 
+    content_type = models.ForeignKey(
+        ct_models.ContentType,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="content_type_%(class)s",
+    )
+    object_id = models.PositiveIntegerField(blank=True, null=True)
+    content_object = fields.GenericForeignKey("content_type", "object_id")
+
+    copied_from = fields.GenericRelation("self", related_query_name="copied_to")
+
     class Meta:
         abstract = True
+        indexes = [
+            models.Index(fields=["content_type", "object_id"]),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.geometry:
@@ -1671,7 +1695,7 @@ class GeometryBase(models.Model):
                 if len(self.geometry.wkt) > 75
                 else self.geometry.wkt
             )
-        return f"{self.related_model_field()} Geometry: {wkt_ellipsis}"
+        return f"{self.__class__.__name__} of <{self.related_model_field()}>: {wkt_ellipsis}"
 
     @property
     def area_sqm(self):
@@ -1697,6 +1721,53 @@ class GeometryBase(models.Model):
             return GEOSGeometry(self.original_geometry_ewkb).srid
         return None
 
+    def created_from_instance(self):
+        if not self.content_type or not self.object_id:
+            return None
+
+        InstanceModel = self.content_type.model_class()
+        try:
+            model_instance = InstanceModel.objects.get(id=self.object_id)
+        except InstanceModel.DoesNotExist:
+            return None
+        else:
+            return model_instance
+
+    @property
+    def created_from(self):
+        """Returns the __str__-representation of the object that this geometry was created from."""
+
+        instance = self.created_from_instance()
+        if instance:
+            return instance.__str__()
+        return None
+
+    def source_of_objects(self):
+        content_type = ct_models.ContentType.objects.get_for_model(self.__class__)
+
+        parent_subclasses = self.__class__.__base__.__subclasses__()
+        # Get a list of content types for the parent classes of this geometry model
+        subclasses_content_types = [
+            ct_models.ContentType.objects.get_for_model(psc)
+            for psc in parent_subclasses
+        ]
+        # Get a list of filtered objects (the objects that have been created from self) for each subclass content type
+        source_of_objects = [
+            sc_ct.get_all_objects_for_this_type().filter(
+                content_type=content_type, object_id=self.id
+            )
+            for sc_ct in subclasses_content_types
+        ]
+        return [soo for soo in source_of_objects if soo.exists()]
+
+    @property
+    def source_of(self):
+        """Returns a list of the __str__-representations of the objects that have been created from this geometry.
+        I.e. the geometry objects for which this geometry is the source.
+        """
+
+        return [source.__str__() for qs in self.source_of_objects() for source in qs]
+
 
 class DrawnByGeometry(models.Model):
     drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
@@ -1718,9 +1789,6 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry
         on_delete=models.CASCADE,
         null=True,
         related_name="ocr_geometry",
-    )
-    copied_from = models.ForeignKey(
-        "self", on_delete=models.SET_NULL, blank=True, null=True
     )
     locked = models.BooleanField(default=False)
 
@@ -1765,10 +1833,6 @@ class OCRObserverDetail(models.Model):
 
     class Meta:
         app_label = "boranga"
-        unique_together = (
-            "observer_name",
-            "occurrence_report",
-        )
 
     def __str__(self):
         return str(self.occurrence_report)  # TODO: is the most appropriate?
@@ -2896,6 +2960,12 @@ class Occurrence(RevisionedMixin):
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     updated_date = models.DateTimeField(auto_now=True, null=False, blank=False)
 
+    combined_occurrence = models.ForeignKey("self", 
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="combined_occurrences")
+
     PROCESSING_STATUS_DRAFT = "draft"
     PROCESSING_STATUS_ACTIVE = "active"
     PROCESSING_STATUS_LOCKED = "locked"
@@ -2950,6 +3020,145 @@ class Occurrence(RevisionedMixin):
     def number_of_reports(self):
         return self.occurrence_report_count
 
+    @transaction.atomic
+    def combine(self, request):
+        #only Active OCCs may be combined to
+        if not (self.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
+            raise ValidationError("Occurrence not Active, cannot be combined to")
+
+        occ_combine_data = json.loads(request.POST.get("data"))
+        #print(occ_combine_data)
+
+        #OCCs being combined must not be discarded or historical
+        combine_occurrences = Occurrence.objects.exclude(
+            id=self.id
+        ).filter(
+            id__in=occ_combine_data["combine_ids"]
+        )
+        
+        if not combine_occurrences.exists():
+            raise ValidationError("No Occurrences selected to be combined")
+
+        if (combine_occurrences.filter(
+            Q(processing_status=Occurrence.PROCESSING_STATUS_DISCARDED)|
+            Q(processing_status=Occurrence.PROCESSING_STATUS_HISTORICAL)
+            ).exists()
+        ):
+            raise ValidationError("Closed or Discarded Occurrences may not be combined")
+        
+        #validate species/community
+        if (combine_occurrences.exclude(
+            group_type=self.group_type
+            ).exists()
+        ):
+            raise ValidationError("Selected Occurrence has mismatched group type")
+            
+        #dictionary pairing request value keys with corresponding model attrs/foreign relations
+        FORM_KEYS = {
+            "occurrence_source":"occurrence_source",
+            "wild_status":"wild_status",
+            "review_due_date":"review_due_date",
+            "comment":"comment",
+        }
+        SECTION_KEYS = {
+            "chosen_location_section":"location",
+            "chosen_habitat_composition_section":"habitat_composition",
+            "chosen_habitat_condition_section":"habitat_condition",
+            "chosen_vegetation_structure_section":"vegetation_structure",
+            "chosen_fire_history_section":"fire_history",
+            "chosen_associated_species_section":"associated_species",
+            "chosen_observation_detail_section":"observation_detail",
+            "chosen_animal_observation_section":"animal_observation",
+            "chosen_plant_count_section":"plant_count",
+            "chosen_identification_section":"identification",
+        }
+        COPY_TABLE_KEYS = {
+            "combine_key_contact_ids":OCCContactDetail,
+            "combine_document_ids":OccurrenceDocument,
+        }
+        MOVE_TABLE_KEYS = {"combine_threat_ids":OCCConservationThreat}
+
+        #assess and assign form values
+        for key in FORM_KEYS:
+            if key in occ_combine_data and occ_combine_data[key] != self.id:
+                #print("set", key, "to that in OCC", occ_combine_data[key])
+                try: #handle in case somehow the combined occurrence record does not exist
+                    setattr(self,key,getattr(combine_occurrences.get(id=occ_combine_data[key]),key))
+                except Exception as e:
+                    print(e)
+
+        #assess and copy section values
+        for key in SECTION_KEYS:
+            if key in occ_combine_data and occ_combine_data[key] != self.id:
+                #print("copy", key, "from OCC", occ_combine_data[key])
+                try: #handle in case somehow the combined occurrence record does not exist or does not have the specified section
+                    src_section = getattr(combine_occurrences.get(id=occ_combine_data[key]),SECTION_KEYS[key])
+                    section = getattr(self,SECTION_KEYS[key])
+                    section_fields = type(section)._meta.get_fields()
+                    for i in section_fields:
+                        if (
+                            i.name != "id"
+                            and i.name != "occurrence"
+                            and hasattr(section, i.name)
+                        ):
+                            if isinstance(i, models.ManyToManyField):
+                                src_value = getattr(src_section, i.name)
+                                value = getattr(section, i.name)
+                                value.clear()
+                                for i in src_value.all():
+                                    value.add(i)
+                            else:
+                                value = getattr(src_section, i.name)
+                                setattr(section, i.name, value)
+                            #print(i.name," - ",value)
+                    section.save()
+                except Exception as e:
+                    print(e)
+                
+        #assess and copy table values (contacts and documents) TODO: sites and tenures
+        for key in COPY_TABLE_KEYS:
+            if key in occ_combine_data:
+                #print("Copy",key,"with ids",occ_combine_data[key],"if not already in OCC")
+                for record in  COPY_TABLE_KEYS[key].objects.filter(id__in=occ_combine_data[key]).exclude(occurrence=self):
+                    copy = clone_model(
+                        COPY_TABLE_KEYS[key],
+                        COPY_TABLE_KEYS[key],
+                        record,
+                    )
+                    if copy:
+                        copy.occurrence = self
+                        copy.save()
+
+        #assess and move threat table values
+        for key in MOVE_TABLE_KEYS:
+            if key in occ_combine_data:
+                #print("Move",key,"with ids",occ_combine_data[key],"if not already in OCC")
+                for record in  MOVE_TABLE_KEYS[key].objects.filter(id__in=occ_combine_data[key]).exclude(occurrence=self):
+                    record.occurrence = self
+                    record.save()
+
+        #NOTE: not validating OCR species/community - already validated at OCC level
+        #move OCRs
+        ocrs = OccurrenceReport.objects.filter(occurrence__in=combine_occurrences)
+        ocrs.update(occurrence=self)
+
+        #update combined OCCs to note that they have been combined and close
+        for i in combine_occurrences:
+            i.processing_status = Occurrence.PROCESSING_STATUS_HISTORICAL
+            i.combined_occurrence = self
+            i.save(version_user=request.user)
+
+        #save
+        self.save(version_user=request.user)
+
+        #action log
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_COMBINE_OCCURRENCE.format(
+                ", ".join(list(combine_occurrences.values_list("occurrence_number",flat=True))), self.occurrence_number
+            ),
+            request,
+        )
+
     def validate_activate(self):
         missing_values = []
 
@@ -2993,6 +3202,38 @@ class Occurrence(RevisionedMixin):
                 "Cannot activate this occurrence due to missing values: "
                 + ", ".join(missing_values)
             )
+
+    @transaction.atomic
+    def discard(self, request):
+        if not self.processing_status == Occurrence.PROCESSING_STATUS_DRAFT:
+            raise exceptions.OccurrenceNotAuthorized()
+
+        self.processing_status = Occurrence.PROCESSING_STATUS_DISCARDED
+        self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_DISCARD_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
+    @transaction.atomic
+    def reinstate(self, request):
+        if not self.processing_status == Occurrence.PROCESSING_STATUS_DISCARDED:
+            raise exceptions.OccurrenceNotAuthorized()
+
+        self.processing_status = Occurrence.PROCESSING_STATUS_DRAFT
+        self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_REINSTATE_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
 
     def activate(self, request):
         self.validate_activate()
@@ -3041,8 +3282,9 @@ class Occurrence(RevisionedMixin):
 
     def can_user_edit(self, request):
         user_editable_state = [
-            "active",
-            "draft",
+            Occurrence.PROCESSING_STATUS_ACTIVE,
+            Occurrence.PROCESSING_STATUS_DRAFT,
+            Occurrence.PROCESSING_STATUS_DISCARDED,
         ]
         if self.processing_status not in user_editable_state:
             return False
@@ -3280,6 +3522,9 @@ class OccurrenceUserAction(UserAction):
     ACTION_VIEW_OCCURRENCE = "View occurrence {}"
     ACTION_SAVE_OCCURRENCE = "Save occurrence {}"
     ACTION_EDIT_OCCURRENCE = "Edit occurrence {}"
+    ACTION_DISCARD_OCCURRENCE = "Discard  occurrence {}"
+    ACTION_REINSTATE_OCCURRENCE = "Reinstate  occurrence {}"
+    ACTION_COMBINE_OCCURRENCE = "{} combined in to occurrence {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for occurrence {}"
@@ -3430,9 +3675,6 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
         null=True,
         related_name="occ_geometry",
     )
-    copied_from = models.ForeignKey(
-        "self", on_delete=models.SET_NULL, blank=True, null=True
-    )
     locked = models.BooleanField(default=False)
     # TODO: possibly remove buffer radius from location models
     # when we go with the radius being a property of the geometry
@@ -3478,10 +3720,6 @@ class OCCContactDetail(models.Model):
 
     class Meta:
         app_label = "boranga"
-        unique_together = (
-            "contact_name",
-            "occurrence",
-        )
 
     def __str__(self):
         return str(self.occurrence)  # TODO: is the most appropriate?
@@ -4047,6 +4285,9 @@ class OccurrenceTenurePurpose(models.Model):
         app_label = "boranga"
         verbose_name = "Occurrence Tenure Purpose"
         verbose_name_plural = "Occurrence Tenure Purposes"
+
+    def __str__(self):
+        return self.purpose
 
 
 def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):

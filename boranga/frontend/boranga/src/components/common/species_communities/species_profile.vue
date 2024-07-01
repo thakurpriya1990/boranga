@@ -2,7 +2,7 @@
     <div id="species">
         <FormSection :formCollapse="false" label="Taxonomy" :Index="taxonBody">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Scientific Name:</label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">Scientific Name: <span class="text-danger">*</span></label>
                 <div class="col-sm-9" :id="select_scientific_name">
                     <select :disabled="rename_species ? false : isReadOnly" :id="scientific_name_lookup"
                         :name="scientific_name_lookup" :ref="scientific_name_lookup" class="form-select" />
@@ -74,18 +74,16 @@
         <FormSection v-if="distribution_public || is_internal" :formCollapse="false" label="Distribution"
             :Index="distributionBody">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Distribution:</label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">Distribution: <span class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" class="form-control" rows="1" id="distribution" placeholder=""
                         v-model="species_community.distribution.distribution" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Region:</label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">Region: <span class="text-danger">*</span></label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" 
-                        class="form-select" 
-                        v-model="species_community.regions"
+                    <select :disabled="isReadOnly" class="form-select" v-model="species_community.regions"
                         ref="regions_select">
                         <option value="" selected disabled>Select region</option>
                         <option v-for="option in region_list" :value="option.value" :key="option.value">
@@ -95,12 +93,10 @@
                 </div>
             </div>
             <div v-if="species_community.regions" class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">District:</label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">District: <span class="text-danger">*</span></label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" 
-                    class="form-select" 
-                    v-model="species_community.districts"
-                    ref="districts_select">
+                    <select :disabled="isReadOnly" class="form-select" v-model="species_community.districts"
+                        ref="districts_select">
                         <option value="" selected disabled>Select district</option>
                         <option v-for="option in district_list" :value="option.value" v-bind:key="option.value">
                             {{ option.text }}
@@ -546,7 +542,7 @@
                             placeholder=""
                             @change="validateRange('minimum_fire_interval_from', 'minimum_fire_interval_to', 'minimum_fire_interval_choice', 'minimum_fire_interval_error')"
                             v-model="species_community.conservation_attributes.minimum_fire_interval_from" />
-                            <label class="input-group-text" for="minimum_fire_interval_to">To:</label>
+                        <label class="input-group-text" for="minimum_fire_interval_to">To:</label>
                         <input :disabled="isReadOnly" type="number" class="form-control" id="minimum_fire_interval_to"
                             placeholder=""
                             @change="validateRange('minimum_fire_interval_from', 'minimum_fire_interval_to', 'minimum_fire_interval_choice', 'minimum_fire_interval_error')"
@@ -983,8 +979,9 @@ export default {
                     title: 'Saved',
                     text: 'Publishing settings have been updated',
                     icon: 'success',
-                    confirmButtonColor: '#226fbb',
-
+                    customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                 });
             }, (error) => {
                 var text = helpers.apiVueResourceError(error);
@@ -992,8 +989,9 @@ export default {
                     title: 'Error',
                     text: 'Publishing settings cannot be updated because of the following error: ' + text,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
-                });
+                    customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },                });
                 vm.updatingPublishing = false;
             });
         },
@@ -1007,8 +1005,9 @@ export default {
                     title: 'Error',
                     text: 'No changes made',
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
-                });
+                    customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },                });
                 vm.updatingPublishing = false;
             }
             else if (vm.isPublic && vm.isActive) {
@@ -1020,8 +1019,9 @@ export default {
                     title: 'Error',
                     text: 'Record not active and cannot be made public',
                     icon: 'error',
-                    confirmButtonColor: '#226fbb',
-                });
+                    customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },                });
                 vm.updatingPublishing = false;
             }
         },
@@ -1032,10 +1032,14 @@ export default {
                 swal.fire({
                     title: "Warning",
                     text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
-                    icon: "warning",
+                    icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: 'ok',
-                    confirmButtonColor: '#d9534f'
+                    confirmButtonText: 'Proceed',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary me-2',
+                    },
+                    reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
                         vm.species_community.distribution.number_of_occurrences = vm.species_community.distribution.cal_number_of_occurrences;
@@ -1069,8 +1073,12 @@ export default {
                     text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
                     icon: "warning",
                     showCancelButton: true,
-                    confirmButtonText: 'ok',
-                    confirmButtonColor: '#d9534f'
+                    confirmButtonText: 'Proceed',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary me-2',
+                    },
+                    reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
                         // set EOO field to calculted_EOO vale
@@ -1110,8 +1118,12 @@ export default {
                     text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
                     icon: "warning",
                     showCancelButton: true,
-                    confirmButtonText: 'ok',
-                    confirmButtonColor: '#d9534f'
+                    confirmButtonText: 'Proceed',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary me-2',
+                    },
+                    reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
                         // set AOO field to calculated_AOO value
@@ -1151,8 +1163,12 @@ export default {
                     text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
                     icon: "warning",
                     showCancelButton: true,
-                    confirmButtonText: 'ok',
-                    confirmButtonColor: '#d9534f'
+                    confirmButtonText: 'Proceed',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary me-2',
+                    },
+                    reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
                         // set AOOActual field to calculted_AOOActual vale
@@ -1402,23 +1418,23 @@ export default {
                 this.$refs.conservation_plan_reference.focus();
             });
         },
-        fetchRegions: function(){
+        fetchRegions: function () {
             let vm = this;
 
             vm.$http.get(api_endpoints.regions).then((response) => {
-                    vm.api_regions = response.body;
-                    for (var i = 0; i < vm.api_regions.length; i++) {
-                        this.region_list.push( {text: vm.api_regions[i].name, value: vm.api_regions[i].id, districts: vm.api_regions[i].districts} );
-                    }
-                    // vm.setProposalData2(this.regions);
-                    if(vm.species_community.regions){
-                        vm.chainedSelectDistricts(vm.species_community.regions,"fetch");
-                    }
-            },(error) => {
+                vm.api_regions = response.body;
+                for (var i = 0; i < vm.api_regions.length; i++) {
+                    this.region_list.push({ text: vm.api_regions[i].name, value: vm.api_regions[i].id, districts: vm.api_regions[i].districts });
+                }
+                // vm.setProposalData2(this.regions);
+                if (vm.species_community.regions) {
+                    vm.chainedSelectDistricts(vm.species_community.regions, "fetch");
+                }
+            }, (error) => {
                 console.log(error);
             })
         },
-        searchList: function(id, search_list){
+        searchList: function (id, search_list) {
             /* Searches for dictionary in list */
             for (var i = 0; i < search_list.length; i++) {
                 if (search_list[i].value == id) {
@@ -1427,58 +1443,58 @@ export default {
             }
             return [];
         },
-        chainedSelectDistricts: function(regions,action,deselect_region_id){
+        chainedSelectDistricts: function (regions, action, deselect_region_id) {
             let vm = this;
-            if(action!= "fetch"){
+            if (action != "fetch") {
                 vm.species_community.districts = []; //-----to remove the previous selection
             }
             vm.district_list = [];
-            if(regions){
-                for(let r of regions){
+            if (regions) {
+                for (let r of regions) {
                     var api_districts = this.searchList(r, vm.region_list).districts;
                     if (api_districts.length > 0) {
                         for (var i = 0; i < api_districts.length; i++) {
-                            this.district_list.push( {text: api_districts[i].name, value: api_districts[i].id} );
+                            this.district_list.push({ text: api_districts[i].name, value: api_districts[i].id });
                         }
                     }
                 }
             }
         },
-        initialiseRegionSelect: function(){
+        initialiseRegionSelect: function () {
             let vm = this;
             $(vm.$refs.regions_select).select2({
                 "theme": "bootstrap-5",
                 allowClear: true,
                 multiple: true,
-                placeholder:"Select Region",
+                placeholder: "Select Region",
             }).
-            on("select2:select",function (e) {
-                var selected = $(e.currentTarget);
-                vm.species_community.regions = selected.val();
-                vm.chainedSelectDistricts(vm.species_community.regions,"select");
-            }).
-            on("select2:unselect",function (e) {
-                var selected = $(e.currentTarget);
-                vm.species_community.regions = selected.val();
-                vm.chainedSelectDistricts(vm.species_community.regions,"deselect");
-            });
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.species_community.regions = selected.val();
+                    vm.chainedSelectDistricts(vm.species_community.regions, "select");
+                }).
+                on("select2:unselect", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.species_community.regions = selected.val();
+                    vm.chainedSelectDistricts(vm.species_community.regions, "deselect");
+                });
         },
-        initialiseDistrictSelect: function(){
+        initialiseDistrictSelect: function () {
             let vm = this;
             $(vm.$refs.districts_select).select2({
                 "theme": "bootstrap-5",
                 allowClear: true,
                 multiple: true,
-                placeholder:"Select District",
+                placeholder: "Select District",
             }).
-            on("select2:select",function (e) {
-                var selected = $(e.currentTarget);
-                vm.species_community.districts = selected.val();
-            }).
-            on("select2:unselect",function (e) {
-                var selected = $(e.currentTarget);
-                vm.species_community.districts = selected.val();
-            });
+                on("select2:select", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.species_community.districts = selected.val();
+                }).
+                on("select2:unselect", function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.species_community.districts = selected.val();
+                });
         },
     },
     created: async function () {

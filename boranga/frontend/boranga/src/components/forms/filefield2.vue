@@ -228,10 +228,14 @@ export default {
             swal({
                 title: "Delete Document",
                 text: "Are you sure you want to delete this document?",
-                type: "warning",
+                type: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Delete Document',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then(() => {
                 vm.$http.post(vm.delete_url, data, {
                     emulateJSON: true,

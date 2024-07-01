@@ -7,7 +7,7 @@
 {%  block content %}
 
     {% if reminder %}
-    Reminder: You were invited to complete a referral for Conservation Status Proposal: {{conservation_status.conservation_status_number}} in DBCA's Boranga System..
+    Reminder: You were invited to complete a referral for Conservation Status Proposal: {{conservation_status.conservation_status_number}} in DBCA's Boranga System.
 
     We sent the original referral request to this email address on {{external_referee_invite.datetime_sent|date:'d/m/Y'}}.
     {% else %}

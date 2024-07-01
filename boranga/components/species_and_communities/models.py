@@ -6,6 +6,7 @@ import subprocess
 import reversion
 from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.db.models import Q
@@ -536,13 +537,10 @@ class Species(RevisionedMixin):
 
     @property
     def can_user_edit(self):
-        """
-        :return: True if the application is in one of the editable status.
-        """
-        user_editable_state = [
-            "draft",
+        return self.processing_status in [
+            Species.PROCESSING_STATUS_DRAFT,
+            Species.PROCESSING_STATUS_DISCARDED,
         ]
-        return self.processing_status in user_editable_state
     
     @property
     def can_user_split(self):
@@ -805,6 +803,52 @@ class Species(RevisionedMixin):
                     request,
                 )
 
+    @transaction.atomic
+    def discard(self, request):
+        if not self.processing_status == Species.PROCESSING_STATUS_DRAFT:
+            raise ValidationError("You cannot discard a species that is not a draft")
+
+        if self.lodgement_date:
+            raise ValidationError(
+                "You cannot discard a species that has been submitted"
+            )
+
+        if not is_species_communities_approver(request):
+            raise ValidationError(
+                "You cannot discard a species unless you are a contributor"
+            )
+
+        self.processing_status = Species.PROCESSING_STATUS_DISCARDED
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            SpeciesUserAction.ACTION_DISCARD_SPECIES.format(self.species_number),
+            request,
+        )
+
+        # TODO create a log entry for the user
+
+    def reinstate(self, request):
+        if not self.processing_status == Species.PROCESSING_STATUS_DISCARDED:
+            raise ValidationError(
+                "You cannot reinstate a species that is not discarded"
+            )
+
+        if not is_species_communities_approver(request):
+            raise ValidationError(
+                "You cannot reinstate a species unless you are a species communities approver"
+            )
+
+        self.processing_status = Species.PROCESSING_STATUS_DRAFT
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            SpeciesUserAction.ACTION_REINSTATE_SPECIES.format(self.species_number),
+            request,
+        )
+
 
 class SpeciesLogDocument(Document):
     log_entry = models.ForeignKey(
@@ -841,6 +885,7 @@ class SpeciesLogEntry(CommunicationsLogEntry):
 class SpeciesUserAction(UserAction):
 
     ACTION_DISCARD_SPECIES = "Discard Species {}"
+    ACTION_REINSTATE_SPECIES = "Reinstate Species {}"
     ACTION_EDIT_SPECIES = "Edit Species {}"
     ACTION_CREATE_SPECIES = "Create new species {}"
     ACTION_SAVE_SPECIES = "Save Species {}"
@@ -937,6 +982,7 @@ class Community(RevisionedMixin):
     """
 
     PROCESSING_STATUS_DRAFT = "draft"
+    PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_ACTIVE = "active"
     PROCESSING_STATUS_HISTORICAL = "historical"
     PROCESSING_STATUS_TO_BE_SPLIT = "to_be_split"
@@ -944,6 +990,7 @@ class Community(RevisionedMixin):
     PROCESSING_STATUS_TO_BE_RENAMED = "to_be_renamed"
     PROCESSING_STATUS_CHOICES = (
         (PROCESSING_STATUS_DRAFT, "Draft"),
+        (PROCESSING_STATUS_DISCARDED, "Discarded"),
         (PROCESSING_STATUS_ACTIVE, "Active"),
         (PROCESSING_STATUS_HISTORICAL, "Historical"),
         (PROCESSING_STATUS_TO_BE_SPLIT, "To Be Split"),
@@ -1058,14 +1105,10 @@ class Community(RevisionedMixin):
 
     @property
     def can_user_edit(self):
-        """
-        :return: True if the application is in one of the editable status.
-        """
-        # return self.customer_status in self.CUSTOMER_EDITABLE_STATE
-        user_editable_state = [
-            "draft",
+        return self.processing_status in [
+            Community.PROCESSING_STATUS_DRAFT,
+            Community.PROCESSING_STATUS_DISCARDED,
         ]
-        return self.processing_status in user_editable_state
 
     @property
     def can_user_view(self):
@@ -1204,6 +1247,54 @@ class Community(RevisionedMixin):
     def related_item_status(self):
         return self.processing_status
 
+    @transaction.atomic
+    def discard(self, request):
+        if not self.processing_status == Community.PROCESSING_STATUS_DRAFT:
+            raise ValidationError("You cannot discard a community that is not a draft")
+
+        if self.lodgement_date:
+            raise ValidationError(
+                "You cannot discard a community that has been submitted"
+            )
+
+        if not is_species_communities_approver(request):
+            raise ValidationError(
+                "You cannot discard a community unless you are a contributor"
+            )
+
+        self.processing_status = Community.PROCESSING_STATUS_DISCARDED
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            CommunityUserAction.ACTION_DISCARD_COMMUNITY.format(self.community_number),
+            request,
+        )
+
+        # TODO create a log entry for the user
+
+    def reinstate(self, request):
+        if not self.processing_status == Community.PROCESSING_STATUS_DISCARDED:
+            raise ValidationError(
+                "You cannot reinstate a community that is not discarded"
+            )
+
+        if not is_species_communities_approver(request):
+            raise ValidationError(
+                "You cannot reinstate a community unless you are a species communities approver"
+            )
+
+        self.processing_status = Community.PROCESSING_STATUS_DRAFT
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            CommunityUserAction.ACTION_REINSTATE_COMMUNITY.format(
+                self.community_number
+            ),
+            request,
+        )
+
     def log_user_action(self, action, request):
         return CommunityUserAction.log_action(self, action, request.user.id)
 
@@ -1288,6 +1379,8 @@ class CommunityLogEntry(CommunicationsLogEntry):
 class CommunityUserAction(UserAction):
 
     ACTION_EDIT_COMMUNITY = "Edit Community {}"
+    ACTION_DISCARD_COMMUNITY = "Discard Community {}"
+    ACTION_REINSTATE_COMMUNITY = "Reinstate Community {}"
     ACTION_CREATE_COMMUNITY = "Create new community {}"
     ACTION_SAVE_COMMUNITY = "Save Community {}"
     ACTION_IMAGE_UPDATE = "Community Image document updated for Community {}"

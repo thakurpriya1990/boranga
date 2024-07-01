@@ -153,6 +153,8 @@ export default {
 
             // filtering options
             internal_status: [
+                { value: 'draft', name: 'Draft' },
+                { value: 'discarded', name: 'Discarded' },
                 { value: 'active', name: 'Active' },
                 { value: 'locked', name: 'Locked' },
                 { value: 'historical', name: 'Historical' },
@@ -329,7 +331,15 @@ export default {
                     let links = "";
                     if (vm.is_internal) {
                         if (full.can_user_edit) {
-                            links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
+                            if (full.processing_status == 'discarded') {
+                                links += `<a href='#' data-reinstate-occ-proposal='${full.id}'>Reinstate</a><br/>`;
+                                return links;
+                            } else {
+                                links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=edit'>Edit</a><br/>`;
+                                if (full.processing_status == 'draft') {
+                                    links += `<a href='#' data-discard-occ-proposal='${full.id}'>Discard</a><br/>`;
+                                }
+                            }
                         } else {
                             links += `<a href='/internal/occurrence/${full.id}?group_type_name=${vm.group_type_name}&action=view'>View</a><br/>`;
                         }
@@ -522,46 +532,67 @@ export default {
             })
         },
         createFloraOccurrence: async function () {
-            let newFloraOCRId = null
-            try {
-                const createUrl = api_endpoints.occurrence;
-                let payload = new Object();
-                payload.group_type_id = this.group_type_id
-                payload.internal_application = true
-                let savedFloraOCR = await Vue.http.post(createUrl, payload);
-                if (savedFloraOCR) {
-                    newFloraOCRId = savedFloraOCR.body.id;
+            swal.fire({
+                title: `Add ${this.group_type_name} Occurrence`,
+                text: "Are you sure you want to add a new flora occurrence?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Add Occurrence',
+                reverseButtons: true,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let newFloraOCRId = null
+                    try {
+                        const createUrl = api_endpoints.occurrence;
+                        let payload = new Object();
+                        payload.group_type_id = this.group_type_id
+                        payload.internal_application = true
+                        let savedFloraOCR = await Vue.http.post(createUrl, payload);
+                        if (savedFloraOCR) {
+                            newFloraOCRId = savedFloraOCR.body.id;
+                        }
+                    }
+                    catch (err) {
+                        console.log(err);
+                        if (this.is_internal) {
+                            return err;
+                        }
+                    }
+                    this.$router.push({
+                        name: 'internal-occurrence-detail',
+                        params: { occurrence_id: newFloraOCRId },
+                    });
                 }
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-            this.$router.push({
-                name: 'internal-occurrence-detail',
-                params: { occurrence_id: newFloraOCRId },
             });
         },
-        discardOCRProposal: function (occurrence_id) {
+        discardOCC: function (occurrence_id) {
             let vm = this;
             swal.fire({
-                title: "Discard Report",
-                text: "Are you sure you want to discard this report?",
-                icon: "warning",
+                title: "Discard Occurrence",
+                text: "Are you sure you want to discard this occurrence?",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Report',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_occ_proposal(occurrence_id))
+                    vm.$http.patch(api_endpoints.discard_occ_proposal(occurrence_id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
-                                text: 'Your report has been discarded',
+                                text: 'The occurrence has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {
@@ -569,7 +600,41 @@ export default {
                         });
                 }
             }, (error) => {
-
+                console.log(error);
+            });
+        },
+        reinstateOCC: function (occurrence_id) {
+            let vm = this;
+            swal.fire({
+                title: "Reinstate Occurrence",
+                text: "Are you sure you want to reinstate this occurrence?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Reinstate Report',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    vm.$http.patch(api_endpoints.reinstate_occ_proposal(occurrence_id))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'The occurrence has been reinstated',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.flora_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            }, (error) => {
+                console.log(error);
             });
         },
         addEventListeners: function () {
@@ -578,7 +643,12 @@ export default {
             vm.$refs.flora_occ_datatable.vmDataTable.on('click', 'a[data-discard-occ-proposal]', function (e) {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-occ-proposal');
-                vm.discardOCRProposal(id);
+                vm.discardOCC(id);
+            });
+            vm.$refs.flora_occ_datatable.vmDataTable.on('click', 'a[data-reinstate-occ-proposal]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-reinstate-occ-proposal');
+                vm.reinstateOCC(id);
             });
             vm.$refs.flora_occ_datatable.vmDataTable.on('click', 'a[data-history-occurrence]', function (e) {
                 e.preventDefault();

@@ -25,8 +25,7 @@
 
                 <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name" :lodgement_date="occurrence_report.lodgement_date"
-                    :is_new_contributor="occurrence_report.is_new_contributor"
-                    class="mb-3" />
+                    :is_new_contributor="occurrence_report.is_new_contributor" class="mb-3" />
 
                 <div class="card card-default sticky-top">
                     <div class="card-header">
@@ -41,7 +40,8 @@
                         <template v-if="with_approver">
                             <select ref="assigned_officer" :disabled="!occurrence_report.can_user_approve"
                                 class="form-select mb-2" v-model="occurrence_report.assigned_approver">
-                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id" :selected="member.id==occurrence_report.assigned_approver">
+                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id"
+                                    :selected="member.id == occurrence_report.assigned_approver">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
                             <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
@@ -51,7 +51,8 @@
                         <template v-else>
                             <select ref="assigned_officer" :disabled="!occurrence_report.can_user_assess"
                                 class="form-select mb-2" v-model="occurrence_report.assigned_officer">
-                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id" :selected="member.id==occurrence_report.current_assessor.id">
+                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id"
+                                    :selected="member.id == occurrence_report.current_assessor.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
                             <a v-if="(with_assessor || with_referral || unlocked) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
@@ -80,6 +81,52 @@
                                     <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
                                 </span>
                             </template>
+                        </div>
+                        <div v-if="
+                            occurrence_report.external_referral_invites &&
+                            occurrence_report.external_referral_invites.length > 0
+                        ">
+                            <div class="fw-bold mb-1">External Referee Invites</div>
+                            <table class="table table-sm table-hover table-referrals">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Referee</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="external_referee_invite in occurrence_report.external_referral_invites"
+                                        :key="external_referee_invite.id">
+                                        <td class="truncate-name">
+                                            {{ external_referee_invite.full_name }}
+                                        </td>
+                                        <td>Pending</td>
+                                        <td class="text-center">
+                                            <a role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
+                                                :data-bs-content="'Send a reminder to ' +
+                                                    external_referee_invite.full_name
+                                                    " data-bs-placement="bottom" @click.prevent="
+                                                                    remindExternalReferee(
+                                                                        external_referee_invite
+                                                                    )
+                                                                    "><i class="fa fa-bell text-warning"
+                                                    aria-hidden="true"></i>
+                                            </a>
+                                            <a role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
+                                                :data-bs-content="'Retract the external referee invite sent to ' +
+                                                    external_referee_invite.full_name
+                                                    " data-bs-placement="bottom" @click.prevent="
+                                                                    retractExternalRefereeInvite(
+                                                                        external_referee_invite
+                                                                    )
+                                                                    "><i class="fa fa-times-circle text-danger"
+                                                    aria-hidden="true"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                     <div v-if="display_referral_actions &&
@@ -170,8 +217,8 @@
                             <button v-if="display_decline_button" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="decline()">Decline</button>
 
-                            <button v-if="with_assessor || with_approver" style="width:80%;" class="btn btn-primary mb-2"
-                                @click.prevent="splitSpecies()">Split</button><br />
+                            <button v-if="with_assessor || with_approver" style="width:80%;"
+                                class="btn btn-primary mb-2" @click.prevent="splitSpecies()">Split</button><br />
                             <button v-if="canDiscard" style="width:80%;" class="btn btn-primary mb-2"
                                 @click.prevent="discardOCRProposal()">Discard</button>
 
@@ -189,14 +236,16 @@
                         enctype="multipart/form-data">
                         <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
                             id="OccurrenceReportStart" :canEditStatus="false" :is_external="false" :is_internal="true"
-                            ref="occurrence_report" @refreshFromResponse="refreshFromResponse" @refreshOccurrenceReport="refreshOccurrenceReport()">
+                            ref="occurrence_report" @refreshFromResponse="refreshFromResponse"
+                            @refreshOccurrenceReport="refreshOccurrenceReport()">
                         </ProposalOccurrenceReport>
 
                         <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                         <input type='hidden' name="occurrence_report_id" :value="1" />
                         <div class="row" style="margin-bottom: 50px">
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit" class="container">
+                                <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit"
+                                    class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
                                             style="margin-top:5px;" disabled>Save and Continue&nbsp;
@@ -222,7 +271,8 @@
                                             :disabled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
                                 </div>
-                                <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)" class="container">
+                                <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)"
+                                    class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Save Changes&nbsp;
@@ -246,8 +296,9 @@
             @refreshFromResponse="refreshFromResponse">
         </BackToAssessor>
         <ProposeAppprove ref="propose_approve" :occurrence_report="occurrence_report"
-            :occurrence_report_number="occurrence_report.occurrence_report_number" :occurrence="occurrence_report.occurrence"
-            :group_type_id="occurrence_report.group_type_id" @refreshFromResponse="refreshFromResponse">
+            :occurrence_report_number="occurrence_report.occurrence_report_number"
+            :occurrence="occurrence_report.occurrence" :group_type_id="occurrence_report.group_type_id"
+            @refreshFromResponse="refreshFromResponse">
         </ProposeAppprove>
         <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="occurrence_report.occurrence_report_number"
@@ -261,8 +312,8 @@
             :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="occurrence_report.occurrence_report_number"
             :approval_details="occurrence_report.approval_details" @refreshFromResponse="refreshFromResponse"></Approve>
-
-
+        <InviteExternalReferee ref="inviteExternalReferee" :pk="occurrence_report.id" model="occurrence_report"
+            :email="external_referee_email" @externalRefereeInviteSent="externalRefereeInviteSent" />
     </div>
     <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
@@ -277,13 +328,13 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
-import Workflow from '@common-utils/workflow.vue'
 import ShowAllReferrals from '@common-utils/occurrence/ocr_more_referrals.vue'
 import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
 import AmendmentRequest from './amendment_request.vue'
 import BackToAssessor from './back_to_assessor.vue'
 import ProposeDecline from './ocr_propose_decline.vue'
 import ProposeAppprove from './ocr_propose_approve.vue'
+import InviteExternalReferee from '@common-utils/invite_external_referee.vue'
 import Decline from './ocr_decline.vue'
 import Approve from './ocr_approve.vue'
 
@@ -316,13 +367,13 @@ export default {
             isSaved: false,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             department_users: null,
+            external_referee_email: '',
         }
     },
     components: {
         datatable,
         CommsLogs,
         Submission,
-        Workflow,
         ShowAllReferrals,
         ProposalOccurrenceReport,
         AmendmentRequest,
@@ -331,6 +382,7 @@ export default {
         ProposeAppprove,
         Decline,
         Approve,
+        InviteExternalReferee,
         // SpeciesSplit,
         // SpeciesCombine,
         // SpeciesRename,
@@ -446,17 +498,23 @@ export default {
                 text: "Are you sure you want to discard this report?",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonText: 'Discard Application',
-                confirmButtonColor: '#d9534f'
+                confirmButtonText: 'Discard Report',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.delete(api_endpoints.discard_ocr_proposal(vm.occurrence_report.id))
+                    vm.$http.patch(api_endpoints.discard_ocr_proposal(vm.occurrence_report.id))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
-                                text: 'Your proposal has been discarded',
+                                text: 'Your report has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$router.push({
                                 name: 'internal-species-communities-dash'
@@ -477,7 +535,11 @@ export default {
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Unlock Report',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
                     vm.$http.post(`/api/occurrence_report/${vm.occurrence_report.id}/unlock_occurrence_report.json`)
@@ -486,7 +548,9 @@ export default {
                                 title: 'Unlocked',
                                 text: 'The approved occurrence report has been unlocked for editing',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.occurrence_report = response.body;
                         }, (error) => {
@@ -505,7 +569,11 @@ export default {
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: 'Lock Report',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
                     vm.$http.post(`/api/occurrence_report/${vm.occurrence_report.id}/lock_occurrence_report.json`)
@@ -514,7 +582,9 @@ export default {
                                 title: 'Locked',
                                 text: 'The approved occurrence report has been locked from editing',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.occurrence_report = response.body;
                         }, (error) => {
@@ -546,15 +616,24 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
             vm.savingOccurrenceReport = true;
 
             // add map geometry to the occurrence_report
-            if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
-                vm.occurrence_report.ocr_geometry = vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
+            if (
+                vm.$refs.occurrence_report.$refs.ocr_location.$refs
+                    .component_map
+            ) {
+                vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
+                    true
+                );
+                vm.occurrence_report.ocr_geometry =
+                    vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
             }
 
             let payload = { proposal: vm.occurrence_report };
@@ -563,21 +642,31 @@ export default {
                     title: "Saved",
                     text: "Your changes has been saved",
                     icon: "success",
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingOccurrenceReport = false;
                 vm.isSaved = true;
                 vm.occurrence_report = res.body
+                vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
+                    false
+                );
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
                     title: 'Save Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingOccurrenceReport = false;
                 vm.isSaved = false;
+                vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
+                    false
+                );
             });
         },
         save_exit: async function (e) {
@@ -588,7 +677,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 //vm.paySubmitting=false;
                 return false;
@@ -625,7 +716,9 @@ export default {
                     //helpers.apiVueResourceError(err),
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 vm.submitOccurrenceReport = false;
                 vm.saveError = true;
@@ -648,7 +741,7 @@ export default {
             }
             if (check_action == 'submit') {
                 //TODO add validation for fields required before submit
-                if(!vm.occurrence_report.submitter_information.submitter_category){
+                if (!vm.occurrence_report.submitter_information.submitter_category) {
                     blank_fields.push(' Please select a submitter category')
                 }
             }
@@ -668,7 +761,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 //vm.paySubmitting=false;
                 return false;
@@ -676,12 +771,16 @@ export default {
 
             vm.submitOccurrenceReport = true;
             swal.fire({
-                title: "Submit",
+                title: "Submit Occurrece Report",
                 text: "Are you sure you want to submit this occurrence report?",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     let result = await vm.save_before_submit()
@@ -699,7 +798,9 @@ export default {
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.submitOccurrenceReport = false;
                         });
@@ -713,6 +814,10 @@ export default {
             let vm = this;
             vm.original_occurrence = helpers.copyObject(response.body);
             vm.occurrence_report = helpers.copyObject(response.body);
+            vm.$nextTick(() => {
+                vm.initialiseAssignedOfficerSelect(true);
+                vm.updateAssignedOfficerSelect();
+            });
         },
         splitSpecies: async function () {
             this.$refs.species_split.occurrence_original = this.occurrence_report;
@@ -836,7 +941,9 @@ export default {
                     title: 'Referral Sent',
                     text: `The referral has been sent to ${vm.selected_referral}`,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 $(vm.$refs.department_users).val(null).trigger("change");
                 vm.selected_referral = '';
@@ -847,7 +954,9 @@ export default {
                     title: 'Referral Error',
                     text: helpers.apiVueResourceError(error),
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.sendingReferral = false;
             });
@@ -861,7 +970,9 @@ export default {
                     title: 'Referral Reminder',
                     text: 'A reminder has been sent to ' + vm.department_users.find(d => d.id == r.referral.id).name,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             },
                 error => {
@@ -869,7 +980,9 @@ export default {
                         title: 'Referral Reminder Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
         },
@@ -884,7 +997,9 @@ export default {
                     title: 'Referral Recall',
                     text: 'The referral has been recalled from ' + vm.department_users.find(d => d.id == r.referral.id).name,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             },
                 error => {
@@ -892,7 +1007,9 @@ export default {
                         title: 'Referral Recall Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
         },
@@ -907,7 +1024,9 @@ export default {
                     title: 'Referral Resent',
                     text: 'The referral has been resent to ' + vm.department_users.find(d => d.id == r.referral.id).name,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             },
                 error => {
@@ -915,7 +1034,9 @@ export default {
                         title: 'Referral Resent Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
         },
@@ -944,6 +1065,34 @@ export default {
                         }
                         return query;
                     },
+                    processResults: function (data, params) {
+                        if (Object.keys(data.results).length == 0) {
+                            swal.fire({
+                                title: 'No Referee Found',
+                                text: 'Would you like to invite a new external referee to the system?',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                reverseButtons: true,
+                                confirmButtonText: 'Yes',
+                                cancelButtonText: 'No',
+                                buttonsStyling: false,
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                    cancelButton: 'btn btn-secondary me-2',
+                                },
+                            }).then(async (result) => {
+                                if (result.isConfirmed) {
+                                    vm.external_referee_email =
+                                        params.term;
+                                    vm.$refs.inviteExternalReferee.isModalOpen = true;
+                                    $(vm.$refs.referees).select2(
+                                        'close'
+                                    );
+                                }
+                            });
+                        }
+                        return data;
+                    },
                 },
             })
                 .on("select2:select", function (e) {
@@ -957,6 +1106,75 @@ export default {
                     var selected = $(e.currentTarget);
                     vm.selected_referral = null;
                 })
+        },
+        externalRefereeInviteSent: function (response) {
+            let vm = this;
+            vm.refreshFromResponse(response);
+            $(vm.$refs.referees).val(null).trigger("change");
+            vm.enablePopovers();
+            vm.selected_referral = '';
+            vm.referral_text = '';
+        },
+        remindExternalReferee: function (external_referee_invite) {
+            let vm = this;
+            vm.$http.post(
+                helpers.add_endpoint_join(
+                    api_endpoints.ocr_external_referee_invites,
+                    `/${external_referee_invite.id}/remind/`
+                ),
+            )
+                .then((response) => {
+                    swal.fire({
+                        title: 'Reminder Email Sent',
+                        text: `A reminder email was successfully sent to ${external_referee_invite.full_name} (${external_referee_invite.email}).`,
+                        icon: 'success',
+                    });
+                })
+                .catch((error) => {
+                    console.error(`Error sending reminder. ${error}`);
+                });
+        },
+        retractExternalRefereeInvite: function (external_referee_invite) {
+            swal.fire({
+                title: 'Retract External Referee Invite',
+                text: `Are you sure you want to retract the invite sent to ${external_referee_invite.full_name} (${external_referee_invite.email})?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Retract Email',
+                reverseButtons: true,
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let vm = this;
+                    vm.$http.patch(
+                        helpers.add_endpoint_join(
+                            api_endpoints.ocr_external_referee_invites,
+                            `/${external_referee_invite.id}/retract/`
+                        ),
+                    )
+                        .then((response) => {
+                            this.refreshOccurrenceReport();
+                            swal.fire({
+                                title: 'External Referee Invite Retracted',
+                                text: `The external referee invite that was sent to ${external_referee_invite.full_name} (${external_referee_invite.email}) has been successfully retracted.`,
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.enablePopovers();
+                        })
+                        .catch((error) => {
+                            console.error(
+                                `Error retracting external referee invite. ${error}`
+                            );
+                        });
+                }
+            });
         },
         initialiseAssignedOfficerSelect: function (reinit = false) {
             let vm = this;
@@ -1031,7 +1249,9 @@ export default {
                         title: 'Application Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
             }
@@ -1048,7 +1268,9 @@ export default {
                             title: 'Application Error',
                             text: helpers.apiVueResourceError(error),
                             icon: 'error',
-                            confirmButtonColor: '#226fbb'
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
                         });
                     });
             }
@@ -1070,7 +1292,9 @@ export default {
                         title: 'Application Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
         },

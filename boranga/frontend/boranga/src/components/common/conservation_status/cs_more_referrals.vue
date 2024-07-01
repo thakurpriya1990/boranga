@@ -129,7 +129,9 @@ export default {
                     title: 'Referral Reminder',
                     text: 'A reminder has been sent to ' + user,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
                 });
             },
                 error => {
@@ -137,7 +139,9 @@ export default {
                         title: 'Remind Referral Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        },
                     });
                 });
         },
@@ -150,7 +154,9 @@ export default {
                     title: 'Referral Resent',
                     text: 'The referral has been resent to ' + user,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
                 });
             },
                 error => {
@@ -158,7 +164,9 @@ export default {
                         title: 'Resend Referral Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        },
                     });
                 });
         },
@@ -181,7 +189,9 @@ export default {
                     title: 'Referral Recall',
                     text: 'The referral has been recalled from ' + user,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
                 });
             },
                 error => {
@@ -189,7 +199,9 @@ export default {
                         title: 'Referral Recall Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        },
                     });
                 });
         },

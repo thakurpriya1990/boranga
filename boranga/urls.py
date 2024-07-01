@@ -119,7 +119,6 @@ router.register(
     r"meeting_paginated", meeting_api.MeetingPaginatedViewSet, "meeting_paginated"
 )
 router.register(r"minutes", meeting_api.MinutesViewSet)
-router.register(r"committee", meeting_api.CommitteeViewSet)
 router.register(r"meeting_agenda_items", meeting_api.AgendaItemViewSet)
 router.register(
     r"conservation_status", conservation_status_api.ConservationStatusViewSet
@@ -130,6 +129,10 @@ router.register(
 )
 router.register(
     r"occurrence_report", occurrence_api.OccurrenceReportViewSet, "occurrence_report"
+)
+router.register(
+    r"ocr_external_referee_invites",
+    occurrence_api.OCRExternalRefereeInviteViewSet,
 )
 router.register(
     r"occurrence_report_referrals",
@@ -290,11 +293,6 @@ api_patterns = [
         r"^api/cs_profile_dict$",
         conservation_status_api.GetCSProfileDict.as_view(),
         name="get-cs-profile-dict",
-    ),
-    url(
-        r"^api/conservation_list_dict",
-        conservation_status_api.GetConservationListDict.as_view(),
-        name="get-conservation-list-dict",
     ),
     url(
         r"^api/proposal_amendment_request_reason_choices",

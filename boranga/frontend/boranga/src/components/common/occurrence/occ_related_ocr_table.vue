@@ -29,7 +29,7 @@ import Vue from 'vue'
 import { v4 as uuid } from 'uuid'
 import datatable from '@/utils/vue/datatable.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
-import SectionModal from '@/components/common/occurrence/section_modal.vue'
+import SectionModal from '@/components/common/occurrence/ocr_section_modal.vue'
 import {
     constants,
     api_endpoints,
@@ -63,8 +63,13 @@ export default {
             required: false,
             default: '',
         },
+        targetMapLayerNameForCopy: {
+            type: String,
+            required: false,
+            default: 'query_layer',
+        },
     },
-    emits: ['copyUpdate', 'highlight-on-map'],
+    emits: ['copyUpdate', 'highlight-on-map', 'copy-to-map-layer'],
     data() {
         let vm = this;
         return {
@@ -146,6 +151,17 @@ export default {
                 }
             }
         },
+        copied_to_occurrence: function () {
+            return {
+                data: 'copied_to_occurrence',
+                orderable: true,
+                searchable: false,
+                visible: true,
+                render: function (data, type, row) {
+                    return data.includes(row.occurrence) ? 'Yes' : 'No';
+                },
+            };
+        },
         column_copy_action: function(){
             const vm = this;
             return {
@@ -158,6 +174,7 @@ export default {
                     let links = '';
                     if (vm.section_type == 'location') {
                         links += `<a href="#${vm.hrefContainerId}" data-highlight-on-map='${full.id}'>Highlight on Map</a><br>`;
+                        links += `<a href="#${vm.hrefContainerId}" data-copy-to-occ-layer='${full.id}'>Copy to OCC Layer</a><br>`;
                     }
                     links += `<a href='#' data-view-section='${full.id}'>View Section</a><br>`;
                     //links += `<a href='#' data-merge-section='${full.id}'>Copy Section Data (merge)</a><br>`;
@@ -184,6 +201,7 @@ export default {
                 vm.column_location_accuracy,
                 vm.column_identification_certainty,
                 vm.column_site,
+                vm.copied_to_occurrence,
                 action,
             ]
             return {
@@ -237,13 +255,14 @@ export default {
                 'Location Accuracy',
                 'Identification Certainty',
                 'Site',
+                'Copied to OCC',
                 'Action',
             ]
         },
     },
     methods:{
         toggleCollapse: function () {
-            console.log("toggle");
+            //console.log("toggle");
             this.adjust_table_width();
         },
         viewSection:function (id) {
@@ -318,9 +337,24 @@ export default {
                     vm.highlightOnMap(id);
                 }
             );
+            vm.$refs.related_ocr_datatable.vmDataTable.on(
+                'click',
+                'a[data-copy-to-occ-layer]',
+                function (e) {
+                    let id = $(this).attr('data-copy-to-occ-layer');
+                    id = id || null;
+                    if (!id) {
+                        e.preventDefault();
+                    }
+                    vm.copyToMapLayer(id);
+                }
+            );
         },
         highlightOnMap: function (id = null) {
             this.$emit('highlight-on-map', id);
+        },
+        copyToMapLayer: function (id = null) {
+            this.$emit('copy-to-map-layer', id, this.targetMapLayerNameForCopy);
         },
     },
     mounted: function(){

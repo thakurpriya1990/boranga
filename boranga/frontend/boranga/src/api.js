@@ -24,6 +24,7 @@ module.exports = {
     document_categories_dict: "/api/document_categories_dict",
     filtered_organisations: '/api/filtered_organisations',
     marine_treeview: "/api/marine_treeview",
+    ocr_external_referee_invites: "/api/ocr_external_referee_invites",
     ocr_referrals: "/api/ocr_referrals.json",
     organisation_access_group_members: '/api/organisation_access_group_members',
     organisation_contacts: '/api/organisation_contacts.json',
@@ -75,6 +76,7 @@ module.exports = {
     meetings_paginated: "/api/meeting_paginated/?format=datatables",
     occurrence_lookup: "/api/occurrence_paginated/occurrence_lookup",
     occurrence_name_lookup: "/api/occurrence_paginated/occurrence_name_lookup",
+    combine_occurrence_name_lookup: "/api/occurrence_paginated/combine_occurrence_name_lookup",
     occurrence_internal_export: "/api/occurrence_paginated/occurrence_internal_export",
     occurrence_paginated_internal: "/api/occurrence_paginated/occurrence_internal?format=datatables",
     occurrence_report_external_export: "/api/occurrence_report_paginated/occurrence_report_external_export",
@@ -106,6 +108,12 @@ module.exports = {
     wild_status_lookup: "/api/wild_status_lookup",
     occurrence_tenure_paginated_internal:
         '/api/occurrence_tenure_paginated/occurrence_tenure_internal/?format=datatables',
+    occurrence_tenure_feature_id_lookup:
+        '/api/occurrence_tenure_paginated/occurrence_tenure_feature_id_lookup',
+    occurrence_tenure_vesting_lookup:
+        '/api/occurrence_tenure_paginated/occurrence_tenure_vesting_lookup',
+    occurence_tenure_purpose_lookup:
+        '/api/occurrence_tenure_paginated/occurrence_tenure_purpose_lookup',
 
     // Pending - need to create viewsets for the below when working on search filters for OR dashboard
     or_status_lookup: "/api/or_status_lookup",
@@ -127,7 +135,6 @@ module.exports = {
     meeting: "/api/meeting",
     meeting_dict: "/api/meeting_dict",
     minutes: "/api/minutes.json",
-    committee: "/api/committee",
 
     occurrence_report: "/api/occurrence_report",
     observer_detail: "/api/observer_detail.json",
@@ -137,6 +144,10 @@ module.exports = {
     ocr_threat: "/api/ocr_threat.json",
     occ_threat: "/api/occ_threat.json",
     occ_profile_dict: "/api/occ_profile_dict",
+
+    combine_key_contacts_lookup: "/api/occurrence_paginated/combine_key_contacts_lookup/",
+    combine_documents_lookup: "/api/occurrence_paginated/combine_documents_lookup/",
+    combine_threats_lookup: "/api/occurrence_paginated/combine_threats_lookup/",
 
     tile_layer: "/api/tile_layer",
 
@@ -150,10 +161,16 @@ module.exports = {
         return `/api/conservation_status/${id}/delist/`;
     },
     discard_community_proposal: function (id) {
-        return `/api/community/${id}.json`;
+        return `/api/community/${id}/discard/`;
+    },
+    reinstate_community_proposal: function (id) {
+        return `/api/community/${id}/reinstate/`;
     },
     discard_species_proposal: function (id) {
         return `/api/species/${id}/discard/`;
+    },
+    reinstate_species_proposal: function (id) {
+        return `/api/species/${id}/reinstate/`;
     },
     remove_species_proposal: function (id) {
         return `/api/species/${id}/remove/`;
@@ -163,6 +180,12 @@ module.exports = {
     },
     reinstate_meeting: function (id) {
         return `/api/meeting/${id}/reinstate/`;
+    },
+    discard_occ_proposal: function (id) {
+        return `/api/occurrence/${id}/discard/`;
+    },
+    reinstate_occ_proposal: function (id) {
+        return `/api/occurrence/${id}/reinstate/`;
     },
     discard_ocr_proposal: function (id) {
         return `/api/occurrence_report/${id}/discard/`;
@@ -229,6 +252,10 @@ module.exports = {
 
     lookup_ocr_section_values: function (model,id) {
       return `/api/occurrence_report/${id}/section_values/?section=${model}`;
+    },
+
+    lookup_occ_section_values: function (model,id) {
+      return `/api/occurrence/${id}/section_values/?section=${model}`;
     },
 
     group_type_community: group_type_community,

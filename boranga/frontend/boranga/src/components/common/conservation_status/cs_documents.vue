@@ -17,7 +17,8 @@
                 </div>
             </form>
         </FormSection>
-        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="cs_document_url" :is_internal="is_internal">
+        <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="cs_document_url"
+            :is_internal="is_internal">
         </DocumentDetail>
         <div v-if="conservationStatusDocumentHistoryId">
             <ConservationStatusDocumentHistory ref="cs_document_history" :key="conservationStatusDocumentHistoryId"
@@ -190,17 +191,17 @@ export default {
                         mRender: function (data, type, full) {
                             let links = '';
                             if (full.visible) {
-                                if(vm.show_document_actions){
+                                if (vm.show_document_actions) {
                                     links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
                                     links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
                                 }
                             }
                             else {
-                                if(vm.show_document_actions){
+                                if (vm.show_document_actions) {
                                     links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
                                 }
                             }
-                            if(vm.show_document_actions && vm.is_internal){
+                            if (vm.show_document_actions && vm.is_internal) {
                                 links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                             }
                             return links;
@@ -230,10 +231,7 @@ export default {
     },
     computed: {
         show_document_actions: function () {
-            if(!this.is_internal) {
-                return this.conservation_status_obj.can_user_edit;
-            }
-            return this.conservation_status_obj.assessor_mode.assessor_can_assess;
+            return this.conservation_status_obj.can_user_edit || this.conservation_status_obj.assessor_mode.assessor_can_assess;
         }
     },
     methods: {
@@ -285,10 +283,14 @@ export default {
             swal.fire({
                 title: "Remove Document",
                 text: "Are you sure you want to remove this Document?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Document',
-                confirmButtonColor: '#d9534f'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
                     vm.$http.get(helpers.add_endpoint_json(api_endpoints.conservation_status_documents, id + '/discard'))
@@ -297,7 +299,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your document has been removed',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary'
+                                },
                             });
                             vm.$refs.documents_datatable.vmDataTable.ajax.reload();
                         }, (error) => {
@@ -316,7 +320,11 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Reinstate Document',
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
                     vm.$http.get(helpers.add_endpoint_json(api_endpoints.conservation_status_documents, id + '/reinstate'))
@@ -325,7 +333,9 @@ export default {
                                 title: 'Reinstated',
                                 text: 'Your document has been reinstated',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary'
+                                },
                             });
                             vm.$refs.documents_datatable.vmDataTable.ajax.reload();
                         }, (error) => {

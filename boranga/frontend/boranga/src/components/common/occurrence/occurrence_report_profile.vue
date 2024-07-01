@@ -38,9 +38,8 @@
                                         <div class="row mb-3">
                                             <div class="col">
                                                 <div class="form-floating m-3 mt-1">
-                                                    <textarea v-if='!ref.readonly' :disabled="true"
-                                                        :id="ref.name" :name="ref.name" class="form-control"
-                                                        :placeholder="ref.label"
+                                                    <textarea v-if='!ref.readonly' :disabled="true" :id="ref.name"
+                                                        :name="ref.name" class="form-control" :placeholder="ref.label"
                                                         v-model="referral.referral_comment" />
                                                     <textarea v-else :disabled="true" :name="ref.name"
                                                         :value="ref.value || ''" class="form-control"
@@ -59,7 +58,7 @@
             </template>
             <div v-show="!isCommunity">
                 <div class="row mb-3">
-                    <label for="" class="col-sm-3 control-label">Scientific Name:</label>
+                    <label for="" class="col-sm-3 control-label fw-bold">Scientific Name: <span class="text-danger">*</span></label>
                     <div :id="select_scientific_name" class="col-sm-9">
                         <select :id="scientific_name_lookup" :ref="scientific_name_lookup" :disabled="isReadOnly"
                             :name="scientific_name_lookup" class="form-control" />
@@ -104,7 +103,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Observation Date:</label>
+                <label for="" class="col-sm-3 control-label fw-bold">Observation Date: <span class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <input v-model="occurrence_report_obj.observation_date
                         " :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date"
@@ -113,6 +112,7 @@
             </div>
             <ObserverDatatable ref="observer_datatable" :occurrence_report_obj="occurrence_report_obj"
                 :is_external="is_external" :is-read-only="isReadOnly"
+                :show_observer_contact_information="show_observer_contact_information"
                 @refreshOccurrenceReport="refreshOccurrenceReport()">
             </ObserverDatatable>
         </FormSection>
@@ -146,6 +146,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        show_observer_contact_information: {
+            type: Boolean,
+            default: true,
+        },
     },
     emits: ['refreshOccurrenceReport'],
     data: function () {
@@ -164,7 +168,6 @@ export default {
                 vm.occurrence_report_obj.group_type === 'community'
                     ? true
                     : false,
-            species_list: [],
             species_display: '',
             community_display: '',
             taxon_previous_name: '',
@@ -229,9 +232,8 @@ export default {
         },
         getSpeciesDisplay: function () {
             let vm = this;
-            if (vm.occurrence_report_obj.species_id != null) {
-                let species_display_url = api_endpoints.species_display +
-                    "?species_id=" + vm.occurrence_report_obj.species_id
+            if (vm.occurrence_report_obj.species_taxonomy_id != null) {
+                let species_display_url = api_endpoints.species_display + "?taxon_id=" + vm.occurrence_report_obj.species_taxonomy_id
                 vm.$http.get(species_display_url).then(
                     (response) => {
                         var newOption = new Option(response.body.name, response.body.id, false, true);
@@ -289,11 +291,13 @@ export default {
         },
         getCommunityDisplay: function () {
             let vm = this;
-            if (vm.occurrence_report_obj.community_id != null) {
+            if (vm.occurrence_report_obj?.community_id) {
                 let community_display_url = api_endpoints.community_display +
                     "?community_id=" + vm.occurrence_report_obj.community_id
                 vm.$http.get(community_display_url).then(
                     (response) => {
+                        var newOption = new Option(response.body.name, response.body.id, false, true);
+                        $('#' + vm.community_name_lookup).append(newOption);
                         vm.community_display = response.body.name
                     })
             }

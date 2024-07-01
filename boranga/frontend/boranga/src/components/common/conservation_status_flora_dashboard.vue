@@ -561,6 +561,9 @@ export default {
         },
     },
     computed: {
+        defaultApplicationStatus: function () {
+            return this.is_for_agenda ? 'ready_for_agenda' : 'approved';
+        },
         filterApplied: function () {
             if (this.filterCSFloraScientificName === 'all' &&
                 this.filterCSFloraCommonName === 'all' &&
@@ -576,7 +579,7 @@ export default {
                 this.filterCSFloraAssessor === 'all' &&
                 this.filterCSFloraSubmitter === 'all' &&
                 this.filterCSFloraSubmitterCategory === 'all' &&
-                this.filterCSFloraApplicationStatus === 'approved' &&
+                this.filterCSFloraApplicationStatus === this.defaultApplicationStatus &&
                 this.filterCSFromFloraEffectiveFromDate === '' &&
                 this.filterCSToFloraEffectiveFromDate === '' &&
                 this.filterCSFromFloraEffectiveToDate === '' &&
@@ -1358,7 +1361,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$refs.flora_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                         }, (error) => {

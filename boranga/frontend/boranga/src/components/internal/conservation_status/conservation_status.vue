@@ -20,24 +20,24 @@
                             <strong>Status</strong><br />
                             {{ conservation_status_obj.processing_status }}
                         </div>
-                        <div class="card-body border-top">
+                        <div v-if="conservation_status_obj.processing_status!='Draft'" class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Currently assigned to</strong><br />
                                     <div class="form-group">
                                         <template
                                             v-if="['Ready For Agenda', 'With Approver', 'Unlocked', 'Approved', 'Closed', 'DeListed'].includes(conservation_status_obj.processing_status)">
-                                            <select ref="assigned_officer" class="form-control"
+                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
                                                 v-model="conservation_status_obj.assigned_approver">
                                                 <option v-for="member in conservation_status_obj.allowed_assessors"
                                                     :value="member.id">{{ member.first_name }} {{ member.last_name }}
                                                 </option>
                                             </select>
-                                            <a v-if="conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
+                                            <a v-if="canAssess && conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
                                                 @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
                                                 to me</a>
                                         </template>
-                                        <template v-else>
+                                        <template v-else-if="['With Assessor', 'With Referral'].includes(conservation_status_obj.processing_status)">
                                             <select ref="assigned_officer" :disabled="!canAction" class="form-control"
                                                 v-model="conservation_status_obj.assigned_officer">
                                                 <option v-for="member in conservation_status_obj.allowed_assessors"
@@ -57,8 +57,7 @@
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Referrals</strong><br />
                                     <div class="form-group mb-3">
-                                        <select :disabled="!canLimitedAction" ref="referees"
-                                            class="form-control">
+                                        <select :disabled="!canLimitedAction" ref="referees" class="form-control">
                                         </select>
                                         <template v-if='!sendingReferral'>
                                             <template v-if="selected_referral">
@@ -428,7 +427,6 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
-import Workflow from '@common-utils/workflow.vue'
 import AmendmentRequest from './amendment_request.vue'
 import ProposedDecline from './proposal_proposed_decline'
 import ProposeDelist from './proposal_propose_delist'
@@ -477,7 +475,6 @@ export default {
         datatable,
         CommsLogs,
         Submission,
-        Workflow,
         ProposalConservationStatus,
         AmendmentRequest,
         CSMoreReferrals,
@@ -567,7 +564,7 @@ export default {
                         this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver)
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess;
             }
-            else if (['With Assessor', 'Approved'].includes(this.conservation_status_obj.processing_status)) {
+            else if (['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status)) {
                 return this.conservation_status_obj
                     && (
                         this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer)
@@ -634,7 +631,9 @@ export default {
                     title: 'Unlock Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             });
         },
@@ -691,7 +690,9 @@ export default {
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$router.push({
                                 name: 'internal-conservation_status-dash'
@@ -747,7 +748,9 @@ export default {
                                 title: 'Delisted',
                                 text: `Conservation Status ${this.conservation_status_obj.conservation_status_number} has been delisted.`,
                                 icon: 'success',
-                                confirmButtonColor: '#226fbb',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                             vm.$router.push({
                                 name: 'internal-conservation_status-dash'
@@ -788,7 +791,9 @@ export default {
                 title: 'Validation Error',
                 text: `The following fields are required: ${missing_fields.join(', ')}`,
                 icon: 'error',
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
             });
             return false;
         },
@@ -821,7 +826,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -834,7 +841,9 @@ export default {
                     title: 'Saved',
                     text: 'Your changes has been saved',
                     icon: 'success',
-                    confirmButtonColor: '#226fbb',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingConservationStatus = false;
                 vm.isSaved = true;
@@ -844,7 +853,9 @@ export default {
                     title: 'Save Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingConservationStatus = false;
                 vm.isSaved = false;
@@ -858,7 +869,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -887,7 +900,9 @@ export default {
                     title: 'Submit Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.submitConservationStatus = false;
                 vm.saveError = true;
@@ -934,7 +949,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -967,7 +984,9 @@ export default {
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                         });
                     }
@@ -999,6 +1018,7 @@ export default {
             let vm = this;
             let unassign = true;
             let data = {};
+            console.log(vm.conservation_status_obj.assigned_approver);
             if (['With Approver', 'Ready For Agenda', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                 unassign = vm.conservation_status_obj.assigned_approver != null && vm.conservation_status_obj.assigned_approver != 'undefined' ? false : true;
                 data = { 'assessor_id': vm.conservation_status_obj.assigned_approver };
@@ -1007,6 +1027,7 @@ export default {
                 unassign = vm.conservation_status_obj.assigned_officer != null && vm.conservation_status_obj.assigned_officer != 'undefined' ? false : true;
                 data = { 'assessor_id': vm.conservation_status_obj.assigned_officer };
             }
+            console.log(`unassign: ${unassign}`);
             if (!unassign) {
                 vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assign_to')), JSON.stringify(data), {
                     emulateJSON: true
@@ -1021,7 +1042,9 @@ export default {
                         title: 'Application Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
             }
@@ -1039,7 +1062,9 @@ export default {
                             title: 'Application Error',
                             text: helpers.apiVueResourceError(error),
                             icon: 'error',
-                            confirmButtonColor: '#226fbb'
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
                         });
                     });
             }
@@ -1073,7 +1098,9 @@ export default {
                         title: 'Application Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
         },
@@ -1090,7 +1117,7 @@ export default {
             }).
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
-                    if (['Ready for Agenda', 'With Approver', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
+                    if (['Ready For Agenda', 'With Approver', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                         vm.conservation_status_obj.assigned_approver = selected.val();
                     }
                     else {
@@ -1104,8 +1131,9 @@ export default {
                     }, 0);
                 }).on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
-                    if (['Ready for Agenda', 'With Approver', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
+                    if (['Ready For Agenda', 'With Approver', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                         vm.conservation_status_obj.assigned_approver = null;
+                        console.log('Unselect', vm.conservation_status_obj.assigned_approver);
                     }
                     else {
                         vm.conservation_status_obj.assigned_officer = null;
@@ -1212,11 +1240,6 @@ export default {
                 })
                 .catch((error) => {
                     console.error(`Error sending reminder. ${error}`);
-                    swal.fire({
-                        title: 'Reminder Email Failed',
-                        text: `${constants.API_ERROR}`,
-                        icon: 'warning',
-                    });
                 });
         },
         retractExternalRefereeInvite: function (external_referee_invite) {
@@ -1257,11 +1280,6 @@ export default {
                             console.error(
                                 `Error retracting external referee invite. ${error}`
                             );
-                            swal.fire({
-                                title: 'Retract External Referee Invite Failed',
-                                text: `${constants.API_ERROR}`,
-                                icon: 'error',
-                            });
                         });
                 }
             });
@@ -1284,7 +1302,9 @@ export default {
                         title: 'Referral Sent',
                         text: `The referral has been sent to ${vm.selected_referral}`,
                         icon: 'success',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                     vm.enablePopovers();
                     $(vm.$refs.referees).val(null).trigger("change");
@@ -1296,7 +1316,9 @@ export default {
                         title: 'Referral Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                     vm.sendingReferral = false;
                 });
@@ -1321,7 +1343,9 @@ export default {
                         title: 'Referral Reminder Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
         },
@@ -1364,7 +1388,9 @@ export default {
                     title: 'Referral Resent',
                     text: `The referral has been resent to ${r.referral.fullname}`,
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             },
                 error => {
@@ -1372,7 +1398,9 @@ export default {
                         title: 'Referral Resent Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
-                        confirmButtonColor: '#226fbb'
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
                     });
                 });
         },
@@ -1398,7 +1426,9 @@ export default {
                             title: 'Application Error',
                             text: helpers.apiVueResourceError(error),
                             icon: 'error',
-                            confirmButtonColor: '#226fbb'
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
                         });
                     });
             }
@@ -1423,7 +1453,9 @@ export default {
                             title: 'Application Error',
                             text: helpers.apiVueResourceError(error),
                             icon: 'error',
-                            confirmButtonColor: '#226fbb'
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
                         });
                         vm.changingStatus = false;
                     });
@@ -1439,7 +1471,6 @@ export default {
             });
         },
         fetchConservationStatus: function () {
-            console.log('Fetching conservation status')
             let vm = this;
             vm.$http.get('/api/conservation_status/' + vm.$route.params.conservation_status_id + '/internal_conservation_status.json').then(res => {
                 vm.conservation_status_obj = res.body.conservation_status_obj;

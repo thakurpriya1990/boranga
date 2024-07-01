@@ -35,8 +35,8 @@
                             <div class="row">
                                 <form :action="meeting_form_url" method="post" name="new_meeting"
                                     enctype="multipart/form-data">
-                                    <MeetingSection ref="meeting" :meeting_obj="meeting_obj"
-                                        :userCanEdit="userCanEdit" id="MeetingStart" :is_internal="true">
+                                    <MeetingSection ref="meeting" :meeting_obj="meeting_obj" :userCanEdit="userCanEdit"
+                                        id="MeetingStart" :is_internal="true">
                                         <!-- TODO add hasAssessorMode props to ProposalMeeting -->
                                     </MeetingSection>
                                     <CSQueue ref="cs_queue" :meeting_obj="meeting_obj" id="CSQueue" :is_internal="true">
@@ -68,13 +68,6 @@
                                                         style="margin-top:5px;" @click.prevent="save_exit()"
                                                         :disabled="savingMeeting || submitMeeting">Save and
                                                         Exit</button>
-
-                                                    <button v-if="submitMeeting" class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" disabled>Submit&nbsp;
-                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                                                    <button v-else class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" @click.prevent="submit()"
-                                                        :disbaled="saveExitMeeting || savingMeeting">Submit</button>
                                                 </div>
                                             </div>
 
@@ -104,7 +97,6 @@ import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
-import Workflow from '@common-utils/workflow.vue'
 import MeetingSection from './meeting_section.vue'
 import Minutes from './minutes.vue'
 import CSQueue from './cs_queue.vue';
@@ -138,7 +130,6 @@ export default {
         datatable,
         CommsLogs,
         Submission,
-        Workflow,
         MeetingSection,
         Minutes,
         CSQueue,
@@ -189,9 +180,7 @@ export default {
             }
         },
         canSeeSubmission: function () {
-            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
-            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
-            return true
+            return this.meeting_obj && this.meeting_obj.lodgement_date
         },
         userCanEdit: function () {
             return this.meeting_obj.can_user_edit;
@@ -210,7 +199,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -223,7 +214,9 @@ export default {
                     title: 'Saved',
                     text: 'Your changes has been saved',
                     icon: 'success',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingMeeting = false;
                 vm.isSaved = true;
@@ -233,7 +226,9 @@ export default {
                     title: 'Save Error',
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.savingMeeting = false;
                 vm.isSaved = false;
@@ -247,7 +242,9 @@ export default {
                     title: "Please fix following errors before saving",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -271,7 +268,7 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            const result = await vm.$http.post(vm.meeting_form_url, payload).then(res => {
+            const result = await vm.$http.put(vm.meeting_form_url, payload).then(res => {
                 //return true;
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
@@ -280,7 +277,9 @@ export default {
                     //helpers.apiVueResourceError(err),
                     text: errorText,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
                 vm.submitMeeting = false;
                 vm.saveError = true;
@@ -329,7 +328,9 @@ export default {
                     title: "Please fix following errors before submitting",
                     text: missing_data,
                     icon: 'error',
-                    confirmButtonColor: '#226fbb'
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
                 })
                 return false;
             }
@@ -340,14 +341,18 @@ export default {
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "submit",
-                confirmButtonColor: '#226fbb'
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     let result = await vm.save_before_submit()
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.meeting_obj);
-                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/submit'), payload).then(res => {
+                        vm.$http.put(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/submit'), payload).then(res => {
                             vm.meeting_obj = res.body;
                             // vm.$router.push({
                             //     name: 'submit_cs_proposal',
@@ -362,7 +367,9 @@ export default {
                                 title: 'Submit Error',
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
-                                confirmButtonColor: '#226fbb'
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
                             });
                         });
                     }
@@ -375,10 +382,21 @@ export default {
             let vm = this;
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            vm.$http.post(vm.meeting_form_url, payload).then(res => {
+            vm.$http.put(vm.meeting_form_url, payload).then(res => {
             }, err => {
             });
         },
+    },
+    created: function () {
+        let vm = this;
+        if (!this.meeting_obj) {
+            Vue.http.get(`/api/meeting/${vm.$route.params.meeting_id}/internal_meeting.json`).then(res => {
+                vm.meeting_obj = res.body;
+            },
+                err => {
+                    console.log(err);
+                });
+        }
     },
     updated: function () {
         let vm = this;

@@ -1176,8 +1176,6 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
             "species",
             "group_type",
             "taxonomy_details",
-            "region_id",
-            "district_id",
             "conservation_status",
             "distribution",
             "publishing_status",
