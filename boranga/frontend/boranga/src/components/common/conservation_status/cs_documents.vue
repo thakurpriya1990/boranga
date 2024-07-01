@@ -190,19 +190,21 @@ export default {
                         data: "id",
                         mRender: function (data, type, full) {
                             let links = '';
-                            if (full.visible) {
-                                if (vm.show_document_actions) {
-                                    links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
+                            if (full.can_action) {
+                                if (full.visible) {
+                                    if (vm.show_document_actions) {
+                                        links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
+                                        links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
+                                    }
                                 }
-                            }
-                            else {
-                                if (vm.show_document_actions) {
-                                    links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
+                                else {
+                                    if (vm.show_document_actions) {
+                                        links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
+                                    }
                                 }
-                            }
-                            if (vm.show_document_actions && vm.is_internal) {
-                                links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
+                                if (vm.show_document_actions && vm.is_internal) {
+                                    links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
+                                }
                             }
                             return links;
                         }
@@ -293,7 +295,7 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.conservation_status_documents, id + '/discard'))
+                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.conservation_status_documents, id + '/discard'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -327,7 +329,7 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.conservation_status_documents, id + '/reinstate'))
+                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.conservation_status_documents, id + '/reinstate'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',
