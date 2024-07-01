@@ -4334,6 +4334,9 @@ class OccurrenceTenure(models.Model):
     owner_count = models.IntegerField(blank=True, null=True)
     # vesting = models.TBD
 
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    datetime_updated = models.DateTimeField(auto_now=True)
+
     purpose = models.ForeignKey(
         OccurrenceTenurePurpose,
         related_name="occurrence_tenures",
@@ -4427,6 +4430,63 @@ class BufferGeometry(GeometryBase):
     def related_model_field(self):
         return self.buffered_from_geometry
 
+class SiteType(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - OccurrenceSite
+
+    """
+
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Site Type"
+        verbose_name_plural = "Site Type"
+        ordering = ["name"]
+
+    def __str__(self):
+        return str(self.name)
+
+class OccurrenceSite(models.Model):
+    site_number = models.CharField(max_length=9, blank=True, default="")
+    occurrence = models.ForeignKey(
+        "Occurrence", related_name="sites", on_delete=models.CASCADE
+    )
+    
+    site_name = models.CharField(max_length=255, null=True, blank=True)
+    
+    point_coord1 = models.FloatField(null=True, blank=True, default=0)
+    point_coord2 =models.FloatField(null=True, blank=True, default=0)
+
+    site_type = models.ForeignKey(
+        SiteType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    related_occurrence_reports = models.ManyToManyField(OccurrenceReport, blank=True)
+
+    comments = models.TextField(blank=True, null=True)
+
+    visible = models.BooleanField(
+        default=True
+    ) 
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Site"
+
+    def save(self, *args, **kwargs):
+        # Prefix "ST" char to site_number.
+        if self.site_number == "":
+            force_insert = kwargs.pop("force_insert", False)
+            super().save(force_insert=force_insert)
+            new_site_id = f"ST{str(self.pk)}"
+            self.site_number = new_site_id
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
 # Occurrence Report Document
 reversion.register(OccurrenceReportDocument)

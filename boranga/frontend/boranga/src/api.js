@@ -113,7 +113,7 @@ module.exports = {
         '/api/occurrence_tenure_paginated/occurrence_tenure_feature_id_lookup',
     occurrence_tenure_vesting_lookup:
         '/api/occurrence_tenure_paginated/occurrence_tenure_vesting_lookup',
-    occurence_tenure_purpose_lookup:
+    occurrence_tenure_purpose_lookup:
         '/api/occurrence_tenure_paginated/occurrence_tenure_purpose_lookup',
 
     // Pending - need to create viewsets for the below when working on search filters for OR dashboard
@@ -144,6 +144,7 @@ module.exports = {
     occurrence_documents: "/api/occurrence_documents.json",
     ocr_threat: "/api/ocr_threat.json",
     occ_threat: "/api/occ_threat.json",
+    occ_site: "/api/occurrence_sites.json",
     occ_profile_dict: "/api/occ_profile_dict",
 
     combine_key_contacts_lookup: "/api/occurrence_paginated/combine_key_contacts_lookup/",

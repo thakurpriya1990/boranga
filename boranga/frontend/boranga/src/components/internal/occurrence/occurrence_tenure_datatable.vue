@@ -1,21 +1,43 @@
 <template>
     <div id="occurrence_tenure_datatable_template">
-        <CollapsibleFilters ref="collapsible_filters" component_title="Filters" :collapsed="!filterApplied"
-            @created="collapsible_component_mounted">
+        <CollapsibleFilters
+            ref="collapsible_filters"
+            component_title="Filters"
+            :collapsed="!filterApplied"
+            @created="collapsible_component_mounted"
+        >
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="occurrence_tenure_feature_id_lookup">Feature ID:</label>
-                        <select id="occurrence_tenure_feature_id_lookup" ref="occurrence_tenure_feature_id_lookup"
-                            name="occurrence_tenure_feature_id_lookup" class="form-control" />
+                        <label for="occurrence_tenure_feature_id_lookup"
+                            >Feature ID:</label
+                        >
+                        <select
+                            id="occurrence_tenure_feature_id_lookup"
+                            ref="occurrence_tenure_feature_id_lookup"
+                            name="occurrence_tenure_feature_id_lookup"
+                            class="form-control"
+                        />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="occurrence_tenure_status_lookup" class="text-nowrap">Status:</label>
-                        <select ref="occurrence_tenure_status_lookup" v-model="filterStatus" class="form-select">
+                        <label
+                            for="occurrence_tenure_status_lookup"
+                            class="text-nowrap"
+                            >Status:</label
+                        >
+                        <select
+                            ref="occurrence_tenure_status_lookup"
+                            v-model="filterStatus"
+                            class="form-select"
+                        >
                             <option value="all">All</option>
-                            <option v-for="status in tenure_statuses" :key="status.value" :value="status.value">
+                            <option
+                                v-for="status in tenure_statuses"
+                                :key="status.value"
+                                :value="status.value"
+                            >
                                 {{ status.name }}
                             </option>
                         </select>
@@ -23,21 +45,38 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="occurrence_tenure_vesting_lookup">Vesting:</label>
-                        <select id="occurrence_tenure_vesting_lookup" ref="occurrence_tenure_vesting_lookup"
-                            name="occurrence_tenure_vesting_lookup" class="form-control" />
+                        <label for="occurrence_tenure_vesting_lookup"
+                            >Vesting:</label
+                        >
+                        <select
+                            id="occurrence_tenure_vesting_lookup"
+                            ref="occurrence_tenure_vesting_lookup"
+                            name="occurrence_tenure_vesting_lookup"
+                            class="form-control"
+                        />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="occurence_tenure_purpose_lookup">Purpose:</label>
-                        <select id="occurence_tenure_purpose_lookup" ref="occurence_tenure_purpose_lookup"
-                            name="occurence_tenure_purpose_lookup" class="form-control" />
+                        <label for="occurrence_tenure_purpose_lookup"
+                            >Purpose:</label
+                        >
+                        <select
+                            id="occurrence_tenure_purpose_lookup"
+                            ref="occurrence_tenure_purpose_lookup"
+                            name="occurrence_tenure_purpose_lookup"
+                            class="form-control"
+                        />
                     </div>
                 </div>
             </div>
         </CollapsibleFilters>
-        <datatable :id="datatable_id" ref="occurrence_tenure_datatable" :dt-options="options" :dt-headers="headers" />
+        <datatable
+            :id="datatable_id"
+            ref="occurrence_tenure_datatable"
+            :dt-options="options"
+            :dt-headers="headers"
+        />
     </div>
 </template>
 
@@ -97,10 +136,11 @@ export default {
                 'Status',
                 'Vesting',
                 'Purpose',
-                'Comments',
                 'Signif. to OCC',
+                'Comments',
                 "Owner's Name",
                 // 'Owner Count',
+                'Updated',
                 'Action',
             ],
             tenure_statuses: [
@@ -196,6 +236,14 @@ export default {
                 visible: true,
             };
         },
+        column_datetime_updated: function () {
+            return {
+                data: 'datetime_updated',
+                orderable: true,
+                searchable: true,
+                visible: true,
+            };
+        },
         column_action: function () {
             const vm = this;
             return {
@@ -221,10 +269,11 @@ export default {
                 this.column_status,
                 this.column_vesting,
                 this.column_purpose,
-                this.column_comments,
                 this.column_significant_to_occurrence,
+                this.column_comments,
                 this.column_owner_name,
                 // this.column_owner_count,
+                this.column_datetime_updated,
                 this.column_action,
             ];
             let url = this.url;
@@ -241,6 +290,7 @@ export default {
                 ordering: true,
                 order: [
                     [1, 'asc'],
+                    [7, 'desc'],
                     [0, 'desc'],
                 ],
                 fixedColumns: {
@@ -248,9 +298,6 @@ export default {
                     end: 1,
                 },
                 paging: true,
-                scrollCollapse: true,
-                scrollX: true,
-                scrollY: false,
                 ajax: {
                     url: url,
                     dataSrc: 'data',
@@ -261,8 +308,28 @@ export default {
                         d.purpose = this.filterPurpose;
                     },
                 },
-                dom: 'lBfrtip',
-                buttons: [],
+                dom:
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fa-solid fa-download"></i> Excel',
+                        className: 'btn btn-primary me-2 rounded',
+                        exportOptions: {
+                            orthogonal: 'export',
+                        },
+                    },
+                    {
+                        extend: 'csv',
+                        text: '<i class="fa-solid fa-download"></i> CSV',
+                        className: 'btn btn-primary rounded',
+                        exportOptions: {
+                            orthogonal: 'export',
+                        },
+                    },
+                ],
                 columns: columns,
                 processing: true,
                 // eslint-disable-next-line no-unused-vars
@@ -327,7 +394,7 @@ export default {
                     placeholder: 'Select a vesting',
                 },
                 {
-                    ref: 'occurence_tenure_purpose_lookup',
+                    ref: 'occurrence_tenure_purpose_lookup',
                     vModelDataProperty: 'filterPurpose',
                     placeholder: 'Select a purpose',
                 },
