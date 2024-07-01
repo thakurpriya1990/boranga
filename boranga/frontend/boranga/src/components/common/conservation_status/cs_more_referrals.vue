@@ -180,7 +180,7 @@ export default {
                     swal.showLoading()
                 }
             })
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, _id + '/recall')).then(response => {
+            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.cs_referrals, _id + '/recall')).then(response => {
                 swal.hideLoading();
                 swal.close();
                 vm.$emit('refreshFromResponse', response);

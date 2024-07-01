@@ -68,6 +68,7 @@ module.exports = {
     community_name_lookup: "/api/community_name_lookup",
     compliances_paginated_external: "/api/compliance_paginated/compliances_external/?format=datatables",
     conservation_status_paginated_external: "/api/conservation_status_paginated/conservation_status_external?format=datatables",
+    conservation_status_referred_to_me: "/api/conservation_status_paginated/referred_to_me/?format=datatables",
     family_lookup: "/api/family_lookup",
     filter_lists_species: "/api/filter_lists_species",
     genera_lookup: "/api/genera_lookup",
