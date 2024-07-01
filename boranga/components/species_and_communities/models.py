@@ -690,9 +690,10 @@ class Species(RevisionedMixin):
             model_name=self._meta.verbose_name,
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
-            action_url=(
+            action_url=str(
                 f"<a href=/internal/species_communities/{self.id}"
-                f'?group_type_name={self.group_type.name} target="_blank">View</a>',
+                f'?group_type_name={self.group_type.name} target="_blank">View "'
+                '<i class="bi bi-box-arrow-up-right"></i></a>'
             ),
         )
         return related_item
@@ -1221,7 +1222,10 @@ class Community(RevisionedMixin):
             model_name=self._meta.verbose_name,
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
-            action_url=f'<a href=/internal/species_communities/{self.id} target="_blank">Open</a>',
+            action_url=str(
+                f"<a href=/internal/species_communities/{self.id} "
+                f'target="_blank">View <i class="bi bi-box-arrow-up-right"></i></a>'
+            ),
         )
         return related_item
 
