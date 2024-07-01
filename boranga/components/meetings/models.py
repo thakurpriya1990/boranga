@@ -432,7 +432,10 @@ class AgendaItem(OrderedModel):
             model_name=self._meta.verbose_name,
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
-            action_url=f'<a href=/internal/meetings/{self.meeting.id} target="_blank">View</a>',
+            action_url=str(
+                f"<a href=/internal/meetings/{self.meeting.id} "
+                f'target="_blank">View <i class="bi bi-box-arrow-up-right"></i></a>'
+            ),
         )
         return related_item
 
