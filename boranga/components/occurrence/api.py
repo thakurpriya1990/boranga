@@ -330,7 +330,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = super().get_queryset()
         if is_internal(self.request):
             qs = OccurrenceReport.objects.all()
-        if is_contributor(self.request):
+        elif is_contributor(self.request):
             qs = OccurrenceReport.objects.filter(submitter=self.request.user.id)
 
         return qs
