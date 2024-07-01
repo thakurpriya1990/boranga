@@ -3477,6 +3477,25 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
             return Response({"values_list": values_list, "id_list": id_list})
         return Response()
+    
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=False,
+    )
+    def combine_sites_lookup(self, request, *args, **kwargs):
+        if is_internal(self.request):
+            occ_ids = json.loads(request.POST.get("occurrence_ids"))
+            sites = OccurrenceSite.objects.filter(
+                occurrence__id__in=occ_ids
+            ).filter(visible=True)
+
+            values_list = OccurrenceSiteSerializer(sites,context={"request": request}, many=True)
+            id_list = list(sites.values_list("id", flat=True))
+
+            return Response({"values_list": values_list.data, "id_list": id_list})
+        return Response()
 
     @detail_route(
         methods=[

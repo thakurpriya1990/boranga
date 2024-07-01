@@ -12,11 +12,11 @@ import {constants, helpers} from '@/utils/hooks'
 export default {
     name: 'occurrenceCombineSites',
     props: {
-        selectedKeySites: {
+        selectedSites: {
             type: Array,
             required: true
         },
-        combineKeySiteIds: {
+        combineSiteIds: {
             type: Array,
             required: true
         },
@@ -30,7 +30,7 @@ export default {
         return{
             panelBody: "site-combine-select-"+vm._uid,
             checkedSiteNames: [],
-            sites_headers:["Occurrence", "Name", "Role", "Site Details", "Organisation", "Notes", "Action"],
+            sites_headers:["Occurrence", "Number", "Name", "Coordinates", "Comments", "Related Occurrence Reports", "Action"],
             sites_options:{
                 autowidth: true,
                 language:{
@@ -51,16 +51,13 @@ export default {
                         "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: [
                     {
-                        data: "occurrence__occurrence_number",
+                        data: "occurrence_number",
                     },
                     {
                         data: "site_number",
                     },
                     {
                         data: "site_name",
-                    },
-                    {
-                        data: "role",
                     },
                     {
                         data: "id",
@@ -99,8 +96,8 @@ export default {
                     {
                         data: "id",
                         mRender:function (data,type,full){
-                            if (vm.combineKeySiteIds.includes(full.id)) {
-                                if (full.occurrence__id == vm.mainOccurrenceId) {
+                            if (vm.combineSiteIds.includes(full.id)) {
+                                if (full.occurrence == vm.mainOccurrenceId) {
                                     return `<input id='${full.id}' data-site-checkbox='${full.id}' site-name='${full.site_name}' type='checkbox' checked disabled/>`
                                 } else {
                                     return `<input id='${full.id}' data-site-checkbox='${full.id}' site-name='${full.site_name}' type='checkbox' checked/>`
@@ -139,7 +136,7 @@ export default {
             let vm=this;   
             let names = []
             vm.selectedSites.forEach(site => {
-                if (vm.combineKeySiteIds.includes(site.id) && !names.includes(site.site_name)) {
+                if (vm.combineSiteIds.includes(site.id) && !names.includes(site.site_name)) {
                     names.push(site.site_name);
                 }
             })
@@ -150,12 +147,12 @@ export default {
         },
         removeSite: function(id) {
             let vm=this;   
-            vm.combineKeySiteIds.splice(vm.combineKeySiteIds.indexOf(id), 1);
+            vm.combineSiteIds.splice(vm.combineSiteIds.indexOf(id), 1);
             vm.getSelectedSiteNames();
         }, 
         addSite: function(id) {
             let vm=this;   
-            vm.combineKeySiteIds.push(id);
+            vm.combineSiteIds.push(id);
             vm.getSelectedSiteNames();
         }, 
         addEventListeners:function (){

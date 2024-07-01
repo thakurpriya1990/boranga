@@ -149,6 +149,7 @@ module.exports = {
     combine_key_contacts_lookup: "/api/occurrence_paginated/combine_key_contacts_lookup/",
     combine_documents_lookup: "/api/occurrence_paginated/combine_documents_lookup/",
     combine_threats_lookup: "/api/occurrence_paginated/combine_threats_lookup/",
+    combine_sites_lookup: "/api/occurrence_paginated/combine_sites_lookup/",
 
     tile_layer: "/api/tile_layer",
 
