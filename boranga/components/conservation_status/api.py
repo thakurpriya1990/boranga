@@ -528,8 +528,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "family",
             "genus",
             "phylogenetic_group",
-            "conservation_list",
-            "conservation_category",
             "processing_status",
             "effective_from_date",
             "effective_to_date",
@@ -632,17 +630,8 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[ConservationStatusReferralPermission],
     )
     def species_cs_referrals_internal(self, request, *args, **kwargs):
-        """
-        Used by the internal Referred To Me (Flora/Fauna)dashboard
-
-        http://localhost:8499/api/species_conservation_cstatus_paginated/species_cs_referrals_internal/?format=datatables&draw=1&length=2
-        """
         self.serializer_class = DTConservationStatusReferralSerializer
-        qs = (
-            ConservationStatusReferral.objects.filter(referral=request.user.id)
-            if is_internal(self.request)
-            else ConservationStatusReferral.objects.none()
-        )
+        qs = ConservationStatusReferral.objects.filter(referral=request.user.id)
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
@@ -650,6 +639,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = DTConservationStatusReferralSerializer(
             result_page, context={"request": request}, many=True
         )
+
         return self.paginator.get_paginated_response(serializer.data)
 
     @list_route(
@@ -674,8 +664,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "common_name",
             "family",
             "genus",
-            "conservation_list",
-            "conservation_category",
             "processing_status",
             "conservation_status_number",
         ]
@@ -1090,8 +1078,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             "community_name",
             "region",
             "district",
-            "conservation_list",
-            "conservation_category",
             "processing_status",
             "effective_from_date",
             "effective_to_date",
@@ -1223,8 +1209,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
         qs = self.filter_queryset(qs)
         export_format = request.POST.get("export_format")
         allowed_fields = [
-            "conservation_list",
-            "conservation_category",
             "processing_status",
             "community_number",
             "community_migrated_id",
@@ -1315,34 +1299,50 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
         total_count = queryset.count()
 
-        filter_group_type = request.GET.get("filter_group_type")
-        if filter_group_type and not filter_group_type.lower() == "all":
-            queryset = queryset.filter(application_type__name=filter_group_type)
+        if queryset.model is ConservationStatus:
+            filter_group_type = request.GET.get("filter_group_type")
+            if filter_group_type and not filter_group_type.lower() == "all":
+                queryset = queryset.filter(application_type__name=filter_group_type)
 
-        filter_scientific_name = request.GET.get("filter_scientific_name")
-        if filter_scientific_name and not filter_scientific_name.lower() == "all":
-            queryset = queryset.filter(species_taxonomy=filter_scientific_name)
+            filter_scientific_name = request.GET.get("filter_scientific_name")
+            if filter_scientific_name and not filter_scientific_name.lower() == "all":
+                queryset = queryset.filter(species_taxonomy=filter_scientific_name)
 
-        filter_community_name = request.GET.get("filter_community_name")
-        if filter_community_name and not filter_community_name.lower() == "all":
-            queryset = queryset.filter(community=filter_community_name)
+            filter_community_name = request.GET.get("filter_community_name")
+            if filter_community_name and not filter_community_name.lower() == "all":
+                queryset = queryset.filter(community=filter_community_name)
 
-        filter_conservation_list = request.GET.get("filter_conservation_list")
-        if filter_conservation_list and not filter_conservation_list.lower() == "all":
-            queryset = queryset.filter(conservation_list=filter_conservation_list)
+            filter_application_status = request.GET.get("filter_application_status")
+            if (
+                filter_application_status
+                and not filter_application_status.lower() == "all"
+            ):
+                queryset = queryset.filter(customer_status=filter_application_status)
+        elif queryset.model is ConservationStatusReferral:
+            filter_group_type = request.GET.get("filter_group_type")
+            if filter_group_type and not filter_group_type.lower() == "all":
+                queryset = queryset.filter(
+                    conservation_status__application_type__name=filter_group_type
+                )
 
-        filter_conservation_category = request.GET.get("filter_conservation_category")
-        if (
-            filter_conservation_category
-            and not filter_conservation_category.lower() == "all"
-        ):
-            queryset = queryset.filter(
-                conservation_category=filter_conservation_category
-            )
+            filter_scientific_name = request.GET.get("filter_scientific_name")
+            if filter_scientific_name and not filter_scientific_name.lower() == "all":
+                queryset = queryset.filter(
+                    conservation_status__species_taxonomy=filter_scientific_name
+                )
 
-        filter_application_status = request.GET.get("filter_application_status")
-        if filter_application_status and not filter_application_status.lower() == "all":
-            queryset = queryset.filter(customer_status=filter_application_status)
+            filter_community_name = request.GET.get("filter_community_name")
+            if filter_community_name and not filter_community_name.lower() == "all":
+                queryset = queryset.filter(
+                    conservation_status__community=filter_community_name
+                )
+
+            filter_application_status = request.GET.get("filter_application_status")
+            if (
+                filter_application_status
+                and not filter_application_status.lower() == "all"
+            ):
+                queryset = queryset.filter(processing_status=filter_application_status)
 
         fields = self.get_fields(request)
         ordering = self.get_ordering(request, view, fields)
@@ -1396,6 +1396,26 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = ListConservationStatusSerializer(
             result_page, context={"request": request}, many=True
         )
+        return self.paginator.get_paginated_response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+        permission_classes=[ConservationStatusReferralPermission],
+    )
+    def referred_to_me(self, request, *args, **kwargs):
+        self.serializer_class = DTConservationStatusReferralSerializer
+        qs = ConservationStatusReferral.objects.filter(referral=request.user.id)
+        qs = self.filter_queryset(qs)
+
+        self.paginator.page_size = qs.count()
+        result_page = self.paginator.paginate_queryset(qs, request)
+        serializer = DTConservationStatusReferralSerializer(
+            result_page, context={"request": request}, many=True
+        )
+
         return self.paginator.get_paginated_response(serializer.data)
 
 
