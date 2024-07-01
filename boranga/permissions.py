@@ -233,6 +233,7 @@ class ConservationStatusPermission(BasePermission):
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
             or is_contributor(request)
+            or is_conservation_status_referee(request)
         )
 
     def has_object_permission(self, request, view, obj):
@@ -349,6 +350,7 @@ class ConservationStatusDocumentPermission(BasePermission):
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
             or is_contributor(request)
+            or is_conservation_status_referee(request)
         )
 
     def has_object_permission(self, request, view, obj):
