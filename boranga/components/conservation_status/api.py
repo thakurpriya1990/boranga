@@ -1438,8 +1438,17 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             return ConservationStatus.objects.exclude(
                 processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
             )
+        if is_contributor(self.request) and is_conservation_status_referee(
+            self.request
+        ):
+            return qs.filter(
+                Q(submitter=self.request.user.id)
+                | Q(referrals__referral=self.request.user.id)
+            )
         if is_contributor(self.request):
             qs = qs.filter(submitter=self.request.user.id)
+        if is_conservation_status_referee(self.request):
+            qs = qs.filter(referrals__referral=self.request.user.id)
         return qs
 
     def internal_serializer_class(self):
@@ -1842,11 +1851,21 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         instance = self.get_object()
         qs = instance.documents.all()
         qs = qs.exclude(input_name="conservation_status_approval_doc")
-        if not is_internal(request) and is_external_contributor(request):
+        if (
+            not is_internal(request)
+            and instance.submitter == request.user.id
+            and is_contributor(request)
+        ):
             qs = qs.filter(
                 conservation_status__submitter=self.request.user.id,
                 visible=True,
                 can_submitter_access=True,
+            )
+        if not is_internal(request) and is_conservation_status_referee(
+            request, instance
+        ):
+            qs = qs.filter(
+                conservation_status__referrals__referral=self.request.user.id,
             )
 
         qs = qs.order_by("-uploaded_date")
@@ -2208,7 +2227,7 @@ class ConservationStatusReferralViewSet(
         )
         return Response(serializer.data)
 
-    @detail_route(methods=["GET", "POST"], detail=True)
+    @detail_route(methods=["PATCH"], detail=True)
     def complete(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.complete(request)
@@ -2231,7 +2250,7 @@ class ConservationStatusReferralViewSet(
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -2290,7 +2309,8 @@ class ConservationStatusReferralViewSet(
             ),
             request,
         )
-        return redirect(reverse("internal"))
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 class ConservationStatusAmendmentRequestViewSet(
