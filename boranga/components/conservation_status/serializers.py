@@ -89,7 +89,6 @@ class ListConservationStatusSerializer(serializers.ModelSerializer):
         source="species_taxonomy.scientific_name", allow_null=True
     )
     community_name = serializers.SerializerMethodField()
-    # TODO: Add new conservation status lists/catories
     customer_status = serializers.CharField(source="get_customer_status_display")
     is_new_contributor = serializers.SerializerMethodField()
 
