@@ -180,10 +180,10 @@ export default {
                 if (vm.new_species_list[index].distribution.distribution == null || vm.new_species_list[index].distribution.distribution == '') {
                     blank_fields.push('Distribution is missing')
                 }
-                if (vm.new_species_list[index].region_id == null || vm.new_species_list[index].region_id == '') {
+                if (vm.new_species_list[index].regions == null || vm.new_species_list[index].regions == '' || vm.new_species_list[index].regions.length==0) {
                     blank_fields.push('Region is missing')
                 }
-                if (vm.new_species_list[index].district_id == null || vm.new_species_list[index].district_id == '') {
+                if (vm.new_species_list[index].districts == null || vm.new_species_list[index].districts == ''|| vm.new_species_list[index].districts.length == 0) {
                     blank_fields.push('District is missing')
                 }
             }
