@@ -2334,11 +2334,15 @@ class ConservationStatusDocumentViewSet(
                 visible=True,
                 can_submitter_access=True,
             )
+        if is_conservation_status_referee(self.request):
+            qs = qs.filter(
+                conservation_status__referrals__referral=self.request.user.id
+            )
         return qs
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -2351,7 +2355,7 @@ class ConservationStatusDocumentViewSet(
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
