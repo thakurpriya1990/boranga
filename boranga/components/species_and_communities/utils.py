@@ -28,9 +28,13 @@ logger = logging.getLogger(__name__)
 
 
 @transaction.atomic
-def species_form_submit(species_instance, request):
-    if not species_instance.can_user_edit:
-        raise ValidationError("You can't submit this species at this moment")
+def species_form_submit(species_instance, request, split=False):
+    if split:
+        if not species_instance.can_user_split:
+            raise ValidationError("You can't split this species at this moment")
+    else:
+        if not species_instance.can_user_edit:
+            raise ValidationError("You can't submit this species at this moment")
 
     species_instance.submitter = request.user.id
     species_instance.lodgement_date = timezone.now()

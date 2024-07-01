@@ -709,7 +709,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     distribution = serializers.SerializerMethodField()
     publishing_status = serializers.SerializerMethodField()
     image_doc = serializers.SerializerMethodField()
-    regions = serializers.SerializerMethodField()
+    #regions = serializers.SerializerMethodField()
 
     class Meta:
         model = Species
@@ -1409,6 +1409,8 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
             "comment",
             "conservation_plan_exists",
             "conservation_plan_reference",
+            "regions",
+            "districts",
         )
         read_only_fields = ("id", "group_type")
 

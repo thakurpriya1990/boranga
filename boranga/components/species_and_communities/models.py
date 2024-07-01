@@ -541,6 +541,16 @@ class Species(RevisionedMixin):
             Species.PROCESSING_STATUS_DRAFT,
             Species.PROCESSING_STATUS_DISCARDED,
         ]
+    
+    @property
+    def can_user_split(self):
+        """
+        :return: True if the application is in one of the editable status.
+        """
+        user_editable_state = [
+            "active",
+        ]
+        return self.processing_status in user_editable_state
 
     @property
     def can_user_view(self):
