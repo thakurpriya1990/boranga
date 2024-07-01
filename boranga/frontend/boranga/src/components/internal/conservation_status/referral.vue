@@ -150,7 +150,7 @@ export default {
         },
     },
     methods: {
-        save: async function () {
+        save: function () {
             let vm = this;
             vm.savingConservationStatus = true;
             let payload = new Object();
@@ -205,7 +205,7 @@ export default {
                     let payload = new Object();
                     Object.assign(payload, vm.referral);
                     vm.$http.post(vm.species_community_cs_referral_form_url, payload).then(res => {
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, vm.$route.params.referral_id + '/complete')).then(res => {
+                        vm.$http.patch(helpers.add_endpoint_json(api_endpoints.cs_referrals, vm.$route.params.referral_id + '/complete')).then(res => {
                             vm.referral = Object.assign({}, res.body);
                         },
                             error => {
