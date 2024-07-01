@@ -3075,6 +3075,7 @@ class Occurrence(RevisionedMixin):
         COPY_TABLE_KEYS = {
             "combine_key_contact_ids":OCCContactDetail,
             "combine_document_ids":OccurrenceDocument,
+            "combine_site_ids":OccurrenceSite,
         }
         MOVE_TABLE_KEYS = {"combine_threat_ids":OCCConservationThreat}
 
