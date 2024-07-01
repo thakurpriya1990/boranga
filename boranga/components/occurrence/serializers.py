@@ -3153,6 +3153,9 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
     purpose = serializers.SerializerMethodField()
     featureid = serializers.SerializerMethodField()
     status_display = serializers.CharField(read_only=True, source="get_status_display")
+    datetime_updated = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
 
     class Meta:
         model = OccurrenceTenure
@@ -3192,6 +3195,7 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "comments",
             "significant_to_occurrence",
             "tenure_area_centroid",
+            "datetime_updated",
         )
         datatables_always_serialize = (
             "id",
@@ -3206,6 +3210,7 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "comments",
             "significant_to_occurrence",
             "tenure_area_centroid",
+            "datetime_updated",
         )
 
 class OccurrenceSiteSerializer(serializers.ModelSerializer):
