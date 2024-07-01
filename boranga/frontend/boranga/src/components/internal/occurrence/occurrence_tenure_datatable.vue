@@ -58,13 +58,13 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="occurence_tenure_purpose_lookup"
+                        <label for="occurrence_tenure_purpose_lookup"
                             >Purpose:</label
                         >
                         <select
-                            id="occurence_tenure_purpose_lookup"
-                            ref="occurence_tenure_purpose_lookup"
-                            name="occurence_tenure_purpose_lookup"
+                            id="occurrence_tenure_purpose_lookup"
+                            ref="occurrence_tenure_purpose_lookup"
+                            name="occurrence_tenure_purpose_lookup"
                             class="form-control"
                         />
                     </div>
@@ -363,7 +363,7 @@ export default {
                     placeholder: 'Select a vesting',
                 },
                 {
-                    ref: 'occurence_tenure_purpose_lookup',
+                    ref: 'occurrence_tenure_purpose_lookup',
                     vModelDataProperty: 'filterPurpose',
                     placeholder: 'Select a purpose',
                 },
