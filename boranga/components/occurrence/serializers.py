@@ -422,7 +422,11 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_copied_to_occurrence(self, obj):
         occs_copied_to = [
-            [occ_geom.occurrence_id for occ_geom in dest]
+            [
+                occ_geom.occurrence_id
+                for occ_geom in dest
+                if hasattr(occ_geom, "occurrence_id")
+            ]
             for geom in obj.ocr_geometry.all()
             for dest in geom.source_of_objects()
         ]
@@ -3213,6 +3217,7 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "datetime_updated",
         )
 
+
 class OccurrenceSiteSerializer(serializers.ModelSerializer):
 
     occurrence_number = serializers.SerializerMethodField()
@@ -3237,10 +3242,15 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
 
     def get_occurrence_number(self, obj):
         return obj.occurrence.occurrence_number
-    
-    def get_related_occurrence_report_numbers(self,obj):
-        return list(obj.related_occurrence_reports.all().values_list("occurrence_report_number", flat=True))
-    
+
+    def get_related_occurrence_report_numbers(self, obj):
+        return list(
+            obj.related_occurrence_reports.all().values_list(
+                "occurrence_report_number", flat=True
+            )
+        )
+
+
 class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
 
     class Meta:
