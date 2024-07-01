@@ -143,6 +143,7 @@ module.exports = {
     occurrence_documents: "/api/occurrence_documents.json",
     ocr_threat: "/api/ocr_threat.json",
     occ_threat: "/api/occ_threat.json",
+    occ_site: "/api/occurrence_sites.json",
     occ_profile_dict: "/api/occ_profile_dict",
 
     combine_key_contacts_lookup: "/api/occurrence_paginated/combine_key_contacts_lookup/",

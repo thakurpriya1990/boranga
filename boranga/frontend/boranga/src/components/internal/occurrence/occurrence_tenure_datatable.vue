@@ -248,9 +248,6 @@ export default {
                     end: 1,
                 },
                 paging: true,
-                scrollCollapse: true,
-                scrollX: true,
-                scrollY: false,
                 ajax: {
                     url: url,
                     dataSrc: 'data',

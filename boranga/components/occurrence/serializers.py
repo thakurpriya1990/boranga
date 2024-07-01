@@ -38,6 +38,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportLogEntry,
     OccurrenceReportReferral,
     OccurrenceReportUserAction,
+    OccurrenceSite,
     OccurrenceTenure,
     OccurrenceUserAction,
     OCCVegetationStructure,
@@ -3205,4 +3206,47 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "comments",
             "significant_to_occurrence",
             "tenure_area_centroid",
+        )
+
+class OccurrenceSiteSerializer(serializers.ModelSerializer):
+
+    occurrence_number = serializers.SerializerMethodField()
+    related_occurrence_report_numbers = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OccurrenceSite
+        fields = (
+            "id",
+            "site_number",
+            "occurrence",
+            "occurrence_number",
+            "site_name",
+            "point_coord1",
+            "point_coord2",
+            "site_type",
+            "comments",
+            "related_occurrence_reports",
+            "related_occurrence_report_numbers",
+            "visible",
+        )
+
+    def get_occurrence_number(self, obj):
+        return obj.occurrence.occurrence_number
+    
+    def get_related_occurrence_report_numbers(self,obj):
+        return list(obj.related_occurrence_reports.all().values_list("occurrence_report_number", flat=True))
+    
+class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OccurrenceSite
+        fields = (
+            "id",
+            "occurrence",
+            "site_name",
+            "point_coord1",
+            "point_coord2",
+            "site_type",
+            "comments",
+            "related_occurrence_reports",
         )
