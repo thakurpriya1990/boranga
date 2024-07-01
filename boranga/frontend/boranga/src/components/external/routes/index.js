@@ -5,6 +5,8 @@ import ExternalSpeciesCommunity from '../species_communities/species_communities
 
 import ConservationStatusProposal from '../conservation_status/conservation_status_proposal.vue'
 import ConservationStatusProposalSubmit from '../conservation_status/conservation_status_proposal_submit.vue'
+import ConservationStatusReferral from '../../internal/conservation_status/referral.vue'
+
 import ExternalOccurrenceReportDash from '../occurrence/dashboard.vue'
 import OccurrenceReportProposal from '../occurrence/occurrence_report_proposal.vue'
 import OCRProposalSubmit from '../occurrence/ocr_proposal_submit.vue'
@@ -87,6 +89,11 @@ export default
                         component: ConservationStatusProposalSubmit,
                         name: "submit_cs_proposal"
                     },
+                    {
+                        path: ':conservation_status_id/referral/:referral_id',
+                        component: ConservationStatusReferral,
+                        name: "conservation-status-referral"
+                    }
                 ]
             },
         ]
