@@ -192,7 +192,7 @@ logger = logging.getLogger(__name__)
 
 class OccurrenceReportFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        if "internal" in view.name:
+        if view.name and "internal" in view.name:
             total_count = queryset.count()
 
             filter_group_type = request.GET.get("filter_group_type")
@@ -327,9 +327,11 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
-        qs = OccurrenceReport.objects.all()
-        if is_customer(self.request):
-            qs = qs.filter(submitter=self.request.user.id)
+        qs = super().get_queryset()
+        if is_internal(self.request):
+            qs = OccurrenceReport.objects.all()
+        if is_contributor(self.request):
+            qs = OccurrenceReport.objects.filter(submitter=self.request.user.id)
 
         return qs
 
@@ -5332,7 +5334,8 @@ class OccurrenceReportReferralViewSet(
             ),
             request,
         )
-        return redirect(reverse("internal"))
+        serializer = self.get_serializer(instance, context={"request": request})
+        return Response(serializer.data)
 
 
 class OccurrenceTenureFilterBackend(DatatablesFilterBackend):
