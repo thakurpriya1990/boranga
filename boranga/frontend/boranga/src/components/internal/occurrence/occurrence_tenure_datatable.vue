@@ -297,8 +297,28 @@ export default {
                         d.purpose = this.filterPurpose;
                     },
                 },
-                dom: 'lBfrtip',
-                buttons: [],
+                dom:
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fa-solid fa-download"></i> Excel',
+                        className: 'btn btn-primary me-2 rounded',
+                        exportOptions: {
+                            orthogonal: 'export',
+                        },
+                    },
+                    {
+                        extend: 'csv',
+                        text: '<i class="fa-solid fa-download"></i> CSV',
+                        className: 'btn btn-primary rounded',
+                        exportOptions: {
+                            orthogonal: 'export',
+                        },
+                    },
+                ],
                 columns: columns,
                 processing: true,
                 // eslint-disable-next-line no-unused-vars
