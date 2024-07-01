@@ -4466,13 +4466,13 @@ class OccurrenceSite(models.Model):
 
     comments = models.TextField(blank=True, null=True)
 
+    visible = models.BooleanField(
+        default=True
+    ) 
+
     class Meta:
         app_label = "boranga"
         verbose_name = "Occurrence Site"
-        unique_together = (
-            "occurrence",
-            "site_name",
-        )
 
     def save(self, *args, **kwargs):
         # Prefix "ST" char to site_number.

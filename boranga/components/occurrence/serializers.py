@@ -3227,6 +3227,7 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
             "comments",
             "related_occurrence_reports",
             "related_occurrence_report_numbers",
+            "visible",
         )
 
     def get_occurrence_number(self, obj):

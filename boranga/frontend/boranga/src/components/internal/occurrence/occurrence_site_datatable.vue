@@ -72,7 +72,11 @@ export default {
                 orderable: true,
                 searchable: true,
                 mRender: function (data, type, full) {
-                    return vm.occurrence_obj.occurrence_number + " - " + full.site_number
+                    if (full.visible) {
+                        return vm.occurrence_obj.occurrence_number + " - " + full.site_number
+                    } else {
+                        return '<s>' + vm.occurrence_obj.occurrence_number + " - " + full.site_number + '</s>'
+                    }
                 },
             }
         },
@@ -81,6 +85,13 @@ export default {
                 data: "site_name",
                 orderable: true,
                 searchable: true,
+                mRender: function (data, type, full) {
+                    if (full.visible) {
+                        return full.site_name
+                    } else {
+                        return '<s>' + full.site_name + '</s>'
+                    }
+                }
             }
         },
         column_point_coordinates: function () {
@@ -100,7 +111,11 @@ export default {
 
                     let value = coord1 + " - " + coord2;
                     let result = helpers.dtPopover(value, 30, 'hover');
-                    return type == 'export' ? value : result;
+                    if (full.visible) {
+                        return result;
+                    } else {
+                        return '<s>' + result + '</s>';
+                    }
                 },
             }
         },
@@ -111,7 +126,11 @@ export default {
                 mRender: function (data, type, full) {
                     let value = full.comments;
                     let result = helpers.dtPopover(value, 30, 'hover');
-                    return type == 'export' ? value : result;
+                    if (full.visible) {
+                        return result;
+                    } else {
+                        return '<s>' + result + '</s>';
+                    }
                 }
             }
         },
@@ -121,7 +140,11 @@ export default {
                 mRender: function (data, type, full) {
                     let value = full.related_occurrence_report_numbers;
                     let result = helpers.dtPopover(value, 30, 'hover');
-                    return type == 'export' ? value : result;
+                    if (full.visible) {
+                        return result;
+                    } else {
+                        return '<s>' + result + '</s>';
+                    }
                 }
             }
         },
@@ -131,9 +154,14 @@ export default {
                 data: "id",
                 mRender: function (data, type, full) {
                     let links = '';
-                    links += `<a href='#${full.id}' data-view-site='${full.id}'>View</a><br/>`;
-                    if (!vm.isReadOnly) {
-                        links += `<a href='#${full.id}' data-edit-site='${full.id}'>Edit</a><br/>`;
+                    if (full.visible) {
+                        links += `<a href='#${full.id}' data-view-site='${full.id}'>View</a><br/>`;
+                        if (!vm.isReadOnly) {
+                            links += `<a href='#${full.id}' data-edit-site='${full.id}'>Edit</a><br/>`;
+                            links += `<a href='#' data-delete-site='${full.id}'>Discard</a><br>`;
+                        }
+                    } else if (!vm.isReadOnly) {
+                        links += `<a href='#' data-reinstate-site='${full.id}'>Reinstate</a><br>`;
                     }
                     return links;
                 }
@@ -238,6 +266,67 @@ export default {
         updatedSites: function() {
             this.$refs.occurrence_site_datatable.vmDataTable.ajax.reload();
         },
+        discardSite: function (id) {
+            let vm = this;
+            swal.fire({
+                title: "Discard Site",
+                text: "Are you sure you want to discard this Site?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Discard Site',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    vm.$http.post(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/discard'))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'The Site has been discarded',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            }).then((result) => {
+                                vm.$refs.occurrence_site_datatable.vmDataTable.ajax.reload();
+                            });
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            }, (error) => {
+
+            });
+        },
+        reinstateSite: function (id) {
+            let vm = this;
+            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/reinstate'))
+            .then((response) => {
+                swal.fire({
+                    title: 'Reinstated',
+                    text: 'The Site has been reinstated',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                }).then((result) => {
+                    vm.$refs.occurrence_site_datatable.vmDataTable.ajax.reload();
+                });
+            }, (error) => {
+                var errorText = helpers.apiVueResourceError(error);
+                swal.fire({
+                    title: 'Error',
+                    text: errorText,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+            });            
+        },
         addEventListeners: function () {
             const vm = this;
             this.$refs.occurrence_site_datatable.vmDataTable.on(
@@ -258,6 +347,16 @@ export default {
                     vm.editSite(id);
                 }
             );
+            vm.$refs.occurrence_site_datatable.vmDataTable.on('click', 'a[data-delete-site]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-delete-site');
+                vm.discardSite(id);
+            });
+            vm.$refs.occurrence_site_datatable.vmDataTable.on('click', 'a[data-reinstate-site]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-reinstate-site');
+                vm.reinstateSite(id);
+            });
             vm.$refs.occurrence_site_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                 helpers.enablePopovers();
             });

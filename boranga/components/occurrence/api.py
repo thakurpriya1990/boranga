@@ -5640,12 +5640,32 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+
+        if not instance.visible:
+            raise serializers.ValidationError("Discarded site cannot be updated.")
         
         self.is_authorised_to_update(instance.occurrence)
         serializer = SaveOccurrenceSiteSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
         serializer.is_valid(raise_exception=True)
+
+        occurrence = serializer.validated_data["occurrence"]
+        site_name = serializer.validated_data["site_name"]
+
+        if (
+            OccurrenceSite.objects.exclude(id=instance.id)
+            .filter(
+                Q(site_name=site_name)
+                & Q(occurrence=occurrence)
+                & Q(visible=True)
+            )
+            .exists()
+        ):
+            raise serializers.ValidationError(
+                "Site with this name already exists for this occurrence"
+            )
+        
         serializer.save()
 
         return Response(serializer.data)
@@ -5656,10 +5676,58 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         )
         serializer.is_valid(raise_exception=True)
         occurrence = serializer.validated_data["occurrence"]
+        site_name = serializer.validated_data["site_name"]
+
+        if OccurrenceSite.objects.filter(
+            Q(site_name=site_name) & Q(occurrence=occurrence) & Q(visible=True)
+        ).exists():
+            raise serializers.ValidationError(
+                "Site with this name already exists for this occurrence"
+            )
 
         self.is_authorised_to_update(occurrence)
         serializer.save()
 
+        return Response(serializer.data)
+    
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
+        instance.visible = False
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
+
+        if OccurrenceSite.objects.filter(
+            Q(site_name=instance.site_name)
+            & Q(occurrence=instance.occurrence)
+            & Q(visible=True)
+        ).exists():
+            raise serializers.ValidationError(
+                "Active site with this name already exists for this occurrence"
+            )
+
+        instance.visible = True
+        instance.save()
+
+        serializer = self.get_serializer(instance)
         return Response(serializer.data)
     
     @list_route(
