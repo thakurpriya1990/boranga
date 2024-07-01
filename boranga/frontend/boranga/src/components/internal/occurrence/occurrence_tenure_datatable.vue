@@ -136,10 +136,11 @@ export default {
                 'Status',
                 'Vesting',
                 'Purpose',
-                'Comments',
                 'Signif. to OCC',
+                'Comments',
                 "Owner's Name",
                 // 'Owner Count',
+                'Updated',
                 'Action',
             ],
             tenure_statuses: [
@@ -235,6 +236,14 @@ export default {
                 visible: true,
             };
         },
+        column_datetime_updated: function () {
+            return {
+                data: 'datetime_updated',
+                orderable: true,
+                searchable: true,
+                visible: true,
+            };
+        },
         column_action: function () {
             const vm = this;
             return {
@@ -260,10 +269,11 @@ export default {
                 this.column_status,
                 this.column_vesting,
                 this.column_purpose,
-                this.column_comments,
                 this.column_significant_to_occurrence,
+                this.column_comments,
                 this.column_owner_name,
                 // this.column_owner_count,
+                this.column_datetime_updated,
                 this.column_action,
             ];
             let url = this.url;
@@ -280,6 +290,7 @@ export default {
                 ordering: true,
                 order: [
                     [1, 'asc'],
+                    [7, 'desc'],
                     [0, 'desc'],
                 ],
                 fixedColumns: {
