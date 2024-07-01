@@ -176,6 +176,7 @@ from boranga.components.spatial.utils import (
 from boranga.components.species_and_communities.models import GroupType, Taxonomy
 from boranga.components.species_and_communities.serializers import TaxonomySerializer
 from boranga.helpers import (
+    is_contributor,
     is_customer,
     is_external_contributor,
     is_internal,
@@ -672,11 +673,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     )
     def referred_to_me(self, request, *args, **kwargs):
         self.serializer_class = DTOccurrenceReportReferralSerializer
-        qs = (
-            OccurrenceReportReferral.objects.filter(referral=request.user.id)
-            if is_internal(self.request)
-            else OccurrenceReportReferral.objects.none()
-        )
+        qs = OccurrenceReportReferral.objects.filter(referral=request.user.id)
         self.filter_backends = (OccurrenceReportReferralFilterBackend,)
         qs = self.filter_queryset(qs)
 
@@ -698,13 +695,19 @@ class OccurrenceReportViewSet(
     def get_queryset(self):
         request = self.request
         qs = self.queryset
-        if not is_internal(request) and not is_external_contributor(request):
+        if not is_internal(request) and not is_contributor(request):
             return qs
 
         if is_internal(request):
             qs = OccurrenceReport.objects.all()
-        elif is_external_contributor(request):
+        elif is_contributor(request) and is_occurrence_report_referee(request):
+            qs = OccurrenceReport.objects.filter(
+                Q(submitter=request.user.id) | Q(referrals__referral=request.user.id)
+            )
+        elif is_contributor(request):
             qs = OccurrenceReport.objects.filter(submitter=request.user.id)
+        elif is_occurrence_report_referee(request):
+            qs = OccurrenceReport.objects.filter(referrals__referral=request.user.id)
 
         return qs
 
@@ -1783,10 +1786,7 @@ class OccurrenceReportViewSet(
             is_occurrence_assessor(request)
             or is_occurrence_approver(request)
             or is_occurrence_report_referee(request, instance)
-            or (
-                (is_external_contributor(request) or is_internal_contributor(request))
-                and instance.submitter == request.user.id
-            )
+            or ((is_contributor(request)) and instance.submitter == request.user.id)
         ):
             serializer = OCRObserverDetailSerializer(
                 qs, many=True, context={"request": request}
@@ -2398,9 +2398,14 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             or is_readonly_user(self.request)
         ):
             qs = OCRObserverDetail.objects.all().order_by("id")
-        elif is_external_contributor(self.request) or is_internal_contributor(
+        elif is_contributor(self.request) and is_occurrence_report_referee(
             self.request
         ):
+            qs = OCRObserverDetail.objects.filter(
+                Q(occurrence_report__submitter=self.request.user.id)
+                | Q(occurrence_report__referrals__referral=self.request.user.id)
+            ).order_by("id")
+        elif is_contributor(self.request):
             qs = OCRObserverDetail.objects.filter(
                 occurrence_report__submitter=self.request.user.id
             ).order_by("id")
@@ -5178,7 +5183,7 @@ class OccurrenceViewSet(
             qs, many=True, context={"request": request}
         )
         return Response(serializer.data)
-    
+
     @detail_route(
         methods=[
             "GET",
@@ -5203,7 +5208,17 @@ class OccurrenceReportReferralViewSet(
     def get_queryset(self):
         qs = super().get_queryset()
         if not is_internal(self.request):
-            qs.filter(occurrence_report__submitter=self.request.user)
+            if is_contributor(self.request) and is_occurrence_report_referee(
+                self.request
+            ):
+                qs = qs.filter(
+                    Q(occurrence_report__submitter=self.request.user.id)
+                    | Q(referral=self.request.user.id)
+                )
+            elif is_contributor(self.request):
+                qs = qs.filter(occurrence_report__submitter=self.request.user.id)
+            elif is_occurrence_report_referee(self.request):
+                qs = qs.filter(referral=self.request.user.id)
         return qs
 
     def is_authorised_to_refer(self):
@@ -5643,7 +5658,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         if not instance.visible:
             raise serializers.ValidationError("Discarded site cannot be updated.")
-        
+
         self.is_authorised_to_update(instance.occurrence)
         serializer = SaveOccurrenceSiteSerializer(
             instance, data=json.loads(request.data.get("data"))
@@ -5655,17 +5670,13 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         if (
             OccurrenceSite.objects.exclude(id=instance.id)
-            .filter(
-                Q(site_name=site_name)
-                & Q(occurrence=occurrence)
-                & Q(visible=True)
-            )
+            .filter(Q(site_name=site_name) & Q(occurrence=occurrence) & Q(visible=True))
             .exists()
         ):
             raise serializers.ValidationError(
                 "Site with this name already exists for this occurrence"
             )
-        
+
         serializer.save()
 
         return Response(serializer.data)
@@ -5689,7 +5700,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer.save()
 
         return Response(serializer.data)
-    
+
     @detail_route(
         methods=[
             "POST",
@@ -5729,7 +5740,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
-    
+
     @list_route(
         methods=[
             "GET",
@@ -5737,8 +5748,8 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         detail=False,
     )
     def site_list_of_values(self, request, *args, **kwargs):
-        
-        site_type_list = list(SiteType.objects.values("id","name"))
+
+        site_type_list = list(SiteType.objects.values("id", "name"))
 
         res_json = {
             "site_type_list": site_type_list,
