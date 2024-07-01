@@ -23,6 +23,7 @@ from boranga.components.users.serializers import SubmitterInformationSerializer
 from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
+    is_contributor,
     is_internal_contributor,
     is_new_external_contributor,
 )
@@ -472,7 +473,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     def get_regions(self, obj):
         if obj.community:
             if obj.community.regions:
-                #return obj.community.region.name
+                # return obj.community.region.name
                 regions_list = obj.community.regions.all().values_list(
                     "name", flat=True
                 )
@@ -482,7 +483,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     def get_districts(self, obj):
         if obj.community:
             if obj.community.districts:
-                #return obj.community.district.name
+                # return obj.community.district.name
                 districts_list = obj.community.districts.all().values_list(
                     "name", flat=True
                 )
@@ -1472,6 +1473,7 @@ class ProposedApprovalSerializer(serializers.Serializer):
 class ConservationStatusDocumentSerializer(serializers.ModelSerializer):
     document_category_name = serializers.SerializerMethodField()
     document_sub_category_name = serializers.SerializerMethodField()
+    can_action = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatusDocument
@@ -1490,6 +1492,7 @@ class ConservationStatusDocumentSerializer(serializers.ModelSerializer):
             "document_sub_category_name",
             "visible",
             "can_submitter_access",
+            "can_action",
         )
         read_only_fields = ("id", "document_number")
 
@@ -1500,6 +1503,14 @@ class ConservationStatusDocumentSerializer(serializers.ModelSerializer):
     def get_document_sub_category_name(self, obj):
         if obj.document_sub_category:
             return obj.document_sub_category.document_sub_category_name
+
+    def get_can_action(self, obj):
+        request = self.context["request"]
+        return is_conservation_status_assessor(request) or (
+            obj.can_submitter_access
+            and is_contributor(request)
+            and request.user.id == obj.conservation_status.submitter
+        )
 
 
 class SaveConservationStatusDocumentSerializer(serializers.ModelSerializer):
