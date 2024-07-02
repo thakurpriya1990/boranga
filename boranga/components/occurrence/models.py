@@ -4484,7 +4484,7 @@ class SiteType(models.Model):
     def __str__(self):
         return str(self.name)
 
-class OccurrenceSite(models.Model):
+class OccurrenceSite(GeometryBase):
     site_number = models.CharField(max_length=9, blank=True, default="")
     occurrence = models.ForeignKey(
         "Occurrence", related_name="sites", on_delete=models.CASCADE
