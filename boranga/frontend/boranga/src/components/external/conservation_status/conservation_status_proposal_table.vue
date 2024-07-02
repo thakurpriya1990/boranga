@@ -89,6 +89,13 @@ export default {
             type: String,
             required: true
         },
+        profile: {
+            type: Object,
+            required: false,
+            default: function () {
+                return null
+            }
+        },
         filterCSGroupType_cache: {
             type: String,
             required: false,
@@ -124,9 +131,6 @@ export default {
         let vm = this;
         return {
             datatable_id: 'conservation_status-datatable-' + vm._uid,
-
-            //Profile to check if user has access to process Proposal
-            profile: {},
 
             // selected values for filtering
             filterCSGroupType: sessionStorage.getItem(this.filterCSGroupType_cache) ?
@@ -590,14 +594,6 @@ export default {
                 }
             );
         },
-        fetchProfile: function () {
-            let vm = this;
-            Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body;
-            }, (error) => {
-                console.log(error);
-            })
-        },
         check_assessor: function (proposal) {
             let vm = this;
             if (proposal.assigned_officer) {
@@ -621,7 +617,6 @@ export default {
     },
     mounted: function () {
         this.fetchFilterLists();
-        this.fetchProfile();
         let vm = this;
         $('a[data-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];

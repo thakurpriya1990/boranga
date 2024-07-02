@@ -88,6 +88,13 @@ export default {
             type: String,
             required: true
         },
+        profile: {
+            type: Object,
+            required: false,
+            default: function () {
+                return null
+            }
+        },
         filterOCRGroupType_cache: {
             type: String,
             required: false,
@@ -113,9 +120,6 @@ export default {
         let vm = this;
         return {
             datatable_id: 'ocuurrence-report-datatable-' + vm._uid,
-
-            //Profile to check if user has access to process Proposal
-            profile: {},
 
             // selected values for filtering
             filterOCRGroupType: sessionStorage.getItem(this.filterOCRGroupType_cache) ?
