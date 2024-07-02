@@ -360,8 +360,28 @@ export default {
                     blank_fields.push('Please add Committe members');
                 }
             }
+            if(vm.$refs.cs_queue.$refs.cs_queue_datatable.vmDataTable.rows().count()==0){
+                blank_fields.push(' Please add atleast one Agenda record')
+            }
             if (vm.meeting_obj.location_id == null || vm.meeting_obj.location_id == '') {
                 blank_fields.push(' Please select Location')
+            }
+            if (blank_fields.length == 0) {
+                return true;
+            }
+            else {
+                return blank_fields;
+            }
+            //to count if records exists in the minutes table
+            vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count()
+        },
+        can_complete: function () {
+            let vm = this;
+            let blank_fields = []
+
+           
+            if(vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count()==0){
+                blank_fields.push(' Please add atleast one Minutes record')
             }
             if (blank_fields.length == 0) {
                 return true;
@@ -464,7 +484,7 @@ export default {
         completeMeeting: function () {
             let vm = this;
 
-            var missing_data = vm.can_schedule("submit");
+            var missing_data = vm.can_complete();
             if (missing_data != true) {
                 swal.fire({
                     title: "Please fix following errors before completing the meeting",

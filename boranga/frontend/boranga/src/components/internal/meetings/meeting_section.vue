@@ -71,7 +71,7 @@
                     </select>
                 </div>
             </div>
-            <div class="row mb-3" v-if="meetingStatusEditable">
+            <!-- <div class="row mb-3" v-if="meetingStatusEditable">
                 <label for="" class="col-sm-4 control-label fw-bold">Meeting status: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" style="width:100%;" class="form-select"
@@ -81,7 +81,7 @@
                         </option>
                     </select>
                 </div>
-            </div>
+            </div> -->
         </FormSection>
     </div>
 </template>
