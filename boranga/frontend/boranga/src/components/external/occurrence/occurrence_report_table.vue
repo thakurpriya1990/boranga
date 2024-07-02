@@ -272,12 +272,12 @@ export default {
                         if (full.processing_status == 'discarded') {
                             links += `<a href='#${full.id}' data-reinstate-ocr-proposal='${full.id}'>Reinstate</a><br/>`;
                         } else {
-                            links += `<a href='/external/occurrence-report/${full.id}'>Continue</a><br/>`;
+                            links += `<a href='/external/occurrence_report/${full.id}'>Continue</a><br/>`;
                             links += `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
                         }
                     }
                     else if (full.can_user_view) {
-                        links += `<a href='/external/occurrence-report/${full.id}'>View</a>`;
+                        links += `<a href='/external/occurrence_report/${full.id}'>View</a>`;
                     }
                     return links;
                 }
