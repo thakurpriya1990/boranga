@@ -4209,6 +4209,8 @@ export default {
             const features =
                 this.layerSources[this.defaultQueryLayerName].getFeatures();
 
+            //TODO param to extract additional layers for saving (i.e. site layer)
+
             features.forEach(function (feature) {
                 console.log(feature.getProperties());
                 feature.unset('model');
