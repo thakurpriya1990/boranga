@@ -10,6 +10,20 @@ from ledger_api_client.managed_models import SystemGroup
 
 from boranga import helpers as boranga_helpers
 
+
+class DeleteProtectedModelAdmin(admin.ModelAdmin):
+    """Stops regular users from deleting objects in the admin but still allow superusers to do so."""
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if "delete_selected" in actions and not request.user.is_superuser:
+            del actions["delete_selected"]
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
 admin.site.index_template = "admin-index.html"
 admin.autodiscover()
 
