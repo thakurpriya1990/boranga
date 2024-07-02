@@ -3,7 +3,10 @@ import logging
 from rest_framework import permissions
 from rest_framework.permissions import BasePermission
 
-from boranga.components.conservation_status.models import ConservationStatusReferral
+from boranga.components.conservation_status.models import (
+    ConservationStatus,
+    ConservationStatusReferral,
+)
 from boranga.components.occurrence.models import OccurrenceReportReferral
 from boranga.helpers import (
     is_conservation_status_approver,
@@ -233,6 +236,7 @@ class ConservationStatusPermission(BasePermission):
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
             or is_contributor(request)
+            or is_conservation_status_referee(request)
         )
 
     def has_object_permission(self, request, view, obj):
@@ -334,11 +338,28 @@ class ConservationStatusDocumentPermission(BasePermission):
         if request.user.is_superuser:
             return True
 
-        if hasattr(view, "action") and view.action in ["create"]:
-            return (
-                is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
-                or is_contributor(request)
+        if (
+            hasattr(view, "action")
+            and view.action in ["create"]
+            and request.method == "POST"
+        ):
+            if is_conservation_status_assessor(
+                request
+            ) or is_conservation_status_approver(request):
+                return True
+
+            conservation_status_id = request.data.get("conservation_status")
+            if not conservation_status_id:
+                return False
+            try:
+                conservation_status = ConservationStatus.objects.get(
+                    id=conservation_status_id
+                )
+            except ConservationStatus.DoesNotExist:
+                return False
+
+            return conservation_status.submitter == request.user.id and is_contributor(
+                request
             )
 
         return (
@@ -349,6 +370,7 @@ class ConservationStatusDocumentPermission(BasePermission):
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
             or is_contributor(request)
+            or is_conservation_status_referee(request)
         )
 
     def has_object_permission(self, request, view, obj):

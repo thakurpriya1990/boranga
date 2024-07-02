@@ -4371,6 +4371,9 @@ class OccurrenceTenure(models.Model):
     owner_count = models.IntegerField(blank=True, null=True)
     # vesting = models.TBD
 
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    datetime_updated = models.DateTimeField(auto_now=True)
+
     purpose = models.ForeignKey(
         OccurrenceTenurePurpose,
         related_name="occurrence_tenures",

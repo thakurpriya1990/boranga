@@ -68,6 +68,7 @@ module.exports = {
     community_name_lookup: "/api/community_name_lookup",
     compliances_paginated_external: "/api/compliance_paginated/compliances_external/?format=datatables",
     conservation_status_paginated_external: "/api/conservation_status_paginated/conservation_status_external?format=datatables",
+    conservation_status_referred_to_me: "/api/conservation_status_paginated/referred_to_me/?format=datatables",
     family_lookup: "/api/family_lookup",
     filter_lists_species: "/api/filter_lists_species",
     genera_lookup: "/api/genera_lookup",
@@ -112,7 +113,7 @@ module.exports = {
         '/api/occurrence_tenure_paginated/occurrence_tenure_feature_id_lookup',
     occurrence_tenure_vesting_lookup:
         '/api/occurrence_tenure_paginated/occurrence_tenure_vesting_lookup',
-    occurence_tenure_purpose_lookup:
+    occurrence_tenure_purpose_lookup:
         '/api/occurrence_tenure_paginated/occurrence_tenure_purpose_lookup',
 
     // Pending - need to create viewsets for the below when working on search filters for OR dashboard
