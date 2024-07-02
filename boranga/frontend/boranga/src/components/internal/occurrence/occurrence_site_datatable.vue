@@ -55,6 +55,7 @@ export default {
                 'Site Number',
                 'Site Name',
                 'Point Coordinates',
+                'Datum',
                 'Comments',
                 'Related Reports',
                 'Action',
@@ -99,22 +100,39 @@ export default {
                 data: "id",
                 searchable: true,
                 mRender: function (data, type, full) {
-                    let coord1 = full.point_coord1.toString()
-                    let coord2 = full.point_coord2.toString()
+                    if (full.point_coord1 && full.point_coord2) {
+                        let coord1 = full.point_coord1.toString()
+                        let coord2 = full.point_coord2.toString()
 
-                    if (Number.isInteger((full.point_coord1))) {
-                        coord1 += ".0";
-                    }
-                    if (Number.isInteger((full.point_coord2))) {
-                        coord2 += ".0"; 
-                    }
+                        if (Number.isInteger((full.point_coord1))) {
+                            coord1 += ".0";
+                        }
+                        if (Number.isInteger((full.point_coord2))) {
+                            coord2 += ".0"; 
+                        }
 
-                    let value = coord1 + " - " + coord2;
-                    let result = helpers.dtPopover(value, 30, 'hover');
-                    if (full.visible) {
-                        return result;
+                        let value = coord1 + ", " + coord2;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        if (full.visible) {
+                            return result;
+                        } else {
+                            return '<s>' + result + '</s>';
+                        }
                     } else {
-                        return '<s>' + result + '</s>';
+                        return ""
+                    }
+                },
+            }
+        },
+        column_datum: function () {
+            return {
+                data: "id",
+                searchable: true,
+                mRender: function (data, type, full) {
+                    if (full.visible) {
+                        return full.datum;
+                    } else {
+                        return '<s>' + full.datum + '</s>';
                     }
                 },
             }
@@ -173,6 +191,7 @@ export default {
                 this.column_site_number,
                 this.column_site_name,
                 this.column_point_coordinates,
+                this.column_datum,
                 this.column_comments,
                 this.column_related_reports,
                 this.column_action,

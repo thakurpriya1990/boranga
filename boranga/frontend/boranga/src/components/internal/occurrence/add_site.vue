@@ -47,6 +47,20 @@
                             </div>
                             <div class="row mb-3">
                                 <div class="col-sm-3">
+                                    <label class="control-label pull-left">Datum</label>
+                                </div>
+                                <div class="col-sm-9">
+                                    <select :disabled="isReadOnly" class="form-select"
+                                        v-model="siteObj.datum">
+                                        <option v-for="datum in datum_list" :value="datum.srid"
+                                            v-bind:key="datum.srid">
+                                            {{ datum.name }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
                                     <label class="control-label pull-left">Site Type</label>
                                 </div>
                                 <div class="col-sm-9">
@@ -155,6 +169,7 @@ export default {
             successString: '',
             success: false,
             site_type_list: [],
+            datum_list: [],
         }
     },
     computed: {
@@ -267,6 +282,12 @@ export default {
         this.site_type_list.splice(0, 0,
             {
                 id: null,
+                name: null,
+            });
+        this.datum_list = site_list_of_values_res.datum_list;
+        this.datum_list.splice(0, 0,
+            {
+                srid: null,
                 name: null,
             });
     },

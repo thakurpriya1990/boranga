@@ -1502,6 +1502,7 @@ class Datum(models.Model):
     """
 
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    srid = models.IntegerField(blank=False, null=False, unique=True)
 
     class Meta:
         app_label = "boranga"
@@ -4494,9 +4495,6 @@ class OccurrenceSite(GeometryBase):
     )
     
     site_name = models.CharField(max_length=255, null=True, blank=True)
-    
-    point_coord1 = models.FloatField(null=True, blank=True, default=0)
-    point_coord2 =models.FloatField(null=True, blank=True, default=0)
 
     site_type = models.ForeignKey(
         SiteType, on_delete=models.SET_NULL, null=True, blank=True
@@ -4510,6 +4508,9 @@ class OccurrenceSite(GeometryBase):
         default=True
     ) 
 
+    def related_model_field(self):
+        return self.occurrence
+    
     class Meta:
         app_label = "boranga"
         verbose_name = "Occurrence Site"
