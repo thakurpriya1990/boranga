@@ -242,9 +242,10 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if serializer.is_valid():
             saved_instance = serializer.save()
             # add the committee selected members to the meeting
-            saved_instance.selected_committee_members.set(
-                request_data.get("sel_committee_members_arr")
-            )
+            if 'sel_committee_members_arr' in request_data:
+                saved_instance.selected_committee_members.set(
+                    request_data.get("sel_committee_members_arr")
+                )
 
             instance.log_user_action(
                 MeetingUserAction.ACTION_SAVE_MEETING.format(instance.meeting_number),
@@ -258,6 +259,24 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def submit(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.submit(request, self)
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
+    @detail_route(methods=["PUT"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def schedule_meeting(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.schedule_meeting(request, self)
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
+    @detail_route(methods=["PUT"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    def complete_meeting(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.complete_meeting(request, self)
         instance.save()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
