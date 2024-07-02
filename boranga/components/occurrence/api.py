@@ -162,6 +162,7 @@ from boranga.components.occurrence.serializers import (
     SaveOCRObservationDetailSerializer,
     SaveOCRPlantCountSerializer,
     SaveOCRVegetationStructureSerializer,
+    SiteGeometrySerializer,
 )
 from boranga.components.occurrence.utils import (
     get_all_related_species,
@@ -5792,6 +5793,18 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
+    
+    @list_route(methods=["GET"], detail=False)
+    def list_for_map(self, request, *args, **kwargs):
+        occurrence_id = request.GET.get("occurrence_id")
+        print(occurrence_id)
+        qs = self.get_queryset().filter(occurrence_id=occurrence_id).exclude(geometry=None)
+        print(qs.count())
+        serializer = SiteGeometrySerializer(
+            qs, many=True
+        )
+        print(serializer.data)
+        return Response(serializer.data)
 
 
 class OCRExternalRefereeInviteViewSet(viewsets.ModelViewSet):

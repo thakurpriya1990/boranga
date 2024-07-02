@@ -13,6 +13,7 @@ from boranga.components.main.serializers import (
 from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
     BufferGeometry,
+    Datum,
     GeometryType,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
@@ -3227,6 +3228,7 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
     point_coord1 = serializers.SerializerMethodField()
     point_coord2 = serializers.SerializerMethodField()
     datum = serializers.SerializerMethodField()
+    datum_name = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceSite
@@ -3239,6 +3241,7 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
             "point_coord1",
             "point_coord2",
             "datum",
+            "datum_name",
             "site_type",
             "comments",
             "related_occurrence_reports",
@@ -3268,6 +3271,13 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
     def get_datum(self, obj):
         if obj.geometry and obj.geometry.srid:
             return obj.geometry.srid
+        
+    def get_datum_name(self, obj):
+        if obj.geometry and obj.geometry.srid:
+            try:
+                return Datum.objects.get(srid=obj.geometry.srid).name
+            except:
+                return obj.geometry.srid
 
 class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
 
@@ -3313,3 +3323,25 @@ class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
             instance.save(*args, **kwargs)
             
             return instance
+        
+class SiteGeometrySerializer(GeoFeatureModelSerializer):
+    srid = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = OccurrenceSite
+        geo_field = "geometry"
+        fields = [
+            "id",
+            "occurrence",
+            "site_name",
+            "related_occurrence_reports",
+            "geometry",
+            "srid",
+        ]
+        read_only_fields = ("id",)
+
+    def get_srid(self, obj):
+        if obj.geometry:
+            return obj.geometry.srid
+        else:
+            return None

@@ -62,19 +62,23 @@ export default {
                     {
                         data: "id",
                         mRender: function (data, type, full) {
-                            let coord1 = full.point_coord1.toString()
-                            let coord2 = full.point_coord2.toString()
+                            if (full.point_coord1 && full.point_coord2) {
+                                let coord1 = full.point_coord1.toString()
+                                let coord2 = full.point_coord2.toString()
 
-                            if (Number.isInteger((full.point_coord1))) {
-                                coord1 += ".0";
-                            }
-                            if (Number.isInteger((full.point_coord2))) {
-                                coord2 += ".0"; 
-                            }
+                                if (Number.isInteger((full.point_coord1))) {
+                                    coord1 += ".0";
+                                }
+                                if (Number.isInteger((full.point_coord2))) {
+                                    coord2 += ".0"; 
+                                }
 
-                            let value = coord1 + " - " + coord2;
-                            let result = helpers.dtPopover(value, 30, 'hover');
-                            return result;
+                                let value = coord1 + ", " + coord2 + " - " + full.datum_name;
+                                let result = helpers.dtPopover(value, 30, 'hover');
+                                return result;
+                            } else {
+                                return ""
+                            }
                         },
                     },
                     {

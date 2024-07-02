@@ -130,9 +130,9 @@ export default {
                 searchable: true,
                 mRender: function (data, type, full) {
                     if (full.visible) {
-                        return full.datum;
+                        return full.datum_name;
                     } else {
-                        return '<s>' + full.datum + '</s>';
+                        return '<s>' + full.datum_name + '</s>';
                     }
                 },
             }
