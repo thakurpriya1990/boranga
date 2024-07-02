@@ -9,9 +9,10 @@
             <ConservationStatusTable
                 level="external"
                 :url="conservation_status_url"
+                :profile="profile"
             />
         </FormSection>
-        <FormSection
+        <FormSection v-if="profile && profile.cs_referral_count > 0"
             :formCollapse="false"
             label="Conservation Status Proposals Referred to Me"
             Index="cs_referred_to_me"
@@ -34,8 +35,8 @@ import { api_endpoints } from '@/utils/hooks'
 export default {
     name: 'ExternalConservationStatusDashboard',
     data() {
-        let vm = this;
         return {
+            profile: null,
             conservation_status_url: api_endpoints.conservation_status_paginated_external,
             cs_external_referrals_url: api_endpoints.conservation_status_referred_to_me,
         }
@@ -49,6 +50,20 @@ export default {
         is_external: function() {
             return this.level == 'external'
         },
+    },
+    methods: {
+        fetchProfile() {
+            this.$http.get(api_endpoints.profile)
+                .then(response => {
+                    this.profile = response.data
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+        },
+    },
+    created: function () {
+        this.fetchProfile();
     },
 }
 </script>

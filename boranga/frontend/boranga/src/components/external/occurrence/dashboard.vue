@@ -2,6 +2,7 @@
     <div class="container" id="externalOCRDash">
         <FormSection
             :formCollapse="false"
+            :profile="profile"
             label="Occurrence Report"
             subtitle="- submit and view your reported occurrences"
             Index="applications"
@@ -11,7 +12,7 @@
                 :url="occurrence_report_url"
             />
         </FormSection>
-        <FormSection
+        <FormSection v-if="profile && profile.ocr_referral_count > 0"
             :formCollapse="false"
             label="Occurrence Reports Referred to Me"
             Index="ocr_referred_to_me"
@@ -35,6 +36,7 @@ export default {
     name: 'ExternalOccurrenceReportDashboard',
     data() {
         return {
+            profile: null,
             occurrence_report_url: api_endpoints.occurrence_report_paginated_external,
             ocr_external_referrals_url: api_endpoints.occurrence_report_paginated_referred_to_me,
         }
@@ -48,6 +50,20 @@ export default {
         is_external: function() {
             return this.level == 'external'
         },
+    },
+    methods: {
+        fetchProfile() {
+            this.$http.get(api_endpoints.profile)
+                .then(response => {
+                    this.profile = response.data
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+        },
+    },
+    created: function () {
+        this.fetchProfile();
     },
 }
 </script>
