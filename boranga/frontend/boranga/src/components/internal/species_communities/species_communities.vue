@@ -42,7 +42,7 @@
                                                     <label for="image-upload" role="button"
                                                         class="btn btn-primary btn-sm w-50 mb-2 text-start"><i
                                                             class="bi bi-pencil-fill me-3"></i>
-                                                        Update</label>
+                                                        Replace</label>
                                                     <input id="image-upload" class="d-none" type="file"
                                                         ref="speciesCommunitiesImage" @change="uploadImage">
                                                     <button class="btn btn-secondary btn-sm w-50 mb-2 text-start"
