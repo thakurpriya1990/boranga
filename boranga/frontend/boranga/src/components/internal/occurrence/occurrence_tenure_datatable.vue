@@ -77,13 +77,14 @@
             :dt-options="options"
             :dt-headers="headers"
         />
-        <!-- <OccurrenceTenureModal
+        <OccurrenceTenureModal
             ref="occurrence_tenure_modal"
             :occurrence-id="occurrenceId"
             :url="'TODO:'"
+            title="Tenure Area Details"
             @refreshFromResponse="updatedTenureArea"
         >
-        </OccurrenceTenureModal> -->
+        </OccurrenceTenureModal>
     </div>
 </template>
 
@@ -92,14 +93,14 @@ import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import datatable from '@/utils/vue/datatable.vue';
 import { v4 as uuid } from 'uuid';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
-// import OccurrenceTenureModal from '@/components/internal/occurrence/occurrence_tenure_modal.vue';
+import OccurrenceTenureModal from '@/components/internal/occurrence/occurrence_tenure_modal.vue';
 
 export default {
     name: 'OccurrenceTenureDatatable',
     components: {
         datatable,
         CollapsibleFilters,
-        // OccurrenceTenureModal,
+        OccurrenceTenureModal,
     },
     emit: ['highlight-on-map', 'edit-tenure-details'],
     props: {
@@ -138,7 +139,8 @@ export default {
         return {
             uuid: uuid(),
             datatable_id: 'occurrence-tenure-datatable-' + uuid(),
-            occ_tenure_url: api_endpoints.occurrence_tenure_paginated_internal,
+            occ_tenure_paginated_url:
+                api_endpoints.occurrence_tenure_paginated_internal,
             // occ_site_url: api_endpoints.occ_site,
             headers: [
                 'Feature ID',
@@ -286,9 +288,9 @@ export default {
                 this.column_datetime_updated,
                 this.column_action,
             ];
-            let url = this.occ_tenure_url;
+            let url = this.occ_tenure_paginated_url;
             if (this.occurrenceId) {
-                url = `${this.occ_tenure_url}&occurrence_id=${this.occurrenceId}`;
+                url = `${this.occ_tenure_paginated_url}&occurrence_id=${this.occurrenceId}`;
             }
             return {
                 autoWidth: false,
@@ -448,8 +450,19 @@ export default {
         },
         editTenureDetails: function (id) {
             let vm = this;
-            // this.$refs.site_detail.site_id = id;
-            // this.$refs.site_detail.site_action = 'edit';
+            this.$refs.occurrence_tenure_modal.object_id = id;
+            this.$refs.occurrence_tenure_modal.modal_action = 'edit';
+
+            const url = api_endpoints.occurrence_tenure + id;
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    vm.$refs.occurrence_tenure_modal.tenureObj = data;
+                    vm.$refs.occurrence_tenure_modal.isModalOpen = true;
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
             // Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then((response) => {
             //     this.$refs.site_detail.siteObj = response.body;
             // },

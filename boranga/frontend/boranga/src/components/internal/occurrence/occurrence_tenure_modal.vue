@@ -2,7 +2,7 @@
     <div id="occurrence_tenure_modal">
         <modal
             transition="modal fade"
-            :title="title"
+            :title="modalTitle"
             large
             @ok="ok()"
             @cancel="cancel()"
@@ -185,6 +185,11 @@ export default {
             type: String,
             required: true
         },
+        title: {
+            type: String,
+            required: false,
+            default: 'Object'
+        },
         change_warning: {
             type: String,
             required: false
@@ -205,6 +210,7 @@ export default {
             form: null,
             object_id: String,
             modal_action: String,
+            tenureObj: {},
             // siteObj: {
             //     related_occurrence_reports: [],
             // },
@@ -224,13 +230,13 @@ export default {
             const vm = this;
             return vm.errors;
         },
-        title: function () {
+        modalTitle: function () {
             var action = this.modal_action;
             if (typeof action === "string" && action.length > 0) {
                 let capitalizedAction = action.charAt(0).toUpperCase() + action.slice(1);
-                return capitalizedAction + " Site";
+                return `${capitalizedAction} ${this.title}`;
             } else {
-                return "Invalid site action"; // Or handle the error in an appropriate way
+                return `Invalid ${this.title} action`; // Or handle the error in an appropriate way
             }
         },
         isReadOnly: function () {
