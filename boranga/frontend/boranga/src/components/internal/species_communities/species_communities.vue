@@ -38,6 +38,9 @@
                                                     Upload</label>
                                                 <input id="image-upload" class="d-none" type="file"
                                                     ref="speciesCommunitiesImage" @change="uploadImage">
+                                                <button class="btn btn-secondary btn-sm w-50 mb-2 text-start"
+                                                    @click="showReinstateImageModal"><i
+                                                        class="bi bi-clock-history me-3"></i> Reinstate</button>
                                                 <template v-if="!uploadingImage && speciesCommunitiesImage">
                                                     <label for="image-upload" role="button"
                                                         class="btn btn-primary btn-sm w-50 mb-2 text-start"><i
@@ -45,9 +48,7 @@
                                                         Replace</label>
                                                     <input id="image-upload" class="d-none" type="file"
                                                         ref="speciesCommunitiesImage" @change="uploadImage">
-                                                    <button class="btn btn-secondary btn-sm w-50 mb-2 text-start"
-                                                        @click="showReinstateImageModal"><i
-                                                            class="bi bi-clock-history me-3"></i> Reinstate</button>
+
                                                     <button @click="confirmDiscardImage"
                                                         class="btn btn-danger btn-sm w-50 mb-2 text-start"><i
                                                             class="bi bi-trash3-fill me-3"></i>
@@ -218,7 +219,8 @@
         <MakePublic ref="make_public" :species_community="species_community"
             :species_community_original="species_community_original" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
-        <ReinstateImage ref="reinstateImage" title="Reinstate Species Image" :imageHistoryUrl="image_history_url" @reinstateImage="reinstateImage" />
+        <ReinstateImage ref="reinstateImage" title="Reinstate Species Image" :imageHistoryUrl="image_history_url"
+            @reinstateImage="reinstateImage" />
     </div>
 </template>
 <script>
@@ -364,7 +366,7 @@ export default {
                 helpers.add_endpoint_json(api_endpoints.species, this.$route.params.species_community_id + '/action_log');
         },
         image_history_url: function () {
-            return this.species_community ? `/api/species/${this.species_community.id}/image_history/`: '';
+            return this.species_community ? `/api/species/${this.species_community.id}/image_history/` : '';
         }
     },
     methods: {
@@ -425,7 +427,7 @@ export default {
         showReinstateImageModal: function () {
             this.$refs.reinstateImage.isModalOpen = true;
         },
-        reinstateImage: function (image){
+        reinstateImage: function (image) {
             let vm = this;
             if (this.species_community.group_type == 'community') {
                 var api_url = api_endpoints.community;
