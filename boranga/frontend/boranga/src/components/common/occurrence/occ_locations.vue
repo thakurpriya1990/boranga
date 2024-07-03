@@ -44,6 +44,16 @@
                             can_buffer: false,
                             handler: bufferGeometryHandler, // Buffer geometries are a property of occurrence geometry. This handler returns the buffer geometries from the occurrence geometries.
                         },
+                        {
+                            name: 'site_layer',
+                            title: 'Site Geometries',
+                            default: false,
+                            processed: false,
+                            can_edit: true,
+                            can_buffer: false,
+                            api_url: siteApiUrl,
+                            ids: [],
+                        },
                     ]" @features-loaded="mapFeaturesLoaded" @crs-select-search="searchForCRS"></MapComponent>
             </div>
             <!-- @refreshFromResponse="refreshFromResponse" -->
@@ -302,6 +312,10 @@ export default {
         },
         occApiUrl: function () {
             return api_endpoints.occurrence + 'list_for_map/';
+        },
+        siteApiUrl: function () {
+            // TODO: Update to use the correct endpoint
+            return null;
         },
         bufferGeometriesApiUrl: function () {
             return api_endpoints.occurrence + 'buffer_geometries/';

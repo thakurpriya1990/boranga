@@ -50,11 +50,11 @@
                                                     <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="lockOccurrence()">Lock</button><br />
                                                 </div>
-                                                <div class="col-sm-12">
+                                                <div v-if="canClose" class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="splitOccurrence()">Split</button><br />
                                                 </div>
-                                                <div class="col-sm-12">
+                                                <div v-if="canClose" class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="combineOccurrence()">Combine</button><br />
                                                 </div>
@@ -220,7 +220,6 @@ export default {
         canUnlock: function () {
             return this.occurrence && this.occurrence.processing_status === "Locked" ? true : false;
         },
-        //TODO: can we close locked? should we only close locked?
         canClose: function () {
             return this.occurrence && this.occurrence.processing_status === "Active" ? true : false;
         },

@@ -167,9 +167,19 @@
                     <div :id="locationBody" class="tab-pane fade" role="tabpanel"
                     aria-labelledby="pills-location-tab">
                         <!--Location Form-->
-                        <FormSection :formCollapse="false" label="Location" :subtitle="' - OCC'+occ_combine_data.chosen_location_section" Index="combine_location">
+                        <FormSection :formCollapse="true" label="Location" :subtitle="' - OCC'+occ_combine_data.chosen_location_section" Index="combine_location">
                             <div class="row mb-3">
                             <OccurrenceCombineSelect :occ_chosen_section="occ_combine_data.chosen_location_section" :section_type="'location'" :selectedOccurrences="selectedOccurrences" :selectedOccurrenceIds="selectedOccurrenceIds" :mainOccurrenceId="main_occurrence_obj.id" @updateChosenSection="updateChosenSection"/>
+                            </div>
+                        </FormSection>
+                        <FormSection :formCollapse="true" label="Sites" Index="combine_sites" @toggle-collapse="toggleSites">
+                            <div class="row mb-3">
+                            <OccurrenceCombineSites 
+                            :selectedSites="sites" 
+                            :combineSiteIds="occ_combine_data.combine_site_ids" 
+                            :mainOccurrenceId="main_occurrence_obj.id"
+                            :key="site_table_key" 
+                            ref="sites_section"/>
                             </div>
                         </FormSection>
                     </div>
@@ -272,6 +282,7 @@
     import { helpers, api_endpoints } from "@/utils/hooks.js"
     import OccurrenceCombineSelect from './occurrence_combine_selection.vue'
     import OccurrenceCombineContacts from './occurrence_combine_contacts.vue'
+    import OccurrenceCombineSites from './occurrence_combine_sites.vue'
     import OccurrenceCombineDocuments from './occurrence_combine_documents.vue'
     import OccurrenceCombineThreats from './occurrence_combine_threats.vue'
     export default {
@@ -289,6 +300,7 @@
             OccurrenceCombineContacts,
             OccurrenceCombineDocuments,
             OccurrenceCombineThreats,
+            OccurrenceCombineSites,
         },
         data: function () {
             let vm = this;
@@ -297,6 +309,7 @@
                 contact_table_key: 0,
                 document_table_key: 0,
                 threat_table_key: 0,
+                site_table_key: 0,
                 reloadcount: 0,
                 locationBody: 'locationBody' + vm._uid,
                 habitatBody: 'habitatBody' + vm._uid,
@@ -314,14 +327,17 @@
                 key_contact_ids: [],
                 document_ids: [],
                 threat_ids: [],
+                site_ids: [],
                 key_contacts: [],
                 documents: [],
                 threats: [],
+                sites: [],
                 occ_combine_data: {
                     combine_ids: [this.main_occurrence_obj.id],
                     combine_key_contact_ids: [],
                     combine_document_ids: [],
                     combine_threat_ids: [],
+                    combine_site_ids: [],
                     occurrence_source: this.main_occurrence_obj.id,
                     wild_status: this.main_occurrence_obj.id,
                     review_due_date: this.main_occurrence_obj.id,
@@ -412,6 +428,10 @@
             toggleThreats: function () {
                 let vm = this;
                 vm.$refs.threats_section.adjust_table_width();
+            },
+            toggleSites: function () {
+                let vm = this;
+                vm.$refs.sites_section.adjust_table_width();
             },
             updateChosenSection: function (id, sectionType) {
                 let vm = this;
@@ -607,6 +627,48 @@
                     console.error(error);
                 });
             },
+            getSiteIds: function() {
+                let vm = this;
+                let formData = new FormData()
+                formData.append("occurrence_ids", JSON.stringify(vm.selectedOccurrenceIds));
+                //get all site ids for all OCCs
+                vm.$http.post(
+                    api_endpoints.combine_sites_lookup, formData
+                ).then((response) => {
+                    //copy old list
+                    let old_list = vm.site_ids;
+                    //add to main list
+                    vm.site_ids = response.body.id_list;
+                    vm.sites= response.body.values_list;
+
+                    let site_names = {};
+                    let taken_names = [];
+                    vm.sites.forEach(site => {
+                        if (vm.occ_combine_data.combine_site_ids.includes(site.id)) {
+                            taken_names.push(site.site_name);
+                        }
+                        site_names[site.id] = site.site_name;
+                    });
+
+                    //remove ids from combine list if not in new list
+                    vm.occ_combine_data.combine_site_ids.forEach(id => {
+                        if (!vm.site_ids.includes(id)) {
+                            vm.occ_combine_data.combine_site_ids.splice(vm.occ_combine_data.combine_site_ids.indexOf(id), 1);
+                        }
+                    });
+
+                    //add new ids to combine list if not in old list - unless they share a name
+                    response.body.id_list.forEach(id => {
+                        if (!old_list.includes(id) && !taken_names.includes(site_names[id])) {
+                            vm.occ_combine_data.combine_site_ids.push(id);      
+                        }
+                    });
+
+                    vm.site_table_key++;
+                }, (error) => {
+                    console.error(error);
+                });                
+            },
             initialiseOccurrenceNameLookup: function () {
                 let vm = this;
                 $(vm.$refs.occurrence_name_lookup).select2({
@@ -658,6 +720,8 @@
                     vm.getDocumentIds();
                     //get threat ids
                     vm.getThreatIds();
+                    //get site ids
+                    vm.getSiteIds();
 
                     let dict_url = api_endpoints.occ_profile_dict + '?group_type=' + vm.main_occurrence_obj.group_type
                     vm.$http.get(dict_url).then((response) => {
@@ -678,6 +742,8 @@
                 vm.getDocumentIds();
                 //get threat ids
                 vm.getThreatIds();
+                //get site ids
+                vm.getSiteIds();
                 //check form values
                 vm.checkFormValues();
             },

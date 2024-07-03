@@ -25,6 +25,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
+from django.contrib.gis.geos import GEOSGeometry
 
 from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
@@ -38,6 +39,7 @@ from boranga.components.occurrence.models import (
     AnimalHealth,
     CoordinationSource,
     CountedSubject,
+    Datum,
     DeathReason,
     Drainage,
     IdentificationCertainty,
@@ -160,6 +162,7 @@ from boranga.components.occurrence.serializers import (
     SaveOCRObservationDetailSerializer,
     SaveOCRPlantCountSerializer,
     SaveOCRVegetationStructureSerializer,
+    SiteGeometrySerializer,
 )
 from boranga.components.occurrence.utils import (
     get_all_related_species,
@@ -3484,6 +3487,25 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
             return Response({"values_list": values_list, "id_list": id_list})
         return Response()
+    
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=False,
+    )
+    def combine_sites_lookup(self, request, *args, **kwargs):
+        if is_internal(self.request):
+            occ_ids = json.loads(request.POST.get("occurrence_ids"))
+            sites = OccurrenceSite.objects.filter(
+                occurrence__id__in=occ_ids
+            ).filter(visible=True)
+
+            values_list = OccurrenceSiteSerializer(sites,context={"request": request}, many=True)
+            id_list = list(sites.values_list("id", flat=True))
+
+            return Response({"values_list": values_list.data, "id_list": id_list})
+        return Response()
 
     @detail_route(
         methods=[
@@ -5663,8 +5685,13 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             raise serializers.ValidationError("Discarded site cannot be updated.")
 
         self.is_authorised_to_update(instance.occurrence)
+
+        data = json.loads(request.data.get("data"))
+        point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
+        data["geometry"] = GEOSGeometry(point_data, srid=data["datum"])
+
         serializer = SaveOccurrenceSiteSerializer(
-            instance, data=json.loads(request.data.get("data"))
+            instance, data=data
         )
         serializer.is_valid(raise_exception=True)
 
@@ -5680,13 +5707,18 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 "Site with this name already exists for this occurrence"
             )
 
-        serializer.save()
+        instance = serializer.save()
 
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+
+        data = json.loads(request.data.get("data"))
+        point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
+        data["geometry"] = GEOSGeometry(point_data, srid=data["datum"])
+
         serializer = SaveOccurrenceSiteSerializer(
-            data=json.loads(request.data.get("data"))
+            data=data
         )
         serializer.is_valid(raise_exception=True)
         occurrence = serializer.validated_data["occurrence"]
@@ -5753,12 +5785,26 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def site_list_of_values(self, request, *args, **kwargs):
 
         site_type_list = list(SiteType.objects.values("id", "name"))
+        datum_list = list(Datum.objects.values("name","srid"))
 
         res_json = {
             "site_type_list": site_type_list,
+            "datum_list": datum_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
+    
+    @list_route(methods=["GET"], detail=False)
+    def list_for_map(self, request, *args, **kwargs):
+        occurrence_id = request.GET.get("occurrence_id")
+        print(occurrence_id)
+        qs = self.get_queryset().filter(occurrence_id=occurrence_id).exclude(geometry=None)
+        print(qs.count())
+        serializer = SiteGeometrySerializer(
+            qs, many=True
+        )
+        print(serializer.data)
+        return Response(serializer.data)
 
 
 class OCRExternalRefereeInviteViewSet(viewsets.ModelViewSet):
