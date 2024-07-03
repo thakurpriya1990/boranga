@@ -51,9 +51,13 @@ export default {
                 columns: [
                     {
                         data: "occurrence__occurrence_number",
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: "document_number",
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: "document_category__document_category_name",

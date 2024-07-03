@@ -52,12 +52,18 @@ export default {
                 columns: [
                     {
                         data: "occurrence_number",
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: "site_number",
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: "site_name",
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: "id",

@@ -52,9 +52,13 @@ export default {
                 columns: [
                     {
                         data: "occurrence__occurrence_number",
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: "contact_name",
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: "role",

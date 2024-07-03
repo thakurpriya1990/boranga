@@ -52,9 +52,13 @@ export default {
                 columns: [
                     {
                         data: "occurrence__occurrence_number",
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: "threat_number",
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: "occurrence_report_threat__occurrence_report__occurrence_report_number",
