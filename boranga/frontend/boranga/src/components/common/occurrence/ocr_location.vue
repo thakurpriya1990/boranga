@@ -19,7 +19,7 @@
                         name: 'query_layer',
                         title: 'Occurrence Report',
                         default: true,
-                        can_edit: true,
+                        can_edit: canEditGeometry,
                         api_url: proposalApiUrl,
                         ids: [occurrence_report_obj.id],
                         geometry_name: 'ocr_geometry',
@@ -320,6 +320,43 @@ export default {
                 return this.occurrence_report_obj.assessor_mode.assessor_can_assess;
             } else {
                 return false;
+            }
+        },
+        canEditGeometry: function () {
+            const mode = this.occurrence_report_obj.assessor_mode || {};
+            const assessorCanAssess =
+                mode.assessor_level === 'assessor' &&
+                mode.assessor_mode &&
+                mode.assessor_can_assess;
+            const refereeCanAssess =
+                mode.assessor_level === 'referral' &&
+                mode.assessor_mode &&
+                mode.assessor_can_assess;
+
+            // Note: potentially allow referees to edit geometries, but commented for now
+            const userCanEdit =
+                this.occurrence_report_obj.can_user_edit || assessorCanAssess; //|| refereeCanAssess;
+
+            // const readOnly = refereeCanAssess ? false : this.isReadOnly;
+            const readOnly = this.isReadOnly;
+            if (!userCanEdit || readOnly) {
+                return false;
+            }
+            if (this.is_external) {
+                return ['Draft'].includes(
+                    this.occurrence_report_obj.processing_status
+                );
+            } else if (this.is_internal) {
+                return ['Draft', 'With Assessor', 'With Referral'].includes(
+                    this.occurrence_report_obj.processing_status
+                );
+            } else {
+                return (
+                    refereeCanAssess &&
+                    ['With Referral'].includes(
+                        this.occurrence_report_obj.processing_status
+                    )
+                );
             }
         },
         isReadOnly: function () {

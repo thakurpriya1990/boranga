@@ -1613,9 +1613,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                         )
                     elif a_field.one_to_one:
                         if hasattr(self, a_field.name):
-                            field_objects = [
-                                getattr(self, a_field.name),
-                            ]
+                            field_objects = [getattr(self, a_field.name)]
                 for field_object in field_objects:
                     if field_object:
                         related_item = field_object.as_related_item
@@ -1630,7 +1628,10 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             model_name=self._meta.verbose_name,
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
-            action_url=f'<a href=/internal/conservation_status/{self.id} target="_blank">View</a>',
+            action_url=str(
+                f"<a href=/internal/conservation_status/{self.id} "
+                f'target="_blank">View <i class="bi bi-box-arrow-up-right"></i></a>'
+            ),
         )
         return related_item
 

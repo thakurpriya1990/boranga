@@ -1502,6 +1502,7 @@ class Datum(models.Model):
     """
 
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    srid = models.IntegerField(blank=False, null=False, unique=True)
 
     class Meta:
         app_label = "boranga"
@@ -3075,6 +3076,7 @@ class Occurrence(RevisionedMixin):
         COPY_TABLE_KEYS = {
             "combine_key_contact_ids":OCCContactDetail,
             "combine_document_ids":OccurrenceDocument,
+            "combine_site_ids":OccurrenceSite,
         }
         MOVE_TABLE_KEYS = {"combine_threat_ids":OCCConservationThreat}
 
@@ -3244,6 +3246,14 @@ class Occurrence(RevisionedMixin):
             self.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
             self.save(version_user=request.user)
 
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_ACTIVATE_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
     def lock(self, request):
         if (
             is_occurrence_approver(request)
@@ -3251,6 +3261,14 @@ class Occurrence(RevisionedMixin):
         ):
             self.processing_status = Occurrence.PROCESSING_STATUS_LOCKED
             self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_LOCK_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
 
     def unlock(self, request):
         if (
@@ -3260,6 +3278,14 @@ class Occurrence(RevisionedMixin):
             self.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
             self.save(version_user=request.user)
 
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_UNLOCK_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
     def close(self, request):
         if (
             is_occurrence_approver(request)
@@ -3268,13 +3294,21 @@ class Occurrence(RevisionedMixin):
             self.processing_status = Occurrence.PROCESSING_STATUS_HISTORICAL
             self.save(version_user=request.user)
 
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_CLOSE_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
     # if this function is called and the OCC has no associated OCRs, discard it
     def check_ocr_count_for_discard(self, request):
         discardable = [Occurrence.PROCESSING_STATUS_DRAFT]
         if (
             self.processing_status in discardable
-            and is_occurrence_assessor(request)
-            or is_occurrence_approver(request)
+            and (is_occurrence_assessor(request)
+            or is_occurrence_approver(request))
             and OccurrenceReport.objects.filter(occurrence=self).count() < 1
         ):
             self.processing_status = Occurrence.PROCESSING_STATUS_DISCARDED
@@ -3522,9 +3556,13 @@ class OccurrenceUserAction(UserAction):
     ACTION_VIEW_OCCURRENCE = "View occurrence {}"
     ACTION_SAVE_OCCURRENCE = "Save occurrence {}"
     ACTION_EDIT_OCCURRENCE = "Edit occurrence {}"
-    ACTION_DISCARD_OCCURRENCE = "Discard  occurrence {}"
-    ACTION_REINSTATE_OCCURRENCE = "Reinstate  occurrence {}"
+    ACTION_DISCARD_OCCURRENCE = "Discard occurrence {}"
+    ACTION_REINSTATE_OCCURRENCE = "Reinstate occurrence {}"
     ACTION_COMBINE_OCCURRENCE = "{} combined in to occurrence {}"
+    ACTION_ACTIVATE_OCCURRENCE = "Activate occurrence {}"
+    ACTION_LOCK_OCCURRENCE = "Lock occurrence {}"
+    ACTION_UNLOCK_OCCURRENCE = "Unlock occurrence {}"
+    ACTION_CLOSE_OCCURRENCE = "Close occurrence {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for occurrence {}"
@@ -4334,6 +4372,9 @@ class OccurrenceTenure(models.Model):
     owner_count = models.IntegerField(blank=True, null=True)
     # vesting = models.TBD
 
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    datetime_updated = models.DateTimeField(auto_now=True)
+
     purpose = models.ForeignKey(
         OccurrenceTenurePurpose,
         related_name="occurrence_tenures",
@@ -4427,6 +4468,63 @@ class BufferGeometry(GeometryBase):
     def related_model_field(self):
         return self.buffered_from_geometry
 
+class SiteType(models.Model):
+    """
+    # Admin List
+
+    Used by:
+    - OccurrenceSite
+
+    """
+
+    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Site Type"
+        verbose_name_plural = "Site Type"
+        ordering = ["name"]
+
+    def __str__(self):
+        return str(self.name)
+
+class OccurrenceSite(GeometryBase):
+    site_number = models.CharField(max_length=9, blank=True, default="")
+    occurrence = models.ForeignKey(
+        "Occurrence", related_name="sites", on_delete=models.CASCADE
+    )
+    
+    site_name = models.CharField(max_length=255, null=True, blank=True)
+
+    site_type = models.ForeignKey(
+        SiteType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    related_occurrence_reports = models.ManyToManyField(OccurrenceReport, blank=True)
+
+    comments = models.TextField(blank=True, null=True)
+
+    visible = models.BooleanField(
+        default=True
+    ) 
+
+    def related_model_field(self):
+        return self.occurrence
+    
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Site"
+
+    def save(self, *args, **kwargs):
+        # Prefix "ST" char to site_number.
+        if self.site_number == "":
+            force_insert = kwargs.pop("force_insert", False)
+            super().save(force_insert=force_insert)
+            new_site_id = f"ST{str(self.pk)}"
+            self.site_number = new_site_id
+            self.save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
 # Occurrence Report Document
 reversion.register(OccurrenceReportDocument)

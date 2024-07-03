@@ -4203,11 +4203,17 @@ export default {
                 s = 255;
             return [o(r() * s), o(r() * s), o(r() * s), 0.5];
         },
-        //priya this function is used to get modelqueryjson to submit the geometry data in parent component
-        getJSONFeatures: function () {
+        /**
+         * Returns a stringified GeoJSON representation of the features in the requested layer
+         * @param {String=} layer_name The name of the layer to query as defined in a layer-definition prop,
+         * defaults to the default query layer
+         */
+        getJSONFeatures: function (layer_name) {
+            if (!layer_name) {
+                layer_name = this.defaultQueryLayerName;
+            }
             const format = new GeoJSON();
-            const features =
-                this.layerSources[this.defaultQueryLayerName].getFeatures();
+            const features = this.layerSources[layer_name].getFeatures();
 
             features.forEach(function (feature) {
                 console.log(feature.getProperties());

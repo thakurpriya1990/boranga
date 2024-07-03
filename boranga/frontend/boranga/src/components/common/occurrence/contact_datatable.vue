@@ -347,10 +347,6 @@ export default {
         updatedContactDetails() {
             let vm = this;
             this.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
-            vm.$emit('refreshOccurrenceReport');
-            if (vm.occurrence_obj.processing_status == "Unlocked") {
-                vm.$router.go();
-            }
         },
     },
     mounted: function () {

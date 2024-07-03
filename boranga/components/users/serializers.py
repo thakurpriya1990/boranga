@@ -4,11 +4,13 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from rest_framework import serializers
 
+from boranga.components.conservation_status.models import ConservationStatusReferral
 from boranga.components.main.models import (
     CommunicationsLogEntry,
     Document,
     UserSystemSettings,
 )
+from boranga.components.occurrence.models import OccurrenceReportReferral
 from boranga.components.users.models import (
     EmailUserAction,
     EmailUserLogEntry,
@@ -62,6 +64,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     groups = serializers.SerializerMethodField()
 
+    cs_referral_count = serializers.SerializerMethodField()
+    ocr_referral_count = serializers.SerializerMethodField()
+
     class Meta:
         model = EmailUser
         fields = (
@@ -79,6 +84,8 @@ class UserSerializer(serializers.ModelSerializer):
             "is_staff",
             "system_settings",
             "groups",
+            "cs_referral_count",
+            "ocr_referral_count",
         )
 
     def get_personal_details(self, obj):
@@ -118,6 +125,12 @@ class UserSerializer(serializers.ModelSerializer):
         return groups.filter(
             systemgrouppermission__emailuser=request.user.id
         ).values_list("name", flat=True)
+
+    def get_cs_referral_count(self, obj):
+        return ConservationStatusReferral.objects.filter(referral=obj.id).count()
+
+    def get_ocr_referral_count(self, obj):
+        return OccurrenceReportReferral.objects.filter(referral=obj.id).count()
 
 
 class PersonalSerializer(serializers.ModelSerializer):

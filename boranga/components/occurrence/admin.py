@@ -20,6 +20,7 @@ from boranga.components.occurrence.models import (
     OccurrenceGeometry,
     OccurrenceReportGeometry,
     OccurrenceReport,
+    OccurrenceSite,
     OccurrenceTenure,
     OccurrenceTenurePurpose,
     PermitType,
@@ -35,6 +36,7 @@ from boranga.components.occurrence.models import (
     SoilColour,
     SoilCondition,
     SoilType,
+    SiteType,
     WildStatus,
 )
 from boranga.components.spatial.utils import (
@@ -378,6 +380,7 @@ class OccurrenceTenurePurposeAdmin(admin.ModelAdmin):
 admin.site.register(LandForm)
 admin.site.register(RockType)
 admin.site.register(SoilType)
+admin.site.register(SiteType)
 admin.site.register(SoilColour)
 admin.site.register(SoilCondition)
 admin.site.register(Drainage)
@@ -400,3 +403,4 @@ admin.site.register(Datum)
 admin.site.register(CoordinationSource)
 admin.site.register(LocationAccuracy)
 admin.site.register(WildStatus)
+admin.site.register(OccurrenceSite)

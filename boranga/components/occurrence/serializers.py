@@ -3,6 +3,7 @@ import logging
 from django.urls import reverse
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from django.db import models
 
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.serializers import (
@@ -12,6 +13,7 @@ from boranga.components.main.serializers import (
 from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
     BufferGeometry,
+    Datum,
     GeometryType,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
@@ -38,6 +40,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportLogEntry,
     OccurrenceReportReferral,
     OccurrenceReportUserAction,
+    OccurrenceSite,
     OccurrenceTenure,
     OccurrenceUserAction,
     OCCVegetationStructure,
@@ -421,7 +424,11 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_copied_to_occurrence(self, obj):
         occs_copied_to = [
-            [occ_geom.occurrence_id for occ_geom in dest]
+            [
+                occ_geom.occurrence_id
+                for occ_geom in dest
+                if hasattr(occ_geom, "occurrence_id")
+            ]
             for geom in obj.ocr_geometry.all()
             for dest in geom.source_of_objects()
         ]
@@ -3152,6 +3159,9 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
     purpose = serializers.SerializerMethodField()
     featureid = serializers.SerializerMethodField()
     status_display = serializers.CharField(read_only=True, source="get_status_display")
+    datetime_updated = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
 
     class Meta:
         model = OccurrenceTenure
@@ -3191,6 +3201,7 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "comments",
             "significant_to_occurrence",
             "tenure_area_centroid",
+            "datetime_updated",
         )
         datatables_always_serialize = (
             "id",
@@ -3205,4 +3216,132 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "comments",
             "significant_to_occurrence",
             "tenure_area_centroid",
+            "datetime_updated",
         )
+
+
+class OccurrenceSiteSerializer(serializers.ModelSerializer):
+
+    occurrence_number = serializers.SerializerMethodField()
+    related_occurrence_report_numbers = serializers.SerializerMethodField()
+
+    point_coord1 = serializers.SerializerMethodField()
+    point_coord2 = serializers.SerializerMethodField()
+    datum = serializers.SerializerMethodField()
+    datum_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OccurrenceSite
+        fields = (
+            "id",
+            "site_number",
+            "occurrence",
+            "occurrence_number",
+            "site_name",
+            "point_coord1",
+            "point_coord2",
+            "datum",
+            "datum_name",
+            "site_type",
+            "comments",
+            "related_occurrence_reports",
+            "related_occurrence_report_numbers",
+            "visible",
+            "geometry",
+        )
+
+    def get_occurrence_number(self, obj):
+        return obj.occurrence.occurrence_number
+
+    def get_related_occurrence_report_numbers(self, obj):
+        return list(
+            obj.related_occurrence_reports.all().values_list(
+                "occurrence_report_number", flat=True
+            )
+        )
+
+    def get_point_coord1(self, obj):
+        if obj.geometry and obj.geometry.coords:
+            return obj.geometry.coords[0]
+
+    def get_point_coord2(self, obj):
+        if obj.geometry and obj.geometry.coords:
+            return obj.geometry.coords[1]
+
+    def get_datum(self, obj):
+        if obj.geometry and obj.geometry.srid:
+            return obj.geometry.srid
+        
+    def get_datum_name(self, obj):
+        if obj.geometry and obj.geometry.srid:
+            try:
+                return Datum.objects.get(srid=obj.geometry.srid).name
+            except:
+                return obj.geometry.srid
+
+class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OccurrenceSite
+        fields = (
+            "id",
+            "occurrence",
+            "site_name",
+            "site_type",
+            "comments",
+            "related_occurrence_reports",
+            "geometry",
+        )
+        read_only_fields = ("id",)
+
+    # override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        if self.instance:
+            return super().save(*args, **kwargs)
+        else:
+            instance = OccurrenceSite()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                    and not isinstance(self.Meta.model._meta.get_field(field_name), models.ManyToManyField)
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
+
+            instance.save()
+
+            for field_name in self.Meta.fields:
+                if (field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                    and isinstance(self.Meta.model._meta.get_field(field_name), models.ManyToManyField)
+                ):
+                    many_to_many = getattr(instance, field_name)
+                    for i in validated_data[field_name]:
+                        many_to_many.add(i)
+            
+            instance.save(*args, **kwargs)
+            
+            return instance
+        
+class SiteGeometrySerializer(GeoFeatureModelSerializer):
+    srid = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = OccurrenceSite
+        geo_field = "geometry"
+        fields = [
+            "id",
+            "occurrence",
+            "site_name",
+            "related_occurrence_reports",
+            "geometry",
+            "srid",
+        ]
+        read_only_fields = ("id",)
+
+    def get_srid(self, obj):
+        if obj.geometry:
+            return obj.geometry.srid
+        else:
+            return None

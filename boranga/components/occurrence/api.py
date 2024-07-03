@@ -25,6 +25,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
+from django.contrib.gis.geos import GEOSGeometry
 
 from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
@@ -38,6 +39,7 @@ from boranga.components.occurrence.models import (
     AnimalHealth,
     CoordinationSource,
     CountedSubject,
+    Datum,
     DeathReason,
     Drainage,
     IdentificationCertainty,
@@ -66,6 +68,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportGeometry,
     OccurrenceReportReferral,
     OccurrenceReportUserAction,
+    OccurrenceSite,
     OccurrenceTenure,
     OccurrenceUserAction,
     OCCVegetationStructure,
@@ -92,6 +95,7 @@ from boranga.components.occurrence.models import (
     SampleDestination,
     SampleType,
     SecondarySign,
+    SiteType,
     SoilColour,
     SoilCondition,
     SoilType,
@@ -122,6 +126,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceReportSerializer,
     OccurrenceReportUserActionSerializer,
     OccurrenceSerializer,
+    OccurrenceSiteSerializer,
     OccurrenceTenureSerializer,
     OccurrenceUserActionSerializer,
     OCRConservationThreatSerializer,
@@ -144,6 +149,7 @@ from boranga.components.occurrence.serializers import (
     SaveOccurrenceReportDocumentSerializer,
     SaveOccurrenceReportSerializer,
     SaveOccurrenceSerializer,
+    SaveOccurrenceSiteSerializer,
     SaveOCCVegetationStructureSerializer,
     SaveOCRAnimalObservationSerializer,
     SaveOCRAssociatedSpeciesSerializer,
@@ -156,6 +162,7 @@ from boranga.components.occurrence.serializers import (
     SaveOCRObservationDetailSerializer,
     SaveOCRPlantCountSerializer,
     SaveOCRVegetationStructureSerializer,
+    SiteGeometrySerializer,
 )
 from boranga.components.occurrence.utils import (
     get_all_related_species,
@@ -172,6 +179,7 @@ from boranga.components.spatial.utils import (
 from boranga.components.species_and_communities.models import GroupType, Taxonomy
 from boranga.components.species_and_communities.serializers import TaxonomySerializer
 from boranga.helpers import (
+    is_contributor,
     is_customer,
     is_external_contributor,
     is_internal,
@@ -187,7 +195,7 @@ logger = logging.getLogger(__name__)
 
 class OccurrenceReportFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        if "internal" in view.name:
+        if view.name and "internal" in view.name:
             total_count = queryset.count()
 
             filter_group_type = request.GET.get("filter_group_type")
@@ -322,9 +330,11 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
-        qs = OccurrenceReport.objects.all()
-        if is_customer(self.request):
-            qs = qs.filter(submitter=self.request.user.id)
+        qs = super().get_queryset()
+        if is_internal(self.request):
+            qs = OccurrenceReport.objects.all()
+        elif is_contributor(self.request):
+            qs = OccurrenceReport.objects.filter(submitter=self.request.user.id)
 
         return qs
 
@@ -668,11 +678,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     )
     def referred_to_me(self, request, *args, **kwargs):
         self.serializer_class = DTOccurrenceReportReferralSerializer
-        qs = (
-            OccurrenceReportReferral.objects.filter(referral=request.user.id)
-            if is_internal(self.request)
-            else OccurrenceReportReferral.objects.none()
-        )
+        qs = OccurrenceReportReferral.objects.filter(referral=request.user.id)
         self.filter_backends = (OccurrenceReportReferralFilterBackend,)
         qs = self.filter_queryset(qs)
 
@@ -694,13 +700,19 @@ class OccurrenceReportViewSet(
     def get_queryset(self):
         request = self.request
         qs = self.queryset
-        if not is_internal(request) and not is_external_contributor(request):
+        if not is_internal(request) and not is_contributor(request):
             return qs
 
         if is_internal(request):
             qs = OccurrenceReport.objects.all()
-        elif is_external_contributor(request):
+        elif is_contributor(request) and is_occurrence_report_referee(request):
+            qs = OccurrenceReport.objects.filter(
+                Q(submitter=request.user.id) | Q(referrals__referral=request.user.id)
+            )
+        elif is_contributor(request):
             qs = OccurrenceReport.objects.filter(submitter=request.user.id)
+        elif is_occurrence_report_referee(request):
+            qs = OccurrenceReport.objects.filter(referrals__referral=request.user.id)
 
         return qs
 
@@ -1779,10 +1791,7 @@ class OccurrenceReportViewSet(
             is_occurrence_assessor(request)
             or is_occurrence_approver(request)
             or is_occurrence_report_referee(request, instance)
-            or (
-                (is_external_contributor(request) or is_internal_contributor(request))
-                and instance.submitter == request.user.id
-            )
+            or ((is_contributor(request)) and instance.submitter == request.user.id)
         ):
             serializer = OCRObserverDetailSerializer(
                 qs, many=True, context={"request": request}
@@ -2394,9 +2403,14 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             or is_readonly_user(self.request)
         ):
             qs = OCRObserverDetail.objects.all().order_by("id")
-        elif is_external_contributor(self.request) or is_internal_contributor(
+        elif is_contributor(self.request) and is_occurrence_report_referee(
             self.request
         ):
+            qs = OCRObserverDetail.objects.filter(
+                Q(occurrence_report__submitter=self.request.user.id)
+                | Q(occurrence_report__referrals__referral=self.request.user.id)
+            ).order_by("id")
+        elif is_contributor(self.request):
             qs = OCRObserverDetail.objects.filter(
                 occurrence_report__submitter=self.request.user.id
             ).order_by("id")
@@ -3472,6 +3486,25 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             id_list = list(threats.values_list("id", flat=True))
 
             return Response({"values_list": values_list, "id_list": id_list})
+        return Response()
+    
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=False,
+    )
+    def combine_sites_lookup(self, request, *args, **kwargs):
+        if is_internal(self.request):
+            occ_ids = json.loads(request.POST.get("occurrence_ids"))
+            sites = OccurrenceSite.objects.filter(
+                occurrence__id__in=occ_ids
+            ).filter(visible=True)
+
+            values_list = OccurrenceSiteSerializer(sites,context={"request": request}, many=True)
+            id_list = list(sites.values_list("id", flat=True))
+
+            return Response({"values_list": values_list.data, "id_list": id_list})
         return Response()
 
     @detail_route(
@@ -5175,6 +5208,20 @@ class OccurrenceViewSet(
         )
         return Response(serializer.data)
 
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def sites(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = instance.sites.all()
+        serializer = OccurrenceSiteSerializer(
+            qs, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
 
 class OccurrenceReportReferralViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin
@@ -5185,7 +5232,17 @@ class OccurrenceReportReferralViewSet(
     def get_queryset(self):
         qs = super().get_queryset()
         if not is_internal(self.request):
-            qs.filter(occurrence_report__submitter=self.request.user)
+            if is_contributor(self.request) and is_occurrence_report_referee(
+                self.request
+            ):
+                qs = qs.filter(
+                    Q(occurrence_report__submitter=self.request.user.id)
+                    | Q(referral=self.request.user.id)
+                )
+            elif is_contributor(self.request):
+                qs = qs.filter(occurrence_report__submitter=self.request.user.id)
+            elif is_occurrence_report_referee(self.request):
+                qs = qs.filter(referral=self.request.user.id)
         return qs
 
     def is_authorised_to_refer(self):
@@ -5299,7 +5356,8 @@ class OccurrenceReportReferralViewSet(
             ),
             request,
         )
-        return redirect(reverse("internal"))
+        serializer = self.get_serializer(instance, context={"request": request})
+        return Response(serializer.data)
 
 
 class OccurrenceTenureFilterBackend(DatatablesFilterBackend):
@@ -5594,6 +5652,158 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance.save()
 
         serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
+class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+    queryset = OccurrenceSite.objects.none()
+    serializer_class = OccurrenceSiteSerializer
+
+    def is_authorised_to_update(self, occurrence):
+        if not (
+            is_occurrence_approver(self.request)
+            and (
+                occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+                or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+            )
+        ):
+            raise serializers.ValidationError(
+                "User not authorised to update Occurrence"
+            )
+
+    def get_queryset(self):
+        qs = OccurrenceSite.objects.none()
+
+        if is_internal(self.request):
+            qs = OccurrenceSite.objects.all().order_by("id")
+        return qs
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if not instance.visible:
+            raise serializers.ValidationError("Discarded site cannot be updated.")
+
+        self.is_authorised_to_update(instance.occurrence)
+
+        data = json.loads(request.data.get("data"))
+        point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
+        data["geometry"] = GEOSGeometry(point_data, srid=data["datum"])
+
+        serializer = SaveOccurrenceSiteSerializer(
+            instance, data=data
+        )
+        serializer.is_valid(raise_exception=True)
+
+        occurrence = serializer.validated_data["occurrence"]
+        site_name = serializer.validated_data["site_name"]
+
+        if (
+            OccurrenceSite.objects.exclude(id=instance.id)
+            .filter(Q(site_name=site_name) & Q(occurrence=occurrence) & Q(visible=True))
+            .exists()
+        ):
+            raise serializers.ValidationError(
+                "Site with this name already exists for this occurrence"
+            )
+
+        instance = serializer.save()
+
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+
+        data = json.loads(request.data.get("data"))
+        point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
+        data["geometry"] = GEOSGeometry(point_data, srid=data["datum"])
+
+        serializer = SaveOccurrenceSiteSerializer(
+            data=data
+        )
+        serializer.is_valid(raise_exception=True)
+        occurrence = serializer.validated_data["occurrence"]
+        site_name = serializer.validated_data["site_name"]
+
+        if OccurrenceSite.objects.filter(
+            Q(site_name=site_name) & Q(occurrence=occurrence) & Q(visible=True)
+        ).exists():
+            raise serializers.ValidationError(
+                "Site with this name already exists for this occurrence"
+            )
+
+        self.is_authorised_to_update(occurrence)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def discard(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
+        instance.visible = False
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def reinstate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
+
+        if OccurrenceSite.objects.filter(
+            Q(site_name=instance.site_name)
+            & Q(occurrence=instance.occurrence)
+            & Q(visible=True)
+        ).exists():
+            raise serializers.ValidationError(
+                "Active site with this name already exists for this occurrence"
+            )
+
+        instance.visible = True
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def site_list_of_values(self, request, *args, **kwargs):
+
+        site_type_list = list(SiteType.objects.values("id", "name"))
+        datum_list = list(Datum.objects.values("name","srid"))
+
+        res_json = {
+            "site_type_list": site_type_list,
+            "datum_list": datum_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+    
+    @list_route(methods=["GET"], detail=False)
+    def list_for_map(self, request, *args, **kwargs):
+        occurrence_id = request.GET.get("occurrence_id")
+        print(occurrence_id)
+        qs = self.get_queryset().filter(occurrence_id=occurrence_id).exclude(geometry=None)
+        print(qs.count())
+        serializer = SiteGeometrySerializer(
+            qs, many=True
+        )
+        print(serializer.data)
         return Response(serializer.data)
 
 

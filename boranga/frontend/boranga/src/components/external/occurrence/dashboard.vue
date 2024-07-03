@@ -1,53 +1,69 @@
 <template>
     <div class="container" id="externalOCRDash">
-        <FormSection 
-            :formCollapse="false" 
-            label="Occurrence Report" 
-            subtitle="- submit and view your reported occurrences" 
+        <FormSection
+            :formCollapse="false"
+            :profile="profile"
+            label="Occurrence Report"
+            subtitle="- submit and view your reported occurrences"
             Index="applications"
         >
             <OccurrenceReportTable
                 level="external"
-                :url="occurrence_repot_url"
+                :url="occurrence_report_url"
+            />
+        </FormSection>
+        <FormSection v-if="profile && profile.ocr_referral_count > 0"
+            :formCollapse="false"
+            label="Occurrence Reports Referred to Me"
+            Index="ocr_referred_to_me"
+        >
+            <OccurrenceReportExternalReferralsDashboard
+                level="external"
+                :url="ocr_external_referrals_url"
             />
         </FormSection>
     </div>
 </template>
 
 <script>
-import datatable from '@/utils/vue/datatable.vue'
 import FormSection from "@/components/forms/section_toggle.vue"
 import OccurrenceReportTable from './occurrence_report_table.vue'
-import { api_endpoints, helpers } from '@/utils/hooks'
+import OccurrenceReportExternalReferralsDashboard from '@common-utils/ocr_external_referrals_dashboard.vue'
+
+import { api_endpoints } from '@/utils/hooks'
 
 export default {
     name: 'ExternalOccurrenceReportDashboard',
     data() {
-        let vm = this;
         return {
-            occurrence_repot_url: api_endpoints.occurrence_report_paginated_external,
+            profile: null,
+            occurrence_report_url: api_endpoints.occurrence_report_paginated_external,
+            ocr_external_referrals_url: api_endpoints.occurrence_report_paginated_referred_to_me,
         }
     },
     components:{
         FormSection,
         OccurrenceReportTable,
-    },
-    watch: {
-
+        OccurrenceReportExternalReferralsDashboard,
     },
     computed: {
         is_external: function() {
             return this.level == 'external'
         },
-
     },
     methods: {
+        fetchProfile() {
+            this.$http.get(api_endpoints.profile)
+                .then(response => {
+                    this.profile = response.data
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+        },
     },
-    mounted: function () {
-
-    },
-    created: function() {
-
+    created: function () {
+        this.fetchProfile();
     },
 }
 </script>
