@@ -1,32 +1,42 @@
 <template>
     <div id="ReinstateImage">
-        <modal transition="modal fade" @ok="ok()" @cancel="close()" :title="title" :showOK="false" cancelText="Close" large>
-            <div id="image-preview" class="container d-flex align-items-center justify-content-center"
-                style="min-height:350px;">
-                <img v-if="selected_image" :src="selected_image.url" alt="image" class="img-thumbnail w-50">
-            </div>
-            <alert type="info">
-                <i class="bi bi-info-circle-fill"></i> Click an image to preview
-            </alert>
-            <table class="table table-sm table-hover">
-                <thead>
-                    <tr>
-                        <th>Image</th>
-                        <th>Date Uploaded</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="image in images" @click="selected_image = image" role="button" :class="selected_image == image ? 'selected-row' : '' ">
-                        <td><i class="bi bi-image me-3"></i> {{ image.filename }}</td>
-                        <td>{{ new Date(image.uploaded_date).toLocaleDateString() }} at {{ new Date(image.uploaded_date).toLocaleTimeString() }}</td>
-                        <td>
-                            <button @click="confirmReinstateImage(image)" class="btn btn-primary btn-sm"><i
-                                    class="bi bi-box-arrow-in-down-left"></i> Reinstate</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <modal transition="modal fade" @ok="ok()" @cancel="close()" :title="title" :showOK="false" cancelText="Close"
+            large>
+            <template v-if="images && images.length > 1">
+                <div id="image-preview" class="container d-flex align-items-center justify-content-center"
+                    style="min-height:350px;">
+                    <img v-if="selected_image" :src="selected_image.url" alt="image" class="img-thumbnail w-50">
+                </div>
+                <alert type="info">
+                    <i class="bi bi-info-circle-fill"></i> Click a row in the table below to preview the image
+                </alert>
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Date Uploaded</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="image in images" @click="selected_image = image" role="button"
+                            :class="selected_image == image ? 'selected-row' : ''">
+                            <td><i class="bi bi-image me-3"></i> {{ image.filename }}</td>
+                            <td>{{ new Date(image.uploaded_date).toLocaleDateString() }} at {{ new
+                                Date(image.uploaded_date).toLocaleTimeString() }}</td>
+                            <td>
+                                <button @click="confirmReinstateImage(image)" class="btn btn-primary btn-sm"><i
+                                        class="bi bi-box-arrow-in-down-left"></i> Reinstate</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </template>
+            <template v-else>
+                <alert type="info">
+                    <i class="bi bi-exclamation-triangle-fill"></i> No images to reinstate
+                </alert>
+            </template>
         </modal>
     </div>
 </template>
@@ -75,7 +85,7 @@ export default {
                 .then(response => response.json())
                 .then(data => {
                     this.images = data;
-                    if (this.images.length > 0) {
+                    if (this.images.length > 1) {
                         this.selected_image = this.images[0];
                     }
                 })
