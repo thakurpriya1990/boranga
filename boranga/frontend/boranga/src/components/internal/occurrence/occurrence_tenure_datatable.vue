@@ -77,6 +77,13 @@
             :dt-options="options"
             :dt-headers="headers"
         />
+        <OccurrenceTenureModal
+            ref="occurrence_tenure_modal"
+            :occurrence_obj="occurrence_obj"
+            :url="occ_site_url"
+            @refreshFromResponse="updatedTenureArea"
+        >
+        </OccurrenceTenureModal>
     </div>
 </template>
 
@@ -85,12 +92,14 @@ import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import datatable from '@/utils/vue/datatable.vue';
 import { v4 as uuid } from 'uuid';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
+import OccurrenceTenureModal from '@/components/internal/occurrence/occurrence_tenure_modal.vue';
 
 export default {
     name: 'OccurrenceTenureDatatable',
     components: {
         datatable,
         CollapsibleFilters,
+        OccurrenceTenureModal,
     },
     emit: ['highlight-on-map', 'edit-tenure-details'],
     props: {
@@ -256,8 +265,8 @@ export default {
                     const coordinates = row.tenure_area_centroid
                         ? JSON.stringify(row.tenure_area_centroid.coordinates)
                         : '';
-                    let html = `<a href="#${vm.hrefContainerId}" class="btn btn-primary btn-sm mb-1" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
-                    html += `<br><a href="#" class="btn btn-primary btn-sm" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;
+                    let html = `<a href="#${vm.hrefContainerId}" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
+                    html += `<br><a href="#" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;
                     return html;
                 },
             };
@@ -430,7 +439,6 @@ export default {
                     e.preventDefault();
                     const id = $(this).attr('data-edit-tenure-details');
                     vm.editTenureDetails(id);
-                    console.log(id);
                 }
             );
         },
@@ -438,6 +446,16 @@ export default {
             this.$emit('highlight-on-map', JSON.parse(coordinates));
         },
         editTenureDetails: function (id) {
+            let vm = this;
+            // this.$refs.site_detail.site_id = id;
+            // this.$refs.site_detail.site_action = 'edit';
+            // Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then((response) => {
+            //     this.$refs.site_detail.siteObj = response.body;
+            // },
+            // err => {
+            //     console.log(err);
+            // });
+            // this.$refs.site_detail.isModalOpen = true;
             this.$emit('edit-tenure-details', id);
         },
         collapsible_component_mounted: function () {
