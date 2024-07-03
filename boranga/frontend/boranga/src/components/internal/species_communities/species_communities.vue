@@ -22,7 +22,7 @@
                                             <div class="align-self-center text-muted">No Image Uploaded</div>
                                         </div>
                                     </div>
-                                    <div class="row border-top pt-3 mb-2">
+                                    <div v-if="hasUserEditMode" class="row border-top pt-3 mb-2">
                                         <div class="col">
                                             <div class="d-flex justify-content-center">
                                                 <div class="text-muted">Image Actions</div>
