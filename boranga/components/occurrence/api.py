@@ -9,7 +9,7 @@ from django.db import models, transaction
 from django.db.models import CharField, Q, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from multiselectfield import MultiSelectField
@@ -127,6 +127,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceReportUserActionSerializer,
     OccurrenceSerializer,
     OccurrenceSiteSerializer,
+    OccurrenceTenureSaveSerializer,
     OccurrenceTenureSerializer,
     OccurrenceUserActionSerializer,
     OCRConservationThreatSerializer,
@@ -5557,6 +5558,93 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response({"results": results})
 
+
+class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+    queryset = OccurrenceTenure.objects.none()
+    serializer_class = OccurrenceTenureSerializer
+
+    def is_authorised_to_update(self, occurrence):
+        if not (
+            is_occurrence_approver(self.request)
+            and (
+                occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+                or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+            )
+        ):
+            raise serializers.ValidationError(
+                "User not authorised to update Occurrence"
+            )
+
+    def get_queryset(self):
+        qs = self.queryset
+
+        if is_internal(self.request):
+            qs = OccurrenceTenure.objects.all().order_by("id")
+        return qs
+
+    def retrieve(self, request, pk=None):
+        queryset = self.get_queryset()
+        tenure_obj = get_object_or_404(queryset, pk=pk)
+        serializer = OccurrenceTenureSerializer(tenure_obj)
+        self.is_authorised_to_update(tenure_obj.occurrence)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if not instance.visible:
+            raise serializers.ValidationError("Discarded site cannot be updated.")
+
+        self.is_authorised_to_update(instance.occurrence)
+
+        data = json.loads(request.data.get("data"))
+        # point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
+        # data["geometry"] = GEOSGeometry(point_data, srid=data["datum"])
+
+        serializer = OccurrenceTenureSaveSerializer(
+            instance, data=data
+        )
+        serializer.is_valid(raise_exception=True)
+
+        # occurrence = serializer.validated_data["occurrence"]
+        # site_name = serializer.validated_data["site_name"]
+
+        # if (
+        #     OccurrenceSite.objects.exclude(id=instance.id)
+        #     .filter(Q(site_name=site_name) & Q(occurrence=occurrence) & Q(visible=True))
+        #     .exists()
+        # ):
+        #     raise serializers.ValidationError(
+        #         "Site with this name already exists for this occurrence"
+        #     )
+
+        instance = serializer.save()
+
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        data = json.loads(request.data.get("data"))
+        # point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
+        # data["geometry"] = GEOSGeometry(point_data, srid=data["datum"])
+
+        serializer = OccurrenceTenureSaveSerializer(
+            data=data
+        )
+        serializer.is_valid(raise_exception=True)
+        occurrence_geometry = serializer.validated_data["occurrence_geometry"]
+        # site_name = serializer.validated_data["site_name"]
+
+        # if OccurrenceSite.objects.filter(
+        #     Q(site_name=site_name) & Q(occurrence=occurrence) & Q(visible=True)
+        # ).exists():
+        #     raise serializers.ValidationError(
+        #         "Site with this name already exists for this occurrence"
+        #     )
+
+        self.is_authorised_to_update(occurrence_geometry.occurrence)
+        serializer.save()
+
+        return Response(serializer.data)
 
 class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OCCContactDetail.objects.none()

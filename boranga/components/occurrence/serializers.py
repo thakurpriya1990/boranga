@@ -3182,7 +3182,23 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
 
 
 class OccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
-    pass
+    class Meta:
+        model = OccurrenceTenure
+        fields = (
+            "id",
+            "status",
+            "status_display",
+            "tenure_area_id",
+            "featureid",
+            "owner_name",
+            "owner_count",
+            "vesting",
+            "purpose",
+            "comments",
+            "significant_to_occurrence",
+            "tenure_area_centroid",
+            "datetime_updated",
+        )
 
 
 class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
@@ -3239,6 +3255,25 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             return obj.occurrence_geometry.occurrence.id
         elif obj.historical_occurrence:
             return obj.historical_occurrence
+
+class OccurrenceTenureSaveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OccurrenceTenure
+        fields = (
+            "id",
+            "status",
+            "tenure_area_id",
+            "owner_name",
+            "owner_count",
+            "vesting",
+            "purpose",
+            "comments",
+            "significant_to_occurrence",
+        )
+        read_only_fields = ("id",)
+
+    def save(self, *args, **kwargs):
+        pass
 
 
 class OccurrenceSiteSerializer(serializers.ModelSerializer):
