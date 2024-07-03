@@ -107,6 +107,7 @@ module.exports = {
     species_paginated_external: "/api/species_paginated/species_external/?format=datatables",
     species_paginated_internal: "/api/species_paginated/species_internal/?format=datatables",
     wild_status_lookup: "/api/wild_status_lookup",
+    occurrence_tenure: '/api/occurrence_tenure/',
     occurrence_tenure_paginated_internal:
         '/api/occurrence_tenure_paginated/occurrence_tenure_internal/?format=datatables',
     occurrence_tenure_feature_id_lookup:
