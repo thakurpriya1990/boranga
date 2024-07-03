@@ -10,25 +10,60 @@
                             <div class="card-header">
                                 Image
                             </div>
-                            <div class="card-body card-collapse">
-                                <div class="row">
-                                    <div class="col-sm-12">
-                                        <div class="site-logo row" v-if="uploadedID">
-                                            <img :src="uploadedID" class="img-responsive" />
-                                            <span>
-                                                <a @click="delete_image()" class="fa fa-trash-o" title="Remove file"
-                                                    style="cursor: pointer; color:red;"> delete image</a>
-                                            </span>
+                            <div class="card-body">
+                                <template>
+                                    <div class="row mb-2 pb-2">
+                                        <div v-if="!uploadingImage && speciesCommunitiesImage" class="col">
+                                            <img :src="speciesCommunitiesImage" class="img-fluid rounded" />
                                         </div>
-                                        <template v-if="hasUserEditMode">
-                                            <span class="btn btn-link btn-file pull-left" v-if="!uploadedID">Attach
-                                                Image<input type="file" ref="uploadedID"
-                                                    @change="readFileID()" /></span>
-                                            <span class="btn btn-link btn-file pull-left"
-                                                v-else>&nbsp;Uploading...</span>
-                                        </template>
+                                        <div v-else
+                                            class="d-flex bg-light bg-gradient justify-content-center align-content-middle"
+                                            style="height:200px">
+                                            <div class="align-self-center text-muted">No Image Uploaded</div>
+                                        </div>
                                     </div>
-                                </div>
+                                    <div class="row border-top pt-3 mb-2">
+                                        <div class="col">
+                                            <div class="d-flex justify-content-center">
+                                                <div class="text-muted">Image Actions</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-if="hasUserEditMode" class="row">
+                                        <div class="col">
+                                            <div class="d-flex align-items-center flex-column">
+                                                <label v-if="!speciesCommunitiesImage" for="image-upload" role="button"
+                                                    class="btn btn-primary btn-sm w-50 mb-2 text-start"><i
+                                                        class="bi bi-upload me-3"></i>
+                                                    Upload</label>
+                                                <input id="image-upload" class="d-none" type="file"
+                                                    ref="speciesCommunitiesImage" @change="uploadImage">
+                                                <template v-if="!uploadingImage && speciesCommunitiesImage">
+                                                    <label for="image-upload" role="button"
+                                                        class="btn btn-primary btn-sm w-50 mb-2 text-start"><i
+                                                            class="bi bi-pencil-fill me-3"></i>
+                                                        Update</label>
+                                                    <input id="image-upload" class="d-none" type="file"
+                                                        ref="speciesCommunitiesImage" @change="uploadImage">
+                                                    <button class="btn btn-secondary btn-sm w-50 mb-2 text-start"
+                                                        @click="showReinstateImageModal"><i
+                                                            class="bi bi-clock-history me-3"></i> Reinstate</button>
+                                                    <button @click="confirmDiscardImage"
+                                                        class="btn btn-danger btn-sm w-50 mb-2 text-start"><i
+                                                            class="bi bi-trash3-fill me-3"></i>
+                                                        Discard</button>
+                                                </template>
+                                                <button v-if="uploadingImage"
+                                                    class="btn btn-primary btn-sm w-50 mb-2 text-start">
+                                                    <span class="spinner-border spinner-border-sm me-3" role="status"
+                                                        aria-hidden="true"></span>
+                                                    Uploading
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -183,6 +218,7 @@
         <MakePublic ref="make_public" :species_community="species_community"
             :species_community_original="species_community_original" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
+        <ReinstateImage ref="reinstateImage" title="Reinstate Species Image" :imageHistoryUrl="image_history_url" @reinstateImage="reinstateImage" />
     </div>
 </template>
 <script>
@@ -195,6 +231,8 @@ import SpeciesSplit from './species_split.vue'
 import SpeciesCombine from './species_combine.vue'
 import SpeciesRename from './species_rename.vue'
 import MakePublic from './make_public.vue'
+import ReinstateImage from '@common-utils/reinstate_image.vue'
+
 import {
     api_endpoints,
     helpers
@@ -211,8 +249,8 @@ export default {
             savingSpeciesCommunity: false,
             saveExitSpeciesCommunity: false,
             submitSpeciesCommunity: false,
-            uploadedID: null,
-            imageURL: '',
+            speciesCommunitiesImage: null,
+            uploadingImage: false,
             isSaved: false,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comparing: false,
@@ -227,6 +265,7 @@ export default {
         SpeciesCombine,
         SpeciesRename,
         MakePublic,
+        ReinstateImage,
     },
     filters: {
         formatDate: function (data) {
@@ -324,44 +363,33 @@ export default {
                 helpers.add_endpoint_json(api_endpoints.community, this.$route.params.species_community_id + '/action_log') :
                 helpers.add_endpoint_json(api_endpoints.species, this.$route.params.species_community_id + '/action_log');
         },
+        image_history_url: function () {
+            return this.species_community ? `/api/species/${this.species_community.id}/image_history/`: '';
+        }
     },
     methods: {
         commaToNewline(s) {
             return s.replace(/[,;]/g, '\n');
         },
-        readFileID: async function () {
+        uploadImage: function (event) {
             let vm = this;
-            let _file = null;
-            var input = $(vm.$refs.uploadedID)[0];
-            vm.imageURL = URL.createObjectURL(input.files[0])
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.readAsDataURL(input.files[0]);
-                reader.onload = function (e) {
-                    _file = e.target.result;
-                };
-                _file = input.files[0];
-            }
-            //vm.imageURL= URL.createObjectURL()
-            vm.uploadedID = _file;
-
-            await vm.uploadImage();
-        },
-        uploadImage: async function () {
-            let vm = this;
-            vm.uploadingID = true;
-            let data = new FormData();
-            data.append('image2', vm.uploadedID);
-            if (vm.uploadedID == null) {
-                vm.uploadingID = false;
+            const files = event.target.files;
+            const imageFile = files[0];
+            if (!imageFile) {
+                vm.uploadingImage = false;
                 swal.fire({
                     title: 'Upload Image',
                     html: 'Please select an Image to upload.',
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                });
+                    },
+                });
             } else {
+                vm.uploadingImage = true;
+                let data = new FormData();
+                data.append('speciesCommunitiesImage', imageFile);
+
                 if (this.species_community.group_type == 'community') {
                     var api_url = api_endpoints.community;
                 }
@@ -371,14 +399,14 @@ export default {
                 vm.$http.post(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/upload_image')), data, {
                     emulateJSON: true
                 }).then((response) => {
-                    vm.uploadingID = false;
-                    vm.uploadedID = null;
-                    vm.uploadedID = response.body.image_doc;
+                    vm.uploadingImage = false;
+                    vm.speciesCommunitiesImage = null;
+                    vm.speciesCommunitiesImage = response.body.image_doc;
                     vm.species_community.image_doc = response.body.image_doc;
                 }, (error) => {
                     console.log(error);
-                    vm.uploadingID = false;
-                    vm.uploadedID = null;
+                    vm.uploadingImage = false;
+                    vm.speciesCommunitiesImage = null;
                     let error_msg = '<br/>';
                     for (var key in error.body) {
                         error_msg += key + ': ' + error.body[key] + '<br/>';
@@ -388,12 +416,59 @@ export default {
                         html: 'There was an error uploading your ID.<br/>' + error_msg,
                         icon: 'error',
                         customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },                    });
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
             }
         },
-        delete_image: async function () {
+        showReinstateImageModal: function () {
+            this.$refs.reinstateImage.isModalOpen = true;
+        },
+        reinstateImage: function (image){
+            let vm = this;
+            if (this.species_community.group_type == 'community') {
+                var api_url = api_endpoints.community;
+            }
+            else {
+                var api_url = api_endpoints.species;
+            }
+            vm.$http.patch(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/reinstate_image')), {
+                pk: image.id
+            }).then(() => {
+                this.speciesCommunitiesImage = image.url;
+                this.species_community.image_doc = image.url;
+            }).catch((error) => {
+                swal.fire({
+                    title: 'Reinstate Image',
+                    text: 'There was an error reinstating the image',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                console.log(error)
+            })
+        },
+        confirmDiscardImage: function () {
+            swal.fire({
+                title: 'Discard Image',
+                text: 'Are you sure you want to discard this image?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Discard',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    this.discardImage();
+                }
+            });
+        },
+        discardImage: async function () {
             let vm = this;
             if (this.species_community.group_type == 'community') {
                 var api_url = api_endpoints.community;
@@ -402,27 +477,28 @@ export default {
                 var api_url = api_endpoints.species;
             }
 
-            if (vm.uploadedID == null) {
+            if (vm.speciesCommunitiesImage == null) {
                 swal.fire({
                     title: 'Delete Image',
                     html: 'No Image uploaded.',
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                });
+                    },
+                });
             } else {
                 if (vm.species_community.image_doc) {
                     vm.$http.post(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/delete_image')), {
                         emulateJSON: true
                     }).then((response) => {
-                        vm.uploadingID = false;
-                        vm.uploadedID = null;
-                        vm.uploadedID = response.body.image_doc;
+                        vm.uploadingImage = false;
+                        vm.speciesCommunitiesImage = null;
+                        vm.speciesCommunitiesImage = response.body.image_doc;
                         vm.species_community.image_doc = response.body.image_doc;
                     }, (error) => {
                         console.log(error);
-                        vm.uploadingID = false;
-                        vm.uploadedID = null;
+                        vm.uploadingImage = false;
+                        vm.speciesCommunitiesImage = null;
                         let error_msg = '<br/>';
                         for (var key in error.body) {
                             error_msg += key + ': ' + error.body[key] + '<br/>';
@@ -432,8 +508,9 @@ export default {
                             html: 'There was an error deleting your image.<br/>' + error_msg,
                             icon: 'error',
                             customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },                        });
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
                     });
                 }
 
@@ -486,7 +563,8 @@ export default {
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                })
+                    },
+                })
                 return false;
             }
             vm.savingSpeciesCommunity = true;
@@ -507,7 +585,8 @@ export default {
                     icon: "success",
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                });
+                    },
+                });
                 vm.savingSpeciesCommunity = false;
                 vm.isSaved = true;
             }, err => {
@@ -518,7 +597,8 @@ export default {
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                });
+                    },
+                });
                 vm.savingSpeciesCommunity = false;
                 vm.isSaved = false;
             });
@@ -533,7 +613,8 @@ export default {
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                })
+                    },
+                })
                 //vm.paySubmitting=false;
                 return false;
             }
@@ -572,7 +653,8 @@ export default {
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                })
+                    },
+                })
                 vm.submitSpeciesCommunity = false;
                 vm.saveError = true;
                 //return false;
@@ -614,10 +696,10 @@ export default {
                 if (vm.species_community.distribution.distribution == null || vm.species_community.distribution.distribution == '') {
                     blank_fields.push(' Distribution is required')
                 }
-                if (vm.species_community.regions==null ||vm.species_community.regions.length==0 || vm.species_community.regions == '') {
+                if (vm.species_community.regions == null || vm.species_community.regions.length == 0 || vm.species_community.regions == '') {
                     blank_fields.push(' Region is required')
                 }
-                if (vm.species_community.districts == null || vm.species_community.districts == '' || vm.species_community.districts.length ==0) {
+                if (vm.species_community.districts == null || vm.species_community.districts == '' || vm.species_community.districts.length == 0) {
                     blank_fields.push(' District is required')
                 }
             }
@@ -639,7 +721,8 @@ export default {
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                })
+                    },
+                })
                 //vm.paySubmitting=false;
                 return false;
             }
@@ -682,8 +765,9 @@ export default {
                                 text: helpers.apiVueResourceError(err),
                                 icon: 'error',
                                 customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },                            });
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
                         });
                     }
                 }
@@ -710,7 +794,7 @@ export default {
                     .then(res => {
                         vm.species_community = res.body.species_obj;
                         vm.species_community_original = helpers.copyObject(vm.species_community);
-                        vm.uploadedID = vm.species_community.image_doc;
+                        vm.speciesCommunitiesImage = vm.species_community.image_doc;
                     },
                         err => {
                             console.log(err);
@@ -720,7 +804,7 @@ export default {
                     .then(res => {
                         vm.species_community = res.body.community_obj;
                         vm.species_community_original = helpers.copyObject(vm.species_community);
-                        vm.uploadedID = vm.species_community.image_doc;
+                        vm.speciesCommunitiesImage = vm.species_community.image_doc;
                     },
                         err => {
                             console.log(err);
@@ -867,8 +951,21 @@ export default {
             });
         }
     },
-    mounted: function () {
-        let vm = this;
+    created: function () {
+        if (!this.species_community) {
+            let end_point_type = 'species';
+            if (this.$route.query.group_type_name === 'community') {
+                end_point_type = 'community';
+            }
+            Vue.http.get(`/api/${end_point_type}/${this.$route.params.species_community_id}/internal_${end_point_type}.json`).then(res => {
+                this.species_community = res.body[`${end_point_type}_obj`]; //--temp community_obj
+                this.species_community_original = helpers.copyObject(this.species_community);
+                this.speciesCommunitiesImage = this.species_community.image_doc;
+            },
+                err => {
+                    console.log(err);
+                });
+        }
     },
     updated: function () {
         let vm = this;
@@ -877,45 +974,21 @@ export default {
         });
     },
     beforeRouteEnter: function (to, from, next) {
-        //-------------get species object if received species id
-        if (to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna") {
-            Vue.http.get(`/api/species/${to.params.species_community_id}/internal_species.json`).then(res => {
-                next(vm => {
-                    vm.species_community = res.body.species_obj; //--temp species_obj
-                    vm.species_community_original = helpers.copyObject(vm.species_community);
-                    vm.uploadedID = vm.species_community.image_doc;
-                });
-            },
-                err => {
-                    console.log(err);
-                });
+        let end_point_type = 'species';
+        if (to.query.group_type_name === 'community') {
+            end_point_type = 'community';
         }
-        //------get community object if received community id
-        else {
-            Vue.http.get(`/api/community/${to.params.species_community_id}/internal_community.json`).then(res => {
-                next(vm => {
-                    vm.species_community = res.body.community_obj; //--temp community_obj
-                    vm.species_community_original = helpers.copyObject(vm.species_community);
-                    vm.uploadedID = vm.species_community.image_doc;
-                });
-            },
-                err => {
-                    console.log(err);
-                });
-        }
-    },
-    /*beforeRouteUpdate: function(to, from, next) {
-          Vue.http.get(`/api/proposal/${to.params.species_community_id}.json`).then(res => {
-              next(vm => {
-                vm.proposal = res.body;
-                vm.original_proposal = helpers.copyObject(res.body);
-
-              });
-            },
-            err => {
-              console.log(err);
+        Vue.http.get(`/api/${end_point_type}/${to.params.species_community_id}/internal_${end_point_type}.json`).then(res => {
+            next(vm => {
+                vm.species_community = res.body[`${end_point_type}_obj`]; //--temp community_obj
+                vm.species_community_original = helpers.copyObject(vm.species_community);
+                vm.speciesCommunitiesImage = vm.species_community.image_doc;
             });
-    }*/
+        },
+            err => {
+                console.log(err);
+            });
+    },
 }
 </script>
 <style scoped>
