@@ -10,19 +10,34 @@
                         v-model="meeting_obj.title" autofocus />
                 </div>
             </div>
-            <div class="row mb-3">
+            <!-- <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label fw-bold">Start Date/ Time: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
 
                     <input :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date"
                         ref="start_date" v-model="meeting_obj.start_date" @change="validateMeetingDate()" />
                 </div>
-            </div>
+            </div> -->
             <div class="row mb-3">
+                <label for="" class="col-sm-4 control-label fw-bold">Start Date/ Time: <span class="text-danger">*</span></label>
+                <div class="col-sm-8">
+
+                    <input :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date"
+                        ref="start_date" v-model="start_date" @change="validateMeetingDate()" />
+                </div>
+            </div>
+            <!-- <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label fw-bold">End Date/ Time: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <input :disabled="isReadOnly" type="datetime-local" class="form-control" id="end_date"
                         v-model="meeting_obj.end_date" @change="validateMeetingDate()" />
+                </div>
+            </div> -->
+            <div class="row mb-3">
+                <label for="" class="col-sm-4 control-label fw-bold">End Date/ Time: <span class="text-danger">*</span></label>
+                <div class="col-sm-8">
+                    <input :disabled="isReadOnly" type="datetime-local" class="form-control" id="end_date"
+                        v-model="end_date" @change="validateMeetingDate()" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -92,13 +107,38 @@ import datatable from '@vue-utils/datatable.vue';
 import alert from '@vue-utils/alert.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 
+
 import {
     constants,
     api_endpoints,
     helpers,
 }
     from '@/utils/hooks'
+import { meeting } from '../../../api';
+const calculateDefaultDate = () => {
+  const now = new Date();
+  now.setHours(9, 0, 0, 0);  // Set time to 9:00 AM
 
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+const calculateDefaultEndDate = () => {
+  const now = new Date();
+  now.setHours(17, 0, 0, 0);  // Set time to 9:00 AM
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
 export default {
     name: 'MeetingSection',
     props: {
@@ -125,6 +165,8 @@ export default {
                 keepInvalid: true,
                 allowInputToggle: true,
             },
+            start_date: calculateDefaultDate(),
+            end_date: calculateDefaultEndDate(),
             isMeetingDateValid: true,
             isShowComment: false,
             isCommitteeMeeting: false,
@@ -245,6 +287,29 @@ export default {
             var selectedValue = newVal;
             if (selectedValue === "") {
                 vm.meeting_obj.end_date = null;
+            }
+        },
+        start_date: function (newVal) {
+            let vm = this;
+            var selectedValue = newVal;
+            if (selectedValue === "") {
+                vm.meeting_obj.start_date = null;
+            }
+            else{
+                vm.meeting_obj.start_date=vm.start_date;
+                if(vm.meeting_obj.end_date=='' || vm.meeting_obj.end_date==null ){
+                    vm.end_date=vm.start_date;
+                }
+            }
+        },
+        end_date: function (newVal) {
+            let vm = this;
+            var selectedValue = newVal;
+            if (selectedValue === "") {
+                vm.meeting_obj.end_date = null;
+            }
+            else{
+                vm.meeting_obj.end_date=vm.end_date;
             }
         },
     },
@@ -389,6 +454,12 @@ export default {
     },
     mounted: function () {
         let vm = this;
+        if(vm.meeting_obj.start_date){
+            vm.start_date=vm.meeting_obj.start_date;
+        }
+        if(vm.meeting_obj.end_date){
+            vm.end_date=vm.meeting_obj.end_date;
+        }
         this.$nextTick(() => {
             vm.eventListeners();
             vm.hideActionColumn();
