@@ -137,6 +137,9 @@ class MeetingSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField()
     can_user_add_minutes = serializers.SerializerMethodField()
+    can_user_schedule = serializers.SerializerMethodField()
+    can_user_complete = serializers.SerializerMethodField()
+    can_user_reinstate = serializers.SerializerMethodField()
 
     class Meta:
         model = Meeting
@@ -160,6 +163,11 @@ class MeetingSerializer(serializers.ModelSerializer):
             "agenda_items_arr",
             "user_edit_mode",
             "readonly",
+            "can_user_schedule",
+            "can_user_complete",
+            "can_user_reinstate",
+
+
         )
 
     def get_processing_status_display(self, obj):
@@ -200,6 +208,30 @@ class MeetingSerializer(serializers.ModelSerializer):
     def get_can_user_add_minutes(self, obj):
         request = self.context["request"]
         return is_conservation_status_approver(request)
+    
+    def get_can_user_schedule(self, obj):
+        request = self.context["request"]
+
+        if not is_conservation_status_approver(request):
+            return False
+
+        return obj.can_user_schedule
+    
+    def get_can_user_complete(self, obj):
+        request = self.context["request"]
+
+        if not is_conservation_status_approver(request):
+            return False
+
+        return obj.can_user_complete
+    
+    def get_can_user_reinstate(self, obj):
+        request = self.context["request"]
+
+        if not is_conservation_status_approver(request):
+            return False
+
+        return obj.can_user_reinstate
 
 
 class SaveMeetingSerializer(serializers.ModelSerializer):
