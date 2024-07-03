@@ -107,7 +107,7 @@ export default {
                 }, 100);
             },
             initComplete: function () {
-                helpers.enablePopovers();
+                
                 // another option to fix the responsive table overflow css on tab switch
                 setTimeout(function () {
                     vm.adjust_table_width();
@@ -121,6 +121,7 @@ export default {
     methods: {
         adjust_table_width: function () {
             if (this.$refs.documents_datatable !== undefined) { this.$refs.documents_datatable.vmDataTable.columns.adjust().responsive.recalc() };
+            helpers.enablePopovers();
         },
         removeDocument: function(id) {
             let vm=this;   
@@ -140,6 +141,12 @@ export default {
                 } else {
                     vm.removeDocument(id);
                 }
+            });
+            vm.$refs.documents_datatable.vmDataTable.on('draw', function(e) {
+                helpers.enablePopovers();
+            });
+            vm.$refs.documents_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
             });
         }
     },

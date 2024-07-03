@@ -454,6 +454,8 @@
                 setTimeout(function () {
                     vm.toggleDocuments();
                     vm.toggleThreats();
+                    vm.toggleSites();
+                    vm.toggleKeyContacts();
                 }, 200); //set to 200 due to the tab fade (TODO: consider better handling of this)
             },
             addOccurrence: function () {
@@ -731,6 +733,9 @@
                     }, (error) => {
                         console.log(error);
                     })
+                    setTimeout(function () {
+                        vm.tabClicked();
+                    },100);
                 }
             },
             selectedOccurrenceIds: function() {

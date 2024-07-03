@@ -2,6 +2,7 @@ import json
 import logging
 from abc import abstractmethod
 
+import pyproj
 import reversion
 from django.conf import settings
 from django.contrib.contenttypes import fields
@@ -704,8 +705,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         if self.ocr_geometry.count() < 1:
             missing_values.append("Location")
-
-        # TODO tenure
 
         if missing_values:
             raise ValidationError(
@@ -1500,16 +1499,18 @@ class Datum(models.Model):
     - OCCLocation
 
     """
-
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
     srid = models.IntegerField(blank=False, null=False, unique=True)
+
+    @property
+    def name(self):
+        return f"EPSG:{str(self.srid)} - {pyproj.CRS.from_string(str(self.srid)).name}"
 
     class Meta:
         app_label = "boranga"
-        ordering = ["name"]
+        ordering = ["srid"]
 
     def __str__(self):
-        return str(self.name)
+        return str(self.srid)
 
 
 class CoordinationSource(models.Model):
@@ -3190,8 +3191,6 @@ class Occurrence(RevisionedMixin):
             and not occ_points.exists()
         ):
             missing_values.append("Point on Map")
-
-        # TODO tenure
 
         if not self.identification or not self.identification.identification_certainty:
             missing_values.append("Identification Certainty")

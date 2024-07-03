@@ -185,6 +185,9 @@ export default {
                 var id = $(this).attr('data-remove-occurrence');
                 vm.removeOccurrence(id);
             });
+            vm.$refs.occurrences_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
+            });
         }
     },
     watch: {

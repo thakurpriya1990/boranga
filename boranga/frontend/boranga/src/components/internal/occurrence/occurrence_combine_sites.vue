@@ -118,13 +118,11 @@ export default {
                 ]
             },
             drawCallback: function () {
-                helpers.enablePopovers();
                 setTimeout(function () {
                     vm.adjust_table_width();
                 }, 100);
             },
             initComplete: function () {
-                helpers.enablePopovers();
                 // another option to fix the responsive table overflow css on tab switch
                 setTimeout(function () {
                     vm.adjust_table_width();
@@ -148,6 +146,7 @@ export default {
         },
         adjust_table_width: function () {
             if (this.$refs.sites_datatable !== undefined) { this.$refs.sites_datatable.vmDataTable.columns.adjust().responsive.recalc() };
+            helpers.enablePopovers();
         },
         removeSite: function(id) {
             let vm=this;   
@@ -161,6 +160,7 @@ export default {
         }, 
         addEventListeners:function (){
             let vm=this;     
+
             vm.$refs.sites_datatable.vmDataTable.on('change', 'input[data-site-checkbox]', function(e) {
                 e.preventDefault();
                 var id = parseInt($(this).attr('data-site-checkbox'));
@@ -181,6 +181,12 @@ export default {
                         }
                     });
                 }
+            });
+            vm.$refs.sites_datatable.vmDataTable.on('draw', function(e) {
+                helpers.enablePopovers();
+            });
+            vm.$refs.sites_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
             });
         }
     },
