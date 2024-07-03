@@ -1,5 +1,5 @@
 <template lang="html">
-    <div id="site_detail">
+    <div id="occurrence_tenure_modal">
         <modal
             transition="modal fade"
             :title="title"
@@ -9,7 +9,7 @@
         >
             <div class="container-fluid">
                 <div class="row">
-                    <form class="form-horizontal" name="siteForm">
+                    <form class="form-horizontal" name="modalForm">
                         <alert :show.sync="showError" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
@@ -18,7 +18,7 @@
                             type="warning"
                             ><strong>{{ change_warning }}</strong></alert
                         >
-                        <div class="col-sm-12">
+                        <!-- <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
@@ -134,7 +134,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                     </form>
                 </div>
             </div>
@@ -146,10 +146,10 @@
                 >
                     Cancel
                 </button>
-                <template v-if="site_action != 'view'">
-                    <template v-if="site_id">
+                <template v-if="modal_action != 'view'">
+                    <template v-if="object_id">
                         <button
-                            v-if="updatingSite"
+                            v-if="updatingEntry"
                             type="button"
                             disabled
                             class="btn btn-primary fa fa-spinnner fa-spin"
@@ -159,9 +159,9 @@
                         <button v-else type="button" class="btn btn-primary" @click="ok">Update</button>
                     </template>
                     <template v-else>
-                        <button v-if="addingSite" type="button" disabled class="btn btn-primary" @click="ok"><i
+                        <button v-if="addingEntry" type="button" disabled class="btn btn-primary" @click="ok"><i
                                 class="fa fa-spinner fa-spin"></i> Adding</button>
-                        <button v-else type="button" class="btn btn-primary" @click="ok">Add Site</button>
+                        <button v-else type="button" class="btn btn-primary" @click="ok">Add Entry</button>
                     </template>
                 </template>
             </div>
@@ -189,9 +189,13 @@ export default {
             type: String,
             required: false
         },
-        occurrence_obj: {
-            type: Object,
-            required: false
+        // occurrence_obj: {
+        //     type: Object,
+        //     required: false
+        // },
+        occurrenceId: {
+            type: Number,
+            required: true
         },
     },
     data: function () {
@@ -199,64 +203,64 @@ export default {
         return {
             isModalOpen: false,
             form: null,
-            site_id: String,
-            site_action: String,
-            siteObj: {
-                related_occurrence_reports: [],
-            },
-            addingSite: false,
-            updatingSite: false,
+            object_id: String,
+            modal_action: String,
+            // siteObj: {
+            //     related_occurrence_reports: [],
+            // },
+            addingEntry: false,
+            updatingEntry: false,
             validation_form: null,
             type: '1',
             errors: false,
             errorString: '',
             successString: '',
             success: false,
-            site_type_list: [],
+            // site_type_list: [],
         }
     },
     computed: {
         showError: function () {
-            var vm = this;
+            const vm = this;
             return vm.errors;
         },
         title: function () {
-            var action = this.site_action;
+            var action = this.modal_action;
             if (typeof action === "string" && action.length > 0) {
-                var capitalizedAction = action.charAt(0).toUpperCase() + action.slice(1);
+                let capitalizedAction = action.charAt(0).toUpperCase() + action.slice(1);
                 return capitalizedAction + " Site";
             } else {
                 return "Invalid site action"; // Or handle the error in an appropriate way
             }
         },
         isReadOnly: function () {
-            return this.site_action === "view" ? true : false;
+            return this.modal_action === "view" ? true : false;
         }
     },
     watch: {
-        siteObj: function () {
-            let vm = this;
-            vm.reinitialiseOCRLookup()
-        }
+        // siteObj: function () {
+        //     let vm = this;
+        //     vm.reinitialiseOCRLookup()
+        // }
     },
     created: async function () {
-        let res = await this.$http.get('/api/occurrence_sites/site_list_of_values/');
-        let site_list_of_values_res = {};
-        Object.assign(site_list_of_values_res, res.body);
-        this.site_type_list = site_list_of_values_res.site_type_list;
-        this.site_type_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
+        // let res = await this.$http.get('/api/occurrence_sites/site_list_of_values/');
+        // let site_list_of_values_res = {};
+        // Object.assign(site_list_of_values_res, res.body);
+        // this.site_type_list = site_list_of_values_res.site_type_list;
+        // this.site_type_list.splice(0, 0,
+        //     {
+        //         id: null,
+        //         name: null,
+        //     });
     },
     mounted: function () {
         let vm = this;
-        vm.form = document.forms.siteForm;
+        vm.form = document.forms.modalForm;
 
         this.$nextTick(() => {
-            vm.eventListeners();
-            vm.initialiseOCRSelect();
+            // vm.eventListeners();
+            // vm.initialiseOCRSelect();
         });
     },
     methods: {
@@ -271,38 +275,38 @@ export default {
         },
         close: function () {
             this.isModalOpen = false;
-            this.siteObj = {
-                related_occurrence_reports: [],
-            };
+            // this.siteObj = {
+            //     related_occurrence_reports: [],
+            // };
             this.errors = false;
             $('.has-error').removeClass('has-error');
         },
-        reinitialiseOCRLookup: function () {
-            let vm = this;
-            vm.$nextTick(() => {
-                $(vm.$refs.occurrence_report_select).select2('destroy');
-                vm.initialiseOCRSelect();
-            });
-        },
-        initialiseOCRSelect: function () {
-            let vm = this;
-            // Initialise select2 for proposed Conservation Criteria
-            $(vm.$refs.occurrence_report_select).select2({
-                "theme": "bootstrap-5",
-                dropdownParent: $("#select_occurrence_reports"),
-                allowClear: true,
-                multiple: true,
-                placeholder: "Select Occurrence Report",
-            }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.siteObj.related_occurrence_reports = selected.val();
-                }).
-                on("select2:unselect", function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.siteObj.related_occurrence_reports = selected.val();
-                });
-        },
+        // reinitialiseOCRLookup: function () {
+        //     let vm = this;
+        //     vm.$nextTick(() => {
+        //         $(vm.$refs.occurrence_report_select).select2('destroy');
+        //         vm.initialiseOCRSelect();
+        //     });
+        // },
+        // initialiseOCRSelect: function () {
+        //     let vm = this;
+        //     // Initialise select2 for proposed Conservation Criteria
+        //     $(vm.$refs.occurrence_report_select).select2({
+        //         "theme": "bootstrap-5",
+        //         dropdownParent: $("#select_occurrence_reports"),
+        //         allowClear: true,
+        //         multiple: true,
+        //         placeholder: "Select Occurrence Report",
+        //     }).
+        //         on("select2:select", function (e) {
+        //             var selected = $(e.currentTarget);
+        //             vm.siteObj.related_occurrence_reports = selected.val();
+        //         }).
+        //         on("select2:unselect", function (e) {
+        //             var selected = $(e.currentTarget);
+        //             vm.siteObj.related_occurrence_reports = selected.val();
+        //         });
+        // },
         sendData: function () {
             let vm = this;
             vm.errors = false;
@@ -310,31 +314,31 @@ export default {
             let formData = new FormData()
 
             if (vm.siteObj.id) {
-                vm.updatingSite = true;
+                vm.updatingEntry = true;
                 formData.append('data', JSON.stringify(siteObj));
                 vm.$http.put(helpers.add_endpoint_json(vm.url, siteObj.id), formData, {
                     emulateJSON: true,
                 }).then((response) => {
-                    vm.updatingSite = false;
+                    vm.updatingEntry = false;
                     vm.$parent.updatedSites();
                     vm.close();
                 }, (error) => {
                     vm.errors = true;
                     vm.errorString = helpers.apiVueResourceError(error);
-                    vm.updatingSite = false;
+                    vm.updatingEntry = false;
                 });
             } else {
-                vm.addingSite = true;
+                vm.addingEntry = true;
                 formData.append('data', JSON.stringify(siteObj));
                 vm.$http.post(vm.url, formData, {
                     emulateJSON: true,
                 }).then((response) => {
-                    vm.addingSite = false;
+                    vm.addingEntry = false;
                     vm.close();
                     vm.$parent.updatedSites();
                 }, (error) => {
                     vm.errors = true;
-                    vm.addingSite = false;
+                    vm.addingEntry = false;
                     vm.errorString = helpers.apiVueResourceError(error);
                 });
             }

@@ -77,13 +77,13 @@
             :dt-options="options"
             :dt-headers="headers"
         />
-        <OccurrenceTenureModal
+        <!-- <OccurrenceTenureModal
             ref="occurrence_tenure_modal"
-            :occurrence_obj="occurrence_obj"
-            :url="occ_site_url"
+            :occurrence-id="occurrenceId"
+            :url="'TODO:'"
             @refreshFromResponse="updatedTenureArea"
         >
-        </OccurrenceTenureModal>
+        </OccurrenceTenureModal> -->
     </div>
 </template>
 
@@ -92,14 +92,14 @@ import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import datatable from '@/utils/vue/datatable.vue';
 import { v4 as uuid } from 'uuid';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
-import OccurrenceTenureModal from '@/components/internal/occurrence/occurrence_tenure_modal.vue';
+// import OccurrenceTenureModal from '@/components/internal/occurrence/occurrence_tenure_modal.vue';
 
 export default {
     name: 'OccurrenceTenureDatatable',
     components: {
         datatable,
         CollapsibleFilters,
-        OccurrenceTenureModal,
+        // OccurrenceTenureModal,
     },
     emit: ['highlight-on-map', 'edit-tenure-details'],
     props: {
@@ -138,7 +138,8 @@ export default {
         return {
             uuid: uuid(),
             datatable_id: 'occurrence-tenure-datatable-' + uuid(),
-            url: api_endpoints.occurrence_tenure_paginated_internal,
+            occ_tenure_url: api_endpoints.occurrence_tenure_paginated_internal,
+            // occ_site_url: api_endpoints.occ_site,
             headers: [
                 'Feature ID',
                 // 'Tenure Area ID',
@@ -285,9 +286,9 @@ export default {
                 this.column_datetime_updated,
                 this.column_action,
             ];
-            let url = this.url;
+            let url = this.occ_tenure_url;
             if (this.occurrenceId) {
-                url = `${this.url}&occurrence_id=${this.occurrenceId}`;
+                url = `${this.occ_tenure_url}&occurrence_id=${this.occurrenceId}`;
             }
             return {
                 autoWidth: false,
@@ -550,6 +551,12 @@ export default {
         },
         sessionStorageText: function (key) {
             return `${key}Text`;
+        },
+        updatedTenureArea: function () {
+            // this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
+            //     helpers.enablePopovers,
+            //     false
+            // );
         },
     },
 };
