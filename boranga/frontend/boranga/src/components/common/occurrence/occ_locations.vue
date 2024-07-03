@@ -55,6 +55,7 @@
                             api_url: siteApiUrl,
                             query_param_key: 'occurrence_id',
                             ids: [occurrence_obj.id],
+                            model_overwrite: { label: 'Site' },
                         },
                     ]" @features-loaded="mapFeaturesLoaded" @crs-select-search="searchForCRS"></MapComponent>
             </div>

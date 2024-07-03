@@ -1145,6 +1145,7 @@
                                 {{
                                     selectedModel.occurrence_report_number ||
                                     selectedModel.occurrence_number ||
+                                    selectedModel.site_number ||
                                     selectedModel.buffer_radius
                                 }}
                             </strong>
@@ -1152,7 +1153,14 @@
                         <div class="toast-body">
                             <table class="table table-sm">
                                 <tbody>
-                                    <tr>
+                                    <tr
+                                        v-if="
+                                            selectedModel.status ||
+                                            selectedModel.status_display ||
+                                            selectedModel.processing_status_display ||
+                                            selectedModel.processing_status
+                                        "
+                                    >
                                         <th scope="row">Processing Status</th>
                                         <td>
                                             {{
@@ -1228,6 +1236,12 @@
                                                 }}
                                             </td>
                                         </template>
+                                    </tr>
+                                    <tr v-if="selectedModel.site_name">
+                                        <th scope="row">Name</th>
+                                        <td>
+                                            {{ selectedModel.site_name }}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1777,8 +1791,9 @@ export default {
                     //  Positive values fetch proposals with those ids
                     //  Empty list `[]` fetches all proposals
                     handler: null, // A callback function to invoke on fetched features
-                    geometry_name: 'geometry', // The name of the geometry field in the model
+                    geometry_name: 'geometry', // The name of the geometry field in the model. If not provided, the object itselef is treated as the geometry
                     collapse: false, // Whether the layer is collapsed by default
+                    model_overwrite: null, // A dictionary to overwrite the default model values
                 };
             },
         },
@@ -3353,6 +3368,7 @@ export default {
                 vm.map.forEachFeatureAtPixel(
                     evt.pixel,
                     function (feature) {
+                        // TODO: Just make this whole block of code nicer, display the individual feature info per feature and layer in the toast, etc
                         selected = feature;
                         let model = selected.getProperties().model;
                         if (!model) {
@@ -3375,6 +3391,12 @@ export default {
                                 selected_buffer_radius += 'm';
                             }
                             model.buffer_radius ??= selected_buffer_radius;
+
+                            model.site_number =
+                                selected.getProperties().site_number;
+
+                            model.site_name =
+                                selected.getProperties().site_name;
                         }
                         vm.selectedModel = model;
                         if (!isSelectedFeature(selected)) {
@@ -3990,7 +4012,9 @@ export default {
                     vm.addGeometryToMapSource(geometry, proposal, source);
                 });
             } else {
-                vm.addGeometryToMapSource(proposals, {}, source);
+                const modelOverwrite =
+                    vm.getLayerDefinitionByName(toSource).model_overwrite || {};
+                vm.addGeometryToMapSource(proposals, modelOverwrite, source);
             }
             // vm.addFeatureCollectionToMap();
             vm.map.dispatchEvent({
@@ -4103,6 +4127,7 @@ export default {
                 coordinates: coords,
                 properties: { srid: this.mapSrid },
             };
+            // TODO: Pass in which values to use in the layer definition dict
             const color =
                 properties.color ||
                 this.featureColors['draw'] ||
@@ -4112,6 +4137,7 @@ export default {
 
             const label =
                 properties.label ||
+                properties.site_number ||
                 context.occurrence_report_number ||
                 context.label ||
                 'Draw';
@@ -4120,7 +4146,8 @@ export default {
             const featureProperties = structuredClone(properties);
             featureProperties['id'] ??= this.newFeatureId;
             featureProperties['model'] ??= context;
-            featureProperties['geometry_source'] ??= 'New';
+            featureProperties['geometry_source'] ??=
+                properties.geometry_source === null ? null : 'New';
             featureProperties['name'] ??= context.id || -1;
             featureProperties['label'] ??= label;
             featureProperties['color'] ??= color;
