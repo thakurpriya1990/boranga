@@ -534,10 +534,10 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         max_length=100, blank=True, null=True
     )
 
-    APPROVAL_LEVEL_INTERMEDIATE = "intermediate"
+    APPROVAL_LEVEL_IMMEDIATE = "immediate"
     APPROVAL_LEVEL_MINISTER = "minister"
     APPROVAL_LEVEL_CHOICES = (
-        (APPROVAL_LEVEL_INTERMEDIATE, "Intermediate"),
+        (APPROVAL_LEVEL_IMMEDIATE, "Immediate"),
         (APPROVAL_LEVEL_MINISTER, "Ministerial"),
     )
 

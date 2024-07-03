@@ -541,7 +541,7 @@ class Species(RevisionedMixin):
             Species.PROCESSING_STATUS_DRAFT,
             Species.PROCESSING_STATUS_DISCARDED,
         ]
-    
+
     @property
     def can_user_split(self):
         """
@@ -731,14 +731,44 @@ class Species(RevisionedMixin):
     def log_user_action(self, action, request):
         return SpeciesUserAction.log_action(self, action, request.user.id)
 
-    def upload_image(self, request):
-        with transaction.atomic():
-            document = SpeciesDocument(
-                _file=request.data.dict()["image2"], species=self
+    @transaction.atomic
+    def upload_image(self, speciesCommunitiesImageFile):
+        document = SpeciesDocument(
+            input_name="speciesCommunitiesImageFile",
+            _file=speciesCommunitiesImageFile,
+            species=self,
+        )
+        document.save()
+        self.image_doc = document
+        self.save()
+
+    @property
+    def image_history(self):
+        images_qs = (
+            SpeciesDocument.objects.filter(
+                species=self, input_name="speciesCommunitiesImageFile"
             )
-            document.save()
-            self.image_doc = document
-            self.save()
+            .distinct("uploaded_date", "_file")
+            .order_by("-uploaded_date")
+        )
+        return [
+            {
+                "id": image.id,
+                "filename": os.path.basename(image._file.name),
+                "url": image._file.url,
+                "uploaded_date": image.uploaded_date,
+            }
+            for image in images_qs
+        ]
+
+    def reinstate_image(self, pk):
+        try:
+            document = SpeciesDocument.objects.get(pk=pk)
+        except SpeciesDocument.DoesNotExist:
+            raise ValidationError(f"No SpeciesDocument model found with pk {pk}")
+
+        self.image_doc = document
+        self.save()
 
     def clone_documents(self, request):
         with transaction.atomic():
