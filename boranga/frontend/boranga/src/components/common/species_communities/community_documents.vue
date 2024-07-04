@@ -47,6 +47,10 @@ export default {
             type: Object,
             required: true
         },
+        is_internal: {
+            type: Boolean,
+            default: false
+        },
     },
     data: function () {
         let vm = this;
