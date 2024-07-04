@@ -1309,7 +1309,7 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
         instance = self.get_object()
         if not instance.image_doc:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        extension = instance._file.path.split(".")[-1].lower()
+        extension = instance.image_doc._file.path.split(".")[-1].lower()
         try:
             content_type = mimetypes.types_map["." + str(extension)]
         except KeyError:
