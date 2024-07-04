@@ -17,103 +17,125 @@
                             v-if="change_warning && !isReadOnly"
                             type="warning"
                             ><strong>{{ change_warning }}</strong></alert
-                        >
-                        <!-- <div class="col-sm-12">
+                        > {{ tenureObj }}
+                        <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left"
-                                            >Site Name</label
+                                            >Status</label
                                         >
                                     </div>
-                                    <div class="col-sm-9">
-                                        <textarea v-model="siteObj.site_name">
+                                    <div class="col-sm-3">
+                                        <!-- status_display -->
+                                        <input
+                                            id="status_id"
+                                            v-model="tenureObj.status"
                                             :disabled="isReadOnly"
-                                            rows="1"
+                                            type="text"
                                             class="form-control"
-                                        </textarea>
+                                            placeholder="Status"
+                                        />
                                     </div>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <label for="" class="col-sm-3 control-label"
-                                    >Point Coordinate :</label
+                                    >Tenure Area Id</label
                                 >
-                                <div class="col-sm-4">
+                                <div class="col-sm-9">
                                     <input
-                                        id="point_coord1"
-                                        v-model="siteObj.point_coord1"
+                                        id="tenure_area_id"
+                                        v-model="tenureObj.tenure_area_id"
                                         :disabled="isReadOnly"
-                                        type="decimal"
+                                        type="text"
                                         class="form-control"
-                                        placeholder=""
-                                    />
-                                </div>
-                                -
-                                <div class="col-sm-4">
-                                    <input
-                                        id="point_coord2"
-                                        v-model="siteObj.point_coord2"
-                                        :disabled="isReadOnly"
-                                        type="decimal"
-                                        class="form-control"
-                                        placeholder=""
+                                        placeholder="Tenure Area Id"
                                     />
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-sm-3">
                                     <label class="control-label pull-left"
-                                        >Site Type</label
+                                        >Owner's Name</label
                                     >
                                 </div>
                                 <div class="col-sm-9">
-                                    <select v-model="siteObj.site_type">
+                                    <input
+                                        id="owner_name_id"
+                                        v-model="tenureObj.owner_name"
                                         :disabled="isReadOnly"
-                                        class="form-select"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Owner Name"
+                                    />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-left"
+                                        >Vesting</label
+                                    >
+                                </div>
+                                <div class="col-sm-9">
+                                    <select
+                                        ref="vesting_select"
+                                        v-model="tenureObj.vesting"
+                                        :disabled="isReadOnly"
+                                        style="width: 100%"
+                                        class="form-select input-sm"
+                                    >
                                         <option
-                                            v-for="site in site_type_list"
-                                            :key="site.id"
-                                            :value="site.id"
+                                            v-for="vesting in vesting_list"
+                                            :key="vesting.id"
+                                            :value="vesting.id"
                                         >
-                                            {{ site.name }}
+                                            {{ vesting.name }}
                                         </option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <div class="row mb-3">
-                                    <div class="col-sm-3">
-                                        <label class="control-label pull-left"
-                                            >Occurrence Reports</label
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-left"
+                                        >Purpose</label
+                                    >
+                                </div>
+                                <div class="col-sm-9">
+                                    <select
+                                        ref="purpose_select"
+                                        v-model="tenureObj.purpose"
+                                        :disabled="isReadOnly"
+                                        style="width: 100%"
+                                        class="form-select input-sm"
+                                    >
+                                        <option
+                                            v-for="purpose in purpose_list"
+                                            :key="purpose.id"
+                                            :value="purpose.id"
                                         >
-                                    </div>
-                                    <div class="col-sm-9">
-                                        <div
-                                            id="select_occurrence_reports"
-                                            class="form-group"
-                                        >
-                                            <select
-                                                ref="occurrence_report_select"
-                                                v-model="
-                                                    siteObj.related_occurrence_reports
-                                                "
-                                                :disabled="isReadOnly"
-                                                style="width: 100%"
-                                                class="form-select input-sm"
-                                            >
-                                                <option
-                                                    v-for="option in occurrence_obj.occurrence_reports"
-                                                    :key="option.id"
-                                                    :value="option.id"
-                                                >
-                                                    {{
-                                                        option.occurrence_report_number
-                                                    }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                    </div>
+                                            {{ purpose.name }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-left"
+                                        >Significant to Occurrence</label
+                                    >
+                                </div>
+                                <div class="col-sm-3">
+                                    <select
+                                        ref="significant_to_occurrence_select"
+                                        v-model="tenureObj.significant_to_occurrence"
+                                        :disabled="isReadOnly"
+                                        style="width: 100%"
+                                        class="form-select input-sm"
+                                    >
+                                        <option :value="true">Yes</option>
+                                        <option :value="false">No</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -125,7 +147,7 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <textarea
-                                            v-model="siteObj.comments"
+                                            v-model="tenureObj.comments"
                                             :disabled="isReadOnly"
                                             rows="2"
                                             class="form-control"
@@ -134,7 +156,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div> -->
+                        </div>
                     </form>
                 </div>
             </div>
@@ -211,9 +233,6 @@ export default {
             object_id: String,
             modal_action: String,
             tenureObj: {},
-            // siteObj: {
-            //     related_occurrence_reports: [],
-            // },
             addingEntry: false,
             updatingEntry: false,
             validation_form: null,
@@ -222,7 +241,8 @@ export default {
             errorString: '',
             successString: '',
             success: false,
-            // site_type_list: [],
+            purpose_list: [],
+            vesting_list: [],
         }
     },
     computed: {
@@ -244,7 +264,7 @@ export default {
         }
     },
     watch: {
-        // siteObj: function () {
+        // tenureObj: function () {
         //     let vm = this;
         //     vm.reinitialiseOCRLookup()
         // }
@@ -281,7 +301,7 @@ export default {
         },
         close: function () {
             this.isModalOpen = false;
-            // this.siteObj = {
+            // this.tenureObj = {
             //     related_occurrence_reports: [],
             // };
             this.errors = false;
@@ -306,23 +326,23 @@ export default {
         //     }).
         //         on("select2:select", function (e) {
         //             var selected = $(e.currentTarget);
-        //             vm.siteObj.related_occurrence_reports = selected.val();
+        //             vm.tenureObj.related_occurrence_reports = selected.val();
         //         }).
         //         on("select2:unselect", function (e) {
         //             var selected = $(e.currentTarget);
-        //             vm.siteObj.related_occurrence_reports = selected.val();
+        //             vm.tenureObj.related_occurrence_reports = selected.val();
         //         });
         // },
         sendData: function () {
             let vm = this;
             vm.errors = false;
-            let siteObj = JSON.parse(JSON.stringify(vm.siteObj));
+            let tenureObj = JSON.parse(JSON.stringify(vm.tenureObj));
             let formData = new FormData()
 
-            if (vm.siteObj.id) {
+            if (vm.tenureObj.id) {
                 vm.updatingEntry = true;
-                formData.append('data', JSON.stringify(siteObj));
-                vm.$http.put(helpers.add_endpoint_json(vm.url, siteObj.id), formData, {
+                formData.append('data', JSON.stringify(tenureObj));
+                vm.$http.put(helpers.add_endpoint_json(vm.url, tenureObj.id), formData, {
                     emulateJSON: true,
                 }).then((response) => {
                     vm.updatingEntry = false;
@@ -335,7 +355,7 @@ export default {
                 });
             } else {
                 vm.addingEntry = true;
-                formData.append('data', JSON.stringify(siteObj));
+                formData.append('data', JSON.stringify(tenureObj));
                 vm.$http.post(vm.url, formData, {
                     emulateJSON: true,
                 }).then((response) => {
