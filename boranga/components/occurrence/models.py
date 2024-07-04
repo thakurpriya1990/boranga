@@ -4491,10 +4491,6 @@ class OccurrenceTenure(models.Model):
         return self.occurrence_geometry.occurrence
 
     @property
-    def vesting(self):
-        return "Vesting TBI"
-
-    @property
     def tenure_area_centroid(self):
         from boranga.components.spatial.utils import (
             feature_json_to_geosgeometry,

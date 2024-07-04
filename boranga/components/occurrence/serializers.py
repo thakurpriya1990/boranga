@@ -3169,7 +3169,7 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
 
     def get_vesting(self, obj):
         if obj.vesting:
-            return obj.vesting
+            return obj.vesting.vesting
         return None
 
     def get_featureid(self, obj):
@@ -3192,7 +3192,7 @@ class OccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "featureid",
             "owner_name",
             "owner_count",
-            # "vesting_id",
+            "vesting_id",
             "vesting",
             "purpose_id",
             "purpose",
