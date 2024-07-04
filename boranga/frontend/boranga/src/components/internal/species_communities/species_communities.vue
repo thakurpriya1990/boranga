@@ -14,7 +14,7 @@
                                 <template>
                                     <div class="row mb-2 pb-2">
                                         <div v-if="!uploadingImage && speciesCommunitiesImage" class="col">
-                                            <div class="animated-background bg-secondary rounded" style="width:258px; height:258px;">
+                                            <div class="rounded" :class="downloadingImage ? 'animated-background bg-secondary' : ''" style="width:258px; height:258px;">
                                                 <img v-show="!downloadingImage" @load="onImageLoad" :src="speciesCommunitiesImage" width="258"
                                                     class="img-thumbnail img-fluid rounded" />
                                             </div>
