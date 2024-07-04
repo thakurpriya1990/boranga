@@ -331,6 +331,10 @@ GIS_SERVER_URL = env(
 # Proxy prefix for basic authentication
 BASIC_AUTH_PROXY_PREFIX = env("BASIC_AUTH_PROXY_PREFIX", "kb-proxy/")
 
+# Ensure that if the request is https then urls generated for file fields are also https
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 # ---------- Identifier fields for logging ----------
 
 """ Fields that the logging functions will check for on the instance
