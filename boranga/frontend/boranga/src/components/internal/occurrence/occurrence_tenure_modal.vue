@@ -31,7 +31,10 @@
                                         <input
                                             id="status_id"
                                             v-model="tenureObj.status"
-                                            :disabled="isReadOnly"
+                                            :disabled="
+                                                isReadOnly ||
+                                                isAlwaysReadOnly('status')
+                                            "
                                             type="text"
                                             class="form-control"
                                             placeholder="Status"
@@ -47,7 +50,10 @@
                                     <input
                                         id="tenure_area_id"
                                         v-model="tenureObj.tenure_area_id"
-                                        :disabled="isReadOnly"
+                                        :disabled="
+                                            isReadOnly ||
+                                            isAlwaysReadOnly('tenure_area_id')
+                                        "
                                         type="text"
                                         class="form-control"
                                         placeholder="Tenure Area Id"
@@ -62,9 +68,12 @@
                                 </div>
                                 <div class="col-sm-9">
                                     <input
-                                        id="owner_name_id"
+                                        id="owner_name"
                                         v-model="tenureObj.owner_name"
-                                        :disabled="isReadOnly"
+                                        :disabled="
+                                            isReadOnly ||
+                                            isAlwaysReadOnly('owner_name')
+                                        "
                                         type="text"
                                         class="form-control"
                                         placeholder="Owner Name"
@@ -81,7 +90,10 @@
                                     <select
                                         ref="vesting_select"
                                         v-model="tenureObj.vesting_id"
-                                        :disabled="isReadOnly"
+                                        :disabled="
+                                            isReadOnly ||
+                                            isAlwaysReadOnly('vesting_id')
+                                        "
                                         style="width: 100%"
                                         class="form-select input-sm"
                                     >
@@ -108,7 +120,10 @@
                                     <select
                                         ref="purpose_select"
                                         v-model="tenureObj.purpose_id"
-                                        :disabled="isReadOnly"
+                                        :disabled="
+                                            isReadOnly ||
+                                            isAlwaysReadOnly('purpose_id')
+                                        "
                                         style="width: 100%"
                                         class="form-select input-sm"
                                     >
@@ -137,7 +152,12 @@
                                         v-model="
                                             tenureObj.significant_to_occurrence
                                         "
-                                        :disabled="isReadOnly"
+                                        :disabled="
+                                            isReadOnly ||
+                                            isAlwaysReadOnly(
+                                                'significant_to_occurrence'
+                                            )
+                                        "
                                         style="width: 100%"
                                         class="form-select input-sm"
                                     >
@@ -156,7 +176,10 @@
                                     <div class="col-sm-9">
                                         <textarea
                                             v-model="tenureObj.comments"
-                                            :disabled="isReadOnly"
+                                            :disabled="
+                                                isReadOnly ||
+                                                isAlwaysReadOnly('comments')
+                                            "
                                             rows="2"
                                             class="form-control"
                                         >
@@ -249,6 +272,11 @@ export default {
         occurrenceId: {
             type: Number,
             required: true,
+        },
+        alwaysReadOnly: {
+            type: Array,
+            required: false,
+            default: () => [],
         },
     },
     emits: ['refreshFromResponse'],
@@ -383,6 +411,9 @@ export default {
             } else {
                 //
             }
+        },
+        isAlwaysReadOnly(fieldName) {
+            return this.alwaysReadOnly.includes(fieldName);
         },
     },
 };

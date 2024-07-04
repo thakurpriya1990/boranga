@@ -83,6 +83,7 @@
             :occurrence-id="occurrenceId"
             :url="occ_tenure_url"
             :change-warning="''"
+            :always-read-only="['status', 'tenure_area_id', 'owner_name']"
             @refreshFromResponse="updatedTenureArea"
         >
         </OccurrenceTenureModal>
