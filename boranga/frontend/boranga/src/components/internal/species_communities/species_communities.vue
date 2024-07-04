@@ -14,8 +14,11 @@
                                 <template>
                                     <div class="row mb-2 pb-2">
                                         <div v-if="!uploadingImage && speciesCommunitiesImage" class="col">
-                                            <div class="rounded" :class="downloadingImage ? 'animated-background bg-secondary' : ''" style="width:258px; height:258px;">
-                                                <img v-show="!downloadingImage" @load="onImageLoad" :src="speciesCommunitiesImage" width="258"
+                                            <div class="rounded"
+                                                :class="downloadingImage ? 'animated-background bg-secondary' : ''"
+                                                style="width:258px;" :style="downloadingImage ? 'height:258px;' : ''">
+                                                <img v-show="!downloadingImage" @load="onImageLoad"
+                                                    :src="speciesCommunitiesImage" width="258"
                                                     class="img-thumbnail img-fluid rounded" />
                                             </div>
                                         </div>
@@ -39,7 +42,7 @@
                                                     class="btn btn-primary btn-sm w-50 mb-2 text-start"><i
                                                         class="bi bi-upload me-3"></i>
                                                     Upload</label>
-                                                <input id="image-upload" class="d-none" type="file"
+                                                <input id="image-upload" class="d-none" type="file" accept="image/*"
                                                     ref="speciesCommunitiesImage" @change="uploadImage">
                                                 <button class="btn btn-secondary btn-sm w-50 mb-2 text-start"
                                                     @click="showReinstateImageModal"><i
@@ -49,7 +52,7 @@
                                                         class="btn btn-primary btn-sm w-50 mb-2 text-start"><i
                                                             class="bi bi-pencil-fill me-3"></i>
                                                         Replace</label>
-                                                    <input id="image-upload" class="d-none" type="file"
+                                                    <input id="image-upload" class="d-none" type="file" accept="image/*"
                                                         ref="speciesCommunitiesImage" @change="uploadImage">
 
                                                     <button @click="confirmDiscardImage"
@@ -370,7 +373,8 @@ export default {
                 helpers.add_endpoint_json(api_endpoints.species, this.$route.params.species_community_id + '/action_log');
         },
         image_history_url: function () {
-            return this.species_community ? `/api/species/${this.species_community.id}/image_history/` : '';
+            return (this.species_community.group_type == 'community') ? `/api/community/${this.species_community.id}/image_history/` :
+                `/api/species/${this.species_community.id}/image_history/`;
         }
     },
     methods: {
@@ -1020,11 +1024,12 @@ export default {
     width: 100%;
 }
 
-@keyframes placeHolderShimmer{
-    0%{
+@keyframes placeHolderShimmer {
+    0% {
         background-position: -468px 0
     }
-    100%{
+
+    100% {
         background-position: 468px 0
     }
 }
@@ -1041,5 +1046,4 @@ export default {
     height: 100px;
     position: relative;
 }
-
 </style>
