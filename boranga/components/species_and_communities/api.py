@@ -1,5 +1,6 @@
 import json
 import logging
+import mimetypes
 import os
 import subprocess
 from datetime import datetime
@@ -1297,6 +1298,24 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
             qs, many=True, context={"request": request}
         )
         return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def public_image(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.image_doc:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        extension = instance._file.path.split(".")[-1].lower()
+        try:
+            content_type = mimetypes.types_map["." + str(extension)]
+        except KeyError:
+            raise ValueError(f"File type {extension} not supported")
+
+        return HttpResponse(instance.image_doc._file, content_type=content_type)
 
 
 class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):

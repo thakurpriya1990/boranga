@@ -15,7 +15,7 @@
                                     <div class="col-sm-12">
                                         <div class="site-logo row">
                                             <template v-if="uploadedID">
-                                                <img :src="uploadedID" class="img-responsive" />
+                                                <img :src="`/api/external_species/${species_community.id}/public_image/`" class="img-responsive" :alt="display_name" />
                                             </template>
                                             <template v-else>
                                                 <span class="text-muted">No Image Available</span>
@@ -37,7 +37,7 @@
                                     <ProposalSpeciesCommunities ref="species_communities"
                                         :species_community="species_community" :species_community_original="species_community" id="speciesCommunityStart"
                                         :is_internal="false" :is_readonly="true">
-                                    </ProposalSpeciesCommunities>                       
+                                    </ProposalSpeciesCommunities>
                                 </form>
                             </div>
                         </div>
