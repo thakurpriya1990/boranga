@@ -14,7 +14,10 @@
                                 <template>
                                     <div class="row mb-2 pb-2">
                                         <div v-if="!uploadingImage && speciesCommunitiesImage" class="col">
-                                            <img :src="speciesCommunitiesImage" class="img-fluid rounded" />
+                                            <div class="animated-background bg-secondary rounded" style="width:258px; height:258px;">
+                                                <img v-show="!downloadingImage" @load="onImageLoad" :src="speciesCommunitiesImage" width="258"
+                                                    class="img-thumbnail img-fluid rounded" />
+                                            </div>
                                         </div>
                                         <div v-else
                                             class="d-flex bg-light bg-gradient justify-content-center align-content-middle"
@@ -256,6 +259,7 @@ export default {
             isSaved: false,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comparing: false,
+            downloadingImage: true,
         }
     },
     components: {
@@ -951,6 +955,9 @@ export default {
                 });
                 vm.updatingPublishing = false;
             });
+        },
+        onImageLoad: function (e) {
+            this.downloadingImage = false;
         }
     },
     created: function () {
@@ -1012,4 +1019,27 @@ export default {
     margin-bottom: 10px;
     width: 100%;
 }
+
+@keyframes placeHolderShimmer{
+    0%{
+        background-position: -468px 0
+    }
+    100%{
+        background-position: 468px 0
+    }
+}
+
+.animated-background {
+    animation-duration: 1.25s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: infinite;
+    animation-name: placeHolderShimmer;
+    animation-timing-function: linear;
+    background: darkgray;
+    background: linear-gradient(to right, #eeeeee 10%, #dddddd 18%, #eeeeee 33%);
+    background-size: 800px 104px;
+    height: 100px;
+    position: relative;
+}
+
 </style>
