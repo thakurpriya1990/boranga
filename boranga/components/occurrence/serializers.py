@@ -3282,23 +3282,35 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
         )
 
     def get_point_coord1(self, obj):
+        if obj.original_geometry_ewkb:
+            geom = wkb_to_geojson(obj.original_geometry_ewkb)
+            if 'coordinates' in geom:
+                return geom['coordinates'][0]
         if obj.geometry and obj.geometry.coords:
             return obj.geometry.coords[0]
 
     def get_point_coord2(self, obj):
+        if obj.original_geometry_ewkb:
+            geom = wkb_to_geojson(obj.original_geometry_ewkb)
+            if 'coordinates' in geom:
+                return geom['coordinates'][1]
         if obj.geometry and obj.geometry.coords:
             return obj.geometry.coords[1]
 
     def get_datum(self, obj):
+        if obj.original_geometry_ewkb:
+            geom = wkb_to_geojson(obj.original_geometry_ewkb)
+            if 'properties' in geom and 'srid' in geom['properties']:
+                return geom["properties"]["srid"]
         if obj.geometry and obj.geometry.srid:
             return obj.geometry.srid
         
     def get_datum_name(self, obj):
-        if obj.geometry and obj.geometry.srid:
-            try:
-                return Datum.objects.get(srid=obj.geometry.srid).name
-            except:
-                return obj.geometry.srid
+        datum = self.get_datum(obj)
+        try:
+            return Datum.objects.get(srid=datum).name
+        except:
+            return datum
 
 class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
 
@@ -3348,6 +3360,7 @@ class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
 class SiteGeometrySerializer(GeoFeatureModelSerializer):
     srid = serializers.SerializerMethodField(read_only=True)
     geometry_source = serializers.SerializerMethodField()
+    original_geometry = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceSite
@@ -3361,6 +3374,7 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
             "geometry",
             "srid",
             "geometry_source",
+            "original_geometry",
         ]
         read_only_fields = ("id",)
 
@@ -3371,3 +3385,9 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
             return None
     def get_geometry_source(self, obj):
         return get_geometry_source(obj)
+    
+    def get_original_geometry(self, obj):
+        if obj.original_geometry_ewkb:
+            return wkb_to_geojson(obj.original_geometry_ewkb)
+        else:
+            return None

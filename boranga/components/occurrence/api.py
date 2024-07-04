@@ -4609,8 +4609,13 @@ class OccurrenceViewSet(
                 try:
                     update_site = occ_sites.get(site_number=i["properties"]["site_number"])
                     point_data = 'POINT({0} {1})'.format(i["geometry"]["coordinates"][0],i["geometry"]["coordinates"][1])
-                    new_geometry = GEOSGeometry(point_data, srid=i["properties"]["srid"])
-                    update_site.geometry = new_geometry
+                    original_point_data = 'POINT({0} {1})'.format(i["properties"]["original_geometry"]["coordinates"][0],i["properties"]["original_geometry"]["coordinates"][1])
+                    
+                    geom_4326 = GEOSGeometry(point_data, srid=4326)
+                    geom_original = GEOSGeometry(original_point_data, srid=int(i["properties"]["original_geometry"]["properties"]["srid"])).ewkb
+
+                    update_site.geometry = geom_4326
+                    update_site.original_geometry_ewkb = geom_original
                     update_site.save() #TODO add version_user when history implemented
                 except Exception as e:
                     print(e)
@@ -4711,8 +4716,13 @@ class OccurrenceViewSet(
                 try:
                     update_site = occ_sites.get(site_number=i["properties"]["site_number"])
                     point_data = 'POINT({0} {1})'.format(i["geometry"]["coordinates"][0],i["geometry"]["coordinates"][1])
-                    new_geometry = GEOSGeometry(point_data, srid=i["properties"]["srid"])
-                    update_site.geometry = new_geometry
+                    original_point_data = 'POINT({0} {1})'.format(i["properties"]["original_geometry"]["coordinates"][0],i["properties"]["original_geometry"]["coordinates"][1])
+                    
+                    geom_4326 = GEOSGeometry(point_data, srid=4326)
+                    geom_original = GEOSGeometry(original_point_data, srid=int(i["properties"]["original_geometry"]["properties"]["srid"])).ewkb
+
+                    update_site.geometry = geom_4326
+                    update_site.original_geometry_ewkb = geom_original
                     update_site.save() #TODO add version_user when history implemented
                 except Exception as e:
                     print(e)
