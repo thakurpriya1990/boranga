@@ -70,6 +70,8 @@ from boranga.components.occurrence.models import (
     OccurrenceReportUserAction,
     OccurrenceSite,
     OccurrenceTenure,
+    OccurrenceTenurePurpose,
+    OccurrenceTenureVesting,
     OccurrenceUserAction,
     OCCVegetationStructure,
     OCRAnimalObservation,
@@ -5514,7 +5516,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def occurrence_tenure_vesting_lookup(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.get_queryset().exclude(vesting=None)
 
         search_term = request.GET.get("term", "")
         occurrence_id = request.GET.get("occurrence_id", None)
@@ -5524,12 +5526,12 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         results = []
         if search_term:
-            # TODO: Implement vesting filtering after implementing the vesting field
-            # queryset = queryset.filter(vesting__icontains=search_term).distinct()[:10]
-            # results = [
-            #     {"id": row.vesting, "text": row.vesting} for row in queryset
-            # ]
-            results = [{"id": 1, "text": queryset[0].vesting}]
+            queryset = queryset.filter(
+                vesting__vesting__icontains=search_term
+            ).distinct()[:10]
+        results = [
+            {"id": row.vesting.id, "text": row.vesting.name} for row in queryset
+        ]
 
         return Response({"results": results})
 
@@ -5553,7 +5555,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                 purpose__purpose__icontains=search_term
             ).distinct()[:10]
         results = [
-            {"id": row.purpose.id, "text": row.purpose.purpose} for row in queryset
+            {"id": row.purpose.id, "text": row.purpose.name} for row in queryset
         ]
 
         return Response({"results": results})
@@ -5645,6 +5647,24 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         serializer.save()
 
         return Response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_tenure_list_of_values(self, request, *args, **kwargs):
+        purpose_list = list(OccurrenceTenurePurpose.objects.all().values("id", "name"))
+        vesting_list = list(OccurrenceTenureVesting.objects.all().values("id", "name"))
+
+        res_json = {
+            "purpose_list": purpose_list,
+            "vesting_list": vesting_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
 
 class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OCCContactDetail.objects.none()
