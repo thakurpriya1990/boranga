@@ -4602,6 +4602,19 @@ class OccurrenceViewSet(
                         occurrence_geometry, value.get("features", [])
                     )
 
+        occ_sites = OccurrenceSite.objects
+        site_geometry_data = json.loads(request.data.get("site_geometry", None))
+        if site_geometry_data and "features" in site_geometry_data:
+            for i in site_geometry_data["features"]:
+                try:
+                    update_site = occ_sites.get(site_number=i["properties"]["site_number"])
+                    point_data = 'POINT({0} {1})'.format(i["geometry"]["coordinates"][0],i["geometry"]["coordinates"][1])
+                    new_geometry = GEOSGeometry(point_data, srid=i["properties"]["srid"])
+                    update_site.geometry = new_geometry
+                    update_site.save() #TODO add version_user when history implemented
+                except Exception as e:
+                    print(e)
+
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
 
@@ -4690,6 +4703,19 @@ class OccurrenceViewSet(
                     populate_occurrence_tenure_data(
                         occurrence_geometry, value.get("features", [])
                     )
+
+        occ_sites = OccurrenceSite.objects
+        site_geometry_data = json.loads(request.data.get("site_geometry", None))
+        if site_geometry_data and "features" in site_geometry_data:
+            for i in site_geometry_data["features"]:
+                try:
+                    update_site = occ_sites.get(site_number=i["properties"]["site_number"])
+                    point_data = 'POINT({0} {1})'.format(i["geometry"]["coordinates"][0],i["geometry"]["coordinates"][1])
+                    new_geometry = GEOSGeometry(point_data, srid=i["properties"]["srid"])
+                    update_site.geometry = new_geometry
+                    update_site.save() #TODO add version_user when history implemented
+                except Exception as e:
+                    print(e)
 
         # the request.data is only the habitat composition data thats been sent from front end
         location_data = request.data.get("location")
@@ -5817,7 +5843,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def list_for_map(self, request, *args, **kwargs):
         occurrence_id = request.GET.get("occurrence_id")
         print(occurrence_id)
-        qs = self.get_queryset().filter(occurrence_id=occurrence_id).exclude(geometry=None)
+        qs = self.get_queryset().filter(occurrence_id=occurrence_id).exclude(geometry=None).exclude(visible=False)
         print(qs.count())
         serializer = SiteGeometrySerializer(
             qs, many=True

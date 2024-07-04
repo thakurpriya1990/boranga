@@ -195,7 +195,7 @@
             <FormSection :form-collapse="false" label="Occurrence Sites" Index="occurrence_sites_datatable">
                 <div>
                     <OccurrenceSiteDatatable v-if="occurrence_obj" ref="occurrence_sites_datatable"
-                        :key="datatableOCCSiteKey" :occurrence_obj="occurrence_obj">
+                        :key="datatableOCCSiteKey" :occurrence_obj="occurrence_obj" @updatedSites="updatedSites">
                     </OccurrenceSiteDatatable>
                 </div>
             </FormSection>
@@ -453,6 +453,8 @@ export default {
                 vm.$refs.component_map.setLoadingMap(true);
             }
 
+            payload.site_geometry = vm.$refs.component_map.getJSONFeatures("site_layer");
+
             // const res = await fetch(vm.proposal_form_url, {
             //     body: JSON.stringify(payload),
             //     method: 'POST',
@@ -515,6 +517,9 @@ export default {
             this.uuid_datatable_ocr = uuid();
             this.uuid_datatable_occ_site = uuid();
             this.uuid_datatable_occ_tenure = uuid();
+        },
+        updatedSites: function() {
+            this.incrementComponentMapKey()
         },
         searchForCRS: function (search, loading) {
             const vm = this;
