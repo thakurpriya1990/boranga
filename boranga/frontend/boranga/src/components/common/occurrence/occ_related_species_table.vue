@@ -87,6 +87,18 @@ export default {
                 },
             }
         },
+        column_kingdom: function () {
+            return {
+                data: 'kingdom_name',
+                orderable: true,
+                searchable: true,
+                visible: true,
+                'render': function (value, type) {
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type == 'export' ? value : result;
+                },
+            }
+        },
         column_action: function () {
             let vm = this;
             return {
@@ -108,6 +120,7 @@ export default {
             let columns = [
                 vm.column_scientific_name,
                 vm.column_common_name,
+                vm.column_kingdom,
                 vm.column_action,
             ]
             return {
@@ -136,6 +149,7 @@ export default {
             return [
                 'Scientific Name',
                 'Common Name',
+                'Kingdom',
                 'Action',
             ]
         },
