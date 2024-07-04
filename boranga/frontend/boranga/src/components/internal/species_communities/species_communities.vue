@@ -20,8 +20,8 @@
                                             </div>
                                         </div>
                                         <div v-else
-                                            class="d-flex bg-light bg-gradient justify-content-center align-content-middle"
-                                            style="height:200px">
+                                            class="col d-flex bg-light bg-gradient justify-content-center align-content-middle mx-2"
+                                            style="height:258px;">
                                             <div class="align-self-center text-muted">No Image Uploaded</div>
                                         </div>
                                     </div>
