@@ -104,17 +104,20 @@
                                 <div class="col-sm-9">
                                     <select
                                         ref="purpose_select"
-                                        v-model="tenureObj.purpose"
+                                        v-model="tenureObj.purpose_id"
                                         :disabled="isReadOnly"
                                         style="width: 100%"
                                         class="form-select input-sm"
                                     >
+                                        <option :value="null" selected>
+                                            Select a Purpose
+                                        </option>
                                         <option
                                             v-for="purpose in purpose_list"
                                             :key="purpose.id"
                                             :value="purpose.id"
                                         >
-                                            {{ purpose.name }}
+                                            {{ purpose.text }}
                                         </option>
                                     </select>
                                 </div>
@@ -195,7 +198,7 @@
 
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
-import { helpers } from "@/utils/hooks.js"
+import { helpers, api_endpoints } from "@/utils/hooks.js"
 export default {
     name: 'OccurrenceTenureDatatable',
     components: {
@@ -270,6 +273,21 @@ export default {
         // }
     },
     created: async function () {
+        const url = api_endpoints.occurrence_tenure_purpose_lookup;
+        fetch(url, {'occurrence_id': this.occurrenceId})
+            .then(async (response) => {
+                if (!response.ok) {
+                    return await response.json().then((json) => {
+                            throw new Error(json);
+                        });
+                }
+                return response.json();
+            })
+            .then(data => {
+                this.purpose_list = data.results;
+            }).catch((error) => {
+                console.error('Error:', error);
+            });
         // let res = await this.$http.get('/api/occurrence_sites/site_list_of_values/');
         // let site_list_of_values_res = {};
         // Object.assign(site_list_of_values_res, res.body);
