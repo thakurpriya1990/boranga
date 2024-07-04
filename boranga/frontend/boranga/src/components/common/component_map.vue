@@ -1145,6 +1145,7 @@
                                 {{
                                     selectedModel.occurrence_report_number ||
                                     selectedModel.occurrence_number ||
+                                    selectedModel.site_number ||
                                     selectedModel.buffer_radius
                                 }}
                             </strong>
@@ -1152,7 +1153,14 @@
                         <div class="toast-body">
                             <table class="table table-sm">
                                 <tbody>
-                                    <tr>
+                                    <tr
+                                        v-if="
+                                            selectedModel.status ||
+                                            selectedModel.status_display ||
+                                            selectedModel.processing_status_display ||
+                                            selectedModel.processing_status
+                                        "
+                                    >
                                         <th scope="row">Processing Status</th>
                                         <td>
                                             {{
@@ -1228,6 +1236,12 @@
                                                 }}
                                             </td>
                                         </template>
+                                    </tr>
+                                    <tr v-if="selectedModel.site_name">
+                                        <th scope="row">Name</th>
+                                        <td>
+                                            {{ selectedModel.site_name }}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1777,8 +1791,9 @@ export default {
                     //  Positive values fetch proposals with those ids
                     //  Empty list `[]` fetches all proposals
                     handler: null, // A callback function to invoke on fetched features
-                    geometry_name: 'geometry', // The name of the geometry field in the model
+                    geometry_name: 'geometry', // The name of the geometry field in the model. If not provided, the object itselef is treated as the geometry
                     collapse: false, // Whether the layer is collapsed by default
+                    model_overwrite: null, // A dictionary to overwrite the default model values
                 };
             },
         },
@@ -2195,7 +2210,8 @@ export default {
             this.fetchProposals(
                 this,
                 this.queryLayerDefinition.api_url,
-                this.queryLayerDefinition.ids
+                this.queryLayerDefinition.ids,
+                this.queryLayerDefinition.query_param_key
             ),
             // Tile Layers
             this.fetchTileLayers(this, this.tileLayerApiUrl),
@@ -2204,7 +2220,12 @@ export default {
         const additionalInitialisers = [];
         for (let layerDef of this.additionalLayersDefinitions) {
             additionalInitialisers.push(
-                this.fetchProposals(this, layerDef.api_url, layerDef.ids)
+                this.fetchProposals(
+                    this,
+                    layerDef.api_url,
+                    layerDef.ids,
+                    layerDef.query_param_key
+                )
             );
         }
         Promise.all([...initialisers, ...additionalInitialisers]).then(
@@ -3347,6 +3368,7 @@ export default {
                 vm.map.forEachFeatureAtPixel(
                     evt.pixel,
                     function (feature) {
+                        // TODO: Just make this whole block of code nicer, display the individual feature info per feature and layer in the toast, etc
                         selected = feature;
                         let model = selected.getProperties().model;
                         if (!model) {
@@ -3369,6 +3391,12 @@ export default {
                                 selected_buffer_radius += 'm';
                             }
                             model.buffer_radius ??= selected_buffer_radius;
+
+                            model.site_number =
+                                selected.getProperties().site_number;
+
+                            model.site_name =
+                                selected.getProperties().site_name;
                         }
                         vm.selectedModel = model;
                         if (!isSelectedFeature(selected)) {
@@ -3936,13 +3964,24 @@ export default {
 
             return features;
         },
+        /**
+         * Assigns colors to proposals
+         * @param {Array} proposals An array of proposals to assign colors to
+         */
         assignProposalFeatureColors: function (proposals) {
             let vm = this;
-            proposals.forEach(function (proposal) {
-                proposal.color = vm.getRandomColor();
-                console.log(proposal.lodgement_date);
-                console.log(typeof proposal.lodgement_date);
-            });
+            if (Array.isArray(proposals)) {
+                // Assign a random color to each proposal
+                proposals.forEach(function (proposal) {
+                    proposal.color = vm.getRandomColor();
+                    console.log(proposal.lodgement_date);
+                    console.log(typeof proposal.lodgement_date);
+                });
+            } else {
+                // TODO: What to do if the api returns only a feature collection and not an array of proposals containing a geometry property?
+                console.error('Proposals must be an array');
+                // proposals.color = vm.getRandomColor();
+            }
         },
         /**
          * Loads a list of proposals as new map features
@@ -3950,61 +3989,76 @@ export default {
          * @param {String=} toSource The layer source to load the features to
          */
         loadMapFeatures: function (proposals, toSource = null) {
-            let vm = this;
+            const vm = this;
             const source =
                 vm.layerSources[toSource] ||
                 vm.layerSources[vm.defaultQueryLayerName];
+            // If no geometry name is provided, assume the geometry is the proposals object itself
             const geometry_name =
-                vm.getLayerDefinitionByName(toSource).geometry_name ||
-                'geometry';
+                vm.getLayerDefinitionByName(toSource).geometry_name || null;
 
             console.log(`Loading features to source ${toSource}`, proposals);
             // Remove all features from the layer
             source.clear();
-            proposals.forEach(function (proposal) {
-                const geometry = proposal[geometry_name];
-                if (!geometry) {
-                    console.warn(
-                        `Proposal ${proposal.id} has no geometry named ${geometry_name}. Skipping...`
-                    );
-                    return;
-                }
-
-                if (!geometry.features) {
-                    console.warn(
-                        `Proposal ${proposal.id} geometry has no features. Skipping...`
-                    );
-                    return;
-                }
-                geometry.features.forEach(function (featureData) {
-                    if (!featureData) {
+            if (geometry_name) {
+                proposals.forEach(function (proposal) {
+                    const geometry = proposal[geometry_name];
+                    if (!geometry) {
                         console.warn(
-                            `No data for this geometry feature: ${featureData}. Skipping...`
+                            `Proposal ${proposal.id} has no geometry named ${geometry_name}. Skipping...`
                         );
                         return;
                     }
-                    if (!featureData.geometry) {
-                        console.warn(
-                            `Feature ${featureData.id} has no geometry. Skipping...`
-                        );
-                        return;
-                    }
-                    let feature = vm.featureFromDict(featureData, proposal);
-                    if (source.getFeatureById(feature.getId())) {
-                        console.warn(
-                            `Feature ${feature.getId()} already exists in the source. Skipping...`
-                        );
-                        return;
-                    }
-                    source.addFeature(feature);
+                    vm.addGeometryToMapSource(geometry, proposal, source);
                 });
-            });
+            } else {
+                const modelOverwrite =
+                    vm.getLayerDefinitionByName(toSource).model_overwrite || {};
+                vm.addGeometryToMapSource(proposals, modelOverwrite, source);
+            }
             // vm.addFeatureCollectionToMap();
             vm.map.dispatchEvent({
                 type: 'features-loaded',
                 details: {
                     loaded: true,
                 },
+            });
+        },
+        /**
+         * Adds a geometry object to a layer source
+         * @param {Object} geometry A geometry object, e.g. a dictionary
+         * @param {Object} modelObj A model object, e.g. a proposal
+         * @param {Object} source A layer source object, e.g. a VectorSource
+         */
+        addGeometryToMapSource: function (geometry, modelObj, source) {
+            const vm = this;
+            if (!geometry.features) {
+                console.warn(
+                    `modelObj ${modelObj.id} geometry has no features. Skipping...`
+                );
+                return;
+            }
+            geometry.features.forEach(function (featureData) {
+                if (!featureData) {
+                    console.warn(
+                        `No data for this geometry feature: ${featureData}. Skipping...`
+                    );
+                    return;
+                }
+                if (!featureData.geometry) {
+                    console.warn(
+                        `Feature ${featureData.id} has no geometry. Skipping...`
+                    );
+                    return;
+                }
+                let feature = vm.featureFromDict(featureData, modelObj);
+                if (source.getFeatureById(feature.getId())) {
+                    console.warn(
+                        `Feature ${feature.getId()} already exists in the source. Skipping...`
+                    );
+                    return;
+                }
+                source.addFeature(feature);
             });
         },
         addTileLayers: function () {
@@ -4073,6 +4127,7 @@ export default {
                 coordinates: coords,
                 properties: { srid: this.mapSrid },
             };
+            // TODO: Pass in which values to use in the layer definition dict
             const color =
                 properties.color ||
                 this.featureColors['draw'] ||
@@ -4082,6 +4137,7 @@ export default {
 
             const label =
                 properties.label ||
+                properties.site_number ||
                 context.occurrence_report_number ||
                 context.label ||
                 'Draw';
@@ -4090,7 +4146,8 @@ export default {
             const featureProperties = structuredClone(properties);
             featureProperties['id'] ??= this.newFeatureId;
             featureProperties['model'] ??= context;
-            featureProperties['geometry_source'] ??= 'New';
+            featureProperties['geometry_source'] ??=
+                properties.geometry_source === null ? null : 'New';
             featureProperties['name'] ??= context.id || -1;
             featureProperties['label'] ??= label;
             featureProperties['color'] ??= color;

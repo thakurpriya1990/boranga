@@ -151,6 +151,7 @@ module.exports = {
     combine_documents_lookup: "/api/occurrence_paginated/combine_documents_lookup/",
     combine_threats_lookup: "/api/occurrence_paginated/combine_threats_lookup/",
     combine_sites_lookup: "/api/occurrence_paginated/combine_sites_lookup/",
+    combine_tenures_lookup: "/api/occurrence_paginated/combine_tenures_lookup/",
 
     tile_layer: "/api/tile_layer",
 

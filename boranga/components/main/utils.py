@@ -106,7 +106,9 @@ def get_geometry_source(geometry_obj):
 
     source = ""
 
-    if not geometry_obj.drawn_by:
+    if not hasattr(geometry_obj, "drawn_by"):
+        source = None
+    elif not geometry_obj.drawn_by:
         source = "Unknown"
     # TODO not sure if checking for submitter is right for 'Applicant' as Assessor could be the submitter as well?
     elif isinstance(

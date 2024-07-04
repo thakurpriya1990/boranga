@@ -182,6 +182,16 @@
                             ref="sites_section"/>
                             </div>
                         </FormSection>
+                        <FormSection :formCollapse="true" label="Tenures" Index="combine_tenures" @toggle-collapse="toggleTenures">
+                            <div class="row mb-3">
+                            <OccurrenceCombineTenures
+                            :selectedTenures="tenures" 
+                            :combineTenureIds="occ_combine_data.combine_tenure_ids" 
+                            :mainOccurrenceId="main_occurrence_obj.id"
+                            :key="tenure_table_key" 
+                            ref="tenures_section"/>
+                            </div>
+                        </FormSection>
                     </div>
                     <div :id="habitatBody" class="tab-pane fade" role="tabpanel" aria-labelledby="pills-habitat-tab">
                         <!--Habitat Composition Form-->
@@ -283,6 +293,7 @@
     import OccurrenceCombineSelect from './occurrence_combine_selection.vue'
     import OccurrenceCombineContacts from './occurrence_combine_contacts.vue'
     import OccurrenceCombineSites from './occurrence_combine_sites.vue'
+    import OccurrenceCombineTenures from './occurrence_combine_tenures.vue'
     import OccurrenceCombineDocuments from './occurrence_combine_documents.vue'
     import OccurrenceCombineThreats from './occurrence_combine_threats.vue'
     export default {
@@ -301,6 +312,7 @@
             OccurrenceCombineDocuments,
             OccurrenceCombineThreats,
             OccurrenceCombineSites,
+            OccurrenceCombineTenures,
         },
         data: function () {
             let vm = this;
@@ -310,6 +322,7 @@
                 document_table_key: 0,
                 threat_table_key: 0,
                 site_table_key: 0,
+                tenure_table_key: 0,
                 reloadcount: 0,
                 locationBody: 'locationBody' + vm._uid,
                 habitatBody: 'habitatBody' + vm._uid,
@@ -328,16 +341,19 @@
                 document_ids: [],
                 threat_ids: [],
                 site_ids: [],
+                tenure_ids: [],
                 key_contacts: [],
                 documents: [],
                 threats: [],
                 sites: [],
+                tenures: [],
                 occ_combine_data: {
                     combine_ids: [this.main_occurrence_obj.id],
                     combine_key_contact_ids: [],
                     combine_document_ids: [],
                     combine_threat_ids: [],
                     combine_site_ids: [],
+                    combine_tenure_ids: [],
                     occurrence_source: this.main_occurrence_obj.id,
                     wild_status: this.main_occurrence_obj.id,
                     review_due_date: this.main_occurrence_obj.id,
@@ -433,6 +449,10 @@
                 let vm = this;
                 vm.$refs.sites_section.adjust_table_width();
             },
+            toggleTenures: function () {
+                let vm = this;
+                vm.$refs.tenures_section.adjust_table_width();
+            },
             updateChosenSection: function (id, sectionType) {
                 let vm = this;
                 vm.occ_combine_data["chosen_"+sectionType+"_section"] = parseInt(id);
@@ -447,13 +467,19 @@
                 let vm = this;
                 this.reloadcount++;
                 this.occ_form_key++;
+
                 this.contact_table_key++;
                 this.document_table_key++;
                 this.threat_table_key++;
+                this.site_table_key++;
+                this.tenure_table_key++;
 
                 setTimeout(function () {
                     vm.toggleDocuments();
                     vm.toggleThreats();
+                    vm.toggleSites();
+                    vm.toggleKeyContacts();
+                    vm.toggleTenures();
                 }, 200); //set to 200 due to the tab fade (TODO: consider better handling of this)
             },
             addOccurrence: function () {
@@ -547,7 +573,8 @@
                     //add new ids to combine list if not in old list - unless they share a name
                     response.body.id_list.forEach(id => {
                         if (!old_list.includes(id) && !taken_names.includes(contact_names[id])) {
-                            vm.occ_combine_data.combine_key_contact_ids.push(id);      
+                            vm.occ_combine_data.combine_key_contact_ids.push(id);
+                            taken_names.push(contact_names[id]);      
                         }
                     });
 
@@ -620,6 +647,7 @@
                     response.body.id_list.forEach(id => {
                         if (!old_list.includes(id) && !taken_reports.includes(threat_original_reports[id])) {
                             vm.occ_combine_data.combine_threat_ids.push(id);
+                            taken_reports.push(threat_original_reports[id]);      
                         }
                     });
                     vm.threat_table_key++;
@@ -660,11 +688,59 @@
                     //add new ids to combine list if not in old list - unless they share a name
                     response.body.id_list.forEach(id => {
                         if (!old_list.includes(id) && !taken_names.includes(site_names[id])) {
-                            vm.occ_combine_data.combine_site_ids.push(id);      
+                            vm.occ_combine_data.combine_site_ids.push(id);
+                            taken_names.push(site_names[id]);        
                         }
                     });
 
                     vm.site_table_key++;
+                }, (error) => {
+                    console.error(error);
+                });                
+            },
+            getTenureIds: function() {
+                let vm = this;
+                let formData = new FormData()
+                formData.append("occurrence_ids", JSON.stringify(vm.selectedOccurrenceIds));
+                //get all site ids for all OCCs
+                vm.$http.post(
+                    api_endpoints.combine_tenures_lookup, formData
+                ).then((response) => {
+                    //copy old list
+                    let old_list = vm.tenure_ids;
+                    //add to main list
+                    vm.tenure_ids = response.body.id_list;
+                    vm.tenures = response.body.values_list;
+
+                    let tenure_feature_ids = {};
+                    let taken_feature_ids = [];
+                    vm.tenures.forEach(tenure => {
+                        if (vm.occ_combine_data.combine_tenure_ids.includes(tenure.id) && tenure.status_display == "Current") {
+                            taken_feature_ids.push(tenure.featureid);
+                        }
+                        if (tenure.status_display == "Current") {
+                            tenure_feature_ids[tenure.id] = tenure.featureid;
+                        }
+                    });
+
+                    //remove ids from combine list if not in new list
+                    vm.occ_combine_data.combine_tenure_ids.forEach(id => {
+                        if (!vm.tenure_ids.includes(id)) {
+                            vm.occ_combine_data.combine_tenure_ids.splice(vm.occ_combine_data.combine_tenure_ids.indexOf(id), 1);
+                        }
+                    });
+
+                    //add new ids to combine list if not in old list - unless they share a feature id while current
+                    response.body.id_list.forEach(id => {
+                        if (!old_list.includes(id) && !(tenure_feature_ids[id] && taken_feature_ids.includes(tenure_feature_ids[id]))) {
+                            vm.occ_combine_data.combine_tenure_ids.push(id); 
+                            if (tenure_feature_ids[id]) {
+                                taken_feature_ids.push(tenure_feature_ids[id]);
+                            }
+                        }
+                    });
+
+                    vm.tenure_table_key++;
                 }, (error) => {
                     console.error(error);
                 });                
@@ -722,6 +798,8 @@
                     vm.getThreatIds();
                     //get site ids
                     vm.getSiteIds();
+                    //get tenure ids
+                    vm.getTenureIds();
 
                     let dict_url = api_endpoints.occ_profile_dict + '?group_type=' + vm.main_occurrence_obj.group_type
                     vm.$http.get(dict_url).then((response) => {
@@ -731,6 +809,9 @@
                     }, (error) => {
                         console.log(error);
                     })
+                    setTimeout(function () {
+                        vm.tabClicked();
+                    },100);
                 }
             },
             selectedOccurrenceIds: function() {
@@ -744,6 +825,8 @@
                 vm.getThreatIds();
                 //get site ids
                 vm.getSiteIds();
+                //get tenure ids
+                vm.getTenureIds();
                 //check form values
                 vm.checkFormValues();
             },

@@ -2,7 +2,9 @@ import json
 import logging
 from abc import abstractmethod
 
+import pyproj
 import reversion
+from datetime import datetime
 from django.conf import settings
 from django.contrib.contenttypes import fields
 from django.contrib.contenttypes import models as ct_models
@@ -704,8 +706,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         if self.ocr_geometry.count() < 1:
             missing_values.append("Location")
-
-        # TODO tenure
 
         if missing_values:
             raise ValidationError(
@@ -1500,16 +1500,18 @@ class Datum(models.Model):
     - OCCLocation
 
     """
-
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
     srid = models.IntegerField(blank=False, null=False, unique=True)
+
+    @property
+    def name(self):
+        return f"EPSG:{str(self.srid)} - {pyproj.CRS.from_string(str(self.srid)).name}"
 
     class Meta:
         app_label = "boranga"
-        ordering = ["name"]
+        ordering = ["srid"]
 
     def __str__(self):
-        return str(self.name)
+        return str(self.srid)
 
 
 class CoordinationSource(models.Model):
@@ -3117,11 +3119,11 @@ class Occurrence(RevisionedMixin):
                 except Exception as e:
                     print(e)
                 
-        #assess and copy table values (contacts and documents) TODO: sites and tenures
+        #assess and copy table values (contacts, documents, and sites)
         for key in COPY_TABLE_KEYS:
             if key in occ_combine_data:
                 #print("Copy",key,"with ids",occ_combine_data[key],"if not already in OCC")
-                for record in  COPY_TABLE_KEYS[key].objects.filter(id__in=occ_combine_data[key]).exclude(occurrence=self):
+                for record in COPY_TABLE_KEYS[key].objects.filter(id__in=occ_combine_data[key]).exclude(occurrence=self):
                     copy = clone_model(
                         COPY_TABLE_KEYS[key],
                         COPY_TABLE_KEYS[key],
@@ -3135,9 +3137,36 @@ class Occurrence(RevisionedMixin):
         for key in MOVE_TABLE_KEYS:
             if key in occ_combine_data:
                 #print("Move",key,"with ids",occ_combine_data[key],"if not already in OCC")
-                for record in  MOVE_TABLE_KEYS[key].objects.filter(id__in=occ_combine_data[key]).exclude(occurrence=self):
+                for record in MOVE_TABLE_KEYS[key].objects.filter(id__in=occ_combine_data[key]).exclude(occurrence=self):
                     record.occurrence = self
                     record.save()
+
+        #special handling is required for tenure records
+        #current
+        for record in OccurrenceTenure.objects.filter(
+            id__in=occ_combine_data["combine_tenure_ids"]
+        ).filter(
+            status=OccurrenceTenure.STATUS_CURRENT
+        ).exclude(
+            occurrence_geometry__occurrence=self
+        ):
+            #if current, move by changing the geometry occurrence
+            if record.occurrence_geometry:
+                occurrence_geometry = record.occurrence_geometry
+                occurrence_geometry.occurrence = self
+                occurrence_geometry.save()
+
+        #historical
+        for record in OccurrenceTenure.objects.filter(
+            id__in=occ_combine_data["combine_tenure_ids"]
+        ).filter(
+            status=OccurrenceTenure.STATUS_HISTORICAL
+        ).exclude(
+            historical_occurrence=self.id
+        ):
+            #if historical, move by changing historical occurrence
+            record.historical_occurrence = self.id
+            record.save(override_datetime_updated=True)
 
         #NOTE: not validating OCR species/community - already validated at OCC level
         #move OCRs
@@ -3190,8 +3219,6 @@ class Occurrence(RevisionedMixin):
             and not occ_points.exists()
         ):
             missing_values.append("Point on Map")
-
-        # TODO tenure
 
         if not self.identification or not self.identification.identification_certainty:
             missing_values.append("Identification Certainty")
@@ -4373,7 +4400,7 @@ class OccurrenceTenure(models.Model):
     # vesting = models.TBD
 
     datetime_created = models.DateTimeField(auto_now_add=True)
-    datetime_updated = models.DateTimeField(auto_now=True)
+    datetime_updated = models.DateTimeField(default=datetime.now)
 
     purpose = models.ForeignKey(
         OccurrenceTenurePurpose,
@@ -4386,6 +4413,18 @@ class OccurrenceTenure(models.Model):
     significant_to_occurrence = models.BooleanField(
         null=True, blank=True, default=False
     )
+
+    def save(self, *args, **kwargs):
+
+        #force_insert = kwargs.pop("force_insert", False)
+        #if force_insert:
+        #    super().save(no_revision=True, force_insert=force_insert) #TODO enable when we have history
+        #    self.save(*args, **kwargs)
+        #else:
+        override_datetime_updated = kwargs.pop("override_datetime_updated", False)
+        if not override_datetime_updated:
+            self.datetime_updated = datetime.now()
+        super().save(*args, **kwargs)
 
     class Meta:
         app_label = "boranga"

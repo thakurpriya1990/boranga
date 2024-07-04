@@ -169,7 +169,26 @@ class Meeting(models.Model):
             Meeting.PROCESSING_STATUS_DRAFT,
             Meeting.PROCESSING_STATUS_SCHEDULED,
         ]
+    @property
+    def can_user_schedule(self):
+        return self.processing_status in [
+            Meeting.PROCESSING_STATUS_DRAFT
+            
+        ]
+    
+    @property
+    def can_user_complete(self):
+        return self.processing_status in [
+            Meeting.PROCESSING_STATUS_SCHEDULED
+            
+        ]
 
+    @property
+    def can_user_reinstate(self):
+        return self.processing_status in [
+            Meeting.PROCESSING_STATUS_DISCARDED
+            
+        ]
     @property
     def can_user_view(self):
         user_viewable_state = [
@@ -272,6 +291,58 @@ class Meeting(models.Model):
 
         self.save()
 
+    @transaction.atomic
+    def schedule_meeting(self, request, viewset):
+        if not self.processing_status== self.PROCESSING_STATUS_DRAFT:
+            raise ValidationError("You can't schedule this meeting at this moment")
+
+        self.processing_status=self.PROCESSING_STATUS_SCHEDULED
+        self.submitter = request.user.id
+        #self.lodgement_date = timezone.now()
+
+        # Create a log entry for the meeting
+        self.log_user_action(
+            MeetingUserAction.ACTION_SCHEDULE_MEETING.format(self.meeting_number), request
+        )
+
+        # Create a log entry for the submitter
+        if self.submitter:
+            submitter = retrieve_email_user(self.submitter)
+            submitter.log_user_action(
+                MeetingUserAction.ACTION_SCHEDULE_MEETING.format(
+                    self.meeting_number,
+                ),
+                request,
+            )
+
+        self.save()
+
+    @transaction.atomic
+    def complete_meeting(self, request, viewset):
+        if not self.processing_status== self.PROCESSING_STATUS_SCHEDULED:
+            raise ValidationError("You can't complete this meeting at this moment")
+
+        self.processing_status=self.PROCESSING_STATUS_COMPLETED
+        self.submitter = request.user.id
+        #self.lodgement_date = timezone.now()
+
+        # Create a log entry for the meeting
+        self.log_user_action(
+            MeetingUserAction.ACTION_COMPLETE_MEETING.format(self.meeting_number), request
+        )
+
+        # Create a log entry for the submitter
+        if self.submitter:
+            submitter = retrieve_email_user(self.submitter)
+            submitter.log_user_action(
+                MeetingUserAction.ACTION_COMPLETE_MEETING.format(
+                    self.meeting_number,
+                ),
+                request,
+            )
+
+        self.save()
+
 
 class MeetingLogDocument(Document):
     log_entry = models.ForeignKey(
@@ -309,6 +380,8 @@ class MeetingUserAction(UserAction):
     ACTION_CREATE_MEETING = "Create meeting {}"
     ACTION_SAVE_MEETING = "Save Meeting {}"
     ACTION_SUBMIT_MEETING = "Submit Meeting {}"
+    ACTION_SCHEDULE_MEETING = "Schedule Meeting {}"
+    ACTION_COMPLETE_MEETING = "Complete Meeting {}"
     ACTION_DISCARD_MEETING = "Discard Meeting {}"
     ACTION_REINSTATE_MEETING = "Reinstate Meeting {}"
 
