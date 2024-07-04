@@ -182,7 +182,7 @@
                             v-if="updatingEntry"
                             type="button"
                             disabled
-                            class="btn btn-primary fa fa-spinnner fa-spin"
+                            class="btn btn-primary"
                             @click="ok"
                         >
                             <i class="fa fa-spinner fa-spin"></i> Updating
@@ -254,8 +254,8 @@ export default {
             required: true,
         },
     },
+    emits: ['refreshFromResponse'],
     data: function () {
-        let vm = this;
         return {
             isModalOpen: false,
             form: null,
@@ -272,7 +272,7 @@ export default {
             success: false,
             purpose_list: [],
             vesting_list: [],
-        }
+        };
     },
     computed: {
         showError: function () {
@@ -291,7 +291,7 @@ export default {
         },
         isReadOnly: function () {
             return this.modal_action === 'view' ? true : false;
-        }
+        },
     },
     watch: {
         // tenureObj: function () {
@@ -300,13 +300,6 @@ export default {
         // }
     },
     created: async function () {
-        const fetchData = [
-            {'url': api_endpoints.occurrence_tenure_purpose_lookup, 'payload': {'occurrence_id': this.occurrenceId}, 'target_list_name': 'purpose_list'},
-            {'url': api_endpoints.occurrence_vesting_lookup, 'payload': {'occurrence_id': this.occurrenceId}, 'target_list_name': 'vesting_list'},
-        ]
-        // fetchData.forEach((data) => {
-        //     this.fetchSelectionValues(data.url, data.payload, data.target_list_name);
-        // });
         this.fetchSelectionValues(
             api_endpoints.occurrence_tenure_list_of_values,
             {},
@@ -389,36 +382,43 @@ export default {
             let vm = this;
             vm.errors = false;
             let tenureObj = JSON.parse(JSON.stringify(vm.tenureObj));
-            let formData = new FormData()
 
             if (vm.tenureObj.id) {
                 vm.updatingEntry = true;
-                formData.append('data', JSON.stringify(tenureObj));
-                vm.$http.put(helpers.add_endpoint_json(vm.url, tenureObj.id), formData, {
-                    emulateJSON: true,
-                }).then((response) => {
-                    vm.updatingEntry = false;
-                    vm.$parent.updatedSites();
-                    vm.close();
-                }, (error) => {
-                    vm.errors = true;
-                    vm.errorString = helpers.apiVueResourceError(error);
-                    vm.updatingEntry = false;
-                });
+                const data = { data: tenureObj };
+
+                const url =
+                    helpers.add_endpoint_join(vm.url, tenureObj.id) + '/';
+                const payload = {
+                    method: 'PUT',
+                    body: JSON.stringify(data),
+                    headers: {
+                        'X-CSRFToken': helpers.getCookie('csrftoken'),
+                        'Content-Type': 'application/json',
+                    },
+                };
+                fetch(url, payload)
+                    .then(async (response) => {
+                        if (!response.ok) {
+                            return await response.json().then((json) => {
+                                throw new Error(json);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then((data) => {
+                        vm.$emit('refreshFromResponse', data);
+                        vm.close();
+                    })
+                    .catch((error) => {
+                        vm.errors = true;
+                        vm.errorString = helpers.apiVueResourceError(error);
+                    })
+                    .finally(() => {
+                        vm.updatingEntry = false;
+                    });
             } else {
-                vm.addingEntry = true;
-                formData.append('data', JSON.stringify(tenureObj));
-                vm.$http.post(vm.url, formData, {
-                    emulateJSON: true,
-                }).then((response) => {
-                    vm.addingEntry = false;
-                    vm.close();
-                    vm.$parent.updatedSites();
-                }, (error) => {
-                    vm.errors = true;
-                    vm.addingEntry = false;
-                    vm.errorString = helpers.apiVueResourceError(error);
-                });
+                //
             }
         },
         eventListeners: function () {
