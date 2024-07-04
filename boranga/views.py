@@ -263,7 +263,7 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
             or is_occurrence_approver(request)
         )
     elif is_external_contributor(request):
-        allowed_paths = ["documents"]
+        allowed_paths = ["documents", "amendment_request_documents"]
         path = request.path
         user = request.user
         return OccurrenceReport.objects.filter(
