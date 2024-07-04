@@ -5593,57 +5593,28 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-
-        if not instance.visible:
-            raise serializers.ValidationError("Discarded site cannot be updated.")
-
         self.is_authorised_to_update(instance.occurrence)
 
-        data = json.loads(request.data.get("data"))
-        # point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
-        # data["geometry"] = GEOSGeometry(point_data, srid=data["datum"])
+        data = request.data.get("data", {})
 
         serializer = OccurrenceTenureSaveSerializer(
             instance, data=data
         )
         serializer.is_valid(raise_exception=True)
-
-        # occurrence = serializer.validated_data["occurrence"]
-        # site_name = serializer.validated_data["site_name"]
-
-        # if (
-        #     OccurrenceSite.objects.exclude(id=instance.id)
-        #     .filter(Q(site_name=site_name) & Q(occurrence=occurrence) & Q(visible=True))
-        #     .exists()
-        # ):
-        #     raise serializers.ValidationError(
-        #         "Site with this name already exists for this occurrence"
-        #     )
-
-        instance = serializer.save()
+        serializer.save()
 
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        data = json.loads(request.data.get("data"))
-        # point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
-        # data["geometry"] = GEOSGeometry(point_data, srid=data["datum"])
+        instance = self.get_object()
+        data = request.data.get("data")
 
         serializer = OccurrenceTenureSaveSerializer(
             data=data
         )
         serializer.is_valid(raise_exception=True)
-        occurrence_geometry = serializer.validated_data["occurrence_geometry"]
-        # site_name = serializer.validated_data["site_name"]
 
-        # if OccurrenceSite.objects.filter(
-        #     Q(site_name=site_name) & Q(occurrence=occurrence) & Q(visible=True)
-        # ).exists():
-        #     raise serializers.ValidationError(
-        #         "Site with this name already exists for this occurrence"
-        #     )
-
-        self.is_authorised_to_update(occurrence_geometry.occurrence)
+        self.is_authorised_to_update(instance.occurrence)
         serializer.save()
 
         return Response(serializer.data)
