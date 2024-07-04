@@ -79,9 +79,9 @@
         />
         <OccurrenceTenureModal
             ref="occurrence_tenure_modal"
-            :occurrence-id="occurrenceId"
-            :url="'TODO:'"
             title="Tenure Area Details"
+            :occurrence-id="occurrenceId"
+            :url="occ_tenure_url"
             @refreshFromResponse="updatedTenureArea"
         >
         </OccurrenceTenureModal>
@@ -141,7 +141,7 @@ export default {
             datatable_id: 'occurrence-tenure-datatable-' + uuid(),
             occ_tenure_paginated_url:
                 api_endpoints.occurrence_tenure_paginated_internal,
-            // occ_site_url: api_endpoints.occ_site,
+            occ_tenure_url: api_endpoints.occurrence_tenure,
             headers: [
                 'Feature ID',
                 // 'Tenure Area ID',
@@ -565,11 +565,12 @@ export default {
         sessionStorageText: function (key) {
             return `${key}Text`;
         },
-        updatedTenureArea: function () {
-            // this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
-            //     helpers.enablePopovers,
-            //     false
-            // );
+        updatedTenureArea: function (data) {
+            console.log(data);
+            this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            );
         },
     },
 };
