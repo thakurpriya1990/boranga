@@ -93,7 +93,7 @@
                                             :key="vesting.id"
                                             :value="vesting.id"
                                         >
-                                            {{ vesting.text }}
+                                            {{ vesting.name }}
                                         </option>
                                     </select>
                                 </div>
@@ -120,7 +120,7 @@
                                             :key="purpose.id"
                                             :value="purpose.id"
                                         >
-                                            {{ purpose.text }}
+                                            {{ purpose.name }}
                                         </option>
                                     </select>
                                 </div>
@@ -134,7 +134,9 @@
                                 <div class="col-sm-3">
                                     <select
                                         ref="significant_to_occurrence_select"
-                                        v-model="tenureObj.significant_to_occurrence"
+                                        v-model="
+                                            tenureObj.significant_to_occurrence
+                                        "
                                         :disabled="isReadOnly"
                                         style="width: 100%"
                                         class="form-select input-sm"
@@ -183,13 +185,35 @@
                             class="btn btn-primary fa fa-spinnner fa-spin"
                             @click="ok"
                         >
-                            </i> Updating</button>
-                        <button v-else type="button" class="btn btn-primary" @click="ok">Update</button>
+                            <i class="fa fa-spinner fa-spin"></i> Updating
+                        </button>
+                        <button
+                            v-else
+                            type="button"
+                            class="btn btn-primary"
+                            @click="ok"
+                        >
+                            Update
+                        </button>
                     </template>
                     <template v-else>
-                        <button v-if="addingEntry" type="button" disabled class="btn btn-primary" @click="ok"><i
-                                class="fa fa-spinner fa-spin"></i> Adding</button>
-                        <button v-else type="button" class="btn btn-primary" @click="ok">Add Entry</button>
+                        <button
+                            v-if="addingEntry"
+                            type="button"
+                            disabled
+                            class="btn btn-primary"
+                            @click="ok"
+                        >
+                            <i class="fa fa-spinner fa-spin"></i> Adding
+                        </button>
+                        <button
+                            v-else
+                            type="button"
+                            class="btn btn-primary"
+                            @click="ok"
+                        >
+                            Add Entry
+                        </button>
                     </template>
                 </template>
             </div>
@@ -198,29 +222,28 @@
 </template>
 
 <script>
-
-import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
-import { helpers, api_endpoints } from "@/utils/hooks.js"
+import modal from '@vue-utils/bootstrap-modal.vue';
+import alert from '@vue-utils/alert.vue';
+import { helpers, api_endpoints } from '@/utils/hooks.js';
 export default {
     name: 'OccurrenceTenureDatatable',
     components: {
         modal,
-        alert
+        alert,
     },
     props: {
         url: {
             type: String,
-            required: true
+            required: true,
         },
         title: {
             type: String,
             required: false,
-            default: 'Object'
+            default: 'Object',
         },
         change_warning: {
             type: String,
-            required: false
+            required: false,
         },
         // occurrence_obj: {
         //     type: Object,
@@ -228,7 +251,7 @@ export default {
         // },
         occurrenceId: {
             type: Number,
-            required: true
+            required: true,
         },
     },
     data: function () {
@@ -258,15 +281,16 @@ export default {
         },
         modalTitle: function () {
             var action = this.modal_action;
-            if (typeof action === "string" && action.length > 0) {
-                let capitalizedAction = action.charAt(0).toUpperCase() + action.slice(1);
+            if (typeof action === 'string' && action.length > 0) {
+                let capitalizedAction =
+                    action.charAt(0).toUpperCase() + action.slice(1);
                 return `${capitalizedAction} ${this.title}`;
             } else {
                 return `Invalid ${this.title} action`; // Or handle the error in an appropriate way
             }
         },
         isReadOnly: function () {
-            return this.modal_action === "view" ? true : false;
+            return this.modal_action === 'view' ? true : false;
         }
     },
     watch: {
@@ -276,9 +300,18 @@ export default {
         // }
     },
     created: async function () {
-        const url = api_endpoints.occurrence_tenure_purpose_lookup;
-        const payload = {'occurrence_id': this.occurrenceId}
-        this.fetchSelectionValues(url, payload, 'purpose_list');
+        const fetchData = [
+            {'url': api_endpoints.occurrence_tenure_purpose_lookup, 'payload': {'occurrence_id': this.occurrenceId}, 'target_list_name': 'purpose_list'},
+            {'url': api_endpoints.occurrence_vesting_lookup, 'payload': {'occurrence_id': this.occurrenceId}, 'target_list_name': 'vesting_list'},
+        ]
+        // fetchData.forEach((data) => {
+        //     this.fetchSelectionValues(data.url, data.payload, data.target_list_name);
+        // });
+        this.fetchSelectionValues(
+            api_endpoints.occurrence_tenure_list_of_values,
+            {},
+            ['purpose_list', 'vesting_list']
+        );
     },
     mounted: function () {
         let vm = this;
@@ -290,21 +323,24 @@ export default {
         });
     },
     methods: {
-        fetchSelectionValues: function (url, payload, target_list_name) {
+        fetchSelectionValues: function (url, payload, target_list_names) {
             fetch(url, payload)
-            .then(async (response) => {
-                if (!response.ok) {
-                    return await response.json().then((json) => {
+                .then(async (response) => {
+                    if (!response.ok) {
+                        return await response.json().then((json) => {
                             throw new Error(json);
                         });
-                }
-                return response.json();
-            })
-            .then(data => {
-                this[target_list_name] = data.results;
-            }).catch((error) => {
-                console.error('Error:', error);
-            });
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    target_list_names.forEach((list_name) => {
+                        this[list_name] = data[list_name];
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
         },
         ok: function () {
             let vm = this;
@@ -313,7 +349,7 @@ export default {
             }
         },
         cancel: function () {
-            this.close()
+            this.close();
         },
         close: function () {
             this.isModalOpen = false;
