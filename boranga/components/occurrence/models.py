@@ -4354,6 +4354,17 @@ class OccurrenceTenurePurpose(models.Model):
     def __str__(self):
         return self.purpose
 
+class OccurrenceTenureVesting(models.Model):
+    vesting = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Tenure Vesting"
+        verbose_name_plural = "Occurrence Tenure Vestings"
+
+    def __str__(self):
+        return self.vesting
+
 
 def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
     sub_objs.update(status="historical")
@@ -4397,7 +4408,6 @@ class OccurrenceTenure(models.Model):
     tenure_area_ewkb = models.BinaryField(blank=True, null=True, editable=True)
     owner_name = models.CharField(max_length=255, blank=True, null=True)
     owner_count = models.IntegerField(blank=True, null=True)
-    # vesting = models.TBD
 
     datetime_created = models.DateTimeField(auto_now_add=True)
     datetime_updated = models.DateTimeField(default=datetime.now)
@@ -4409,6 +4419,14 @@ class OccurrenceTenure(models.Model):
         blank=True,
         null=True,
     )
+    vesting = models.ForeignKey(
+        OccurrenceTenureVesting,
+        related_name="occurrence_vestings",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+
     comments = models.TextField(blank=True, null=True)
     significant_to_occurrence = models.BooleanField(
         null=True, blank=True, default=False
