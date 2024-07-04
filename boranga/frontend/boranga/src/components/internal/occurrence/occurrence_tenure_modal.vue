@@ -80,17 +80,20 @@
                                 <div class="col-sm-9">
                                     <select
                                         ref="vesting_select"
-                                        v-model="tenureObj.vesting"
+                                        v-model="tenureObj.vesting_id"
                                         :disabled="isReadOnly"
                                         style="width: 100%"
                                         class="form-select input-sm"
                                     >
+                                        <option :value="null" selected>
+                                            Select a Vesting
+                                        </option>
                                         <option
                                             v-for="vesting in vesting_list"
                                             :key="vesting.id"
                                             :value="vesting.id"
                                         >
-                                            {{ vesting.name }}
+                                            {{ vesting.text }}
                                         </option>
                                     </select>
                                 </div>
@@ -274,29 +277,8 @@ export default {
     },
     created: async function () {
         const url = api_endpoints.occurrence_tenure_purpose_lookup;
-        fetch(url, {'occurrence_id': this.occurrenceId})
-            .then(async (response) => {
-                if (!response.ok) {
-                    return await response.json().then((json) => {
-                            throw new Error(json);
-                        });
-                }
-                return response.json();
-            })
-            .then(data => {
-                this.purpose_list = data.results;
-            }).catch((error) => {
-                console.error('Error:', error);
-            });
-        // let res = await this.$http.get('/api/occurrence_sites/site_list_of_values/');
-        // let site_list_of_values_res = {};
-        // Object.assign(site_list_of_values_res, res.body);
-        // this.site_type_list = site_list_of_values_res.site_type_list;
-        // this.site_type_list.splice(0, 0,
-        //     {
-        //         id: null,
-        //         name: null,
-        //     });
+        const payload = {'occurrence_id': this.occurrenceId}
+        this.fetchSelectionValues(url, payload, 'purpose_list');
     },
     mounted: function () {
         let vm = this;
@@ -308,6 +290,22 @@ export default {
         });
     },
     methods: {
+        fetchSelectionValues: function (url, payload, target_list_name) {
+            fetch(url, payload)
+            .then(async (response) => {
+                if (!response.ok) {
+                    return await response.json().then((json) => {
+                            throw new Error(json);
+                        });
+                }
+                return response.json();
+            })
+            .then(data => {
+                this[target_list_name] = data.results;
+            }).catch((error) => {
+                console.error('Error:', error);
+            });
+        },
         ok: function () {
             let vm = this;
             if ($(vm.form).valid()) {
