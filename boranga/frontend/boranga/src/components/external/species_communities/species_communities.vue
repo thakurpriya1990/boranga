@@ -23,7 +23,10 @@
                                             </div>
                                         </template>
                                         <template v-else>
-                                            <span class="text-muted">No Image Available</span>
+                                            <div class="d-flex bg-light bg-gradient justify-content-center align-content-middle"
+                                                style="height:258px;">
+                                                <div class="align-self-center text-muted">No Image Available</div>
+                                            </div>
                                         </template>
                                     </div>
                                 </div>
