@@ -4344,7 +4344,7 @@ class OCRExternalRefereeInvite(models.Model):
 
 
 class OccurrenceTenurePurpose(models.Model):
-    purpose = models.CharField(max_length=100, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         app_label = "boranga"
@@ -4355,7 +4355,7 @@ class OccurrenceTenurePurpose(models.Model):
         return self.purpose
 
 class OccurrenceTenureVesting(models.Model):
-    vesting = models.CharField(max_length=100, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         app_label = "boranga"
