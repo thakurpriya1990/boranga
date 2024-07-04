@@ -3186,6 +3186,10 @@ class OccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
 
 
 class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
+
+    occurrence_number = serializers.SerializerMethodField()
+    occurrence_id = serializers.SerializerMethodField()
+
     class Meta:
         model = OccurrenceTenure
         fields = (
@@ -3202,6 +3206,8 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "significant_to_occurrence",
             "tenure_area_centroid",
             "datetime_updated",
+            "occurrence_number",
+            "occurrence_id",
         )
         datatables_always_serialize = (
             "id",
@@ -3218,6 +3224,21 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "tenure_area_centroid",
             "datetime_updated",
         )
+
+    def get_occurrence_number(self, obj):
+        if obj.occurrence_geometry and obj.occurrence_geometry.occurrence:
+            return obj.occurrence_geometry.occurrence.occurrence_number
+        elif obj.historical_occurrence:
+            try:
+                return Occurrence.objects.get(id=obj.historical_occurrence).occurrence_number
+            except:
+                return None
+            
+    def get_occurrence_id(self, obj):
+        if obj.occurrence_geometry and obj.occurrence_geometry.occurrence:
+            return obj.occurrence_geometry.occurrence.id
+        elif obj.historical_occurrence:
+            return obj.historical_occurrence
 
 
 class OccurrenceSiteSerializer(serializers.ModelSerializer):

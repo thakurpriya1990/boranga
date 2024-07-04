@@ -3507,6 +3507,25 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({"values_list": values_list.data, "id_list": id_list})
         return Response()
 
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=False,
+    )
+    def combine_tenures_lookup(self, request, *args, **kwargs):
+        if is_internal(self.request):
+            occ_ids = json.loads(request.POST.get("occurrence_ids"))
+            tenures = OccurrenceTenure.objects.filter(
+                Q(occurrence_geometry__occurrence__id__in=occ_ids) | Q(historical_occurrence__in=occ_ids)
+            )
+
+            values_list = ListOccurrenceTenureSerializer(tenures,context={"request": request}, many=True)
+            id_list = list(tenures.values_list("id", flat=True))
+
+            return Response({"values_list": values_list.data, "id_list": id_list})
+        return Response()
+
     @detail_route(
         methods=[
             "GET",
@@ -5785,7 +5804,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def site_list_of_values(self, request, *args, **kwargs):
 
         site_type_list = list(SiteType.objects.values("id", "name"))
-        datum_list = list(Datum.objects.values("name","srid"))
+        datum_list = list({"srid":datum.srid,"name":datum.name} for datum in Datum.objects.all())
 
         res_json = {
             "site_type_list": site_type_list,
