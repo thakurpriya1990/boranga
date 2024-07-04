@@ -5540,7 +5540,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def occurrence_tenure_purpose_lookup(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.get_queryset().exclude(purpose=None)
 
         search_term = request.GET.get("term", "")
         occurrence_id = request.GET.get("occurrence_id", None)
@@ -5552,9 +5552,9 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(
                 purpose__purpose__icontains=search_term
             ).distinct()[:10]
-            results = [
-                {"id": row.purpose.id, "text": row.purpose.purpose} for row in queryset
-            ]
+        results = [
+            {"id": row.purpose.id, "text": row.purpose.purpose} for row in queryset
+        ]
 
         return Response({"results": results})
 
