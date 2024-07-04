@@ -225,7 +225,7 @@
         <MakePublic ref="make_public" :species_community="species_community"
             :species_community_original="species_community_original" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
-        <ReinstateImage ref="reinstateImage" title="Reinstate Species Image" :imageHistoryUrl="image_history_url"
+        <ReinstateImage ref="reinstateImage" :title="reinstate_image_title" :imageHistoryUrl="image_history_url"
             @reinstateImage="reinstateImage" />
     </div>
 </template>
@@ -375,6 +375,9 @@ export default {
         image_history_url: function () {
             return (this.species_community.group_type == 'community') ? `/api/community/${this.species_community.id}/image_history/` :
                 `/api/species/${this.species_community.id}/image_history/`;
+        },
+        reinstate_image_title: function () {
+            return this.species_community ? `Reinstate Image for ${this.display_name}` : '';
         }
     },
     methods: {
