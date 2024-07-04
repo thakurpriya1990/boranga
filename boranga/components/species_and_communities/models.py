@@ -922,6 +922,7 @@ class SpeciesUserAction(UserAction):
     ACTION_SAVE_SPECIES = "Save Species {}"
     ACTION_IMAGE_UPDATE = "Species Image document updated for Species {}"
     ACTION_IMAGE_DELETE = "Species Image document deleted for Species {}"
+    ACTION_IMAGE_REINSTATE = "Species Image document reinstated for Species {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for Species {}"
@@ -1332,14 +1333,44 @@ class Community(RevisionedMixin):
     def log_user_action(self, action, request):
         return CommunityUserAction.log_action(self, action, request.user.id)
 
-    def upload_image(self, request):
-        with transaction.atomic():
-            document = CommunityDocument(
-                _file=request.data.dict()["image2"], community=self
+    @transaction.atomic
+    def upload_image(self, speciesCommunitiesImageFile):
+        document = CommunityDocument(
+            input_name="speciesCommunitiesImageFile",
+            _file=speciesCommunitiesImageFile,
+            community=self,
+        )
+        document.save()
+        self.image_doc = document
+        self.save()
+
+    @property
+    def image_history(self):
+        images_qs = (
+            CommunityDocument.objects.filter(
+                community=self, input_name="speciesCommunitiesImageFile"
             )
-            document.save()
-            self.image_doc = document
-            self.save()
+            .distinct("uploaded_date", "_file")
+            .order_by("-uploaded_date")
+        )
+        return [
+            {
+                "id": image.id,
+                "filename": os.path.basename(image._file.name),
+                "url": image._file.url,
+                "uploaded_date": image.uploaded_date,
+            }
+            for image in images_qs
+        ]
+
+    def reinstate_image(self, pk):
+        try:
+            document = CommunityDocument.objects.get(pk=pk)
+        except CommunityDocument.DoesNotExist:
+            raise ValidationError(f"No CommunityDocument model found with pk {pk}")
+
+        self.image_doc = document
+        self.save()
 
 
 class CommunityTaxonomy(models.Model):
@@ -1419,6 +1450,7 @@ class CommunityUserAction(UserAction):
     ACTION_SAVE_COMMUNITY = "Save Community {}"
     ACTION_IMAGE_UPDATE = "Community Image document updated for Community {}"
     ACTION_IMAGE_DELETE = "Community Image document deleted for Community {}"
+    ACTION_IMAGE_REINSTATE = "Community Image document reinstated for Community {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} uploaded for Community {}"
