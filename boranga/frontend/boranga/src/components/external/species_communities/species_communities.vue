@@ -15,7 +15,7 @@
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <template v-if="uploadedID">
-                                            <div class="animated-background bg-secondary rounded"
+                                            <div class="rounded" :class="downloadingImage ? 'animated-background bg-secondary' : ''"
                                                 style="width:258px; height:258px;">
                                                 <img v-show="!downloadingImage" @load="onImageLoad" width="258"
                                                     :src="`/api/external_species/${species_community.id}/public_image/`"
@@ -23,7 +23,10 @@
                                             </div>
                                         </template>
                                         <template v-else>
-                                            <span class="text-muted">No Image Available</span>
+                                            <div class="d-flex bg-light bg-gradient justify-content-center align-content-middle"
+                                                style="height:258px;">
+                                                <div class="align-self-center text-muted">No Image Available</div>
+                                            </div>
                                         </template>
                                     </div>
                                 </div>
