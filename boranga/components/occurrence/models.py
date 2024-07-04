@@ -1514,7 +1514,7 @@ class Datum(models.Model):
         return str(self.srid)
 
 
-class CoordinationSource(models.Model):
+class CoordinateSource(models.Model):
     """
     # Admin List
 
@@ -1528,8 +1528,8 @@ class CoordinationSource(models.Model):
 
     class Meta:
         app_label = "boranga"
-        verbose_name = "Coordination Source"
-        verbose_name_plural = "Coordination Sources"
+        verbose_name = "Coordinate Source"
+        verbose_name_plural = "Coordinate Sources"
         ordering = ["name"]
 
     def __str__(self):
@@ -1581,8 +1581,8 @@ class OCRLocation(models.Model):
     buffer_radius = models.IntegerField(null=True, blank=True, default=0)
     datum = models.ForeignKey(Datum, on_delete=models.SET_NULL, null=True, blank=True)
     epsg_code = models.IntegerField(null=False, blank=False, default=4326)
-    coordination_source = models.ForeignKey(
-        CoordinationSource, on_delete=models.SET_NULL, null=True, blank=True
+    coordinate_source = models.ForeignKey(
+        CoordinateSource, on_delete=models.SET_NULL, null=True, blank=True
     )
     location_accuracy = models.ForeignKey(
         LocationAccuracy, on_delete=models.SET_NULL, null=True, blank=True
@@ -3704,8 +3704,8 @@ class OCCLocation(models.Model):
     buffer_radius = models.IntegerField(null=True, blank=True, default=0)
     datum = models.ForeignKey(Datum, on_delete=models.SET_NULL, null=True, blank=True)
     epsg_code = models.IntegerField(null=False, blank=False, default=4326)
-    coordination_source = models.ForeignKey(
-        CoordinationSource, on_delete=models.SET_NULL, null=True, blank=True
+    coordinate_source = models.ForeignKey(
+        CoordinateSource, on_delete=models.SET_NULL, null=True, blank=True
     )
     location_accuracy = models.ForeignKey(
         LocationAccuracy, on_delete=models.SET_NULL, null=True, blank=True

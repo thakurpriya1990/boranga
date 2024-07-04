@@ -662,7 +662,7 @@ class OCRLocationSerializer(serializers.ModelSerializer):
             "buffer_radius",
             "datum_id",
             "epsg_code",
-            "coordination_source_id",
+            "coordinate_source_id",
             "location_accuracy_id",
             "region_id",
             "district_id",
@@ -1720,7 +1720,7 @@ class SaveOCRLocationSerializer(serializers.ModelSerializer):
     district_id = serializers.IntegerField(required=False, allow_null=True)
     occurrence_report_id = serializers.IntegerField(required=True, allow_null=False)
     datum_id = serializers.IntegerField(required=False, allow_null=True)
-    coordination_source_id = serializers.IntegerField(required=False, allow_null=True)
+    coordinate_source_id = serializers.IntegerField(required=False, allow_null=True)
     location_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
     # observation_date = serializers.DateTimeField(
     #    format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
@@ -1742,7 +1742,7 @@ class SaveOCRLocationSerializer(serializers.ModelSerializer):
             "buffer_radius",
             "datum_id",
             "epsg_code",
-            "coordination_source_id",
+            "coordinate_source_id",
             "location_accuracy_id",
             "region_id",
             "district_id",
@@ -2884,7 +2884,7 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             "buffer_radius",
             "datum_id",
             "epsg_code",
-            "coordination_source_id",
+            "coordinate_source_id",
             "location_accuracy_id",
             "region_id",
             "district_id",
@@ -3092,7 +3092,7 @@ class SaveOCCLocationSerializer(serializers.ModelSerializer):
     district_id = serializers.IntegerField(required=False, allow_null=True)
     occurrence_id = serializers.IntegerField(required=False, allow_null=True)
     datum_id = serializers.IntegerField(required=False, allow_null=True)
-    coordination_source_id = serializers.IntegerField(required=False, allow_null=True)
+    coordinate_source_id = serializers.IntegerField(required=False, allow_null=True)
     location_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
     has_boundary = serializers.SerializerMethodField()
     has_points = serializers.SerializerMethodField()
@@ -3109,7 +3109,7 @@ class SaveOCCLocationSerializer(serializers.ModelSerializer):
             "buffer_radius",
             "datum_id",
             "epsg_code",
-            "coordination_source_id",
+            "coordinate_source_id",
             "location_accuracy_id",
             "region_id",
             "district_id",

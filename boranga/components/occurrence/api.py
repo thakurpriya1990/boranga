@@ -37,7 +37,7 @@ from boranga.components.occurrence.filters import OccurrenceReportReferralFilter
 from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
     AnimalHealth,
-    CoordinationSource,
+    CoordinateSource,
     CountedSubject,
     Datum,
     DeathReason,
@@ -890,11 +890,11 @@ class OccurrenceReportViewSet(
             epsg_codes = list(set(epsg_codes))
             datum_list = search_datums("", codes=epsg_codes)
 
-        coordination_source_list = []
-        values = CoordinationSource.objects.all()
+        coordinate_source_list = []
+        values = CoordinateSource.objects.all()
         if values:
             for val in values:
-                coordination_source_list.append(
+                coordinate_source_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
@@ -912,7 +912,7 @@ class OccurrenceReportViewSet(
                 )
         res_json = {
             "datum_list": datum_list,
-            "coordination_source_list": coordination_source_list,
+            "coordinate_source_list": coordinate_source_list,
             "location_accuracy_list": location_accuracy_list,
         }
         res_json = json.dumps(res_json)
@@ -4437,11 +4437,11 @@ class OccurrenceViewSet(
             epsg_codes = list(set(epsg_codes))
             datum_list = search_datums("", codes=epsg_codes)
 
-        coordination_source_list = []
-        values = CoordinationSource.objects.all()
+        coordinate_source_list = []
+        values = CoordinateSource.objects.all()
         if values:
             for val in values:
-                coordination_source_list.append(
+                coordinate_source_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
@@ -4459,7 +4459,7 @@ class OccurrenceViewSet(
                 )
         res_json = {
             "datum_list": datum_list,
-            "coordination_source_list": coordination_source_list,
+            "coordinate_source_list": coordinate_source_list,
             "location_accuracy_list": location_accuracy_list,
         }
         res_json = json.dumps(res_json)

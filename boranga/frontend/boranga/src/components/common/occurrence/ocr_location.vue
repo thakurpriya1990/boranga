@@ -145,12 +145,12 @@
                 </div>
             </div>-->
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Coordination Source:</label>
+                <label for="" class="col-sm-3 control-label">Coordinate Source:</label>
                 <div class="col-sm-9">
                     <select v-model="occurrence_report_obj.location
-                        .coordination_source_id
+                        .coordinate_source_id
                         " :disabled="isReadOnly" class="form-select">
-                        <option v-for="option in coordination_source_list" :key="option.id" :value="option.id">
+                        <option v-for="option in coordinate_source_list" :key="option.id" :value="option.id">
                             {{ option.name }}
                         </option>
                     </select>
@@ -304,7 +304,7 @@ export default {
             updatingLocationDetails: false,
             listOfValuesDict: {},
             datum_list: [],
-            coordination_source_list: [],
+            coordinate_source_list: [],
             location_accuracy_list: [],
         };
     },
@@ -405,9 +405,9 @@ export default {
             .then((data) => {
                 vm.listOfValuesDict = Object.assign({}, data);
                 vm.datum_list = vm.listOfValuesDict.datum_list;
-                vm.coordination_source_list =
-                    vm.listOfValuesDict.coordination_source_list;
-                vm.coordination_source_list.splice(0, 0, {
+                vm.coordinate_source_list =
+                    vm.listOfValuesDict.coordinate_source_list;
+                vm.coordinate_source_list.splice(0, 0, {
                     id: null,
                     name: null,
                 });
