@@ -3326,6 +3326,7 @@ class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
         
 class SiteGeometrySerializer(GeoFeatureModelSerializer):
     srid = serializers.SerializerMethodField(read_only=True)
+    geometry_source = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceSite
@@ -3334,9 +3335,11 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
             "id",
             "occurrence",
             "site_name",
+            "site_number",
             "related_occurrence_reports",
             "geometry",
             "srid",
+            "geometry_source",
         ]
         read_only_fields = ("id",)
 
@@ -3345,3 +3348,5 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
             return obj.geometry.srid
         else:
             return None
+    def get_geometry_source(self, obj):
+        return get_geometry_source(obj)
