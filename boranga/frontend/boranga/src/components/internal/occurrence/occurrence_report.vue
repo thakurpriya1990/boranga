@@ -789,7 +789,6 @@ export default {
                         Object.assign(payload, vm.occurrence_report);
                         vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, vm.occurrence_report.id + '/submit'), payload).then(res => {
                             vm.occurrence = res.body;
-                            // TODO router should push to submit_cs_proposal for internal side
                             vm.$router.push({
                                 name: 'internal-occurrence-dash'
                             });

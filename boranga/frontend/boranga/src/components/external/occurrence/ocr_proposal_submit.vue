@@ -40,21 +40,19 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+
 import {
   api_endpoints,
   helpers,
 }
 from '@/utils/hooks'
-//import utils from './utils'
+
 export default {
   data: function() {
     let vm = this;
     return {
         "occurrence_report_obj": {},
     }
-  },
-  components: {
   },
   computed: {
     isOCRProposal: function(){
@@ -69,8 +67,6 @@ export default {
     application_type_community: function(){
       return api_endpoints.group_type_community;
     }
-  },
-  methods: {
   },
   filters:{
         formatDate: function(data){

@@ -2,7 +2,8 @@
     <div v-if="species_community" class="container" id="externalSpeciesCommunity">
         <div class="row" style="padding-bottom: 50px;">
             <h3>{{ display_group_type }} {{ display_number }} - {{ display_name }}</h3>
-            <h4 v-if="species_community.conservation_status">{{ species_community.conservation_status.conservation_category }}</h4>
+            <h4 v-if="species_community.conservation_status">{{
+                species_community.conservation_status.conservation_category }}</h4>
             <div class="col-md-3">
                 <template>
                     <div class="">
@@ -13,14 +14,17 @@
                             <div class="card-body card-collapse">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <div class="site-logo row">
-                                            <template v-if="uploadedID">
-                                                <img :src="uploadedID" class="img-responsive" />
-                                            </template>
-                                            <template v-else>
-                                                <span class="text-muted">No Image Available</span>
-                                            </template>
-                                        </div>
+                                        <template v-if="uploadedID">
+                                            <div class="animated-background bg-secondary rounded"
+                                                style="width:258px; height:258px;">
+                                                <img v-show="!downloadingImage" @load="onImageLoad" width="258"
+                                                    :src="`/api/external_species/${species_community.id}/public_image/`"
+                                                    class="img-thumbnail img-fluid" :alt="display_name" />
+                                            </div>
+                                        </template>
+                                        <template v-else>
+                                            <span class="text-muted">No Image Available</span>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -35,9 +39,10 @@
                             <div class="row">
                                 <form>
                                     <ProposalSpeciesCommunities ref="species_communities"
-                                        :species_community="species_community" :species_community_original="species_community" id="speciesCommunityStart"
+                                        :species_community="species_community"
+                                        :species_community_original="species_community" id="speciesCommunityStart"
                                         :is_internal="false" :is_readonly="true">
-                                    </ProposalSpeciesCommunities>                       
+                                    </ProposalSpeciesCommunities>
                                 </form>
                             </div>
                         </div>
@@ -50,21 +55,15 @@
 <script>
 import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
-
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
 
-import {
-    api_endpoints,
-    helpers
-}
-    from '@/utils/hooks'
 export default {
     name: 'ExternalSpeciesCommunity',
     data: function () {
-        let vm = this;
         return {
             "species_community": null,
             uploadedID: null,
+            downloadingImage: true,
         }
     },
     components: {
@@ -89,6 +88,11 @@ export default {
             return (this.species_community.group_type === "community") ?
                 (this.species_community.taxonomy_details != null) ? this.species_community.taxonomy_details.community_migrated_id : '' :
                 (this.species_community.taxonomy_details != null) ? this.species_community.taxonomy_details.scientific_name + " (" + this.species_community.taxonomy_details.taxon_name_id + ")" : '';
+        },
+    },
+    methods: {
+        onImageLoad: function () {
+            this.downloadingImage = false;
         },
     },
     mounted: function () {
@@ -140,5 +144,28 @@ export default {
     margin-top: 15px;
     margin-bottom: 10px;
     width: 100%;
+}
+
+@keyframes placeHolderShimmer {
+    0% {
+        background-position: -468px 0
+    }
+
+    100% {
+        background-position: 468px 0
+    }
+}
+
+.animated-background {
+    animation-duration: 1.25s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: infinite;
+    animation-name: placeHolderShimmer;
+    animation-timing-function: linear;
+    background: darkgray;
+    background: linear-gradient(to right, #eeeeee 10%, #dddddd 18%, #eeeeee 33%);
+    background-size: 800px 104px;
+    height: 100px;
+    position: relative;
 }
 </style>
