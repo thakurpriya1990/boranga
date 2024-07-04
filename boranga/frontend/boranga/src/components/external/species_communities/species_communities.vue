@@ -15,7 +15,7 @@
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <template v-if="uploadedID">
-                                            <div class="animated-background bg-secondary rounded"
+                                            <div class="rounded" :class="downloadingImage ? 'animated-background bg-secondary' : ''"
                                                 style="width:258px; height:258px;">
                                                 <img v-show="!downloadingImage" @load="onImageLoad" width="258"
                                                     :src="`/api/external_species/${species_community.id}/public_image/`"
