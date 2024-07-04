@@ -2,7 +2,7 @@
     <div id="communityStatus">
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
             <form @change="$emit('saveConservationStatus')">
-                <template v-if="!is_external">
+                <template v-if="!is_external && !conservation_status_obj.can_user_edit">
                     <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments"
                         :collapsed="false">
                         <div class="row">
