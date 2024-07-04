@@ -14,10 +14,10 @@
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <alert
-                            v-if="change_warning && !isReadOnly"
+                            v-if="changeWarning && !isReadOnly"
                             type="warning"
-                            ><strong>{{ change_warning }}</strong></alert
-                        > {{ tenureObj }}
+                            ><strong>{{ changeWarning }}</strong></alert
+                        >
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
@@ -241,14 +241,11 @@ export default {
             required: false,
             default: 'Object',
         },
-        change_warning: {
+        changeWarning: {
             type: String,
             required: false,
+            default: '',
         },
-        // occurrence_obj: {
-        //     type: Object,
-        //     required: false
-        // },
         occurrenceId: {
             type: Number,
             required: true,
@@ -293,12 +290,7 @@ export default {
             return this.modal_action === 'view' ? true : false;
         },
     },
-    watch: {
-        // tenureObj: function () {
-        //     let vm = this;
-        //     vm.reinitialiseOCRLookup()
-        // }
-    },
+    watch: {},
     created: async function () {
         this.fetchSelectionValues(
             api_endpoints.occurrence_tenure_list_of_values,
@@ -311,8 +303,7 @@ export default {
         vm.form = document.forms.modalForm;
 
         this.$nextTick(() => {
-            // vm.eventListeners();
-            // vm.initialiseOCRSelect();
+            //
         });
     },
     methods: {
@@ -346,38 +337,10 @@ export default {
         },
         close: function () {
             this.isModalOpen = false;
-            // this.tenureObj = {
-            //     related_occurrence_reports: [],
-            // };
+            this.tenureObj = {};
             this.errors = false;
             $('.has-error').removeClass('has-error');
         },
-        // reinitialiseOCRLookup: function () {
-        //     let vm = this;
-        //     vm.$nextTick(() => {
-        //         $(vm.$refs.occurrence_report_select).select2('destroy');
-        //         vm.initialiseOCRSelect();
-        //     });
-        // },
-        // initialiseOCRSelect: function () {
-        //     let vm = this;
-        //     // Initialise select2 for proposed Conservation Criteria
-        //     $(vm.$refs.occurrence_report_select).select2({
-        //         "theme": "bootstrap-5",
-        //         dropdownParent: $("#select_occurrence_reports"),
-        //         allowClear: true,
-        //         multiple: true,
-        //         placeholder: "Select Occurrence Report",
-        //     }).
-        //         on("select2:select", function (e) {
-        //             var selected = $(e.currentTarget);
-        //             vm.tenureObj.related_occurrence_reports = selected.val();
-        //         }).
-        //         on("select2:unselect", function (e) {
-        //             var selected = $(e.currentTarget);
-        //             vm.tenureObj.related_occurrence_reports = selected.val();
-        //         });
-        // },
         sendData: function () {
             let vm = this;
             vm.errors = false;
@@ -421,9 +384,6 @@ export default {
                 //
             }
         },
-        eventListeners: function () {
-            let vm = this;
-        }
-    }
-}
+    },
+};
 </script>

@@ -79,9 +79,10 @@
         />
         <OccurrenceTenureModal
             ref="occurrence_tenure_modal"
-            title="Tenure Area Details"
+            title="Tenure Area"
             :occurrence-id="occurrenceId"
             :url="occ_tenure_url"
+            :change-warning="''"
             @refreshFromResponse="updatedTenureArea"
         >
         </OccurrenceTenureModal>
@@ -463,13 +464,6 @@ export default {
                 .catch((error) => {
                     console.error('Error:', error);
                 });
-            // Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then((response) => {
-            //     this.$refs.site_detail.siteObj = response.body;
-            // },
-            // err => {
-            //     console.log(err);
-            // });
-            // this.$refs.site_detail.isModalOpen = true;
             this.$emit('edit-tenure-details', id);
         },
         collapsible_component_mounted: function () {
@@ -566,7 +560,7 @@ export default {
             return `${key}Text`;
         },
         updatedTenureArea: function (data) {
-            console.log(data);
+            console.log('New occurrence tenure area data', data);
             this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
                 helpers.enablePopovers,
                 false
