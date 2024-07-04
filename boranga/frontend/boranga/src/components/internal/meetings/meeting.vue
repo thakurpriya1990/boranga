@@ -25,6 +25,43 @@
                                 </div>
                             </div>
                         </div>
+                        <div  class="card-body border-top">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="col-sm-12 top-buffer-s">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <strong>Action</strong><br />
+                                            </div>
+                                        </div>
+                                        <div class="row" v-if="userCanSchedule" >
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="scheduleMeeting()">Schedule</button><br />
+                                            </div>
+                                            <div class="col-sm-12">&nbsp;</div>
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="discardMeeting()">Discard</button><br />
+                                            </div>
+                                        </div>
+                                        <div class="row" v-if="userCanComplete" >
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="completeMeeting()">Complete</button><br />
+                                            </div>
+                                        </div>
+                                        <div class="row" v-if="userCanReinstate" >
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="reinstateMeeting()">Reinstate</button><br />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -117,6 +154,8 @@ export default {
             savingMeeting: false,
             saveExitMeeting: false,
             submitMeeting: false,
+            schedelingMeeting: false,
+            completingMeeting: false,
             submitting: false,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comms_url: helpers.add_endpoint_json(api_endpoints.meeting, vm.$route.params.meeting_id + '/comms_log'),
@@ -184,6 +223,15 @@ export default {
         },
         userCanEdit: function () {
             return this.meeting_obj.can_user_edit;
+        },
+        userCanSchedule: function () {
+            return this.meeting_obj.can_user_schedule;
+        },
+        userCanComplete: function () {
+            return this.meeting_obj.can_user_complete;
+        },
+        userCanReinstate: function () {
+            return this.meeting_obj.can_user_reinstate;
         },
     },
     methods: {
@@ -287,6 +335,61 @@ export default {
             });
             return result;
         },
+        can_schedule: function (check_action) {
+            let vm = this;
+            let blank_fields = []
+
+            // blank_fields = vm.can_submit_meeting(check_action);
+            if (vm.meeting_obj.title == null || vm.meeting_obj.title == '') {
+                blank_fields.push(' Title is missing')
+            }
+            if (vm.meeting_obj.meeting_type == null || vm.meeting_obj.meeting_type == '') {
+                blank_fields.push(' Please select a meeting type')
+            }
+            if (vm.meeting_obj.start_date == null || vm.meeting_obj.start_date == '' || vm.meeting_obj.end_date == null || vm.meeting_obj.end_date == '') {
+                //  to also check the start and end date of meeting validation befor saving
+                blank_fields.push('Start Date and End date cannot be blank');
+            }
+            if (vm.$refs.meeting.isMeetingDateValid != true) {
+                //  to also check the start and end date of meeting validation befor saving
+                blank_fields.push('Please select End Date that is later than Start Date');
+            }
+            if (vm.$refs.meeting.isCommitteeMeeting){
+                if(vm.$refs.meeting.sel_committee_members_arr  == null || vm.$refs.meeting.sel_committee_members_arr  == '' || vm.$refs.meeting.sel_committee_members_arr.length==0  ) {
+                    //  to also check the start and end date of meeting validation befor saving
+                    blank_fields.push('Please add Committe members');
+                }
+            }
+            if(vm.$refs.cs_queue.$refs.cs_queue_datatable.vmDataTable.rows().count()==0){
+                blank_fields.push(' Please add atleast one Agenda record')
+            }
+            if (vm.meeting_obj.location_id == null || vm.meeting_obj.location_id == '') {
+                blank_fields.push(' Please select Location')
+            }
+            if (blank_fields.length == 0) {
+                return true;
+            }
+            else {
+                return blank_fields;
+            }
+            //to count if records exists in the minutes table
+            vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count()
+        },
+        can_complete: function () {
+            let vm = this;
+            let blank_fields = []
+
+           
+            if(vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count()==0){
+                blank_fields.push(' Please add atleast one Minutes record')
+            }
+            if (blank_fields.length == 0) {
+                return true;
+            }
+            else {
+                return blank_fields;
+            }
+        },
         can_submit: function (check_action) {
             let vm = this;
             let blank_fields = []
@@ -318,6 +421,215 @@ export default {
             }
 
             return blank_fields
+        },
+        scheduleMeeting: function () {
+            let vm = this;
+
+            var missing_data = vm.can_schedule("submit");
+            if (missing_data != true) {
+                swal.fire({
+                    title: "Please fix following errors before scheduling the meeting",
+                    text: missing_data,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
+                return false;
+            }
+            vm.schedelingMeeting = true;
+            swal.fire({
+                title: "Schedule New Meeting",
+                text: "Are you sure you want to schedule this meeting?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "schedule",
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let result = await vm.save_before_submit()
+                    if (!vm.saveError) {
+                        let payload = new Object();
+                        Object.assign(payload, vm.meeting_obj);
+                        vm.$http.put(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/schedule_meeting'), payload).then(res => {
+                            vm.meeting_obj = res.body;
+                            // vm.$router.push({
+                            //     name: 'submit_cs_proposal',
+                            //     params: { meeting_obj: vm.meeting_obj}
+                            // });
+                            // TODO router should push to submit_cs_proposal for internal side
+                            // vm.$router.push({
+                            //     name: 'internal-meetings-dash'
+                            // });
+                        }, err => {
+                            swal.fire({
+                                title: 'Schedule Error',
+                                text: helpers.apiVueResourceError(err),
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                        });
+                    }
+                }
+            }, (error) => {
+                vm.submitMeeting = false;
+            });
+        },
+        completeMeeting: function () {
+            let vm = this;
+
+            var missing_data = vm.can_complete();
+            if (missing_data != true) {
+                swal.fire({
+                    title: "Please fix following errors before completing the meeting",
+                    text: missing_data,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
+                return false;
+            }
+            vm.completeMeeting = true;
+            swal.fire({
+                title: "Complete Meeting",
+                text: "Are you sure you want to complete this meeting?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "complete",
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let result = await vm.save_before_submit()
+                    if (!vm.saveError) {
+                        let payload = new Object();
+                        Object.assign(payload, vm.meeting_obj);
+                        vm.$http.put(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/complete_meeting'), payload).then(res => {
+                            vm.meeting_obj = res.body;
+                            vm.completingMeeting = false;
+                            // vm.$router.push({
+                            //     name: 'submit_cs_proposal',
+                            //     params: { meeting_obj: vm.meeting_obj}
+                            // });
+                            // TODO router should push to submit_cs_proposal for internal side
+                            // vm.$router.push({
+                            //     name: 'internal-meetings-dash'
+                            // });
+                        }, err => {
+                            swal.fire({
+                                title: 'Complete Error',
+                                text: helpers.apiVueResourceError(err),
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                        });
+                    }
+                }
+            }, (error) => {
+                vm.completingMeeting = false;
+            });
+        },
+        discardMeeting: function () {
+            let vm = this;
+            if(vm.userCanSchedule){
+                swal.fire({
+                title: "Discard Meeting",
+                text: "Are you sure you want to discard this meeting?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Discard Meeting',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    vm.$http.patch(api_endpoints.discard_meeting(vm.meeting_obj.id))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'Your meeting has been discarded',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.meeting_obj = response.body;
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            });
+            }
+            else{
+                swal.fire({
+                    title: "You do not have access to discard this meeting",
+                    text: "",
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
+                return false;
+            }
+        },
+        reinstateMeeting: function () {
+            let vm = this;
+            if(vm.userCanReinstate){
+            swal.fire({
+                title: "Reinstate Meeting",
+                text: "Are you sure you want to reinstate this meeting?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Reinstate Meeting',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    vm.$http.patch(api_endpoints.reinstate_meeting(vm.meeting_obj.id))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'Your meeting has been reinstated',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.meeting_obj = response.body;
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            });
+            }
+            else{
+                swal.fire({
+                    title: "You do not have access to reinstate this meeting",
+                    text: "",
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
+                return false;
+            }
         },
         submit: async function () {
             let vm = this;

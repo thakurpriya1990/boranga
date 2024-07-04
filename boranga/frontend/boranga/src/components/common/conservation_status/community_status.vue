@@ -92,7 +92,7 @@
                             <select id="approval_level" v-model="conservation_status_obj.approval_level"
                                 class="form-select" :disabled="approval_level_disabled" @change="approvalLevelChanged">
                                 <option :value="null">Select Appropriate Workflow</option>
-                                <option :value="'intermediate'">Intermediate</option>
+                                <option :value="'immediate'">Immediate</option>
                                 <option :value="'minister'">Ministerial</option>
                             </select>
                         </div>
