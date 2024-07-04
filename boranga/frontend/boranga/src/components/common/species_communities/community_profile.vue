@@ -178,7 +178,7 @@
         <BasicConservationStatus
             v-if="species_community.conservation_status && (conservation_status_public || is_internal)"
             :conservation_status="species_community.conservation_status" :is_internal="is_internal" />
-        <FormSection v-if="conservation_attributes_public || is_internal" :formCollapse="false"
+        <!-- <FormSection v-if="conservation_attributes_public || is_internal" :formCollapse="false"
             label="Conservation Attributes" Index="conservation_attributes">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Pollinator Information:</label>
@@ -296,7 +296,7 @@
                         placeholder="" v-model="species_community.conservation_attributes.other_relevant_diseases" />
                 </div>
             </div>
-        </FormSection>
+        </FormSection> -->
         <FormSection v-if="is_internal" :formCollapse="false" label="General" Index="general">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
