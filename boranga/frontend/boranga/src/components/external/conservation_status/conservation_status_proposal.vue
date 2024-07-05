@@ -412,7 +412,6 @@ export default {
         let vm = this;
         vm.form = document.forms.new_cs_proposal;
         window.addEventListener('beforeunload', vm.leaving);
-        window.addEventListener('onblur', vm.leaving);
     },
     beforeRouteEnter: function (to, from, next) {
         if (to.params.conservation_status_id) {
@@ -443,6 +442,9 @@ export default {
                     console.log(err);
                 });
         }
+    },
+    beforeDestroy: function () {
+        window.removeEventListener('beforeunload', this.leaving);
     }
 }
 </script>

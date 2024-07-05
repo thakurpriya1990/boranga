@@ -356,6 +356,8 @@ export default {
 
         },
         leaving: function (e) {
+            e.preventDefault();
+
             let vm = this;
             var dialogText = 'You have some unsaved changes.';
             if (!vm.ocr_proposal_readonly && !vm.submitting) {
@@ -532,6 +534,7 @@ export default {
                     }
                 }
                 vm.submitting = false;
+
             }, (error) => {
                 vm.submitting = false;
             });
@@ -561,7 +564,6 @@ export default {
         let vm = this;
         vm.form = document.forms.new_ocr_proposal;
         window.addEventListener('beforeunload', vm.leaving);
-        window.addEventListener('onblur', vm.leaving);
     },
     beforeRouteEnter: function (to, from, next) {
         if (to.params.occurrence_report_id) {
@@ -599,6 +601,9 @@ export default {
                     console.log(err);
                 });
         }
+    },
+    beforeDestroy: function () {
+        window.removeEventListener('beforeunload', this.leaving);
     }
 }
 </script>

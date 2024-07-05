@@ -52,9 +52,13 @@ export default {
                 columns: [
                     {
                         data: "occurrence__occurrence_number",
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: "contact_name",
+                        orderable: true,
+                        searchable: true,
                     },
                     {
                         data: "role",
@@ -100,13 +104,11 @@ export default {
                 ]
             },
             drawCallback: function () {
-                helpers.enablePopovers();
                 setTimeout(function () {
                     vm.adjust_table_width();
                 }, 100);
             },
             initComplete: function () {
-                helpers.enablePopovers();
                 // another option to fix the responsive table overflow css on tab switch
                 setTimeout(function () {
                     vm.adjust_table_width();
@@ -130,6 +132,7 @@ export default {
         },
         adjust_table_width: function () {
             if (this.$refs.contacts_datatable !== undefined) { this.$refs.contacts_datatable.vmDataTable.columns.adjust().responsive.recalc() };
+            helpers.enablePopovers();
         },
         removeContact: function(id) {
             let vm=this;   
@@ -163,6 +166,12 @@ export default {
                         }
                     });
                 }
+            });
+            vm.$refs.contacts_datatable.vmDataTable.on('draw', function(e) {
+                helpers.enablePopovers();
+            });
+            vm.$refs.contacts_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
             });
         }
     },

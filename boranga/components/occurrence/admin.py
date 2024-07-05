@@ -6,7 +6,7 @@ import nested_admin
 from boranga.components.occurrence.models import (
     AnimalHealth,
     BufferGeometry,
-    CoordinationSource,
+    CoordinateSource,
     CountedSubject,
     Datum,
     DeathReason,
@@ -23,6 +23,7 @@ from boranga.components.occurrence.models import (
     OccurrenceSite,
     OccurrenceTenure,
     OccurrenceTenurePurpose,
+    OccurrenceTenureVesting,
     PermitType,
     PlantCondition,
     PlantCountAccuracy,
@@ -375,6 +376,10 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
 class OccurrenceTenurePurposeAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(OccurrenceTenureVesting)
+class OccurrenceTenureVestingAdmin(admin.ModelAdmin):
+    pass
+
 
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm)
@@ -400,7 +405,7 @@ admin.site.register(SampleType)
 admin.site.register(SampleDestination)
 admin.site.register(PermitType)
 admin.site.register(Datum)
-admin.site.register(CoordinationSource)
+admin.site.register(CoordinateSource)
 admin.site.register(LocationAccuracy)
 admin.site.register(WildStatus)
 admin.site.register(OccurrenceSite)

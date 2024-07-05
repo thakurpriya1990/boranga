@@ -59,7 +59,7 @@ export default {
             reason:'',
             reason_id: null,
             amendingProposal: false,
-            proposal: vm.proposal_id 
+            proposal: vm.proposal_id
             },
             reason_choices: {},
             errors: false,
@@ -95,14 +95,14 @@ export default {
             this.errors = false;
             $(this.$refs.reason).val(null).trigger('change');
             $('.has-error').removeClass('has-error');
-            
+
             this.validation_form.resetForm();
         },
         fetchAmendmentChoices: function(){
             let vm = this;
             vm.$http.get('/api/amendment_request_reason_choices.json').then((response) => {
                 vm.reason_choices = response.body;
-                
+
             },(error) => {
                 console.log(error);
             } );
@@ -121,7 +121,7 @@ export default {
                         //vm.$parent.loading.splice('processing contact',1);
                         swal(
                              'Sent',
-                             'An email has been sent to applicant with the request to amend this Application',
+                             'An email has been sent to proponent with the request to amend this Proposal',
                              'success'
                         );
                         vm.amendingProposal = true;
@@ -130,20 +130,20 @@ export default {
                         Vue.http.get(`/api/proposal/${vm.proposal_id}/internal_proposal.json`).then((response)=>
                         {
                             vm.$emit('refreshFromResponse',response, vm.documents);
-                            
+
                         },(error)=>{
                             console.log(error);
                         });
                         vm.$router.push({ path: '/internal' }); //Navigate to dashboard after creating Amendment request
-                     
+
                     },(error)=>{
                         console.log(error);
                         vm.errors = true;
                         vm.errorString = helpers.apiVueResourceError(error);
                         vm.amendingProposal = true;
-                        
+
                     });
-                
+
 
         },
         formatText: function(text){
@@ -170,12 +170,12 @@ export default {
             vm.validation_form = $(vm.form).validate({
                 rules: {
                     reason: "required"
-                    
-                     
+
+
                 },
-                messages: {              
+                messages: {
                     reason: "field is required",
-                                         
+
                 },
                 showErrors: function(errorMap, errorList) {
                     $.each(this.validElements(), function(index, element) {
@@ -199,7 +199,7 @@ export default {
        },
        eventListerners:function () {
             let vm = this;
-            
+
             // Intialise select2
             $(vm.$refs.reason).select2({
                 "theme": "bootstrap",
@@ -219,7 +219,7 @@ export default {
 
             // let amendmentTextField = $('#amendment_text');
             // amendmentTextField.on(
-            //   'paste', 
+            //   'paste',
             //   (e) => {
             //       //console.log("plain text only");
             //       // cancel paste
@@ -254,7 +254,7 @@ export default {
        vm.form = document.forms.amendForm;
        vm.fetchAmendmentChoices();
        vm.addFormValidations();
-       this.$nextTick(()=>{  
+       this.$nextTick(()=>{
             vm.eventListerners();
         });
     //console.log(validate);

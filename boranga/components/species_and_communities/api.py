@@ -1,5 +1,6 @@
 import json
 import logging
+import mimetypes
 import os
 import subprocess
 from datetime import datetime
@@ -1259,6 +1260,24 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
         )
         return Response(serializer.data)
 
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def public_image(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.image_doc:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        extension = instance.image_doc._file.path.split(".")[-1].lower()
+        try:
+            content_type = mimetypes.types_map["." + str(extension)]
+        except KeyError:
+            raise ValueError(f"File type {extension} not supported")
+
+        return HttpResponse(instance.image_doc._file, content_type=content_type)
+
 
 class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Species.objects.none()
@@ -1297,6 +1316,24 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
             qs, many=True, context={"request": request}
         )
         return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def public_image(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.image_doc:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        extension = instance.image_doc._file.path.split(".")[-1].lower()
+        try:
+            content_type = mimetypes.types_map["." + str(extension)]
+        except KeyError:
+            raise ValueError(f"File type {extension} not supported")
+
+        return HttpResponse(instance.image_doc._file, content_type=content_type)
 
 
 class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
@@ -1924,19 +1961,51 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         ],
         detail=True,
     )
+    @transaction.atomic
     def upload_image(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.upload_image(request)
-        with transaction.atomic():
-            instance.save(version_user=request.user)
-            instance.log_user_action(
-                SpeciesUserAction.ACTION_IMAGE_UPDATE.format(f"{instance.id} "),
-                request,
-            )
+        speciesCommunitiesImageFile = request.data.get("speciesCommunitiesImage", None)
+        if not speciesCommunitiesImageFile:
+            raise serializers.ValidationError("No file provided")
+
+        instance.upload_image(speciesCommunitiesImageFile)
+        instance.save(version_user=request.user)
+        instance.log_user_action(
+            SpeciesUserAction.ACTION_IMAGE_UPDATE.format(f"{instance.id} "),
+            request,
+        )
         serializer = InternalSpeciesSerializer(
             instance, context={"request": request}, partial=True
         )
         return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def image_history(self, request, *args, **kwargs):
+        instance = self.get_object()
+        return Response(instance.image_history)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def reinstate_image(self, request, *args, **kwargs):
+        instance = self.get_object()
+        pk = request.data.get("pk", None)
+        if not pk:
+            raise serializers.ValidationError("No pk provided")
+        instance.reinstate_image(pk)
+        instance.log_user_action(
+            SpeciesUserAction.ACTION_IMAGE_REINSTATE.format(f"{instance.id} "),
+            request,
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @detail_route(
         methods=[
@@ -2310,20 +2379,51 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         ],
         detail=True,
     )
+    @transaction.atomic
     def upload_image(self, request, *args, **kwargs):
         instance = self.get_object()
-        # import ipdb; ipdb.set_trace()
-        instance.upload_image(request)
-        with transaction.atomic():
-            instance.save(version_user=request.user)
-            instance.log_user_action(
-                CommunityUserAction.ACTION_IMAGE_UPDATE.format(f"{instance.id} "),
-                request,
-            )
+        speciesCommunitiesImageFile = request.data.get("speciesCommunitiesImage", None)
+        if not speciesCommunitiesImageFile:
+            raise serializers.ValidationError("No file provided")
+
+        instance.upload_image(speciesCommunitiesImageFile)
+        instance.save(version_user=request.user)
+        instance.log_user_action(
+            CommunityUserAction.ACTION_IMAGE_UPDATE.format(f"{instance.id} "),
+            request,
+        )
         serializer = InternalCommunitySerializer(
             instance, context={"request": request}, partial=True
         )
         return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def image_history(self, request, *args, **kwargs):
+        instance = self.get_object()
+        return Response(instance.image_history)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    def reinstate_image(self, request, *args, **kwargs):
+        instance = self.get_object()
+        pk = request.data.get("pk", None)
+        if not pk:
+            raise serializers.ValidationError("No pk provided")
+        instance.reinstate_image(pk)
+        instance.log_user_action(
+            CommunityUserAction.ACTION_IMAGE_REINSTATE.format(f"{instance.id} "),
+            request,
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @detail_route(
         methods=[

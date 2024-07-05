@@ -43,6 +43,7 @@
                             can_edit: false,
                             can_buffer: false,
                             handler: bufferGeometryHandler, // Buffer geometries are a property of occurrence geometry. This handler returns the buffer geometries from the occurrence geometries.
+                            geometry_name: 'geometry',
                         },
                         {
                             name: 'site_layer',
@@ -52,7 +53,9 @@
                             can_edit: true,
                             can_buffer: false,
                             api_url: siteApiUrl,
-                            ids: [],
+                            query_param_key: 'occurrence_id',
+                            ids: [occurrence_obj.id],
+                            model_overwrite: { label: 'Site' },
                         },
                     ]" @features-loaded="mapFeaturesLoaded" @crs-select-search="searchForCRS"></MapComponent>
             </div>
@@ -115,12 +118,12 @@
             </div>
 
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Coordination Source:</label>
+                <label for="" class="col-sm-3 control-label">Coordinate Source:</label>
                 <div class="col-sm-9">
                     <select v-model="occurrence_obj.location
-                        .coordination_source_id
+                        .coordinate_source_id
                         " :disabled="isReadOnly" class="form-select">
-                        <option v-for="option in coordination_source_list" :key="option.id" :value="option.id">
+                        <option v-for="option in coordinate_source_list" :key="option.id" :value="option.id">
                             {{ option.name }}
                         </option>
                     </select>
@@ -192,7 +195,7 @@
             <FormSection :form-collapse="false" label="Occurrence Sites" Index="occurrence_sites_datatable">
                 <div>
                     <OccurrenceSiteDatatable v-if="occurrence_obj" ref="occurrence_sites_datatable"
-                        :key="datatableOCCSiteKey" :occurrence_obj="occurrence_obj">
+                        :key="datatableOCCSiteKey" :occurrence_obj="occurrence_obj" @updatedSites="updatedSites">
                     </OccurrenceSiteDatatable>
                 </div>
             </FormSection>
@@ -201,7 +204,10 @@
                 <div>
                     <OccurrenceTenureDatatable v-if="occurrence_obj" ref="occurrence_tenure_datatable"
                         :key="datatableOCCTenureKey" :occurrence-id="occurrence_obj.id"
-                        :href-container-id="getMapContainerId" @highlight-on-map="highlightPointOnMap">
+                        :href-container-id="getMapContainerId"
+                        @highlight-on-map="highlightPointOnMap"
+                        @edit-tenure-details="editTenureDetails"
+                    >
                     </OccurrenceTenureDatatable>
                 </div>
             </FormSection>
@@ -272,7 +278,7 @@ export default {
             updatingLocationDetails: false,
             listOfValuesDict: {},
             datum_list: [],
-            coordination_source_list: [],
+            coordinate_source_list: [],
             location_accuracy_list: [],
             mapReady: false,
             mapContainerId: false,
@@ -315,7 +321,7 @@ export default {
         },
         siteApiUrl: function () {
             // TODO: Update to use the correct endpoint
-            return null;
+            return '/api/occurrence_sites/list_for_map/';
         },
         bufferGeometriesApiUrl: function () {
             return api_endpoints.occurrence + 'buffer_geometries/';
@@ -356,9 +362,9 @@ export default {
             .then((data) => {
                 vm.listOfValuesDict = Object.assign({}, data);
                 vm.datum_list = vm.listOfValuesDict.datum_list;
-                vm.coordination_source_list =
-                    vm.listOfValuesDict.coordination_source_list;
-                vm.coordination_source_list.splice(0, 0, {
+                vm.coordinate_source_list =
+                    vm.listOfValuesDict.coordinate_source_list;
+                vm.coordinate_source_list.splice(0, 0, {
                     id: null,
                     name: null,
                 });
@@ -450,6 +456,8 @@ export default {
                 vm.$refs.component_map.setLoadingMap(true);
             }
 
+            payload.site_geometry = vm.$refs.component_map.getJSONFeatures("site_layer");
+
             // const res = await fetch(vm.proposal_form_url, {
             //     body: JSON.stringify(payload),
             //     method: 'POST',
@@ -512,6 +520,9 @@ export default {
             this.uuid_datatable_ocr = uuid();
             this.uuid_datatable_occ_site = uuid();
             this.uuid_datatable_occ_tenure = uuid();
+        },
+        updatedSites: function() {
+            this.incrementComponentMapKey()
         },
         searchForCRS: function (search, loading) {
             const vm = this;
@@ -580,6 +591,9 @@ export default {
         highlightIdOnMapLayer: function (id) {
             const feature = this.getMapFeatureById(id);
             this.$refs.component_map.centerOnFeature(feature);
+        },
+        editTenureDetails: function (id) {
+            console.log(id);
         },
         copyToMapLayer: function (id, target_layer) {
             console.log('Copy to map layer:', id, target_layer);

@@ -9,7 +9,7 @@ from django.db import models, transaction
 from django.db.models import CharField, Q, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from multiselectfield import MultiSelectField
@@ -37,7 +37,7 @@ from boranga.components.occurrence.filters import OccurrenceReportReferralFilter
 from boranga.components.occurrence.mixins import DatumSearchMixin
 from boranga.components.occurrence.models import (
     AnimalHealth,
-    CoordinationSource,
+    CoordinateSource,
     CountedSubject,
     Datum,
     DeathReason,
@@ -70,6 +70,8 @@ from boranga.components.occurrence.models import (
     OccurrenceReportUserAction,
     OccurrenceSite,
     OccurrenceTenure,
+    OccurrenceTenurePurpose,
+    OccurrenceTenureVesting,
     OccurrenceUserAction,
     OCCVegetationStructure,
     OCRAnimalObservation,
@@ -127,6 +129,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceReportUserActionSerializer,
     OccurrenceSerializer,
     OccurrenceSiteSerializer,
+    OccurrenceTenureSaveSerializer,
     OccurrenceTenureSerializer,
     OccurrenceUserActionSerializer,
     OCRConservationThreatSerializer,
@@ -890,11 +893,11 @@ class OccurrenceReportViewSet(
             epsg_codes = list(set(epsg_codes))
             datum_list = search_datums("", codes=epsg_codes)
 
-        coordination_source_list = []
-        values = CoordinationSource.objects.all()
+        coordinate_source_list = []
+        values = CoordinateSource.objects.all()
         if values:
             for val in values:
-                coordination_source_list.append(
+                coordinate_source_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
@@ -912,7 +915,7 @@ class OccurrenceReportViewSet(
                 )
         res_json = {
             "datum_list": datum_list,
-            "coordination_source_list": coordination_source_list,
+            "coordinate_source_list": coordinate_source_list,
             "location_accuracy_list": location_accuracy_list,
         }
         res_json = json.dumps(res_json)
@@ -3507,6 +3510,25 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({"values_list": values_list.data, "id_list": id_list})
         return Response()
 
+    @list_route(
+        methods=[
+            "POST",
+        ],
+        detail=False,
+    )
+    def combine_tenures_lookup(self, request, *args, **kwargs):
+        if is_internal(self.request):
+            occ_ids = json.loads(request.POST.get("occurrence_ids"))
+            tenures = OccurrenceTenure.objects.filter(
+                Q(occurrence_geometry__occurrence__id__in=occ_ids) | Q(historical_occurrence__in=occ_ids)
+            )
+
+            values_list = ListOccurrenceTenureSerializer(tenures,context={"request": request}, many=True)
+            id_list = list(tenures.values_list("id", flat=True))
+
+            return Response({"values_list": values_list.data, "id_list": id_list})
+        return Response()
+
     @detail_route(
         methods=[
             "GET",
@@ -4418,11 +4440,11 @@ class OccurrenceViewSet(
             epsg_codes = list(set(epsg_codes))
             datum_list = search_datums("", codes=epsg_codes)
 
-        coordination_source_list = []
-        values = CoordinationSource.objects.all()
+        coordinate_source_list = []
+        values = CoordinateSource.objects.all()
         if values:
             for val in values:
-                coordination_source_list.append(
+                coordinate_source_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
@@ -4440,7 +4462,7 @@ class OccurrenceViewSet(
                 )
         res_json = {
             "datum_list": datum_list,
-            "coordination_source_list": coordination_source_list,
+            "coordinate_source_list": coordinate_source_list,
             "location_accuracy_list": location_accuracy_list,
         }
         res_json = json.dumps(res_json)
@@ -4583,6 +4605,24 @@ class OccurrenceViewSet(
                         occurrence_geometry, value.get("features", [])
                     )
 
+        occ_sites = OccurrenceSite.objects
+        site_geometry_data = json.loads(request.data.get("site_geometry", None))
+        if site_geometry_data and "features" in site_geometry_data:
+            for i in site_geometry_data["features"]:
+                try:
+                    update_site = occ_sites.get(site_number=i["properties"]["site_number"])
+                    point_data = 'POINT({0} {1})'.format(i["geometry"]["coordinates"][0],i["geometry"]["coordinates"][1])
+                    original_point_data = 'POINT({0} {1})'.format(i["properties"]["original_geometry"]["coordinates"][0],i["properties"]["original_geometry"]["coordinates"][1])
+                    
+                    geom_4326 = GEOSGeometry(point_data, srid=4326)
+                    geom_original = GEOSGeometry(original_point_data, srid=int(i["properties"]["original_geometry"]["properties"]["srid"])).ewkb
+
+                    update_site.geometry = geom_4326
+                    update_site.original_geometry_ewkb = geom_original
+                    update_site.save() #TODO add version_user when history implemented
+                except Exception as e:
+                    print(e)
+
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
 
@@ -4671,6 +4711,24 @@ class OccurrenceViewSet(
                     populate_occurrence_tenure_data(
                         occurrence_geometry, value.get("features", [])
                     )
+
+        occ_sites = OccurrenceSite.objects
+        site_geometry_data = json.loads(request.data.get("site_geometry", None))
+        if site_geometry_data and "features" in site_geometry_data:
+            for i in site_geometry_data["features"]:
+                try:
+                    update_site = occ_sites.get(site_number=i["properties"]["site_number"])
+                    point_data = 'POINT({0} {1})'.format(i["geometry"]["coordinates"][0],i["geometry"]["coordinates"][1])
+                    original_point_data = 'POINT({0} {1})'.format(i["properties"]["original_geometry"]["coordinates"][0],i["properties"]["original_geometry"]["coordinates"][1])
+                    
+                    geom_4326 = GEOSGeometry(point_data, srid=4326)
+                    geom_original = GEOSGeometry(original_point_data, srid=int(i["properties"]["original_geometry"]["properties"]["srid"])).ewkb
+
+                    update_site.geometry = geom_4326
+                    update_site.original_geometry_ewkb = geom_original
+                    update_site.save() #TODO add version_user when history implemented
+                except Exception as e:
+                    print(e)
 
         # the request.data is only the habitat composition data thats been sent from front end
         location_data = request.data.get("location")
@@ -5381,9 +5439,7 @@ class OccurrenceTenureFilterBackend(DatatablesFilterBackend):
             if tenure_area_id
             else queryset
         )
-        # TODO: Implement vesting filtering after implementing the vesting field
-        logger.debug(f"vesting: {vesting}")  # use variable or remove
-        # queryset = queryset.filter(vesting=vesting) if vesting else queryset
+        queryset = queryset.filter(vesting=vesting) if vesting else queryset
         queryset = queryset.filter(purpose=purpose) if purpose else queryset
 
         fields = self.get_fields(request)
@@ -5441,7 +5497,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def occurrence_tenure_internal(self, request, *args, **kwargs):
-        qs = self.get_queryset()
+        qs = self.get_queryset().distinct()
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
@@ -5494,7 +5550,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def occurrence_tenure_vesting_lookup(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.get_queryset().exclude(vesting=None)
 
         search_term = request.GET.get("term", "")
         occurrence_id = request.GET.get("occurrence_id", None)
@@ -5504,12 +5560,12 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         results = []
         if search_term:
-            # TODO: Implement vesting filtering after implementing the vesting field
-            # queryset = queryset.filter(vesting__icontains=search_term).distinct()[:10]
-            # results = [
-            #     {"id": row.vesting, "text": row.vesting} for row in queryset
-            # ]
-            results = [{"id": 1, "text": queryset[0].vesting}]
+            queryset = queryset.filter(
+                vesting__name__icontains=search_term
+            ).distinct()[:10]
+        results = [
+            {"id": row.vesting.id, "text": row.vesting.name} for row in queryset
+        ]
 
         return Response({"results": results})
 
@@ -5520,7 +5576,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def occurrence_tenure_purpose_lookup(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.get_queryset().exclude(purpose=None)
 
         search_term = request.GET.get("term", "")
         occurrence_id = request.GET.get("occurrence_id", None)
@@ -5530,13 +5586,89 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         if search_term:
             queryset = queryset.filter(
-                purpose__purpose__icontains=search_term
+                purpose__name__icontains=search_term
             ).distinct()[:10]
-            results = [
-                {"id": row.purpose.id, "text": row.purpose.purpose} for row in queryset
-            ]
+        results = [
+            {"id": row.purpose.id, "text": row.purpose.name} for row in queryset
+        ]
 
         return Response({"results": results})
+
+
+class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+    queryset = OccurrenceTenure.objects.none()
+    serializer_class = OccurrenceTenureSerializer
+
+    def is_authorised_to_update(self, occurrence):
+        if not (
+            is_occurrence_approver(self.request)
+            and (
+                occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+                or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+            )
+        ):
+            raise serializers.ValidationError(
+                "User not authorised to update Occurrence"
+            )
+
+    def get_queryset(self):
+        qs = self.queryset
+
+        if is_internal(self.request):
+            qs = OccurrenceTenure.objects.all().order_by("id")
+        return qs
+
+    def retrieve(self, request, pk=None):
+        queryset = self.get_queryset()
+        tenure_obj = get_object_or_404(queryset, pk=pk)
+        serializer = OccurrenceTenureSerializer(tenure_obj)
+        self.is_authorised_to_update(tenure_obj.occurrence)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
+
+        data = request.data.get("data", {})
+
+        serializer = OccurrenceTenureSaveSerializer(
+            instance, data=data
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data.get("data")
+
+        serializer = OccurrenceTenureSaveSerializer(
+            data=data
+        )
+        serializer.is_valid(raise_exception=True)
+
+        self.is_authorised_to_update(instance.occurrence)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_tenure_list_of_values(self, request, *args, **kwargs):
+        purpose_list = list(OccurrenceTenurePurpose.objects.all().values("id", "name"))
+        vesting_list = list(OccurrenceTenureVesting.objects.all().values("id", "name"))
+
+        res_json = {
+            "purpose_list": purpose_list,
+            "vesting_list": vesting_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
 
 
 class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
@@ -5688,7 +5820,13 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         data = json.loads(request.data.get("data"))
         point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
-        data["geometry"] = GEOSGeometry(point_data, srid=data["datum"])
+
+        original_geom = GEOSGeometry(point_data, srid=data["datum"])
+        geom = GEOSGeometry(point_data, srid=data["datum"])
+        geom.transform(4326)
+        
+        data["original_geometry_ewkb"] = original_geom.ewkb
+        data["geometry"] = geom
 
         serializer = SaveOccurrenceSiteSerializer(
             instance, data=data
@@ -5709,13 +5847,21 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         instance = serializer.save()
 
+        serializer = OccurrenceSiteSerializer(instance)
+
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
 
         data = json.loads(request.data.get("data"))
         point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
-        data["geometry"] = GEOSGeometry(point_data, srid=data["datum"])
+
+        original_geom = GEOSGeometry(point_data, srid=data["datum"])
+        geom = GEOSGeometry(point_data, srid=data["datum"])
+        geom.transform(4326)
+        
+        data["original_geometry_ewkb"] = original_geom.ewkb
+        data["geometry"] = geom
 
         serializer = SaveOccurrenceSiteSerializer(
             data=data
@@ -5733,6 +5879,8 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         self.is_authorised_to_update(occurrence)
         serializer.save()
+
+        serializer = OccurrenceSiteSerializer(serializer.instance)
 
         return Response(serializer.data)
 
@@ -5785,7 +5933,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def site_list_of_values(self, request, *args, **kwargs):
 
         site_type_list = list(SiteType.objects.values("id", "name"))
-        datum_list = list(Datum.objects.values("name","srid"))
+        datum_list = list({"srid":datum.srid,"name":datum.name} for datum in Datum.objects.all())
 
         res_json = {
             "site_type_list": site_type_list,
@@ -5797,13 +5945,10 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @list_route(methods=["GET"], detail=False)
     def list_for_map(self, request, *args, **kwargs):
         occurrence_id = request.GET.get("occurrence_id")
-        print(occurrence_id)
-        qs = self.get_queryset().filter(occurrence_id=occurrence_id).exclude(geometry=None)
-        print(qs.count())
+        qs = self.get_queryset().filter(occurrence_id=occurrence_id).exclude(geometry=None).exclude(visible=False)
         serializer = SiteGeometrySerializer(
             qs, many=True
         )
-        print(serializer.data)
         return Response(serializer.data)
 
 

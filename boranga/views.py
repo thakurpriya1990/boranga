@@ -17,7 +17,7 @@ from boranga.components.conservation_status.models import (
     ConservationStatusReferral,
 )
 from boranga.components.meetings.models import Meeting
-from boranga.components.occurrence.models import OccurrenceReport, Occurrence
+from boranga.components.occurrence.models import Occurrence, OccurrenceReport
 from boranga.components.species_and_communities.models import Community, Species
 from boranga.forms import LoginForm
 from boranga.helpers import (
@@ -141,6 +141,7 @@ class ExternalOccurrenceReportView(DetailView):
     model = OccurrenceReport
     template_name = "boranga/dash/index.html"
 
+
 class InternalOccurrenceView(DetailView):
     model = Occurrence
     template_name = "boranga/dash/index.html"
@@ -262,7 +263,7 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
             or is_occurrence_approver(request)
         )
     elif is_external_contributor(request):
-        allowed_paths = ["documents"]
+        allowed_paths = ["documents", "amendment_request_documents"]
         path = request.path
         user = request.user
         return OccurrenceReport.objects.filter(
@@ -385,7 +386,7 @@ def getPrivateFile(request):
 
     if is_authorised_to_access_document(request):
         # we then ensure the normalised path is within the BASE_DIR (and the file exists)
-        extension = file_name_path.split(".")[-1]
+        extension = file_name_path.split(".")[-1].lower()
         the_file = open(full_file_path, "rb")
         the_data = the_file.read()
         the_file.close()
@@ -394,8 +395,11 @@ def getPrivateFile(request):
         if extension == "eml":
             return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
 
-        return HttpResponse(
-            the_data, content_type=mimetypes.types_map["." + str(extension)]
-        )
+        try:
+            content_type = mimetypes.types_map["." + str(extension)]
+        except KeyError:
+            raise ValueError(f"Extension {extension} not found in mimetypes.types_map")
+
+        return HttpResponse(the_data, content_type=content_type)
 
     return HttpResponse("Unauthorized", status=401)

@@ -100,7 +100,8 @@ export async function fetchTileLayers(map_component, tileLayerApiUrl) {
 export async function fetchProposals(
     map_component,
     proposalApiUrl,
-    proposalIds
+    proposalIds,
+    queryParamKey = 'proposal_ids'
 ) {
     if (!proposalApiUrl) {
         console.warn('No proposal API URL provided');
@@ -117,7 +118,7 @@ export async function fetchProposals(
     let proposals = [];
 
     if (proposalIds.length > 0) {
-        url += `${chars.pop()}proposal_ids=` + proposalIds.toString();
+        url += `${chars.pop()}${queryParamKey}=` + proposalIds.toString();
     }
     await fetch(url)
         .then(async (response) => {

@@ -2,7 +2,7 @@
     <div id="speciesStatus">
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
             <form @change="$emit('saveConservationStatus')">
-                <template v-if="!is_external">
+                <template v-if="!is_external && !conservation_status_obj.can_user_edit">
                     <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments"
                         :collapsed="false">
                         <div class="row">
@@ -98,7 +98,7 @@
                             <select id="approval_level" v-model="conservation_status_obj.approval_level"
                                 class="form-select" :disabled="approval_level_disabled" @change="approvalLevelChanged">
                                 <option :value="null">Select Appropriate Workflow</option>
-                                <option :value="'intermediate'">Intermediate</option>
+                                <option :value="'immediate'">Immediate</option>
                                 <option :value="'minister'">Ministerial</option>
                             </select>
                         </div>

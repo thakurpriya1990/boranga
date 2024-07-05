@@ -257,14 +257,14 @@
                                             </div>
                                         </div>
                                         <div class="row"
-                                            v-if="conservation_status_obj.approval_level == 'intermediate'">
+                                            v-if="conservation_status_obj.approval_level == 'immediate'">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="declineProposal()">Decline</button><br />
                                             </div>
                                         </div>
                                         <div class="row"
-                                            v-if="conservation_status_obj.approval_level == 'intermediate'">
+                                            v-if="conservation_status_obj.approval_level == 'immediate'">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="issueProposal()">Approve</button><br />
