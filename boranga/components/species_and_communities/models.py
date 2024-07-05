@@ -892,6 +892,7 @@ class Species(RevisionedMixin):
 
     @property
     def area_of_occupancy_m2(self):
+        # TODO: For fauna we need to include the buffers around the points in the following methods
         from boranga.components.occurrence.models import OccurrenceGeometry
 
         area = (
