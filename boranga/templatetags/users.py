@@ -77,7 +77,7 @@ def is_internal_contributor(context):
 
 
 @register.simple_tag(takes_context=True)
-def show_internal_species_communities_menu_item(context):
+def show_internal_menu_items(context):
     request = context["request"]
     if not request.user.is_authenticated:
         return False
@@ -90,42 +90,6 @@ def show_internal_species_communities_menu_item(context):
         or boranga_helpers.is_occurrence_assessor(request)
         or boranga_helpers.is_readonly_user(request)
         or boranga_helpers.is_species_communities_approver(request)
-    )
-
-
-@register.simple_tag(takes_context=True)
-def show_internal_occurences_menu_item(context):
-    request = context["request"]
-    if not request.user.is_authenticated:
-        return False
-    return (
-        request.user.is_superuser
-        or boranga_helpers.is_conservation_status_approver(request)
-        or boranga_helpers.is_conservation_status_assessor(request)
-        or boranga_helpers.is_internal_contributor(request)
-        or boranga_helpers.is_occurrence_approver(request)
-        or boranga_helpers.is_occurrence_assessor(request)
-        or boranga_helpers.is_readonly_user(request)
-        or boranga_helpers.is_species_communities_approver(request)
-        or boranga_helpers.is_occurrence_report_referee(request)
-    )
-
-
-@register.simple_tag(takes_context=True)
-def show_internal_conservation_status_menu_item(context):
-    request = context["request"]
-    if not request.user.is_authenticated:
-        return False
-    return (
-        request.user.is_superuser
-        or boranga_helpers.is_conservation_status_approver(request)
-        or boranga_helpers.is_conservation_status_assessor(request)
-        or boranga_helpers.is_internal_contributor(request)
-        or boranga_helpers.is_occurrence_approver(request)
-        or boranga_helpers.is_occurrence_assessor(request)
-        or boranga_helpers.is_readonly_user(request)
-        or boranga_helpers.is_species_communities_approver(request)
-        or boranga_helpers.is_conservation_status_referee(request)
     )
 
 
