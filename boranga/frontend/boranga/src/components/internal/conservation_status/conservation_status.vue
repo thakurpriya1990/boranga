@@ -33,7 +33,7 @@
                                                     :value="member.id">{{ member.first_name }} {{ member.last_name }}
                                                 </option>
                                             </select>
-                                            <a v-if="canAssess && conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
+                                            <a v-if="conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
                                                 @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
                                                 to me</a>
                                         </template>
@@ -196,7 +196,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-if="isFinalised && canAction" class="card-body border-top">
+
+                        <div v-if="show_finalised_actions" class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
                                     <div class="row">
@@ -213,7 +214,7 @@
                                             </div>
                                         </div>
                                     </template>
-                                    <template v-if="canUnlock">
+                                    <template v-if="canAction && canUnlock">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
@@ -221,7 +222,7 @@
                                             </div>
                                         </div>
                                     </template>
-                                    <template v-if="canLock">
+                                    <template v-if="canAction && canLock">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
@@ -609,6 +610,9 @@ export default {
                 this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver &&
                 this.conservation_status_obj.processing_status === "Unlocked";
         },
+        show_finalised_actions: function () {
+            return (this.hasAssessorMode && this.conservation_status_obj.processing_status == 'Approved') || this.canAction && (this.canUnlock || this.canLock);
+        }
     },
     methods: {
         commaToNewline(s) {
@@ -779,7 +783,6 @@ export default {
             // TODO Add any other required validation for other statuses
             let missing_fields = [];
             for (let field of required_fields) {
-                console.log('Checking field:', field.id)
                 if (this.conservation_status_obj[field.id] == null || this.conservation_status_obj[field.id] == '') {
                     missing_fields.push(field.display);
                 }
@@ -1018,7 +1021,6 @@ export default {
             let vm = this;
             let unassign = true;
             let data = {};
-            console.log(vm.conservation_status_obj.assigned_approver);
             if (['With Approver', 'Ready For Agenda', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                 unassign = vm.conservation_status_obj.assigned_approver != null && vm.conservation_status_obj.assigned_approver != 'undefined' ? false : true;
                 data = { 'assessor_id': vm.conservation_status_obj.assigned_approver };
@@ -1027,7 +1029,6 @@ export default {
                 unassign = vm.conservation_status_obj.assigned_officer != null && vm.conservation_status_obj.assigned_officer != 'undefined' ? false : true;
                 data = { 'assessor_id': vm.conservation_status_obj.assigned_officer };
             }
-            console.log(`unassign: ${unassign}`);
             if (!unassign) {
                 vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assign_to')), JSON.stringify(data), {
                     emulateJSON: true
@@ -1133,7 +1134,6 @@ export default {
                     var selected = $(e.currentTarget);
                     if (['Ready For Agenda', 'With Approver', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                         vm.conservation_status_obj.assigned_approver = null;
-                        console.log('Unselect', vm.conservation_status_obj.assigned_approver);
                     }
                     else {
                         vm.conservation_status_obj.assigned_officer = null;
