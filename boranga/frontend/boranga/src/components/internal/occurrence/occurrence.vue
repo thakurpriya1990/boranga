@@ -261,6 +261,8 @@ export default {
                 );
                 vm.occurrence.occ_geometry =
                     vm.$refs.occurrence.$refs.occ_location.$refs.component_map.getJSONFeatures();
+                vm.occurrence.site_geometry =
+                    vm.$refs.occurrence.$refs.occ_location.$refs.component_map.getJSONFeatures("site_layer");
             }
 
             let payload = new Object();
