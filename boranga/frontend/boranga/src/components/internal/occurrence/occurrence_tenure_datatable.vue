@@ -188,10 +188,13 @@ export default {
         },
         column_featureid: function () {
             return {
-                data: 'featureid',
+                data: 'tenure_area_id',
                 orderable: true,
                 searchable: true,
                 visible: true,
+                render: function (data, type, row) {
+                    return row.featureid;
+                },
             };
         },
         column_tenure_area_id: function () {
@@ -213,6 +216,7 @@ export default {
         column_vesting: function () {
             return {
                 data: 'vesting',
+                name: 'vesting.name',
                 orderable: true,
                 searchable: true,
                 visible: true,
@@ -221,6 +225,7 @@ export default {
         column_purpose: function () {
             return {
                 data: 'purpose',
+                name: 'purpose.name',
                 orderable: true,
                 searchable: true,
                 visible: true,
@@ -244,10 +249,13 @@ export default {
         },
         column_status: function () {
             return {
-                data: 'status_display',
+                data: 'status',
                 orderable: true,
                 searchable: true,
                 visible: true,
+                render: function (data, type, row) {
+                    return row.status_display;
+                },
             };
         },
         column_datetime_updated: function () {
@@ -348,6 +356,7 @@ export default {
                 ],
                 columns: columns,
                 processing: true,
+                serverSide: true,
                 // eslint-disable-next-line no-unused-vars
                 initComplete: function (settings, json) {
                     //
