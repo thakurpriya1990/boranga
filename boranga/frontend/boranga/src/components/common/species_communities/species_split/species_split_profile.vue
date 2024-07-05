@@ -1139,6 +1139,27 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label for="conservation_plan_exists" class="col-sm-3 col-form-label">Conservation Plan Exists: </label>
+                <div class="col-sm-9">
+                    <label for="conservation_plan_exists" class="me-2">No</label>
+                    <input :disabled="isReadOnly" type="radio" :value="false" class="form-check-input me-2"
+                        id="conservation_plan_exists" v-model="species_community.conservation_plan_exists">
+                    <label for="conservation_plan_exists" class="me-2">Yes</label>
+                    <input :disabled="isReadOnly" type="radio" :value="true" class="form-check-input"
+                        id="conservation_plan_exists" v-model="species_community.conservation_plan_exists"
+                        @change="focusConservationPlanReference">
+                </div>
+            </div>
+            <div v-if="species_community.conservation_plan_exists" class="row mb-3">
+                <label for="conservation_plan_reference" class="col-sm-3 col-form-label">Conservation Plan Reference /
+                    Location: </label>
+                <div class="col-sm-9">
+                    <input :disabled="isReadOnly" type="text" class="form-control" name="conservation_plan_reference"
+                        ref="conservation_plan_reference" @change="checkDate()"
+                        v-model="species_community.conservation_plan_reference" />
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Comment:</label>
                 <div class="col-sm-8">
                     <textarea :disabled="true" class="form-control" rows="3" id="comment" placeholder="" v-model="species_original.comment"/>
