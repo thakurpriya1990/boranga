@@ -267,8 +267,10 @@ export default {
                 visible: true,
                 // eslint-disable-next-line no-unused-vars
                 render: function (data, type, row) {
-                    const coordinates = row.tenure_area_centroid
-                        ? JSON.stringify(row.tenure_area_centroid.coordinates)
+                    const coordinates = row.tenure_area_point_on_surface
+                        ? JSON.stringify(
+                              row.tenure_area_point_on_surface.coordinates
+                          )
                         : '';
                     let html = `<a href="#${vm.hrefContainerId}" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
                     html += `<br><a href="#" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;

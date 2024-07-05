@@ -3199,6 +3199,7 @@ class OccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "comments",
             "significant_to_occurrence",
             "tenure_area_centroid",
+            "tenure_area_point_on_surface",
             "datetime_updated",
         )
 
@@ -3223,6 +3224,7 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "comments",
             "significant_to_occurrence",
             "tenure_area_centroid",
+            "tenure_area_point_on_surface",
             "datetime_updated",
             "occurrence_number",
             "occurrence_id",
@@ -3240,6 +3242,7 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "comments",
             "significant_to_occurrence",
             "tenure_area_centroid",
+            "tenure_area_point_on_surface",
             "datetime_updated",
         )
 
