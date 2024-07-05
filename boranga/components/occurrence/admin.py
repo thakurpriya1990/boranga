@@ -6,7 +6,7 @@ import nested_admin
 from boranga.components.occurrence.models import (
     AnimalHealth,
     BufferGeometry,
-    CoordinationSource,
+    CoordinateSource,
     CountedSubject,
     Datum,
     DeathReason,
@@ -405,7 +405,7 @@ admin.site.register(SampleType)
 admin.site.register(SampleDestination)
 admin.site.register(PermitType)
 admin.site.register(Datum)
-admin.site.register(CoordinationSource)
+admin.site.register(CoordinateSource)
 admin.site.register(LocationAccuracy)
 admin.site.register(WildStatus)
 admin.site.register(OccurrenceSite)

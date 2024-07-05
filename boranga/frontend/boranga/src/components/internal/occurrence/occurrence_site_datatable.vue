@@ -284,6 +284,7 @@ export default {
         },
         updatedSites: function() {
             this.$refs.occurrence_site_datatable.vmDataTable.ajax.reload();
+            this.$emit('updatedSites');
         },
         discardSite: function (id) {
             let vm = this;
@@ -310,7 +311,7 @@ export default {
                                     confirmButton: 'btn btn-primary',
                                 },
                             }).then((result) => {
-                                vm.$refs.occurrence_site_datatable.vmDataTable.ajax.reload();
+                                vm.updatedSites();
                             });
                         }, (error) => {
                             console.log(error);
@@ -332,7 +333,7 @@ export default {
                         confirmButton: 'btn btn-primary',
                     },
                 }).then((result) => {
-                    vm.$refs.occurrence_site_datatable.vmDataTable.ajax.reload();
+                    vm.updatedSites();
                 });
             }, (error) => {
                 var errorText = helpers.apiVueResourceError(error);
