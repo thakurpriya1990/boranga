@@ -5563,7 +5563,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         results = []
         if search_term:
             queryset = queryset.filter(
-                vesting__vesting__icontains=search_term
+                vesting__name__icontains=search_term
             ).distinct()[:10]
         results = [
             {"id": row.vesting.id, "text": row.vesting.name} for row in queryset
@@ -5588,7 +5588,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         if search_term:
             queryset = queryset.filter(
-                purpose__purpose__icontains=search_term
+                purpose__name__icontains=search_term
             ).distinct()[:10]
         results = [
             {"id": row.purpose.id, "text": row.purpose.name} for row in queryset

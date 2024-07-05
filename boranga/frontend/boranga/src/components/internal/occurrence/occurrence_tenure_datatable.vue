@@ -348,6 +348,7 @@ export default {
                 ],
                 columns: columns,
                 processing: true,
+                // serverSide: true,
                 // eslint-disable-next-line no-unused-vars
                 initComplete: function (settings, json) {
                     //
