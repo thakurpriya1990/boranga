@@ -409,12 +409,18 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         return is_new_external_contributor(obj.submitter)
 
     def get_location_accuracy(self, obj):
-        if obj.location and obj.location.location_accuracy:
-            return obj.location.location_accuracy.name
+        try:
+            if obj.location and obj.location.location_accuracy:
+                return obj.location.location_accuracy.name
+        except:
+            return ""
 
     def get_identification_certainty(self, obj):
-        if obj.identification and obj.identification.identification_certainty:
-            return obj.identification.identification_certainty.name
+        try:
+            if obj.identification and obj.identification.identification_certainty:
+                return obj.identification.identification_certainty.name
+        except:
+            return ""
 
     def get_main_observer(self, obj):
         if obj.observer_detail.filter(main_observer=True).exists():
