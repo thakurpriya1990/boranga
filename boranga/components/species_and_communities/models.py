@@ -4,15 +4,19 @@ import os
 import subprocess
 
 import reversion
+import shapely.geometry as shp
 from django.conf import settings
+from django.contrib.gis.db import models as gis_models
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
+from django.db.models.functions import Cast
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
+from pyproj import Geod
 from reversion.models import Version
 
 from boranga.components.main.models import (
@@ -879,6 +883,62 @@ class Species(RevisionedMixin):
             SpeciesUserAction.ACTION_REINSTATE_SPECIES.format(self.species_number),
             request,
         )
+
+    @property
+    def occurrence_count(self):
+        from boranga.components.occurrence.models import Occurrence
+
+        return Occurrence.objects.filter(species=self).count()
+
+    @property
+    def area_of_occupancy_m2(self):
+        # TODO: For fauna we need to include the buffers around the points in the following methods
+        from boranga.components.occurrence.models import OccurrenceGeometry
+
+        area = (
+            OccurrenceGeometry.objects.filter(occurrence__species=self)
+            .aggregate(sum=Sum("area"))["sum"]
+            .sq_m
+        )
+
+        if not area:
+            return 0
+
+        return area
+
+    @property
+    def area_of_occupancy_km2(self):
+        if not self.area_of_occupancy_m2:
+            return 0
+
+        return round(self.area_of_occupancy_m2 / 1000000)
+
+    @property
+    def area_occurrence_convex_hull_m2(self):
+        from boranga.components.occurrence.models import OccurrenceGeometry
+
+        occurrences = (
+            OccurrenceGeometry.objects.filter(occurrence__species=self)
+            .annotate(geom=Cast("geometry", gis_models.GeometryField(geography=True)))
+            .values_list("geometry", flat=True)
+        )
+
+        if not occurrences:
+            return 0
+
+        convex_hull = shp.MultiPolygon(occurrences).convex_hull
+
+        geod = Geod(ellps="WGS84")
+        geod_area = abs(geod.geometry_area_perimeter(convex_hull)[0])
+
+        return geod_area
+
+    @property
+    def area_occurrence_convex_hull_km2(self):
+        if not self.area_occurrence_convex_hull_m2:
+            return 0
+
+        return round(self.area_occurrence_convex_hull_m2 / 1000000)
 
 
 class SpeciesLogDocument(Document):

@@ -862,6 +862,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         if self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
         ]:
             return is_conservation_status_assessor(request)
         elif self.processing_status in [
@@ -910,7 +911,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     def has_assessor_mode(self, request):
         status_without_assessor = [
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
-            ConservationStatus.PROCESSING_STATUS_APPROVED,
             ConservationStatus.PROCESSING_STATUS_CLOSED,
             ConservationStatus.PROCESSING_STATUS_DECLINED,
             ConservationStatus.PROCESSING_STATUS_DRAFT,
@@ -922,7 +922,10 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 return is_conservation_status_approver(request)
 
             return False
-
+        elif self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
+            return is_conservation_status_assessor(
+                request
+            ) or is_conservation_status_approver(request)
         else:
             if not self.assigned_officer:
                 return False

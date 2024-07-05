@@ -2,7 +2,8 @@
     <div id="species">
         <FormSection :formCollapse="false" label="Taxonomy" :Index="taxonBody">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label fw-bold">Scientific Name: <span class="text-danger">*</span></label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">Scientific Name: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9" :id="select_scientific_name">
                     <select :disabled="rename_species ? false : isReadOnly" :id="scientific_name_lookup"
                         :name="scientific_name_lookup" :ref="scientific_name_lookup" class="form-select" />
@@ -74,7 +75,8 @@
         <FormSection v-if="distribution_public || is_internal" :formCollapse="false" label="Distribution"
             :Index="distributionBody">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label fw-bold">Distribution: <span class="text-danger">*</span></label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">Distribution: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" class="form-control" rows="1" id="distribution" placeholder=""
                         v-model="species_community.distribution.distribution" />
@@ -93,7 +95,8 @@
                 </div>
             </div>
             <div v-if="species_community.regions" class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label fw-bold">District: <span class="text-danger">*</span></label>
+                <label for="" class="col-sm-3 col-form-label fw-bold">District: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select" v-model="species_community.districts"
                         ref="districts_select">
@@ -104,108 +107,111 @@
                     </select>
                 </div>
             </div>
-            <!-- <div v-if="species_community.region_id" class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">District:</label>
-                <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" v-model="species_community.district_id">
-                        <option value="" selected disabled>Select district</option>
-                        <option v-for="option in district_list" :value="option.value" v-bind:key="option.value">
-                            {{ option.text }}
-                        </option>
-                    </select>
+            <div class="row mb-3 border-top pt-3">
+                <label for="" class="col-sm-4 col-form-label">Number of Occurrences:</label>
+                <div class="col-sm-4">
+                    <input v-if="species_community.distribution.noo_auto" :disabled="isNOOReadOnly" type="number"
+                        class="form-control" id="no_of_occurrences" placeholder=""
+                        v-model="species_community.occurrence_count" />
+                    <input v-else :disabled="isNOOReadOnly" type="number" class="form-control" id="no_of_occurrences"
+                        placeholder="" ref="number_of_occurrences"
+                        v-model="species_community.distribution.number_of_occurrences" />
                 </div>
-            </div> -->
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Number of Occurrences:</label>
-                <div class="col-sm-6">
-                    <input :disabled="isNOOReadOnly" type="number" class="form-control" id="no_of_occurrences"
-                        placeholder="" v-model="species_community.distribution.number_of_occurrences" />
-                </div>
-                <div class="col-sm-3">
+                <div class="col-sm-3 d-flex align-items-center">
                     <div class="form-check form-check-inline">
-                        <input :disabled="isReadOnly" type="radio" value="true" class="form-check-input" id="noo_auto"
+                        <input :disabled="isReadOnly" type="radio" :value="true" class="form-check-input" id="noo_auto"
                             @click="switchNOO('true')" v-model="species_community.distribution.noo_auto">
-                        <label>auto</label>
+                        <label class="form-check-label">auto</label>
                     </div>
                     <div class="form-check form-check-inline">
-                        <input :disabled="isReadOnly" type="radio" value="false" @click="switchNOO('false')"
+                        <input :disabled="isReadOnly" type="radio" :value="false" @click="switchNOO('false')"
                             class="form-check-input" id="noo_manual" v-model="species_community.distribution.noo_auto">
-                        <label>manual</label>
+                        <label class="form-check-label">manual</label>
                     </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Extent of Occurrences (km2):</label>
-                <div class="col-sm-6">
-                    <input :disabled="isEOOReadOnly" type="number" class="form-control" id="extent_of_occurrence"
-                        placeholder="" v-model="species_community.distribution.extent_of_occurrences" />
+                <label for="" class="col-sm-4 col-form-label">Extent of Occurrences: <i
+                        v-if="species_community.distribution.eoo_auto" class="bi bi-info-circle-fill text-primary"
+                        data-bs-toggle="popover" data-bs-trigger="hover focus"
+                        data-bs-content="Calculated by creating a 'convex hull' from all occurrence geometries for this species."></i></label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input v-if="species_community.distribution.eoo_auto" :disabled="isEOOReadOnly" type="number"
+                            class="form-control" id="extent_of_occurrence" placeholder=""
+                            v-model="species_community.area_occurrence_convex_hull_km2" />
+                        <input v-else :disabled="isEOOReadOnly" type="number" class="form-control"
+                            id="extent_of_occurrence" ref="extent_of_occurrence" placeholder=""
+                            v-model="species_community.distribution.extent_of_occurrences" />
+                        <span class="input-group-text" id="area_of_occupancy_km2-addon">km&#xb2;</span>
+                    </div>
                 </div>
-                <div class="col-sm-3">
+                <div class="col-sm-3 d-flex align-items-center">
                     <div class="form-check form-check-inline">
-                        <input :disabled="isReadOnly" type="radio" value="true" class="form-check-input" id="eoo_auto"
+                        <input :disabled="isReadOnly" type="radio" :value="true" class="form-check-input" id="eoo_auto"
                             @click="switchEOO('true')" v-model="species_community.distribution.eoo_auto">
-                        <label>auto</label>
+                        <label class="form-check-label">auto</label>
                     </div>
                     <div class="form-check form-check-inline">
-                        <input :disabled="isReadOnly" type="radio" value="false" class="form-check-input"
+                        <input :disabled="isReadOnly" type="radio" :value="false" class="form-check-input"
                             id="eoo_manual" @click="switchEOO('false')"
                             v-model="species_community.distribution.eoo_auto">
-                        <label>manual</label>
+                        <label class="form-check-label">manual</label>
                     </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Area of Occupancy<br>(2km x 2km):</label>
-                <div class="col-sm-6">
-                    <input :disabled="isAOOReadOnly" type="number" class="form-control" id="area_of_occupany"
-                        placeholder="" v-model="species_community.distribution.area_of_occupancy" />
-                </div>
-                <div class="col-sm-3">
-                    <div class="form-check form-check-inline">
-                        <input :disabled="isReadOnly" type="radio" value="true" class="form-check-input" id="aoo_auto"
-                            @click="switchAOO('true')" v-model="species_community.distribution.aoo_auto">
-                        <label>auto</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input :disabled="isReadOnly" type="radio" value="false" class="form-check-input"
-                            id="aoo_manual" @click="switchAOO('false')"
-                            v-model="species_community.distribution.aoo_auto">
-                        <label>manual</label>
+                <label for="" class="col-sm-4 col-form-label">Area of Occupancy:</label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input :disabled="isReadOnly" type="number" class="form-control" id="area_of_occupany"
+                            placeholder="" v-model="species_community.distribution.area_of_occupancy" />
+                        <span class="input-group-text" id="area_of_occupancy-addon">2km x 2km</span>
                     </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Area of Occupancy Actual<br>(km2):</label>
-                <div class="col-sm-6">
-                    <input :disabled="isAOOActualReadOnly" type="number" step="any" class="form-control"
-                        id="area_of_occupancy_actual" placeholder=""
-                        v-model="species_community.distribution.area_of_occupancy_actual" />
+                <label for="" class="col-sm-4 col-form-label">Actual Area of Occupancy: <i
+                        v-if="species_community.distribution.aoo_actual_auto"
+                        class="bi bi-info-circle-fill text-primary" data-bs-toggle="popover"
+                        data-bs-trigger="hover focus"
+                        data-bs-content="Calculated by combining the total land area of all occurrence geometries for this species."></i></label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input v-if="species_community.distribution.aoo_actual_auto" :disabled="isAOOActualReadOnly"
+                            type="number" step="any" class="form-control" id="area_of_occupancy_actual" placeholder=""
+                            v-model="species_community.area_of_occupancy_km2" area-describedby="" />
+                        <input v-else :disabled="isAOOActualReadOnly" type="number" step="any" class="form-control"
+                            id="area_of_occupancy_actual" ref="area_of_occupancy_actual" placeholder=""
+                            v-model="species_community.distribution.area_of_occupancy_actual" />
+                        <span class="input-group-text" id="area_of_occupancy_km2-addon">km&#xb2;</span>
+                    </div>
                 </div>
-                <div class="col-sm-3">
+                <div class="col-sm-3 d-flex align-items-center">
                     <div class="form-check form-check-inline">
-                        <input :disabled="isReadOnly" type="radio" value="true" class="form-check-input"
+                        <input :disabled="isReadOnly" type="radio" :value="true" class="form-check-input"
                             id="aoo_actual_auto" @click="switchAOOActual('true')"
                             v-model="species_community.distribution.aoo_actual_auto">
-                        <label>auto</label>
+                        <label class="form-check-label">auto</label>
                     </div>
                     <div class="form-check form-check-inline">
-                        <input :disabled="isReadOnly" type="radio" value="false" class="form-check-input"
+                        <input :disabled="isReadOnly" type="radio" :value="false" class="form-check-input"
                             id="aoo_actual_manual" @click="switchAOOActual('false')"
                             v-model="species_community.distribution.aoo_actual_auto">
-                        <label>manual</label>
+                        <label class="form-check-label">manual</label>
                     </div>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Number of IUCN Locations:</label>
-                <div class="col-sm-9">
+                <label for="" class="col-sm-4 col-form-label">Number of IUCN Locations:</label>
+                <div class="col-sm-4">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="no_of_iucn_locations"
                         placeholder="" v-model="species_community.distribution.number_of_iucn_locations" />
                 </div>
             </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Number of IUCN Sub-populations:</label>
-                <div class="col-sm-9">
+            <div class="row mb-1">
+                <label for="" class="col-sm-4 col-form-label">Number of IUCN Sub-populations:</label>
+                <div class="col-sm-4">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="number_of_iucn_subpopulations"
                         placeholder="" v-model="species_community.distribution.number_of_iucn_subpopulations" />
                 </div>
@@ -980,8 +986,8 @@ export default {
                     text: 'Publishing settings have been updated',
                     icon: 'success',
                     customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },
+                        confirmButton: 'btn btn-primary',
+                    },
                 });
             }, (error) => {
                 var text = helpers.apiVueResourceError(error);
@@ -990,8 +996,9 @@ export default {
                     text: 'Publishing settings cannot be updated because of the following error: ' + text,
                     icon: 'error',
                     customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },                });
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
                 vm.updatingPublishing = false;
             });
         },
@@ -1006,8 +1013,9 @@ export default {
                     text: 'No changes made',
                     icon: 'error',
                     customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },                });
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
                 vm.updatingPublishing = false;
             }
             else if (vm.isPublic && vm.isActive) {
@@ -1020,8 +1028,9 @@ export default {
                     text: 'Record not active and cannot be made public',
                     icon: 'error',
                     customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },                });
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
                 vm.updatingPublishing = false;
             }
         },
@@ -1030,19 +1039,18 @@ export default {
             var selectedValue = value;
             if (selectedValue === "true") {
                 swal.fire({
-                    title: "Warning",
-                    text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
-                    icon: "question",
+                    title: "Changing from Manual to Auto",
+                    text: "If you choose to revert back to manual in future the manually entered value will still be there for you. It is not deleted.",
+                    icon: "info",
                     showCancelButton: true,
-                    confirmButtonText: 'Proceed',
+                    confirmButtonText: 'Ok',
+                    showCancelButton: false,
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-secondary me-2',
                     },
                     reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
-                        vm.species_community.distribution.number_of_occurrences = vm.species_community.distribution.cal_number_of_occurrences;
                         document.getElementById("noo_auto").checked = true;
                         document.getElementById("noo_manual").checked = false;
                         vm.species_community.distribution.noo_auto = true
@@ -1050,7 +1058,6 @@ export default {
                         document.getElementById("noo_manual").checked = true;
                         document.getElementById("noo_auto").checked = false;
                         vm.species_community.distribution.noo_auto = false
-                        vm.species_community.distribution.number_of_occurrences = vm.species_community.distribution.number_of_occurrences;
                     }
 
                 }, (error) => {
@@ -1058,10 +1065,12 @@ export default {
                 });
             }
             else {
-                vm.species_community.distribution.number_of_occurrences = null;
                 document.getElementById("noo_manual").checked = true;
                 document.getElementById("noo_auto").checked = false;
-                vm.species_community.distribution.noo_auto = false
+                vm.species_community.distribution.noo_auto = false;
+                vm.$nextTick(() => {
+                    vm.$refs.number_of_occurrences.focus();
+                });
             }
         },
         switchEOO: function (value) {
@@ -1069,31 +1078,32 @@ export default {
             var selectedValue = value;
             if (selectedValue === "true") {
                 swal.fire({
-                    title: "Warning",
-                    text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
-                    icon: "warning",
+                    title: "Changing from Manual to Auto",
+                    text: "If you choose to revert back to manual in future the manually entered value will still be there for you. It is not deleted.",
+                    icon: "info",
                     showCancelButton: true,
-                    confirmButtonText: 'Proceed',
+                    confirmButtonText: 'Ok',
+                    showCancelButton: false,
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-secondary me-2',
                     },
                     reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
                         // set EOO field to calculted_EOO vale
-                        vm.species_community.distribution.extent_of_occurrences = vm.species_community.distribution.cal_extent_of_occurrences;
                         document.getElementById("eoo_auto").checked = true;
                         document.getElementById("eoo_manual").checked = false;
                         // set eoo to true to fire the change of value so the EOO input box readonly
                         vm.species_community.distribution.eoo_auto = true;
+                        vm.$nextTick(() => {
+                            vm.enablePopovers();
+                        });
                     } else if (swalresult.dismiss === swal.DismissReason.cancel) {
                         document.getElementById("eoo_manual").checked = true;
                         document.getElementById("eoo_auto").checked = false;
                         // set eoo to false to fire the change of value so the EOO input box will be editable
                         vm.species_community.distribution.eoo_auto = false;
                         //Otherwise revert back to its manual value if swal cancelled
-                        vm.species_community.distribution.extent_of_occurrences = vm.species_community.distribution.extent_of_occurrences;
                     }
 
                 }, (error) => {
@@ -1102,56 +1112,13 @@ export default {
             }
             else {
                 // set EOO value to null if manual selected
-                vm.species_community.distribution.extent_of_occurrences = null;
                 document.getElementById("eoo_manual").checked = true;
                 document.getElementById("eoo_auto").checked = false;
                 // set eoo to false to fire the change of value so the EOO input box will be editable
                 vm.species_community.distribution.eoo_auto = false;
-            }
-        },
-        switchAOO: function (value) {
-            let vm = this;
-            var selectedValue = value;
-            if (selectedValue === "true") {
-                swal.fire({
-                    title: "Warning",
-                    text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: 'Proceed',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-secondary me-2',
-                    },
-                    reverseButtons: true,
-                }).then((swalresult) => {
-                    if (swalresult.isConfirmed) {
-                        // set AOO field to calculated_AOO value
-                        vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
-                        document.getElementById("aoo_auto").checked = true;
-                        document.getElementById("aoo_manual").checked = false;
-                        // set aoo to true to fire the change of value so the AOO input box readonly
-                        vm.species_community.distribution.aoo_auto = true;
-                    } else if (swalresult.dismiss === swal.DismissReason.cancel) {
-                        document.getElementById("aoo_manual").checked = true;
-                        document.getElementById("aoo_auto").checked = false;
-                        // set aoo to false to fire the change of value so the AOO input box will be editable
-                        vm.species_community.distribution.aoo_auto = false;
-                        //Otherwise revert back to its manual value if swal cancelled
-                        vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.area_of_occupancy;
-                    }
-
-                }, (error) => {
-                    console.error('Error:', error);
+                vm.$nextTick(() => {
+                    vm.$refs.extent_of_occurrence.focus();
                 });
-            }
-            else {
-                // set EOO value to null if manual selected
-                vm.species_community.distribution.area_of_occupancy = null;
-                document.getElementById("aoo_manual").checked = true;
-                document.getElementById("aoo_auto").checked = false;
-                // set aoo to false to fire the change of value so the AOO input box will be editable
-                vm.species_community.distribution.aoo_auto = false;
             }
         },
         switchAOOActual: function (value) {
@@ -1159,31 +1126,32 @@ export default {
             var selectedValue = value;
             if (selectedValue === "true") {
                 swal.fire({
-                    title: "Warning",
-                    text: "Selection of 'auto' will overwrite the existing data. Are you sure you want to select 'auto'?",
-                    icon: "warning",
+                    title: "Changing from Manual to Auto",
+                    text: "If you choose to revert back to manual in future the manually entered value will still be there for you. It is not deleted.",
+                    icon: "info",
                     showCancelButton: true,
-                    confirmButtonText: 'Proceed',
+                    confirmButtonText: 'Ok',
+                    showCancelButton: false,
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-secondary me-2',
                     },
                     reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
                         // set AOOActual field to calculted_AOOActual vale
-                        vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.cal_area_of_occupancy_actual;
                         document.getElementById("aoo_actual_auto").checked = true;
                         document.getElementById("aoo_actual_manual").checked = false;
                         // set aoo_actual to true to fire the change of value so the AOOActual input box readonly
                         vm.species_community.distribution.aoo_actual_auto = true;
+                        vm.$nextTick(() => {
+                            vm.enablePopovers();
+                        });
                     } else if (swalresult.dismiss === swal.DismissReason.cancel) {
                         document.getElementById("aoo_actual_manual").checked = true;
                         document.getElementById("aoo_actual_auto").checked = false;
                         // set eoo to false to fire the change of value so the EOO input box will be editable
                         vm.species_community.distribution.aoo_actual_auto = false;
                         //Otherwise revert back to its manual value if swal cancelled
-                        vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.area_of_occupancy_actual;
                     }
 
                 }, (error) => {
@@ -1192,11 +1160,13 @@ export default {
             }
             else {
                 // set AOOActual value to null if manual selected
-                vm.species_community.distribution.area_of_occupancy_actual = null;
                 document.getElementById("aoo_actual_manual").checked = true;
                 document.getElementById("aoo_actual_auto").checked = false;
                 // set aoo_actual to false to fire the change of value so the AOOActual input box will be editable
                 vm.species_community.distribution.aoo_actual_auto = false;
+                vm.$nextTick(() => {
+                    vm.$refs.area_of_occupancy_actual.focus();
+                });
             }
         },
         filterDistrict: function (event) {
@@ -1496,24 +1466,15 @@ export default {
                     vm.species_community.districts = selected.val();
                 });
         },
+        enablePopovers: function () {
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+            popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl)
+            })
+        },
     },
     created: async function () {
         let vm = this;
-        //----set the distribution field values if auto onload
-        if (vm.species_community.distribution) {
-            if (vm.species_community.distribution.noo_auto == true) {
-                vm.species_community.distribution.number_of_occurrences = vm.species_community.distribution.cal_number_of_occurrences;
-            }
-            if (vm.species_community.distribution.eoo_auto == true) {
-                vm.species_community.distribution.extent_of_occurrences = vm.species_community.distribution.cal_extent_of_occurrences;
-            }
-            if (vm.species_community.distribution.aoo_actual_auto == true) {
-                vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.cal_area_of_occupancy_actual;
-            }
-            if (vm.species_community.distribution.aoo_auto == true) {
-                vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
-            }
-        }
         if (vm.species_community.conservation_attributes) {
             if (vm.species_community.conservation_attributes.minimum_fire_interval_to != null &&
                 vm.species_community.conservation_attributes.minimum_fire_interval_to != "" &&
@@ -1576,6 +1537,7 @@ export default {
         vm.loadTaxonomydetails();
         vm.initialiseRegionSelect();
         vm.initialiseDistrictSelect();
+        vm.enablePopovers();
     }
 }
 </script>

@@ -390,16 +390,28 @@ def getPrivateFile(request):
         the_file = open(full_file_path, "rb")
         the_data = the_file.read()
         the_file.close()
-        if extension == "msg":
-            return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
-        if extension == "eml":
-            return HttpResponse(the_data, content_type="application/vnd.ms-outlook")
 
-        try:
-            content_type = mimetypes.types_map["." + str(extension)]
-        except KeyError:
-            raise ValueError(f"Extension {extension} not found in mimetypes.types_map")
+        content_type = None
+        if extension in ["msg", "eml"]:
+            content_type = "application/vnd.ms-outlook"
+        else:
+            try:
+                content_type = mimetypes.types_map["." + str(extension)]
+            except KeyError:
+                raise ValueError(
+                    f"Extension {extension} not found in mimetypes.types_map"
+                )
 
-        return HttpResponse(the_data, content_type=content_type)
+        response = HttpResponse(the_data, content_type=content_type)
+
+        if "image/" in content_type or "application/pdf" == content_type:
+            return response
+
+        response["Content-Disposition"] = (
+            f'attachment; filename="{os.path.basename(full_file_path)}"'
+        )
+        response["Content-Length"] = os.path.getsize(full_file_path)
+        response["X-Sendfile"] = full_file_path
+        return response
 
     return HttpResponse("Unauthorized", status=401)

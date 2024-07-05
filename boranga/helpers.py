@@ -243,7 +243,7 @@ def is_customer(request):
 
 def is_internal(request):
     return is_departmentUser(request) and (
-        belongs_to_groups(request, settings.INTERNAL_GROUPS) or is_referee(request)
+        belongs_to_groups(request, settings.INTERNAL_GROUPS)
     )
 
 

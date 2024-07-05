@@ -583,51 +583,23 @@ class SaveSpeciesConservationAttributesSerializer(serializers.ModelSerializer):
 
 
 class SpeciesDistributionSerializer(serializers.ModelSerializer):
-    cal_number_of_occurrences = (
-        serializers.SerializerMethodField()
-    )  # calculated from occurence reports
-    cal_extent_of_occurrences = (
-        serializers.SerializerMethodField()
-    )  # calculated from occurence reports
-    cal_area_of_occupancy = (
-        serializers.SerializerMethodField()
-    )  # calculated from occurence reports
-    cal_area_of_occupancy_actual = (
-        serializers.SerializerMethodField()
-    )  # calculated from occurence reports
 
     class Meta:
         model = SpeciesDistribution
         fields = (
             "department_file_numbers",
             "number_of_occurrences",
-            "cal_number_of_occurrences",
             "noo_auto",
             "extent_of_occurrences",
-            "cal_extent_of_occurrences",
             "eoo_auto",
             "area_of_occupancy",
-            "cal_area_of_occupancy",
             "aoo_auto",
             "area_of_occupancy_actual",
-            "cal_area_of_occupancy_actual",
             "aoo_actual_auto",
             "number_of_iucn_locations",
             "number_of_iucn_subpopulations",
             "distribution",
         )
-
-    def get_cal_number_of_occurrences(self, obj):
-        return None  # TODO get calculated value from occurrence report
-
-    def get_cal_extent_of_occurrences(self, obj):
-        return None  # TODO get calculated value from occurrence report
-
-    def get_cal_area_of_occupancy(self, obj):
-        return None  # TODO get calculated value from occurrence report
-
-    def get_cal_area_of_occupancy_actual(self, obj):
-        return None  # TODO get calculated value from occurrence report
 
 
 class SaveSpeciesDistributionSerializer(serializers.ModelSerializer):
@@ -709,7 +681,7 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     distribution = serializers.SerializerMethodField()
     publishing_status = serializers.SerializerMethodField()
     image_doc = serializers.SerializerMethodField()
-    #regions = serializers.SerializerMethodField()
+    # regions = serializers.SerializerMethodField()
 
     class Meta:
         model = Species
@@ -908,6 +880,9 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "conservation_plan_exists",
             "conservation_plan_reference",
             "comment",
+            "occurrence_count",
+            "area_of_occupancy_km2",
+            "area_occurrence_convex_hull_km2",
         )
 
     def get_submitter(self, obj):
@@ -943,34 +918,18 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 
 
 class CommunityDistributionSerializer(serializers.ModelSerializer):
-    cal_number_of_occurrences = (
-        serializers.SerializerMethodField()
-    )  # calculated from occurence reports
-    cal_extent_of_occurrences = (
-        serializers.SerializerMethodField()
-    )  # calculated from occurence reports
-    cal_area_of_occupancy = (
-        serializers.SerializerMethodField()
-    )  # calculated from occurence reports
-    cal_area_of_occupancy_actual = (
-        serializers.SerializerMethodField()
-    )  # calculated from occurence reports
 
     class Meta:
         model = CommunityDistribution
         fields = (
             "department_file_numbers",
             "number_of_occurrences",
-            "cal_number_of_occurrences",
             "noo_auto",
             "extent_of_occurrences",
-            "cal_extent_of_occurrences",
             "eoo_auto",
             "area_of_occupancy",
-            "cal_area_of_occupancy",
             "aoo_auto",
             "area_of_occupancy_actual",
-            "cal_area_of_occupancy_actual",
             "aoo_actual_auto",
             "number_of_iucn_locations",
             "community_original_area",
@@ -978,18 +937,6 @@ class CommunityDistributionSerializer(serializers.ModelSerializer):
             "community_original_area_reference",
             "distribution",
         )
-
-    def get_cal_number_of_occurrences(self, obj):
-        return None  # TODO get calculated value from occurrence report
-
-    def get_cal_extent_of_occurrences(self, obj):
-        return None  # TODO get calculated value from occurrence report
-
-    def get_cal_area_of_occupancy(self, obj):
-        return None  # TODO get calculated value from occurrence report
-
-    def get_cal_area_of_occupancy_actual(self, obj):
-        return None  # TODO get calculated value from occurrence report
 
 
 class SaveCommunityDistributionSerializer(serializers.ModelSerializer):
