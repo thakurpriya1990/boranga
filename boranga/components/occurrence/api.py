@@ -5463,7 +5463,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def occurrence_tenure_internal(self, request, *args, **kwargs):
-        qs = self.get_queryset()
+        qs = self.get_queryset().distinct()
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()

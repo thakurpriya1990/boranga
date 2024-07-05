@@ -4503,6 +4503,19 @@ class OccurrenceTenure(models.Model):
             return wkb_to_geojson(centroid.ewkb)
         return None
 
+    @property
+    def tenure_area_point_on_surface(self):
+        from boranga.components.spatial.utils import (
+            feature_json_to_geosgeometry,
+            wkb_to_geojson,
+        )
+
+        if self.tenure_area_ewkb:
+            geo_json = wkb_to_geojson(self.tenure_area_ewkb)
+            centroid = feature_json_to_geosgeometry(geo_json).point_on_surface
+            return wkb_to_geojson(centroid.ewkb)
+        return None
+
 
 class BufferGeometry(GeometryBase):
     buffered_from_geometry = models.OneToOneField(
