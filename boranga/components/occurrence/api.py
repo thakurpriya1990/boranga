@@ -5743,7 +5743,13 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         data = json.loads(request.data.get("data"))
         point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
-        data["geometry"] = GEOSGeometry(point_data, srid=data["datum"])
+
+        original_geom = GEOSGeometry(point_data, srid=data["datum"])
+        geom = GEOSGeometry(point_data, srid=data["datum"])
+        geom.transform(4326)
+        
+        data["original_geometry_ewkb"] = original_geom.ewkb
+        data["geometry"] = geom
 
         serializer = SaveOccurrenceSiteSerializer(
             instance, data=data
@@ -5764,13 +5770,21 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         instance = serializer.save()
 
+        serializer = OccurrenceSiteSerializer(instance)
+
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
 
         data = json.loads(request.data.get("data"))
         point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
-        data["geometry"] = GEOSGeometry(point_data, srid=data["datum"])
+
+        original_geom = GEOSGeometry(point_data, srid=data["datum"])
+        geom = GEOSGeometry(point_data, srid=data["datum"])
+        geom.transform(4326)
+        
+        data["original_geometry_ewkb"] = original_geom.ewkb
+        data["geometry"] = geom
 
         serializer = SaveOccurrenceSiteSerializer(
             data=data
@@ -5788,6 +5802,8 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         self.is_authorised_to_update(occurrence)
         serializer.save()
+
+        serializer = OccurrenceSiteSerializer(serializer.instance)
 
         return Response(serializer.data)
 
@@ -5852,13 +5868,10 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @list_route(methods=["GET"], detail=False)
     def list_for_map(self, request, *args, **kwargs):
         occurrence_id = request.GET.get("occurrence_id")
-        print(occurrence_id)
         qs = self.get_queryset().filter(occurrence_id=occurrence_id).exclude(geometry=None).exclude(visible=False)
-        print(qs.count())
         serializer = SiteGeometrySerializer(
             qs, many=True
         )
-        print(serializer.data)
         return Response(serializer.data)
 
 
