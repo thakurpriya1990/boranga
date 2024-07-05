@@ -85,9 +85,38 @@
         </FormSection>
         <FormSection :formCollapse="false" label="Distribution" :Index="distributionBody">
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Distribution:</label>
+                <div class="col-sm-8">
+                    <textarea :disabled="true" class="form-control" rows="1" id="distribution" placeholder="" v-model="species_original.distribution.distribution"/>
+                </div>
+                <div class="col-sm-1">
+                    <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
+                    <input class="form-check-input" type="checkbox" :id="'distribution'+species_community.id" @change="checkDistributionInput('distribution'+species_community.id,'distribution')" />
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Distribution:</label>
-                <div class="col-sm-9">
+                <div class="col-sm-8">
                     <textarea :disabled="isReadOnly" class="form-control" rows="1" id="distribution" placeholder="" v-model="species_community.distribution.distribution"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Region:</label>
+                <div class="col-sm-8" :id="select_regions_read_only">
+                    <select :disabled="true" 
+                        style="width:100%;"
+                        class="form-select input-sm" 
+                        v-model="species_original.regions"
+                        ref="regions_select_read_only">
+                        <option value="" selected disabled>Select region</option>
+                        <option v-for="option in region_list" :value="option.value" :key="option.value">
+                            {{ option.text }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-sm-1">
+                    <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
+                    <input class="form-check-input" type="checkbox" :id="'regions_select_chk'+species_community.id" @change="checkRegionDistrictInput('regions_select_chk'+species_community.id,'regions','regions_select')" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -106,6 +135,24 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} District:</label>
+                <div class="col-sm-8" :id="select_districts_read_only">
+                    <select :disabled="true" 
+                    class="form-select" 
+                    v-model="species_original.districts"
+                    ref="districts_select_read_only">
+                        <option value="" selected disabled>Select district</option>
+                        <option v-for="option in district_list_readonly" :value="option.value" v-bind:key="option.value">
+                            {{ option.text }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-sm-1">
+                    <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
+                    <input class="form-check-input" type="checkbox" :id="'districts_select_chk'+species_community.id" @change="checkRegionDistrictInput('districts_select_chk'+species_community.id,'districts','districts_select')" />
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">District:</label>
                 <div class="col-sm-8" :id="select_districts">
                     <select :disabled="isReadOnly" 
@@ -117,6 +164,12 @@
                             {{ option.text }}
                         </option>
                     </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Number of Occurrences:</label>
+                <div class="col-sm-6">
+                    <input :disabled="true" type="number" class="form-control" id="no_of_occurrences_orig" placeholder="" v-model="species_original.distribution.number_of_occurrences"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -133,6 +186,13 @@
                             class="noo_auto form-check-input" name="noo_auto" 
                             v-model="species_community.distribution.noo_auto">
                     <label>manual</label>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Extent of Occurrences (km2):</label>
+                <div class="col-sm-6">
+                    <input :disabled="true" type="number" class="form-control" id="extent_of_occurrence_orig" 
+                    placeholder="" v-model="species_original.distribution.extent_of_occurrences"/>
                 </div>
             </div>
             <div class="row mb-3">
@@ -153,6 +213,13 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Actual Area of Occupancy<br>(km2):</label>
+                <div class="col-sm-6">
+                    <input :disabled="true" type="number" class="form-control" id="area_of_occupancy_actual_orig" placeholder="" 
+                    v-model="species_original.distribution.area_of_occupancy_actual"/>
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Actual Area of Occupancy<br>(km2):</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="area_of_occupancy_actual" placeholder="" 
@@ -170,6 +237,13 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Area of Occupancy<br>(2km x 2km):</label>
+                <div class="col-sm-6">
+                    <input :disabled="true" type="number" class="form-control" id="area_of_occupany_orig" placeholder="" 
+                    v-model="species_original.distribution.area_of_occupancy"/>
+                </div>            
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Area of Occupancy<br>(2km x 2km):</label>
                 <div class="col-sm-6">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="area_of_occupany" placeholder="" 
@@ -185,10 +259,39 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Number of IUCN Locations:</label>
+                <div class="col-sm-8">
+                    <input :disabled="true" type="number" class="form-control" id="no_of_iucn_locations" 
+                    placeholder="" v-model="species_original.distribution.number_of_iucn_locations"/>
+                </div>
+                <div class="col-sm-1">
+                    <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
+                    <input class="form-check-input" type="checkbox" :id="'no_of_iucn_locations'+species_community.id" @change="checkDistributionInput('no_of_iucn_locations'+species_community.id,'number_of_iucn_locations')" />
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Number of IUCN Locations:</label>
                 <div class="col-sm-8">
                     <input :disabled="isReadOnly" type="number" class="form-control" id="no_of_iucn_locations" 
                     placeholder="" v-model="species_community.distribution.number_of_iucn_locations"/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 col-form-label">{{ species_original.species_number }} Number of IUCN Sub-populations:</label>
+                <div class="col-sm-8">
+                    <input :disabled="true" type="number" class="form-control" id="number_of_iucn_subpopulations"
+                        placeholder="" v-model="species_original.distribution.number_of_iucn_subpopulations" />
+                </div>
+                <div class="col-sm-1">
+                    <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
+                    <input class="form-check-input" type="checkbox" :id="'no_of_iucn_subpopulations'+species_community.id" @change="checkDistributionInput('no_of_iucn_subpopulations'+species_community.id,'number_of_iucn_subpopulations')" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 col-form-label">Number of IUCN Sub-populations:</label>
+                <div class="col-sm-8">
+                    <input :disabled="isReadOnly" type="number" class="form-control" id="number_of_iucn_subpopulations"
+                        placeholder="" v-model="species_community.distribution.number_of_iucn_subpopulations" />
                 </div>
             </div>
         </FormSection>
@@ -1139,6 +1242,27 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label for="conservation_plan_exists" class="col-sm-3 col-form-label">Conservation Plan Exists: </label>
+                <div class="col-sm-9">
+                    <label for="conservation_plan_exists" class="me-2">No</label>
+                    <input :disabled="isReadOnly" type="radio" :value="false" class="form-check-input me-2"
+                        id="conservation_plan_exists" v-model="species_community.conservation_plan_exists">
+                    <label for="conservation_plan_exists" class="me-2">Yes</label>
+                    <input :disabled="isReadOnly" type="radio" :value="true" class="form-check-input"
+                        id="conservation_plan_exists" v-model="species_community.conservation_plan_exists"
+                        @change="focusConservationPlanReference">
+                </div>
+            </div>
+            <div v-if="species_community.conservation_plan_exists" class="row mb-3">
+                <label for="conservation_plan_reference" class="col-sm-3 col-form-label">Conservation Plan Reference /
+                    Location: </label>
+                <div class="col-sm-9">
+                    <input :disabled="isReadOnly" type="text" class="form-control" name="conservation_plan_reference"
+                        ref="conservation_plan_reference" @change="checkDate()"
+                        v-model="species_community.conservation_plan_reference" />
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Comment:</label>
                 <div class="col-sm-8">
                     <textarea :disabled="true" class="form-control" rows="3" id="comment" placeholder="" v-model="species_original.comment"/>
@@ -1190,6 +1314,8 @@ export default {
                 select_breeding_period: "select_breeding_period"+ vm.species_community.id,
                 select_breeding_period_readonly: "select_breeding_period_readonly"+ vm.species_community.id,
                 select_regions: "select_regions"+ vm.species_community.id,
+                select_regions_read_only: "select_regions_read_only"+ vm.species_community.id,
+                select_districts_read_only: "select_districts_read_only"+ vm.species_community.id,
                 select_districts: "select_districts"+ vm.species_community.id,
                 taxonBody: 'taxonBody' + vm._uid,
                 distributionBody: 'distributionBody' + vm._uid,
@@ -1203,6 +1329,7 @@ export default {
                 //scientific_name_list: [],
                 region_list: [],
                 district_list: [],
+                district_list_readonly: [],
                 filtered_district_list: [],
                 //---conservatiuon attributes field lists
                 flora_recruitment_type_list: [],
@@ -1474,6 +1601,24 @@ export default {
                     this.species_community[obj_field]=null;
                 }
             },
+            checkRegionDistrictInput: function(chkbox,obj_field, select2_ref=""){
+                // if checkbox is checked copy value from original  species to new species
+                if($("#"+chkbox).is(':checked')== true){
+                    this.species_community[obj_field] = this.species_original[obj_field];
+                    console.log(this.species_community[obj_field])
+                    if(select2_ref != ""){
+                        $(this.$refs[select2_ref]).val(this.species_community[obj_field]).trigger("change");
+                        this.chainedSelectDistricts(this.species_community.regions,"select");
+                    }
+                }else{
+                    if(select2_ref != ""){
+                        $(this.$refs[select2_ref]).val("").trigger("change");
+                        this.chainedSelectDistricts(this.species_community.regions,"deselect");
+                    }
+                    this.species_community[obj_field]=[];
+                    
+                }
+            },
             //----------------------------------------------------------------
             eventListeners:function (){
                 let vm = this;
@@ -1607,6 +1752,11 @@ export default {
                     this.errors[field_error] = "";
                 }
             },
+            focusConservationPlanReference: function () {
+                this.$nextTick(() => {
+                    this.$refs.conservation_plan_reference.focus();
+                });
+            },
             fetchRegions: function(){
                 let vm = this;
 
@@ -1618,6 +1768,9 @@ export default {
                         // vm.setProposalData2(this.regions);
                         if(vm.species_community.regions){
                             vm.chainedSelectDistricts(vm.species_community.regions,"fetch");
+                        }
+                        if(vm.species_original.regions){
+                            vm.chainedSelectReadonlyDistricts(vm.species_original.regions,"fetch");
                         }
                 },(error) => {
                     console.log(error);
@@ -1649,6 +1802,22 @@ export default {
                     }
                 }
             },
+            chainedSelectReadonlyDistricts: function(regions,action,deselect_region_id){
+                let vm = this;
+                
+                vm.district_list_readonly = [];
+                if(regions){
+                    for(let r of regions){
+                        var api_districts = this.searchList(r, vm.region_list).districts;
+                        if (api_districts.length > 0) {
+                            for (var i = 0; i < api_districts.length; i++) {
+                                this.district_list_readonly.push( {text: api_districts[i].name, value: api_districts[i].id} );
+                            }
+                        }
+                    }
+                }
+            },
+            
             initialiseRegionSelect: function(){
                 let vm = this;
                 $(vm.$refs.regions_select).select2({
@@ -1668,6 +1837,14 @@ export default {
                     vm.species_community.regions = selected.val();
                     vm.chainedSelectDistricts(vm.species_community.regions,"deselect");
                 });
+                $(vm.$refs.regions_select_read_only).select2({
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    multiple: true,
+                    dropdownParent: $("#"+vm.select_regions_read_only),
+                    placeholder:"Select Region",
+                });
+                //vm.chainedSelectReadonlyDistricts(vm.species_original.regions,"fetch")
             },
             initialiseDistrictSelect: function(){
                 let vm = this;
@@ -1685,6 +1862,13 @@ export default {
                 on("select2:unselect",function (e) {
                     var selected = $(e.currentTarget);
                     vm.species_community.districts = selected.val();
+                });
+                $(vm.$refs.districts_select_read_only).select2({
+                    "theme": "bootstrap-5",
+                    allowClear: true,
+                    dropdownParent: $("#"+vm.select_districts_read_only),
+                    multiple: true,
+                    placeholder:"Select District",
                 });
             },
         },
