@@ -1001,7 +1001,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "reference",
             "applicant_details",
             # 'assigned_approver',
-            "allowed_assessors",
             "deficiency_data",
             "assessor_data",
             "location",
@@ -1145,7 +1144,7 @@ class CreateOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         )
 
 
-class CreateOccurrenceSerializer(BaseOccurrenceReportSerializer):
+class CreateOccurrenceSerializer(OccurrenceSerializer):
     class Meta:
         model = Occurrence
         fields = (
