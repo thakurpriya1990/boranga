@@ -15,15 +15,18 @@
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <template v-if="uploadedID">
-                                            <div class="animated-background bg-secondary rounded"
-                                                style="width:258px; height:258px;">
+                                            <div class="rounded" :class="downloadingImage ? 'animated-background bg-secondary' : ''"
+                                                style="width:258px;" :style="downloadingImage ? 'height:258px;' : ''">
                                                 <img v-show="!downloadingImage" @load="onImageLoad" width="258"
-                                                    :src="`/api/external_species/${species_community.id}/public_image/`"
+                                                    :src="image_url"
                                                     class="img-thumbnail img-fluid" :alt="display_name" />
                                             </div>
                                         </template>
                                         <template v-else>
-                                            <span class="text-muted">No Image Available</span>
+                                            <div class="d-flex bg-light bg-gradient justify-content-center align-content-middle"
+                                                style="height:258px;">
+                                                <div class="align-self-center text-muted">No Image Available</div>
+                                            </div>
                                         </template>
                                     </div>
                                 </div>
@@ -88,6 +91,11 @@ export default {
             return (this.species_community.group_type === "community") ?
                 (this.species_community.taxonomy_details != null) ? this.species_community.taxonomy_details.community_migrated_id : '' :
                 (this.species_community.taxonomy_details != null) ? this.species_community.taxonomy_details.scientific_name + " (" + this.species_community.taxonomy_details.taxon_name_id + ")" : '';
+        },
+        image_url: function () {
+            return (this.species_community.group_type === "community") ?
+                `/api/external_community/${this.species_community.id}/public_image/` :
+                `/api/external_species/${this.species_community.id}/public_image/`
         },
     },
     methods: {

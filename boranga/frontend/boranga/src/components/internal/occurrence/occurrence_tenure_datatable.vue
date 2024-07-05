@@ -77,6 +77,16 @@
             :dt-options="options"
             :dt-headers="headers"
         />
+        <OccurrenceTenureModal
+            ref="occurrence_tenure_modal"
+            title="Tenure Area"
+            :occurrence-id="occurrenceId"
+            :url="occ_tenure_url"
+            :change-warning="''"
+            :always-read-only="['status', 'tenure_area_id', 'owner_name']"
+            @refreshFromResponse="updatedTenureArea"
+        >
+        </OccurrenceTenureModal>
     </div>
 </template>
 
@@ -85,12 +95,14 @@ import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import datatable from '@/utils/vue/datatable.vue';
 import { v4 as uuid } from 'uuid';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
+import OccurrenceTenureModal from '@/components/internal/occurrence/occurrence_tenure_modal.vue';
 
 export default {
     name: 'OccurrenceTenureDatatable',
     components: {
         datatable,
         CollapsibleFilters,
+        OccurrenceTenureModal,
     },
     emit: ['highlight-on-map', 'edit-tenure-details'],
     props: {
@@ -129,7 +141,9 @@ export default {
         return {
             uuid: uuid(),
             datatable_id: 'occurrence-tenure-datatable-' + uuid(),
-            url: api_endpoints.occurrence_tenure_paginated_internal,
+            occ_tenure_paginated_url:
+                api_endpoints.occurrence_tenure_paginated_internal,
+            occ_tenure_url: api_endpoints.occurrence_tenure,
             headers: [
                 'Feature ID',
                 // 'Tenure Area ID',
@@ -253,11 +267,13 @@ export default {
                 visible: true,
                 // eslint-disable-next-line no-unused-vars
                 render: function (data, type, row) {
-                    const coordinates = row.tenure_area_centroid
-                        ? JSON.stringify(row.tenure_area_centroid.coordinates)
+                    const coordinates = row.tenure_area_point_on_surface
+                        ? JSON.stringify(
+                              row.tenure_area_point_on_surface.coordinates
+                          )
                         : '';
-                    let html = `<a href="#${vm.hrefContainerId}" class="btn btn-primary btn-sm mb-1" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
-                    html += `<br><a href="#" class="btn btn-primary btn-sm" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;
+                    let html = `<a href="#${vm.hrefContainerId}" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
+                    html += `<br><a href="#" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;
                     return html;
                 },
             };
@@ -276,9 +292,9 @@ export default {
                 this.column_datetime_updated,
                 this.column_action,
             ];
-            let url = this.url;
+            let url = this.occ_tenure_paginated_url;
             if (this.occurrenceId) {
-                url = `${this.url}&occurrence_id=${this.occurrenceId}`;
+                url = `${this.occ_tenure_paginated_url}&occurrence_id=${this.occurrenceId}`;
             }
             return {
                 autoWidth: false,
@@ -430,7 +446,6 @@ export default {
                     e.preventDefault();
                     const id = $(this).attr('data-edit-tenure-details');
                     vm.editTenureDetails(id);
-                    console.log(id);
                 }
             );
         },
@@ -438,6 +453,20 @@ export default {
             this.$emit('highlight-on-map', JSON.parse(coordinates));
         },
         editTenureDetails: function (id) {
+            let vm = this;
+            this.$refs.occurrence_tenure_modal.object_id = id;
+            this.$refs.occurrence_tenure_modal.modal_action = 'edit';
+
+            const url = api_endpoints.occurrence_tenure + id;
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    vm.$refs.occurrence_tenure_modal.tenureObj = data;
+                    vm.$refs.occurrence_tenure_modal.isModalOpen = true;
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
             this.$emit('edit-tenure-details', id);
         },
         collapsible_component_mounted: function () {
@@ -532,6 +561,13 @@ export default {
         },
         sessionStorageText: function (key) {
             return `${key}Text`;
+        },
+        updatedTenureArea: function (data) {
+            console.log('New occurrence tenure area data', data);
+            this.$refs.occurrence_tenure_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            );
         },
     },
 };

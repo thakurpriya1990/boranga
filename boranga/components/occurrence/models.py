@@ -4344,7 +4344,7 @@ class OCRExternalRefereeInvite(models.Model):
 
 
 class OccurrenceTenurePurpose(models.Model):
-    purpose = models.CharField(max_length=100, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         app_label = "boranga"
@@ -4353,6 +4353,17 @@ class OccurrenceTenurePurpose(models.Model):
 
     def __str__(self):
         return self.purpose
+
+class OccurrenceTenureVesting(models.Model):
+    name = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Tenure Vesting"
+        verbose_name_plural = "Occurrence Tenure Vestings"
+
+    def __str__(self):
+        return self.vesting
 
 
 def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
@@ -4397,7 +4408,6 @@ class OccurrenceTenure(models.Model):
     tenure_area_ewkb = models.BinaryField(blank=True, null=True, editable=True)
     owner_name = models.CharField(max_length=255, blank=True, null=True)
     owner_count = models.IntegerField(blank=True, null=True)
-    # vesting = models.TBD
 
     datetime_created = models.DateTimeField(auto_now_add=True)
     datetime_updated = models.DateTimeField(default=datetime.now)
@@ -4409,6 +4419,14 @@ class OccurrenceTenure(models.Model):
         blank=True,
         null=True,
     )
+    vesting = models.ForeignKey(
+        OccurrenceTenureVesting,
+        related_name="occurrence_vestings",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+
     comments = models.TextField(blank=True, null=True)
     significant_to_occurrence = models.BooleanField(
         null=True, blank=True, default=False
@@ -4473,10 +4491,6 @@ class OccurrenceTenure(models.Model):
         return self.occurrence_geometry.occurrence
 
     @property
-    def vesting(self):
-        return "Vesting TBI"
-
-    @property
     def tenure_area_centroid(self):
         from boranga.components.spatial.utils import (
             feature_json_to_geosgeometry,
@@ -4486,6 +4500,19 @@ class OccurrenceTenure(models.Model):
         if self.tenure_area_ewkb:
             geo_json = wkb_to_geojson(self.tenure_area_ewkb)
             centroid = feature_json_to_geosgeometry(geo_json).centroid
+            return wkb_to_geojson(centroid.ewkb)
+        return None
+
+    @property
+    def tenure_area_point_on_surface(self):
+        from boranga.components.spatial.utils import (
+            feature_json_to_geosgeometry,
+            wkb_to_geojson,
+        )
+
+        if self.tenure_area_ewkb:
+            geo_json = wkb_to_geojson(self.tenure_area_ewkb)
+            centroid = feature_json_to_geosgeometry(geo_json).point_on_surface
             return wkb_to_geojson(centroid.ewkb)
         return None
 

@@ -204,7 +204,10 @@
                 <div>
                     <OccurrenceTenureDatatable v-if="occurrence_obj" ref="occurrence_tenure_datatable"
                         :key="datatableOCCTenureKey" :occurrence-id="occurrence_obj.id"
-                        :href-container-id="getMapContainerId" @highlight-on-map="highlightPointOnMap">
+                        :href-container-id="getMapContainerId"
+                        @highlight-on-map="highlightPointOnMap"
+                        @edit-tenure-details="editTenureDetails"
+                    >
                     </OccurrenceTenureDatatable>
                 </div>
             </FormSection>
@@ -588,6 +591,9 @@ export default {
         highlightIdOnMapLayer: function (id) {
             const feature = this.getMapFeatureById(id);
             this.$refs.component_map.centerOnFeature(feature);
+        },
+        editTenureDetails: function (id) {
+            console.log(id);
         },
         copyToMapLayer: function (id, target_layer) {
             console.log('Copy to map layer:', id, target_layer);

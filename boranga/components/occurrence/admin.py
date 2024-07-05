@@ -23,6 +23,7 @@ from boranga.components.occurrence.models import (
     OccurrenceSite,
     OccurrenceTenure,
     OccurrenceTenurePurpose,
+    OccurrenceTenureVesting,
     PermitType,
     PlantCondition,
     PlantCountAccuracy,
@@ -373,6 +374,10 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
 
 @admin.register(OccurrenceTenurePurpose)
 class OccurrenceTenurePurposeAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(OccurrenceTenureVesting)
+class OccurrenceTenureVestingAdmin(admin.ModelAdmin):
     pass
 
 

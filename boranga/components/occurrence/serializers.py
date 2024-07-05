@@ -3169,7 +3169,7 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
 
     def get_vesting(self, obj):
         if obj.vesting:
-            return obj.vesting
+            return obj.vesting.name
         return None
 
     def get_featureid(self, obj):
@@ -3177,12 +3177,31 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
 
     def get_purpose(self, obj):
         if obj.purpose:
-            return obj.purpose.purpose
+            return obj.purpose.name
         return None
 
 
 class OccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
-    pass
+    class Meta:
+        model = OccurrenceTenure
+        fields = (
+            "id",
+            "status",
+            "status_display",
+            "tenure_area_id",
+            "featureid",
+            "owner_name",
+            "owner_count",
+            "vesting_id",
+            "vesting",
+            "purpose_id",
+            "purpose",
+            "comments",
+            "significant_to_occurrence",
+            "tenure_area_centroid",
+            "tenure_area_point_on_surface",
+            "datetime_updated",
+        )
 
 
 class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
@@ -3205,6 +3224,7 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "comments",
             "significant_to_occurrence",
             "tenure_area_centroid",
+            "tenure_area_point_on_surface",
             "datetime_updated",
             "occurrence_number",
             "occurrence_id",
@@ -3222,6 +3242,7 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             "comments",
             "significant_to_occurrence",
             "tenure_area_centroid",
+            "tenure_area_point_on_surface",
             "datetime_updated",
         )
 
@@ -3239,6 +3260,39 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             return obj.occurrence_geometry.occurrence.id
         elif obj.historical_occurrence:
             return obj.historical_occurrence
+
+class OccurrenceTenureSaveSerializer(serializers.ModelSerializer):
+    vesting_id = serializers.IntegerField(required=False, allow_null=True)
+    purpose_id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = OccurrenceTenure
+        fields = (
+            "id",
+            "status",
+            "tenure_area_id",
+            "owner_name",
+            "owner_count",
+            "vesting_id",
+            "purpose_id",
+            "comments",
+            "significant_to_occurrence",
+        )
+        # Populated by means of intersection during geometry save operation
+        read_only_fields = (
+            "id",
+            "status",
+            "tenure_area_id",
+            "owner_name",
+            "owner_count",
+        )
+
+    def save(self, *args, **kwargs):
+        if self.instance.id:
+            super().save(*args, **kwargs)
+        else:
+            # Make sure to not use the save-serializer to create a new tenure area entry
+            raise serializers.ValidationError("Cannot create new Occurrence Tenure")
 
 
 class OccurrenceSiteSerializer(serializers.ModelSerializer):
@@ -3357,7 +3411,7 @@ class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
             instance.save(*args, **kwargs)
             
             return instance
-        
+
 class SiteGeometrySerializer(GeoFeatureModelSerializer):
     srid = serializers.SerializerMethodField(read_only=True)
     geometry_source = serializers.SerializerMethodField()

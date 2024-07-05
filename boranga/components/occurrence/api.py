@@ -9,7 +9,7 @@ from django.db import models, transaction
 from django.db.models import CharField, Q, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from multiselectfield import MultiSelectField
@@ -70,6 +70,8 @@ from boranga.components.occurrence.models import (
     OccurrenceReportUserAction,
     OccurrenceSite,
     OccurrenceTenure,
+    OccurrenceTenurePurpose,
+    OccurrenceTenureVesting,
     OccurrenceUserAction,
     OCCVegetationStructure,
     OCRAnimalObservation,
@@ -127,6 +129,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceReportUserActionSerializer,
     OccurrenceSerializer,
     OccurrenceSiteSerializer,
+    OccurrenceTenureSaveSerializer,
     OccurrenceTenureSerializer,
     OccurrenceUserActionSerializer,
     OCRConservationThreatSerializer,
@@ -5496,7 +5499,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def occurrence_tenure_internal(self, request, *args, **kwargs):
-        qs = self.get_queryset()
+        qs = self.get_queryset().distinct()
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
@@ -5549,7 +5552,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def occurrence_tenure_vesting_lookup(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.get_queryset().exclude(vesting=None)
 
         search_term = request.GET.get("term", "")
         occurrence_id = request.GET.get("occurrence_id", None)
@@ -5559,12 +5562,12 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         results = []
         if search_term:
-            # TODO: Implement vesting filtering after implementing the vesting field
-            # queryset = queryset.filter(vesting__icontains=search_term).distinct()[:10]
-            # results = [
-            #     {"id": row.vesting, "text": row.vesting} for row in queryset
-            # ]
-            results = [{"id": 1, "text": queryset[0].vesting}]
+            queryset = queryset.filter(
+                vesting__vesting__icontains=search_term
+            ).distinct()[:10]
+        results = [
+            {"id": row.vesting.id, "text": row.vesting.name} for row in queryset
+        ]
 
         return Response({"results": results})
 
@@ -5575,7 +5578,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def occurrence_tenure_purpose_lookup(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.get_queryset().exclude(purpose=None)
 
         search_term = request.GET.get("term", "")
         occurrence_id = request.GET.get("occurrence_id", None)
@@ -5587,11 +5590,87 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(
                 purpose__purpose__icontains=search_term
             ).distinct()[:10]
-            results = [
-                {"id": row.purpose.id, "text": row.purpose.purpose} for row in queryset
-            ]
+        results = [
+            {"id": row.purpose.id, "text": row.purpose.name} for row in queryset
+        ]
 
         return Response({"results": results})
+
+
+class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+    queryset = OccurrenceTenure.objects.none()
+    serializer_class = OccurrenceTenureSerializer
+
+    def is_authorised_to_update(self, occurrence):
+        if not (
+            is_occurrence_approver(self.request)
+            and (
+                occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+                or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+            )
+        ):
+            raise serializers.ValidationError(
+                "User not authorised to update Occurrence"
+            )
+
+    def get_queryset(self):
+        qs = self.queryset
+
+        if is_internal(self.request):
+            qs = OccurrenceTenure.objects.all().order_by("id")
+        return qs
+
+    def retrieve(self, request, pk=None):
+        queryset = self.get_queryset()
+        tenure_obj = get_object_or_404(queryset, pk=pk)
+        serializer = OccurrenceTenureSerializer(tenure_obj)
+        self.is_authorised_to_update(tenure_obj.occurrence)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.is_authorised_to_update(instance.occurrence)
+
+        data = request.data.get("data", {})
+
+        serializer = OccurrenceTenureSaveSerializer(
+            instance, data=data
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data.get("data")
+
+        serializer = OccurrenceTenureSaveSerializer(
+            data=data
+        )
+        serializer.is_valid(raise_exception=True)
+
+        self.is_authorised_to_update(instance.occurrence)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def occurrence_tenure_list_of_values(self, request, *args, **kwargs):
+        purpose_list = list(OccurrenceTenurePurpose.objects.all().values("id", "name"))
+        vesting_list = list(OccurrenceTenureVesting.objects.all().values("id", "name"))
+
+        res_json = {
+            "purpose_list": purpose_list,
+            "vesting_list": vesting_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
 
 
 class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):

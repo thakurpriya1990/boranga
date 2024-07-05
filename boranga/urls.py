@@ -171,6 +171,11 @@ router.register(r"tile_layer", spatial_api.TileLayerViewSet, "tile_layer")
 router.register(r"regions", species_communities_api.RegionViewSet, "regions")
 
 router.register(
+    r"occurrence_tenure",
+    occurrence_api.OccurrenceTenureViewSet,
+    "occurrence-tenure",
+)
+router.register(
     r"occurrence_tenure_paginated",
     occurrence_api.OccurrenceTenurePaginatedViewSet,
     "occurrence-tenure-paginated",

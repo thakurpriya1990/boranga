@@ -156,7 +156,7 @@ export default {
             }).then((response) => {
                 swal.fire({
                     title: 'Sent',
-                    text: 'An email has been sent to applicant with the request to amend this Application',
+                    text: 'An email has been sent to proponent with the request to amend this Proposal',
                     icon: 'success',
                     customClass: {
                         confirmButton: 'btn btn-primary',
