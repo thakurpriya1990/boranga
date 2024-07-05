@@ -5439,7 +5439,6 @@ class OccurrenceTenureFilterBackend(DatatablesFilterBackend):
             if tenure_area_id
             else queryset
         )
-        logger.debug(f"vesting: {vesting}")  # use variable or remove
         queryset = queryset.filter(vesting=vesting) if vesting else queryset
         queryset = queryset.filter(purpose=purpose) if purpose else queryset
 
