@@ -893,40 +893,58 @@ class Species(RevisionedMixin):
     @property
     def area_of_occupancy_m2(self):
         # TODO: For fauna we need to include the buffers around the points in the following methods
-        from boranga.components.occurrence.models import OccurrenceGeometry
-
-        area = (
-            OccurrenceGeometry.objects.filter(occurrence__species=self)
-            .aggregate(sum=Sum("area"))["sum"]
-            .sq_m
+        from boranga.components.occurrence.models import (
+            BufferGeometry,
+            OccurrenceGeometry,
         )
+
+        area = OccurrenceGeometry.objects.filter(occurrence__species=self).aggregate(
+            sum=Sum("area")
+        )["sum"]
+        if self.group_type.name == GroupType.GROUP_TYPE_FAUNA:
+            area = BufferGeometry.objects.filter(
+                buffered_from_geometry__occurrence__species=self
+            ).aggregate(sum=Sum("area"))["sum"]
 
         if not area:
             return 0
 
-        return area
+        return area.sq_m
 
     @property
     def area_of_occupancy_km2(self):
         if not self.area_of_occupancy_m2:
             return 0
 
-        return round(self.area_of_occupancy_m2 / 1000000)
+        return round(self.area_of_occupancy_m2 / 1000000, 5)
 
     @property
     def area_occurrence_convex_hull_m2(self):
-        from boranga.components.occurrence.models import OccurrenceGeometry
+        from boranga.components.occurrence.models import (
+            BufferGeometry,
+            OccurrenceGeometry,
+        )
 
-        occurrences = (
+        occurrence_geometries = (
             OccurrenceGeometry.objects.filter(occurrence__species=self)
             .annotate(geom=Cast("geometry", gis_models.GeometryField(geography=True)))
             .values_list("geometry", flat=True)
         )
+        if self.group_type.name == GroupType.GROUP_TYPE_FAUNA:
+            occurrence_geometries = (
+                BufferGeometry.objects.filter(
+                    buffered_from_geometry__occurrence__species=self
+                )
+                .annotate(
+                    geom=Cast("geometry", gis_models.GeometryField(geography=True))
+                )
+                .values_list("geometry", flat=True)
+            )
 
-        if not occurrences:
+        if not occurrence_geometries:
             return 0
 
-        convex_hull = shp.MultiPolygon(occurrences).convex_hull
+        convex_hull = shp.MultiPolygon(occurrence_geometries).convex_hull
 
         geod = Geod(ellps="WGS84")
         geod_area = abs(geod.geometry_area_perimeter(convex_hull)[0])
@@ -938,7 +956,7 @@ class Species(RevisionedMixin):
         if not self.area_occurrence_convex_hull_m2:
             return 0
 
-        return round(self.area_occurrence_convex_hull_m2 / 1000000)
+        return round(self.area_occurrence_convex_hull_m2 / 1000000, 5)
 
 
 class SpeciesLogDocument(Document):
@@ -1431,6 +1449,80 @@ class Community(RevisionedMixin):
 
         self.image_doc = document
         self.save()
+
+    @property
+    def occurrence_count(self):
+        from boranga.components.occurrence.models import Occurrence
+
+        return Occurrence.objects.filter(community=self).count()
+
+    @property
+    def area_of_occupancy_m2(self):
+        # TODO: For fauna we need to include the buffers around the points in the following methods
+        from boranga.components.occurrence.models import (
+            BufferGeometry,
+            OccurrenceGeometry,
+        )
+
+        area = OccurrenceGeometry.objects.filter(occurrence__community=self).aggregate(
+            sum=Sum("area")
+        )["sum"]
+        if self.group_type.name == GroupType.GROUP_TYPE_FAUNA:
+            area = BufferGeometry.objects.filter(
+                buffered_from_geometry__occurrence__community=self
+            ).aggregate(sum=Sum("area"))["sum"]
+
+        if not area:
+            return 0
+
+        return area.sq_m
+
+    @property
+    def area_of_occupancy_km2(self):
+        if not self.area_of_occupancy_m2:
+            return 0
+
+        return round(self.area_of_occupancy_m2 / 1000000, 5)
+
+    @property
+    def area_occurrence_convex_hull_m2(self):
+        from boranga.components.occurrence.models import (
+            BufferGeometry,
+            OccurrenceGeometry,
+        )
+
+        occurrence_geometries = (
+            OccurrenceGeometry.objects.filter(occurrence__community=self)
+            .annotate(geom=Cast("geometry", gis_models.GeometryField(geography=True)))
+            .values_list("geometry", flat=True)
+        )
+        if self.group_type.name == GroupType.GROUP_TYPE_FAUNA:
+            occurrence_geometries = (
+                BufferGeometry.objects.filter(
+                    buffered_from_geometry__occurrence__community=self
+                )
+                .annotate(
+                    geom=Cast("geometry", gis_models.GeometryField(geography=True))
+                )
+                .values_list("geometry", flat=True)
+            )
+
+        if not occurrence_geometries:
+            return 0
+
+        convex_hull = shp.MultiPolygon(occurrence_geometries).convex_hull
+
+        geod = Geod(ellps="WGS84")
+        geod_area = abs(geod.geometry_area_perimeter(convex_hull)[0])
+
+        return geod_area
+
+    @property
+    def area_occurrence_convex_hull_km2(self):
+        if not self.area_occurrence_convex_hull_m2:
+            return 0
+
+        return round(self.area_occurrence_convex_hull_m2 / 1000000, 5)
 
 
 class CommunityTaxonomy(models.Model):

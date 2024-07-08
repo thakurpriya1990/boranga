@@ -1,9 +1,10 @@
 from django.contrib import admin
 
+from boranga.admin import DeleteProtectedModelAdmin
 from boranga.components.users import models
 
 
-class SubmitterCategoryAdmin(admin.ModelAdmin):
+class SubmitterCategoryAdmin(DeleteProtectedModelAdmin):
     list_display = ("name",)
 
 
