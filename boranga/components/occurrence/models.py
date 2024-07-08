@@ -2382,7 +2382,7 @@ class OCRPlantCount(models.Model):
     dehisced_fruit_present = models.BooleanField(null=True, blank=True)
     pollinator_observation = models.CharField(max_length=1000, null=True, blank=True)
     comment = models.CharField(max_length=1000, null=True, blank=True)
-    plant_count_date = models.DateTimeField(null=True, blank=True)
+    count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -2552,6 +2552,7 @@ class OCRAnimalObservation(models.Model):
     dead_unsure_female = models.IntegerField(null=True, blank=True, default=0)
     alive_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
     dead_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
+    count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -4185,6 +4186,7 @@ class OCCPlantCount(models.Model):
     dehisced_fruit_present = models.BooleanField(null=True, blank=True)
     pollinator_observation = models.CharField(max_length=1000, null=True, blank=True)
     comment = models.CharField(max_length=1000, null=True, blank=True)
+    count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -4256,6 +4258,7 @@ class OCCAnimalObservation(models.Model):
     dead_unsure_female = models.IntegerField(null=True, blank=True, default=0)
     alive_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
     dead_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
+    count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"

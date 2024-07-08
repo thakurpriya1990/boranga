@@ -535,7 +535,7 @@ class OCRObservationDetailSerializer(serializers.ModelSerializer):
 
 
 class OCRPlantCountSerializer(serializers.ModelSerializer):
-    plant_count_date = serializers.DateTimeField(
+    count_date = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S", allow_null=True
     )
 
@@ -574,7 +574,7 @@ class OCRPlantCountSerializer(serializers.ModelSerializer):
             "detailed_dead_seedling",
             "detailed_alive_unknown",
             "detailed_dead_unknown",
-            "plant_count_date",
+            "count_date",
         )
 
 
@@ -582,6 +582,9 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
 
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
+    )
+    count_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
     )
 
     class Meta:
@@ -617,6 +620,7 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "dead_unsure_female",
             "alive_unsure_unknown",
             "dead_unsure_unknown",
+            "count_date",
         )
 
     def __init__(self, *args, **kwargs):
@@ -1604,7 +1608,7 @@ class SaveOCRPlantCountSerializer(serializers.ModelSerializer):
     plant_count_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
     counted_subject_id = serializers.IntegerField(required=False, allow_null=True)
     plant_condition_id = serializers.IntegerField(required=False, allow_null=True)
-    plant_count_date = serializers.DateTimeField(
+    count_date = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     )
 
@@ -1643,7 +1647,7 @@ class SaveOCRPlantCountSerializer(serializers.ModelSerializer):
             "detailed_dead_seedling",
             "detailed_alive_unknown",
             "detailed_dead_unknown",
-            "plant_count_date",
+            "count_date",
         )
 
 
@@ -1654,6 +1658,9 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
     )
     animal_health_id = serializers.IntegerField(required=False, allow_null=True)
     death_reason_id = serializers.IntegerField(required=False, allow_null=True)
+    count_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    )
 
     class Meta:
         model = OCRAnimalObservation
@@ -1688,6 +1695,7 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
             "dead_unsure_female",
             "alive_unsure_unknown",
             "dead_unsure_unknown",
+            "count_date",
         )
 
     def __init__(self, *args, **kwargs):
@@ -2507,6 +2515,9 @@ class OCCObservationDetailSerializer(serializers.ModelSerializer):
 class OCCPlantCountSerializer(serializers.ModelSerializer):
 
     copied_ocr = serializers.SerializerMethodField()
+    count_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
 
     class Meta:
         model = OCCPlantCount
@@ -2544,6 +2555,7 @@ class OCCPlantCountSerializer(serializers.ModelSerializer):
             "detailed_dead_seedling",
             "detailed_alive_unknown",
             "detailed_dead_unknown",
+            "count_date",
         )
 
     def get_copied_ocr(self, obj):
@@ -2557,6 +2569,9 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
         choices=[], allow_null=True, allow_blank=True, required=False
     )
     copied_ocr = serializers.SerializerMethodField()
+    count_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
 
     class Meta:
         model = OCCAnimalObservation
@@ -2592,6 +2607,7 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "dead_unsure_female",
             "alive_unsure_unknown",
             "dead_unsure_unknown",
+            "count_date",
         )
 
     def __init__(self, *args, **kwargs):
@@ -2759,6 +2775,9 @@ class SaveOCCPlantCountSerializer(serializers.ModelSerializer):
     plant_count_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
     counted_subject_id = serializers.IntegerField(required=False, allow_null=True)
     plant_condition_id = serializers.IntegerField(required=False, allow_null=True)
+    count_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    )
 
     class Meta:
         model = OCCPlantCount
@@ -2795,6 +2814,7 @@ class SaveOCCPlantCountSerializer(serializers.ModelSerializer):
             "detailed_dead_seedling",
             "detailed_alive_unknown",
             "detailed_dead_unknown",
+            "count_date",
         )
 
 
@@ -2805,6 +2825,9 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
     )
     animal_health_id = serializers.IntegerField(required=False, allow_null=True)
     death_reason_id = serializers.IntegerField(required=False, allow_null=True)
+    count_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    )
 
     class Meta:
         model = OCCAnimalObservation
@@ -2839,6 +2862,7 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
             "dead_unsure_female",
             "alive_unsure_unknown",
             "dead_unsure_unknown",
+            "count_date",
         )
 
     def __init__(self, *args, **kwargs):

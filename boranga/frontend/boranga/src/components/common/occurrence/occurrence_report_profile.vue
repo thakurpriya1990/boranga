@@ -182,10 +182,17 @@ export default {
     watch: {
         "occurrence_report_obj.observation_date": function () {
             let vm=this;
+            if(vm.isFauna){
                 if(vm.occurrence_report_obj && vm.occurrence_report_obj.plant_count){
-                    vm.occurrence_report_obj.plant_count.plant_count_date=vm.occurrence_report_obj.observation_date
+                    vm.occurrence_report_obj.animal_observation.count_date=vm.occurrence_report_obj.observation_date
                 }
             }
+            else{
+                if(vm.occurrence_report_obj && vm.occurrence_report_obj.plant_count){
+                    vm.occurrence_report_obj.animal_observation.count_date=vm.occurrence_report_obj.observation_date
+                }
+            }       
+        }
     },
     methods: {
         initialiseScientificNameLookup: function () {

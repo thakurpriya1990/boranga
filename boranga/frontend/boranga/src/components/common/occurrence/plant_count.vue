@@ -37,7 +37,7 @@
         <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Plan Count Date: </label>
                 <div class="col-sm-9">
-                    <input v-model="plant_count.plant_count_date
+                    <input v-model="plant_count.count_date
                         " :disabled="true" type="datetime-local" class="form-control" name="plant_count_date"
                          />
                 </div>
