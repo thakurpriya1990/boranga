@@ -1302,6 +1302,9 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "conservation_plan_reference",
             "publishing_status",
             "conservation_status",
+            "occurrence_count",
+            "area_of_occupancy_km2",
+            "area_occurrence_convex_hull_km2",
         )
 
     def get_submitter(self, obj):

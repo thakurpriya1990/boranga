@@ -1,14 +1,15 @@
 from django.contrib.gis import admin
 
+from boranga.admin import DeleteProtectedModelAdmin
 from boranga.components.conservation_status import models
 
 
 @admin.register(models.ProposalAmendmentReason)
-class ProposalAmendmentReasonAdmin(admin.ModelAdmin):
+class ProposalAmendmentReasonAdmin(DeleteProtectedModelAdmin):
     list_display = ["reason"]
 
 
-class AbstractListAdmin(admin.ModelAdmin):
+class AbstractListAdmin(DeleteProtectedModelAdmin):
     list_display = ["code", "label"]
 
 
@@ -32,7 +33,7 @@ class CommonwealthConservationListAdmin(AbstractListAdmin):
     pass
 
 
-class ConservationChangeCodeAdmin(admin.ModelAdmin):
+class ConservationChangeCodeAdmin(DeleteProtectedModelAdmin):
     list_display = ["code", "label"]
 
 
