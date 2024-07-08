@@ -1136,43 +1136,74 @@
                     </div>
                 </div>
 
-                <div id="featureToast" class="toast" style="z-index: 9999">
-                    <template v-if="selectedModel">
-                        <div class="toast-header">
-                            <img src="" class="rounded me-2" alt="" />
-                            <strong class="me-auto">
-                                {{ selectedModel.Label
-                                }}<span
-                                    v-if="
-                                        selectedModel['Identification Number']
-                                    "
-                                    >:</span
-                                >
-                                {{ selectedModel['Identification Number'] }}
-                            </strong>
-                        </div>
-                        <div class="toast-body">
-                            <table class="table table-sm">
-                                <tbody
-                                    v-for="property in Object.keys(
-                                        selectedModel
-                                    )"
-                                    :key="`${property} - ${selectedModel[property]}`"
-                                >
-                                    <tr
+                <!-- Flexbox container for aligning the toasts -->
+                <div
+                    aria-live="polite"
+                    aria-atomic="true"
+                    class="toast-container d-flex justify-content-center align-items-center w-100"
+                >
+                    <div
+                        id="featureToast"
+                        :class="[
+                            cursorInLeftHalfOfMap
+                                ? 'positionToRight'
+                                : 'positionToLeft',
+                            cursorInBottomHalfOfMap
+                                ? 'positionToTop'
+                                : 'positionToBottom',
+                        ]"
+                        class="toast"
+                        aria-live="assertive"
+                        aria-atomic="true"
+                        style="z-index: 9999"
+                    >
+                        <template v-if="selectedModel">
+                            <div class="toast-header">
+                                <img src="" class="rounded me-2" alt="" />
+                                <strong class="me-auto">
+                                    {{ selectedModel.Label
+                                    }}<span
                                         v-if="
-                                            !['Label', 'label'].includes(
-                                                property
-                                            )
+                                            selectedModel[
+                                                'Identification Number'
+                                            ]
                                         "
+                                        >:</span
                                     >
-                                        <th scope="row">{{ property }}</th>
-                                        <td>{{ selectedModel[property] }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </template>
+                                    {{ selectedModel['Identification Number'] }}
+                                </strong>
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="toast"
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                            <div class="toast-body">
+                                <table class="table table-sm">
+                                    <tbody
+                                        v-for="property in Object.keys(
+                                            selectedModel
+                                        )"
+                                        :key="`${property} - ${selectedModel[property]}`"
+                                    >
+                                        <tr
+                                            v-if="
+                                                !['Label', 'label'].includes(
+                                                    property
+                                                )
+                                            "
+                                        >
+                                            <th scope="row">{{ property }}</th>
+                                            <td>
+                                                {{ selectedModel[property] }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                    </div>
                 </div>
 
                 <!-- Overlay popup bubble when clicking a DBCA layer feature -->
@@ -1813,6 +1844,8 @@ export default {
             spatialOperationParameters: [1.0],
             fetchTileLayers: fetchTileLayers,
             fetchProposals: fetchProposals,
+            cursorInLeftHalfOfMap: true,
+            cursorInBottomHalfOfMap: true,
         };
     },
     computed: {
@@ -3329,6 +3362,11 @@ export default {
                 vm.map.getTargetElement().style.cursor = hit
                     ? 'help'
                     : 'default';
+
+                const width = vm.map.getViewport().clientWidth;
+                const height = vm.map.getViewport().clientHeight;
+                vm.cursorInLeftHalfOfMap = evt.pixel[0] < width / 2;
+                vm.cursorInBottomHalfOfMap = evt.pixel[1] > height / 2;
 
                 if (selected) {
                     vm.featureToast.show();
@@ -5227,8 +5265,18 @@ export default {
 
 #featureToast {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
+}
+.positionToLeft {
+    left: 60px;
+}
+.positionToRight {
+    right: 20px;
+}
+.positionToTop {
+    top: 20px;
+}
+.positionToBottom {
+    bottom: 20px;
 }
 
 .badge {
