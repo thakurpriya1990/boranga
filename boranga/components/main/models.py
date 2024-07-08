@@ -220,6 +220,8 @@ class ArchivableManager(models.Manager):
 
 
 class ArchivableModel(models.Model):
+    objects = ArchivableManager()
+
     archived = models.BooleanField(default=False)
 
     class Meta:

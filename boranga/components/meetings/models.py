@@ -10,7 +10,6 @@ from django.utils import timezone
 
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.models import (
-    ArchivableManager,
     ArchivableModel,
     CommunicationsLogEntry,
     Document,
@@ -42,8 +41,6 @@ def update_meeting_doc_filename(instance, filename):
 
 
 class MeetingRoom(ArchivableModel):
-    objects = ArchivableManager()
-
     room_name = models.CharField(max_length=128, blank=True, null=True)
 
     class Meta:
