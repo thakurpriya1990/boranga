@@ -1135,113 +1135,39 @@
                         </div>
                     </div>
                 </div>
-                {{selectedModel}}
+
                 <div id="featureToast" class="toast" style="z-index: 9999">
                     <template v-if="selectedModel">
                         <div class="toast-header">
                             <img src="" class="rounded me-2" alt="" />
                             <strong class="me-auto">
-                                {{ selectedModel.label }}:
-                                {{
-                                    selectedModel.occurrence_report_number ||
-                                    selectedModel.occurrence_number ||
-                                    selectedModel.site_number ||
-                                    selectedModel.buffer_radius
-                                }}
+                                {{ selectedModel.Label
+                                }}<span
+                                    v-if="
+                                        selectedModel['Identification Number']
+                                    "
+                                    >:</span
+                                >
+                                {{ selectedModel['Identification Number'] }}
                             </strong>
                         </div>
                         <div class="toast-body">
                             <table class="table table-sm">
-                                <tbody>
+                                <tbody
+                                    v-for="property in Object.keys(
+                                        selectedModel
+                                    )"
+                                    :key="`${property} - ${selectedModel[property]}`"
+                                >
                                     <tr
                                         v-if="
-                                            selectedModel.status ||
-                                            selectedModel.status_display ||
-                                            selectedModel.processing_status_display ||
-                                            selectedModel.processing_status
+                                            !['Label', 'label'].includes(
+                                                property
+                                            )
                                         "
                                     >
-                                        <th scope="row">Processing Status</th>
-                                        <td>
-                                            {{
-                                                selectedModel.status ||
-                                                selectedModel.status_display ||
-                                                selectedModel.processing_status_display ||
-                                                selectedModel.processing_status
-                                            }}
-                                        </td>
-                                    </tr>
-                                    <tr
-                                        v-if="
-                                            selectedModel.copied_from ||
-                                            selectedModel.lodgement_date_display ||
-                                            selectedModel.lodgement_date ||
-                                            selectedModel.created_at ||
-                                            selectedModel.created_at_display
-                                        "
-                                    >
-                                        <th
-                                            v-if="selectedModel.copied_from"
-                                            scope="row"
-                                        >
-                                            Occurrence (original report)
-                                        </th>
-                                        <th v-else scope="row">
-                                            Lodgement Date
-                                        </th>
-                                        <td v-if="selectedModel.copied_from">
-                                            {{
-                                                selectedModel.copied_from
-                                                    .lodgement_date_display
-                                            }}
-                                        </td>
-                                        <td v-else>
-                                            {{
-                                                selectedModel.lodgement_date_display ||
-                                                selectedModel.lodgement_date ||
-                                                selectedModel.created_at ||
-                                                selectedModel.created_at_display
-                                            }}
-                                        </td>
-                                    </tr>
-                                    <tr v-if="selectedModel.geometry_source">
-                                        <th scope="row">Geometry Source</th>
-                                        <td>
-                                            {{ selectedModel.geometry_source }}
-                                        </td>
-                                    </tr>
-                                    <tr v-if="selectedModel.area_sqm">
-                                        <template
-                                            v-if="
-                                                selectedModel.area_sqm > 10000
-                                            "
-                                        >
-                                            <th scope="row">Area (ha)</th>
-                                            <td>
-                                                {{
-                                                    (
-                                                        selectedModel.area_sqm /
-                                                        10000
-                                                    ).toFixed(1)
-                                                }}
-                                            </td>
-                                        </template>
-                                        <template v-else>
-                                            <th scope="row">Area (m&#178;)</th>
-                                            <td>
-                                                {{
-                                                    Math.round(
-                                                        selectedModel.area_sqm
-                                                    )
-                                                }}
-                                            </td>
-                                        </template>
-                                    </tr>
-                                    <tr v-if="selectedModel.site_name">
-                                        <th scope="row">Name</th>
-                                        <td>
-                                            {{ selectedModel.site_name }}
-                                        </td>
+                                        <th scope="row">{{ property }}</th>
+                                        <td>{{ selectedModel[property] }}</td>
                                     </tr>
                                 </tbody>
                             </table>
