@@ -24,6 +24,26 @@ class DeleteProtectedModelAdmin(admin.ModelAdmin):
         return request.user.is_superuser
 
 
+@admin.action(description="Mark as archived")
+def archive(modeladmin, request, queryset):
+    queryset.update(archived=True)
+
+
+@admin.action(description="Mark as unarchived")
+def unarchive(modeladmin, request, queryset):
+    queryset.update(archived=False)
+
+
+class ArchivableModelAdminMixin:
+    actions = [archive, unarchive]
+    list_filter = ("archived",)
+    search_fields = ("id",)
+    ordering = ("id",)
+
+    def get_queryset(self, request):
+        return self.model.objects.all_with_archived()
+
+
 admin.site.index_template = "admin-index.html"
 admin.autodiscover()
 
