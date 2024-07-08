@@ -33,8 +33,8 @@ class DocumentSubCategoryAdmin(DeleteProtectedModelAdmin):
 
 # Each of the following models will be available to Django Admin.
 admin.site.register(GroupType)
-admin.site.register(Region)
-admin.site.register(District)
+admin.site.register(Region, DeleteProtectedModelAdmin)
+admin.site.register(District, DeleteProtectedModelAdmin)
 admin.site.register(DocumentCategory, DeleteProtectedModelAdmin)
 admin.site.register(ThreatCategory, DeleteProtectedModelAdmin)
 admin.site.register(FloraRecruitmentType, DeleteProtectedModelAdmin)
