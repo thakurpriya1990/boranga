@@ -9,6 +9,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 
 from boranga import helpers as boranga_helpers
+from boranga.components.main.models import ArchivableManager, ArchivableModel
 
 
 class DeleteProtectedModelAdmin(admin.ModelAdmin):
@@ -39,6 +40,20 @@ class ArchivableModelAdminMixin:
     list_filter = ("archived",)
     search_fields = ("id",)
     ordering = ("id",)
+
+    def __init__(self, model, admin_site) -> None:
+        super().__init__(model, admin_site)
+
+        if not hasattr(self, "model"):
+            raise AttributeError("Please set the model attribute on the admin class.")
+
+        if not issubclass(self.model, ArchivableModel):
+            raise AttributeError("The model must be a sub class of ArchivableModel.")
+
+        if not isinstance(self.model.objects, ArchivableManager):
+            raise AttributeError(
+                "The model manager must be an instance of ArchivableManager."
+            )
 
     def get_queryset(self, request):
         return self.model.objects.all_with_archived()
