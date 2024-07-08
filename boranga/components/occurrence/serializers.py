@@ -535,6 +535,9 @@ class OCRObservationDetailSerializer(serializers.ModelSerializer):
 
 
 class OCRPlantCountSerializer(serializers.ModelSerializer):
+    plant_count_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    )
 
     class Meta:
         model = OCRPlantCount
@@ -571,6 +574,7 @@ class OCRPlantCountSerializer(serializers.ModelSerializer):
             "detailed_dead_seedling",
             "detailed_alive_unknown",
             "detailed_dead_unknown",
+            "plant_count_date",
         )
 
 
@@ -1600,6 +1604,9 @@ class SaveOCRPlantCountSerializer(serializers.ModelSerializer):
     plant_count_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
     counted_subject_id = serializers.IntegerField(required=False, allow_null=True)
     plant_condition_id = serializers.IntegerField(required=False, allow_null=True)
+    plant_count_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    )
 
     class Meta:
         model = OCRPlantCount
@@ -1636,6 +1643,7 @@ class SaveOCRPlantCountSerializer(serializers.ModelSerializer):
             "detailed_dead_seedling",
             "detailed_alive_unknown",
             "detailed_dead_unknown",
+            "plant_count_date",
         )
 
 

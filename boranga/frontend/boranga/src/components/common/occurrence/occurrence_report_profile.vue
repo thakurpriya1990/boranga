@@ -179,6 +179,14 @@ export default {
         ObserverDatatable,
         CollapsibleComponent
     },
+    watch: {
+        "occurrence_report_obj.observation_date": function () {
+            let vm=this;
+                if(vm.occurrence_report_obj && vm.occurrence_report_obj.plant_count){
+                    vm.occurrence_report_obj.plant_count.plant_count_date=vm.occurrence_report_obj.observation_date
+                }
+            }
+    },
     methods: {
         initialiseScientificNameLookup: function () {
             let vm = this;

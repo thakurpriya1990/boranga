@@ -2382,6 +2382,7 @@ class OCRPlantCount(models.Model):
     dehisced_fruit_present = models.BooleanField(null=True, blank=True)
     pollinator_observation = models.CharField(max_length=1000, null=True, blank=True)
     comment = models.CharField(max_length=1000, null=True, blank=True)
+    plant_count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
