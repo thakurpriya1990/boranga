@@ -24,6 +24,7 @@
                         ids: [occurrence_report_obj.id],
                         geometry_name: 'ocr_geometry',
                         collapse: false,
+                        property_display_map: ocrPropertyDisplayMap,
                     }" @validate-feature="validateFeature.bind(this)()" @refreshFromResponse="refreshFromResponse"
                     @crs-select-search="searchForCRS"></MapComponent>
             </div>
@@ -380,6 +381,14 @@ export default {
         },
         proposalApiUrl: function () {
             return api_endpoints.occurrence_report + '/list_for_map/';
+        },
+        ocrPropertyDisplayMap: function () {
+            return {
+                label: 'Label', // Occurrence Report
+                geometry_source: 'Geometry Source',
+                occurrence_report_number: 'Identification Number',
+                processing_status: 'Processing Status',
+            };
         },
     },
     watch: {},

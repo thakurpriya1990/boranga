@@ -1136,117 +1136,74 @@
                     </div>
                 </div>
 
-                <div id="featureToast" class="toast" style="z-index: 9999">
-                    <template v-if="selectedModel">
-                        <div class="toast-header">
-                            <img src="" class="rounded me-2" alt="" />
-                            <strong class="me-auto">
-                                {{ selectedModel.label }}:
-                                {{
-                                    selectedModel.occurrence_report_number ||
-                                    selectedModel.occurrence_number ||
-                                    selectedModel.site_number ||
-                                    selectedModel.buffer_radius
-                                }}
-                            </strong>
-                        </div>
-                        <div class="toast-body">
-                            <table class="table table-sm">
-                                <tbody>
-                                    <tr
+                <!-- Flexbox container for aligning the toasts -->
+                <div
+                    aria-live="polite"
+                    aria-atomic="true"
+                    class="toast-container d-flex justify-content-center align-items-center w-100"
+                >
+                    <div
+                        id="featureToast"
+                        :class="[
+                            cursorInLeftHalfOfMap
+                                ? 'positionToRight'
+                                : 'positionToLeft',
+                            cursorInBottomHalfOfMap
+                                ? 'positionToTop'
+                                : 'positionToBottom',
+                        ]"
+                        class="toast"
+                        aria-live="assertive"
+                        aria-atomic="true"
+                        style="z-index: 9999"
+                    >
+                        <template v-if="selectedModel">
+                            <div class="toast-header">
+                                <img src="" class="rounded me-2" alt="" />
+                                <strong class="me-auto">
+                                    {{ selectedModel.Label
+                                    }}<span
                                         v-if="
-                                            selectedModel.status ||
-                                            selectedModel.status_display ||
-                                            selectedModel.processing_status_display ||
-                                            selectedModel.processing_status
+                                            selectedModel[
+                                                'Identification Number'
+                                            ]
                                         "
+                                        >:</span
                                     >
-                                        <th scope="row">Processing Status</th>
-                                        <td>
-                                            {{
-                                                selectedModel.status ||
-                                                selectedModel.status_display ||
-                                                selectedModel.processing_status_display ||
-                                                selectedModel.processing_status
-                                            }}
-                                        </td>
-                                    </tr>
-                                    <tr
-                                        v-if="
-                                            selectedModel.copied_from ||
-                                            selectedModel.lodgement_date_display ||
-                                            selectedModel.lodgement_date ||
-                                            selectedModel.created_at ||
-                                            selectedModel.created_at_display
-                                        "
+                                    {{ selectedModel['Identification Number'] }}
+                                </strong>
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="toast"
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                            <div class="toast-body">
+                                <table class="table table-sm">
+                                    <tbody
+                                        v-for="property in Object.keys(
+                                            selectedModel
+                                        )"
+                                        :key="`${property} - ${selectedModel[property]}`"
                                     >
-                                        <th
-                                            v-if="selectedModel.copied_from"
-                                            scope="row"
-                                        >
-                                            Occurrence (original report)
-                                        </th>
-                                        <th v-else scope="row">
-                                            Lodgement Date
-                                        </th>
-                                        <td v-if="selectedModel.copied_from">
-                                            {{
-                                                selectedModel.copied_from
-                                                    .lodgement_date_display
-                                            }}
-                                        </td>
-                                        <td v-else>
-                                            {{
-                                                selectedModel.lodgement_date_display ||
-                                                selectedModel.lodgement_date ||
-                                                selectedModel.created_at ||
-                                                selectedModel.created_at_display
-                                            }}
-                                        </td>
-                                    </tr>
-                                    <tr v-if="selectedModel.geometry_source">
-                                        <th scope="row">Geometry Source</th>
-                                        <td>
-                                            {{ selectedModel.geometry_source }}
-                                        </td>
-                                    </tr>
-                                    <tr v-if="selectedModel.area_sqm">
-                                        <template
+                                        <tr
                                             v-if="
-                                                selectedModel.area_sqm > 10000
+                                                !['Label', 'label'].includes(
+                                                    property
+                                                )
                                             "
                                         >
-                                            <th scope="row">Area (ha)</th>
+                                            <th scope="row">{{ property }}</th>
                                             <td>
-                                                {{
-                                                    (
-                                                        selectedModel.area_sqm /
-                                                        10000
-                                                    ).toFixed(1)
-                                                }}
+                                                {{ selectedModel[property] }}
                                             </td>
-                                        </template>
-                                        <template v-else>
-                                            <th scope="row">Area (m&#178;)</th>
-                                            <td>
-                                                {{
-                                                    Math.round(
-                                                        selectedModel.area_sqm
-                                                    )
-                                                }}
-                                            </td>
-                                        </template>
-                                    </tr>
-                                    <tr v-if="selectedModel.site_name">
-                                        <th scope="row">Name</th>
-                                        <td>
-                                            {{ selectedModel.site_name }}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </template>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                    </div>
                 </div>
 
                 <!-- Overlay popup bubble when clicking a DBCA layer feature -->
@@ -1462,7 +1419,7 @@
 import { v4 as uuid } from 'uuid';
 import { api_endpoints, helpers } from '@/utils/hooks';
 
-import { toRaw } from 'vue';
+import { toRaw, isProxy } from 'vue';
 import 'ol/ol.css';
 import alert from '@vue-utils/alert.vue';
 import Map from 'ol/Map';
@@ -1791,9 +1748,10 @@ export default {
                     //  Positive values fetch proposals with those ids
                     //  Empty list `[]` fetches all proposals
                     handler: null, // A callback function to invoke on fetched features
-                    geometry_name: 'geometry', // The name of the geometry field in the model. If not provided, the object itselef is treated as the geometry
+                    geometry_name: 'geometry', // The name of the geometry field in the model. If not provided, the object itself is treated as the geometry
                     collapse: false, // Whether the layer is collapsed by default
                     model_overwrite: null, // A dictionary to overwrite the default model values
+                    property_display_map: [], // A list of dictionaries to map property names to display names, e.g. for a popup or export to a geodata file
                 };
             },
         },
@@ -1886,6 +1844,8 @@ export default {
             spatialOperationParameters: [1.0],
             fetchTileLayers: fetchTileLayers,
             fetchProposals: fetchProposals,
+            cursorInLeftHalfOfMap: true,
+            cursorInBottomHalfOfMap: true,
         };
     },
     computed: {
@@ -3367,38 +3327,13 @@ export default {
                 }
                 vm.map.forEachFeatureAtPixel(
                     evt.pixel,
-                    function (feature) {
-                        // TODO: Just make this whole block of code nicer, display the individual feature info per feature and layer in the toast, etc
+                    function (feature, layer) {
                         selected = feature;
-                        let model = selected.getProperties().model;
-                        if (!model) {
-                            console.error('No model found for feature');
-                        } else {
-                            model.geometry_source =
-                                selected.getProperties().geometry_source;
-                            model.copied_from =
-                                selected.getProperties().copied_from;
-                            model.area_sqm = Math.round(
-                                getArea(selected.getGeometry(), {
-                                    projection: `EPSG:${vm.mapSrid}`,
-                                })
-                            );
-                            model.label ??= selected.getProperties().label;
-                            // TODO: Check for null
-                            let selected_buffer_radius =
-                                selected.getProperties().buffer_radius;
-                            if (selected_buffer_radius) {
-                                selected_buffer_radius += 'm';
-                            }
-                            model.buffer_radius ??= selected_buffer_radius;
-
-                            model.site_number =
-                                selected.getProperties().site_number;
-
-                            model.site_name =
-                                selected.getProperties().site_name;
-                        }
-                        vm.selectedModel = model;
+                        const properties = vm.featureGetDisplayProperties(
+                            selected,
+                            layer
+                        );
+                        vm.selectedModel = structuredClone(properties);
                         if (!isSelectedFeature(selected)) {
                             selected.setStyle(hoverSelect);
                         }
@@ -3427,6 +3362,11 @@ export default {
                 vm.map.getTargetElement().style.cursor = hit
                     ? 'help'
                     : 'default';
+
+                const width = vm.map.getViewport().clientWidth;
+                const height = vm.map.getViewport().clientHeight;
+                vm.cursorInLeftHalfOfMap = evt.pixel[0] < width / 2;
+                vm.cursorInBottomHalfOfMap = evt.pixel[1] > height / 2;
 
                 if (selected) {
                     vm.featureToast.show();
@@ -5238,7 +5178,7 @@ export default {
                     return feature.getProperties().name == featureId;
                 });
         },
-        copyFeatureToLayer(feature, layer) {
+        copyFeatureToLayer: function (feature, layer) {
             const copy = feature.clone();
             copy.unset('id');
             copy.unset('name');
@@ -5261,12 +5201,59 @@ export default {
             layer.getSource().addFeature(copy);
             return copy;
         },
-        copySelectedToLayer(layer_name) {
+        copySelectedToLayer: function (layer_name) {
             console.log('Copying selected features to layer:', layer_name);
             const targetLayer = this.getLayerByName(layer_name);
             this.selectedFeatureCollection.getArray().map((feature) => {
                 this.copyFeatureToLayer(feature, targetLayer);
             });
+        },
+        /**
+         * Compiles a dictionary of feature and model properties for a feature
+         * Ignore properties that are proxies
+         * @param {Object} selected A feature object
+         */
+        featureGetDisplayProperties: function (selected, layer) {
+            const properties = {};
+            const layerName = layer.getProperties().name;
+            const layerDef = this.getLayerDefinitionByName(layerName);
+            const propertyMap = layerDef.property_display_map || null;
+
+            for (const [key, value] of Object.entries(
+                selected.getProperties()
+            )) {
+                if (isProxy(value)) {
+                    continue;
+                }
+                if (propertyMap) {
+                    if (key in propertyMap) {
+                        properties[propertyMap[key]] = value;
+                    }
+                } else {
+                    properties[key] = value;
+                }
+            }
+
+            if (!selected.getProperties().model) {
+                console.error('No model found for feature');
+            } else {
+                for (const [key, value] of Object.entries(
+                    selected.getProperties().model
+                )) {
+                    if (isProxy(value)) {
+                        continue;
+                    }
+                    if (propertyMap) {
+                        if (key in propertyMap) {
+                            properties[propertyMap[key]] = value;
+                        }
+                    } else {
+                        properties[key] = value;
+                    }
+                }
+            }
+
+            return properties;
         },
     },
 };
@@ -5278,8 +5265,18 @@ export default {
 
 #featureToast {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
+}
+.positionToLeft {
+    left: 60px;
+}
+.positionToRight {
+    right: 20px;
+}
+.positionToTop {
+    top: 20px;
+}
+.positionToBottom {
+    bottom: 20px;
 }
 
 .badge {
