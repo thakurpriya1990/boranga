@@ -1135,7 +1135,7 @@
                         </div>
                     </div>
                 </div>
-
+                {{selectedModel}}
                 <div id="featureToast" class="toast" style="z-index: 9999">
                     <template v-if="selectedModel">
                         <div class="toast-header">
@@ -1791,9 +1791,10 @@ export default {
                     //  Positive values fetch proposals with those ids
                     //  Empty list `[]` fetches all proposals
                     handler: null, // A callback function to invoke on fetched features
-                    geometry_name: 'geometry', // The name of the geometry field in the model. If not provided, the object itselef is treated as the geometry
+                    geometry_name: 'geometry', // The name of the geometry field in the model. If not provided, the object itself is treated as the geometry
                     collapse: false, // Whether the layer is collapsed by default
                     model_overwrite: null, // A dictionary to overwrite the default model values
+                    property_display_map: [], // A list of dictionaries to map property names to display names, e.g. for a popup or export to a geodata file
                 };
             },
         },
@@ -3367,10 +3368,12 @@ export default {
                 }
                 vm.map.forEachFeatureAtPixel(
                     evt.pixel,
-                    function (feature) {
+                    function (feature, layer) {
                         selected = feature;
-                        const properties =
-                            vm.featureGetDisplayProperties(selected);
+                        const properties = vm.featureGetDisplayProperties(
+                            selected,
+                            layer
+                        );
                         vm.selectedModel = structuredClone(properties);
                         if (!isSelectedFeature(selected)) {
                             selected.setStyle(hoverSelect);
@@ -5246,13 +5249,23 @@ export default {
          * Ignore properties that are proxies
          * @param {Object} selected A feature object
          */
-        featureGetDisplayProperties: function (selected) {
+        featureGetDisplayProperties: function (selected, layer) {
             const properties = {};
+            const layerName = layer.getProperties().name;
+            const layerDef = this.getLayerDefinitionByName(layerName);
+            const propertyMap = layerDef.property_display_map || null;
 
             for (const [key, value] of Object.entries(
                 selected.getProperties()
             )) {
-                if (!isProxy(value)) {
+                if (isProxy(value)) {
+                    continue;
+                }
+                if (propertyMap) {
+                    if (key in propertyMap) {
+                        properties[propertyMap[key]] = value;
+                    }
+                } else {
                     properties[key] = value;
                 }
             }
@@ -5263,7 +5276,14 @@ export default {
                 for (const [key, value] of Object.entries(
                     selected.getProperties().model
                 )) {
-                    if (!isProxy(value)) {
+                    if (isProxy(value)) {
+                        continue;
+                    }
+                    if (propertyMap) {
+                        if (key in propertyMap) {
+                            properties[propertyMap[key]] = value;
+                        }
+                    } else {
                         properties[key] = value;
                     }
                 }
