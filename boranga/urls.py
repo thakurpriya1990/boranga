@@ -383,6 +383,11 @@ urlpatterns = [
         name="internal-conservation-status-referral-detail",
     ),
     url(
+        r"^external/conservation_status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
+        views.ConservationStatusReferralView.as_view(),
+        name="external-conservation-status-referral-detail",
+    ),
+    url(
         r"^internal/species_communities/(?P<species_proposal_pk>\d+)/$",
         views.InternalSpeciesView.as_view(),
         name="internal-species-detail",
@@ -416,6 +421,11 @@ urlpatterns = [
         r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.InternalOccurrenceReportReferralView.as_view(),
         name="internal-occurrence-report-referral-detail",
+    ),
+    url(
+        r"^external/occurrence_report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
+        views.InternalOccurrenceReportReferralView.as_view(),
+        name="external-occurrence-report-referral-detail",
     ),
     # url(f"{settings.BASIC_AUTH_PROXY_PREFIX}(?P<request_path>.*)", spatial_views.mapProxyView),
     re_path(
