@@ -1,12 +1,12 @@
 from django.contrib.gis import admin
 
-from boranga.admin import DeleteProtectedModelAdmin
+from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
 from boranga.components.meetings import models
 from boranga.components.meetings.models import CommitteeMembers
 
 
-class MeetingRoomAdmin(DeleteProtectedModelAdmin):
-    list_display = ["id", "room_name"]
+class MeetingRoomAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["id", "room_name", "archived"]
 
 
 class CommitteeMembersInline(admin.TabularInline):
