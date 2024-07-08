@@ -55,6 +55,10 @@ class ArchivableModelAdminMixin:
                 "The model manager must be an instance of ArchivableManager."
             )
 
+    def get_list_display(self, request):
+        list_display = super().get_list_display(request)
+        return list_display + ["archived"]
+
     def get_queryset(self, request):
         return self.model.objects.all_with_archived()
 

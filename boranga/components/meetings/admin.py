@@ -6,7 +6,7 @@ from boranga.components.meetings.models import CommitteeMembers
 
 
 class MeetingRoomAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
-    list_display = ["id", "room_name", "archived"]
+    list_display = ["id", "room_name"]
 
 
 class CommitteeMembersInline(admin.TabularInline):
