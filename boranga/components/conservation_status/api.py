@@ -1866,6 +1866,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         ):
             qs = qs.filter(
                 conservation_status__referrals__referral=self.request.user.id,
+                visible=True,
             )
 
         qs = qs.order_by("-uploaded_date")
