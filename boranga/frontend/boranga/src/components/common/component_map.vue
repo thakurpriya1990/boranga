@@ -1462,7 +1462,7 @@
 import { v4 as uuid } from 'uuid';
 import { api_endpoints, helpers } from '@/utils/hooks';
 
-import { toRaw } from 'vue';
+import { toRaw, isProxy } from 'vue';
 import 'ol/ol.css';
 import alert from '@vue-utils/alert.vue';
 import Map from 'ol/Map';
@@ -3368,37 +3368,10 @@ export default {
                 vm.map.forEachFeatureAtPixel(
                     evt.pixel,
                     function (feature) {
-                        // TODO: Just make this whole block of code nicer, display the individual feature info per feature and layer in the toast, etc
                         selected = feature;
-                        let model = selected.getProperties().model;
-                        if (!model) {
-                            console.error('No model found for feature');
-                        } else {
-                            model.geometry_source =
-                                selected.getProperties().geometry_source;
-                            model.copied_from =
-                                selected.getProperties().copied_from;
-                            model.area_sqm = Math.round(
-                                getArea(selected.getGeometry(), {
-                                    projection: `EPSG:${vm.mapSrid}`,
-                                })
-                            );
-                            model.label ??= selected.getProperties().label;
-                            // TODO: Check for null
-                            let selected_buffer_radius =
-                                selected.getProperties().buffer_radius;
-                            if (selected_buffer_radius) {
-                                selected_buffer_radius += 'm';
-                            }
-                            model.buffer_radius ??= selected_buffer_radius;
-
-                            model.site_number =
-                                selected.getProperties().site_number;
-
-                            model.site_name =
-                                selected.getProperties().site_name;
-                        }
-                        vm.selectedModel = model;
+                        const properties =
+                            vm.featureGetDisplayProperties(selected);
+                        vm.selectedModel = structuredClone(properties);
                         if (!isSelectedFeature(selected)) {
                             selected.setStyle(hoverSelect);
                         }
@@ -5238,7 +5211,7 @@ export default {
                     return feature.getProperties().name == featureId;
                 });
         },
-        copyFeatureToLayer(feature, layer) {
+        copyFeatureToLayer: function (feature, layer) {
             const copy = feature.clone();
             copy.unset('id');
             copy.unset('name');
@@ -5261,12 +5234,42 @@ export default {
             layer.getSource().addFeature(copy);
             return copy;
         },
-        copySelectedToLayer(layer_name) {
+        copySelectedToLayer: function (layer_name) {
             console.log('Copying selected features to layer:', layer_name);
             const targetLayer = this.getLayerByName(layer_name);
             this.selectedFeatureCollection.getArray().map((feature) => {
                 this.copyFeatureToLayer(feature, targetLayer);
             });
+        },
+        /**
+         * Compiles a dictionary of feature and model properties for a feature
+         * Ignore properties that are proxies
+         * @param {Object} selected A feature object
+         */
+        featureGetDisplayProperties: function (selected) {
+            const properties = {};
+
+            for (const [key, value] of Object.entries(
+                selected.getProperties()
+            )) {
+                if (!isProxy(value)) {
+                    properties[key] = value;
+                }
+            }
+
+            if (!selected.getProperties().model) {
+                console.error('No model found for feature');
+            } else {
+                for (const [key, value] of Object.entries(
+                    selected.getProperties().model
+                )) {
+                    if (!isProxy(value)) {
+                        properties[key] = value;
+                    }
+                }
+            }
+
+            return properties;
         },
     },
 };
