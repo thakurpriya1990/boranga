@@ -17,7 +17,11 @@ from boranga.components.conservation_status.models import (
     ConservationStatusReferral,
 )
 from boranga.components.meetings.models import Meeting
-from boranga.components.occurrence.models import Occurrence, OccurrenceReport
+from boranga.components.occurrence.models import (
+    Occurrence,
+    OccurrenceReport,
+    OccurrenceReportDocument,
+)
 from boranga.components.species_and_communities.models import Community, Species
 from boranga.forms import LoginForm
 from boranga.helpers import (
@@ -28,6 +32,7 @@ from boranga.helpers import (
     is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
+    is_occurrence_report_referee,
     is_species_communities_approver,
 )
 
@@ -262,7 +267,17 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
         )
-    elif is_external_contributor(request):
+
+    if is_occurrence_report_referee(request):
+        file_name = get_file_name_from_path(request.path)
+        return OccurrenceReportDocument.objects.filter(
+            visible=True,
+            occurrence_report__referrals__referral=request.user.id,
+            occurrence_report_id=document_id,
+            _file=file_name,
+        ).exists()
+
+    if is_external_contributor(request):
         allowed_paths = ["documents", "amendment_request_documents"]
         path = request.path
         user = request.user
@@ -271,8 +286,8 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
         ).filter(submitter=user.id).exists() and check_allowed_path(
             document_id, path, allowed_paths
         )
-    else:
-        return False
+
+    return False
 
 
 def is_authorised_to_access_occurrence_document(request, document_id):
@@ -297,6 +312,15 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
             or is_species_communities_approver(request)
             or is_conservation_status_assessor(request)
         )
+
+    if is_conservation_status_referee(request):
+        file_name = get_file_name_from_path(request.path)
+        return ConservationStatusDocument.objects.filter(
+            visible=True,
+            conservation_status__referrals__referral=request.user.id,
+            conservation_status_id=document_id,
+            _file=file_name,
+        ).exists()
 
     if is_external_contributor(request):
         # TODO: Would be nice if the document id was included in the upload path to simplify this query
