@@ -13,6 +13,7 @@ from boranga.components.emails.emails import TemplateEmailBase
 from boranga.helpers import (
     convert_external_url_to_internal_url,
     convert_internal_url_to_external_url,
+    email_in_dbca_domain,
 )
 
 private_storage = FileSystemStorage(
@@ -338,9 +339,17 @@ def send_conservation_status_referral_email_notification(
     referral, request, reminder=False
 ):
     email = ConservationStatusReferralSendNotificationEmail()
+
+    to_user = EmailUser.objects.get(id=referral.referral)
+
+    url_name_prefix = "internal"
+
+    if not email_in_dbca_domain(to_user.email):
+        url_name_prefix = "external"
+
     url = request.build_absolute_uri(
         reverse(
-            "internal-conservation-status-referral-detail",
+            f"{url_name_prefix}-conservation-status-referral-detail",
             kwargs={
                 "cs_proposal_pk": referral.conservation_status.id,
                 "referral_pk": referral.id,
@@ -348,14 +357,15 @@ def send_conservation_status_referral_email_notification(
         )
     )
 
+    if not email_in_dbca_domain(to_user.email):
+        url = convert_internal_url_to_external_url(url)
+
     context = {
         "cs_proposal": referral.conservation_status,
         "url": url,
         "reminder": reminder,
         "comments": referral.text,
     }
-
-    to_user = EmailUser.objects.get(id=referral.referral)
 
     msg = email.send(to_user.email, context=context)
 
@@ -368,9 +378,17 @@ def send_conservation_status_referral_email_notification(
 
 def send_conservation_status_referral_recall_email_notification(referral, request):
     email = ConservationStatusReferralRecallNotificationEmail()
+
+    to_user = EmailUser.objects.get(id=referral.referral)
+
+    url_name_prefix = "internal"
+
+    if not email_in_dbca_domain(to_user.email):
+        url_name_prefix = "external"
+
     url = request.build_absolute_uri(
         reverse(
-            "internal-conservation-status-referral-detail",
+            f"{url_name_prefix}-conservation-status-referral-detail",
             kwargs={
                 "cs_proposal_pk": referral.conservation_status.id,
                 "referral_pk": referral.id,
@@ -378,12 +396,13 @@ def send_conservation_status_referral_recall_email_notification(referral, reques
         )
     )
 
+    if not email_in_dbca_domain(to_user.email):
+        url = convert_internal_url_to_external_url(url)
+
     context = {
         "cs_proposal": referral.conservation_status,
         "url": url,
     }
-
-    to_user = EmailUser.objects.get(id=referral.referral)
 
     msg = email.send(to_user.email, context=context)
 
@@ -403,13 +422,13 @@ def send_conservation_status_referral_complete_email_notification(referral, requ
         )
     )
 
+    to_user = EmailUser.objects.get(id=referral.sent_by)
+
     context = {
         "cs_proposal": referral.conservation_status,
         "url": url,
         "referral_comments": referral.referral_comment,
     }
-
-    to_user = EmailUser.objects.get(id=referral.sent_by)
 
     msg = email.send(to_user.email, context=context)
 

@@ -11,6 +11,7 @@ from boranga.components.emails.emails import TemplateEmailBase
 from boranga.helpers import (
     convert_external_url_to_internal_url,
     convert_internal_url_to_external_url,
+    email_in_dbca_domain,
 )
 
 logger = logging.getLogger(__name__)
@@ -361,15 +362,26 @@ def send_occurrence_report_referral_email_notification(
     referral, request, reminder=False
 ):
     email = OccurrenceReportReferralSendNotificationEmail()
+
+    to_user = EmailUser.objects.get(id=referral.referral)
+
+    url_name_prefix = "internal"
+
+    if not email_in_dbca_domain(to_user.email):
+        url_name_prefix = "external"
+
     url = request.build_absolute_uri(
         reverse(
-            "internal-occurrence-report-referral-detail",
+            f"{url_name_prefix}-occurrence-report-referral-detail",
             kwargs={
                 "occurrence_report_pk": referral.occurrence_report.id,
                 "referral_pk": referral.id,
             },
         )
     )
+
+    if not email_in_dbca_domain(to_user.email):
+        url = convert_internal_url_to_external_url(url)
 
     context = {
         "occurrence_report": referral.occurrence_report,
@@ -378,7 +390,7 @@ def send_occurrence_report_referral_email_notification(
         "comments": referral.text,
     }
 
-    msg = email.send(EmailUser.objects.get(id=referral.referral).email, context=context)
+    msg = email.send(to_user.email, context=context)
 
     sender = get_sender_user()
 
@@ -389,9 +401,17 @@ def send_occurrence_report_referral_email_notification(
 
 def send_occurrence_report_referral_recall_email_notification(referral, request):
     email = OccurrenceReportReferralRecallNotificationEmail()
+
+    to_user = EmailUser.objects.get(id=referral.referral)
+
+    url_name_prefix = "internal"
+
+    if not email_in_dbca_domain(to_user.email):
+        url_name_prefix = "external"
+
     url = request.build_absolute_uri(
         reverse(
-            "internal-occurrence-report-referral-detail",
+            f"{url_name_prefix}-occurrence-report-referral-detail",
             kwargs={
                 "occurrence_report_pk": referral.occurrence_report.id,
                 "referral_pk": referral.id,
@@ -399,12 +419,15 @@ def send_occurrence_report_referral_recall_email_notification(referral, request)
         )
     )
 
+    if not email_in_dbca_domain(to_user.email):
+        url = convert_internal_url_to_external_url(url)
+
     context = {
         "occurrence_report": referral.occurrence_report,
         "url": url,
     }
 
-    msg = email.send(EmailUser.objects.get(id=referral.referral).email, context=context)
+    msg = email.send(to_user.email, context=context)
 
     sender = get_sender_user()
     _log_occurrence_report_referral_email(msg, referral, sender=sender)
@@ -421,13 +444,15 @@ def send_occurrence_report_referral_complete_email_notification(referral, reques
         )
     )
 
+    email_address = EmailUser.objects.get(id=referral.sent_by).email
+
     context = {
         "occurrence_report": referral.occurrence_report,
         "url": url,
         "referral_comments": referral.referral_comment,
     }
 
-    msg = email.send(EmailUser.objects.get(id=referral.sent_by).email, context=context)
+    msg = email.send(email_address, context=context)
 
     sender = get_sender_user()
     _log_occurrence_report_referral_email(msg, referral, sender=sender)
