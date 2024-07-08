@@ -282,6 +282,9 @@ def send_external_referee_invite_email(
     )
 
     url = request.build_absolute_uri(reverse("external"))
+
+    url = convert_internal_url_to_external_url(url)
+
     context = {
         "external_referee_invite": external_referee_invite,
         "occurrence_report": occurrence_report,
