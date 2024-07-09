@@ -1,3 +1,4 @@
+import json
 import logging
 
 from rest_framework import permissions
@@ -348,7 +349,10 @@ class ConservationStatusDocumentPermission(BasePermission):
             ) or is_conservation_status_approver(request):
                 return True
 
-            conservation_status_id = request.data.get("conservation_status")
+            data = json.loads(request.data.get("data"))
+
+            conservation_status_id = data.get("conservation_status", None)
+
             if not conservation_status_id:
                 return False
             try:
