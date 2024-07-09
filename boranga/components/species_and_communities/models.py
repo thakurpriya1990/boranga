@@ -943,7 +943,11 @@ class Species(RevisionedMixin):
         if not occurrence_geometries:
             return 0
 
-        convex_hull = shp.MultiPolygon(occurrence_geometries).convex_hull
+        try:
+            convex_hull = shp.MultiPolygon(occurrence_geometries).convex_hull
+        except TypeError:
+            logger.warning(f"Error in creating convex hull for species {self.id}")
+            return 0
 
         geod = Geod(ellps="WGS84")
         geod_area = abs(geod.geometry_area_perimeter(convex_hull)[0])
@@ -1508,7 +1512,11 @@ class Community(RevisionedMixin):
         if not occurrence_geometries:
             return 0
 
-        convex_hull = shp.MultiPolygon(occurrence_geometries).convex_hull
+        try:
+            convex_hull = shp.MultiPolygon(occurrence_geometries).convex_hull
+        except TypeError:
+            logger.warning(f"Error in creating convex hull for species {self.id}")
+            return 0
 
         geod = Geod(ellps="WGS84")
         geod_area = abs(geod.geometry_area_perimeter(convex_hull)[0])
