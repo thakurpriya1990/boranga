@@ -202,6 +202,7 @@
                                         class="input-group input-group-sm mb-1 text-nowrap"
                                     >
                                         <!-- Select geometry-checkbox -->
+                                        <!-- TODO: disabled based on show hide -->
                                         <div class="input-group-text">
                                             <input
                                                 :id="`feature-${feature.ol_uid}-checkbox`"
@@ -209,6 +210,7 @@
                                                 data-bs-toggle="tooltip"
                                                 data-bs-placement="top"
                                                 data-bs-title="Select feature"
+                                                :disabled="false"
                                                 :title="`${
                                                     selectedFeatureIds.includes(
                                                         feature.getProperties()
@@ -361,6 +363,11 @@
                                                 data-bs-toggle="tooltip"
                                                 data-bs-placement="top"
                                                 data-bs-title="Enter the latitude value"
+                                                :disabled="
+                                                    getLayerDefinitionByName(
+                                                        name
+                                                    ).can_edit == false
+                                                "
                                                 @change="
                                                     updateUserInputGeoData(
                                                         feature
@@ -424,6 +431,11 @@
                                                 data-bs-toggle="tooltip"
                                                 data-bs-placement="top"
                                                 data-bs-title="Enter the longitude value"
+                                                :disabled="
+                                                    getLayerDefinitionByName(
+                                                        name
+                                                    ).can_edit == false
+                                                "
                                                 @change="
                                                     updateUserInputGeoData(
                                                         feature
@@ -465,6 +477,11 @@
                                                 data-bs-toggle="tooltip"
                                                 data-bs-placement="top"
                                                 data-bs-title="Enter a buffer radius value"
+                                                :disabled="
+                                                    getLayerDefinitionByName(
+                                                        name
+                                                    ).can_edit == false
+                                                "
                                                 @change="
                                                     updateUserInputBufferRadius(
                                                         feature,
@@ -500,6 +517,11 @@
                                                     mapSrid
                                                 "
                                                 classes="min-width-210"
+                                                :disabled="
+                                                    getLayerDefinitionByName(
+                                                        name
+                                                    ).can_edit == false
+                                                "
                                                 @option:selected="
                                                     (selected) => {
                                                         updateUserInputGeoData(
