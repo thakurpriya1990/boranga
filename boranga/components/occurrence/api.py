@@ -1979,7 +1979,7 @@ class OccurrenceReportViewSet(
         )
         return Response(serializer.data)
 
-    @detail_route(methods=["POST"], detail=True)
+    @detail_route(methods=["POST"], detail=True,permission_classes=[IsOccurrenceReportReferee|OccurrenceReportPermission|ExternalOccurrenceReportPermission])
     @renderer_classes((JSONRenderer,))
     def process_shapefile_document(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -2067,7 +2067,6 @@ class OccurrenceReportViewSet(
             "GET",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission]
     )
     def amendment_request(self, request, *args, **kwargs):
         instance = self.get_object()

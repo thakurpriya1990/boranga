@@ -141,14 +141,18 @@ class IsOccurrenceReportReferee(BasePermission):
 
     def has_object_permission(self, request, view, obj):
 
-        if obj._meta.model_name == "occurrence_report":
-            return (
-                obj.referrals.filter(referral=request.user.id)
+        if obj._meta.model_name == "occurrencereport":
+            
+            if (obj.referrals.filter(referral=request.user.id)
                 .exclude(
                     processing_status=OccurrenceReportReferral.PROCESSING_STATUS_RECALLED
                 )
-                .exists()
-            )
+                .exists()):
+                return True
+            #TODO edge case, consider not using POST for process_shapefile_document if possible
+            elif hasattr(view, "action") and view.action == "process_shapefile_document":
+                return (obj.referrals.filter(referral=request.user.id).exists())
+            
         else:
             return obj.referral == request.user.id
 
