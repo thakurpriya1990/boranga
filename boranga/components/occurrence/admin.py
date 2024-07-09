@@ -160,7 +160,7 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
                     (
                         "intersects",
                         "locked",
-                        "show_on_occ_map",
+                        "show_on_map",
                     ),
                     (
                         # "copied_from",

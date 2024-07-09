@@ -216,8 +216,7 @@
                                                     ).can_hide_geometries ===
                                                         true &&
                                                     feature.getProperties()
-                                                        .show_on_occ_map ==
-                                                        false
+                                                        .show_on_map == false
                                                 "
                                                 :title="`${
                                                     selectedFeatureIds.includes(
@@ -246,7 +245,7 @@
                                                     .can_hide_geometries ===
                                                     true &&
                                                 feature.getProperties()
-                                                    .show_on_occ_map === false
+                                                    .show_on_map === false
                                             "
                                             type="button"
                                             class="btn btn-secondary me-1"
