@@ -1,4 +1,5 @@
 import logging
+import json
 
 from rest_framework import permissions,serializers
 from rest_framework.permissions import BasePermission
@@ -9,6 +10,7 @@ from boranga.components.conservation_status.models import (
 )
 from boranga.components.occurrence.models import (
     OccurrenceReport,
+    Occurrence,
 )
 from boranga.components.occurrence.models import OccurrenceReportReferral
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
@@ -541,6 +543,95 @@ class ExternalOccurrenceReportPermission(BasePermission):
             return is_external_contributor(request)
         
 
+#accounts for objects that belong to an occurrence report
+#only works if the object has an assigned occurrence report
+class OccurrenceReportObjectPermission(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+    
+        if hasattr(view, "action") and view.action == "create":
+            try:
+                data = json.loads(request.data.get("data"))
+                occurrence_report = OccurrenceReport.objects.get(id=int(data["occurrence_report"]))
+
+                if view.basename == "ocr_amendment_request":
+                    if not occurrence_report.has_assessor_mode(request):
+                        return False
+                elif not self.is_authorised_to_update(request, occurrence_report):
+                    return False
+            except:
+                return False
+        
+        return (
+            is_readonly_user(request)
+            or is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+            or is_internal_contributor(request)
+            or is_conservation_status_referee(request)
+        )
+    
+    def is_authorised_to_update(self, request, occurrence_report):
+        user = request.user
+        return (
+            (
+                occurrence_report.can_user_edit
+                and (
+                    user.id
+                    == occurrence_report.submitter
+                )
+            )
+            or (occurrence_report.has_assessor_mode(request))
+            or (occurrence_report.has_unlocked_mode(request))
+            )
+    
+    def has_object_permission(self, request, view, obj):
+        
+        occurrence_report = obj.occurrence_report
+
+        if obj._meta.model_name == "occurrencereportamendmentrequest" and occurrence_report:
+            occurrence_report = obj.occurrence_report
+            return occurrence_report.has_assessor_mode(request)
+
+        if occurrence_report:
+            return self.is_authorised_to_update(request,occurrence_report) 
+
+#accounts for objects that belong to an occurrence report and can be managed externally
+#only works if the object has an assigned occurrence report
+class ExternalOccurrenceReportObjectPermission(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+        
+        if hasattr(view, "action") and view.action == "create":
+            try:
+                data = json.loads(request.data.get("data"))
+                occurrence_report = OccurrenceReport.objects.get(id=int(data["occurrence_report"]))
+                if not (occurrence_report and occurrence_report.submitter == request.user.id and occurrence_report.can_user_edit):
+                    return False
+            except:
+                return False
+        
+        return is_external_contributor(request)
+    
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        occurrence_report = obj.occurrence_report
+
+        if occurrence_report and occurrence_report.submitter == request.user.id and occurrence_report.can_user_edit:
+            return is_external_contributor(request)
+
 class OccurrencePermission(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
@@ -559,10 +650,17 @@ class OccurrencePermission(BasePermission):
             or is_conservation_status_referee(request)
         )
 
+    def is_authorised_to_update(self,request,obj):
+        return (
+            is_occurrence_approver(request)
+            and (
+                obj.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+                or obj.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+            )
+        )
+
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        return is_occurrence_assessor(
-            request
-        ) or is_occurrence_approver(request)
+        return self.is_authorised_to_update(request, obj)
