@@ -417,6 +417,7 @@ class OccurrenceReportPermission(BasePermission):
                 and (
                     request.user.id
                     == obj.submitter
+                    or request.user.is_superuser
                 )
             )
             or (obj.has_assessor_mode(request))
@@ -435,8 +436,8 @@ class OccurrenceReportPermission(BasePermission):
         # - the report must be under approval, the assigner must be in the approver group,
         # and the assignee must be in the approval group
         # AND the Assignee must be the proposed assignee, or already assigned
-        in_assessor_group = assignee and is_occurrence_assessor(self.request)
-        in_approver_group = assignee and is_occurrence_approver(self.request)
+        in_assessor_group = assignee and (is_occurrence_assessor(self.request) or self.request.user.is_superuser)
+        in_approver_group = assignee and (is_occurrence_approver(self.request) or self.request.user.is_superuser)
 
         self_assigning = assigner == assignee
 
@@ -486,9 +487,6 @@ class OccurrenceReportPermission(BasePermission):
     
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
-            return True
-
-        if request.user.is_superuser:
             return True
         
         if view.action in ["propose_decline","propose_approve","send_referral"]:
@@ -550,9 +548,6 @@ class OccurrenceReportObjectPermission(BasePermission):
         if not request.user.is_authenticated:
             return False
 
-        if request.user.is_superuser:
-            return True
-    
         if hasattr(view, "action") and view.action == "create":
             try:
                 data = json.loads(request.data.get("data"))
@@ -566,6 +561,9 @@ class OccurrenceReportObjectPermission(BasePermission):
             except:
                 return False
         
+        if request.user.is_superuser:
+            return True
+
         return (
             is_readonly_user(request)
             or is_conservation_status_assessor(request)
@@ -585,6 +583,7 @@ class OccurrenceReportObjectPermission(BasePermission):
                 and (
                     user.id
                     == occurrence_report.submitter
+                    or request.user.is_superuser
                 )
             )
             or (occurrence_report.has_assessor_mode(request))
@@ -608,18 +607,20 @@ class ExternalOccurrenceReportObjectPermission(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
-
-        if request.user.is_superuser:
-            return True
-        
+           
         if hasattr(view, "action") and view.action == "create":
             try:
                 data = json.loads(request.data.get("data"))
                 occurrence_report = OccurrenceReport.objects.get(id=int(data["occurrence_report"]))
-                if not (occurrence_report and occurrence_report.submitter == request.user.id and occurrence_report.can_user_edit):
+                if not (occurrence_report and 
+                        (occurrence_report.submitter == request.user.id or request.user.is_superuser) 
+                        and occurrence_report.can_user_edit):
                     return False
             except:
                 return False
+            
+        if request.user.is_superuser:
+            return True
         
         return is_external_contributor(request)
     
@@ -639,6 +640,9 @@ class OccurrencePermission(BasePermission):
 
         if request.user.is_superuser:
             return True
+        
+        if hasattr(view, "action") and view.action == "create":
+            return is_occurrence_approver(request)
 
         return (
             is_readonly_user(request)
@@ -652,7 +656,7 @@ class OccurrencePermission(BasePermission):
 
     def is_authorised_to_update(self,request,obj):
         return (
-            is_occurrence_approver(request)
+            (is_occurrence_approver(request) or request.user.is_superuser)
             and (
                 obj.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
                 or obj.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
@@ -664,3 +668,48 @@ class OccurrencePermission(BasePermission):
             return True
 
         return self.is_authorised_to_update(request, obj)
+    
+class OccurrenceObjectPermission(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        
+        if hasattr(view, "action") and view.action == "create":
+            try:
+                data = json.loads(request.data.get("data"))
+                occurrence = Occurrence.objects.get(id=int(data["occurrence"]))
+                if not self.is_authorised_to_update(request, occurrence):
+                    return False
+            except:
+                return False
+
+        if request.user.is_superuser:
+            return True
+
+        return (
+            is_readonly_user(request)
+            or is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+            or is_conservation_status_referee(request)
+        )
+
+    def is_authorised_to_update(self,request,occurrence):
+        return (
+            (is_occurrence_approver(request) or request.user.is_superuser)
+            and (
+                occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
+                or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+            )
+        )
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        occurrence = obj.occurrence
+
+        if occurrence:
+            return self.is_authorised_to_update(request,occurrence) 

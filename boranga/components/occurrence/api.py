@@ -199,6 +199,7 @@ from boranga.permissions import (
     OccurrenceReportObjectPermission,
     ExternalOccurrenceReportObjectPermission,
     OccurrencePermission,
+    OccurrenceObjectPermission,
 )
 
 
@@ -3375,6 +3376,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OccurrenceDocument.objects.none()
     serializer_class = OccurrenceDocumentSerializer
+    permission_classes = [OccurrenceObjectPermission]
 
     def get_queryset(self):
         qs = OccurrenceDocument.objects.none()
@@ -3384,12 +3386,6 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
         return qs
 
-    def is_authorised_to_update(self, occurrence):
-        if not is_occurrence_approver(self.request):
-            raise serializers.ValidationError(
-                "User not authorised to update Occurrence"
-            )
-
     @detail_route(
         methods=[
             "GET",
@@ -3398,7 +3394,7 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.is_authorised_to_update(instance.occurrence)
+
         instance.visible = False
         instance.save(version_user=request.user)
         if instance.occurrence:
@@ -3420,7 +3416,6 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.is_authorised_to_update(instance.occurrence)
         instance.visible = True
         instance.save(version_user=request.user)
         if instance.occurrence:
@@ -3437,7 +3432,6 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.is_authorised_to_update(instance.occurrence)
         serializer = SaveOccurrenceDocumentSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
@@ -3462,7 +3456,6 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             data=json.loads(request.data.get("data"))
         )
         serializer.is_valid(raise_exception=True)
-        self.is_authorised_to_update(serializer.validated_data["occurrence"])
         instance = serializer.save(no_revision=True)
         instance.add_documents(request, no_revision=True)
         instance.uploaded_by = request.user.id
@@ -3552,6 +3545,7 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
     queryset = OCCConservationThreat.objects.none()
     serializer_class = OCCConservationThreatSerializer
     filter_backends = (OCCConservationThreatFilterBackend,)
+    permission_classes = [OccurrenceObjectPermission]
 
     def get_queryset(self):
         qs = OCCConservationThreat.objects.none()
@@ -3561,12 +3555,6 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
 
         return qs
 
-    def is_authorised_to_update(self, occurrence):
-        if not is_occurrence_approver(self.request):
-            raise serializers.ValidationError(
-                "User not authorised to update Occurrence"
-            )
-
     @detail_route(
         methods=[
             "GET",
@@ -3575,7 +3563,6 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.is_authorised_to_update(instance.occurrence)
         instance.visible = False
         instance.save(version_user=request.user)
         if instance.occurrence:
@@ -3597,7 +3584,6 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.is_authorised_to_update(instance.occurrence)
         instance.visible = True
         instance.save(version_user=request.user)
         if instance.occurrence:
@@ -3614,7 +3600,6 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.is_authorised_to_update(instance.occurrence)
         serializer = SaveOCCConservationThreatSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
@@ -3639,7 +3624,6 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
         )
         validate_threat_request(request)
         serializer.is_valid(raise_exception=True)
-        self.is_authorised_to_update(serializer.validated_data["occurrence"])
         instance = serializer.save(version_user=request.user)
         if instance.occurrence:
             instance.occurrence.log_user_action(
@@ -5202,6 +5186,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         OccurrenceTenureFilterBackend,
     ]
     page_size = 10
+    permission_classes = [OccurrenceObjectPermission]
 
     def get_serializer_class(self):
         if self.action in ["list", "occurrence_tenure_internal"]:
@@ -5338,18 +5323,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OccurrenceTenure.objects.none()
     serializer_class = OccurrenceTenureSerializer
-
-    def is_authorised_to_update(self, occurrence):
-        if not (
-            is_occurrence_approver(self.request)
-            and (
-                occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
-                or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
-            )
-        ):
-            raise serializers.ValidationError(
-                "User not authorised to update Occurrence"
-            )
+    permission_classes = [OccurrenceObjectPermission]
 
     def get_queryset(self):
         qs = self.queryset
@@ -5362,12 +5336,10 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         queryset = self.get_queryset()
         tenure_obj = get_object_or_404(queryset, pk=pk)
         serializer = OccurrenceTenureSerializer(tenure_obj)
-        self.is_authorised_to_update(tenure_obj.occurrence)
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.is_authorised_to_update(instance.occurrence)
 
         data = request.data.get("data", {})
 
@@ -5388,7 +5360,6 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         )
         serializer.is_valid(raise_exception=True)
 
-        self.is_authorised_to_update(instance.occurrence)
         serializer.save()
 
         return Response(serializer.data)
@@ -5414,18 +5385,7 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
 class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OCCContactDetail.objects.none()
     serializer_class = OCCContactDetailSerializer
-
-    def is_authorised_to_update(self, occurrence):
-        if not (
-            is_occurrence_approver(self.request)
-            and (
-                occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
-                or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
-            )
-        ):
-            raise serializers.ValidationError(
-                "User not authorised to update Occurrence"
-            )
+    permission_classes = [OccurrenceObjectPermission]
 
     def get_queryset(self):
         qs = OCCContactDetail.objects.none()
@@ -5440,7 +5400,6 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if not instance.visible:
             raise serializers.ValidationError("Discarded contact cannot be updated.")
 
-        self.is_authorised_to_update(instance.occurrence)
         serializer = OCCContactDetailSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
@@ -5481,7 +5440,6 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 "Contact with this name already exists for this occurrence"
             )
 
-        self.is_authorised_to_update(occurrence)
         serializer.save()
 
         return Response(serializer.data)
@@ -5494,7 +5452,6 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.is_authorised_to_update(instance.occurrence)
         instance.visible = False
         instance.save()
 
@@ -5509,7 +5466,6 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.is_authorised_to_update(instance.occurrence)
 
         if OCCContactDetail.objects.filter(
             Q(contact_name=instance.contact_name)
@@ -5530,18 +5486,7 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OccurrenceSite.objects.none()
     serializer_class = OccurrenceSiteSerializer
-
-    def is_authorised_to_update(self, occurrence):
-        if not (
-            is_occurrence_approver(self.request)
-            and (
-                occurrence.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
-                or occurrence.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
-            )
-        ):
-            raise serializers.ValidationError(
-                "User not authorised to update Occurrence"
-            )
+    permission_classes = [OccurrenceObjectPermission]
 
     def get_queryset(self):
         qs = OccurrenceSite.objects.none()
@@ -5555,8 +5500,6 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         if not instance.visible:
             raise serializers.ValidationError("Discarded site cannot be updated.")
-
-        self.is_authorised_to_update(instance.occurrence)
 
         data = json.loads(request.data.get("data"))
         point_data = 'POINT({0} {1})'.format(data["point_coord1"],data["point_coord2"])
@@ -5617,7 +5560,6 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 "Site with this name already exists for this occurrence"
             )
 
-        self.is_authorised_to_update(occurrence)
         serializer.save()
 
         serializer = OccurrenceSiteSerializer(serializer.instance)
@@ -5632,7 +5574,6 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.is_authorised_to_update(instance.occurrence)
         instance.visible = False
         instance.save()
 
@@ -5647,7 +5588,6 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.is_authorised_to_update(instance.occurrence)
 
         if OccurrenceSite.objects.filter(
             Q(site_name=instance.site_name)
