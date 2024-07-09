@@ -2,7 +2,7 @@
     <div id="ReinstateImage">
         <modal transition="modal fade" @ok="ok()" @cancel="close()" :title="title" :showOK="false" cancelText="Close"
             large>
-            <template v-if="images && images.length > 1">
+            <template v-if="images && images.length">
                 <div id="image-preview" class="container d-flex align-items-center justify-content-center"
                     style="min-height:350px;">
                     <img v-if="selected_image" :src="selected_image.url" alt="image" class="img-thumbnail w-50">
