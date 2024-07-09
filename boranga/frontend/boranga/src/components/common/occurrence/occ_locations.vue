@@ -19,6 +19,7 @@
                         default: false,
                         can_edit: false,
                         can_buffer: false,
+                        can_hide_geometries: true,
                         api_url: ocrApiUrl,
                         ids: occurrenceReportIds,
                         geometry_name: 'ocr_geometry',

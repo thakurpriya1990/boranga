@@ -210,7 +210,15 @@
                                                 data-bs-toggle="tooltip"
                                                 data-bs-placement="top"
                                                 data-bs-title="Select feature"
-                                                :disabled="false"
+                                                :disabled="
+                                                    getLayerDefinitionByName(
+                                                        name
+                                                    ).can_hide_geometries ===
+                                                        true &&
+                                                    feature.getProperties()
+                                                        .show_on_occ_map ==
+                                                        false
+                                                "
                                                 :title="`${
                                                     selectedFeatureIds.includes(
                                                         feature.getProperties()
@@ -232,8 +240,34 @@
                                                 @change="selectFeature(feature)"
                                             />
                                         </div>
+                                        <button
+                                            v-if="
+                                                getLayerDefinitionByName(name)
+                                                    .can_hide_geometries ===
+                                                    true &&
+                                                feature.getProperties()
+                                                    .show_on_occ_map === false
+                                            "
+                                            type="button"
+                                            class="btn btn-secondary me-1"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Zoom to feature"
+                                            :title="`Toggle ${
+                                                feature.getProperties().label
+                                            } map visibility`"
+                                            @click="
+                                                centerOnFeature(feature, 17)
+                                            "
+                                        >
+                                            <img
+                                                class="svg-icon"
+                                                src="../../assets/hidden.svg"
+                                            />
+                                        </button>
                                         <!-- Zoom to-button and geometry type-icon -->
                                         <button
+                                            v-else
                                             type="button"
                                             class="btn btn-secondary me-1"
                                             data-bs-toggle="tooltip"
@@ -1777,6 +1811,7 @@ export default {
                     processed: true, // The layer where processed geometries are added to
                     can_edit: true,
                     can_buffer: true, // Whether features may be used to create buffer geometries
+                    can_hide_geometries: false, // Whether geometries may selectively be shown or hidden on the map
                     api_url: null, // The API endpoint to fetch features from
                     ids: [], //Ids of proposals to be fetched by the map component and displayed on the map.
                     //  Negative values fetch no proposals
@@ -3988,7 +4023,8 @@ export default {
                 });
             } else {
                 const propertyOverwrite =
-                    vm.getLayerDefinitionByName(toSource).property_overwrite || {};
+                    vm.getLayerDefinitionByName(toSource).property_overwrite ||
+                    {};
                 vm.addGeometryToMapSource(proposals, propertyOverwrite, source);
             }
             // vm.addFeatureCollectionToMap();
