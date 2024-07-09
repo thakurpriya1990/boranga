@@ -84,6 +84,14 @@
                 <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features" placeholder="" v-model="animal_observation.observation_detail_comment"/>
             </div>
         </div>
+        <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Animal Count Date: </label>
+                <div class="col-sm-9">
+                    <input v-model="animal_observation.count_date
+                        " :disabled="true" type="datetime-local" class="form-control" name="animal_count_date"
+                         />
+                </div>
+        </div>
 
         <label for="" class="col-lg-3 control-label fs-5 fw-bold">Animal Count :</label>
         <div class="row mb-3">
