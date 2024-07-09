@@ -704,6 +704,12 @@ export default {
         if (!this.meeting_obj) {
             Vue.http.get(`/api/meeting/${vm.$route.params.meeting_id}/internal_meeting.json`).then(res => {
                 vm.meeting_obj = res.body;
+                if(vm.meeting_obj.start_date==null){
+                    vm.meeting_obj.start_date=vm.$refs.meeting.start_date;
+                }
+                if(vm.meeting_obj.end_date==null){
+                    vm.meeting_obj.end_date=vm.$refs.meeting.end_date;
+                }
             },
                 err => {
                     console.log(err);

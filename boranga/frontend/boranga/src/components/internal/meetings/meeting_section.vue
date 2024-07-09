@@ -275,31 +275,33 @@ export default {
     },
     watch: {
         // to fix the dateformat error when select to clear the date (ie. "") string value
-        "meeting_obj.start_date": function (newVal) {
-            let vm = this;
-            var selectedValue = newVal;
-            if (selectedValue === "") {
-                vm.meeting_obj.start_date = null;
-            }
-        },
-        "meeting_obj.end_date": function (newVal) {
-            let vm = this;
-            var selectedValue = newVal;
-            if (selectedValue === "") {
-                vm.meeting_obj.end_date = null;
-            }
-        },
+        // "meeting_obj.start_date": function (newVal) {
+        //     let vm = this;
+        //     var selectedValue = newVal;
+        //     if (selectedValue === "") {
+        //         vm.meeting_obj.start_date = null;
+        //     }
+        // },
+        // "meeting_obj.end_date": function (newVal) {
+        //     let vm = this;
+        //     var selectedValue = newVal;
+        //     if (selectedValue === "") {
+        //         vm.meeting_obj.end_date = null;
+        //     }
+        // },
         start_date: function (newVal) {
             let vm = this;
+            console.log(newVal, vm.meeting_obj.start_date)
             var selectedValue = newVal;
             if (selectedValue === "") {
                 vm.meeting_obj.start_date = null;
             }
             else{
                 vm.meeting_obj.start_date=vm.start_date;
-                if(vm.meeting_obj.end_date=='' || vm.meeting_obj.end_date==null ){
-                    vm.end_date=vm.start_date;
-                }
+                // if(vm.meeting_obj.end_date=='' || vm.meeting_obj.end_date==null ){
+                //     vm.end_date=vm.start_date;
+                // }
+                vm.end_date=vm.start_date;
             }
         },
         end_date: function (newVal) {
@@ -415,6 +417,15 @@ export default {
                 vm.$refs.members_datatable.vmDataTable.column([4]).visible(false);
             }
         },
+        setMeetingDates: function () {
+            let vm=this;
+            if(vm.meeting_obj.start_date){
+                vm.start_date=vm.meeting_obj.start_date;
+            }
+            if(vm.meeting_obj.end_date){
+                vm.end_date=vm.meeting_obj.end_date;
+            }
+        },
     },
     created: async function () {
         let vm = this;
@@ -454,16 +465,12 @@ export default {
     },
     mounted: function () {
         let vm = this;
-        if(vm.meeting_obj.start_date){
-            vm.start_date=vm.meeting_obj.start_date;
-        }
-        if(vm.meeting_obj.end_date){
-            vm.end_date=vm.meeting_obj.end_date;
-        }
+        
         this.$nextTick(() => {
             vm.eventListeners();
             vm.hideActionColumn();
         });
+        vm.setMeetingDates();
     }
 }
 </script>
