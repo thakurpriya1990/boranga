@@ -1785,8 +1785,8 @@ export default {
                     handler: null, // A callback function to invoke on fetched features
                     geometry_name: 'geometry', // The name of the geometry field in the model. If not provided, the object itself is treated as the geometry
                     collapse: false, // Whether the layer is collapsed by default
-                    model_overwrite: null, // A dictionary to overwrite the default model values
                     property_display_map: [], // A list of dictionaries to map property names to display names, e.g. for a popup or export to a geodata file
+                    property_overwrite: null, // A dictionary to overwrite the displayed property values
                 };
             },
         },
@@ -3987,9 +3987,9 @@ export default {
                     vm.addGeometryToMapSource(geometry, proposal, source);
                 });
             } else {
-                const modelOverwrite =
-                    vm.getLayerDefinitionByName(toSource).model_overwrite || {};
-                vm.addGeometryToMapSource(proposals, modelOverwrite, source);
+                const propertyOverwrite =
+                    vm.getLayerDefinitionByName(toSource).property_overwrite || {};
+                vm.addGeometryToMapSource(proposals, propertyOverwrite, source);
             }
             // vm.addFeatureCollectionToMap();
             vm.map.dispatchEvent({
