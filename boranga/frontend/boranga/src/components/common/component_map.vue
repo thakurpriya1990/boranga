@@ -197,7 +197,8 @@
                                                 .latitude +
                                             feature.getProperties()
                                                 .original_geometry.properties
-                                                .longitude
+                                                .longitude +
+                                            feature.getProperties().show_on_map
                                         "
                                         class="input-group input-group-sm mb-1 text-nowrap"
                                     >
@@ -256,7 +257,7 @@
                                                 feature.getProperties().label
                                             } map visibility`"
                                             @click="
-                                                centerOnFeature(feature, 17)
+                                                toggleFeatureShowOnMap(feature)
                                             "
                                         >
                                             <img
@@ -2437,6 +2438,19 @@ export default {
                 size: this.map.getSize(),
                 maxZoom: maxZoom,
             });
+        },
+        /**
+         * Toggles the visibility of a feature on the map by changing the show_on_map property of the geometry
+         * @param {Object} feature A feature
+         */
+        toggleFeatureShowOnMap: function (feature, toggleKey = 'show_on_map') {
+            const properties = feature.getProperties();
+            if (!Object.hasOwn(properties, toggleKey)) {
+                console.log(`Feature does not have a ${toggleKey} property`);
+            }
+            const show_on_map = properties['show_on_map'];
+            feature.setProperties({ [toggleKey]: !show_on_map });
+            console.log(feature);
         },
         setBaseLayer: function (selected_layer_name) {
             let vm = this;
