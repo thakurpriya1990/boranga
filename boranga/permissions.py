@@ -411,7 +411,7 @@ class OccurrenceReportPermission(BasePermission):
             or is_conservation_status_referee(request)
         )
 
-    def is_authorised_to_update(request,obj):
+    def is_authorised_to_update(self,request,obj):
         return ((
                 obj.can_user_edit
                 and (
@@ -662,10 +662,21 @@ class OccurrencePermission(BasePermission):
                 or obj.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
             )
         )
+    
+    def is_authorised_to_unlock(self,request,obj):
+        return (
+            (is_occurrence_approver(request) or request.user.is_superuser)
+            and (
+                obj.processing_status == Occurrence.PROCESSING_STATUS_LOCKED
+            )
+        )
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
+        
+        if hasattr(view, "action") and view.action == "unlock_occurrence":
+            return self.is_authorised_to_unlock(request, obj)
 
         return self.is_authorised_to_update(request, obj)
     

@@ -3658,6 +3658,7 @@ class OccurrenceViewSet(
     queryset = Occurrence.objects.none()
     serializer_class = OccurrenceSerializer
     lookup_field = "id"
+    permission_classes=[OccurrencePermission]
 
     def get_queryset(self):
         qs = Occurrence.objects.all()
