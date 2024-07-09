@@ -1,9 +1,9 @@
 import logging
 
+from django.db import models
 from django.urls import reverse
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from django.db import models
 
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.serializers import (
@@ -535,9 +535,7 @@ class OCRObservationDetailSerializer(serializers.ModelSerializer):
 
 
 class OCRPlantCountSerializer(serializers.ModelSerializer):
-    count_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
+    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
 
     class Meta:
         model = OCRPlantCount
@@ -583,9 +581,7 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
-    count_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
+    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
 
     class Meta:
         model = OCRAnimalObservation
@@ -669,7 +665,6 @@ class OCRLocationSerializer(serializers.ModelSerializer):
             "mapped_boundary",
             "buffer_radius",
             "datum_id",
-            "epsg_code",
             "coordinate_source_id",
             "location_accuracy_id",
             "region_id",
@@ -1757,7 +1752,6 @@ class SaveOCRLocationSerializer(serializers.ModelSerializer):
             "mapped_boundary",
             "buffer_radius",
             "datum_id",
-            "epsg_code",
             "coordinate_source_id",
             "location_accuracy_id",
             "region_id",
@@ -2515,9 +2509,7 @@ class OCCObservationDetailSerializer(serializers.ModelSerializer):
 class OCCPlantCountSerializer(serializers.ModelSerializer):
 
     copied_ocr = serializers.SerializerMethodField()
-    count_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
+    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
 
     class Meta:
         model = OCCPlantCount
@@ -2569,9 +2561,7 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
         choices=[], allow_null=True, allow_blank=True, required=False
     )
     copied_ocr = serializers.SerializerMethodField()
-    count_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
+    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
 
     class Meta:
         model = OCCAnimalObservation
@@ -2915,7 +2905,6 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             "mapped_boundary",
             "buffer_radius",
             "datum_id",
-            "epsg_code",
             "coordinate_source_id",
             "location_accuracy_id",
             "region_id",
@@ -3140,7 +3129,6 @@ class SaveOCCLocationSerializer(serializers.ModelSerializer):
             "mapped_boundary",
             "buffer_radius",
             "datum_id",
-            "epsg_code",
             "coordinate_source_id",
             "location_accuracy_id",
             "region_id",
@@ -3283,15 +3271,18 @@ class ListOccurrenceTenureSerializer(BaseOccurrenceTenureSerializer):
             return obj.occurrence_geometry.occurrence.occurrence_number
         elif obj.historical_occurrence:
             try:
-                return Occurrence.objects.get(id=obj.historical_occurrence).occurrence_number
-            except:
+                return Occurrence.objects.get(
+                    id=obj.historical_occurrence
+                ).occurrence_number
+            except Occurrence.DoesNotExist:
                 return None
-            
+
     def get_occurrence_id(self, obj):
         if obj.occurrence_geometry and obj.occurrence_geometry.occurrence:
             return obj.occurrence_geometry.occurrence.id
         elif obj.historical_occurrence:
             return obj.historical_occurrence
+
 
 class OccurrenceTenureSaveSerializer(serializers.ModelSerializer):
     vesting_id = serializers.IntegerField(required=False, allow_null=True)
@@ -3370,33 +3361,34 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
     def get_point_coord1(self, obj):
         if obj.original_geometry_ewkb:
             geom = wkb_to_geojson(obj.original_geometry_ewkb)
-            if 'coordinates' in geom:
-                return geom['coordinates'][0]
+            if "coordinates" in geom:
+                return geom["coordinates"][0]
         if obj.geometry and obj.geometry.coords:
             return obj.geometry.coords[0]
 
     def get_point_coord2(self, obj):
         if obj.original_geometry_ewkb:
             geom = wkb_to_geojson(obj.original_geometry_ewkb)
-            if 'coordinates' in geom:
-                return geom['coordinates'][1]
+            if "coordinates" in geom:
+                return geom["coordinates"][1]
         if obj.geometry and obj.geometry.coords:
             return obj.geometry.coords[1]
 
     def get_datum(self, obj):
         if obj.original_geometry_ewkb:
             geom = wkb_to_geojson(obj.original_geometry_ewkb)
-            if 'properties' in geom and 'srid' in geom['properties']:
+            if "properties" in geom and "srid" in geom["properties"]:
                 return geom["properties"]["srid"]
         if obj.geometry and obj.geometry.srid:
             return obj.geometry.srid
-        
+
     def get_datum_name(self, obj):
         datum = self.get_datum(obj)
         try:
             return Datum.objects.get(srid=datum).name
-        except:
+        except Datum.DoesNotExist:
             return datum
+
 
 class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
 
@@ -3425,24 +3417,32 @@ class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
                 if (
                     field_name in validated_data
                     and field_name not in self.Meta.read_only_fields
-                    and not isinstance(self.Meta.model._meta.get_field(field_name), models.ManyToManyField)
+                    and not isinstance(
+                        self.Meta.model._meta.get_field(field_name),
+                        models.ManyToManyField,
+                    )
                 ):
                     setattr(instance, field_name, validated_data[field_name])
 
             instance.save()
 
             for field_name in self.Meta.fields:
-                if (field_name in validated_data
+                if (
+                    field_name in validated_data
                     and field_name not in self.Meta.read_only_fields
-                    and isinstance(self.Meta.model._meta.get_field(field_name), models.ManyToManyField)
+                    and isinstance(
+                        self.Meta.model._meta.get_field(field_name),
+                        models.ManyToManyField,
+                    )
                 ):
                     many_to_many = getattr(instance, field_name)
                     for i in validated_data[field_name]:
                         many_to_many.add(i)
-            
+
             instance.save(*args, **kwargs)
-            
+
             return instance
+
 
 class SiteGeometrySerializer(GeoFeatureModelSerializer):
     srid = serializers.SerializerMethodField(read_only=True)
@@ -3470,9 +3470,10 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
             return obj.geometry.srid
         else:
             return None
+
     def get_geometry_source(self, obj):
         return get_geometry_source(obj)
-    
+
     def get_original_geometry(self, obj):
         if obj.original_geometry_ewkb:
             return wkb_to_geojson(obj.original_geometry_ewkb)
