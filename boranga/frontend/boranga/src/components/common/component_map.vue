@@ -201,6 +201,7 @@
                                         "
                                         class="input-group input-group-sm mb-1 text-nowrap"
                                     >
+                                        <!-- Select geometry-checkbox -->
                                         <div class="input-group-text">
                                             <input
                                                 :id="`feature-${feature.ol_uid}-checkbox`"
@@ -208,6 +209,17 @@
                                                 data-bs-toggle="tooltip"
                                                 data-bs-placement="top"
                                                 data-bs-title="Select feature"
+                                                :title="`${
+                                                    selectedFeatureIds.includes(
+                                                        feature.getProperties()
+                                                            .id
+                                                    )
+                                                        ? 'Deselect'
+                                                        : 'Select'
+                                                } ${
+                                                    feature.getProperties()
+                                                        .label
+                                                }`"
                                                 :checked="
                                                     selectedFeatureIds.includes(
                                                         feature.getProperties()
@@ -218,6 +230,7 @@
                                                 @change="selectFeature(feature)"
                                             />
                                         </div>
+                                        <!-- Zoom to-button and geometry type-icon -->
                                         <button
                                             type="button"
                                             class="btn btn-secondary me-1"
