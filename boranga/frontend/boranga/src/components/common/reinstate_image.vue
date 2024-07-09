@@ -85,7 +85,7 @@ export default {
                 .then(response => response.json())
                 .then(data => {
                     this.images = data;
-                    if (this.images.length > 1) {
+                    if (this.images && this.images.length) {
                         this.selected_image = this.images[0];
                     }
                 })
