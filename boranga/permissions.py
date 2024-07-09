@@ -140,13 +140,17 @@ class IsOccurrenceReportReferee(BasePermission):
         return is_occurrence_report_referee(request)
 
     def has_object_permission(self, request, view, obj):
-        return (
-            obj.referrals.filter(referral=request.user.id)
-            .exclude(
-                processing_status=OccurrenceReportReferral.PROCESSING_STATUS_RECALLED
+
+        if obj._meta.model_name == "occurrence_report":
+            return (
+                obj.referrals.filter(referral=request.user.id)
+                .exclude(
+                    processing_status=OccurrenceReportReferral.PROCESSING_STATUS_RECALLED
+                )
+                .exists()
             )
-            .exists()
-        )
+        else:
+            return obj.referral == request.user.id
 
 
 class IsInternal(BasePermission):

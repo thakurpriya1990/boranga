@@ -3888,13 +3888,6 @@ class OccurrenceViewSet(
     )
     def unlock_occurrence(self, request, *args, **kwargs):
         instance = self.get_object()
-        if (
-            not is_occurrence_approver(self.request)
-            and instance.processing_status == Occurrence.PROCESSING_STATUS_LOCKED
-        ):
-            raise serializers.ValidationError(
-                "User not authorised to update Occurrence"
-            )
         instance.unlock(request)
         return redirect(reverse("internal"))
 
@@ -5011,6 +5004,7 @@ class OccurrenceReportReferralViewSet(
 ):
     queryset = OccurrenceReportReferral.objects.all()
     serializer_class = OccurrenceReportReferralSerializer
+    permission_classes=[OccurrenceReportObjectPermission|IsOccurrenceReportReferee]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -5028,21 +5022,6 @@ class OccurrenceReportReferralViewSet(
                 qs = qs.filter(referral=self.request.user.id)
         return qs
 
-    def is_authorised_to_refer(self):
-        instance = self.get_object()
-        if not instance.occurrence_report.has_assessor_mode(self.request):
-            raise serializers.ValidationError(
-                "User not authorised to manage Referrals for Occurrence Report"
-            )
-
-    def is_authorised_to_referee(self):
-        instance = self.get_object()
-        user = self.request.user
-        if not instance.referral == user.id:
-            raise serializers.ValidationError(
-                "User is not the Referee for Occurrence Report Referral"
-            )
-
     @detail_route(
         methods=[
             "GET",
@@ -5059,9 +5038,6 @@ class OccurrenceReportReferralViewSet(
 
     @detail_route(methods=["GET", "POST"], detail=True)
     def complete(self, request, *args, **kwargs):
-
-        self.is_authorised_to_referee()
-
         instance = self.get_object()
         instance.complete(request)
         serializer = self.get_serializer(instance, context={"request": request})
@@ -5072,11 +5048,9 @@ class OccurrenceReportReferralViewSet(
             "GET",
         ],
         detail=True,
+        permission_classes=[OccurrenceReportObjectPermission]
     )
     def remind(self, request, *args, **kwargs):
-
-        self.is_authorised_to_refer()
-
         instance = self.get_object()
         instance.remind(request)
         serializer = InternalOccurrenceReportSerializer(
@@ -5089,11 +5063,9 @@ class OccurrenceReportReferralViewSet(
             "GET",
         ],
         detail=True,
+        permission_classes=[OccurrenceReportObjectPermission]
     )
     def recall(self, request, *args, **kwargs):
-
-        self.is_authorised_to_refer()
-
         instance = self.get_object()
         instance.recall(request)
         serializer = InternalOccurrenceReportSerializer(
@@ -5106,11 +5078,9 @@ class OccurrenceReportReferralViewSet(
             "GET",
         ],
         detail=True,
+        permission_classes=[OccurrenceReportObjectPermission]
     )
     def resend(self, request, *args, **kwargs):
-
-        self.is_authorised_to_refer()
-
         instance = self.get_object()
         instance.resend(request)
         serializer = InternalOccurrenceReportSerializer(
@@ -5122,9 +5092,6 @@ class OccurrenceReportReferralViewSet(
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
     def occurrence_report_referral_save(self, request, *args, **kwargs):
-
-        self.is_authorised_to_referee()
-
         instance = self.get_object()
         request_data = request.data
         instance.referral_comment = request_data.get("referral_comment")
@@ -5636,6 +5603,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 class OCRExternalRefereeInviteViewSet(viewsets.ModelViewSet):
     queryset = OCRExternalRefereeInvite.objects.filter(archived=False)
     serializer_class = OCRExternalRefereeInviteSerializer
+    permission_classes=[OccurrenceReportObjectPermission]
 
     def get_queryset(self):
         qs = self.queryset
