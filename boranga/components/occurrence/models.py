@@ -1800,6 +1800,7 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry
         related_name="ocr_geometry",
     )
     locked = models.BooleanField(default=False)
+    show_on_occ_map = models.BooleanField(default=False)
 
     class Meta:
         app_label = "boranga"

@@ -755,6 +755,7 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
             "content_type",
             "created_from",
             "source_of",
+            "show_on_occ_map",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -1834,6 +1835,7 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
             "locked",
             "content_type",
             "object_id",
+            "show_on_occ_map",
         )
         read_only_fields = ("id",)
 
