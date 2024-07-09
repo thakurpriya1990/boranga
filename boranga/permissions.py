@@ -349,7 +349,15 @@ class ConservationStatusDocumentPermission(BasePermission):
             ) or is_conservation_status_approver(request):
                 return True
 
-            data = json.loads(request.data.get("data"))
+            data_str = request.data.get("data", None)
+
+            if not data_str:
+                return False
+
+            try:
+                data = json.loads(data_str)
+            except json.JSONDecodeError:
+                return False
 
             conservation_status_id = data.get("conservation_status", None)
 
