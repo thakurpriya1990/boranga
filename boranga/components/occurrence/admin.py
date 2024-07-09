@@ -1,8 +1,8 @@
+import nested_admin
 from django.contrib.gis import admin, forms
 from django.contrib.gis.geos import GEOSGeometry
 
-import nested_admin
-
+from boranga.admin import DeleteProtectedModelAdmin
 from boranga.components.occurrence.models import (
     AnimalHealth,
     BufferGeometry,
@@ -18,8 +18,8 @@ from boranga.components.occurrence.models import (
     ObservationMethod,
     Occurrence,
     OccurrenceGeometry,
-    OccurrenceReportGeometry,
     OccurrenceReport,
+    OccurrenceReportGeometry,
     OccurrenceSite,
     OccurrenceTenure,
     OccurrenceTenurePurpose,
@@ -34,10 +34,10 @@ from boranga.components.occurrence.models import (
     SampleDestination,
     SampleType,
     SecondarySign,
+    SiteType,
     SoilColour,
     SoilCondition,
     SoilType,
-    SiteType,
     WildStatus,
 )
 from boranga.components.spatial.utils import (
@@ -373,8 +373,9 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
 
 
 @admin.register(OccurrenceTenurePurpose)
-class OccurrenceTenurePurposeAdmin(admin.ModelAdmin):
+class OccurrenceTenurePurposeAdmin(DeleteProtectedModelAdmin):
     pass
+
 
 @admin.register(OccurrenceTenureVesting)
 class OccurrenceTenureVestingAdmin(admin.ModelAdmin):
@@ -382,30 +383,30 @@ class OccurrenceTenureVestingAdmin(admin.ModelAdmin):
 
 
 # Each of the following models will be available to Django Admin.
-admin.site.register(LandForm)
-admin.site.register(RockType)
-admin.site.register(SoilType)
-admin.site.register(SiteType)
-admin.site.register(SoilColour)
-admin.site.register(SoilCondition)
-admin.site.register(Drainage)
-admin.site.register(Intensity)
-admin.site.register(ObservationMethod)
-admin.site.register(PlantCountMethod)
-admin.site.register(PlantCountAccuracy)
-admin.site.register(CountedSubject)
-admin.site.register(PlantCondition)
-admin.site.register(PrimaryDetectionMethod)
-admin.site.register(SecondarySign)
-admin.site.register(ReproductiveState)
-admin.site.register(DeathReason)
-admin.site.register(AnimalHealth)
-admin.site.register(IdentificationCertainty)
-admin.site.register(SampleType)
-admin.site.register(SampleDestination)
-admin.site.register(PermitType)
-admin.site.register(Datum)
-admin.site.register(CoordinateSource)
-admin.site.register(LocationAccuracy)
-admin.site.register(WildStatus)
+admin.site.register(LandForm, DeleteProtectedModelAdmin)
+admin.site.register(RockType, DeleteProtectedModelAdmin)
+admin.site.register(SoilType, DeleteProtectedModelAdmin)
+admin.site.register(SiteType, DeleteProtectedModelAdmin)
+admin.site.register(SoilColour, DeleteProtectedModelAdmin)
+admin.site.register(SoilCondition, DeleteProtectedModelAdmin)
+admin.site.register(Drainage, DeleteProtectedModelAdmin)
+admin.site.register(Intensity, DeleteProtectedModelAdmin)
+admin.site.register(ObservationMethod, DeleteProtectedModelAdmin)
+admin.site.register(PlantCountMethod, DeleteProtectedModelAdmin)
+admin.site.register(PlantCountAccuracy, DeleteProtectedModelAdmin)
+admin.site.register(CountedSubject, DeleteProtectedModelAdmin)
+admin.site.register(PlantCondition, DeleteProtectedModelAdmin)
+admin.site.register(PrimaryDetectionMethod, DeleteProtectedModelAdmin)
+admin.site.register(SecondarySign, DeleteProtectedModelAdmin)
+admin.site.register(ReproductiveState, DeleteProtectedModelAdmin)
+admin.site.register(DeathReason, DeleteProtectedModelAdmin)
+admin.site.register(AnimalHealth, DeleteProtectedModelAdmin)
+admin.site.register(IdentificationCertainty, DeleteProtectedModelAdmin)
+admin.site.register(SampleType, DeleteProtectedModelAdmin)
+admin.site.register(SampleDestination, DeleteProtectedModelAdmin)
+admin.site.register(PermitType, DeleteProtectedModelAdmin)
+admin.site.register(Datum, DeleteProtectedModelAdmin)
+admin.site.register(CoordinateSource, DeleteProtectedModelAdmin)
+admin.site.register(LocationAccuracy, DeleteProtectedModelAdmin)
+admin.site.register(WildStatus, DeleteProtectedModelAdmin)
 admin.site.register(OccurrenceSite)

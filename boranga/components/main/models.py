@@ -206,3 +206,31 @@ class UserSystemSettings(models.Model):
     class Meta:
         app_label = "boranga"
         verbose_name_plural = "User System Settings"
+
+
+class ArchivableManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(archived=False)
+
+    def all_with_archived(self):
+        return super().get_queryset()
+
+    def archived(self):
+        return super().get_queryset().filter(archived=True)
+
+
+class ArchivableModel(models.Model):
+    objects = ArchivableManager()
+
+    archived = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
+
+    def archive(self):
+        self.archived = True
+        self.save()
+
+    def unarchive(self):
+        self.archived = False
+        self.save()

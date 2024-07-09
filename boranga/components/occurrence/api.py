@@ -5284,9 +5284,7 @@ class OccurrenceTenureFilterBackend(DatatablesFilterBackend):
             if tenure_area_id
             else queryset
         )
-        # TODO: Implement vesting filtering after implementing the vesting field
-        logger.debug(f"vesting: {vesting}")  # use variable or remove
-        # queryset = queryset.filter(vesting=vesting) if vesting else queryset
+        queryset = queryset.filter(vesting=vesting) if vesting else queryset
         queryset = queryset.filter(purpose=purpose) if purpose else queryset
 
         fields = self.get_fields(request)
@@ -5408,7 +5406,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         results = []
         if search_term:
             queryset = queryset.filter(
-                vesting__vesting__icontains=search_term
+                vesting__name__icontains=search_term
             ).distinct()[:10]
         results = [
             {"id": row.vesting.id, "text": row.vesting.name} for row in queryset
@@ -5433,7 +5431,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         if search_term:
             queryset = queryset.filter(
-                purpose__purpose__icontains=search_term
+                purpose__name__icontains=search_term
             ).distinct()[:10]
         results = [
             {"id": row.purpose.id, "text": row.purpose.name} for row in queryset

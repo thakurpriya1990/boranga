@@ -140,7 +140,8 @@ export default {
             }).
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
+                    // let data = e.params.data.id;
+                    let data = e.params.data.species_id;
                     vm.combineSpeciesId = data
                 }).
                 on("select2:unselect", function (e) {
