@@ -1583,7 +1583,7 @@ class SaveOCRAssociatedSpeciesSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_id",
             "comment",
-            "related_species",
+            #"related_species",
         )
 
 
@@ -2745,7 +2745,7 @@ class SaveOCCAssociatedSpeciesSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_id",
             "comment",
-            "related_species",
+            #"related_species",
         )
 
 

@@ -506,7 +506,7 @@ class OccurrenceReportPermission(BasePermission):
         return obj.can_change_lock(request)
     
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
+        if request.method in permissions.SAFE_METHODS or view.action == "process_shapefile_document":
             return True
         
         if view.action in ["propose_decline","propose_approve","send_referral"]:
@@ -547,14 +547,11 @@ class ExternalOccurrenceReportPermission(BasePermission):
 
         if request.user.is_superuser:
             return True
-        
-        if hasattr(view, "action") and view.action == "create":
-            return is_external_contributor(request)
 
         return is_external_contributor(request)
 
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
+        if request.method in permissions.SAFE_METHODS or view.action == "process_shapefile_document":
             return True
 
         if obj.submitter == request.user.id and (obj.can_user_edit
