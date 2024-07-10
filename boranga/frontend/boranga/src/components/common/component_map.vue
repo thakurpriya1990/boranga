@@ -1265,12 +1265,12 @@
                                     >
                                     {{ selectedModel['Identification Number'] }}
                                 </strong>
-                                <button
+                                <!-- <button
                                     type="button"
                                     class="btn-close"
                                     data-bs-dismiss="toast"
                                     aria-label="Close"
-                                ></button>
+                                ></button> -->
                             </div>
                             <div class="toast-body">
                                 <table class="table table-sm">
