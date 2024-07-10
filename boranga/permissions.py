@@ -545,7 +545,8 @@ class ExternalOccurrenceReportPermission(BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        if obj.submitter == request.user.id and obj.can_user_edit:
+        if obj.submitter == request.user.id and (obj.can_user_edit
+            or (hasattr(view, "action") and view.action == "process_shapefile_document")):
             return is_external_contributor(request)
         
 

@@ -2351,7 +2351,7 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @detail_route(
         methods=[
-            "POST",
+            "PATCH",
         ],
         detail=True,
     )
@@ -2370,7 +2370,7 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @detail_route(
         methods=[
-            "POST",
+            "PATCH",
         ],
         detail=True,
     )
@@ -2472,7 +2472,7 @@ class OccurrenceReportDocumentViewSet(
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -2498,7 +2498,7 @@ class OccurrenceReportDocumentViewSet(
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -2674,7 +2674,7 @@ class OCRConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -2702,7 +2702,7 @@ class OCRConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -3387,7 +3387,7 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -3409,7 +3409,7 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -3556,7 +3556,7 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -3577,7 +3577,7 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
 
     @detail_route(
         methods=[
-            "GET",
+            "PATCH",
         ],
         detail=True,
     )
@@ -5413,7 +5413,7 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @detail_route(
         methods=[
-            "POST",
+            "PATCH",
         ],
         detail=True,
     )
@@ -5427,7 +5427,7 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @detail_route(
         methods=[
-            "POST",
+            "PATCH",
         ],
         detail=True,
     )
@@ -5535,7 +5535,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @detail_route(
         methods=[
-            "POST",
+            "PATCH",
         ],
         detail=True,
     )
@@ -5549,7 +5549,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @detail_route(
         methods=[
-            "POST",
+            "PATCH",
         ],
         detail=True,
     )
