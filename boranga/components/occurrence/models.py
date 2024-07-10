@@ -1817,7 +1817,7 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry
         super().save(*args, **kwargs)
 
 
-class OCRObserverDetail(models.Model):
+class OCRObserverDetail(RevisionedMixin):
     """
     Observer data  for occurrence report
 
@@ -3794,7 +3794,7 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
         super().save(*args, **kwargs)
 
 
-class OCCContactDetail(models.Model):
+class OCCContactDetail(RevisionedMixin):
     """
     Observer data for occurrence
 
@@ -4432,7 +4432,7 @@ def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
     collector.add_field_update(field, None, sub_objs)
 
 
-class OccurrenceTenure(models.Model):
+class OccurrenceTenure(RevisionedMixin):
     STATUS_CURRENT = "current"
     STATUS_HISTORICAL = "historical"
     STATUS_CHOICES = ((STATUS_CURRENT, "Current"), (STATUS_HISTORICAL, "Historical"))
@@ -4606,7 +4606,7 @@ class SiteType(models.Model):
         return str(self.name)
 
 
-class OccurrenceSite(GeometryBase):
+class OccurrenceSite(GeometryBase,RevisionedMixin):
     site_number = models.CharField(max_length=9, blank=True, default="")
     occurrence = models.ForeignKey(
         "Occurrence", related_name="sites", on_delete=models.CASCADE
@@ -4649,6 +4649,9 @@ reversion.register(OccurrenceReportDocument)
 # Occurrence Report Threat
 reversion.register(OCRConservationThreat)
 
+# Occurrence Report Observer Detail
+reversion.register(OCRObserverDetail)
+
 # Occurrence Report
 reversion.register(OccurrenceReport, follow=["species", "community"])
 
@@ -4657,6 +4660,15 @@ reversion.register(OccurrenceDocument)
 
 # Occurrence Threat
 reversion.register(OCCConservationThreat)
+
+# Occurrence Contact Detail
+reversion.register(OCCContactDetail)
+
+# Occurrence Site
+reversion.register(OccurrenceSite)
+
+# Occurrence Tenure
+reversion.register(OccurrenceTenure)
 
 # Occurrence
 reversion.register(Occurrence, follow=["species", "community", "occurrence_reports"])

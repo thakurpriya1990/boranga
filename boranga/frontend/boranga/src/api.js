@@ -230,6 +230,10 @@ module.exports = {
       return `/api/history/boranga/occurrence/OccurrenceReport/${id}/`;
     },
 
+    lookup_history_occurrence_report_observer_detail: function (model,id) {
+      return `/api/history/boranga/occurrence/OCRObserverDetail/${id}/`;
+    },
+
     lookup_history_occurrence_document: function (id) {
       return `/api/history/boranga/occurrence/OccurrenceDocument/${id}/`;
     },
@@ -246,7 +250,21 @@ module.exports = {
     },
 
     lookup_history_occ_conservation_threat: function (id) {
+      console.log(id);
       return `/api/history/boranga/occurrence/OCCConservationThreat/${id}/`;
+    },
+
+    lookup_history_occurrence_site: function (id) {
+      console.log(id);
+      return `/api/history/boranga/occurrence/OccurrenceSite/${id}/`;
+    },
+
+    lookup_history_occurrence_tenure: function (id) {
+      return `/api/history/boranga/occurrence/OccurrenceTenure/${id}/`;
+    },
+
+    lookup_history_occurrence_contact_detail: function (id) {
+      return `/api/history/boranga/occurrence/OCCContactDetail/${id}/`;
     },
 
     lookup_history_minutes: function (id) {
