@@ -2234,6 +2234,25 @@ class OccurrenceReportViewSet(
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
 
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+    )
+    @renderer_classes((JSONRenderer,))
+    def update_show_on_map(self, request, *args, **kwargs):
+        show_on_map = request.data.get("show_on_map")
+        model_id = request.data.get("model_id")
+        # Note: Check for permission still needs to be added
+        instance = self.get_object()
+        OccurrenceReportGeometry.objects.filter(
+            occurrence_report=instance, id=model_id
+        ).update(show_on_map=show_on_map)
+        serializer = self.get_serializer(instance)
+
+        return Response(serializer.data)
+
 
 class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OCRObserverDetail.objects.all()

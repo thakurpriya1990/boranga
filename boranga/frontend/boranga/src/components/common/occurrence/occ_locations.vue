@@ -62,7 +62,11 @@
                             property_display_map: sitePropertyDisplayMap,
                             property_overwrite: { label: 'Site' },
                         },
-                    ]" @features-loaded="mapFeaturesLoaded" @crs-select-search="searchForCRS"></MapComponent>
+                    ]"
+                    @features-loaded="mapFeaturesLoaded"
+                    @crs-select-search="searchForCRS"
+                    @update-show-hide="updateShowHide"
+                ></MapComponent>
             </div>
             <!-- @refreshFromResponse="refreshFromResponse" -->
             <!-- @validate-feature="validateFeature.bind(this)()" -->
@@ -665,6 +669,71 @@ export default {
                     },
                 },
             ];
+        },
+        updateShowHide: function (feature, layerName) {
+            if (!layerName) {
+                console.warn(`No layer name provided for update show/hide.`);
+                return;
+            }
+
+            let apiEndpoint = null;
+            if (layerName == this.queryLayerName) {
+                apiEndpoint = helpers.add_endpoint_join(
+                    api_endpoints.occurrence_report,
+                    `/${feature.getProperties().name}/update_show_on_map/`
+                );
+            }
+
+            if (!apiEndpoint) {
+                console.warn(
+                    `No API endpoint found for update show/hide for layer ${layerName}.`
+                );
+                return;
+            }
+
+            const showOnMap = feature.getProperties().show_on_map;
+            const modelId = feature.getProperties().model_id;
+            const payload = {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrf_token,
+                },
+                body: JSON.stringify({
+                    show_on_map: showOnMap,
+                    model_id: modelId,
+                }),
+            };
+
+            console.log(
+                `Updating show on map for ${
+                    feature.getProperties().label
+                }: ${showOnMap}.`
+            );
+            fetch(apiEndpoint, payload)
+                .then(async (response) => {
+                    if (!response.ok) {
+                        return await response.json().then((json) => {
+                            throw new Error(json);
+                        });
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    console.log(data);
+                })
+                .catch((error) => {
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Cannot change geometry visibility because of the following error: ' +
+                            error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                });
         },
     },
 };

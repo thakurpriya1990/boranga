@@ -257,7 +257,10 @@
                                                 feature.getProperties().label
                                             } map visibility`"
                                             @click="
-                                                toggleFeatureShowOnMap(feature)
+                                                toggleFeatureShowOnMap(
+                                                    feature,
+                                                    name
+                                                )
                                             "
                                         >
                                             <img
@@ -1833,7 +1836,12 @@ export default {
             },
         },
     },
-    emits: ['validate-feature', 'refreshFromResponse', 'features-loaded'],
+    emits: [
+        'validate-feature',
+        'refreshFromResponse',
+        'features-loaded',
+        'update-show-hide',
+    ],
     data() {
         // eslint-disable-next-line no-unused-vars
         let vm = this;
@@ -2443,14 +2451,18 @@ export default {
          * Toggles the visibility of a feature on the map by changing the show_on_map property of the geometry
          * @param {Object} feature A feature
          */
-        toggleFeatureShowOnMap: function (feature, toggleKey = 'show_on_map') {
+        toggleFeatureShowOnMap: function (
+            feature,
+            layerName,
+            toggleKey = 'show_on_map'
+        ) {
             const properties = feature.getProperties();
             if (!Object.hasOwn(properties, toggleKey)) {
                 console.log(`Feature does not have a ${toggleKey} property`);
             }
             const show_on_map = properties['show_on_map'];
             feature.setProperties({ [toggleKey]: !show_on_map });
-            console.log(feature);
+            this.$emit('update-show-hide', feature, layerName);
         },
         setBaseLayer: function (selected_layer_name) {
             let vm = this;
