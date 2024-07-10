@@ -304,6 +304,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     identification_certainty = serializers.SerializerMethodField()
     main_observer = serializers.SerializerMethodField()
     copied_to_occurrence = serializers.SerializerMethodField()
+    geometry_show_on_map = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -335,6 +336,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "site",
             "main_observer",
             "copied_to_occurrence",
+            "geometry_show_on_map",
         )
         datatables_always_serialize = (
             "id",
@@ -355,6 +357,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "internal_user_edit",
             "is_new_contributor",
             "copied_to_occurrence",
+            "geometry_show_on_map",
         )
 
     def get_scientific_name(self, obj):
@@ -440,6 +443,9 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         ]
 
         return list({i for o in occs_copied_to for i in o})
+
+    def get_geometry_show_on_map(self, obj):
+        return obj.ocr_geometry.filter(show_on_map=True).exists()
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
@@ -755,6 +761,7 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
             "content_type",
             "created_from",
             "source_of",
+            "show_on_map",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -1834,6 +1841,7 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
             "locked",
             "content_type",
             "object_id",
+            "show_on_map",
         )
         read_only_fields = ("id",)
 
