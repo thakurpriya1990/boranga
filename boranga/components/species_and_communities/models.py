@@ -888,22 +888,36 @@ class Species(RevisionedMixin):
     def occurrence_count(self):
         from boranga.components.occurrence.models import Occurrence
 
-        return Occurrence.objects.filter(species=self).count()
+        return Occurrence.objects.filter(
+            species=self,
+            processing_status__in=[
+                Occurrence.PROCESSING_STATUS_ACTIVE,
+                Occurrence.PROCESSING_STATUS_LOCKED,
+            ],
+        ).count()
 
     @property
     def area_of_occupancy_m2(self):
-        # TODO: For fauna we need to include the buffers around the points in the following methods
         from boranga.components.occurrence.models import (
             BufferGeometry,
+            Occurrence,
             OccurrenceGeometry,
         )
 
-        area = OccurrenceGeometry.objects.filter(occurrence__species=self).aggregate(
-            sum=Sum("area")
-        )["sum"]
+        area = OccurrenceGeometry.objects.filter(
+            occurrence__species=self,
+            occurrence__processing_status__in=[
+                Occurrence.PROCESSING_STATUS_ACTIVE,
+                Occurrence.PROCESSING_STATUS_LOCKED,
+            ],
+        ).aggregate(sum=Sum("area"))["sum"]
         if self.group_type.name == GroupType.GROUP_TYPE_FAUNA:
             area = BufferGeometry.objects.filter(
-                buffered_from_geometry__occurrence__species=self
+                buffered_from_geometry__occurrence__species=self,
+                buffered_from_geometry__occurrence__processing_status__in=[
+                    Occurrence.PROCESSING_STATUS_ACTIVE,
+                    Occurrence.PROCESSING_STATUS_LOCKED,
+                ],
             ).aggregate(sum=Sum("area"))["sum"]
 
         if not area:
@@ -922,18 +936,29 @@ class Species(RevisionedMixin):
     def area_occurrence_convex_hull_m2(self):
         from boranga.components.occurrence.models import (
             BufferGeometry,
+            Occurrence,
             OccurrenceGeometry,
         )
 
         occurrence_geometries = (
-            OccurrenceGeometry.objects.filter(occurrence__species=self)
+            OccurrenceGeometry.objects.filter(
+                occurrence__species=self,
+                occurrence__processing_status__in=[
+                    Occurrence.PROCESSING_STATUS_ACTIVE,
+                    Occurrence.PROCESSING_STATUS_LOCKED,
+                ],
+            )
             .annotate(geom=Cast("geometry", gis_models.GeometryField(geography=True)))
             .values_list("geometry", flat=True)
         )
         if self.group_type.name == GroupType.GROUP_TYPE_FAUNA:
             occurrence_geometries = (
                 BufferGeometry.objects.filter(
-                    buffered_from_geometry__occurrence__species=self
+                    buffered_from_geometry__occurrence__species=self,
+                    buffered_from_geometry__occurrence__processing_status__in=[
+                        Occurrence.PROCESSING_STATUS_ACTIVE,
+                        Occurrence.PROCESSING_STATUS_LOCKED,
+                    ],
                 )
                 .annotate(
                     geom=Cast("geometry", gis_models.GeometryField(geography=True))
@@ -944,7 +969,22 @@ class Species(RevisionedMixin):
         if not occurrence_geometries:
             return 0
 
-        convex_hull = shp.MultiPolygon(occurrence_geometries).convex_hull
+        points = []
+
+        for og in occurrence_geometries:
+            # Collate all the points from the occurrence geometries
+            # Will work for points and polygons if other geometry types
+            # are used this may need to be updated
+            if 1 == og.num_points:
+                points.extend(tuple([og.coords]))
+            else:
+                points.extend(list(set(og.coords[0])))
+
+        try:
+            convex_hull = shp.MultiPoint(points).convex_hull
+        except TypeError:
+            logger.warning(f"Error in creating convex hull for species {self.id}")
+            return 0
 
         geod = Geod(ellps="WGS84")
         geod_area = abs(geod.geometry_area_perimeter(convex_hull)[0])
@@ -1454,22 +1494,36 @@ class Community(RevisionedMixin):
     def occurrence_count(self):
         from boranga.components.occurrence.models import Occurrence
 
-        return Occurrence.objects.filter(community=self).count()
+        return Occurrence.objects.filter(
+            community=self,
+            processing_status__in=[
+                Occurrence.PROCESSING_STATUS_ACTIVE,
+                Occurrence.PROCESSING_STATUS_LOCKED,
+            ],
+        ).count()
 
     @property
     def area_of_occupancy_m2(self):
-        # TODO: For fauna we need to include the buffers around the points in the following methods
         from boranga.components.occurrence.models import (
             BufferGeometry,
+            Occurrence,
             OccurrenceGeometry,
         )
 
-        area = OccurrenceGeometry.objects.filter(occurrence__community=self).aggregate(
-            sum=Sum("area")
-        )["sum"]
+        area = OccurrenceGeometry.objects.filter(
+            occurrence__community=self,
+            occurrence__processing_status__in=[
+                Occurrence.PROCESSING_STATUS_ACTIVE,
+                Occurrence.PROCESSING_STATUS_LOCKED,
+            ],
+        ).aggregate(sum=Sum("area"))["sum"]
         if self.group_type.name == GroupType.GROUP_TYPE_FAUNA:
             area = BufferGeometry.objects.filter(
-                buffered_from_geometry__occurrence__community=self
+                buffered_from_geometry__occurrence__community=self,
+                buffered_from_geometry__occurrence__processing_status__in=[
+                    Occurrence.PROCESSING_STATUS_ACTIVE,
+                    Occurrence.PROCESSING_STATUS_LOCKED,
+                ],
             ).aggregate(sum=Sum("area"))["sum"]
 
         if not area:
@@ -1488,18 +1542,29 @@ class Community(RevisionedMixin):
     def area_occurrence_convex_hull_m2(self):
         from boranga.components.occurrence.models import (
             BufferGeometry,
+            Occurrence,
             OccurrenceGeometry,
         )
 
         occurrence_geometries = (
-            OccurrenceGeometry.objects.filter(occurrence__community=self)
+            OccurrenceGeometry.objects.filter(
+                occurrence__community=self,
+                occurrence__processing_status__in=[
+                    Occurrence.PROCESSING_STATUS_ACTIVE,
+                    Occurrence.PROCESSING_STATUS_LOCKED,
+                ],
+            )
             .annotate(geom=Cast("geometry", gis_models.GeometryField(geography=True)))
             .values_list("geometry", flat=True)
         )
         if self.group_type.name == GroupType.GROUP_TYPE_FAUNA:
             occurrence_geometries = (
                 BufferGeometry.objects.filter(
-                    buffered_from_geometry__occurrence__community=self
+                    buffered_from_geometry__occurrence__community=self,
+                    buffered_from_geometry__occurrence__processing_status__in=[
+                        Occurrence.PROCESSING_STATUS_ACTIVE,
+                        Occurrence.PROCESSING_STATUS_LOCKED,
+                    ],
                 )
                 .annotate(
                     geom=Cast("geometry", gis_models.GeometryField(geography=True))
@@ -1510,7 +1575,22 @@ class Community(RevisionedMixin):
         if not occurrence_geometries:
             return 0
 
-        convex_hull = shp.MultiPolygon(occurrence_geometries).convex_hull
+        points = []
+
+        for og in occurrence_geometries:
+            # Collate all the points from the occurrence geometries
+            # Will work for points and polygons if other geometry types
+            # are used this may need to be updated
+            if 1 == og.num_points:
+                points.extend(tuple([og.coords]))
+            else:
+                points.extend(list(set(og.coords[0])))
+
+        try:
+            convex_hull = shp.MultiPoint(points).convex_hull
+        except TypeError:
+            logger.warning(f"Error in creating convex hull for community {self.id}")
+            return 0
 
         geod = Geod(ellps="WGS84")
         geod_area = abs(geod.geometry_area_perimeter(convex_hull)[0])

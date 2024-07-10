@@ -212,18 +212,19 @@ def is_referee(request):
 
 def in_dbca_domain(request):
     user = request.user
-    domain = user.email.split("@")[1]
-    if domain in settings.DEPT_DOMAINS:
-        if not user.is_staff:
-            # hack to reset department user to is_staff==True, if the user logged in externally
-            # (external departmentUser login defaults to is_staff=False)
-            user.is_staff = True
-            user.save()
-        return True
-    return False
+    if not email_in_dbca_domain(user.email):
+        return False
+
+    if not user.is_staff:
+        # hack to reset department user to is_staff==True, if the user logged in externally
+        # (external departmentUser login defaults to is_staff=False)
+        user.is_staff = True
+        user.save()
+
+    return True
 
 
-def email_in_dept_domains(email):
+def email_in_dbca_domain(email: str) -> bool:
     return email.split("@")[1] in settings.DEPT_DOMAINS
 
 
