@@ -1,10 +1,10 @@
 import json
 import logging
 from abc import abstractmethod
+from datetime import datetime
 
 import pyproj
 import reversion
-from datetime import datetime
 from django.conf import settings
 from django.contrib.contenttypes import fields
 from django.contrib.contenttypes import models as ct_models
@@ -757,12 +757,11 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         details = validated_data.get("details", None)
         new_occurrence_name = validated_data.get("new_occurrence_name", None)
 
-        if (
-            new_occurrence_name
-            and (Occurrence.objects.filter(occurrence_name=new_occurrence_name).exists()
+        if new_occurrence_name and (
+            Occurrence.objects.filter(occurrence_name=new_occurrence_name).exists()
             or OccurrenceReportApprovalDetails.objects.filter(
                 new_occurrence_name=new_occurrence_name
-            ).exists())
+            ).exists()
         ):
             raise ValidationError(
                 f'Occurrence with name "{new_occurrence_name}" already exists or has been proposed for approval'
@@ -1500,6 +1499,7 @@ class Datum(models.Model):
     - OCCLocation
 
     """
+
     srid = models.IntegerField(blank=False, null=False, unique=True)
 
     @property
@@ -2524,7 +2524,7 @@ class OCRAnimalObservation(models.Model):
     secondary_sign = models.ForeignKey(
         SecondarySign, on_delete=models.SET_NULL, null=True, blank=True
     )
-    total_count = models.IntegerField(null=True, blank=True, default=0)
+
     distinctive_feature = models.CharField(max_length=1000, null=True, blank=True)
     action_taken = models.CharField(max_length=1000, null=True, blank=True)
     action_required = models.CharField(max_length=1000, null=True, blank=True)
@@ -2565,6 +2565,20 @@ class OCRAnimalObservation(models.Model):
         self._meta.get_field("primary_detection_method").choices = tuple(
             PrimaryDetectionMethod.objects.values_list("id", "name")
         )
+
+    @property
+    def total_count(self):
+        state = ["alive", "dead"]
+        sex = ["male", "female", "unknown"]
+        age = ["adult", "juvenile", "unsure"]
+        total = 0
+        for st in state:
+            for a in age:
+                for s in sex:
+                    value = getattr(self, f"{st}_{a}_{s}")
+                    if value:
+                        total += value
+        return total
 
 
 class IdentificationCertainty(models.Model):
@@ -2965,11 +2979,13 @@ class Occurrence(RevisionedMixin):
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     updated_date = models.DateTimeField(auto_now=True, null=False, blank=False)
 
-    combined_occurrence = models.ForeignKey("self", 
+    combined_occurrence = models.ForeignKey(
+        "self",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
-        related_name="combined_occurrences")
+        related_name="combined_occurrences",
+    )
 
     PROCESSING_STATUS_DRAFT = "draft"
     PROCESSING_STATUS_ACTIVE = "active"
@@ -3027,79 +3043,81 @@ class Occurrence(RevisionedMixin):
 
     @transaction.atomic
     def combine(self, request):
-        #only Active OCCs may be combined to
+        # only Active OCCs may be combined to
         if not (self.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE):
             raise ValidationError("Occurrence not Active, cannot be combined to")
 
         occ_combine_data = json.loads(request.POST.get("data"))
-        #print(occ_combine_data)
+        # print(occ_combine_data)
 
-        #OCCs being combined must not be discarded or historical
-        combine_occurrences = Occurrence.objects.exclude(
-            id=self.id
-        ).filter(
+        # OCCs being combined must not be discarded or historical
+        combine_occurrences = Occurrence.objects.exclude(id=self.id).filter(
             id__in=occ_combine_data["combine_ids"]
         )
-        
+
         if not combine_occurrences.exists():
             raise ValidationError("No Occurrences selected to be combined")
 
-        if (combine_occurrences.filter(
-            Q(processing_status=Occurrence.PROCESSING_STATUS_DISCARDED)|
-            Q(processing_status=Occurrence.PROCESSING_STATUS_HISTORICAL)
-            ).exists()
-        ):
+        if combine_occurrences.filter(
+            Q(processing_status=Occurrence.PROCESSING_STATUS_DISCARDED)
+            | Q(processing_status=Occurrence.PROCESSING_STATUS_HISTORICAL)
+        ).exists():
             raise ValidationError("Closed or Discarded Occurrences may not be combined")
-        
-        #validate species/community
-        if (combine_occurrences.exclude(
-            group_type=self.group_type
-            ).exists()
-        ):
+
+        # validate species/community
+        if combine_occurrences.exclude(group_type=self.group_type).exists():
             raise ValidationError("Selected Occurrence has mismatched group type")
-            
-        #dictionary pairing request value keys with corresponding model attrs/foreign relations
+
+        # dictionary pairing request value keys with corresponding model attrs/foreign relations
         FORM_KEYS = {
-            "occurrence_source":"occurrence_source",
-            "wild_status":"wild_status",
-            "review_due_date":"review_due_date",
-            "comment":"comment",
+            "occurrence_source": "occurrence_source",
+            "wild_status": "wild_status",
+            "review_due_date": "review_due_date",
+            "comment": "comment",
         }
         SECTION_KEYS = {
-            "chosen_location_section":"location",
-            "chosen_habitat_composition_section":"habitat_composition",
-            "chosen_habitat_condition_section":"habitat_condition",
-            "chosen_vegetation_structure_section":"vegetation_structure",
-            "chosen_fire_history_section":"fire_history",
-            "chosen_associated_species_section":"associated_species",
-            "chosen_observation_detail_section":"observation_detail",
-            "chosen_animal_observation_section":"animal_observation",
-            "chosen_plant_count_section":"plant_count",
-            "chosen_identification_section":"identification",
+            "chosen_location_section": "location",
+            "chosen_habitat_composition_section": "habitat_composition",
+            "chosen_habitat_condition_section": "habitat_condition",
+            "chosen_vegetation_structure_section": "vegetation_structure",
+            "chosen_fire_history_section": "fire_history",
+            "chosen_associated_species_section": "associated_species",
+            "chosen_observation_detail_section": "observation_detail",
+            "chosen_animal_observation_section": "animal_observation",
+            "chosen_plant_count_section": "plant_count",
+            "chosen_identification_section": "identification",
         }
         COPY_TABLE_KEYS = {
-            "combine_key_contact_ids":OCCContactDetail,
-            "combine_document_ids":OccurrenceDocument,
-            "combine_site_ids":OccurrenceSite,
+            "combine_key_contact_ids": OCCContactDetail,
+            "combine_document_ids": OccurrenceDocument,
+            "combine_site_ids": OccurrenceSite,
         }
-        MOVE_TABLE_KEYS = {"combine_threat_ids":OCCConservationThreat}
+        MOVE_TABLE_KEYS = {"combine_threat_ids": OCCConservationThreat}
 
-        #assess and assign form values
+        # assess and assign form values
         for key in FORM_KEYS:
             if key in occ_combine_data and occ_combine_data[key] != self.id:
-                #print("set", key, "to that in OCC", occ_combine_data[key])
-                try: #handle in case somehow the combined occurrence record does not exist
-                    setattr(self,key,getattr(combine_occurrences.get(id=occ_combine_data[key]),key))
+                # print("set", key, "to that in OCC", occ_combine_data[key])
+                try:  # handle in case somehow the combined occurrence record does not exist
+                    setattr(
+                        self,
+                        key,
+                        getattr(combine_occurrences.get(id=occ_combine_data[key]), key),
+                    )
                 except Exception as e:
                     print(e)
 
-        #assess and copy section values
+        # assess and copy section values
         for key in SECTION_KEYS:
             if key in occ_combine_data and occ_combine_data[key] != self.id:
-                #print("copy", key, "from OCC", occ_combine_data[key])
-                try: #handle in case somehow the combined occurrence record does not exist or does not have the specified section
-                    src_section = getattr(combine_occurrences.get(id=occ_combine_data[key]),SECTION_KEYS[key])
-                    section = getattr(self,SECTION_KEYS[key])
+                # print("copy", key, "from OCC", occ_combine_data[key])
+                try:  # handle in case somehow the combined occurrence record does not exist
+                    # or does not have the specified section
+                    src_section = getattr(
+                        combine_occurrences.get(id=occ_combine_data[key]),
+                        SECTION_KEYS[key],
+                    )
+                    section = getattr(self, SECTION_KEYS[key])
                     section_fields = type(section)._meta.get_fields()
                     for i in section_fields:
                         if (
@@ -3116,16 +3134,20 @@ class Occurrence(RevisionedMixin):
                             else:
                                 value = getattr(src_section, i.name)
                                 setattr(section, i.name, value)
-                            #print(i.name," - ",value)
+                            # print(i.name," - ",value)
                     section.save()
                 except Exception as e:
                     print(e)
-                
-        #assess and copy table values (contacts, documents, and sites)
+
+        # assess and copy table values (contacts, documents, and sites)
         for key in COPY_TABLE_KEYS:
             if key in occ_combine_data:
-                #print("Copy",key,"with ids",occ_combine_data[key],"if not already in OCC")
-                for record in COPY_TABLE_KEYS[key].objects.filter(id__in=occ_combine_data[key]).exclude(occurrence=self):
+                # print("Copy",key,"with ids",occ_combine_data[key],"if not already in OCC")
+                for record in (
+                    COPY_TABLE_KEYS[key]
+                    .objects.filter(id__in=occ_combine_data[key])
+                    .exclude(occurrence=self)
+                ):
                     copy = clone_model(
                         COPY_TABLE_KEYS[key],
                         COPY_TABLE_KEYS[key],
@@ -3135,59 +3157,68 @@ class Occurrence(RevisionedMixin):
                         copy.occurrence = self
                         copy.save()
 
-        #assess and move threat table values
+        # assess and move threat table values
         for key in MOVE_TABLE_KEYS:
             if key in occ_combine_data:
-                #print("Move",key,"with ids",occ_combine_data[key],"if not already in OCC")
-                for record in MOVE_TABLE_KEYS[key].objects.filter(id__in=occ_combine_data[key]).exclude(occurrence=self):
+                # print("Move",key,"with ids",occ_combine_data[key],"if not already in OCC")
+                for record in (
+                    MOVE_TABLE_KEYS[key]
+                    .objects.filter(id__in=occ_combine_data[key])
+                    .exclude(occurrence=self)
+                ):
                     record.occurrence = self
                     record.save()
 
-        #special handling is required for tenure records
-        #current
-        for record in OccurrenceTenure.objects.filter(
-            id__in=occ_combine_data["combine_tenure_ids"]
-        ).filter(
-            status=OccurrenceTenure.STATUS_CURRENT
-        ).exclude(
-            occurrence_geometry__occurrence=self
+        # special handling is required for tenure records
+        # current
+        for record in (
+            OccurrenceTenure.objects.filter(
+                id__in=occ_combine_data["combine_tenure_ids"]
+            )
+            .filter(status=OccurrenceTenure.STATUS_CURRENT)
+            .exclude(occurrence_geometry__occurrence=self)
         ):
-            #if current, move by changing the geometry occurrence
+            # if current, move by changing the geometry occurrence
             if record.occurrence_geometry:
                 occurrence_geometry = record.occurrence_geometry
                 occurrence_geometry.occurrence = self
                 occurrence_geometry.save()
 
-        #historical
-        for record in OccurrenceTenure.objects.filter(
-            id__in=occ_combine_data["combine_tenure_ids"]
-        ).filter(
-            status=OccurrenceTenure.STATUS_HISTORICAL
-        ).exclude(
-            historical_occurrence=self.id
+        # historical
+        for record in (
+            OccurrenceTenure.objects.filter(
+                id__in=occ_combine_data["combine_tenure_ids"]
+            )
+            .filter(status=OccurrenceTenure.STATUS_HISTORICAL)
+            .exclude(historical_occurrence=self.id)
         ):
-            #if historical, move by changing historical occurrence
+            # if historical, move by changing historical occurrence
             record.historical_occurrence = self.id
             record.save(override_datetime_updated=True)
 
-        #NOTE: not validating OCR species/community - already validated at OCC level
-        #move OCRs
+        # NOTE: not validating OCR species/community - already validated at OCC level
+        # move OCRs
         ocrs = OccurrenceReport.objects.filter(occurrence__in=combine_occurrences)
         ocrs.update(occurrence=self)
 
-        #update combined OCCs to note that they have been combined and close
+        # update combined OCCs to note that they have been combined and close
         for i in combine_occurrences:
             i.processing_status = Occurrence.PROCESSING_STATUS_HISTORICAL
             i.combined_occurrence = self
             i.save(version_user=request.user)
 
-        #save
+        # save
         self.save(version_user=request.user)
 
-        #action log
+        # action log
         self.log_user_action(
             OccurrenceUserAction.ACTION_COMBINE_OCCURRENCE.format(
-                ", ".join(list(combine_occurrences.values_list("occurrence_number",flat=True))), self.occurrence_number
+                ", ".join(
+                    list(
+                        combine_occurrences.values_list("occurrence_number", flat=True)
+                    )
+                ),
+                self.occurrence_number,
             ),
             request,
         )
@@ -3293,9 +3324,7 @@ class Occurrence(RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
-            OccurrenceUserAction.ACTION_LOCK_OCCURRENCE.format(
-                self.occurrence_number
-            ),
+            OccurrenceUserAction.ACTION_LOCK_OCCURRENCE.format(self.occurrence_number),
             request,
         )
 
@@ -3325,9 +3354,7 @@ class Occurrence(RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
-            OccurrenceUserAction.ACTION_CLOSE_OCCURRENCE.format(
-                self.occurrence_number
-            ),
+            OccurrenceUserAction.ACTION_CLOSE_OCCURRENCE.format(self.occurrence_number),
             request,
         )
 
@@ -3336,8 +3363,7 @@ class Occurrence(RevisionedMixin):
         discardable = [Occurrence.PROCESSING_STATUS_DRAFT]
         if (
             self.processing_status in discardable
-            and (is_occurrence_assessor(request)
-            or is_occurrence_approver(request))
+            and (is_occurrence_assessor(request) or is_occurrence_approver(request))
             and OccurrenceReport.objects.filter(occurrence=self).count() < 1
         ):
             self.processing_status = Occurrence.PROCESSING_STATUS_DISCARDED
@@ -4230,7 +4256,6 @@ class OCCAnimalObservation(models.Model):
         SecondarySign, on_delete=models.SET_NULL, null=True, blank=True
     )
 
-    total_count = models.IntegerField(null=True, blank=True, default=0)
     distinctive_feature = models.CharField(max_length=1000, null=True, blank=True)
     action_taken = models.CharField(max_length=1000, null=True, blank=True)
     action_required = models.CharField(max_length=1000, null=True, blank=True)
@@ -4271,6 +4296,20 @@ class OCCAnimalObservation(models.Model):
         self._meta.get_field("primary_detection_method").choices = tuple(
             PrimaryDetectionMethod.objects.values_list("id", "name")
         )
+
+    @property
+    def total_count(self):
+        state = ["alive", "dead"]
+        sex = ["male", "female", "unknown"]
+        age = ["adult", "juvenile", "unsure"]
+        total = 0
+        for st in state:
+            for a in age:
+                for s in sex:
+                    value = getattr(self, f"{st}_{a}_{s}")
+                    if value:
+                        total += value
+        return total
 
 
 class OCCIdentification(models.Model):
@@ -4358,6 +4397,7 @@ class OccurrenceTenurePurpose(models.Model):
     def __str__(self):
         return self.purpose
 
+
 class OccurrenceTenureVesting(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
 
@@ -4438,11 +4478,11 @@ class OccurrenceTenure(models.Model):
 
     def save(self, *args, **kwargs):
 
-        #force_insert = kwargs.pop("force_insert", False)
-        #if force_insert:
+        # force_insert = kwargs.pop("force_insert", False)
+        # if force_insert:
         #    super().save(no_revision=True, force_insert=force_insert) #TODO enable when we have history
         #    self.save(*args, **kwargs)
-        #else:
+        # else:
         override_datetime_updated = kwargs.pop("override_datetime_updated", False)
         if not override_datetime_updated:
             self.datetime_updated = datetime.now()
@@ -4538,6 +4578,7 @@ class BufferGeometry(GeometryBase):
     def related_model_field(self):
         return self.buffered_from_geometry
 
+
 class SiteType(models.Model):
     """
     # Admin List
@@ -4558,12 +4599,13 @@ class SiteType(models.Model):
     def __str__(self):
         return str(self.name)
 
+
 class OccurrenceSite(GeometryBase):
     site_number = models.CharField(max_length=9, blank=True, default="")
     occurrence = models.ForeignKey(
         "Occurrence", related_name="sites", on_delete=models.CASCADE
     )
-    
+
     site_name = models.CharField(max_length=255, null=True, blank=True)
 
     site_type = models.ForeignKey(
@@ -4574,13 +4616,11 @@ class OccurrenceSite(GeometryBase):
 
     comments = models.TextField(blank=True, null=True)
 
-    visible = models.BooleanField(
-        default=True
-    ) 
+    visible = models.BooleanField(default=True)
 
     def related_model_field(self):
         return self.occurrence
-    
+
     class Meta:
         app_label = "boranga"
         verbose_name = "Occurrence Site"
@@ -4595,6 +4635,7 @@ class OccurrenceSite(GeometryBase):
             self.save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
+
 
 # Occurrence Report Document
 reversion.register(OccurrenceReportDocument)

@@ -23,6 +23,7 @@
                         ids: occurrenceReportIds,
                         geometry_name: 'ocr_geometry',
                         collapse: true,
+                        property_display_map: ocrPropertyDisplayMap,
                     }" :additional-layers-definitions="[
                         {
                             name: occurrenceLayerName,
@@ -34,6 +35,7 @@
                             api_url: occApiUrl,
                             ids: [occurrence_obj.id],
                             geometry_name: 'occ_geometry',
+                            property_display_map: occPropertyDisplayMap,
                         },
                         {
                             name: 'buffer_layer',
@@ -44,6 +46,7 @@
                             can_buffer: false,
                             handler: bufferGeometryHandler, // Buffer geometries are a property of occurrence geometry. This handler returns the buffer geometries from the occurrence geometries.
                             geometry_name: 'geometry',
+                            property_display_map: bufferPropertyDisplayMap,
                         },
                         {
                             name: 'site_layer',
@@ -322,6 +325,47 @@ export default {
         siteApiUrl: function () {
             // TODO: Update to use the correct endpoint
             return '/api/occurrence_sites/list_for_map/';
+        },
+        ocrPropertyDisplayMap: function () {
+            return {
+                id: 'ID',
+                // name: 'Name',
+                label: 'Label', // Occurrence Report
+                geometry_source: 'Geometry Source',
+                occurrence_report_number: 'Identification Number',
+                processing_status: 'Processing Status',
+                lodgement_date_display: 'Lodgement Date',
+                locked: 'Locked',
+            };
+        },
+        occPropertyDisplayMap: function () {
+            return {
+                id: 'ID',
+                // name: 'Name',
+                label: 'Label', // Occurrence
+                occurrence_number: 'Identification Number', // OCC1
+                geometry_source: 'Geometry Source',
+                processing_status_display: 'Processing Status',
+            };
+        },
+        bufferPropertyDisplayMap: function () {
+            return {
+                id: 'ID',
+                // name: 'Name',
+                label: 'Label', // OCC1 [Buffer]
+                geometry_source: 'Geometry Source',
+                // processing_status: 'Processing Status',
+                // lodgement_date_display: 'Lodgement Date',
+                buffer_radius: 'Buffer Radius [m]',
+            };
+        },
+        sitePropertyDisplayMap: function () {
+            return {
+                id: 'ID', // 8
+                label: 'Label', // Site
+                site_number: 'Identification Number', // ST1
+                site_name: 'Site Name', // My Site
+            };
         },
         bufferGeometriesApiUrl: function () {
             return api_endpoints.occurrence + 'buffer_geometries/';

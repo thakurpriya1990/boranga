@@ -9,7 +9,12 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from boranga.components.conservation_status.models import ConservationStatus
-from boranga.components.main.models import CommunicationsLogEntry, Document, UserAction
+from boranga.components.main.models import (
+    ArchivableModel,
+    CommunicationsLogEntry,
+    Document,
+    UserAction,
+)
 from boranga.components.main.related_item import RelatedItem
 from boranga.components.species_and_communities.models import (
     DocumentCategory,
@@ -35,7 +40,7 @@ def update_meeting_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/meeting/{instance.meeting.id}/meeting_minutes_document/{filename}"
 
 
-class MeetingRoom(models.Model):
+class MeetingRoom(ArchivableModel):
     room_name = models.CharField(max_length=128, blank=True, null=True)
 
     class Meta:
@@ -169,26 +174,19 @@ class Meeting(models.Model):
             Meeting.PROCESSING_STATUS_DRAFT,
             Meeting.PROCESSING_STATUS_SCHEDULED,
         ]
+
     @property
     def can_user_schedule(self):
-        return self.processing_status in [
-            Meeting.PROCESSING_STATUS_DRAFT
-            
-        ]
-    
+        return self.processing_status in [Meeting.PROCESSING_STATUS_DRAFT]
+
     @property
     def can_user_complete(self):
-        return self.processing_status in [
-            Meeting.PROCESSING_STATUS_SCHEDULED
-            
-        ]
+        return self.processing_status in [Meeting.PROCESSING_STATUS_SCHEDULED]
 
     @property
     def can_user_reinstate(self):
-        return self.processing_status in [
-            Meeting.PROCESSING_STATUS_DISCARDED
-            
-        ]
+        return self.processing_status in [Meeting.PROCESSING_STATUS_DISCARDED]
+
     @property
     def can_user_view(self):
         user_viewable_state = [
@@ -293,16 +291,17 @@ class Meeting(models.Model):
 
     @transaction.atomic
     def schedule_meeting(self, request, viewset):
-        if not self.processing_status== self.PROCESSING_STATUS_DRAFT:
+        if not self.processing_status == self.PROCESSING_STATUS_DRAFT:
             raise ValidationError("You can't schedule this meeting at this moment")
 
-        self.processing_status=self.PROCESSING_STATUS_SCHEDULED
+        self.processing_status = self.PROCESSING_STATUS_SCHEDULED
         self.submitter = request.user.id
-        #self.lodgement_date = timezone.now()
+        # self.lodgement_date = timezone.now()
 
         # Create a log entry for the meeting
         self.log_user_action(
-            MeetingUserAction.ACTION_SCHEDULE_MEETING.format(self.meeting_number), request
+            MeetingUserAction.ACTION_SCHEDULE_MEETING.format(self.meeting_number),
+            request,
         )
 
         # Create a log entry for the submitter
@@ -319,16 +318,17 @@ class Meeting(models.Model):
 
     @transaction.atomic
     def complete_meeting(self, request, viewset):
-        if not self.processing_status== self.PROCESSING_STATUS_SCHEDULED:
+        if not self.processing_status == self.PROCESSING_STATUS_SCHEDULED:
             raise ValidationError("You can't complete this meeting at this moment")
 
-        self.processing_status=self.PROCESSING_STATUS_COMPLETED
+        self.processing_status = self.PROCESSING_STATUS_COMPLETED
         self.submitter = request.user.id
-        #self.lodgement_date = timezone.now()
+        # self.lodgement_date = timezone.now()
 
         # Create a log entry for the meeting
         self.log_user_action(
-            MeetingUserAction.ACTION_COMPLETE_MEETING.format(self.meeting_number), request
+            MeetingUserAction.ACTION_COMPLETE_MEETING.format(self.meeting_number),
+            request,
         )
 
         # Create a log entry for the submitter

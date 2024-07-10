@@ -9,6 +9,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 
 from boranga import helpers as boranga_helpers
+from boranga.components.main.models import ArchivableManager, ArchivableModel
 
 
 class DeleteProtectedModelAdmin(admin.ModelAdmin):
@@ -22,6 +23,44 @@ class DeleteProtectedModelAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
+
+
+@admin.action(description="Mark as archived")
+def archive(modeladmin, request, queryset):
+    queryset.update(archived=True)
+
+
+@admin.action(description="Mark as unarchived")
+def unarchive(modeladmin, request, queryset):
+    queryset.update(archived=False)
+
+
+class ArchivableModelAdminMixin:
+    actions = [archive, unarchive]
+    list_filter = ("archived",)
+    search_fields = ("id",)
+    ordering = ("id",)
+
+    def __init__(self, model, admin_site) -> None:
+        super().__init__(model, admin_site)
+
+        if not hasattr(self, "model"):
+            raise AttributeError("Please set the model attribute on the admin class.")
+
+        if not issubclass(self.model, ArchivableModel):
+            raise AttributeError("The model must be a sub class of ArchivableModel.")
+
+        if not isinstance(self.model.objects, ArchivableManager):
+            raise AttributeError(
+                "The model manager must be an instance of ArchivableManager."
+            )
+
+    def get_list_display(self, request):
+        list_display = super().get_list_display(request)
+        return list_display + ["archived"]
+
+    def get_queryset(self, request):
+        return self.model.objects.all_with_archived()
 
 
 admin.site.index_template = "admin-index.html"

@@ -141,6 +141,9 @@ class MeetingSerializer(serializers.ModelSerializer):
     can_user_schedule = serializers.SerializerMethodField()
     can_user_complete = serializers.SerializerMethodField()
     can_user_reinstate = serializers.SerializerMethodField()
+    location = serializers.CharField(
+        source="location.room_name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = Meeting
@@ -149,6 +152,7 @@ class MeetingSerializer(serializers.ModelSerializer):
             "meeting_number",
             "start_date",
             "end_date",
+            "location",
             "location_id",
             "title",
             "meeting_type",
@@ -167,8 +171,6 @@ class MeetingSerializer(serializers.ModelSerializer):
             "can_user_schedule",
             "can_user_complete",
             "can_user_reinstate",
-
-
         )
 
     def get_processing_status_display(self, obj):
@@ -209,7 +211,7 @@ class MeetingSerializer(serializers.ModelSerializer):
     def get_can_user_add_minutes(self, obj):
         request = self.context["request"]
         return is_conservation_status_approver(request)
-    
+
     def get_can_user_schedule(self, obj):
         request = self.context["request"]
 
@@ -217,7 +219,7 @@ class MeetingSerializer(serializers.ModelSerializer):
             return False
 
         return obj.can_user_schedule
-    
+
     def get_can_user_complete(self, obj):
         request = self.context["request"]
 
@@ -225,7 +227,7 @@ class MeetingSerializer(serializers.ModelSerializer):
             return False
 
         return obj.can_user_complete
-    
+
     def get_can_user_reinstate(self, obj):
         request = self.context["request"]
 

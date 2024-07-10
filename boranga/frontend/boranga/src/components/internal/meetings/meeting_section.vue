@@ -78,12 +78,14 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-4 control-label fw-bold">Location: <span class="text-danger">*</span></label>
                 <div class="col-sm-8">
-                    <select :disabled="isReadOnly" style="width:100%;" class="form-select"
+                    <select  v-if="!isReadOnly" class="form-select"
                         v-model="meeting_obj.location_id">
                         <option v-for="option in location_list" :value="option.id" :key="option.id">
                             {{ option.name }}
                         </option>
                     </select>
+                    <input v-else type="text" readonly class="form-control" id="location" placeholder=""
+                        v-model="meeting_obj.location" />
                 </div>
             </div>
             <!-- <div class="row mb-3" v-if="meetingStatusEditable">
