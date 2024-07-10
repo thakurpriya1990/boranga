@@ -4215,26 +4215,14 @@ export default {
 
             feature.setProperties(featureProperties);
 
-            const type = feature.getGeometry().getType();
-            if (!style) {
-                style = this.createStyle(color, stroke, type);
-                let rgba = color;
-                if (!Array.isArray(color)) {
-                    rgba = this.colorHexToRgbaValues(color);
+            // eslint-disable-next-line no-unused-vars
+            const featureStyleFunction = (feature, resolution) => {
+                if (!style) {
+                    return this.createFeatureStyle(feature);
                 }
-                if (['MultiPoint', 'Point'].includes(type)) {
-                    style = this.createStyle(
-                        color,
-                        stroke,
-                        type,
-                        null,
-                        null,
-                        require('../../assets/map-marker.svg'),
-                        rgba[3]
-                    );
-                }
-            }
-            feature.setStyle(style);
+                return style;
+            };
+            feature.setStyle(featureStyleFunction);
             this.newFeatureId++;
 
             return feature;
@@ -4790,6 +4778,10 @@ export default {
             }
         },
         selectFeature: function (feature) {
+            if (feature.getProperties().show_on_map === false) {
+                // Prevent selecting hidden features
+                return;
+            }
             this.map.getInteractions().forEach((interaction) => {
                 if (interaction instanceof Select) {
                     let selected = [];
@@ -4810,6 +4802,33 @@ export default {
                     });
                 }
             });
+        },
+        createFeatureStyle: function (feature) {
+            if (feature.getProperties().show_on_map === false) {
+                return new Style({});
+            }
+            const color = feature.getProperties().color;
+            const stroke = feature.getProperties().stroke;
+            const type = feature.getGeometry().getType();
+
+            let style = this.createStyle(color, stroke, type);
+            let rgba = color;
+            if (!Array.isArray(color)) {
+                rgba = this.colorHexToRgbaValues(color);
+            }
+            if (['MultiPoint', 'Point'].includes(type)) {
+                style = this.createStyle(
+                    color,
+                    stroke,
+                    type,
+                    null,
+                    null,
+                    require('../../assets/map-marker.svg'),
+                    rgba[3]
+                );
+            }
+
+            return style;
         },
         colorStrToStyle: function (colorStr) {
             let s = new Option().style;
