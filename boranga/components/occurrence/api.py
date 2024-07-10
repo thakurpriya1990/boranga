@@ -2239,6 +2239,7 @@ class OccurrenceReportViewSet(
             "PATCH",
         ],
         detail=True,
+        permission_classes=[OccurrencePermission]
     )
     @renderer_classes((JSONRenderer,))
     def update_show_on_map(self, request, *args, **kwargs):

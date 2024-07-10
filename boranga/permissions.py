@@ -692,15 +692,26 @@ class OccurrencePermission(BasePermission):
             )
         )
 
+    def is_authorised_to_update_show_on_map(self, request, obj):
+        return (
+            (is_occurrence_approver(request) or request.user.is_superuser)
+            and obj.processing_status in [OccurrenceReport.PROCESSING_STATUS_APPROVED]
+            and obj.occurrence.processing_status
+            in [Occurrence.PROCESSING_STATUS_ACTIVE]
+        )
+
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        
+
         if hasattr(view, "action") and view.action == "unlock_occurrence":
             return self.is_authorised_to_unlock(request, obj)
+        if hasattr(view, "action") and view.action == "update_show_on_map":
+            return self.is_authorised_to_update_show_on_map(request, obj)
 
         return self.is_authorised_to_update(request, obj)
-    
+
+
 class OccurrenceObjectPermission(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
