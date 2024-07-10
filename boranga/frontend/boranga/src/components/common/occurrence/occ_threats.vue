@@ -539,7 +539,7 @@ export default {
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.occ_threat, id + '/discard'))
+                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.occ_threat, id + '/discard'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -571,7 +571,7 @@ export default {
                 },
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.get(helpers.add_endpoint_json(api_endpoints.occ_threat, id + '/reinstate'))
+                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.occ_threat, id + '/reinstate'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',

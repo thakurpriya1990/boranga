@@ -293,7 +293,7 @@ export default {
                     reverseButtons: true
                 }).then((result) => {
                     if(result.isConfirmed){
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence_documents,id+'/discard'))
+                        vm.$http.patch(helpers.add_endpoint_json(api_endpoints.occurrence_documents,id+'/discard'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -326,7 +326,7 @@ export default {
                     reverseButtons: true
                 }).then((result) => {
                     if(result.isConfirmed){
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence_documents,id+'/reinstate'))
+                        vm.$http.patch(helpers.add_endpoint_json(api_endpoints.occurrence_documents,id+'/reinstate'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',
