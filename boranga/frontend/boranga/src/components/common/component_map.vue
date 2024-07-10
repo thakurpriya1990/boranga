@@ -167,11 +167,32 @@
                                     aria-expanded="true"
                                     :aria-controls="`geometry-list-collapsible-${name}`"
                                 >
+                                    <!-- Filter for not false to also catch undefined as trueish (not all geoms have show_on_map) -->
                                     <small
                                         >{{ layerNameTitles[name] }} ({{
-                                            features.length
-                                        }})</small
-                                    >
+                                            filterFeaturesShowOnMap(
+                                                features,
+                                                false,
+                                                (not = true)
+                                            ).length
+                                        }})
+                                        <span
+                                            v-if="
+                                                filterFeaturesShowOnMap(
+                                                    features,
+                                                    false
+                                                ).length
+                                            "
+                                        >
+                                            ({{
+                                                filterFeaturesShowOnMap(
+                                                    features,
+                                                    false
+                                                ).length
+                                            }}
+                                            hidden)
+                                        </span>
+                                    </small>
                                 </a>
                                 <div
                                     :id="`geometry-list-collapsible-${name}`"
@@ -5350,6 +5371,16 @@ export default {
             }
 
             return properties;
+        },
+        filterFeaturesShowOnMap: function (features, what, not = false) {
+            if (not) {
+                return features.filter(
+                    (f) => f.getProperties().show_on_map !== what
+                );
+            }
+            return features.filter(
+                (f) => f.getProperties().show_on_map === what
+            );
         },
     },
 };
