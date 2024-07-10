@@ -37,6 +37,7 @@
                             ids: [occurrence_obj.id],
                             geometry_name: 'occ_geometry',
                             property_display_map: occPropertyDisplayMap,
+                            property_overwrite: { area_sqm: 'AREASQM' },
                         },
                         {
                             name: 'buffer_layer',
@@ -355,6 +356,8 @@ export default {
                 occurrence_number: 'Identification Number', // OCC1
                 geometry_source: 'Geometry Source',
                 processing_status_display: 'Processing Status',
+                area_sqm: 'Area [m²]',
+                area_sqhm: 'Area [ha]',
             };
         },
         bufferPropertyDisplayMap: function () {

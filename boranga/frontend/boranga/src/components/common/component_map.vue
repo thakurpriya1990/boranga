@@ -1844,7 +1844,7 @@ export default {
                     handler: null, // A callback function to invoke on fetched features
                     geometry_name: 'geometry', // The name of the geometry field in the model. If not provided, the object itself is treated as the geometry
                     collapse: false, // Whether the layer is collapsed by default
-                    property_display_map: [], // A list of dictionaries to map property names to display names, e.g. for a popup or export to a geodata file
+                    property_display_map: {}, // A dictionary to map property names to display names, e.g. for a popup or export to a geodata file
                     property_overwrite: null, // A dictionary to overwrite the displayed property values
                 };
             },
@@ -4190,12 +4190,7 @@ export default {
                 this.defaultColor;
             const stroke = this.defaultColor;
 
-            const label =
-                properties.label ||
-                properties.site_number ||
-                context.occurrence_report_number ||
-                context.label ||
-                'Draw';
+            const label = properties.label || context.label || 'Draw';
 
             // Apply the passed in properties to the feature, but overwrite where necessary (nullish coalescing operator ??=)
             const featureProperties = structuredClone(properties);
@@ -4209,7 +4204,6 @@ export default {
             featureProperties['stroke'] ??= stroke;
             featureProperties['srid'] ??= this.mapSrid;
             featureProperties['original_geometry'] ??= original_geometry;
-            featureProperties['area_sqm'] ??= this.featureArea(feature);
 
             feature.setProperties(featureProperties);
 
@@ -5343,6 +5337,31 @@ export default {
             });
         },
         /**
+         * Adds a key-value pair to a feature's properties display-object
+         * @param {String} key A key to add to the properties object
+         * @param {String} value A value to add to the properties' key
+         * @param {Object} properties A dictionary of property key-value pairs
+         * @param {Object=} propertyMap A dictionary to map property names to display names
+         */
+        addFeatureDisplayPropertyValue: function (
+            key,
+            value,
+            properties,
+            propertyMap = null
+        ) {
+            if (isProxy(value)) {
+                return properties;
+            }
+            if (propertyMap) {
+                if (key in propertyMap) {
+                    properties[propertyMap[key]] = value;
+                }
+            } else {
+                properties[key] = value;
+            }
+            return properties;
+        },
+        /**
          * Compiles a dictionary of feature and model properties for a feature
          * Ignore properties that are proxies
          * @param {Object} selected A feature object
@@ -5356,16 +5375,12 @@ export default {
             for (const [key, value] of Object.entries(
                 selected.getProperties()
             )) {
-                if (isProxy(value)) {
-                    continue;
-                }
-                if (propertyMap) {
-                    if (key in propertyMap) {
-                        properties[propertyMap[key]] = value;
-                    }
-                } else {
-                    properties[key] = value;
-                }
+                this.addFeatureDisplayPropertyValue(
+                    key,
+                    value,
+                    properties,
+                    propertyMap
+                );
             }
 
             if (!selected.getProperties().model) {
@@ -5374,16 +5389,12 @@ export default {
                 for (const [key, value] of Object.entries(
                     selected.getProperties().model
                 )) {
-                    if (isProxy(value)) {
-                        continue;
-                    }
-                    if (propertyMap) {
-                        if (key in propertyMap) {
-                            properties[propertyMap[key]] = value;
-                        }
-                    } else {
-                        properties[key] = value;
-                    }
+                    this.addFeatureDisplayPropertyValue(
+                        key,
+                        value,
+                        properties,
+                        propertyMap
+                    );
                 }
             }
 
