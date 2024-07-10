@@ -1528,11 +1528,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 "You cannot propose to delist a conservation status that is not approved"
             )
 
-        if not self.assigned_officer == request.user.id:
-            raise ValidationError(
-                "You cannot propose to delist a conservation status that you are not assigned to"
-            )
-
         if not is_conservation_status_assessor(request):
             raise ValidationError(
                 "You cannot propose to delist a conservation status unless you "
