@@ -13,6 +13,7 @@ from boranga.components.meetings.models import (
     MeetingLogEntry,
     MeetingUserAction,
     Minutes,
+    Committee,
 )
 from boranga.helpers import is_conservation_status_approver
 from boranga.ledger_api_utils import retrieve_email_user
@@ -383,3 +384,12 @@ class CommitteeMembersSerializer(serializers.ModelSerializer):
             "email",
         )
         read_only_fields = ("id", "email")
+
+class CommitteeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Committee
+        fields = (
+            "id",
+            "name",
+        )
