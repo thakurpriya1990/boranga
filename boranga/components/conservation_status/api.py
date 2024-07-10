@@ -2367,19 +2367,40 @@ class ConservationStatusDocumentViewSet(
 
     def get_queryset(self):
         qs = self.queryset
-        if is_external_contributor(self.request) or is_internal_contributor(
+        if (
+            is_readonly_user(self.request)
+            or is_conservation_status_assessor(self.request)
+            or is_conservation_status_approver(self.request)
+            or is_species_communities_approver(self.request)
+            or is_occurrence_assessor(self.request)
+            or is_occurrence_approver(self.request)
+        ):
+            return qs
+        elif is_contributor(self.request) and is_conservation_status_referee(
             self.request
         ):
+            qs = qs.filter(
+                Q(
+                    conservation_status__submitter=self.request.user.id,
+                    visible=True,
+                    can_submitter_access=True,
+                )
+                | Q(
+                    conservation_status__referrals__referral=self.request.user.id,
+                    visible=True,
+                )
+            )
+        elif is_contributor(self.request):
             qs = qs.filter(
                 conservation_status__submitter=self.request.user.id,
                 visible=True,
                 can_submitter_access=True,
             )
-        if is_conservation_status_referee(self.request):
+        elif is_conservation_status_referee(self.request):
             qs = qs.filter(
                 conservation_status__referrals__referral=self.request.user.id
             )
-        return qs
+        return qs.none()
 
     @detail_route(
         methods=[
