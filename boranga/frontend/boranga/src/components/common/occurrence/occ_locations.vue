@@ -37,7 +37,11 @@
                             ids: [occurrence_obj.id],
                             geometry_name: 'occ_geometry',
                             property_display_map: occPropertyDisplayMap,
-                            property_overwrite: { area_sqm: 'AREASQM' },
+                            property_overwrite: {
+                                area_sqm: featureAreaMeter,
+                                area_sqhm: (feature) =>
+                                    featureAreaMeter(feature) / 10000,
+                            },
                         },
                         {
                             name: 'buffer_layer',
@@ -49,6 +53,11 @@
                             handler: bufferGeometryHandler, // Buffer geometries are a property of occurrence geometry. This handler returns the buffer geometries from the occurrence geometries.
                             geometry_name: 'geometry',
                             property_display_map: bufferPropertyDisplayMap,
+                            property_overwrite: {
+                                area_sqm: featureAreaMeter,
+                                area_sqhm: (feature) =>
+                                    featureAreaMeter(feature) / 10000,
+                            },
                         },
                         {
                             name: 'site_layer',
@@ -368,6 +377,8 @@ export default {
                 geometry_source: 'Geometry Source',
                 // processing_status: 'Processing Status',
                 // lodgement_date_display: 'Lodgement Date',
+                area_sqm: 'Area [m²]',
+                area_sqhm: 'Area [ha]',
                 buffer_radius: 'Buffer Radius [m]',
             };
         },
@@ -759,6 +770,12 @@ export default {
                         },
                     });
                 });
+        },
+        featureAreaMeter: function (feature) {
+            if (feature) {
+                return this.$refs.component_map.featureArea(feature);
+            }
+            return null;
         },
     },
 };

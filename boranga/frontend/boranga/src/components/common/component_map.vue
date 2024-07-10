@@ -2696,6 +2696,10 @@ export default {
             layers.forEach((layer) => {
                 const features = layer.getSource().getFeatures();
                 features.forEach((feature) => {
+                    if (feature.getProperties().show_on_map === false) {
+                        // Ignore hidden features
+                        return;
+                    }
                     if (editableSelectedFeatures.includes(feature)) {
                         feature.setStyle(style);
                     } else if (selectedFeatures.includes(feature)) {
@@ -5342,17 +5346,27 @@ export default {
          * @param {String} value A value to add to the properties' key
          * @param {Object} properties A dictionary of property key-value pairs
          * @param {Object=} propertyMap A dictionary to map property names to display names
+         * @param {Object=} propertyOverwrite A dictionary to overwrite property values
          */
         addFeatureDisplayPropertyValue: function (
             key,
             value,
+            feature,
             properties,
-            propertyMap = null
+            propertyMap = null,
+            propertyOverwrite = null
         ) {
             if (isProxy(value)) {
                 return properties;
             }
             if (propertyMap) {
+                if (propertyOverwrite && key in propertyOverwrite) {
+                    if (typeof propertyOverwrite[key] === 'function') {
+                        value = propertyOverwrite[key](feature);
+                    } else {
+                        value = propertyOverwrite[key];
+                    }
+                }
                 if (key in propertyMap) {
                     properties[propertyMap[key]] = value;
                 }
@@ -5365,12 +5379,14 @@ export default {
          * Compiles a dictionary of feature and model properties for a feature
          * Ignore properties that are proxies
          * @param {Object} selected A feature object
+         * @param {Object} layer A layer object
          */
         featureGetDisplayProperties: function (selected, layer) {
             const properties = {};
             const layerName = layer.getProperties().name;
             const layerDef = this.getLayerDefinitionByName(layerName);
             const propertyMap = layerDef.property_display_map || null;
+            const propertyOverwrite = layerDef.property_overwrite || null;
 
             for (const [key, value] of Object.entries(
                 selected.getProperties()
@@ -5378,8 +5394,10 @@ export default {
                 this.addFeatureDisplayPropertyValue(
                     key,
                     value,
+                    selected,
                     properties,
-                    propertyMap
+                    propertyMap,
+                    propertyOverwrite
                 );
             }
 
@@ -5392,8 +5410,10 @@ export default {
                     this.addFeatureDisplayPropertyValue(
                         key,
                         value,
+                        selected,
                         properties,
-                        propertyMap
+                        propertyMap,
+                        propertyOverwrite
                     );
                 }
             }
