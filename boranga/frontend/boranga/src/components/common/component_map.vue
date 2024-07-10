@@ -1861,7 +1861,7 @@ export default {
         'validate-feature',
         'refreshFromResponse',
         'features-loaded',
-        'update-show-hide',
+        'toggle-show-hide',
     ],
     data() {
         // eslint-disable-next-line no-unused-vars
@@ -2481,9 +2481,7 @@ export default {
             if (!Object.hasOwn(properties, toggleKey)) {
                 console.log(`Feature does not have a ${toggleKey} property`);
             }
-            const show_on_map = properties['show_on_map'];
-            feature.setProperties({ [toggleKey]: !show_on_map });
-            this.$emit('update-show-hide', feature, layerName);
+            this.$emit('toggle-show-hide', feature, layerName);
         },
         setBaseLayer: function (selected_layer_name) {
             let vm = this;

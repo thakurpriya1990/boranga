@@ -65,7 +65,7 @@
                     ]"
                     @features-loaded="mapFeaturesLoaded"
                     @crs-select-search="searchForCRS"
-                    @update-show-hide="updateShowHide"
+                    @toggle-show-hide="toggleShowOnMapLayer"
                 ></MapComponent>
             </div>
             <!-- @refreshFromResponse="refreshFromResponse" -->
@@ -223,8 +223,11 @@
             <RelatedReports v-if="occurrence_obj" ref="related_reports_datatable" :key="datatableRelatedOCRKey"
                 :is-read-only="isReadOnly" :occurrence_obj="occurrence_obj" :section_type="'location'"
                 :href-container-id="getMapContainerId" :target-map-layer-name-for-copy="occurrenceLayerName"
+                :target-map-layer-name-for-show-hide="queryLayerName"
                 @copyUpdate="copyUpdate" @highlight-on-map="highlightIdOnMapLayer"
-                @copy-to-map-layer="copyToMapLayer" />
+                @copy-to-map-layer="copyToMapLayer"
+                @toggle-show-on-map="toggleShowOnMapLayer"
+                />
         </FormSection>
     </div>
 </template>
@@ -567,9 +570,12 @@ export default {
             });
         },
         refreshDatatables: function () {
-            this.uuid_datatable_ocr = uuid();
+            this.refreshDatatableRelatedOCR();
             this.uuid_datatable_occ_site = uuid();
             this.uuid_datatable_occ_tenure = uuid();
+        },
+        refreshDatatableRelatedOCR: function () {
+            this.uuid_datatable_ocr = uuid();
         },
         updatedSites: function() {
             this.incrementComponentMapKey()
@@ -651,6 +657,22 @@ export default {
             const feature = this.getMapFeatureById(id);
             map.copyFeatureToLayer(feature, map.getLayerByName(target_layer));
         },
+        /**
+         * Toggle the show on map property of a feature.
+         * @param {Object|Number} feature - The feature object or the feature id.
+         * @param {String} layer_name - The layer name where the feature is located.
+         */
+        toggleShowOnMapLayer: function (feature, layer_name) {
+            if (!isNaN(Number(feature))) {
+                const id = feature;
+                feature = this.getMapFeatureById(id, layer_name);
+            }
+            const show_on_map = feature.getProperties().show_on_map;
+            feature.set('show_on_map', !show_on_map);
+            this.updateShowHide(feature, layer_name).then(() => {
+                this.refreshDatatableRelatedOCR();
+            });
+        },
         bufferGeometryHandler: function () {
             const occurrence_features = this.$refs.component_map
                 .getLayerByName(this.occurrenceLayerName)
@@ -710,7 +732,7 @@ export default {
                     feature.getProperties().label
                 }: ${showOnMap}.`
             );
-            fetch(apiEndpoint, payload)
+            return fetch(apiEndpoint, payload)
                 .then(async (response) => {
                     if (!response.ok) {
                         return await response.json().then((json) => {
@@ -720,7 +742,7 @@ export default {
                     return response.json();
                 })
                 .then((data) => {
-                    console.log(data);
+                    return data;
                 })
                 .catch((error) => {
                     swal.fire({
