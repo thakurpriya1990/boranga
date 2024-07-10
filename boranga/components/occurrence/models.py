@@ -447,6 +447,9 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         if self.processing_status not in status_with_assessor:
             return False
 
+        if request.user.is_superuser:
+            return True
+
         if not self.assigned_officer:
             return False
 
@@ -461,6 +464,9 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         ]
         if self.processing_status not in status_with_approver:
             return False
+        
+        if request.user.is_superuser:
+            return True
 
         if not self.assigned_approver:
             return False
@@ -526,7 +532,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         ]:
             # TODO: current requirment task allows assessors to unlock, is this too permissive?
             # Good question
-            return is_occurrence_assessor(request) or is_occurrence_approver(request)
+            return is_occurrence_assessor(request) or is_occurrence_approver(request) or request.user.is_superuser
 
     @transaction.atomic
     def discard(self, request):

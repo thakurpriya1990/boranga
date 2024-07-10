@@ -355,7 +355,7 @@ export default {
                 blank_fields.push('Please select End Date that is later than Start Date');
             }
             if (vm.$refs.meeting.isCommitteeMeeting){
-                if(vm.$refs.meeting.sel_committee_members_arr  == null || vm.$refs.meeting.sel_committee_members_arr  == '' || vm.$refs.meeting.sel_committee_members_arr.length==0  ) {
+                if(vm.meeting_obj.sel_committee_members_arr  == null || vm.meeting_obj.sel_committee_members_arr  == '' || vm.meeting_obj.sel_committee_members_arr.length==0  ) {
                     //  to also check the start and end date of meeting validation befor saving
                     blank_fields.push('Please add Committe members');
                 }
@@ -375,6 +375,13 @@ export default {
             //to count if records exists in the minutes table
             vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count()
         },
+        isFutureMeeting: function (){
+            let vm = this;
+            const meeting_date = new Date(vm.meeting_obj.end_date);
+            const now = new Date();
+            return meeting_date > now;
+
+        },
         can_complete: function () {
             let vm = this;
             let blank_fields = []
@@ -382,6 +389,9 @@ export default {
            
             if(vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count()==0){
                 blank_fields.push(' Please add atleast one Minutes record')
+            }
+            if(vm.isFutureMeeting()){
+                blank_fields.push('You cannot Complete the meeting before the End Date/Time')
             }
             if (blank_fields.length == 0) {
                 return true;
@@ -704,6 +714,12 @@ export default {
         if (!this.meeting_obj) {
             Vue.http.get(`/api/meeting/${vm.$route.params.meeting_id}/internal_meeting.json`).then(res => {
                 vm.meeting_obj = res.body;
+                if(vm.meeting_obj.start_date==null){
+                    vm.meeting_obj.start_date=vm.$refs.meeting.start_date;
+                }
+                if(vm.meeting_obj.end_date==null){
+                    vm.meeting_obj.end_date=vm.$refs.meeting.end_date;
+                }
             },
                 err => {
                     console.log(err);

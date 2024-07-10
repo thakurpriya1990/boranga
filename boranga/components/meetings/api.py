@@ -40,6 +40,8 @@ from boranga.components.meetings.serializers import (
     MinutesSerializer,
     SaveMeetingSerializer,
     SaveMinutesSerializer,
+    CommitteeSerializer,
+    CommitteeMembersSerializer,
 )
 from boranga.helpers import is_conservation_status_approver
 from boranga.permissions import MeetingPermission
@@ -649,3 +651,21 @@ class AgendaItemViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance.save()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+class CommitteeViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+    queryset = Committee.objects.all()
+    serializer_class = CommitteeSerializer
+    permission_classes = [MeetingPermission]
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=True,
+    )
+    def committee_members(self, request, *args, **kwargs):
+        instance = self.get_object()
+        qs = instance.committeemembers_set.all()
+        serializer = CommitteeMembersSerializer(qs, many=True)
+        return Response(serializer.data)
+
