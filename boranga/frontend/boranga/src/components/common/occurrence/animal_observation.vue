@@ -95,7 +95,7 @@
 
             <label for="" class="col-lg-3 control-label fs-5 fw-bold">Animal Count :</label>
             <div class="row mb-3">
-                <div class="col-sm-3">
+                <div class="col-sm-4">
 
                 </div>
                 <div class="col-sm-2 fw-bold">
@@ -109,7 +109,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col-sm-3 fw-bold">
+                <div class="col-sm-4 fw-bold">
                     Alive
                 </div>
                 <div class="col-sm-2">
@@ -132,7 +132,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col-sm-3 fw-bold">
+                <div class="col-sm-4 fw-bold">
 
                 </div>
                 <div class="col-sm-2">
@@ -155,7 +155,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col-sm-3 fw-bold">
+                <div class="col-sm-4 fw-bold">
 
                 </div>
                 <div class="col-sm-2">
@@ -179,7 +179,7 @@
             </div>
 
             <div class="row mb-3">
-                <div class="col-sm-3">
+                <div class="col-sm-4">
 
                 </div>
                 <div class="col-sm-2 fw-bold">
@@ -193,7 +193,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col-sm-3 fw-bold">
+                <div class="col-sm-4 fw-bold">
                     Dead
                 </div>
                 <div class="col-sm-2">
@@ -216,7 +216,7 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col-sm-3 fw-bold">
+                <div class="col-sm-4 fw-bold">
 
                 </div>
                 <div class="col-sm-2">
@@ -238,8 +238,8 @@
                         v-model="animal_observation.dead_unsure_female" />
                 </div>
             </div>
-            <div class="row mb-3">
-                <div class="col-sm-3 fw-bold">
+            <div class="row mb-4">
+                <div class="col-sm-4 fw-bold">
 
                 </div>
                 <div class="col-sm-2">
@@ -263,7 +263,7 @@
             </div>
 
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Total Number Seen :</label>
+                <label for="" class="col-sm-4 control-label">Total Number Seen (alive and dead):</label>
                 <div class="col-sm-6">
                     <input readonly type="number" class="form-control ocr_number" id="quadrats_surveyed" placeholder=""
                         min="0" v-model="total_seen" />
