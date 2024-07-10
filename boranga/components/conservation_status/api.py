@@ -1851,23 +1851,40 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         instance = self.get_object()
         qs = instance.documents.all()
         qs = qs.exclude(input_name="conservation_status_approval_doc")
-        if (
-            not is_internal(request)
-            and instance.submitter == request.user.id
-            and is_contributor(request)
+        if not (
+            is_readonly_user(self.request)
+            or is_conservation_status_assessor(self.request)
+            or is_conservation_status_approver(self.request)
+            or is_species_communities_approver(self.request)
+            or is_occurrence_assessor(self.request)
+            or is_occurrence_approver(self.request)
         ):
-            qs = qs.filter(
-                conservation_status__submitter=self.request.user.id,
-                visible=True,
-                can_submitter_access=True,
-            )
-        if not is_internal(request) and is_conservation_status_referee(
-            request, instance
-        ):
-            qs = qs.filter(
-                conservation_status__referrals__referral=self.request.user.id,
-                visible=True,
-            )
+            if is_contributor(request) and is_conservation_status_referee(
+                request, instance
+            ):
+                qs = qs.filter(
+                    Q(
+                        conservation_status__submitter=self.request.user.id,
+                        visible=True,
+                        can_submitter_access=True,
+                    )
+                    | Q(
+                        conservation_status__referrals__referral=self.request.user.id,
+                    )
+                )
+            elif is_contributor(request):
+                qs = qs.filter(
+                    conservation_status__submitter=self.request.user.id,
+                    visible=True,
+                    can_submitter_access=True,
+                )
+            elif is_conservation_status_referee(request, instance):
+                qs = qs.filter(
+                    conservation_status__referrals__referral=self.request.user.id,
+                    visible=True,
+                )
+            else:
+                qs = qs.none()
 
         qs = qs.order_by("-uploaded_date")
         serializer = ConservationStatusDocumentSerializer(
@@ -2379,7 +2396,7 @@ class ConservationStatusDocumentViewSet(
         elif is_contributor(self.request) and is_conservation_status_referee(
             self.request
         ):
-            qs = qs.filter(
+            return qs.filter(
                 Q(
                     conservation_status__submitter=self.request.user.id,
                     visible=True,
@@ -2391,15 +2408,16 @@ class ConservationStatusDocumentViewSet(
                 )
             )
         elif is_contributor(self.request):
-            qs = qs.filter(
+            return qs.filter(
                 conservation_status__submitter=self.request.user.id,
                 visible=True,
                 can_submitter_access=True,
             )
         elif is_conservation_status_referee(self.request):
-            qs = qs.filter(
+            return qs.filter(
                 conservation_status__referrals__referral=self.request.user.id
             )
+
         return qs.none()
 
     @detail_route(
