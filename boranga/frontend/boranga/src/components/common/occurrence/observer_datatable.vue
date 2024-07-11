@@ -295,7 +295,7 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.post(helpers.add_endpoint_json(api_endpoints.observer_detail, id + '/discard'))
+                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.observer_detail, id + '/discard'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -321,7 +321,7 @@ export default {
         },
         reinstateObserverDetail: function (id) {
             let vm = this;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.observer_detail, id + '/reinstate'))
+            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.observer_detail, id + '/reinstate'))
                 .then((response) => {
                     swal.fire({
                         title: 'Reinstated',

@@ -167,11 +167,32 @@
                                     aria-expanded="true"
                                     :aria-controls="`geometry-list-collapsible-${name}`"
                                 >
+                                    <!-- Filter for not false to also catch undefined as trueish (not all geoms have show_on_map) -->
                                     <small
                                         >{{ layerNameTitles[name] }} ({{
-                                            features.length
-                                        }})</small
-                                    >
+                                            filterFeaturesShowOnMap(
+                                                features,
+                                                false,
+                                                (not = true)
+                                            ).length
+                                        }})
+                                        <span
+                                            v-if="
+                                                filterFeaturesShowOnMap(
+                                                    features,
+                                                    false
+                                                ).length
+                                            "
+                                        >
+                                            ({{
+                                                filterFeaturesShowOnMap(
+                                                    features,
+                                                    false
+                                                ).length
+                                            }}
+                                            hidden)
+                                        </span>
+                                    </small>
                                 </a>
                                 <div
                                     :id="`geometry-list-collapsible-${name}`"
@@ -197,10 +218,13 @@
                                                 .latitude +
                                             feature.getProperties()
                                                 .original_geometry.properties
-                                                .longitude
+                                                .longitude +
+                                            feature.getProperties().show_on_map
                                         "
                                         class="input-group input-group-sm mb-1 text-nowrap"
                                     >
+                                        <!-- Select geometry-checkbox -->
+                                        <!-- TODO: disabled based on show hide -->
                                         <div class="input-group-text">
                                             <input
                                                 :id="`feature-${feature.ol_uid}-checkbox`"
@@ -208,6 +232,25 @@
                                                 data-bs-toggle="tooltip"
                                                 data-bs-placement="top"
                                                 data-bs-title="Select feature"
+                                                :disabled="
+                                                    getLayerDefinitionByName(
+                                                        name
+                                                    ).can_hide_geometries ===
+                                                        true &&
+                                                    feature.getProperties()
+                                                        .show_on_map == false
+                                                "
+                                                :title="`${
+                                                    selectedFeatureIds.includes(
+                                                        feature.getProperties()
+                                                            .id
+                                                    )
+                                                        ? 'Deselect'
+                                                        : 'Select'
+                                                } ${
+                                                    feature.getProperties()
+                                                        .label
+                                                }`"
                                                 :checked="
                                                     selectedFeatureIds.includes(
                                                         feature.getProperties()
@@ -219,6 +262,36 @@
                                             />
                                         </div>
                                         <button
+                                            v-if="
+                                                getLayerDefinitionByName(name)
+                                                    .can_hide_geometries ===
+                                                    true &&
+                                                feature.getProperties()
+                                                    .show_on_map === false
+                                            "
+                                            type="button"
+                                            class="btn btn-secondary me-1"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-title="Zoom to feature"
+                                            :title="`Toggle ${
+                                                feature.getProperties().label
+                                            } map visibility`"
+                                            @click="
+                                                toggleFeatureShowOnMap(
+                                                    feature,
+                                                    name
+                                                )
+                                            "
+                                        >
+                                            <img
+                                                class="svg-icon"
+                                                src="../../assets/hidden.svg"
+                                            />
+                                        </button>
+                                        <!-- Zoom to-button and geometry type-icon -->
+                                        <button
+                                            v-else
                                             type="button"
                                             class="btn btn-secondary me-1"
                                             data-bs-toggle="tooltip"
@@ -348,6 +421,11 @@
                                                 data-bs-toggle="tooltip"
                                                 data-bs-placement="top"
                                                 data-bs-title="Enter the latitude value"
+                                                :disabled="
+                                                    getLayerDefinitionByName(
+                                                        name
+                                                    ).can_edit == false
+                                                "
                                                 @change="
                                                     updateUserInputGeoData(
                                                         feature
@@ -411,6 +489,11 @@
                                                 data-bs-toggle="tooltip"
                                                 data-bs-placement="top"
                                                 data-bs-title="Enter the longitude value"
+                                                :disabled="
+                                                    getLayerDefinitionByName(
+                                                        name
+                                                    ).can_edit == false
+                                                "
                                                 @change="
                                                     updateUserInputGeoData(
                                                         feature
@@ -452,6 +535,11 @@
                                                 data-bs-toggle="tooltip"
                                                 data-bs-placement="top"
                                                 data-bs-title="Enter a buffer radius value"
+                                                :disabled="
+                                                    getLayerDefinitionByName(
+                                                        name
+                                                    ).can_edit == false
+                                                "
                                                 @change="
                                                     updateUserInputBufferRadius(
                                                         feature,
@@ -487,6 +575,11 @@
                                                     mapSrid
                                                 "
                                                 classes="min-width-210"
+                                                :disabled="
+                                                    getLayerDefinitionByName(
+                                                        name
+                                                    ).can_edit == false
+                                                "
                                                 @option:selected="
                                                     (selected) => {
                                                         updateUserInputGeoData(
@@ -1172,12 +1265,12 @@
                                     >
                                     {{ selectedModel['Identification Number'] }}
                                 </strong>
-                                <button
+                                <!-- <button
                                     type="button"
                                     class="btn-close"
                                     data-bs-dismiss="toast"
                                     aria-label="Close"
-                                ></button>
+                                ></button> -->
                             </div>
                             <div class="toast-body">
                                 <table class="table table-sm">
@@ -1742,6 +1835,7 @@ export default {
                     processed: true, // The layer where processed geometries are added to
                     can_edit: true,
                     can_buffer: true, // Whether features may be used to create buffer geometries
+                    can_hide_geometries: false, // Whether geometries may selectively be shown or hidden on the map
                     api_url: null, // The API endpoint to fetch features from
                     ids: [], //Ids of proposals to be fetched by the map component and displayed on the map.
                     //  Negative values fetch no proposals
@@ -1750,8 +1844,8 @@ export default {
                     handler: null, // A callback function to invoke on fetched features
                     geometry_name: 'geometry', // The name of the geometry field in the model. If not provided, the object itself is treated as the geometry
                     collapse: false, // Whether the layer is collapsed by default
-                    model_overwrite: null, // A dictionary to overwrite the default model values
-                    property_display_map: [], // A list of dictionaries to map property names to display names, e.g. for a popup or export to a geodata file
+                    property_display_map: {}, // A dictionary to map property names to display names, e.g. for a popup or export to a geodata file
+                    property_overwrite: null, // A dictionary to overwrite the displayed property values
                 };
             },
         },
@@ -1763,7 +1857,12 @@ export default {
             },
         },
     },
-    emits: ['validate-feature', 'refreshFromResponse', 'features-loaded'],
+    emits: [
+        'validate-feature',
+        'refreshFromResponse',
+        'features-loaded',
+        'toggle-show-hide',
+    ],
     data() {
         // eslint-disable-next-line no-unused-vars
         let vm = this;
@@ -2369,6 +2468,21 @@ export default {
                 maxZoom: maxZoom,
             });
         },
+        /**
+         * Toggles the visibility of a feature on the map by changing the show_on_map property of the geometry
+         * @param {Object} feature A feature
+         */
+        toggleFeatureShowOnMap: function (
+            feature,
+            layerName,
+            toggleKey = 'show_on_map'
+        ) {
+            const properties = feature.getProperties();
+            if (!Object.hasOwn(properties, toggleKey)) {
+                console.log(`Feature does not have a ${toggleKey} property`);
+            }
+            this.$emit('toggle-show-hide', feature, layerName);
+        },
         setBaseLayer: function (selected_layer_name) {
             let vm = this;
             if (selected_layer_name == 'sat') {
@@ -2582,6 +2696,10 @@ export default {
             layers.forEach((layer) => {
                 const features = layer.getSource().getFeatures();
                 features.forEach((feature) => {
+                    if (feature.getProperties().show_on_map === false) {
+                        // Ignore hidden features
+                        return;
+                    }
                     if (editableSelectedFeatures.includes(feature)) {
                         feature.setStyle(style);
                     } else if (selectedFeatures.includes(feature)) {
@@ -3952,9 +4070,10 @@ export default {
                     vm.addGeometryToMapSource(geometry, proposal, source);
                 });
             } else {
-                const modelOverwrite =
-                    vm.getLayerDefinitionByName(toSource).model_overwrite || {};
-                vm.addGeometryToMapSource(proposals, modelOverwrite, source);
+                const propertyOverwrite =
+                    vm.getLayerDefinitionByName(toSource).property_overwrite ||
+                    {};
+                vm.addGeometryToMapSource(proposals, propertyOverwrite, source);
             }
             // vm.addFeatureCollectionToMap();
             vm.map.dispatchEvent({
@@ -4075,12 +4194,7 @@ export default {
                 this.defaultColor;
             const stroke = this.defaultColor;
 
-            const label =
-                properties.label ||
-                properties.site_number ||
-                context.occurrence_report_number ||
-                context.label ||
-                'Draw';
+            const label = properties.label || context.label || 'Draw';
 
             // Apply the passed in properties to the feature, but overwrite where necessary (nullish coalescing operator ??=)
             const featureProperties = structuredClone(properties);
@@ -4094,30 +4208,17 @@ export default {
             featureProperties['stroke'] ??= stroke;
             featureProperties['srid'] ??= this.mapSrid;
             featureProperties['original_geometry'] ??= original_geometry;
-            featureProperties['area_sqm'] ??= this.featureArea(feature);
 
             feature.setProperties(featureProperties);
 
-            const type = feature.getGeometry().getType();
-            if (!style) {
-                style = this.createStyle(color, stroke, type);
-                let rgba = color;
-                if (!Array.isArray(color)) {
-                    rgba = this.colorHexToRgbaValues(color);
+            // eslint-disable-next-line no-unused-vars
+            const featureStyleFunction = (feature, resolution) => {
+                if (!style) {
+                    return this.createFeatureStyle(feature);
                 }
-                if (['MultiPoint', 'Point'].includes(type)) {
-                    style = this.createStyle(
-                        color,
-                        stroke,
-                        type,
-                        null,
-                        null,
-                        require('../../assets/map-marker.svg'),
-                        rgba[3]
-                    );
-                }
-            }
-            feature.setStyle(style);
+                return style;
+            };
+            feature.setStyle(featureStyleFunction);
             this.newFeatureId++;
 
             return feature;
@@ -4673,6 +4774,10 @@ export default {
             }
         },
         selectFeature: function (feature) {
+            if (feature.getProperties().show_on_map === false) {
+                // Prevent selecting hidden features
+                return;
+            }
             this.map.getInteractions().forEach((interaction) => {
                 if (interaction instanceof Select) {
                     let selected = [];
@@ -4693,6 +4798,33 @@ export default {
                     });
                 }
             });
+        },
+        createFeatureStyle: function (feature) {
+            if (feature.getProperties().show_on_map === false) {
+                return new Style({});
+            }
+            const color = feature.getProperties().color;
+            const stroke = feature.getProperties().stroke;
+            const type = feature.getGeometry().getType();
+
+            let style = this.createStyle(color, stroke, type);
+            let rgba = color;
+            if (!Array.isArray(color)) {
+                rgba = this.colorHexToRgbaValues(color);
+            }
+            if (['MultiPoint', 'Point'].includes(type)) {
+                style = this.createStyle(
+                    color,
+                    stroke,
+                    type,
+                    null,
+                    null,
+                    require('../../assets/map-marker.svg'),
+                    rgba[3]
+                );
+            }
+
+            return style;
         },
         colorStrToStyle: function (colorStr) {
             let s = new Option().style;
@@ -5209,29 +5341,64 @@ export default {
             });
         },
         /**
+         * Adds a key-value pair to a feature's properties display-object
+         * @param {String} key A key to add to the properties object
+         * @param {String} value A value to add to the properties' key
+         * @param {Object} properties A dictionary of property key-value pairs
+         * @param {Object=} propertyMap A dictionary to map property names to display names
+         * @param {Object=} propertyOverwrite A dictionary to overwrite property values
+         */
+        addFeatureDisplayPropertyValue: function (
+            key,
+            value,
+            feature,
+            properties,
+            propertyMap = null,
+            propertyOverwrite = null
+        ) {
+            if (isProxy(value)) {
+                return properties;
+            }
+            if (propertyMap) {
+                if (propertyOverwrite && key in propertyOverwrite) {
+                    if (typeof propertyOverwrite[key] === 'function') {
+                        value = propertyOverwrite[key](feature);
+                    } else {
+                        value = propertyOverwrite[key];
+                    }
+                }
+                if (key in propertyMap) {
+                    properties[propertyMap[key]] = value;
+                }
+            } else {
+                properties[key] = value;
+            }
+            return properties;
+        },
+        /**
          * Compiles a dictionary of feature and model properties for a feature
          * Ignore properties that are proxies
          * @param {Object} selected A feature object
+         * @param {Object} layer A layer object
          */
         featureGetDisplayProperties: function (selected, layer) {
             const properties = {};
             const layerName = layer.getProperties().name;
             const layerDef = this.getLayerDefinitionByName(layerName);
             const propertyMap = layerDef.property_display_map || null;
+            const propertyOverwrite = layerDef.property_overwrite || null;
 
             for (const [key, value] of Object.entries(
                 selected.getProperties()
             )) {
-                if (isProxy(value)) {
-                    continue;
-                }
-                if (propertyMap) {
-                    if (key in propertyMap) {
-                        properties[propertyMap[key]] = value;
-                    }
-                } else {
-                    properties[key] = value;
-                }
+                this.addFeatureDisplayPropertyValue(
+                    key,
+                    value,
+                    selected,
+                    properties,
+                    propertyMap,
+                    propertyOverwrite
+                );
             }
 
             if (!selected.getProperties().model) {
@@ -5240,20 +5407,28 @@ export default {
                 for (const [key, value] of Object.entries(
                     selected.getProperties().model
                 )) {
-                    if (isProxy(value)) {
-                        continue;
-                    }
-                    if (propertyMap) {
-                        if (key in propertyMap) {
-                            properties[propertyMap[key]] = value;
-                        }
-                    } else {
-                        properties[key] = value;
-                    }
+                    this.addFeatureDisplayPropertyValue(
+                        key,
+                        value,
+                        selected,
+                        properties,
+                        propertyMap,
+                        propertyOverwrite
+                    );
                 }
             }
 
             return properties;
+        },
+        filterFeaturesShowOnMap: function (features, what, not = false) {
+            if (not) {
+                return features.filter(
+                    (f) => f.getProperties().show_on_map !== what
+                );
+            }
+            return features.filter(
+                (f) => f.getProperties().show_on_map === what
+            );
         },
     },
 };

@@ -304,6 +304,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     identification_certainty = serializers.SerializerMethodField()
     main_observer = serializers.SerializerMethodField()
     copied_to_occurrence = serializers.SerializerMethodField()
+    geometry_show_on_map = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -335,6 +336,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "site",
             "main_observer",
             "copied_to_occurrence",
+            "geometry_show_on_map",
         )
         datatables_always_serialize = (
             "id",
@@ -355,6 +357,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "internal_user_edit",
             "is_new_contributor",
             "copied_to_occurrence",
+            "geometry_show_on_map",
         )
 
     def get_scientific_name(self, obj):
@@ -409,12 +412,18 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         return is_new_external_contributor(obj.submitter)
 
     def get_location_accuracy(self, obj):
-        if obj.location and obj.location.location_accuracy:
-            return obj.location.location_accuracy.name
+        try:
+            if obj.location and obj.location.location_accuracy:
+                return obj.location.location_accuracy.name
+        except:
+            return ""
 
     def get_identification_certainty(self, obj):
-        if obj.identification and obj.identification.identification_certainty:
-            return obj.identification.identification_certainty.name
+        try:
+            if obj.identification and obj.identification.identification_certainty:
+                return obj.identification.identification_certainty.name
+        except:
+            return ""
 
     def get_main_observer(self, obj):
         if obj.observer_detail.filter(main_observer=True).exists():
@@ -434,6 +443,9 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         ]
 
         return list({i for o in occs_copied_to for i in o})
+
+    def get_geometry_show_on_map(self, obj):
+        return obj.ocr_geometry.filter(show_on_map=True).exists()
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
@@ -749,6 +761,7 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
             "content_type",
             "created_from",
             "source_of",
+            "show_on_map",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -998,7 +1011,6 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "reference",
             "applicant_details",
             # 'assigned_approver',
-            "allowed_assessors",
             "deficiency_data",
             "assessor_data",
             "location",
@@ -1142,7 +1154,7 @@ class CreateOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         )
 
 
-class CreateOccurrenceSerializer(BaseOccurrenceReportSerializer):
+class CreateOccurrenceSerializer(OccurrenceSerializer):
     class Meta:
         model = Occurrence
         fields = (
@@ -1578,7 +1590,7 @@ class SaveOCRAssociatedSpeciesSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_id",
             "comment",
-            "related_species",
+            #"related_species",
         )
 
 
@@ -1829,6 +1841,7 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
             "locked",
             "content_type",
             "object_id",
+            "show_on_map",
         )
         read_only_fields = ("id",)
 
@@ -2740,7 +2753,7 @@ class SaveOCCAssociatedSpeciesSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_id",
             "comment",
-            "related_species",
+            #"related_species",
         )
 
 
