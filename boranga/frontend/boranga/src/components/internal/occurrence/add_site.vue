@@ -21,19 +21,8 @@
                             </div>
                             <div class="row mb-3">
                                 <label for="" class="col-sm-3 control-label"
-                                    >Point Coordinate :</label
+                                    >Point Coordinate (Lat-Long)</label
                                 >
-                                <div class="col-sm-4">
-                                    <input
-                                        id="point_coord1"
-                                        :disabled="isReadOnly"
-                                        type="decimal"
-                                        class="form-control"
-                                        placeholder=""
-                                        v-model="siteObj.point_coord1"
-                                    />
-                                </div>
-                                -
                                 <div class="col-sm-4">
                                     <input
                                         id="point_coord2"
@@ -42,6 +31,17 @@
                                         class="form-control"
                                         placeholder=""
                                         v-model="siteObj.point_coord2"
+                                    />
+                                </div>
+                                -
+                                <div class="col-sm-4">
+                                    <input
+                                        id="point_coord1"
+                                        :disabled="isReadOnly"
+                                        type="decimal"
+                                        class="form-control"
+                                        placeholder=""
+                                        v-model="siteObj.point_coord1"
                                     />
                                 </div>
                             </div>

@@ -19,6 +19,7 @@
                         default: false,
                         can_edit: false,
                         can_buffer: false,
+                        can_hide_geometries: true,
                         api_url: ocrApiUrl,
                         ids: occurrenceReportIds,
                         geometry_name: 'ocr_geometry',
@@ -36,6 +37,11 @@
                             ids: [occurrence_obj.id],
                             geometry_name: 'occ_geometry',
                             property_display_map: occPropertyDisplayMap,
+                            property_overwrite: {
+                                area_sqm: featureAreaMeter,
+                                area_sqhm: (feature) =>
+                                    featureAreaMeter(feature) / 10000,
+                            },
                         },
                         {
                             name: 'buffer_layer',
@@ -47,6 +53,11 @@
                             handler: bufferGeometryHandler, // Buffer geometries are a property of occurrence geometry. This handler returns the buffer geometries from the occurrence geometries.
                             geometry_name: 'geometry',
                             property_display_map: bufferPropertyDisplayMap,
+                            property_overwrite: {
+                                area_sqm: featureAreaMeter,
+                                area_sqhm: (feature) =>
+                                    featureAreaMeter(feature) / 10000,
+                            },
                         },
                         {
                             name: 'site_layer',
@@ -58,9 +69,14 @@
                             api_url: siteApiUrl,
                             query_param_key: 'occurrence_id',
                             ids: [occurrence_obj.id],
-                            model_overwrite: { label: 'Site' },
+                            property_display_map: sitePropertyDisplayMap,
+                            property_overwrite: { label: 'Site' },
                         },
-                    ]" @features-loaded="mapFeaturesLoaded" @crs-select-search="searchForCRS"></MapComponent>
+                    ]"
+                    @features-loaded="mapFeaturesLoaded"
+                    @crs-select-search="searchForCRS"
+                    @toggle-show-hide="toggleShowOnMapLayer"
+                ></MapComponent>
             </div>
             <!-- @refreshFromResponse="refreshFromResponse" -->
             <!-- @validate-feature="validateFeature.bind(this)()" -->
@@ -217,8 +233,11 @@
             <RelatedReports v-if="occurrence_obj" ref="related_reports_datatable" :key="datatableRelatedOCRKey"
                 :is-read-only="isReadOnly" :occurrence_obj="occurrence_obj" :section_type="'location'"
                 :href-container-id="getMapContainerId" :target-map-layer-name-for-copy="occurrenceLayerName"
+                :target-map-layer-name-for-show-hide="queryLayerName"
                 @copyUpdate="copyUpdate" @highlight-on-map="highlightIdOnMapLayer"
-                @copy-to-map-layer="copyToMapLayer" />
+                @copy-to-map-layer="copyToMapLayer"
+                @toggle-show-on-map="toggleShowOnMapLayer"
+                />
         </FormSection>
     </div>
 </template>
@@ -346,6 +365,8 @@ export default {
                 occurrence_number: 'Identification Number', // OCC1
                 geometry_source: 'Geometry Source',
                 processing_status_display: 'Processing Status',
+                area_sqm: 'Area [m²]',
+                area_sqhm: 'Area [ha]',
             };
         },
         bufferPropertyDisplayMap: function () {
@@ -356,6 +377,8 @@ export default {
                 geometry_source: 'Geometry Source',
                 // processing_status: 'Processing Status',
                 // lodgement_date_display: 'Lodgement Date',
+                area_sqm: 'Area [m²]',
+                area_sqhm: 'Area [ha]',
                 buffer_radius: 'Buffer Radius [m]',
             };
         },
@@ -561,9 +584,12 @@ export default {
             });
         },
         refreshDatatables: function () {
-            this.uuid_datatable_ocr = uuid();
+            this.refreshDatatableRelatedOCR();
             this.uuid_datatable_occ_site = uuid();
             this.uuid_datatable_occ_tenure = uuid();
+        },
+        refreshDatatableRelatedOCR: function () {
+            this.uuid_datatable_ocr = uuid();
         },
         updatedSites: function() {
             this.incrementComponentMapKey()
@@ -645,6 +671,22 @@ export default {
             const feature = this.getMapFeatureById(id);
             map.copyFeatureToLayer(feature, map.getLayerByName(target_layer));
         },
+        /**
+         * Toggle the show on map property of a feature.
+         * @param {Object|Number} feature - The feature object or the feature id.
+         * @param {String} layer_name - The layer name where the feature is located.
+         */
+        toggleShowOnMapLayer: function (feature, layer_name) {
+            if (!isNaN(Number(feature))) {
+                const id = feature;
+                feature = this.getMapFeatureById(id, layer_name);
+            }
+            const show_on_map = feature.getProperties().show_on_map;
+            feature.set('show_on_map', !show_on_map);
+            this.updateShowHide(feature, layer_name).then(() => {
+                this.refreshDatatableRelatedOCR();
+            });
+        },
         bufferGeometryHandler: function () {
             const occurrence_features = this.$refs.component_map
                 .getLayerByName(this.occurrenceLayerName)
@@ -663,6 +705,77 @@ export default {
                     },
                 },
             ];
+        },
+        updateShowHide: function (feature, layerName) {
+            if (!layerName) {
+                console.warn(`No layer name provided for update show/hide.`);
+                return;
+            }
+
+            let apiEndpoint = null;
+            if (layerName == this.queryLayerName) {
+                apiEndpoint = helpers.add_endpoint_join(
+                    api_endpoints.occurrence_report,
+                    `/${feature.getProperties().name}/update_show_on_map/`
+                );
+            }
+
+            if (!apiEndpoint) {
+                console.warn(
+                    `No API endpoint found for update show/hide for layer ${layerName}.`
+                );
+                return;
+            }
+
+            const showOnMap = feature.getProperties().show_on_map;
+            const modelId = feature.getProperties().model_id;
+            const payload = {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrf_token,
+                },
+                body: JSON.stringify({
+                    show_on_map: showOnMap,
+                    model_id: modelId,
+                }),
+            };
+
+            console.log(
+                `Updating show on map for ${
+                    feature.getProperties().label
+                }: ${showOnMap}.`
+            );
+            return fetch(apiEndpoint, payload)
+                .then(async (response) => {
+                    if (!response.ok) {
+                        return await response.json().then((json) => {
+                            throw new Error(json);
+                        });
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    return data;
+                })
+                .catch((error) => {
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Cannot change geometry visibility because of the following error: ' +
+                            error,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                });
+        },
+        featureAreaMeter: function (feature) {
+            if (feature) {
+                return this.$refs.component_map.featureArea(feature);
+            }
+            return null;
         },
     },
 };
