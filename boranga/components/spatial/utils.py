@@ -103,7 +103,7 @@ def intersect_geometry_with_layer(geometry, intersect_layer, geometry_name="SHAP
     return res.json()
 
 
-def populate_occurrence_tenure_data(geometry_instance, features):
+def populate_occurrence_tenure_data(geometry_instance, features, request):
     # Get existing occurrence tenures for this geometry
     occurrence_tenures_before = OccurrenceTenure.objects.filter(
         occurrence_geometry=geometry_instance
