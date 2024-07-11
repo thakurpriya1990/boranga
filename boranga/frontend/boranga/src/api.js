@@ -230,7 +230,7 @@ module.exports = {
       return `/api/history/boranga/occurrence/OccurrenceReport/${id}/`;
     },
 
-    lookup_history_occurrence_report_observer_detail: function (model,id) {
+    lookup_history_ocr_observer_detail: function (id) {
       return `/api/history/boranga/occurrence/OCRObserverDetail/${id}/`;
     },
 
@@ -261,7 +261,7 @@ module.exports = {
       return `/api/history/boranga/occurrence/OccurrenceTenure/${id}/`;
     },
 
-    lookup_history_occurrence_contact_detail: function (id) {
+    lookup_history_occ_contact_detail: function (id) {
       return `/api/history/boranga/occurrence/OCCContactDetail/${id}/`;
     },
 

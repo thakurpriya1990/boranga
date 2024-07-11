@@ -17,12 +17,17 @@
         <ObserverDetail v-if="occurrence_report_obj" ref="observer_detail" @refreshFromResponse="refreshFromResponse"
             :url="observer_detail_url" :occurrence_report="occurrence_report_obj">
         </ObserverDetail>
+        <div v-if="ocrObserverDetailHistoryId">
+            <OCRObserverDetailHistory ref="ocr_observer_detail_history" :key="ocrObserverDetailHistoryId"
+                :observer-id="ocrObserverDetailHistoryId" />
+        </div>
     </div>
 </template>
 <script>
 import Vue from 'vue';
 import datatable from '@vue-utils/datatable.vue';
 import ObserverDetail from './add_observer_detail.vue'
+import OCRObserverDetailHistory from '../../internal/occurrence/ocr_observer_detail_history.vue';
 import {
     constants,
     api_endpoints,
@@ -132,6 +137,7 @@ export default {
                     } else if (!vm.isReadOnly) {
                         links += `<a href='#' data-reinstate-observer_det='${full.id}'>Reinstate</a><br>`;
                     }
+                    links += `<a href='#' data-history-observer='${full.id}'>History</a><br>`;
                     return links;
                 }
             },
@@ -140,6 +146,7 @@ export default {
             columns.splice(2, 1);
         }
         return {
+            ocrObserverDetailHistoryId: null,
             observer_detail_url: api_endpoints.observer_detail,
             observer_detail_headers: vm.show_observer_contact_information ? ['Contact Name', 'Observer Role', 'Contact Detail', 'Organisation', 'Main Observer', 'Action'] : ['Contact Name', 'Observer Role', 'Organisation', 'Main Observer', 'Action'],
             observer_detail_options: {
@@ -198,6 +205,7 @@ export default {
     components: {
         datatable,
         ObserverDetail,
+        OCRObserverDetailHistory,
     },
     watch: {
         isReadOnly: function (newVal, oldVal) {
@@ -230,6 +238,11 @@ export default {
             });
             vm.$refs.observer_detail_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                 helpers.enablePopovers();
+            });
+            vm.$refs.observer_detail_datatable.vmDataTable.on('click', 'a[data-history-observer]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-history-observer');
+                vm.historyObserverDetail(id);
             });
         },
         refreshFromResponse: function () {
@@ -356,6 +369,12 @@ export default {
             if (vm.occurrence_report_obj.processing_status == "Unlocked") {
                 vm.$router.go();
             }
+        },
+        historyObserverDetail: function (id) {
+            this.ocrObserverDetailHistoryId = parseInt(id);
+            this.$nextTick(() => {
+                this.$refs.ocr_observer_detail_history.isModalOpen = true;
+            });
         },
     },
     mounted: function () {
