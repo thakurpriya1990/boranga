@@ -1249,6 +1249,8 @@
                         aria-live="assertive"
                         aria-atomic="true"
                         style="z-index: 9999"
+                        @mouseenter="showToastCloseButton = true"
+                        @mouseleave="showToastCloseButton = false"
                     >
                         <template v-if="selectedModel">
                             <div class="toast-header">
@@ -1265,12 +1267,13 @@
                                     >
                                     {{ selectedModel['Identification Number'] }}
                                 </strong>
-                                <!-- <button
+                                <button
+                                    v-show="showToastCloseButton"
                                     type="button"
                                     class="btn-close"
                                     data-bs-dismiss="toast"
                                     aria-label="Close"
-                                ></button> -->
+                                ></button>
                             </div>
                             <div class="toast-body">
                                 <table class="table table-sm">
@@ -1946,6 +1949,7 @@ export default {
             fetchProposals: fetchProposals,
             cursorInLeftHalfOfMap: true,
             cursorInBottomHalfOfMap: true,
+            showToastCloseButton: false,
         };
     },
     computed: {

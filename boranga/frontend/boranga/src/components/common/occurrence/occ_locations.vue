@@ -55,7 +55,7 @@
                             handler: bufferGeometryHandler, // Buffer geometries are a property of occurrence geometry. This handler returns the buffer geometries from the occurrence geometries.
                             geometry_name: 'geometry',
                             z_index: 1,
-                            property_display_map: bufferPropertyDisplayMap,
+                            // property_display_map: bufferPropertyDisplayMap,
                             property_overwrite: {
                                 area_sqm: featureAreaMeter,
                                 area_sqhm: (feature) =>
