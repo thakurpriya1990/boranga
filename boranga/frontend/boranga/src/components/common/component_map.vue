@@ -1596,15 +1596,15 @@ export default {
         /**
          * A classifier to style the features by.
          * `model` displays all features belonging to the same model by the same (randomly generated) color
-         * `assessor` displays all features by same color depending on the role of the user who created the feature
-         * @values model, assessor
+         * `feature` displays all features by same color depending on the role of the user who created the feature
+         * @values model, feature
          */
         styleBy: {
             type: String,
             required: false,
             default: 'model',
             validator: function (val) {
-                let options = ['model', 'assessor'];
+                let options = ['model', 'feature'];
                 return options.indexOf(val) != -1 ? true : false;
             },
         },
@@ -2305,7 +2305,10 @@ export default {
                 this.loadMapFeatures(proposals, this.queryLayerDefinition.name);
                 for (let i = 0; i < initialised.length; i++) {
                     const layerDef = this.additionalLayersDefinitions[i];
-                    let features = this.initialiseProposals(initialised[i]);
+                    let features = this.initialiseProposals(
+                        initialised[i],
+                        layerDef
+                    );
 
                     if (layerDef.handler) {
                         features = layerDef.handler(features);
@@ -2549,13 +2552,30 @@ export default {
                 ? vm.pointFeatureColors
                 : vm.featureColors;
 
-            if (vm.styleBy === 'assessor') {
+            if (vm.styleBy === 'feature') {
+                if (!featureColors[geometry_source]) {
+                    console.warn(
+                        'Feature does not have a color property',
+                        featureData,
+                        'for model',
+                        model
+                    );
+                }
                 // Assume the object is a feature containing a geometry_source property
                 return featureColors[geometry_source];
             } else if (vm.styleBy === 'model') {
+                if (!model.color) {
+                    console.warn('Model does not have a color property', model);
+                }
                 // Assume the object is a model containing a color field
                 return model.color;
             } else {
+                console.warn(
+                    'Unknown styleBy property',
+                    vm.styleBy,
+                    'for model',
+                    model
+                );
                 return featureColors['unknown'] || vm.defaultColor;
             }
         },
@@ -3013,9 +3033,9 @@ export default {
             vm.map.addInteraction(vm.drawPolygonsForModel);
             vm.map.addInteraction(vm.drawPointsForModel);
         },
-        initialiseProposals: function (proposals) {
+        initialiseProposals: function (proposals, layerDef = null) {
             this.proposals = proposals;
-            this.assignProposalFeatureColors(proposals);
+            this.assignProposalFeatureColors(proposals, layerDef);
 
             return proposals;
         },
@@ -3442,8 +3462,8 @@ export default {
                             );
                             selected.setStyle(
                                 vm.createStyle(
-                                    selected.values_.color,
-                                    null,
+                                    selected.getProperties().color,
+                                    selected.getProperties().stroke,
                                     type,
                                     null,
                                     null,
@@ -4038,19 +4058,58 @@ export default {
          * Assigns colors to proposals
          * @param {Array} proposals An array of proposals to assign colors to
          */
-        assignProposalFeatureColors: function (proposals) {
+        assignProposalFeatureColors: function (proposals, layerDef = null) {
             let vm = this;
+            if (!layerDef) {
+                layerDef = {};
+            }
             if (Array.isArray(proposals)) {
                 // Assign a random color to each proposal
                 proposals.forEach(function (proposal) {
-                    proposal.color = vm.getRandomColor();
-                    console.log(proposal.lodgement_date);
-                    console.log(typeof proposal.lodgement_date);
-                });
+                    const properyOverwrite = this.property_overwrite || {};
+                    // TODO: A color picker fn: colorpicker([])
+                    const color =
+                        properyOverwrite.color ||
+                        proposal.color ||
+                        vm.getRandomColor();
+                    // TODO: custom stroke fn
+                    const stroke =
+                        properyOverwrite.stroke ||
+                        proposal.stroke ||
+                        vm.getRandomColor();
+                    proposal.color = color;
+                    // TODO: custom stroke fn
+                    proposal.stroke = stroke;
+                }, layerDef);
             } else {
-                // TODO: What to do if the api returns only a feature collection and not an array of proposals containing a geometry property?
-                console.error('Proposals must be an array');
-                // proposals.color = vm.getRandomColor();
+                // Assume that "proposals" is a feature collection
+                if (!proposals.features) {
+                    console.error(
+                        'Proposals must be an array or a feature collection. Skipping...'
+                    );
+                    return;
+                }
+                proposals.features.forEach(function (feature) {
+                    if (!feature.properties) {
+                        console.warn(
+                            'Feature has no properties. Creating...',
+                            feature
+                        );
+                        feature.properties = {};
+                    }
+                    const properyOverwrite = this.property_overwrite || {};
+                    const color =
+                        properyOverwrite.color ||
+                        feature.properties.color ||
+                        vm.getRandomColor();
+                    // TODO: custom stroke fn
+                    const stroke =
+                        properyOverwrite.color ||
+                        feature.properties.stroke ||
+                        vm.getRandomColor();
+                    feature.properties.color = color;
+                    feature.properties.stroke = stroke;
+                }, layerDef);
             }
         },
         /**
@@ -4079,8 +4138,28 @@ export default {
                         );
                         return;
                     }
-                    vm.addGeometryToMapSource(geometry, proposal, source);
-                });
+                    const propertyOverwrite =
+                        this.getLayerDefinitionByName(toSource)
+                            .property_overwrite || {};
+
+                    const properties = Object.fromEntries(
+                        Object.entries(propertyOverwrite).map(([k, v]) => [
+                            k,
+                            typeof v === 'function' ? v() : v,
+                        ])
+                    );
+                    for (const [key, value] of Object.entries(proposal)) {
+                        this.addFeatureDisplayPropertyValue(
+                            key,
+                            value,
+                            null, // feature
+                            properties,
+                            null, // propertyMap
+                            propertyOverwrite
+                        );
+                    }
+                    vm.addGeometryToMapSource(geometry, properties, source);
+                }, vm);
             } else {
                 const propertyOverwrite =
                     vm.getLayerDefinitionByName(toSource).property_overwrite ||
@@ -4198,13 +4277,15 @@ export default {
                 coordinates: coords,
                 properties: { srid: this.mapSrid },
             };
-            // TODO: Pass in which values to use in the layer definition dict
+
             const color =
+                context.color ||
                 properties.color ||
                 this.featureColors['draw'] ||
                 this.featureColors['unknown'] ||
                 this.defaultColor;
-            const stroke = this.defaultColor;
+            const stroke =
+                properties.stroke || context.stroke || this.defaultColor;
 
             const label = properties.label || context.label || 'Draw';
 
@@ -4819,7 +4900,7 @@ export default {
             const stroke = feature.getProperties().stroke;
             const type = feature.getGeometry().getType();
 
-            let style = this.createStyle(color, stroke, type);
+            let style = this.createStyle(color, stroke, type, null, 1);
             let rgba = color;
             if (!Array.isArray(color)) {
                 rgba = this.colorHexToRgbaValues(color);
@@ -5371,14 +5452,14 @@ export default {
             if (isProxy(value)) {
                 return properties;
             }
-            if (propertyMap) {
-                if (propertyOverwrite && key in propertyOverwrite) {
-                    if (typeof propertyOverwrite[key] === 'function') {
-                        value = propertyOverwrite[key](feature);
-                    } else {
-                        value = propertyOverwrite[key];
-                    }
+            if (propertyOverwrite && key in propertyOverwrite) {
+                if (typeof propertyOverwrite[key] === 'function') {
+                    value = propertyOverwrite[key](feature);
+                } else {
+                    value = propertyOverwrite[key];
                 }
+            }
+            if (propertyMap) {
                 if (key in propertyMap) {
                     properties[propertyMap[key]] = value;
                 }

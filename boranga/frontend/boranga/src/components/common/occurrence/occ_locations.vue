@@ -43,6 +43,8 @@
                                 area_sqm: featureAreaMeter,
                                 area_sqhm: (feature) =>
                                     featureAreaMeter(feature) / 10000,
+                                color: '#6273f5', // light blue
+                                stroke: '#192163', // dark blue
                             },
                         },
                         {
@@ -55,11 +57,13 @@
                             handler: bufferGeometryHandler, // Buffer geometries are a property of occurrence geometry. This handler returns the buffer geometries from the occurrence geometries.
                             geometry_name: 'geometry',
                             z_index: 1,
-                            // property_display_map: bufferPropertyDisplayMap,
+                            property_display_map: bufferPropertyDisplayMap,
                             property_overwrite: {
                                 area_sqm: featureAreaMeter,
                                 area_sqhm: (feature) =>
                                     featureAreaMeter(feature) / 10000,
+                                color: '#ebeb49', // yellowish
+                                stroke: '#db8223', // orange
                             },
                         },
                         {
@@ -74,7 +78,10 @@
                             z_index: 4,
                             ids: [occurrence_obj.id],
                             property_display_map: sitePropertyDisplayMap,
-                            property_overwrite: { label: 'Site' },
+                            property_overwrite: {
+                                label: 'Site',
+                                color: '#FF0000',
+                            },
                         },
                     ]"
                     @features-loaded="mapFeaturesLoaded"
@@ -779,7 +786,7 @@ export default {
             if (feature) {
                 return this.$refs.component_map.featureArea(feature);
             }
-            return null;
+            return 0;
         },
     },
 };
