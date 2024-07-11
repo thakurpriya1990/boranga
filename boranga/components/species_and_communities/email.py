@@ -67,6 +67,7 @@ class UserCreateCommunitySendNotificationEmail(TemplateEmailBase):
     html_template = "boranga/emails/send_user_create_notification.html"
     txt_template = "boranga/emails/send_user_create_notification.txt"
 
+
 class NomosScriptFailedEmail(TemplateEmailBase):
     subject = "Failed: NOMOS API Management Script"
     html_template = "boranga/emails/send_nomos_api_failed_notification.html"
@@ -152,22 +153,40 @@ def send_species_split_email_notification(request, species_proposal):
     )
     url = convert_external_url_to_internal_url(url)
 
-    conservation_status_url=[]
-    conservation_status_list= species_proposal.conservation_status.filter(processing_status='approved')
-    if conservation_status_list:
-        conservation_status_url=request.build_absolute_uri(
-        reverse("internal-conservation-status-detail", kwargs={"cs_proposal_pk": conservation_status_list[0].id})
+    conservation_status_url = []
+    conservation_status_list = species_proposal.conservation_status.filter(
+        processing_status="approved"
     )
+    if conservation_status_list:
+        conservation_status_url = request.build_absolute_uri(
+            reverse(
+                "internal-conservation-status-detail",
+                kwargs={"cs_proposal_pk": conservation_status_list[0].id},
+            )
+        )
 
-    occurrences_url=[]
-    occurrences=species_proposal.occurrences.filter(processing_status='active')
+    occurrences_url = []
+    occurrences = species_proposal.occurrences.filter(processing_status="active")
     if occurrences:
         for occ in occurrences:
-            occurrences_url.append({'occurrence_url': request.build_absolute_uri(
-            reverse("internal-occurrence-detail", kwargs={"occurrence_pk": occ.id })), 'occurrence_number': occ.occurrence_number})
+            occurrences_url.append(
+                {
+                    "occurrence_url": request.build_absolute_uri(
+                        reverse(
+                            "internal-occurrence-detail",
+                            kwargs={"occurrence_pk": occ.id},
+                        )
+                    ),
+                    "occurrence_number": occ.occurrence_number,
+                }
+            )
 
-    context = {"species_proposal": species_proposal, "url": url, "conservation_status_url": conservation_status_url, "occurrences_url" : occurrences_url}
-    
+    context = {
+        "species_proposal": species_proposal,
+        "url": url,
+        "conservation_status_url": conservation_status_url,
+        "occurrences_url": occurrences_url,
+    }
 
     all_ccs = []
 
@@ -188,7 +207,7 @@ def send_species_split_email_notification(request, species_proposal):
 #  here species_proposal is the new species created in combine species functionality
 def send_species_combine_email_notification(request, species_proposal):
     email = CombineSpeciesSendNotificationEmail()
-    # TODO this url is doe conservation status dash, will need to add one more url for occurrences dash
+
     url = request.build_absolute_uri(
         reverse("internal-conservation-status-dashboard", kwargs={})
     )
@@ -215,7 +234,7 @@ def send_species_combine_email_notification(request, species_proposal):
 # here species_proposal is the original species from rename functionality
 def send_species_rename_email_notification(request, species_proposal):
     email = RenameSpeciesSendNotificationEmail()
-    # TODO this url is doe conservation status dash, will need to add one more url for occurrences dash
+
     url = request.build_absolute_uri(
         reverse("internal-conservation-status-dashboard", kwargs={})
     )
@@ -309,21 +328,22 @@ def send_user_community_create_email_notification(request, community_proposal):
     # _log_user_email(msg, community_proposal.submitter, community_proposal.submitter, sender=sender)
     return msg
 
-def send_nomos_script_failed(errors):
 
-    """ Internal failed notification email for NOMOS script """
+def send_nomos_script_failed(errors):
+    """Internal failed notification email for NOMOS script"""
     email = NomosScriptFailedEmail()
 
     context = {
-        'errors': errors,
+        "errors": errors,
     }
     all_ccs = []
     try:
         msg = email.send(settings.NOTIFICATION_EMAIL, cc=all_ccs, context=context)
         return msg
     except Exception as e:
-        err_msg = 'NOMOS Script Exception Email :'
-        logger.error('{}\n{}'.format(err_msg, str(e)))
+        err_msg = "NOMOS Script Exception Email :"
+        logger.error(f"{err_msg}\n{str(e)}")
+
 
 def _log_species_email(
     email_message, species_proposal, sender=None, file_bytes=None, filename=None
@@ -337,7 +357,7 @@ def _log_species_email(
             EmailMessage,
         ),
     ):
-        # TODO this will log the plain text body, should we log the html instead
+        # Note: this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
         fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
@@ -403,7 +423,7 @@ def _log_community_email(
             EmailMessage,
         ),
     ):
-        # TODO this will log the plain text body, should we log the html instead
+        # Note: this will log the plain text body, should we log the html instead
         text = email_message.body
         subject = email_message.subject
         fromm = smart_text(sender) if sender else smart_text(email_message.from_email)

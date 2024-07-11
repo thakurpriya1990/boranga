@@ -195,7 +195,7 @@ class TaxonomyRank(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.rank_name)  # TODO: is the most appropriate?
+        return str(self.rank_name)
 
 
 class Taxonomy(models.Model):
@@ -244,7 +244,7 @@ class Taxonomy(models.Model):
         verbose_name_plural = "Taxonomies"
 
     def __str__(self):
-        return str(self.scientific_name)  # TODO: is the most appropriate?
+        return str(self.scientific_name)
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -296,7 +296,7 @@ class TaxonVernacular(models.Model):
         ordering = ["vernacular_name"]
 
     def __str__(self):
-        return str(self.vernacular_name)  # TODO: is the most appropriate?
+        return str(self.vernacular_name)
 
 
 class TaxonPreviousName(models.Model):
@@ -314,7 +314,7 @@ class TaxonPreviousName(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.previous_scientific_name)  # TODO: is the most appropriate?
+        return str(self.previous_scientific_name)
 
 
 # TODO will need to delete this model
@@ -338,7 +338,7 @@ class CrossReference(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.cross_reference_id)  # TODO: is the most appropriate?
+        return str(self.cross_reference_id)
 
 
 class ClassificationSystem(models.Model):
@@ -357,7 +357,7 @@ class ClassificationSystem(models.Model):
         ordering = ["class_desc"]
 
     def __str__(self):
-        return str(self.class_desc)  # TODO: is the most appropriate?
+        return str(self.class_desc)
 
 
 class InformalGroup(models.Model):
@@ -382,9 +382,7 @@ class InformalGroup(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(
-            self.classification_system_fk.class_desc
-        )  # TODO: is the most appropriate?
+        return str(self.classification_system_fk.class_desc)
 
 
 class Species(RevisionedMixin):
@@ -1038,6 +1036,7 @@ class SpeciesUserAction(UserAction):
     ACTION_EDIT_SPECIES = "Edit Species {}"
     ACTION_CREATE_SPECIES = "Create new species {}"
     ACTION_SAVE_SPECIES = "Save Species {}"
+    ACTION_MAKE_HISTORICAL = "Make Species {} historical"
     ACTION_IMAGE_UPDATE = "Species Image document updated for Species {}"
     ACTION_IMAGE_DELETE = "Species Image document deleted for Species {}"
     ACTION_IMAGE_REINSTATE = "Species Image document reinstated for Species {}"
@@ -1115,7 +1114,10 @@ class SpeciesDistribution(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.id)  # TODO: is the most appropriate?
+        string = f"Species Distribution {self.id}"
+        if self.species:
+            string += f" for Species ({self.species})"
+        return string
 
 
 class Community(RevisionedMixin):
@@ -1152,7 +1154,6 @@ class Community(RevisionedMixin):
 
     community_number = models.CharField(max_length=9, blank=True, default="")
     group_type = models.ForeignKey(GroupType, on_delete=models.CASCADE)
-    # TODO the species is noy required as per the new requirements
     species = models.ManyToManyField(Species, blank=True)
     regions = models.ManyToManyField(
         Region, blank=True, related_name="community_regions"
@@ -1638,7 +1639,7 @@ class CommunityTaxonomy(models.Model):
         ordering = ["community_name"]
 
     def __str__(self):
-        return str(self.community_name)  # TODO: is the most appropriate?
+        return str(self.community_name)
 
 
 class CommunityLogDocument(Document):
@@ -1761,7 +1762,10 @@ class CommunityDistribution(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.id)  # TODO: is the most appropriate?
+        string = f"Community Distribution {self.id}"
+        if self.community:
+            string += f" for Community ({self.community})"
+        return string
 
 
 class DocumentCategory(models.Model):
@@ -2149,7 +2153,13 @@ class ConservationThreat(RevisionedMixin):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.id)  # TODO: is the most appropriate?
+        string = f"Conservation Threat {self.id}"
+        if self.species:
+            string += f" for Species ({self.species})"
+        elif self.community:
+            string += f" for Community ({self.community})"
+
+        return string
 
     def save(self, *args, **kwargs):
         if self.threat_number == "":
@@ -2399,7 +2409,10 @@ class SpeciesConservationAttributes(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.species)  # TODO: is the most appropriate?
+        string = f"Conservation Attributes: {self.id}"
+        if self.species:
+            string += f" for Species ({self.species})"
+        return string
 
 
 class CommunityConservationAttributes(models.Model):
@@ -2445,7 +2458,10 @@ class CommunityConservationAttributes(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.community)  # TODO: is the most appropriate?
+        string = f"Conservation Attributes: {self.id}"
+        if self.community:
+            string += f" for Community ({self.community})"
+        return string
 
 
 # Species Document History

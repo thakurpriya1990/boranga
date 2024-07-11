@@ -1,44 +1,24 @@
 {%  extends 'boranga/emails/base_email.html' %}
 
 {%  block content %}
-        <!-- The following species {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }} has been split into following new species,
-        <ul>
-        {% for new_species in species_proposal.child_species %}
-            <li> {{ new_species.species_number }} - {{ new_species.taxonomy.scientific_name }} </li>
-        {% endfor %}
-        </ul>
-        <p>
-            You will need to manage conservation status and occurrences of the new species.
-        </p>
-        <p>
-            The conservation status originally associated with historical species has been set to delisted.
-            You will need to create a new Conservation Status and link to this newly created species <a href="{{url}}">click here</a>
-        </p>
-        <p>
-            The occurrence status originally associated with historical species has been set to delisted.
-            You will need to create a new Occurrence and link to this newly created species <a href="{{url}}">click here</a>
-        </p>
-        <p>
-            These actions are also available from the respective dashboard pages.
-        </p> -->
-        Species {{ species_proposal.species_number }} has been split. You can review the historical and new Species Profiles at:
-        
+        <p>Species {{ species_proposal.species_number }} has been split. You can review the historical and new Species Profiles at:</p>
+
         <ul>
             <li>Historical: {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }}</li>
             {% for new_species in species_proposal.child_species %}
-                <li> {{ new_species.species_number }} {{ forloop.counter }} - {{ new_species.taxonomy.scientific_name }} </li>
+                <li>New Species {{ forloop.counter }}: {{ new_species.species_number }} - {{ new_species.taxonomy.scientific_name }} </li>
             {% endfor %}
         </ul>
         <p>
             {% if conservation_status_url %}
-                Please action for related Conservation Status <a href="{{url}}">here</a>
+                You can view the Conservation Status for the historical species <a href="{{conservation_status_url}}">here</a>
             {% endif %}
         </p>
         <p>
             {% if occurrences_url %}
-                Please action for related Occurrences:
+                To action related Occurrences:
                 {% for occ in occurrences_url %}
-                    <li> <a href="{{occ.occurrence_url}}">{{ occ.occurrence_number }}</a> </li>
+                    <li><a href="{{occ.occurrence_url}}">{{ occ.occurrence_number }}</a></li>
                 {% endfor %}
             {% endif %}
         </p>

@@ -1139,7 +1139,7 @@ export default {
                 text: `Are you sure you want to retract the invite sent to ${external_referee_invite.full_name} (${external_referee_invite.email})?`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Retract Email',
+                confirmButtonText: 'Retract Invitation',
                 reverseButtons: true,
                 buttonsStyling: false,
                 customClass: {

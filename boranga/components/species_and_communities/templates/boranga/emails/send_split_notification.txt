@@ -5,16 +5,17 @@
 
         Historical: {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }}
         {% for new_species in species_proposal.child_species %}
-                {{ new_species.species_number }} {{ forloop.counter }} - {{ new_species.taxonomy.scientific_name }}
+            New Species {{ forloop.counter }}: {{ new_species.species_number }} - {{ new_species.taxonomy.scientific_name }}
         {% endfor %}
 
-        Please action for related Conservation Status here
+        You can view the Conservation Status for the historical species by visiting the following url:
+
+        {{conservation_status_url}}
 
         {% if occurrences_url %}
-                Please action for related Occurrences:
-                        {% for occ in occurrences_url %}
-                                {{ occ.occurrence_number }}
-                        {% endfor %}
+            To action related Occurrences:
+            {% for occ in occurrences_url %}
+                {{ occ.occurrence_number }}
+            {% endfor %}
         {% endif %}
-
 {%  endblock %}

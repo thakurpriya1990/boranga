@@ -333,7 +333,6 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     community_number = serializers.SerializerMethodField()
     community_migrated_id = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
-    # TODO: Add new conservation status lists/catories
     processing_status = serializers.CharField(source="get_processing_status_display")
     regions = serializers.SerializerMethodField()
     districts = serializers.SerializerMethodField()
@@ -868,7 +867,6 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             return None
 
     def get_can_edit_recommended(self, obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
         return obj.can_edit_recommended(request)
 
@@ -941,7 +939,6 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
         }
 
     def get_assessor_mode(self, obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
         return {
             "assessor_mode": True,
@@ -1098,7 +1095,6 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
         }
 
     def get_assessor_mode(self, obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
         return {
             "assessor_mode": True,
@@ -1180,6 +1176,7 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
             "deficiency_data",
             "assessor_data",
             "change_code_id",
+            "approval_level",
         )
         read_only_fields = ("id",)
 
@@ -1254,7 +1251,6 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
     species_number = serializers.SerializerMethodField()
     scientific_name = serializers.SerializerMethodField()
     common_name = serializers.SerializerMethodField()
-    # TODO: Add new conservation status lists/catories
     community_number = serializers.SerializerMethodField()
     community_migrated_id = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
