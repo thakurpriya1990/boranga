@@ -103,7 +103,8 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Region:</label>
                 <div class="col-sm-8" :id="select_regions_read_only">
-                    <select :disabled="true" 
+                    <label for="" class="control-label">{{ getselectedRegionNames(species_original) }}</label>
+                    <!-- <select :disabled="true" 
                         style="width:100%;"
                         class="form-select input-sm" 
                         v-model="species_original.regions"
@@ -112,7 +113,7 @@
                         <option v-for="option in region_list" :value="option.value" :key="option.value">
                             {{ option.text }}
                         </option>
-                    </select>
+                    </select> -->
                 </div>
                 <div class="col-sm-1">
                     <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
@@ -137,7 +138,8 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} District:</label>
                 <div class="col-sm-8" :id="select_districts_read_only">
-                    <select :disabled="true" 
+                    <label for="" class="control-label">{{ getselectedDistrictNames(species_original) }}</label> 
+                    <!-- <select :disabled="true" 
                     class="form-select" 
                     v-model="species_original.districts"
                     ref="districts_select_read_only">
@@ -145,7 +147,7 @@
                         <option v-for="option in district_list_readonly" :value="option.value" v-bind:key="option.value">
                             {{ option.text }}
                         </option>
-                    </select>
+                    </select> -->
                 </div>
                 <div class="col-sm-1">
                     <!-- checkInput(checkbox_id , v-model object attribute of this field) -->
@@ -1618,6 +1620,29 @@ export default {
                     this.species_community[obj_field]=[];
                     
                 }
+            },
+            getselectedRegionNames(species) { 
+                // Filter regions_list to get only the selected regions
+                let selected_region= species.regions
+                const selectedRegions = this.region_list.filter(region => selected_region.includes(region.value) ); 
+                // Map the selected regions to their names and join them with commas 
+                return selectedRegions.map(region => region.text).join(', ');
+            },
+            getselectedDistrictNames(species) { 
+                // Initialize an empty array to store the names of selected districts 
+                let selectedNames = []; 
+                // Iterate over each region 
+                this.region_list.forEach(region => { 
+                    // Filter the districts of the current region
+                    region.districts.forEach(district => { 
+                        if (species.districts.includes(district.id)) 
+                        { 
+                            selectedNames.push(district.name); 
+                        }
+                    }); 
+                });
+                // Join the names with commas 
+                return selectedNames.join(', '); 
             },
             //----------------------------------------------------------------
             eventListeners:function (){
