@@ -1843,9 +1843,10 @@ export default {
                     //  Empty list `[]` fetches all proposals
                     handler: null, // A callback function to invoke on fetched features
                     geometry_name: 'geometry', // The name of the geometry field in the model. If not provided, the object itself is treated as the geometry
+                    z_index: 0, // The z-index of the layer, can be used to order layers
                     collapse: false, // Whether the layer is collapsed by default
                     property_display_map: {}, // A dictionary to map property names to display names, e.g. for a popup or export to a geodata file
-                    property_overwrite: null, // A dictionary to overwrite the displayed property values
+                    property_overwrite: null, // A dictionary to overwrite the displayed property values, keys can take a (callback) function as well, e.g. to dynamically calculate the area of a shape
                 };
             },
         },
@@ -1902,7 +1903,7 @@ export default {
             defaultProcessedGeometryLayerName: null, // The layer to which processed geometries are added to
             editableFeatureCollection: new Collection([], { unique: true }),
             selectedFeatureCollection: new Collection([], { unique: true }),
-            zIndex: 10, // Incrementing Z-index for overlays
+            zIndex: 0, // Incrementing Z-index for overlays
             lastPoint: null,
             sketchCoordinates: [[]],
             defaultColor: '#eeeeee',
@@ -2823,16 +2824,18 @@ export default {
             vm.map.addInteraction(vm.drawForMeasure);
             vm.map.addLayer(vm.measurementLayer);
         },
-        initialiseFeatureQueryLayer: function (title, name, can_edit) {
+        initialiseFeatureQueryLayer: function (title, name) {
             const modelQuerySource = new VectorSource({});
             const polygonStyle = this.createStyle(null, null, 'Polygon');
             this.layerSources[name] = modelQuerySource;
+            const layerDef = this.getLayerDefinitionByName(name);
+            let zIndex = layerDef.z_index;
 
             this.vectorLayers[name] = new VectorLayer({
                 title: title,
                 name: name,
                 source: modelQuerySource,
-                can_edit: can_edit,
+                can_edit: layerDef.can_edit,
                 editing: false,
                 style: (feature) => {
                     const color = feature.get('color') || this.defaultColor;
@@ -2857,22 +2860,27 @@ export default {
             // Add the layer
             this.map.addLayer(this.vectorLayers[name]);
             // Set zIndex to some layers to be rendered over the other layers
-            this.vectorLayers[name].setZIndex(this.zIndex);
-            this.zIndex += 10;
+            if (!zIndex) {
+                zIndex = this.zIndex;
+                this.zIndex += 1;
+            }
+            console.log('Setting zIndex', zIndex, 'for layer', name);
+            this.vectorLayers[name].setZIndex(zIndex);
+            this.zIndex += 1;
         },
         initialiseQueryLayer: function () {
             this.initialiseFeatureQueryLayer(
                 this.queryLayerDefinition.title,
-                this.queryLayerDefinition.name,
-                this.queryLayerDefinition.can_edit
+                this.queryLayerDefinition.name
+                // this.queryLayerDefinition.can_edit
             );
         },
         initialiseProcessingLayer: function () {
             for (let def of this.additionalLayersDefinitions) {
                 this.initialiseFeatureQueryLayer(
                     def.title,
-                    def.name,
-                    def.can_edit
+                    def.name
+                    // def.can_edit
                 );
             }
         },
