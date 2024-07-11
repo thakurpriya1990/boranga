@@ -1,4 +1,5 @@
 import logging
+import json
 
 from django.apps import apps
 from django.db import models
@@ -296,9 +297,21 @@ class GetLookUpValues:
         and/or retain their meaning even after some change
         """
         self.lookup_fields = self.getModelLookupFields(model)
+        rejected_lookup_fields = []
         for i in self.lookup_fields:
-            self.lookup_values[i] = self.getLookUpFieldValues(versions, model, i)
+            lookup_value = self.getLookUpFieldValues(versions, model, i)
+            try:
+                json.loads(lookup_value)
+                self.lookup_values[i] = lookup_value
+            except (TypeError, OverflowError):
+                rejected_lookup_fields.append(i)
 
+        temp_lookup_fields = []
+        for i in self.lookup_fields:
+            if i in rejected_lookup_fields:
+                continue
+            temp_lookup_fields.append(i)
+        self.lookup_fields = temp_lookup_fields
 
 class GetPaginatedVersionsView(InternalAuthorizationView):
     filter_backend = VersionsFilterBackend
