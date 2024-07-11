@@ -110,14 +110,13 @@ def get_geometry_source(geometry_obj):
         source = None
     elif not geometry_obj.drawn_by:
         source = "Unknown"
-    # TODO not sure if checking for submitter is right for 'Applicant' as Assessor could be the submitter as well?
+
     elif isinstance(
         geometry_obj, OccurrenceReportGeometry
     ) and geometry_obj.drawn_by in [
         geometry_obj.occurrence_report.submitter,
     ]:
-        # Polygon drawn by submitter
-        source = "Applicant"
+        source = "Proponent"
     else:
         assessor_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR)
         approver_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER)
