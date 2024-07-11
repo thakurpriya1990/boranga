@@ -309,7 +309,7 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.post(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/discard'))
+                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/discard'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -331,7 +331,7 @@ export default {
         },
         reinstateSite: function (id) {
             let vm = this;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/reinstate'))
+            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/reinstate'))
             .then((response) => {
                 swal.fire({
                     title: 'Reinstated',

@@ -112,11 +112,7 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.ocrobserverdetail.fields.site_number) {
-                        return full.data.ocrobserverdetail.fields.site_number+'-'+full.revision_sequence;
-                    } else {
-                        return "ST"+full.data.ocrobserverdetail.pk+'-'+full.revision_sequence;
-                    }
+                    return full.data.ocrobserverdetail.pk+'-'+full.revision_sequence;
                 },
                 name: 'revision_sequence',
             };
@@ -137,15 +133,15 @@ export default {
         column_number: function () {
             return {
                 // 2. Number
-                data: 'data.data.ocrobserverdetail.fields.site_number',
+                data: 'data.data.ocrobserverdetail.fields.id',
                 defaultContent: '',
                 orderable: false,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.ocrobserverdetail.fields.site_number+'-'+full.revision_sequence;
+                    return full.data.ocrobserverdetail.fields.id+'-'+full.revision_sequence;
                 },
-                name: 'site_number',
+                name: 'number',
             };
         },
         column_revision_id: function () {

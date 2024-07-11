@@ -296,22 +296,21 @@ class GetLookUpValues:
 
         and/or retain their meaning even after some change
         """
-        self.lookup_fields = self.getModelLookupFields(model)
+        self.lookup_fields = []
+        self.lookup_values = {}
         rejected_lookup_fields = []
-        for i in self.lookup_fields:
+        temp_lookup_fields = self.getModelLookupFields(model)
+        lookup_fields = []
+        for i in temp_lookup_fields:
             lookup_value = self.getLookUpFieldValues(versions, model, i)
             try:
-                json.loads(lookup_value)
+                json.dumps(lookup_value)              
+                lookup_fields.append(i)
                 self.lookup_values[i] = lookup_value
-            except (TypeError, OverflowError):
+            except Exception as e:
+                print(e)
                 rejected_lookup_fields.append(i)
-
-        temp_lookup_fields = []
-        for i in self.lookup_fields:
-            if i in rejected_lookup_fields:
-                continue
-            temp_lookup_fields.append(i)
-        self.lookup_fields = temp_lookup_fields
+        self.lookup_fields = lookup_fields
 
 class GetPaginatedVersionsView(InternalAuthorizationView):
     filter_backend = VersionsFilterBackend

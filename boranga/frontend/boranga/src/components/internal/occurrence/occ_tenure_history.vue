@@ -1,8 +1,8 @@
 <template lang="html">
-    <div id="occContactDetailHistory">
+    <div id="occurrenceTenureHistory">
         <modal
             transition="modal fade"
-            :title="'OCC Contact Details - History' "
+            :title="'OCC Tenure - History ' "
             :large="true"
             :full="true"
             :showOK="false"
@@ -16,7 +16,7 @@
                     <div class="col-sm-12">
                         <div class="form-group">
                             <div class="row">
-                                <div v-if="contactId" class="col-lg-12">
+                                <div v-if="tenureId" class="col-lg-12">
                                     <datatable
                                         :id="datatable_id"
                                         ref="history_datatable"
@@ -30,7 +30,7 @@
                                         :primary_model_number="''"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
-                                        :primary_model="'OccContactDetail'"
+                                        :primary_model="'OccurrenceTenure'"
                                     />
                                     </div>
                                 </div>
@@ -51,7 +51,7 @@ import DisplayHistory from '../../common/display_history.vue';
 import { v4 as uuid } from 'uuid';
 
 export default {
-    name: 'OccContactDetailHistory',
+    name: 'OccurrenceTenureHistory',
     components: {
         modal,
         alert,
@@ -59,7 +59,7 @@ export default {
         DisplayHistory,
     },
     props: {
-        contactId: {
+        tenureId: {
             type: Number,
             required: true,
         },
@@ -84,11 +84,13 @@ export default {
                 'Number',
                 'Date Modified',
                 'Modified By',
-                'Contact Name',
-                'Contact Role',
-                'Contact Details',
-                'Organisation',
-                'Notes',
+                'Feature ID',
+                'Status',
+                'Vesting',
+                'Purpose',
+                'Signif. to OCC',
+                'Comment',
+                'Owner\'s Name',
                 'Action',
             ];
         },
@@ -100,7 +102,7 @@ export default {
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.data.occcontactdetail;
+                    return full.data.data.occurrencetenure;
                 },
                 name: 'data',
             };
@@ -113,7 +115,7 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.occcontactdetail.pk+'-'+full.revision_sequence;
+                    return full.data.occurrencetenure.pk+'-'+full.revision_sequence;
                 },
                 name: 'revision_sequence',
             };
@@ -121,12 +123,12 @@ export default {
         column_id: function () {
             return {
                 // 1. ID
-                data: 'data.data.occcontactdetail.pk',
+                data: 'data.data.occurrencetenure.pk',
                 orderable: false,
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.occcontactdetail.pk;
+                    return full.data.occurrencetenure.pk;
                 },
                 name: 'id',
             };
@@ -134,15 +136,15 @@ export default {
         column_number: function () {
             return {
                 // 2. Number
-                data: 'data.data.occcontactdetail.fields.id',
+                data: 'data.data.occurrencetenure.fields.id',
                 defaultContent: '',
                 orderable: false,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.occcontactdetail.fields.id+'-'+full.revision_sequence;
+                    return full.data.occurrencetenure.pk+'-'+full.revision_sequence;
                 },
-                name: 'number',
+                name: 'tenure_number',
             };
         },
         column_revision_id: function () {
@@ -184,93 +186,122 @@ export default {
                 name: 'revision_user',
             };
         },
-        column_contact_name: function () {
+        column_feature_id: function () {
             return {
-                data: 'data.data.occcontactdetail.fields.contact_name', 
+                data: 'data.data.occurrencetenure.fields.tenure_area_id', 
                 defaultContent: '',
                 orderable: true,
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    if(full.data.occcontactdetail.fields.contact_name) {
-                        return full.data.occcontactdetail.fields.contact_name;
+                    if(full.data.occurrencetenure.fields.tenure_area_id
+                    && full.data.occurrencetenure.fields.tenure_area_id.split(".").length > 1) {
+                        return full.data.occurrencetenure.fields.tenure_area_id.split(".")[1];
                     } else {
                         return ''
                     }
                 },
-                name: 'contact_name',
+                name: 'feature_id', //_name',
             };
         },
-        column_contact_role: function () {
+        column_status: function () {
             return {
-                data: 'data.data.occcontactdetail.fields.role', 
+                data: 'data.data.occurrencetenure.fields.status', 
                 defaultContent: '',
                 orderable: true,
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    if(full.data.occcontactdetail.fields.role) {
-                        return full.data.occcontactdetail.fields.role;
+                    if(full.data.occurrencetenure.fields.status) {
+                        return full.data.occurrencetenure.fields.status;
                     } else {
-                        return ''
+                        return "";
                     }
                 },
-                name: 'role',
+                name: 'status', //_name',
             };
         },
-        column_contact_details: function () {
+        column_vesting: function () {
             return {
-                data: 'data.data.occcontactdetail.fields.contact', 
+                data: 'data.data.occurrencetenure.fields.vesting.name', 
+                defaultContent: '',
+                orderable: true,
+                searchable: true, 
+                visible: true,
+                render: function (row, type, full) {
+                    if(full.data.occurrencetenure.fields.vesting) {
+                        return full.data.occurrencetenure.fields.vesting.name;
+                    } else {
+                        return "";
+                    }
+                },
+                name: 'vesting',
+            };
+        },
+        column_purpose: function () {
+            return {
+                data: 'data.data.occurrencetenure.fields.purpose.name', 
+                defaultContent: '',
+                orderable: true,
+                searchable: true, 
+                visible: true,
+                render: function (row, type, full) {
+                    if(full.data.occurrencetenure.fields.purpose) {
+                        return full.data.occurrencetenure.fields.purpose.name;
+                    } else {
+                        return "";
+                    }
+                },
+                name: 'purpose',
+            };
+        },
+        column_significant: function () {
+            return {
+                data: 'data.data.occurrencetenure.fields.significant_to_occurrence', 
                 defaultContent: '',
                 orderable: false,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    if(full.data.occcontactdetail.fields.contact) {
-                        let value = full.data.occcontactdetail.fields.contact;
+                    return full.data.occurrencetenure.fields.significant_to_occurrence;
+                },
+                name: 'purpose',
+            };
+        },
+        column_comment: function () {
+            return {
+                data: 'data.data.occurrencetenure.fields.comments', 
+                defaultContent: '',
+                orderable: false,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    if(full.data.occurrencetenure.fields.comments) {
+                        let value = full.data.occurrencetenure.fields.comments;
                         let result = helpers.dtPopover(value, 30, 'hover');
                         return type=='export' ? value : result;
                     } else {
                         return ''
                     }
                 },
-                name: 'contact_details',
+                name: 'comments', 
             };
         },
-        column_organisation: function () {
+        column_owner: function () {
             return {
-                data: 'data.data.occcontactdetail.fields.organisation', 
+                data: 'data.data.occurrencetenure.fields.owner_name', 
                 defaultContent: '',
                 orderable: true,
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    if(full.data.occcontactdetail.fields.organisation) {
-                        return full.data.occcontactdetail.fields.organisation;
+                    if(full.data.occurrencetenure.fields.owner_name) {
+                        return full.data.occurrencetenure.fields.owner_name;
                     } else {
-                        return ''
+                        return "";
                     }
                 },
-                name: 'organisation',
-            };
-        },
-        column_notes: function () {
-            return {
-                data: 'data.data.occcontactdetail.fields.notes', 
-                defaultContent: '',
-                orderable: false,
-                searchable: false, 
-                visible: true,
-                render: function (row, type, full) {
-                    if(full.data.occcontactdetail.fields.notes) {
-                        let value = full.data.occcontactdetail.fields.notes;
-                        let result = helpers.dtPopover(value, 30, 'hover');
-                        return type=='export' ? value : result;
-                    } else {
-                        return ''
-                    }
-                },
-                name: 'notes',
+                name: 'purpose',
             };
         },
         column_action: function () {
@@ -292,11 +323,13 @@ export default {
                 vm.column_sequence,
                 vm.column_revision_date,
                 vm.column_revision_user,
-                vm.column_contact_name,
-                vm.column_contact_role,
-                vm.column_contact_details,
-                vm.column_organisation,
-                vm.column_notes,
+                vm.column_feature_id,
+                vm.column_status,                
+                vm.column_vesting,
+                vm.column_purpose,
+                vm.column_significant,
+                vm.column_comment,
+                vm.column_owner,
                 vm.column_action,
             ];
             return {
@@ -310,7 +343,7 @@ export default {
                 order: [[0, 'desc']],
                 serverSide: true,
                 ajax: {
-                    url: api_endpoints.lookup_history_occ_contact_detail(this.contactId)+"?format=datatables",
+                    url: api_endpoints.lookup_history_occurrence_tenure(this.tenureId)+"?format=datatables",
                     dataSrc: 'data',
                 },
                 buttons: [
