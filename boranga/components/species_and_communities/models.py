@@ -1038,6 +1038,7 @@ class SpeciesUserAction(UserAction):
     ACTION_EDIT_SPECIES = "Edit Species {}"
     ACTION_CREATE_SPECIES = "Create new species {}"
     ACTION_SAVE_SPECIES = "Save Species {}"
+    ACTION_MAKE_HISTORICAL = "Make Species {} historical"
     ACTION_IMAGE_UPDATE = "Species Image document updated for Species {}"
     ACTION_IMAGE_DELETE = "Species Image document deleted for Species {}"
     ACTION_IMAGE_REINSTATE = "Species Image document reinstated for Species {}"
