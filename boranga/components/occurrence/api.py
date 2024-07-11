@@ -21,7 +21,6 @@ from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -193,15 +192,14 @@ from boranga.helpers import (
     is_readonly_user,
 )
 from boranga.permissions import (
-    OccurrenceReportPermission,
+    ExternalOccurrenceReportObjectPermission,
     ExternalOccurrenceReportPermission,
     IsOccurrenceReportReferee,
-    OccurrenceReportObjectPermission,
-    ExternalOccurrenceReportObjectPermission,
-    OccurrencePermission,
     OccurrenceObjectPermission,
+    OccurrencePermission,
+    OccurrenceReportObjectPermission,
+    OccurrenceReportPermission,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -336,7 +334,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = OccurrenceReport.objects.all()
     serializer_class = ListOccurrenceReportSerializer
     page_size = 10
-    permission_classes=[OccurrenceReportPermission]
+    permission_classes = [OccurrenceReportPermission]
 
     def get_serializer_class(self):
         if self.action == "occurrence_report_internal":
@@ -357,7 +355,9 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "GET",
         ],
         detail=False,
-        permission_classes=[OccurrenceReportPermission|ExternalOccurrenceReportPermission],
+        permission_classes=[
+            OccurrenceReportPermission | ExternalOccurrenceReportPermission
+        ],
     )
     def occurrence_report_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
@@ -393,7 +393,9 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "GET",
         ],
         detail=False,
-        permission_classes=[OccurrenceReportPermission|ExternalOccurrenceReportPermission],
+        permission_classes=[
+            OccurrenceReportPermission | ExternalOccurrenceReportPermission
+        ],
     )
     def occurrence_report_external_export(self, request, *args, **kwargs):
 
@@ -694,7 +696,9 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     )
     def referred_to_me(self, request, *args, **kwargs):
         self.serializer_class = DTOccurrenceReportReferralSerializer
-        qs = OccurrenceReportReferral.objects.filter(referral=request.user.id)
+        qs = OccurrenceReportReferral.objects.exclude(
+            processing_status=OccurrenceReportReferral.PROCESSING_STATUS_RECALLED
+        ).filter(referral=request.user.id)
         self.filter_backends = (OccurrenceReportReferralFilterBackend,)
         qs = self.filter_queryset(qs)
 
@@ -712,7 +716,9 @@ class OccurrenceReportViewSet(
     queryset = OccurrenceReport.objects.none()
     serializer_class = OccurrenceReportSerializer
     lookup_field = "id"
-    permission_classes=[OccurrenceReportPermission|ExternalOccurrenceReportPermission]
+    permission_classes = [
+        OccurrenceReportPermission | ExternalOccurrenceReportPermission
+    ]
 
     def get_queryset(self):
         request = self.request
@@ -1031,7 +1037,7 @@ class OccurrenceReportViewSet(
             "GET",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission]
+        permission_classes=[OccurrenceReportPermission],
     )
     def section_values(self, request, *args, **kwargs):
 
@@ -1357,7 +1363,7 @@ class OccurrenceReportViewSet(
             "POST",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission]
+        permission_classes=[OccurrenceReportPermission],
     )
     def lock_occurrence_report(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1370,7 +1376,7 @@ class OccurrenceReportViewSet(
             "POST",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission]
+        permission_classes=[OccurrenceReportPermission],
     )
     def unlock_occurrence_report(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1985,7 +1991,15 @@ class OccurrenceReportViewSet(
         )
         return Response(serializer.data)
 
-    @detail_route(methods=["POST"], detail=True,permission_classes=[IsOccurrenceReportReferee|OccurrenceReportPermission|ExternalOccurrenceReportPermission])
+    @detail_route(
+        methods=["POST"],
+        detail=True,
+        permission_classes=[
+            IsOccurrenceReportReferee
+            | OccurrenceReportPermission
+            | ExternalOccurrenceReportPermission
+        ],
+    )
     @renderer_classes((JSONRenderer,))
     def process_shapefile_document(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -2001,7 +2015,7 @@ class OccurrenceReportViewSet(
     def validate_map_files(self, request, *args, **kwargs):
         instance = self.get_object()
         validate_map_files(request, instance, "occurrence_report")
-        #TODO: determine what this actually changes
+        # TODO: determine what this actually changes
         if instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
             self.unlocked_back_to_assessor()
             instance.save(no_revision=True)
@@ -2016,7 +2030,7 @@ class OccurrenceReportViewSet(
             "GET",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission]
+        permission_classes=[OccurrenceReportPermission],
     )
     def assign_request_user(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -2031,7 +2045,7 @@ class OccurrenceReportViewSet(
             "POST",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission]
+        permission_classes=[OccurrenceReportPermission],
     )
     def assign_to(self, request, *args, **kwargs):
 
@@ -2057,7 +2071,7 @@ class OccurrenceReportViewSet(
             "GET",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission]
+        permission_classes=[OccurrenceReportPermission],
     )
     def unassign(self, request, *args, **kwargs):
 
@@ -2086,7 +2100,7 @@ class OccurrenceReportViewSet(
             "POST",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission]
+        permission_classes=[OccurrenceReportPermission],
     )
     def propose_decline(self, request, *args, **kwargs):
 
@@ -2104,7 +2118,7 @@ class OccurrenceReportViewSet(
             "POST",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission]
+        permission_classes=[OccurrenceReportPermission],
     )
     def decline(self, request, *args, **kwargs):
 
@@ -2130,7 +2144,7 @@ class OccurrenceReportViewSet(
             "POST",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission]
+        permission_classes=[OccurrenceReportPermission],
     )
     def back_to_assessor(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -2147,7 +2161,7 @@ class OccurrenceReportViewSet(
             "POST",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission]
+        permission_classes=[OccurrenceReportPermission],
     )
     def propose_approve(self, request, *args, **kwargs):
 
@@ -2165,7 +2179,7 @@ class OccurrenceReportViewSet(
             "POST",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission]
+        permission_classes=[OccurrenceReportPermission],
     )
     def approve(self, request, *args, **kwargs):
 
@@ -2184,7 +2198,9 @@ class OccurrenceReportViewSet(
         return Response(serializer.data)
 
     # used on referral form
-    @detail_route(methods=["post"], detail=True, permission_classes=[OccurrenceReportPermission])
+    @detail_route(
+        methods=["post"], detail=True, permission_classes=[OccurrenceReportPermission]
+    )
     def send_referral(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = SendReferralSerializer(
@@ -2199,7 +2215,11 @@ class OccurrenceReportViewSet(
         serializer = self.get_serializer(instance, context={"request": request})
         return Response(serializer.data)
 
-    @detail_route(methods=["get"], detail=True, permission_classes=[OccurrenceReportPermission|IsOccurrenceReportReferee])
+    @detail_route(
+        methods=["get"],
+        detail=True,
+        permission_classes=[OccurrenceReportPermission | IsOccurrenceReportReferee],
+    )
     def referrals(self, request, *args, **kwargs):
         instance = self.get_object()
         qs = instance.referrals.all()
@@ -2208,7 +2228,9 @@ class OccurrenceReportViewSet(
         )
         return Response(serializer.data)
 
-    @detail_route(methods=["post"], detail=True, permission_classes=[OccurrenceReportPermission])
+    @detail_route(
+        methods=["post"], detail=True, permission_classes=[OccurrenceReportPermission]
+    )
     def external_referee_invite(self, request, *args, **kwargs):
         instance = self.get_object()
         request.data["occurrence_report_id"] = instance.id
@@ -2238,7 +2260,9 @@ class OccurrenceReportViewSet(
 class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OCRObserverDetail.objects.all()
     serializer_class = OCRObserverDetailLimitedSerializer
-    permission_classes = [OccurrenceReportObjectPermission|ExternalOccurrenceReportObjectPermission]
+    permission_classes = [
+        OccurrenceReportObjectPermission | ExternalOccurrenceReportObjectPermission
+    ]
 
     def get_serializer_class(self):
         if (
@@ -2451,7 +2475,9 @@ class OccurrenceReportDocumentViewSet(
 ):
     queryset = OccurrenceReportDocument.objects.all()
     serializer_class = OccurrenceReportDocumentSerializer
-    permission_classes=[OccurrenceReportObjectPermission|ExternalOccurrenceReportObjectPermission]
+    permission_classes = [
+        OccurrenceReportObjectPermission | ExternalOccurrenceReportObjectPermission
+    ]
 
     def unlocked_back_to_assessor(self, occurrence_report):
         request = self.request
@@ -2651,7 +2677,9 @@ class OCRConservationThreatFilterBackend(DatatablesFilterBackend):
 class OCRConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OCRConservationThreat.objects.all()
     serializer_class = OCRConservationThreatSerializer
-    permission_classes=[OccurrenceReportObjectPermission|ExternalOccurrenceReportObjectPermission]
+    permission_classes = [
+        OccurrenceReportObjectPermission | ExternalOccurrenceReportObjectPermission
+    ]
 
     def unlocked_back_to_assessor(self, occurrence_report):
         request = self.request
@@ -3668,7 +3696,7 @@ class OccurrenceViewSet(
     queryset = Occurrence.objects.none()
     serializer_class = OccurrenceSerializer
     lookup_field = "id"
-    permission_classes=[OccurrencePermission]
+    permission_classes = [OccurrencePermission]
 
     def get_queryset(self):
         qs = Occurrence.objects.all()
@@ -5038,7 +5066,7 @@ class OccurrenceReportReferralViewSet(
 ):
     queryset = OccurrenceReportReferral.objects.all()
     serializer_class = OccurrenceReportReferralSerializer
-    permission_classes=[OccurrenceReportObjectPermission|IsOccurrenceReportReferee]
+    permission_classes = [OccurrenceReportObjectPermission | IsOccurrenceReportReferee]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -5082,7 +5110,7 @@ class OccurrenceReportReferralViewSet(
             "GET",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportObjectPermission]
+        permission_classes=[OccurrenceReportObjectPermission],
     )
     def remind(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -5097,7 +5125,7 @@ class OccurrenceReportReferralViewSet(
             "GET",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportObjectPermission]
+        permission_classes=[OccurrenceReportObjectPermission],
     )
     def recall(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -5112,7 +5140,7 @@ class OccurrenceReportReferralViewSet(
             "GET",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportObjectPermission]
+        permission_classes=[OccurrenceReportObjectPermission],
     )
     def resend(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -5348,7 +5376,7 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        instance = self.get_object()
+        self.get_object()
         data = request.data.get("data")
 
         serializer = OccurrenceTenureSaveSerializer(data=data)
@@ -5630,7 +5658,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 class OCRExternalRefereeInviteViewSet(viewsets.ModelViewSet):
     queryset = OCRExternalRefereeInvite.objects.filter(archived=False)
     serializer_class = OCRExternalRefereeInviteSerializer
-    permission_classes=[OccurrenceReportObjectPermission]
+    permission_classes = [OccurrenceReportObjectPermission]
 
     def get_queryset(self):
         qs = self.queryset

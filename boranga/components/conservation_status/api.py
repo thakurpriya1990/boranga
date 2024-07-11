@@ -1407,7 +1407,9 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     )
     def referred_to_me(self, request, *args, **kwargs):
         self.serializer_class = DTConservationStatusReferralSerializer
-        qs = ConservationStatusReferral.objects.filter(referral=request.user.id)
+        qs = ConservationStatusReferral.objects.exclude(
+            processing_status=ConservationStatusReferral.PROCESSING_STATUS_RECALLED
+        ).filter(referral=request.user.id)
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
