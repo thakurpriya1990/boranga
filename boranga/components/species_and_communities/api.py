@@ -7,6 +7,7 @@ from datetime import datetime
 from io import BytesIO
 
 import pandas as pd
+from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
@@ -1651,37 +1652,52 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     # Used to submit the original species after split data is submitted
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
+    @transaction.atomic
     def change_status_historical(self, request, *args, **kwargs):
-        species_instance = self.get_object()
-        species_instance.processing_status = "historical"
+        instance = self.get_object()
+        instance.processing_status = Species.PROCESSING_STATUS_HISTORICAL
 
-        ret1 = send_species_split_email_notification(request, species_instance)
-        if ret1:
-            species_instance.save(version_user=request.user)
-            # change current active conservation status of the original species to inactive
-            try:
-                if species_instance.processing_status == "historical":
-                    # TODO if the cs of species is in middle of workflow, then?
-                    species_cons_status = ConservationStatus.objects.get(
-                        species=species_instance, processing_status="approved"
-                    )
-                    if species_cons_status:
-                        species_cons_status.customer_status = "closed"
-                        species_cons_status.processing_status = "closed"
-                        species_cons_status.save()
-                        # add the log_user_action
-                        species_cons_status.log_user_action(
-                            ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
-                                species_cons_status.conservation_status_number
-                            ),
-                            request,
-                        )
-            except ConservationStatus.DoesNotExist:
-                pass
+        ret1 = send_species_split_email_notification(request, instance)
 
-            serializer = self.get_serializer(species_instance)
+        if not (settings.WORKING_FROM_HOME and settings.DEBUG) and not ret1:
+            raise serializers.ValidationError(
+                "Email could not be sent. Please try again later"
+            )
 
+        instance.save(version_user=request.user)
+
+        # Log action
+        instance.log_user_action(
+            SpeciesUserAction.ACTION_MAKE_HISTORICAL.format(instance.species_number),
+            request,
+        )
+
+        serializer = self.get_serializer(instance)
+
+        # change current active conservation status of the original species to inactive
+        # TODO if the cs of species is in middle of workflow, then?
+        species_cons_status = ConservationStatus.objects.filter(
+            species=instance,
+            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
+        )
+
+        if not species_cons_status.exists():
             return Response(serializer.data)
+
+        species_cons_status.update(
+            processing_status=ConservationStatus.PROCESSING_STATUS_CLOSED,
+            customer_status=ConservationStatus.PROCESSING_STATUS_CLOSED,
+        )
+
+        # add the log_user_action
+        species_cons_status.log_user_action(
+            ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
+                species_cons_status.conservation_status_number
+            ),
+            request,
+        )
+
+        return Response(serializer.data)
 
     @detail_route(
         methods=[
