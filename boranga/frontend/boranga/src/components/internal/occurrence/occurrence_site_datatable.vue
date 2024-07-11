@@ -61,7 +61,7 @@ export default {
             headers: [
                 'Site Number',
                 'Site Name',
-                'Point Coordinates',
+                'Point Coordinates (Lat, Long)',
                 'Datum',
                 'Comments',
                 'Related Reports',
@@ -118,7 +118,7 @@ export default {
                             coord2 += ".0"; 
                         }
 
-                        let value = coord1 + ", " + coord2;
+                        let value = coord2 + ", " + coord1;
                         let result = helpers.dtPopover(value, 30, 'hover');
                         if (full.visible) {
                             return result;
