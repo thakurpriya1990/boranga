@@ -1763,7 +1763,7 @@ class CommunityDistribution(models.Model):
 
     def __str__(self):
         string = f"Community Distribution {self.id}"
-        if self.species:
+        if self.community:
             string += f" for Community ({self.community})"
         return string
 
