@@ -250,12 +250,10 @@ module.exports = {
     },
 
     lookup_history_occ_conservation_threat: function (id) {
-      console.log(id);
       return `/api/history/boranga/occurrence/OCCConservationThreat/${id}/`;
     },
 
     lookup_history_occurrence_site: function (id) {
-      console.log(id);
       return `/api/history/boranga/occurrence/OccurrenceSite/${id}/`;
     },
 

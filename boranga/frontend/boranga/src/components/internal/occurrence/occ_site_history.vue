@@ -85,6 +85,9 @@ export default {
                 'Date Modified',
                 'Modified By',
                 'Site Name',
+                'Geometry',
+                'Comment',
+                'Related Occurrence Reports',
                 'Action',
             ];
         },
@@ -198,8 +201,71 @@ export default {
                         return ''
                     }
                 },
-                name: 'threat_category', //_name',
+                name: 'site_name', //_name',
             };
+        },
+        column_geometry: function () {
+            return {
+                data: 'data.data.occurrencesite.fields.geometry', 
+                defaultContent: '',
+                orderable: false,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    if(full.data.occurrencesite.fields.geometry) {
+                        let value = full.data.occurrencesite.fields.geometry;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return type=='export' ? value : result;
+                    } else {
+                        return ''
+                    }
+                },
+                name: 'geometry', //_name',
+            };
+        },
+        column_comment: function () {
+            return {
+                data: 'data.data.occurrencesite.fields.comments', 
+                defaultContent: '',
+                orderable: false,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    if(full.data.occurrencesite.fields.comments) {
+                        let value = full.data.occurrencesite.fields.comments;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return type=='export' ? value : result;
+                    } else {
+                        return ''
+                    }
+                },
+                name: 'comment', //_name',
+            };
+        },
+        column_related_reports: function () {
+            return {
+                data: 'data.data.occurrencesite.fields.related_occurrence_reports', 
+                defaultContent: '',
+                orderable: false,
+                searchable: false, 
+                visible: true,
+                render: function (data, type, full) {
+                    if(full.data.occurrencesite.fields.related_occurrence_reports) {
+                        let related_occurrence_reports = [];
+                        full.data.occurrencesite.fields.related_occurrence_reports.forEach((report) => {
+                                related_occurrence_reports.push("OCR"+report)
+                            }
+                        );
+                        let related_occurrence_reports_formatted = related_occurrence_reports.join(", ");
+                        let value = related_occurrence_reports_formatted;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return result;
+                    } else {
+                        return "";
+                    }
+                },
+                name: 'related_occurrence_reports',
+            }
         },
         column_action: function () {
             return {
@@ -221,6 +287,9 @@ export default {
                 vm.column_revision_date,
                 vm.column_revision_user,
                 vm.column_site_name,
+                vm.column_geometry,
+                vm.column_comment,
+                vm.column_related_reports,
                 vm.column_action,
             ];
             return {
