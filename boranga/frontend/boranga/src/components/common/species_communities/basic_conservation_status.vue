@@ -11,7 +11,6 @@
                             class="bi bi-box-arrow-up-right ps-2"></i></a>
                 </div>
             </div>
-            </div>
             <fieldset disabled>
                 <div class="row mb-3" v-if="conservation_status.wa_legislative_list">
                     <label for="wa_legislative_list" class="col-sm-4 col-form-label">WA Legislative List</label>
