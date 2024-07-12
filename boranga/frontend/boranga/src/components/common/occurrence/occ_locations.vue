@@ -62,8 +62,8 @@
                                 area_sqm: featureAreaMeter,
                                 area_sqhm: (feature) =>
                                     featureAreaMeter(feature) / 10000,
-                                color: '#ebeb49', // yellowish
-                                stroke: '#db8223', // orange
+                                // color: '#ebeb49', // yellowish
+                                // stroke: '#db8223', // orange
                             },
                         },
                         {
@@ -80,7 +80,7 @@
                             property_display_map: sitePropertyDisplayMap,
                             property_overwrite: {
                                 label: 'Site',
-                                color: '#FF0000',
+                                // color: '#FF0000',
                             },
                         },
                     ]"

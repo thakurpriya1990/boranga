@@ -5,6 +5,7 @@ from datetime import datetime
 
 import pyproj
 import reversion
+from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib.contenttypes import fields
 from django.contrib.contenttypes import models as ct_models
@@ -1814,6 +1815,9 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry
     )
     locked = models.BooleanField(default=False)
     show_on_map = models.BooleanField(default=False)
+
+    color = ColorField(blank=True, null=True)
+    stroke = ColorField(blank=True, null=True)
 
     class Meta:
         app_label = "boranga"
@@ -3817,6 +3821,9 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
     # when we go with the radius being a property of the geometry
     buffer_radius = models.FloatField(null=True, blank=True, default=0)
 
+    color = ColorField(default="#3333FF") # Light blue
+    stroke = ColorField(default="#0033CC") # Dark blue
+
     class Meta:
         app_label = "boranga"
 
@@ -4613,6 +4620,8 @@ class BufferGeometry(GeometryBase):
         blank=False,
         related_name="buffer_geometry",
     )
+    color = ColorField(default="#FFFF00") # Yellow
+    stroke = ColorField(default="#FF9900") # Orange
 
     class Meta:
         app_label = "boranga"
@@ -4661,6 +4670,9 @@ class OccurrenceSite(GeometryBase,RevisionedMixin):
     comments = models.TextField(blank=True, null=True)
 
     visible = models.BooleanField(default=True)
+
+    color = ColorField(default="#FF3300") # Light red
+    stroke = ColorField(default="#CC0000") # Dark red
 
     def related_model_field(self):
         return self.occurrence

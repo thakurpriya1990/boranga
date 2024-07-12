@@ -767,6 +767,8 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
             "created_from",
             "source_of",
             "show_on_map",
+            "color",
+            "stroke",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -2994,6 +2996,8 @@ class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     original_geometry = serializers.SerializerMethodField(read_only=True)
     label = serializers.SerializerMethodField(read_only=True)
     buffer_radius = serializers.SerializerMethodField(read_only=True)
+    # color = serializers.SerializerMethodField(read_only=True)
+    # stroke = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = BufferGeometry
@@ -3013,6 +3017,8 @@ class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
             "buffer_radius",
             "created_from",
             "source_of",
+            "color",
+            "stroke",
         ] + BaseTypeSerializer.Meta.fields
 
     def get_srid(self, obj):
@@ -3046,6 +3052,12 @@ class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     def get_buffer_radius(self, obj):
         return obj.buffered_from_geometry.buffer_radius
 
+    def get_color(self, obj):
+        return "#00FF00"
+
+    def get_stroke(self, obj):
+        return "#FF0000"
+
 
 class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)
@@ -3076,6 +3088,8 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
             "buffer_geometry",
             "created_from",
             "source_of",
+            "color",
+            "stroke",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -3517,6 +3531,8 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
             "srid",
             "geometry_source",
             "original_geometry",
+            "color",
+            "stroke",
         ]
         read_only_fields = ("id",)
 
