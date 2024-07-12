@@ -297,6 +297,36 @@ export default {
                 id: null,
                 name: null,
             });
+
+        vm.identification_certainty_list = vm.listOfValuesDict.identification_certainty_list;
+        vm.identification_certainty_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+        vm.sample_type_list = vm.listOfValuesDict.sample_type_list;
+        vm.sample_type_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+        vm.sample_dest_list = vm.listOfValuesDict.sample_dest_list;
+        vm.sample_dest_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+        vm.permit_type_list = vm.listOfValuesDict.permit_type_list;
+        vm.permit_type_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+    },
+    mounted: function () {
+        let vm = this;
+        vm.eventListeners();
+
         if (this.isFlora) {
             // using child refs to assign the list values to avoid calling the above api again in plantCount component
             vm.$refs.plantCountDetail.plant_count_method_list = vm.listOfValuesDict.plant_count_method_list;
@@ -357,34 +387,6 @@ export default {
                     name: null,
                 });
         }
-        vm.identification_certainty_list = vm.listOfValuesDict.identification_certainty_list;
-        vm.identification_certainty_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
-        vm.sample_type_list = vm.listOfValuesDict.sample_type_list;
-        vm.sample_type_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
-        vm.sample_dest_list = vm.listOfValuesDict.sample_dest_list;
-        vm.sample_dest_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
-        vm.permit_type_list = vm.listOfValuesDict.permit_type_list;
-        vm.permit_type_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
-    },
-    mounted: function () {
-        let vm = this;
-        vm.eventListeners();
     },
 }
 </script>
