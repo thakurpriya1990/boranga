@@ -21,6 +21,7 @@ from django.db.models.functions import Cast
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
+from boranga.components.main.related_item import RelatedItem
 
 from boranga import exceptions
 from boranga.components.conservation_status.models import ProposalAmendmentReason
@@ -511,6 +512,36 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
+    
+    @property
+    def related_item_identifier(self):
+        return self.occurrence_report_number
+
+    @property
+    def related_item_descriptor(self):
+        if self.species:
+            if self.species.taxonomy and self.species.taxonomy.scientific_name:
+                return self.species.taxonomy.scientific_name
+        return "Descriptor not available"
+
+    @property
+    def related_item_status(self):
+        return self.get_processing_status_display
+    
+    @property
+    def as_related_item(self):
+        related_item = RelatedItem(
+            identifier=self.related_item_identifier,
+            model_name=self._meta.verbose_name,
+            descriptor=self.related_item_descriptor,
+            status=self.related_item_status,
+            action_url=(
+                f'<a href="/internal/occurrence_report/{self.id}'
+                f'?action=view" target="_blank">View '
+                '<i class="bi bi-box-arrow-up-right"></i></a>'
+            ),
+        )
+        return related_item
 
     def can_assess(self, request):
         if self.processing_status in [
@@ -3047,6 +3078,36 @@ class Occurrence(RevisionedMixin):
     @property
     def number_of_reports(self):
         return self.occurrence_report_count
+    
+    @property
+    def related_item_identifier(self):
+        return self.occurrence_number
+
+    @property
+    def related_item_descriptor(self):
+        if self.species:
+            if self.species.taxonomy and self.species.taxonomy.scientific_name:
+                return self.species.taxonomy.scientific_name
+        return "Descriptor not available"
+
+    @property
+    def related_item_status(self):
+        return self.get_processing_status_display
+    
+    @property
+    def as_related_item(self):
+        related_item = RelatedItem(
+            identifier=self.related_item_identifier,
+            model_name=self._meta.verbose_name,
+            descriptor=self.related_item_descriptor,
+            status=self.related_item_status,
+            action_url=(
+                f'<a href="/internal/occurrence/{self.id}'
+                f'?group_type_name={self.group_type.name}" target="_blank">View '
+                '<i class="bi bi-box-arrow-up-right"></i></a>'
+            ),
+        )
+        return related_item
 
     @transaction.atomic
     def combine(self, request):
@@ -3393,6 +3454,7 @@ class Occurrence(RevisionedMixin):
     def get_related_occurrence_reports(self, **kwargs):
 
         return OccurrenceReport.objects.filter(occurrence=self)
+    
 
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
