@@ -9,7 +9,7 @@
                 ref="submitter_information" id="submitter_information"
                 :show_submitter_contact_details="show_submitter_contact_details"
                 :submitter_information="occurrence_report_obj.submitter_information"
-                :disabled="!occurrence_report_obj.can_user_edit" />
+                :disabled="!occurrence_report_obj.can_user_edit || referral" />
         </div>
         <div class="col-md-12">
             <ul id="pills-tab" class="nav nav-pills" role="tablist">
