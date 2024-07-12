@@ -103,7 +103,7 @@ def intersect_geometry_with_layer(geometry, intersect_layer, geometry_name="SHAP
     return res.json()
 
 
-def populate_occurrence_tenure_data(geometry_instance, features):
+def populate_occurrence_tenure_data(geometry_instance, features, request):
     # Get existing occurrence tenures for this geometry
     occurrence_tenures_before = OccurrenceTenure.objects.filter(
         occurrence_geometry=geometry_instance
@@ -128,28 +128,40 @@ def populate_occurrence_tenure_data(geometry_instance, features):
         if not occurrence_tenure_before.exists():
             # No tenure entry exists yet for this occurrence geometry
             try:
-                occurrence_tenure = OccurrenceTenure.objects.create(
+                occurrence_tenure = OccurrenceTenure(
                     occurrence_geometry=geometry_instance,
                     tenure_area_id=feature_id,
                     owner_name=owner_name,
                     owner_count=owner_count,
                     tenure_area_ewkb=tenure_area_ewkb,
                 )
+                occurrence_tenure.save(version_user=request.user)
             except IntegrityError as e:
                 logger.error(f"Error creating OccurrenceTenure: {e}")
                 continue
         else:
-            # Update existing tenure entry
-            occurrence_tenure, created = OccurrenceTenure.objects.update_or_create(
+            occurrence_tenures = OccurrenceTenure.objects.filter(
                 occurrence_geometry=geometry_instance,
-                status="current",  # In case all existing tenures are historical, create a new one
-                tenure_area_id=feature_id,
-                defaults={
-                    "owner_name": owner_name,
-                    "owner_count": owner_count,
-                    "tenure_area_ewkb": tenure_area_ewkb,
-                },
-            )
+                status="current",
+                tenure_area_id=feature_id
+            ).exclude(occurrence_geometry=None,tenure_area_id=None)
+
+            if occurrence_tenures.exists():
+                occurrence_tenure = occurrence_tenures.first()
+                occurrence_tenure.owner_name = owner_name
+                occurrence_tenure.owner_count = owner_count
+                occurrence_tenure.tenure_area_ewkb = tenure_area_ewkb
+                occurrence_tenure.save(version_user=request.user)
+            else:
+                created = True
+                occurrence_tenure = OccurrenceTenure(
+                    occurrence_geometry=geometry_instance,
+                    tenure_area_id=feature_id,
+                    owner_name=owner_name,
+                    owner_count=owner_count,
+                    tenure_area_ewkb=tenure_area_ewkb,
+                )
+                occurrence_tenure.save(version_user=request.user)
 
         if created:
             logger.info(f"Created OccurrenceTenure: {occurrence_tenure}")
@@ -414,6 +426,10 @@ def save_geometry(
     # Prevent deletion of polygons that are locked after status change (e.g. after submit)
     # or have been drawn by another user
     geometry_ids = list(geometry_id_intersect_data.keys())
+    if instance_fk_field_name == "occurrence":
+        affected_tenure_ids = list(OccurrenceTenure.objects.filter(occurrence_geometry__in=(InstanceGeometry.objects.filter(**{instance_fk_field_name: instance})
+            .exclude(Q(id__in=geometry_ids) | Q(locked=True) | ~Q(drawn_by=request.user.id)))).values_list("id",flat=True))
+    
     deleted_geometries = (
         InstanceGeometry.objects.filter(**{instance_fk_field_name: instance})
         .exclude(Q(id__in=geometry_ids) | Q(locked=True) | ~Q(drawn_by=request.user.id))
@@ -423,6 +439,12 @@ def save_geometry(
         logger.info(
             f"Deleted {instance_model_name} geometries: {deleted_geometries} for {instance}"
         )
+    
+    if instance_fk_field_name == "occurrence":
+        #we save affected tenures to record the historical change
+        affected_tenures = OccurrenceTenure.objects.filter(id__in=affected_tenure_ids)
+        for i in affected_tenures:
+            i.save(version_user=request.user)
 
     return geometry_id_intersect_data
 

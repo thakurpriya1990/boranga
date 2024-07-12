@@ -2361,7 +2361,7 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 "Observer with this name already exists for this occurrence report"
             )
 
-        serializer.save()
+        serializer.save(version_user=request.user)
 
         if (
             instance.occurrence_report.processing_status
@@ -2389,7 +2389,7 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 "Observer with this name already exists for this occurrence report"
             )
 
-        serializer.save()
+        serializer.save(version_user=request.user)
 
         if (
             occurrence_report.processing_status
@@ -2408,7 +2408,7 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.visible = False
-        instance.save()
+        instance.save(version_user=request.user)
 
         serializer = self.get_serializer(instance)
         if (
@@ -2437,7 +2437,7 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 "Active observer with this name already exists for this occurrence report"
             )
 
-        instance.save()
+        instance.save(version_user=request.user)
 
         serializer = self.get_serializer(instance)
         if (
@@ -4389,7 +4389,7 @@ class OccurrenceViewSet(
                 for key, value in intersect_data.items():
                     occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
                     populate_occurrence_tenure_data(
-                        occurrence_geometry, value.get("features", [])
+                        occurrence_geometry, value.get("features", []), request
                     )
 
         occ_sites = OccurrenceSite.objects
@@ -4506,7 +4506,7 @@ class OccurrenceViewSet(
                 for key, value in intersect_data.items():
                     occurrence_geometry = OccurrenceGeometry.objects.get(id=key)
                     populate_occurrence_tenure_data(
-                        occurrence_geometry, value.get("features", [])
+                        occurrence_geometry, value.get("features", []), request
                     )
 
         occ_sites = OccurrenceSite.objects
@@ -5391,7 +5391,7 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
 
         serializer = OccurrenceTenureSaveSerializer(instance, data=data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(version_user=request.user)
 
         return Response(serializer.data)
 
@@ -5402,7 +5402,7 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         serializer = OccurrenceTenureSaveSerializer(data=data)
         serializer.is_valid(raise_exception=True)
 
-        serializer.save()
+        serializer.save(version_user=request.user)
 
         return Response(serializer.data)
 
@@ -5463,7 +5463,7 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 "Contact with this name already exists for this occurrence"
             )
 
-        serializer.save()
+        serializer.save(version_user=request.user)
 
         return Response(serializer.data)
 
@@ -5482,7 +5482,7 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 "Contact with this name already exists for this occurrence"
             )
 
-        serializer.save()
+        serializer.save(version_user=request.user)
 
         return Response(serializer.data)
 
@@ -5495,7 +5495,7 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.visible = False
-        instance.save()
+        instance.save(version_user=request.user)
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -5519,7 +5519,7 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             )
 
         instance.visible = True
-        instance.save()
+        instance.save(version_user=request.user)
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -5568,7 +5568,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 "Site with this name already exists for this occurrence"
             )
 
-        instance = serializer.save()
+        instance = serializer.save(version_user=request.user)
 
         serializer = OccurrenceSiteSerializer(instance)
 
@@ -5598,7 +5598,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 "Site with this name already exists for this occurrence"
             )
 
-        serializer.save()
+        serializer.save(version_user=request.user)
 
         serializer = OccurrenceSiteSerializer(serializer.instance)
 
@@ -5613,7 +5613,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.visible = False
-        instance.save()
+        instance.save(version_user=request.user)
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -5637,7 +5637,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             )
 
         instance.visible = True
-        instance.save()
+        instance.save(version_user=request.user)
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)

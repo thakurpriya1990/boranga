@@ -17,12 +17,17 @@
         <ContactDetail v-if="occurrence_obj" ref="contact_detail" @refreshFromResponse="refreshFromResponse"
             :url="contact_detail_url" :occurrence="occurrence_obj">
         </ContactDetail>
+        <div v-if="occContactDetailHistoryId">
+            <OCCContactDetailHistory ref="occ_contact_detail_history" :key="occContactDetailHistoryId"
+                :contact-id="occContactDetailHistoryId" />
+        </div>
     </div>
 </template>
 <script>
 import Vue from 'vue';
 import datatable from '@vue-utils/datatable.vue';
 import ContactDetail from './add_contact_detail.vue'
+import OCCContactDetailHistory from '../../internal/occurrence/occ_contact_detail_history.vue';
 import {
     constants,
     api_endpoints,
@@ -50,6 +55,7 @@ export default {
     data: function () {
         let vm = this;
         return {
+            occContactDetailHistoryId: null,
             contact_detail_url: api_endpoints.contact_detail,
             contact_detail_headers: ['Contact Name', 'Contact Role', 'Contact Details', 'Organisation', 'Notes', 'Action'],
             contact_detail_options: {
@@ -172,6 +178,7 @@ export default {
                             } else if (!vm.isReadOnly) {
                                 links += `<a href='#' data-reinstate-contact_det='${full.id}'>Reinstate</a><br>`;
                             }
+                            links += `<a href='#' data-history-contact='${full.id}'>History</a><br>`;
                             return links;
                         }
                     },
@@ -193,6 +200,7 @@ export default {
     components: {
         datatable,
         ContactDetail,
+        OCCContactDetailHistory,
     },
     watch: {
         isReadOnly: function (newVal, oldVal) {
@@ -225,6 +233,11 @@ export default {
             });
             vm.$refs.contact_detail_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                 helpers.enablePopovers();
+            });
+            vm.$refs.contact_detail_datatable.vmDataTable.on('click', 'a[data-history-contact]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-history-contact');
+                vm.historyContactDetail(id);
             });
         },
         refreshFromResponse: function () {
@@ -347,6 +360,12 @@ export default {
         updatedContactDetails() {
             let vm = this;
             this.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
+        },
+        historyContactDetail: function (id) {
+            this.occContactDetailHistoryId = parseInt(id);
+            this.$nextTick(() => {
+                this.$refs.occ_contact_detail_history.isModalOpen = true;
+            });
         },
     },
     mounted: function () {

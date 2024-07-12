@@ -1,8 +1,8 @@
 <template lang="html">
-    <div id="communityOccurrenceHistory">
+    <div id="ocrObserverDetailHistory">
         <modal
             transition="modal fade"
-            :title="'Occurrence OCC'+ occurrenceId +' - History'"
+            :title="'OCR Observer Details - History' "
             :large="true"
             :full="true"
             :showOK="false"
@@ -16,7 +16,7 @@
                     <div class="col-sm-12">
                         <div class="form-group">
                             <div class="row">
-                                <div v-if="occurrenceId" class="col-lg-12">
+                                <div v-if="observerId" class="col-lg-12">
                                     <datatable
                                         :id="datatable_id"
                                         ref="history_datatable"
@@ -27,10 +27,10 @@
                                     <DisplayHistory
                                         ref="display_history"
                                         :key="historyId"
-                                        :primary_model_number="'OCC'+occurrenceId"
+                                        :primary_model_number="''"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
-                                        :primary_model="'Occurrence'"
+                                        :primary_model="'OCRObserverDetail'"
                                     />
                                     </div>
                                 </div>
@@ -51,7 +51,7 @@ import DisplayHistory from '../../common/display_history.vue';
 import { v4 as uuid } from 'uuid';
 
 export default {
-    name: 'CommunityOccurrenceHistory',
+    name: 'OCRObserverDetailHistory',
     components: {
         modal,
         alert,
@@ -59,19 +59,16 @@ export default {
         DisplayHistory,
     },
     props: {
-        occurrenceId: {
+        observerId: {
             type: Number,
             required: true,
         },
     },
     data: function () {
         return {
-            scientificName: '',
             historyId: null,
             historySequence: null,
             datatable_id: 'history-datatable-' + uuid(),
-            documentDetails: {
-            },
             isModalOpen: false,
             errorString: '',
             successString: '',
@@ -87,9 +84,10 @@ export default {
                 'Number',
                 'Date Modified',
                 'Modified By',
-                'Community Name',
-                'Wild Status',
-                'Status',
+                'Contact Name',
+                'Observer Role',
+                'Contact Details',
+                'Organisation',
                 'Action',
             ];
         },
@@ -101,7 +99,7 @@ export default {
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.data.occurrence;
+                    return full.data.data.ocrobserverdetail;
                 },
                 name: 'data',
             };
@@ -114,11 +112,7 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.occurrence.fields.occurrence_number) {
-                        return full.data.occurrence.fields.occurrence_number+'-'+full.revision_sequence;
-                    } else {
-                        return "OCC"+full.data.occurrence.pk+'-'+full.revision_sequence;
-                    }
+                    return full.data.ocrobserverdetail.pk+'-'+full.revision_sequence;
                 },
                 name: 'revision_sequence',
             };
@@ -126,12 +120,12 @@ export default {
         column_id: function () {
             return {
                 // 1. ID
-                data: 'data.data.occurrence.pk',
+                data: 'data.data.ocrobserverdetail.pk',
                 orderable: false,
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.occurrence.pk;
+                    return full.data.ocrobserverdetail.pk;
                 },
                 name: 'id',
             };
@@ -139,14 +133,15 @@ export default {
         column_number: function () {
             return {
                 // 2. Number
-                data: 'data.data.occurrence.fields.occurrence_number',
+                data: 'data.data.ocrobserverdetail.fields.id',
+                defaultContent: '',
                 orderable: false,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.occurrence.fields.occurrence_number;
+                    return full.data.ocrobserverdetail.fields.id+'-'+full.revision_sequence;
                 },
-                name: 'occurrence_number',
+                name: 'number',
             };
         },
         column_revision_id: function () {
@@ -188,73 +183,74 @@ export default {
                 name: 'revision_user',
             };
         },
-        column_community_name: function () {
+        column_observer_name: function () {
             return {
-                data: 'data.data.communitytaxonomy.fields.community_name', 
+                data: 'data.data.ocrobserverdetail.fields.observer_name', 
                 defaultContent: '',
-                orderable: false,
+                orderable: true,
                 searchable: true, 
                 visible: true,
-                //TODO: determine if communities can have multiple taxonomies (if not, change this to be more simple)
                 render: function (row, type, full) {
-                    if (full.data.communitytaxonomy !== undefined) {
-                        //list not dict
-                        var fallback_name = ""; //if none of the names are current somehow, use this
-                        if (full.data.communitytaxonomy.fields === undefined) {
-                            for (var i = 0; i < full.data.communitytaxonomy.length; i++) {
-                                if (full.data.communitytaxonomy[i].name_currency) { 
-                                    //return full.data.communitytaxonomy[i].fields.community_name
-                                    let value = full.data.communitytaxonomy[i].fields.community_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    return type=='export' ? value : result;
-                                } else {
-                                    let value = full.data.communitytaxonomy[i].fields.community_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    fallback_name = type=='export' ? value : result;
-                                }
-                            }                               
-                            return fallback_name;
-                        }
-
-                        //return full.data.communitytaxonomy.fields.community_name;
-                        let value = full.data.communitytaxonomy.fields.community_name;
+                    if(full.data.ocrobserverdetail.fields.observer_name) {
+                        return full.data.ocrobserverdetail.fields.observer_name;
+                    } else {
+                        return ''
+                    }
+                },
+                name: 'observer_name',
+            };
+        },
+        column_observer_role: function () {
+            return {
+                data: 'data.data.ocrobserverdetail.fields.role', 
+                defaultContent: '',
+                orderable: true,
+                searchable: true, 
+                visible: true,
+                render: function (row, type, full) {
+                    if(full.data.ocrobserverdetail.fields.role) {
+                        return full.data.ocrobserverdetail.fields.role;
+                    } else {
+                        return ''
+                    }
+                },
+                name: 'role',
+            };
+        },
+        column_observer_details: function () {
+            return {
+                data: 'data.data.ocrobserverdetail.fields.observer', 
+                defaultContent: '',
+                orderable: false,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    if(full.data.ocrobserverdetail.fields.observer) {
+                        let value = full.data.ocrobserverdetail.fields.observer;
                         let result = helpers.dtPopover(value, 30, 'hover');
                         return type=='export' ? value : result;
                     } else {
                         return ''
                     }
                 },
-                name: 'community_name',
+                name: 'observer_details',
             };
         },
-        column_wild_status: function () {
+        column_organisation: function () {
             return {
-                data: 'data.data.occurrence.fields.wild_status',
+                data: 'data.data.ocrobserverdetail.fields.organisation', 
                 defaultContent: '',
                 orderable: true,
-                searchable: false, 
+                searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.occurrence.fields.wild_status) {
-                        return full.data.occurrence.fields.wild_status.name;
+                    if(full.data.ocrobserverdetail.fields.organisation) {
+                        return full.data.ocrobserverdetail.fields.organisation;
+                    } else {
+                        return ''
                     }
-                    return "";
                 },
-                name: 'wild_status',
-            };
-        },
-        column_processing_status: function () {
-            return {
-                
-                data: 'data.data.occurrence.fields.processing_status',
-                defaultContent: '',
-                orderable: true,
-                searchable: false, 
-                visible: true,
-                render: function (row, type, full) {
-                    return full.data.occurrence.fields.processing_status;
-                },
-                name: 'processing_status',
+                name: 'organisation',
             };
         },
         column_action: function () {
@@ -276,9 +272,10 @@ export default {
                 vm.column_sequence,
                 vm.column_revision_date,
                 vm.column_revision_user,
-                vm.column_community_name,
-                vm.column_wild_status,
-                vm.column_processing_status,
+                vm.column_observer_name,
+                vm.column_observer_role,
+                vm.column_observer_details,
+                vm.column_organisation,
                 vm.column_action,
             ];
             return {
@@ -292,7 +289,7 @@ export default {
                 order: [[0, 'desc']],
                 serverSide: true,
                 ajax: {
-                    url: api_endpoints.lookup_history_occurrence(this.occurrenceId)+"?format=datatables",
+                    url: api_endpoints.lookup_history_ocr_observer_detail(this.observerId)+"?format=datatables",
                     dataSrc: 'data',
                 },
                 buttons: [
@@ -365,9 +362,28 @@ export default {
         isModalOpen() {
             let vm = this;
             if (this.isModalOpen) {
-                vm.$refs.history_datatable.vmDataTable.ajax.reload();
+                vm.$refs.history_datatable.vmDataTable.ajax.reload();            
             }
         }
     },
 };
 </script>
+
+<style lang="css" scoped>
+    /*ul, li {
+        zoom:1;
+        display: inline;
+    }*/
+    fieldset.scheduler-border {
+    border: 1px groove #ddd !important;
+    padding: 0 1.4em 1.4em 1.4em !important;
+    margin: 0 0 1.5em 0 !important;
+    -webkit-box-shadow:  0px 0px 0px 0px #000;
+            box-shadow:  0px 0px 0px 0px #000;
+    }
+    legend.scheduler-border {
+    width:inherit; /* Or auto */
+    padding:0 10px; /* To give a bit of padding on the left and right */
+    border-bottom:none;
+    }
+</style>

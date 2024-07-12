@@ -24,21 +24,26 @@
             :occurrence_obj="occurrence_obj"
             >
         </SiteDetail>
+        <div v-if="occSiteHistoryId">
+            <OCCSiteHistory ref="occ_site_history" :key="occSiteHistoryId"
+                :site-id="occSiteHistoryId" />
+        </div>
     </div>
 </template>
 
 <script>
 import Vue from 'vue'
-import { api_endpoints, constants, helpers } from '@/utils/hooks';
 import datatable from '@/utils/vue/datatable.vue';
-import { v4 as uuid } from 'uuid';
 import SiteDetail from '@/components/internal/occurrence/add_site.vue'
+import OCCSiteHistory from '../../internal/occurrence/occ_site_history.vue';
+import { api_endpoints, constants, helpers } from '@/utils/hooks';
 
 export default {
     name: 'OccurrenceSiteDatatable',
     components: {
         datatable,
         SiteDetail,
+        OCCSiteHistory,
     },
     props: {
         occurrence_obj: {
@@ -47,10 +52,12 @@ export default {
         },
     },
     data: function () {
+        let vm = this;
         return {
-            uuid: uuid(),
+            uuid: 0,
+            occSiteHistoryId: null,
             occ_site_url: api_endpoints.occ_site,
-            datatable_id: 'occurrence-site-datatable-' + uuid(),
+            datatable_id: 'occurrence-site-datatable-' + vm._uid,
             headers: [
                 'Site Number',
                 'Site Name',
@@ -181,6 +188,7 @@ export default {
                     } else if (!vm.isReadOnly) {
                         links += `<a href='#' data-reinstate-site='${full.id}'>Reinstate</a><br>`;
                     }
+                    links += `<a href='#' data-history-site='${full.id}'>History</a><br>`;
                     return links;
                 }
             }
@@ -301,7 +309,7 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.post(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/discard'))
+                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/discard'))
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -323,7 +331,7 @@ export default {
         },
         reinstateSite: function (id) {
             let vm = this;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/reinstate'))
+            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/reinstate'))
             .then((response) => {
                 swal.fire({
                     title: 'Reinstated',
@@ -346,6 +354,13 @@ export default {
                     },
                 });
             });            
+        },
+        historySite: function (id) {
+            this.occSiteHistoryId = parseInt(id);
+            this.uuid++;
+            this.$nextTick(() => {
+                this.$refs.occ_site_history.isModalOpen = true;
+            });
         },
         addEventListeners: function () {
             const vm = this;
@@ -376,6 +391,11 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-reinstate-site');
                 vm.reinstateSite(id);
+            });
+            vm.$refs.occurrence_site_datatable.vmDataTable.on('click', 'a[data-history-site]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-history-site');
+                vm.historySite(id);
             });
             vm.$refs.occurrence_site_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                 helpers.enablePopovers();

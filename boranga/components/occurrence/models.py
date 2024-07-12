@@ -1822,7 +1822,7 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry
         super().save(*args, **kwargs)
 
 
-class OCRObserverDetail(models.Model):
+class OCRObserverDetail(RevisionedMixin):
     """
     Observer data  for occurrence report
 
@@ -3799,7 +3799,7 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
         super().save(*args, **kwargs)
 
 
-class OCCContactDetail(models.Model):
+class OCCContactDetail(RevisionedMixin):
     """
     Observer data for occurrence
 
@@ -4406,7 +4406,7 @@ class OccurrenceTenurePurpose(models.Model):
         verbose_name_plural = "Occurrence Tenure Purposes"
 
     def __str__(self):
-        return self.purpose
+        return self.name
 
 
 class OccurrenceTenureVesting(models.Model):
@@ -4437,7 +4437,7 @@ def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
     collector.add_field_update(field, None, sub_objs)
 
 
-class OccurrenceTenure(models.Model):
+class OccurrenceTenure(RevisionedMixin):
     STATUS_CURRENT = "current"
     STATUS_HISTORICAL = "historical"
     STATUS_CHOICES = ((STATUS_CURRENT, "Current"), (STATUS_HISTORICAL, "Historical"))
@@ -4611,7 +4611,7 @@ class SiteType(models.Model):
         return str(self.name)
 
 
-class OccurrenceSite(GeometryBase):
+class OccurrenceSite(GeometryBase,RevisionedMixin):
     site_number = models.CharField(max_length=9, blank=True, default="")
     occurrence = models.ForeignKey(
         "Occurrence", related_name="sites", on_delete=models.CASCADE
@@ -4654,8 +4654,33 @@ reversion.register(OccurrenceReportDocument)
 # Occurrence Report Threat
 reversion.register(OCRConservationThreat)
 
+# Occurrence Report Observer Detail
+reversion.register(OCRObserverDetail)
+
+reversion.register(OCRHabitatComposition)
+reversion.register(OCRHabitatCondition)
+reversion.register(OCRVegetationStructure)
+reversion.register(OCRFireHistory)
+reversion.register(OCRAssociatedSpecies)
+reversion.register(OCRObservationDetail)
+reversion.register(OCRPlantCount)
+reversion.register(OCRAnimalObservation)
+reversion.register(OCRIdentification)
+
 # Occurrence Report
-reversion.register(OccurrenceReport, follow=["species", "community"])
+reversion.register(OccurrenceReport, 
+    follow=["species", "community",
+            "habitat_composition",
+            "habitat_condition",
+            "vegetation_structure",
+            "fire_history",
+            "associated_species",
+            "observation_detail",
+            "plant_count",
+            "animal_observation",
+            "identification",
+        ]
+)
 
 # Occurrence Document
 reversion.register(OccurrenceDocument)
@@ -4663,5 +4688,35 @@ reversion.register(OccurrenceDocument)
 # Occurrence Threat
 reversion.register(OCCConservationThreat)
 
+# Occurrence Contact Detail
+reversion.register(OCCContactDetail)
+
+# Occurrence Site
+reversion.register(OccurrenceSite)
+
+# Occurrence Tenure
+reversion.register(OccurrenceTenure)
+
+reversion.register(OCCHabitatComposition)
+reversion.register(OCCHabitatCondition)
+reversion.register(OCCVegetationStructure)
+reversion.register(OCCFireHistory)
+reversion.register(OCCAssociatedSpecies)
+reversion.register(OCCObservationDetail)
+reversion.register(OCCPlantCount)
+reversion.register(OCCAnimalObservation)
+reversion.register(OCCIdentification)
+
 # Occurrence
-reversion.register(Occurrence, follow=["species", "community", "occurrence_reports"])
+reversion.register(Occurrence, follow=["species", "community",
+        "habitat_composition",
+        "habitat_condition",
+        "vegetation_structure",
+        "fire_history",
+        "associated_species",
+        "observation_detail",
+        "plant_count",
+        "animal_observation",
+        "identification",
+        ]
+)

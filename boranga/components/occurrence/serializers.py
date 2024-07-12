@@ -1807,6 +1807,25 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             "main_observer",
             "visible",
         )
+        read_only_fields=(id,)
+
+    # override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        # if the instance already exists, carry on as normal
+        if self.instance:
+            return super().save(*args, **kwargs)
+        else:
+            instance = OCRObserverDetail()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
+            instance.save(*args, **kwargs)
+            return instance
+
 
 
 class OCRObserverDetailLimitedSerializer(OCRObserverDetailSerializer):
@@ -2668,6 +2687,24 @@ class OCCContactDetailSerializer(serializers.ModelSerializer):
             "notes",
             "visible",
         )
+        read_only_fields=("id",)
+
+    # override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        # if the instance already exists, carry on as normal
+        if self.instance:
+            return super().save(*args, **kwargs)
+        else:
+            instance = OCCContactDetail()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
+            instance.save(*args, **kwargs)
+            return instance
 
 
 class SaveOCCHabitatCompositionSerializer(serializers.ModelSerializer):
