@@ -4672,4 +4672,4 @@ reversion.register(OccurrenceSite)
 reversion.register(OccurrenceTenure)
 
 # Occurrence
-reversion.register(Occurrence, follow=["species", "community", "occurrence_reports"])
+reversion.register(Occurrence, follow=["species", "community"])

@@ -128,28 +128,40 @@ def populate_occurrence_tenure_data(geometry_instance, features, request):
         if not occurrence_tenure_before.exists():
             # No tenure entry exists yet for this occurrence geometry
             try:
-                occurrence_tenure = OccurrenceTenure.objects.create(
+                occurrence_tenure = OccurrenceTenure(
                     occurrence_geometry=geometry_instance,
                     tenure_area_id=feature_id,
                     owner_name=owner_name,
                     owner_count=owner_count,
                     tenure_area_ewkb=tenure_area_ewkb,
                 )
+                occurrence_tenure.save(version_user=request.user)
             except IntegrityError as e:
                 logger.error(f"Error creating OccurrenceTenure: {e}")
                 continue
         else:
-            # Update existing tenure entry
-            occurrence_tenure, created = OccurrenceTenure.objects.update_or_create(
+            occurrence_tenures = OccurrenceTenure.objects.filter(
                 occurrence_geometry=geometry_instance,
-                status="current",  # In case all existing tenures are historical, create a new one
-                tenure_area_id=feature_id,
-                defaults={
-                    "owner_name": owner_name,
-                    "owner_count": owner_count,
-                    "tenure_area_ewkb": tenure_area_ewkb,
-                },
-            )
+                status="current",
+                tenure_area_id=feature_id
+            ).exclude(occurrence_geometry=None,tenure_area_id=None)
+
+            if occurrence_tenures.exists():
+                occurrence_tenure = occurrence_tenures.first()
+                occurrence_tenure.owner_name = owner_name
+                occurrence_tenure.owner_count = owner_count
+                occurrence_tenure.tenure_area_ewkb = tenure_area_ewkb
+                occurrence_tenure.save(version_user=request.user)
+            else:
+                created = True
+                occurrence_tenure = OccurrenceTenure(
+                    occurrence_geometry=geometry_instance,
+                    tenure_area_id=feature_id,
+                    owner_name=owner_name,
+                    owner_count=owner_count,
+                    tenure_area_ewkb=tenure_area_ewkb,
+                )
+                occurrence_tenure.save(version_user=request.user)
 
         if created:
             logger.info(f"Created OccurrenceTenure: {occurrence_tenure}")
