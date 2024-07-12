@@ -1594,21 +1594,6 @@ export default {
             },
         },
         /**
-         * A classifier to style the features by.
-         * `model` displays all features belonging to the same model by the same (randomly generated) color
-         * `feature` displays all features by same color depending on the role of the user who created the feature
-         * @values model, feature
-         */
-        styleBy: {
-            type: String,
-            required: false,
-            default: 'model',
-            validator: function (val) {
-                let options = ['model', 'feature'];
-                return options.indexOf(val) != -1 ? true : false;
-            },
-        },
-        /**
          * General color definitions for the features to be used when styling by `assessor`
          * @values unknown, draw, applicant, assessor
          */
@@ -2552,30 +2537,11 @@ export default {
                 ? vm.pointFeatureColors
                 : vm.featureColors;
 
-            if (vm.styleBy === 'feature') {
-                if (!featureColors[geometry_source]) {
-                    console.warn(
-                        'Feature does not have a color property',
-                        featureData,
-                        'for model',
-                        model
-                    );
-                }
-                // Assume the object is a feature containing a geometry_source property
-                return featureColors[geometry_source];
-            } else if (vm.styleBy === 'model') {
-                if (!model.color) {
-                    console.warn('Model does not have a color property', model);
-                }
-                // Assume the object is a model containing a color field
+            if (model.color) {
                 return model.color;
+            } else if (featureColors[geometry_source]) {
+                return featureColors[geometry_source];
             } else {
-                console.warn(
-                    'Unknown styleBy property',
-                    vm.styleBy,
-                    'for model',
-                    model
-                );
                 return featureColors['unknown'] || vm.defaultColor;
             }
         },
