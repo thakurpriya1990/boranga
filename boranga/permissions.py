@@ -681,6 +681,14 @@ class OccurrencePermission(BasePermission):
             )
         )
     
+    def is_authorised_to_reopen(self,request,obj):
+        return (
+            (is_occurrence_approver(request) or request.user.is_superuser)
+            and (
+                obj.processing_status == Occurrence.PROCESSING_STATUS_HISTORICAL
+            )
+        )
+    
     def is_authorised_to_unlock(self,request,obj):
         return (
             (is_occurrence_approver(request) or request.user.is_superuser)
@@ -705,6 +713,8 @@ class OccurrencePermission(BasePermission):
             return self.is_authorised_to_unlock(request, obj)
         if hasattr(view, "action") and view.action == "update_show_on_map":
             return self.is_authorised_to_update_show_on_map(request, obj)
+        if hasattr(view, "action") and view.action == "reopen_occurrence":
+            return self.is_authorised_to_reopen(request, obj)
 
         return self.is_authorised_to_update(request, obj)
 
