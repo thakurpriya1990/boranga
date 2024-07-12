@@ -88,7 +88,6 @@ export default {
                 'Date Modified',
                 'Modified By',
                 'Community Name',
-                'Number of Reports',
                 'Wild Status',
                 'Status',
                 'Action',
@@ -228,65 +227,6 @@ export default {
                 name: 'community_name',
             };
         },
-        /*column_previous_name: function () {
-            return {
-                data: 'data.data.communitytaxonomy.fields.previous_name', 
-                defaultContent: '',
-                orderable: false,
-                searchable: false,
-                visible: true,
-                render: function (row, type, full) {
-                    if (full.data.communitytaxonomy !== undefined) {
-                        //list not dict
-                        var fallback_name = ""; //if none of the names are current somehow, use this
-                        if (full.data.communitytaxonomy.fields === undefined) {
-                            for (var i = 0; i < full.data.communitytaxonomy.length; i++) {
-                                if (full.data.communitytaxonomy[i].name_currency) { 
-                                    //return full.data.communitytaxonomy[i].fields.previous_name
-                                    let value = full.data.communitytaxonomy[i].fields.previous_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    return type=='export' ? value : result;
-                                } else {
-                                    let value = full.data.communitytaxonomy[i].fields.previous_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    fallback_name = type=='export' ? value : result;
-                                }
-                            }                               
-                            return fallback_name;
-                        }
-
-                        //return full.data.communitytaxonomy.fields.previous_name;
-                        let value = full.data.communitytaxonomy.fields.previous_name;
-                        let result = helpers.dtPopover(value, 30, 'hover');
-                        return type=='export' ? value : result;
-                    } else {
-                        return ''
-                    }
-                },
-                name: 'previous_name', //_name',
-            };
-        },*/
-        column_num_reports: function () {
-            return {                
-                data: 'data.data.occurrencereport',
-                defaultContent: '',
-                orderable: false,
-                searchable: false, 
-                visible: true,
-                render: function (row, type, full) {
-                    if (full.data.occurrencereport === undefined) {
-                        return 0;
-                    } else {
-                        if (full.data.occurrencereport.fields === undefined) {
-                            return full.data.occurrencereport.length
-                        } else {
-                            return 1;
-                        }
-                    }
-                },
-                name: 'number_of_reports',
-            };
-        },
         column_wild_status: function () {
             return {
                 data: 'data.data.occurrence.fields.wild_status',
@@ -337,8 +277,6 @@ export default {
                 vm.column_revision_date,
                 vm.column_revision_user,
                 vm.column_community_name,
-                //vm.column_previous_name,
-                vm.column_num_reports,
                 vm.column_wild_status,
                 vm.column_processing_status,
                 vm.column_action,

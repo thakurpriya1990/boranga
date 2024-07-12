@@ -4653,8 +4653,30 @@ reversion.register(OCRConservationThreat)
 # Occurrence Report Observer Detail
 reversion.register(OCRObserverDetail)
 
+reversion.register(OCRHabitatComposition)
+reversion.register(OCRHabitatCondition)
+reversion.register(OCRVegetationStructure)
+reversion.register(OCRFireHistory)
+reversion.register(OCRAssociatedSpecies)
+reversion.register(OCRObservationDetail)
+reversion.register(OCRPlantCount)
+reversion.register(OCRAnimalObservation)
+reversion.register(OCRIdentification)
+
 # Occurrence Report
-reversion.register(OccurrenceReport, follow=["species", "community"])
+reversion.register(OccurrenceReport, 
+    follow=["species", "community",
+            "habitat_composition",
+            "habitat_condition",
+            "vegetation_structure",
+            "fire_history",
+            "associated_species",
+            "observation_detail",
+            "plant_count",
+            "animal_observation",
+            "identification",
+        ]
+)
 
 # Occurrence Document
 reversion.register(OccurrenceDocument)
@@ -4671,5 +4693,26 @@ reversion.register(OccurrenceSite)
 # Occurrence Tenure
 reversion.register(OccurrenceTenure)
 
+reversion.register(OCCHabitatComposition)
+reversion.register(OCCHabitatCondition)
+reversion.register(OCCVegetationStructure)
+reversion.register(OCCFireHistory)
+reversion.register(OCCAssociatedSpecies)
+reversion.register(OCCObservationDetail)
+reversion.register(OCCPlantCount)
+reversion.register(OCCAnimalObservation)
+reversion.register(OCCIdentification)
+
 # Occurrence
-reversion.register(Occurrence, follow=["species", "community"])
+reversion.register(Occurrence, follow=["species", "community",
+        "habitat_composition",
+        "habitat_condition",
+        "vegetation_structure",
+        "fire_history",
+        "associated_species",
+        "observation_detail",
+        "plant_count",
+        "animal_observation",
+        "identification",
+        ]
+)
