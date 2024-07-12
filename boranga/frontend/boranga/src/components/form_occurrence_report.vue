@@ -161,18 +161,10 @@ export default {
         vm.eventListener();
     },
     methods: {
-        //----function to resolve datatable exceeding beyond the div
-        // eslint-disable-next-line no-unused-vars
         tabClicked: function (param) {
-            this.reloadcount = this.reloadcount + 1;
-        },
-        eventListener: function () {
-            // eslint-disable-next-line no-unused-vars
-            let vm = this;
-        },
-        // eslint-disable-next-line no-unused-vars
-        refreshFromResponse: function (data) {
-            //this.$emit('refreshFromResponse', data);
+            // TODO: This was reloading the components in every tab every time someone clicked on a tab.
+            // Leaving here for now in case it was needed for an unforseen reason, if not please delete this method.
+            // this.reloadcount = this.reloadcount + 1;
         },
         refreshOccurrenceReport: function () {
             this.$emit('refreshOccurrenceReport');
