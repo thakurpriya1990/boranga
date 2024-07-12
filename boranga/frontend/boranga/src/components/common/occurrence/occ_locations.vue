@@ -23,6 +23,7 @@
                         api_url: ocrApiUrl,
                         ids: occurrenceReportIds,
                         geometry_name: 'ocr_geometry',
+                        identifier_name: 'occurrence_report_number',
                         z_index: 2,
                         collapse: true,
                         property_display_map: ocrPropertyDisplayMap,
@@ -37,6 +38,7 @@
                             api_url: occApiUrl,
                             ids: [occurrence_obj.id],
                             geometry_name: 'occ_geometry',
+                            identifier_name: 'occurrence_number',
                             z_index: 3,
                             property_display_map: occPropertyDisplayMap,
                             property_overwrite: {
@@ -56,6 +58,7 @@
                             can_buffer: false,
                             handler: bufferGeometryHandler, // Buffer geometries are a property of occurrence geometry. This handler returns the buffer geometries from the occurrence geometries.
                             geometry_name: 'geometry',
+                            identifier_name: 'label',
                             z_index: 1,
                             property_display_map: bufferPropertyDisplayMap,
                             property_overwrite: {
@@ -75,6 +78,7 @@
                             can_buffer: false,
                             api_url: siteApiUrl,
                             query_param_key: 'occurrence_id',
+                            identifier_name: 'site_number',
                             z_index: 4,
                             ids: [occurrence_obj.id],
                             property_display_map: sitePropertyDisplayMap,

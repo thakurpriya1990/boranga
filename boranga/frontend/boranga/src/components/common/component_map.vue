@@ -221,6 +221,13 @@
                                                 .longitude +
                                             feature.getProperties().show_on_map
                                         "
+                                        :set="
+                                            (displayProperties =
+                                                featureGetDisplayProperties(
+                                                    feature,
+                                                    getLayerByName(name)
+                                                ))
+                                        "
                                         class="input-group input-group-sm mb-1 text-nowrap"
                                     >
                                         <!-- Select geometry-checkbox -->
@@ -275,7 +282,8 @@
                                             data-bs-placement="top"
                                             data-bs-title="Zoom to feature"
                                             :title="`Toggle ${
-                                                feature.getProperties().label
+                                                feature.getProperties()
+                                                    .identifier_value
                                             } map visibility`"
                                             @click="
                                                 toggleFeatureShowOnMap(
@@ -297,9 +305,10 @@
                                             data-bs-toggle="tooltip"
                                             data-bs-placement="top"
                                             data-bs-title="Zoom to feature"
-                                            :title="
-                                                feature.getProperties().label
-                                            "
+                                            :title="`Zoom to ${
+                                                feature.getProperties()
+                                                    .identifier_value
+                                            }`"
                                             @mouseenter="
                                                 toggleHidden($event.target)
                                             "
@@ -4114,6 +4123,12 @@ export default {
                             typeof v === 'function' ? v() : v,
                         ])
                     );
+                    // Get the name of the identifier from the layer def, if exists
+                    const identifierName =
+                        this.getLayerDefinitionByName(toSource)
+                            .identifier_name || null;
+                    // Add the identifier to the properties
+                    properties['identifier_name'] = identifierName;
                     for (const [key, value] of Object.entries(proposal)) {
                         this.addFeatureDisplayPropertyValue(
                             key,
@@ -4130,6 +4145,10 @@ export default {
                 const propertyOverwrite =
                     vm.getLayerDefinitionByName(toSource).property_overwrite ||
                     {};
+                const identifierName =
+                    this.getLayerDefinitionByName(toSource).identifier_name ||
+                    null;
+                propertyOverwrite['identifier_name'] = identifierName;
                 vm.addGeometryToMapSource(proposals, propertyOverwrite, source);
             }
             // vm.addFeatureCollectionToMap();
@@ -4257,6 +4276,11 @@ export default {
 
             // Apply the passed in properties to the feature, but overwrite where necessary (nullish coalescing operator ??=)
             const featureProperties = structuredClone(properties);
+            // Make sure all features have an id under the same key
+            featureProperties['identifier_value'] =
+                context[context.identifier_name] ||
+                properties[context.identifier_name] ||
+                label;
             featureProperties['id'] ??= this.newFeatureId;
             featureProperties['model'] ??= context;
             featureProperties['geometry_source'] ??=
