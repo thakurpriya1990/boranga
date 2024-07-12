@@ -1,9 +1,7 @@
 <template lang="html">
     <div v-if="species_community" class="container" id="internalSpeciesCommunity">
         <div class="row" style="padding-bottom: 50px;">
-            <h3>{{ display_group_type }} {{ display_number }} - {{ display_name }} <span
-                    v-if="this.species_community.taxonomy_details.community_migrated_id" class="h5 text-muted"> (Migrated
-                    from: {{ this.species_community.taxonomy_details.community_migrated_id }})</span></h3>
+            <h3>{{ display_group_type }} {{ display_number }} - {{ display_name }}</h3>
             <div v-if="!comparing" class="col-md-3">
                 <!-- TODO -->
                 <template>
@@ -314,7 +312,7 @@ export default {
         },
         display_name: function () {
             return (this.species_community.group_type === "community") ?
-                (this.species_community.taxonomy_details != null) ? this.species_community.taxonomy_details.community_name : '' :
+                (this.species_community.taxonomy_details != null) ? this.species_community.taxonomy_details.community_migrated_id : '' :
                 (this.species_community.taxonomy_details != null) ? this.species_community.taxonomy_details.scientific_name + " (" + this.species_community.taxonomy_details.taxon_name_id + ")" : '';
         },
         class_ncols: function () {
