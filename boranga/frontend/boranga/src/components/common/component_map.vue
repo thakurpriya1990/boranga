@@ -1840,6 +1840,7 @@ export default {
                     //  Empty list `[]` fetches all proposals
                     handler: null, // A callback function to invoke on fetched features
                     geometry_name: 'geometry', // The name of the geometry field in the model. If not provided, the object itself is treated as the geometry
+                    identifier_name: null, // The name of the identifier field in the model
                     z_index: 0, // The z-index of the layer, can be used to order layers
                     collapse: false, // Whether the layer is collapsed by default
                     property_display_map: {}, // A dictionary to map property names to display names, e.g. for a popup or export to a geodata file
