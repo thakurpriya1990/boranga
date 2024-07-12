@@ -630,7 +630,9 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     )
     def species_cs_referrals_internal(self, request, *args, **kwargs):
         self.serializer_class = DTConservationStatusReferralSerializer
-        qs = ConservationStatusReferral.objects.filter(referral=request.user.id)
+        qs = ConservationStatusReferral.objects.exclude(
+            processing_status=ConservationStatusReferral.PROCESSING_STATUS_RECALLED
+        ).filter(referral=request.user.id)
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
@@ -1177,11 +1179,9 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
         permission_classes=[ConservationStatusReferralPermission],
     )
     def community_cs_referrals_internal(self, request, *args, **kwargs):
-        qs = (
-            ConservationStatusReferral.objects.filter(referral=request.user.id)
-            if is_internal(self.request)
-            else ConservationStatusReferral.objects.none()
-        )
+        qs = ConservationStatusReferral.objects.exclude(
+            processing_status=ConservationStatusReferral.PROCESSING_STATUS_RECALLED
+        ).filter(referral=request.user.id)
 
         qs = self.filter_queryset(qs)
 
