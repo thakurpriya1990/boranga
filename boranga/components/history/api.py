@@ -308,7 +308,6 @@ class GetLookUpValues:
                 lookup_fields.append(i)
                 self.lookup_values[i] = lookup_value
             except Exception as e:
-                print(e)
                 rejected_lookup_fields.append(i)
         self.lookup_fields = lookup_fields
 
@@ -381,6 +380,7 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
                     if (
                         i in data[model._meta.model_name]["fields"]
                         and data[model._meta.model_name]["fields"][i] is not None
+                        and data[model._meta.model_name]["fields"][i] in self.lookup_getter.lookup_values[i]
                     ):
                         data[model._meta.model_name]["fields"][i] = (
                             self.lookup_getter.lookup_values[i][

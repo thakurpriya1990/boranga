@@ -426,6 +426,10 @@ def save_geometry(
     # Prevent deletion of polygons that are locked after status change (e.g. after submit)
     # or have been drawn by another user
     geometry_ids = list(geometry_id_intersect_data.keys())
+    if instance_fk_field_name == "occurrence":
+        affected_tenure_ids = list(OccurrenceTenure.objects.filter(occurrence_geometry__in=(InstanceGeometry.objects.filter(**{instance_fk_field_name: instance})
+            .exclude(Q(id__in=geometry_ids) | Q(locked=True) | ~Q(drawn_by=request.user.id)))).values_list("id",flat=True))
+    
     deleted_geometries = (
         InstanceGeometry.objects.filter(**{instance_fk_field_name: instance})
         .exclude(Q(id__in=geometry_ids) | Q(locked=True) | ~Q(drawn_by=request.user.id))
@@ -435,6 +439,12 @@ def save_geometry(
         logger.info(
             f"Deleted {instance_model_name} geometries: {deleted_geometries} for {instance}"
         )
+    
+    if instance_fk_field_name == "occurrence":
+        #we save affected tenures to record the historical change
+        affected_tenures = OccurrenceTenure.objects.filter(id__in=affected_tenure_ids)
+        for i in affected_tenures:
+            i.save(version_user=request.user)
 
     return geometry_id_intersect_data
 
