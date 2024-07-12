@@ -80,7 +80,6 @@ from boranga.helpers import (
     is_conservation_status_assessor,
     is_conservation_status_referee,
     is_contributor,
-    is_external_contributor,
     is_internal,
     is_internal_contributor,
     is_occurrence_approver,
@@ -2469,7 +2468,7 @@ class ConservationStatusDocumentViewSet(
             serializer = InternalSaveConservationStatusDocumentSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(no_revision=True)
-        if is_external_contributor(self.request):
+        if is_contributor(self.request):
             instance.can_submitter_access = True
             instance.save()
 
