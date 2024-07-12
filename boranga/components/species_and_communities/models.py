@@ -13,6 +13,7 @@ from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.db.models import Q, Sum
 from django.db.models.functions import Cast
+from django.utils.functional import cached_property
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
@@ -645,6 +646,16 @@ class Species(RevisionedMixin):
         )
 
         self.delete()
+
+    @cached_property
+    def approved_conservation_status(self):
+        # Careful with this as it is cached for the duration of the life of the object (most likely the request)
+        # Using it to reduce queries in the species list view
+        from boranga.components.conservation_status.models import ConservationStatus
+
+        return self.conservation_status.filter(
+            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
+        ).first()
 
     def has_user_edit_mode(self, request):
         officer_view_state = ["draft", "historical"]
@@ -1400,6 +1411,16 @@ class Community(RevisionedMixin):
     @property
     def related_item_status(self):
         return self.processing_status
+
+    @cached_property
+    def approved_conservation_status(self):
+        # Careful with this as it is cached for the duration of the life of the object (most likely the request)
+        # Using it to reduce queries in the communities list view
+        from boranga.components.conservation_status.models import ConservationStatus
+
+        return self.conservation_status.filter(
+            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
+        ).first()
 
     @transaction.atomic
     def discard(self, request):
