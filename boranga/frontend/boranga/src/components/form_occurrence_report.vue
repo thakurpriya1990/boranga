@@ -3,7 +3,7 @@
         <div class="" :id="occurrenceReportBody">
             <OCRProfile ref="ocr_profile" id="ocrProfile" :is_external="is_external" :referral="referral"
                 :show_observer_contact_information="show_observer_contact_information"
-                :occurrence_report_obj="occurrence_report_obj" @refreshOccurrenceReport="refreshOccurrenceReport()">
+                :occurrence_report_obj="occurrence_report_obj" @refreshOccurrenceReport="refreshOccurrenceReport()" @saveOccurrenceReport="saveOccurrenceReport()">
             </OCRProfile>
             <SubmitterInformation v-if="occurrence_report_obj.submitter_information" :key="reloadcount"
                 ref="submitter_information" id="submitter_information"
@@ -125,7 +125,7 @@ export default {
             default: true,
         },
     },
-    emits: ['refreshFromResponse', 'refreshOccurrenceReport'],
+    emits: ['refreshFromResponse', 'refreshOccurrenceReport', 'saveOccurrenceReport'],
     data: function () {
         let vm = this;
         return {
@@ -180,6 +180,9 @@ export default {
         },
         refreshOccurrenceReport: function () {
             this.$emit('refreshOccurrenceReport');
+        },
+        saveOccurrenceReport: function () {
+            this.$emit('saveOccurrenceReport');
         },
     },
 };
