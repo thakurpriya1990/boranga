@@ -3962,6 +3962,17 @@ class OccurrenceViewSet(
 
     @detail_route(
         methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    def reopen_occurrence(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reopen(request)
+        return redirect(reverse("internal"))
+
+    @detail_route(
+        methods=[
             "GET",
         ],
         detail=True,

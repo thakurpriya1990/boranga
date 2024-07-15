@@ -474,7 +474,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         if not self.assigned_approver == request.user.id:
             return False
 
-        return is_occurrence_approver(request)
+        return is_occurrence_approver(request) or request.user.is_superuser
 
     def has_unlocked_mode(self, request):
         status_with_assessor = [
@@ -489,7 +489,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         if not self.assigned_officer == request.user.id:
             return False
 
-        return is_occurrence_assessor(request) or is_occurrence_approver(request)
+        return is_occurrence_assessor(request) or is_occurrence_approver(request) or request.user.is_superuser
 
     def get_approver_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
@@ -518,10 +518,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
             OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
         ]:
-            return is_occurrence_assessor(request) or is_occurrence_approver(request)
+            return is_occurrence_assessor(request) or is_occurrence_approver(request) or request.user.is_superuser
 
         elif self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
-            return is_occurrence_approver(request)
+            return is_occurrence_approver(request) or request.user.is_superuser
 
         return False
 
@@ -906,7 +906,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             ).exists():
                 return True
 
-            return is_occurrence_assessor(request) or is_occurrence_approver(request)
+            return is_occurrence_assessor(request) or is_occurrence_approver(request) or request.user.is_superuser
         return False
 
     @transaction.atomic
@@ -1381,6 +1381,15 @@ class OccurrenceReportReferral(models.Model):
 
         send_occurrence_report_referral_recall_email_notification(self, request)
 
+        outstanding = self.occurrence_report.referrals.filter(
+            processing_status=self.PROCESSING_STATUS_WITH_REFERRAL
+        )
+        if len(outstanding) == 0:
+            self.occurrence_report.processing_status = (
+                OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+            )
+            self.occurrence_report.save(version_user=request.user)
+
         # Create a log entry for the occurrence report
         self.occurrence_report.log_user_action(
             OccurrenceReportUserAction.RECALL_REFERRAL.format(
@@ -1410,7 +1419,7 @@ class OccurrenceReportReferral(models.Model):
 
         self.processing_status = self.PROCESSING_STATUS_WITH_REFERRAL
         self.occurrence_report.processing_status = self.PROCESSING_STATUS_WITH_REFERRAL
-        self.occurrence_report.save()
+        self.occurrence_report.save(version_user=request.user)
 
         self.save()
 
@@ -1460,7 +1469,7 @@ class OccurrenceReportReferral(models.Model):
             self.occurrence_report.processing_status = (
                 OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
             )
-            self.occurrence_report.save()
+            self.occurrence_report.save(version_user=request.user)
 
         # Create a log entry for the occurrence report
         self.occurrence_report.log_user_action(
@@ -3369,6 +3378,20 @@ class Occurrence(RevisionedMixin):
             request,
         )
 
+    def reopen(self, request):
+        if (
+            is_occurrence_approver(request)
+            and self.processing_status == Occurrence.PROCESSING_STATUS_HISTORICAL
+        ):
+            self.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
+            self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_REOPEN_OCCURRENCE.format(self.occurrence_number),
+            request,
+        )
+
     # if this function is called and the OCC has no associated OCRs, discard it
     def check_ocr_count_for_discard(self, request):
         discardable = [Occurrence.PROCESSING_STATUS_DRAFT]
@@ -3389,7 +3412,16 @@ class Occurrence(RevisionedMixin):
         if self.processing_status not in user_editable_state:
             return False
 
-        return is_occurrence_approver(request)
+        return is_occurrence_approver(request) or request.user.is_superuser
+    
+    def can_user_reopen(self, request):
+        user_editable_state = [
+            Occurrence.PROCESSING_STATUS_HISTORICAL,
+        ]
+        if self.processing_status not in user_editable_state:
+            return False
+
+        return is_occurrence_approver(request) or request.user.is_superuser
 
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)
@@ -3629,6 +3661,7 @@ class OccurrenceUserAction(UserAction):
     ACTION_LOCK_OCCURRENCE = "Lock occurrence {}"
     ACTION_UNLOCK_OCCURRENCE = "Unlock occurrence {}"
     ACTION_CLOSE_OCCURRENCE = "Close occurrence {}"
+    ACTION_REOPEN_OCCURRENCE = "Reopen occurrence {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for occurrence {}"
