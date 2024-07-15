@@ -3017,6 +3017,7 @@ class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
             "source_of",
             "color",
             "stroke",
+            "opacity",
         ] + BaseTypeSerializer.Meta.fields
 
     def get_srid(self, obj):
@@ -3050,12 +3051,6 @@ class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     def get_buffer_radius(self, obj):
         return obj.buffered_from_geometry.buffer_radius
 
-    def get_color(self, obj):
-        return "#00FF00"
-
-    def get_stroke(self, obj):
-        return "#FF0000"
-
 
 class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     occurrence_id = serializers.IntegerField(write_only=True, required=False)
@@ -3088,6 +3083,7 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
             "source_of",
             "color",
             "stroke",
+            "opacity",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 

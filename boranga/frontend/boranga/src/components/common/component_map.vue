@@ -2866,6 +2866,7 @@ export default {
             }
             console.log('Setting zIndex', zIndex, 'for layer', name);
             this.vectorLayers[name].setZIndex(zIndex);
+            // this.vectorLayers[name].setOpacity(0.5);
             this.zIndex += 1;
         },
         initialiseQueryLayer: function () {
@@ -4103,6 +4104,7 @@ export default {
                 vm.getLayerDefinitionByName(toSource).geometry_name || null;
 
             console.log(`Loading features to source ${toSource}`, proposals);
+            let opacities;
             // Remove all features from the layer
             source.clear();
             if (geometry_name) {
@@ -4140,7 +4142,11 @@ export default {
                             propertyOverwrite
                         );
                     }
-                    vm.addGeometryToMapSource(geometry, properties, source);
+                    opacities = vm.addGeometryToMapSource(
+                        geometry,
+                        properties,
+                        source
+                    );
                 }, vm);
             } else {
                 const propertyOverwrite =
@@ -4150,9 +4156,20 @@ export default {
                     this.getLayerDefinitionByName(toSource).identifier_name ||
                     null;
                 propertyOverwrite['identifier_name'] = identifierName;
-                vm.addGeometryToMapSource(proposals, propertyOverwrite, source);
+                opacities = vm.addGeometryToMapSource(
+                    proposals,
+                    propertyOverwrite,
+                    source
+                );
             }
-            // vm.addFeatureCollectionToMap();
+
+            // Set the opacity of the associated layer
+            if (opacities.length > 0) {
+                const layer = this.vectorLayers[toSource];
+                if (layer) {
+                    layer.setOpacity(opacities[0]);
+                }
+            }
             vm.map.dispatchEvent({
                 type: 'features-loaded',
                 details: {
@@ -4174,6 +4191,7 @@ export default {
                 );
                 return;
             }
+            const opacities = [];
             geometry.features.forEach(function (featureData) {
                 if (!featureData) {
                     console.warn(
@@ -4194,8 +4212,13 @@ export default {
                     );
                     return;
                 }
+                if (feature.getProperties().opacity) {
+                    opacities.push(feature.getProperties().opacity);
+                }
                 source.addFeature(feature);
             });
+
+            return opacities;
         },
         addTileLayers: function () {
             let vm = this;

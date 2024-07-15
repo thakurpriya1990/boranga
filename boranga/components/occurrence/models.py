@@ -3823,6 +3823,9 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
 
     color = ColorField(default="#3333FF") # Light blue
     stroke = ColorField(default="#0033CC") # Dark blue
+    opacity = models.FloatField(
+        default=0.5, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)]
+    ) # Used for map layer opacity
 
     class Meta:
         app_label = "boranga"
@@ -4622,6 +4625,9 @@ class BufferGeometry(GeometryBase):
     )
     color = ColorField(default="#FFFF00") # Yellow
     stroke = ColorField(default="#FF9900") # Orange
+    opacity = models.FloatField(
+        default=0.5, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)]
+    ) # Used for map layer opacity
 
     class Meta:
         app_label = "boranga"
