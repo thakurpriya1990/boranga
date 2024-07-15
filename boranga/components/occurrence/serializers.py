@@ -2996,8 +2996,6 @@ class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     original_geometry = serializers.SerializerMethodField(read_only=True)
     label = serializers.SerializerMethodField(read_only=True)
     buffer_radius = serializers.SerializerMethodField(read_only=True)
-    # color = serializers.SerializerMethodField(read_only=True)
-    # stroke = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = BufferGeometry
