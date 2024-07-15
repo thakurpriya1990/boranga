@@ -87,6 +87,10 @@
             @refreshFromResponse="updatedTenureArea"
         >
         </OccurrenceTenureModal>
+        <div v-if="occTenureHistoryId">
+            <OCCTenureHistory ref="occ_tenure_history" :key="occTenureHistoryId"
+                :tenure-id="occTenureHistoryId" />
+        </div>
     </div>
 </template>
 
@@ -96,6 +100,7 @@ import datatable from '@/utils/vue/datatable.vue';
 import { v4 as uuid } from 'uuid';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
 import OccurrenceTenureModal from '@/components/internal/occurrence/occurrence_tenure_modal.vue';
+import OCCTenureHistory from '../../internal/occurrence/occ_tenure_history.vue';
 
 export default {
     name: 'OccurrenceTenureDatatable',
@@ -103,6 +108,7 @@ export default {
         datatable,
         CollapsibleFilters,
         OccurrenceTenureModal,
+        OCCTenureHistory,
     },
     emit: ['highlight-on-map', 'edit-tenure-details'],
     props: {
@@ -140,6 +146,7 @@ export default {
     data: function () {
         return {
             uuid: uuid(),
+            occTenureHistoryId: null,
             datatable_id: 'occurrence-tenure-datatable-' + uuid(),
             occ_tenure_paginated_url:
                 api_endpoints.occurrence_tenure_paginated_internal,
@@ -282,6 +289,7 @@ export default {
                         : '';
                     let html = `<a href="#${vm.hrefContainerId}" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
                     html += `<br><a href="#" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;
+                    html += `<br><a href='#' data-history-tenure='${data}'>History</a><br>`;
                     return html;
                 },
             };
@@ -316,6 +324,10 @@ export default {
                     [1, 'asc'],
                     [7, 'desc'],
                     [0, 'desc'],
+                ],
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 2, targets: -1 },
                 ],
                 fixedColumns: {
                     start: 1,
@@ -432,6 +444,13 @@ export default {
         });
     },
     methods: {
+        historyTenure: function (id) {
+            this.occTenureHistoryId = parseInt(id);
+            this.uuid++;
+            this.$nextTick(() => {
+                this.$refs.occ_tenure_history.isModalOpen = true;
+            });
+        },
         addEventListeners: function () {
             const vm = this;
             this.$refs.occurrence_tenure_datatable.vmDataTable.on(
@@ -457,6 +476,11 @@ export default {
                     vm.editTenureDetails(id);
                 }
             );
+            vm.$refs.occurrence_tenure_datatable.vmDataTable.on('click', 'a[data-history-tenure]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-history-tenure');
+                vm.historyTenure(id);
+            });
         },
         highlightOnMap: function (coordinates = null) {
             this.$emit('highlight-on-map', JSON.parse(coordinates));

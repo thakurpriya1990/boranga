@@ -88,6 +88,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     group_type = serializers.CharField(source="group_type.name", allow_null=True)
     group_type_id = serializers.CharField(source="group_type.id", allow_null=True)
     can_user_edit = serializers.SerializerMethodField()
+    can_user_reopen = serializers.SerializerMethodField()
     submitter = serializers.SerializerMethodField()
     location = serializers.SerializerMethodField()
     habitat_composition = serializers.SerializerMethodField()
@@ -124,6 +125,10 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     def get_can_user_edit(self, obj):
         request = self.context["request"]
         return obj.can_user_edit(request)
+    
+    def get_can_user_reopen(self, obj):
+        request = self.context["request"]
+        return obj.can_user_reopen(request)
 
     def get_submitter(self, obj):
         if obj.submitter:
@@ -1807,6 +1812,25 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             "main_observer",
             "visible",
         )
+        read_only_fields=(id,)
+
+    # override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        # if the instance already exists, carry on as normal
+        if self.instance:
+            return super().save(*args, **kwargs)
+        else:
+            instance = OCRObserverDetail()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
+            instance.save(*args, **kwargs)
+            return instance
+
 
 
 class OCRObserverDetailLimitedSerializer(OCRObserverDetailSerializer):
@@ -2668,6 +2692,24 @@ class OCCContactDetailSerializer(serializers.ModelSerializer):
             "notes",
             "visible",
         )
+        read_only_fields=("id",)
+
+    # override save so we can include our kwargs
+    def save(self, *args, **kwargs):
+        # if the instance already exists, carry on as normal
+        if self.instance:
+            return super().save(*args, **kwargs)
+        else:
+            instance = OCCContactDetail()
+            validated_data = self.run_validation(self.initial_data)
+            for field_name in self.Meta.fields:
+                if (
+                    field_name in validated_data
+                    and field_name not in self.Meta.read_only_fields
+                ):
+                    setattr(instance, field_name, validated_data[field_name])
+            instance.save(*args, **kwargs)
+            return instance
 
 
 class SaveOCCHabitatCompositionSerializer(serializers.ModelSerializer):

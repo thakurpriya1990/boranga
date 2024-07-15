@@ -474,7 +474,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         if not self.assigned_approver == request.user.id:
             return False
 
-        return is_occurrence_approver(request)
+        return is_occurrence_approver(request) or request.user.is_superuser
 
     def has_unlocked_mode(self, request):
         status_with_assessor = [
@@ -489,7 +489,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         if not self.assigned_officer == request.user.id:
             return False
 
-        return is_occurrence_assessor(request) or is_occurrence_approver(request)
+        return is_occurrence_assessor(request) or is_occurrence_approver(request) or request.user.is_superuser
 
     def get_approver_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
@@ -518,10 +518,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
             OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
         ]:
-            return is_occurrence_assessor(request) or is_occurrence_approver(request)
+            return is_occurrence_assessor(request) or is_occurrence_approver(request) or request.user.is_superuser
 
         elif self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
-            return is_occurrence_approver(request)
+            return is_occurrence_approver(request) or request.user.is_superuser
 
         return False
 
@@ -906,7 +906,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             ).exists():
                 return True
 
-            return is_occurrence_assessor(request) or is_occurrence_approver(request)
+            return is_occurrence_assessor(request) or is_occurrence_approver(request) or request.user.is_superuser
         return False
 
     @transaction.atomic
@@ -1381,6 +1381,15 @@ class OccurrenceReportReferral(models.Model):
 
         send_occurrence_report_referral_recall_email_notification(self, request)
 
+        outstanding = self.occurrence_report.referrals.filter(
+            processing_status=self.PROCESSING_STATUS_WITH_REFERRAL
+        )
+        if len(outstanding) == 0:
+            self.occurrence_report.processing_status = (
+                OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
+            )
+            self.occurrence_report.save(version_user=request.user)
+
         # Create a log entry for the occurrence report
         self.occurrence_report.log_user_action(
             OccurrenceReportUserAction.RECALL_REFERRAL.format(
@@ -1410,7 +1419,7 @@ class OccurrenceReportReferral(models.Model):
 
         self.processing_status = self.PROCESSING_STATUS_WITH_REFERRAL
         self.occurrence_report.processing_status = self.PROCESSING_STATUS_WITH_REFERRAL
-        self.occurrence_report.save()
+        self.occurrence_report.save(version_user=request.user)
 
         self.save()
 
@@ -1460,7 +1469,7 @@ class OccurrenceReportReferral(models.Model):
             self.occurrence_report.processing_status = (
                 OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
             )
-            self.occurrence_report.save()
+            self.occurrence_report.save(version_user=request.user)
 
         # Create a log entry for the occurrence report
         self.occurrence_report.log_user_action(
@@ -1822,7 +1831,7 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry
         super().save(*args, **kwargs)
 
 
-class OCRObserverDetail(models.Model):
+class OCRObserverDetail(RevisionedMixin):
     """
     Observer data  for occurrence report
 
@@ -3369,6 +3378,20 @@ class Occurrence(RevisionedMixin):
             request,
         )
 
+    def reopen(self, request):
+        if (
+            is_occurrence_approver(request)
+            and self.processing_status == Occurrence.PROCESSING_STATUS_HISTORICAL
+        ):
+            self.processing_status = Occurrence.PROCESSING_STATUS_ACTIVE
+            self.save(version_user=request.user)
+
+        # Log proposal action
+        self.log_user_action(
+            OccurrenceUserAction.ACTION_REOPEN_OCCURRENCE.format(self.occurrence_number),
+            request,
+        )
+
     # if this function is called and the OCC has no associated OCRs, discard it
     def check_ocr_count_for_discard(self, request):
         discardable = [Occurrence.PROCESSING_STATUS_DRAFT]
@@ -3389,7 +3412,16 @@ class Occurrence(RevisionedMixin):
         if self.processing_status not in user_editable_state:
             return False
 
-        return is_occurrence_approver(request)
+        return is_occurrence_approver(request) or request.user.is_superuser
+    
+    def can_user_reopen(self, request):
+        user_editable_state = [
+            Occurrence.PROCESSING_STATUS_HISTORICAL,
+        ]
+        if self.processing_status not in user_editable_state:
+            return False
+
+        return is_occurrence_approver(request) or request.user.is_superuser
 
     def log_user_action(self, action, request):
         return OccurrenceUserAction.log_action(self, action, request.user.id)
@@ -3629,6 +3661,7 @@ class OccurrenceUserAction(UserAction):
     ACTION_LOCK_OCCURRENCE = "Lock occurrence {}"
     ACTION_UNLOCK_OCCURRENCE = "Unlock occurrence {}"
     ACTION_CLOSE_OCCURRENCE = "Close occurrence {}"
+    ACTION_REOPEN_OCCURRENCE = "Reopen occurrence {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for occurrence {}"
@@ -3799,7 +3832,7 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
         super().save(*args, **kwargs)
 
 
-class OCCContactDetail(models.Model):
+class OCCContactDetail(RevisionedMixin):
     """
     Observer data for occurrence
 
@@ -4406,7 +4439,7 @@ class OccurrenceTenurePurpose(models.Model):
         verbose_name_plural = "Occurrence Tenure Purposes"
 
     def __str__(self):
-        return self.purpose
+        return self.name
 
 
 class OccurrenceTenureVesting(models.Model):
@@ -4437,7 +4470,7 @@ def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
     collector.add_field_update(field, None, sub_objs)
 
 
-class OccurrenceTenure(models.Model):
+class OccurrenceTenure(RevisionedMixin):
     STATUS_CURRENT = "current"
     STATUS_HISTORICAL = "historical"
     STATUS_CHOICES = ((STATUS_CURRENT, "Current"), (STATUS_HISTORICAL, "Historical"))
@@ -4611,7 +4644,7 @@ class SiteType(models.Model):
         return str(self.name)
 
 
-class OccurrenceSite(GeometryBase):
+class OccurrenceSite(GeometryBase,RevisionedMixin):
     site_number = models.CharField(max_length=9, blank=True, default="")
     occurrence = models.ForeignKey(
         "Occurrence", related_name="sites", on_delete=models.CASCADE
@@ -4654,8 +4687,33 @@ reversion.register(OccurrenceReportDocument)
 # Occurrence Report Threat
 reversion.register(OCRConservationThreat)
 
+# Occurrence Report Observer Detail
+reversion.register(OCRObserverDetail)
+
+reversion.register(OCRHabitatComposition)
+reversion.register(OCRHabitatCondition)
+reversion.register(OCRVegetationStructure)
+reversion.register(OCRFireHistory)
+reversion.register(OCRAssociatedSpecies)
+reversion.register(OCRObservationDetail)
+reversion.register(OCRPlantCount)
+reversion.register(OCRAnimalObservation)
+reversion.register(OCRIdentification)
+
 # Occurrence Report
-reversion.register(OccurrenceReport, follow=["species", "community"])
+reversion.register(OccurrenceReport, 
+    follow=["species", "community",
+            "habitat_composition",
+            "habitat_condition",
+            "vegetation_structure",
+            "fire_history",
+            "associated_species",
+            "observation_detail",
+            "plant_count",
+            "animal_observation",
+            "identification",
+        ]
+)
 
 # Occurrence Document
 reversion.register(OccurrenceDocument)
@@ -4663,5 +4721,35 @@ reversion.register(OccurrenceDocument)
 # Occurrence Threat
 reversion.register(OCCConservationThreat)
 
+# Occurrence Contact Detail
+reversion.register(OCCContactDetail)
+
+# Occurrence Site
+reversion.register(OccurrenceSite)
+
+# Occurrence Tenure
+reversion.register(OccurrenceTenure)
+
+reversion.register(OCCHabitatComposition)
+reversion.register(OCCHabitatCondition)
+reversion.register(OCCVegetationStructure)
+reversion.register(OCCFireHistory)
+reversion.register(OCCAssociatedSpecies)
+reversion.register(OCCObservationDetail)
+reversion.register(OCCPlantCount)
+reversion.register(OCCAnimalObservation)
+reversion.register(OCCIdentification)
+
 # Occurrence
-reversion.register(Occurrence, follow=["species", "community", "occurrence_reports"])
+reversion.register(Occurrence, follow=["species", "community",
+        "habitat_composition",
+        "habitat_condition",
+        "vegetation_structure",
+        "fire_history",
+        "associated_species",
+        "observation_detail",
+        "plant_count",
+        "animal_observation",
+        "identification",
+        ]
+)

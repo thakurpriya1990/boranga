@@ -58,10 +58,6 @@
                                                     <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="combineOccurrence()">Combine</button><br />
                                                 </div>
-                                                <div v-if="canClose" class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="closeOccurrence()">Close</button><br />
-                                                </div>
                                             </div>
                                         </template>
                                         <template v-else-if="canUnlock">
@@ -73,6 +69,14 @@
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary mb-2"
                                                     @click.prevent="unlockOccurrence()">Unlock</button><br />
+                                            </div>
+                                        </template>
+                                        <template v-else-if="canReopen">
+                                            <div class="row mb-2">
+                                                <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary mb-2"
+                                                        @click.prevent="reopenOccurrence()">Reopen</button><br />
+                                                </div> 
                                             </div>
                                         </template>
                                     </div>
@@ -222,6 +226,9 @@ export default {
         },
         canClose: function () {
             return this.occurrence && this.occurrence.processing_status === "Active" ? true : false;
+        },
+        canReopen: function () {
+            return (this.occurrence && this.occurrence.can_user_reopen) ? true : false;
         },
         comms_url: function () {
             return helpers.add_endpoint_json(api_endpoints.occurrence, this.$route.params.occurrence_id + '/comms_log')
@@ -515,7 +522,7 @@ export default {
             let vm = this;
             swal.fire({
                 title: "Close",
-                text: "Are you sure you want to close this Occurrence? This cannot be undone.",
+                text: "Are you sure you want to close this Occurrence?",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "Close Occurrence",
@@ -543,6 +550,46 @@ export default {
                         var errorText = helpers.apiVueResourceError(err);
                         swal.fire({
                             title: 'Close Error',
+                            text: errorText,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                    });
+                }
+            });
+        },
+        reopenOccurrence: async function () {
+            let vm = this;
+            swal.fire({
+                title: "Reopen",
+                text: "Are you sure you want to reopen this Occurrence?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Reopen Occurrence",
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    await vm.$http.post(`/api/occurrence/${this.occurrence.id}/reopen_occurrence.json`).then(res => {
+                        swal.fire({
+                            title: "Reopened",
+                            text: "Occurrence has been Reopened",
+                            icon: "success",
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        }).then(async (swalresult) => {
+                            this.$router.go(this.$router.currentRoute);
+                        });
+                    }, err => {
+                        var errorText = helpers.apiVueResourceError(err);
+                        swal.fire({
+                            title: 'Reopen Error',
                             text: errorText,
                             icon: 'error',
                             customClass: {

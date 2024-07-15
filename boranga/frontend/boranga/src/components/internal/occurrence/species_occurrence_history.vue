@@ -88,7 +88,6 @@ export default {
                 'Date Modified',
                 'Modified By',
                 'Scientific Name',
-                'Number of Reports',
                 'Wild Status',
                 'Status',
                 'Action',
@@ -209,106 +208,6 @@ export default {
                 name: 'scientific_name', //_name',
             };
         },
-        /*column_non_current_name: function () {
-            return {
-                data: 'data.data.taxonomy.fields.non_current_name', 
-                defaultContent: '',
-                orderable: false,
-                searchable: true,
-                visible: true,
-                render: function (row, type, full) {
-                    if (full.data.taxonomy !== undefined) {
-                        //list not dict
-                        if (full.data.taxonomy.fields === undefined) {
-                            var current_name_pk = '';
-                            //get the crossreference old_tax and compare to pk
-                            if (full.data.crossreference !== undefined && full.data.crossreference.fields !== undefined) {
-                                current_name_pk = full.data.crossreference.fields.old_taxonomy
-                            } else if (full.data.crossreference.length > 0) {
-                                //get new taxon of highest pk
-                                var highest_pk_index = 0;
-                                for (var i = 0; i < full.data.crossreference.length; i++) {
-                                    if (full.data.crossreference[i].pk > full.data.crossreference[highest_pk_index].pk)
-                                    {
-                                        highest_pk_index = i;
-                                    }
-                                }
-                                current_name_pk = full.data.crossreference[highest_pk_index].fields.old_taxonomy
-                            }
-                            for (var i = 0; i < full.data.taxonomy.length; i++) {
-                                if (full.data.taxonomy[i].pk == current_name_pk) {
-                                    //return full.data.taxonomy[i].fields.scientific_name
-                                    let value = full.data.taxonomy[i].fields.scientific_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    return type=='export' ? value : result;
-                                }
-                            }                               
-                            return '';
-                        }
-                        return '';
-                    } else {
-                        return ''
-                    }
-                },
-                name: 'non_current_name', //_name',
-            };
-        },
-        column_common_name: function () {
-            return {
-                data: 'data.data.taxonvernacular.fields.vernacular_name', 
-                defaultContent: '',
-                orderable: false,
-                searchable: true,
-                visible: true,
-                render: function (row, type, full) {
-                    if (full.data.taxonvernacular !== undefined) {
-                        //list not dict
-                        if (full.data.taxonvernacular.fields === undefined) {
-                            var combined_name = ""
-                            for (var i = 0; i < full.data.taxonvernacular.length; i++) {
-                                if (i==0) {
-                                    combined_name = full.data.taxonvernacular[i].fields.vernacular_name;
-                                } else {
-                                    combined_name += ","+full.data.taxonvernacular[i].fields.vernacular_name
-                                }
-                            }                               
-                            //return combined_name;
-                            let value = combined_name;
-                            let result = helpers.dtPopover(value, 30, 'hover');
-                            return type=='export' ? value : result;
-                        }
-                        //return full.data.taxonvernacular.fields.vernacular_name;
-                        let value = full.data.taxonvernacular.fields.vernacular_name;
-                        let result = helpers.dtPopover(value, 30, 'hover');
-                        return type=='export' ? value : result;
-                    } else {
-                        return ''
-                    }
-                },
-                name: 'vernacular_name', //_name',
-            };
-        },*/
-        column_num_reports: function () {
-            return {                
-                data: 'data.data.occurrencereport',
-                defaultContent: '',
-                orderable: false,
-                searchable: false, 
-                visible: true,
-                render: function (row, type, full) {
-                    if (full.data.occurrencereport === undefined) {
-                        return 0;
-                    } else {
-                        if (full.data.occurrencereport.fields === undefined) {
-                            return full.data.occurrencereport.length
-                        } else {
-                            return 1;
-                        }
-                    }
-                },
-                name: 'number_of_reports',
-            };
-        },
         column_wild_status: function () {
             return {
                 data: 'data.data.occurrence.fields.wild_status',
@@ -359,9 +258,6 @@ export default {
                 vm.column_revision_date,
                 vm.column_revision_user,
                 vm.column_scientific_name,
-                //vm.column_common_name,
-                //vm.column_non_current_name,
-                vm.column_num_reports,
                 vm.column_wild_status,
                 vm.column_processing_status,
                 vm.column_action,

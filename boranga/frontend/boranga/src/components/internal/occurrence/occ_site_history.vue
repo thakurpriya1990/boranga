@@ -1,8 +1,8 @@
 <template lang="html">
-    <div id="communityOccurrenceHistory">
+    <div id="occurrenceSiteHistory">
         <modal
             transition="modal fade"
-            :title="'Occurrence OCC'+ occurrenceId +' - History'"
+            :title="'OCC Site ST' + siteId + ' - History ' "
             :large="true"
             :full="true"
             :showOK="false"
@@ -16,7 +16,7 @@
                     <div class="col-sm-12">
                         <div class="form-group">
                             <div class="row">
-                                <div v-if="occurrenceId" class="col-lg-12">
+                                <div v-if="siteId" class="col-lg-12">
                                     <datatable
                                         :id="datatable_id"
                                         ref="history_datatable"
@@ -27,10 +27,10 @@
                                     <DisplayHistory
                                         ref="display_history"
                                         :key="historyId"
-                                        :primary_model_number="'OCC'+occurrenceId"
+                                        :primary_model_number="'ST'+siteId"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
-                                        :primary_model="'Occurrence'"
+                                        :primary_model="'OccurrenceSite'"
                                     />
                                     </div>
                                 </div>
@@ -51,7 +51,7 @@ import DisplayHistory from '../../common/display_history.vue';
 import { v4 as uuid } from 'uuid';
 
 export default {
-    name: 'CommunityOccurrenceHistory',
+    name: 'OccurrenceSiteHistory',
     components: {
         modal,
         alert,
@@ -59,19 +59,16 @@ export default {
         DisplayHistory,
     },
     props: {
-        occurrenceId: {
+        siteId: {
             type: Number,
             required: true,
         },
     },
     data: function () {
         return {
-            scientificName: '',
             historyId: null,
             historySequence: null,
             datatable_id: 'history-datatable-' + uuid(),
-            documentDetails: {
-            },
             isModalOpen: false,
             errorString: '',
             successString: '',
@@ -87,9 +84,10 @@ export default {
                 'Number',
                 'Date Modified',
                 'Modified By',
-                'Community Name',
-                'Wild Status',
-                'Status',
+                'Site Name',
+                'Geometry',
+                'Comment',
+                'Related Occurrence Reports',
                 'Action',
             ];
         },
@@ -101,7 +99,7 @@ export default {
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.data.occurrence;
+                    return full.data.data.occurrencesite;
                 },
                 name: 'data',
             };
@@ -114,10 +112,10 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.occurrence.fields.occurrence_number) {
-                        return full.data.occurrence.fields.occurrence_number+'-'+full.revision_sequence;
+                    if (full.data.occurrencesite.fields.site_number) {
+                        return full.data.occurrencesite.fields.site_number+'-'+full.revision_sequence;
                     } else {
-                        return "OCC"+full.data.occurrence.pk+'-'+full.revision_sequence;
+                        return "ST"+full.data.occurrencesite.pk+'-'+full.revision_sequence;
                     }
                 },
                 name: 'revision_sequence',
@@ -126,12 +124,12 @@ export default {
         column_id: function () {
             return {
                 // 1. ID
-                data: 'data.data.occurrence.pk',
+                data: 'data.data.occurrencesite.pk',
                 orderable: false,
                 searchable: false,
                 visible: false,
                 render: function (row, type, full) {
-                    return full.data.occurrence.pk;
+                    return full.data.occurrencesite.pk;
                 },
                 name: 'id',
             };
@@ -139,14 +137,15 @@ export default {
         column_number: function () {
             return {
                 // 2. Number
-                data: 'data.data.occurrence.fields.occurrence_number',
+                data: 'data.data.occurrencesite.fields.site_number',
+                defaultContent: '',
                 orderable: false,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.occurrence.fields.occurrence_number;
+                    return full.data.occurrencesite.fields.site_number+'-'+full.revision_sequence;
                 },
-                name: 'occurrence_number',
+                name: 'site_number',
             };
         },
         column_revision_id: function () {
@@ -188,74 +187,85 @@ export default {
                 name: 'revision_user',
             };
         },
-        column_community_name: function () {
+        column_site_name: function () {
             return {
-                data: 'data.data.communitytaxonomy.fields.community_name', 
+                data: 'data.data.occurrencesite.fields.site_name', 
                 defaultContent: '',
-                orderable: false,
+                orderable: true,
                 searchable: true, 
                 visible: true,
-                //TODO: determine if communities can have multiple taxonomies (if not, change this to be more simple)
                 render: function (row, type, full) {
-                    if (full.data.communitytaxonomy !== undefined) {
-                        //list not dict
-                        var fallback_name = ""; //if none of the names are current somehow, use this
-                        if (full.data.communitytaxonomy.fields === undefined) {
-                            for (var i = 0; i < full.data.communitytaxonomy.length; i++) {
-                                if (full.data.communitytaxonomy[i].name_currency) { 
-                                    //return full.data.communitytaxonomy[i].fields.community_name
-                                    let value = full.data.communitytaxonomy[i].fields.community_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    return type=='export' ? value : result;
-                                } else {
-                                    let value = full.data.communitytaxonomy[i].fields.community_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    fallback_name = type=='export' ? value : result;
-                                }
-                            }                               
-                            return fallback_name;
-                        }
-
-                        //return full.data.communitytaxonomy.fields.community_name;
-                        let value = full.data.communitytaxonomy.fields.community_name;
+                    if(full.data.occurrencesite.fields.site_name) {
+                        return full.data.occurrencesite.fields.site_name;
+                    } else {
+                        return ''
+                    }
+                },
+                name: 'site_name', //_name',
+            };
+        },
+        column_geometry: function () {
+            return {
+                data: 'data.data.occurrencesite.fields.geometry', 
+                defaultContent: '',
+                orderable: false,
+                searchable: false, 
+                visible: true,
+                render: function (row, type, full) {
+                    if(full.data.occurrencesite.fields.geometry) {
+                        let value = full.data.occurrencesite.fields.geometry;
                         let result = helpers.dtPopover(value, 30, 'hover');
                         return type=='export' ? value : result;
                     } else {
                         return ''
                     }
                 },
-                name: 'community_name',
+                name: 'geometry', //_name',
             };
         },
-        column_wild_status: function () {
+        column_comment: function () {
             return {
-                data: 'data.data.occurrence.fields.wild_status',
+                data: 'data.data.occurrencesite.fields.comments', 
                 defaultContent: '',
-                orderable: true,
+                orderable: false,
                 searchable: false, 
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.occurrence.fields.wild_status) {
-                        return full.data.occurrence.fields.wild_status.name;
+                    if(full.data.occurrencesite.fields.comments) {
+                        let value = full.data.occurrencesite.fields.comments;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return type=='export' ? value : result;
+                    } else {
+                        return ''
                     }
-                    return "";
                 },
-                name: 'wild_status',
+                name: 'comment', //_name',
             };
         },
-        column_processing_status: function () {
+        column_related_reports: function () {
             return {
-                
-                data: 'data.data.occurrence.fields.processing_status',
+                data: 'data.data.occurrencesite.fields.related_occurrence_reports', 
                 defaultContent: '',
-                orderable: true,
+                orderable: false,
                 searchable: false, 
                 visible: true,
-                render: function (row, type, full) {
-                    return full.data.occurrence.fields.processing_status;
+                render: function (data, type, full) {
+                    if(full.data.occurrencesite.fields.related_occurrence_reports) {
+                        let related_occurrence_reports = [];
+                        full.data.occurrencesite.fields.related_occurrence_reports.forEach((report) => {
+                                related_occurrence_reports.push("OCR"+report)
+                            }
+                        );
+                        let related_occurrence_reports_formatted = related_occurrence_reports.join(", ");
+                        let value = related_occurrence_reports_formatted;
+                        let result = helpers.dtPopover(value, 30, 'hover');
+                        return result;
+                    } else {
+                        return "";
+                    }
                 },
-                name: 'processing_status',
-            };
+                name: 'related_occurrence_reports',
+            }
         },
         column_action: function () {
             return {
@@ -276,9 +286,10 @@ export default {
                 vm.column_sequence,
                 vm.column_revision_date,
                 vm.column_revision_user,
-                vm.column_community_name,
-                vm.column_wild_status,
-                vm.column_processing_status,
+                vm.column_site_name,
+                vm.column_geometry,
+                vm.column_comment,
+                vm.column_related_reports,
                 vm.column_action,
             ];
             return {
@@ -292,7 +303,7 @@ export default {
                 order: [[0, 'desc']],
                 serverSide: true,
                 ajax: {
-                    url: api_endpoints.lookup_history_occurrence(this.occurrenceId)+"?format=datatables",
+                    url: api_endpoints.lookup_history_occurrence_site(this.siteId)+"?format=datatables",
                     dataSrc: 'data',
                 },
                 buttons: [
@@ -365,9 +376,28 @@ export default {
         isModalOpen() {
             let vm = this;
             if (this.isModalOpen) {
-                vm.$refs.history_datatable.vmDataTable.ajax.reload();
+                vm.$refs.history_datatable.vmDataTable.ajax.reload();            
             }
         }
     },
 };
 </script>
+
+<style lang="css" scoped>
+    /*ul, li {
+        zoom:1;
+        display: inline;
+    }*/
+    fieldset.scheduler-border {
+    border: 1px groove #ddd !important;
+    padding: 0 1.4em 1.4em 1.4em !important;
+    margin: 0 0 1.5em 0 !important;
+    -webkit-box-shadow:  0px 0px 0px 0px #000;
+            box-shadow:  0px 0px 0px 0px #000;
+    }
+    legend.scheduler-border {
+    width:inherit; /* Or auto */
+    padding:0 10px; /* To give a bit of padding on the left and right */
+    border-bottom:none;
+    }
+</style>
