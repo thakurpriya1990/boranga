@@ -41,7 +41,7 @@
 
             <ProposalOccurrenceReport v-if="occurrence_report_obj" :occurrence_report_obj="occurrence_report_obj"
                 id="OccurrenceReportStart" :canEditStatus="canEditStatus" :is_external="true" ref="occurrence_report"
-                @refreshOccurrenceReport="refreshOccurrenceReport()" @refreshFromResponse="refreshFromResponse">
+                @refreshOccurrenceReport="refreshOccurrenceReport()" @refreshFromResponse="refreshFromResponse" @saveOccurrenceReport="save_before_submit()">
             </ProposalOccurrenceReport>
 
             <div>

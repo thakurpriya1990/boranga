@@ -237,7 +237,7 @@
                         <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
                             id="OccurrenceReportStart" :canEditStatus="false" :is_external="false" :is_internal="true"
                             ref="occurrence_report" @refreshFromResponse="refreshFromResponse"
-                            @refreshOccurrenceReport="refreshOccurrenceReport()">
+                            @refreshOccurrenceReport="refreshOccurrenceReport()" @saveOccurrenceReport="save_before_submit()">
                         </ProposalOccurrenceReport>
 
                         <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
@@ -697,7 +697,6 @@ export default {
             });
         },
         save_before_submit: async function (e) {
-            //console.log('save before submit');
             let vm = this;
             vm.saveError = false;
 
