@@ -169,6 +169,10 @@
                                 >
                                     <!-- Filter for not false to also catch undefined as trueish (not all geoms have show_on_map) -->
                                     <small
+                                        v-if="
+                                            getLayerDefinitionByName(name)
+                                                .can_hide_geometries === true
+                                        "
                                         >{{ layerNameTitles[name] }} ({{
                                             filterFeaturesShowOnMap(
                                                 features,
@@ -193,6 +197,11 @@
                                             hidden)
                                         </span>
                                     </small>
+                                    <small v-else
+                                        >{{ layerNameTitles[name] }} ({{
+                                            features.length
+                                        }})</small
+                                    >
                                 </a>
                                 <div
                                     :id="`geometry-list-collapsible-${name}`"
@@ -2697,7 +2706,7 @@ export default {
             layers.forEach((layer) => {
                 const features = layer.getSource().getFeatures();
                 features.forEach((feature) => {
-                    if (feature.getProperties().show_on_map === false) {
+                    if (this.isFeatureEligibleToHide(feature)) {
                         // Ignore hidden features
                         return;
                     }
@@ -4143,6 +4152,9 @@ export default {
                             .identifier_name || null;
                     // Add the identifier to the properties
                     properties['identifier_name'] = identifierName;
+                    properties['can_hide_geometries'] =
+                        this.getLayerDefinitionByName(toSource)
+                            .can_hide_geometries === true;
                     for (const [key, value] of Object.entries(proposal)) {
                         this.addFeatureDisplayPropertyValue(
                             key,
@@ -4167,6 +4179,8 @@ export default {
                     this.getLayerDefinitionByName(toSource).identifier_name ||
                     null;
                 propertyOverwrite['identifier_name'] = identifierName;
+                propertyOverwrite['layer_definition'] =
+                    this.getLayerDefinitionByName(toSource);
                 opacities = vm.addGeometryToMapSource(
                     proposals,
                     propertyOverwrite,
@@ -4316,6 +4330,8 @@ export default {
 
             // Apply the passed in properties to the feature, but overwrite where necessary (nullish coalescing operator ??=)
             const featureProperties = structuredClone(properties);
+            featureProperties['can_hide_geometries'] =
+                context['can_hide_geometries'] || false;
             // Make sure all features have an id under the same key
             featureProperties['identifier_value'] =
                 context[context.identifier_name] ||
@@ -4897,7 +4913,7 @@ export default {
             }
         },
         selectFeature: function (feature) {
-            if (feature.getProperties().show_on_map === false) {
+            if (this.isFeatureEligibleToHide(feature)) {
                 // Prevent selecting hidden features
                 return;
             }
@@ -4923,7 +4939,7 @@ export default {
             });
         },
         createFeatureStyle: function (feature) {
-            if (feature.getProperties().show_on_map === false) {
+            if (this.isFeatureEligibleToHide(feature)) {
                 return new Style({});
             }
             const color = feature.getProperties().color;
@@ -5552,6 +5568,12 @@ export default {
             return features.filter(
                 (f) => f.getProperties().show_on_map === what
             );
+        },
+        isFeatureEligibleToHide: function (feature) {
+            if (!feature.getProperties().can_hide_geometries) {
+                return false;
+            }
+            return feature.getProperties().show_on_map === false;
         },
     },
 };
