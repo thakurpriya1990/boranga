@@ -43,7 +43,7 @@
             <PlantCount v-if="isFlora" :plant_count="occurrence_report_obj.plant_count"
                 :processing_status="occurrence_report_obj.processing_status" :is_report=true
                 :occurrence_id="occurrence_report_obj.id" id="plantCountDetail" :is_external="is_external"
-                :isReadOnly="isReadOnly" ref="plantCountDetail">
+                :isReadOnly="isReadOnly" ref="plantCountDetail" @mounted="populatePlantCountLookups">
             </PlantCount>
         </FormSection>
 
@@ -51,7 +51,7 @@
             <AnimalObservation v-if="isFauna" :animal_observation="occurrence_report_obj.animal_observation"
                 :processing_status="occurrence_report_obj.processing_status" :is_report=true
                 :occurrence_id="occurrence_report_obj.id" id="animalObservationDetail" :is_external="is_external"
-                :isReadOnly="isReadOnly" ref="animalObservationDetail">
+                :isReadOnly="isReadOnly" ref="animalObservationDetail" @mounted="populateAnimalObservationLookups">
             </AnimalObservation>
         </FormSection>
 
@@ -285,19 +285,7 @@ export default {
                 vm.updatingIdentificationDetails = false;
             });
         },
-    },
-    created: async function () {
-        let vm = this;
-        //------fetch list of values
-        const res = await Vue.http.get('/api/occurrence_report/observation_list_of_values.json');
-        vm.listOfValuesDict = res.body;
-        vm.observation_method_list = vm.listOfValuesDict.observation_method_list;
-        vm.observation_method_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
-        if (this.isFlora) {
+        populatePlantCountLookups: function () {
             // using child refs to assign the list values to avoid calling the above api again in plantCount component
             vm.$refs.plantCountDetail.plant_count_method_list = vm.listOfValuesDict.plant_count_method_list;
             vm.$refs.plantCountDetail.plant_count_method_list.splice(0, 0,
@@ -323,8 +311,8 @@ export default {
                     id: null,
                     name: null,
                 });
-        }
-        else if (this.isFauna) {
+        },
+        populateAnimalObservationLookups: function () {
             // using child refs to assign the list values to avoid calling the above api again in AnimalObservation component
             vm.$refs.animalObservationDetail.primary_detection_method_list = vm.listOfValuesDict.primary_detection_method_list;
             vm.$refs.animalObservationDetail.primary_detection_method_list.splice(0, 0,
@@ -357,6 +345,19 @@ export default {
                     name: null,
                 });
         }
+    },
+    created: async function () {
+        let vm = this;
+        //------fetch list of values
+        const res = await Vue.http.get('/api/occurrence_report/observation_list_of_values.json');
+        vm.listOfValuesDict = res.body;
+        vm.observation_method_list = vm.listOfValuesDict.observation_method_list;
+        vm.observation_method_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+
         vm.identification_certainty_list = vm.listOfValuesDict.identification_certainty_list;
         vm.identification_certainty_list.splice(0, 0,
             {

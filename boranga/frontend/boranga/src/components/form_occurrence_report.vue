@@ -3,43 +3,43 @@
         <div class="" :id="occurrenceReportBody">
             <OCRProfile ref="ocr_profile" id="ocrProfile" :is_external="is_external" :referral="referral"
                 :show_observer_contact_information="show_observer_contact_information"
-                :occurrence_report_obj="occurrence_report_obj" @refreshOccurrenceReport="refreshOccurrenceReport()">
+                :occurrence_report_obj="occurrence_report_obj" @refreshOccurrenceReport="refreshOccurrenceReport()" @saveOccurrenceReport="saveOccurrenceReport()">
             </OCRProfile>
             <SubmitterInformation v-if="occurrence_report_obj.submitter_information" :key="reloadcount"
                 ref="submitter_information" id="submitter_information"
                 :show_submitter_contact_details="show_submitter_contact_details"
                 :submitter_information="occurrence_report_obj.submitter_information"
-                :disabled="!occurrence_report_obj.can_user_edit" />
+                :disabled="!occurrence_report_obj.can_user_edit || referral" />
         </div>
         <div class="col-md-12">
             <ul id="pills-tab" class="nav nav-pills" role="tablist">
                 <li class="nav-item">
                     <a id="pills-location-tab" class="nav-link active" data-bs-toggle="pill" :href="'#' + locationBody"
-                        role="tab" :aria-controls="locationBody" aria-selected="true" @click="tabClicked()">
+                        role="tab" :aria-controls="locationBody" aria-selected="true" @click="tabClicked('location')">
                         Location
                     </a>
                 </li>
                 <li class="nav-item">
                     <a id="pills-habitat-tab" class="nav-link" data-bs-toggle="pill" :href="'#' + habitatBody"
-                        role="tab" aria-selected="false" @click="tabClicked()">
+                        role="tab" aria-selected="false" @click="tabClicked('habitat')">
                         Habitat
                     </a>
                 </li>
                 <li class="nav-item">
                     <a id="pills-observation-tab" class="nav-link" data-bs-toggle="pill" :href="'#' + observationBody"
-                        role="tab" aria-selected="false" @click="tabClicked()">
+                        role="tab" aria-selected="false" @click="tabClicked('observation')">
                         Observation
                     </a>
                 </li>
                 <li class="nav-item">
                     <a id="pills-documents-tab" class="nav-link" data-bs-toggle="pill" :href="'#' + documentBody"
-                        role="tab" aria-selected="false" @click="tabClicked()">
+                        role="tab" aria-selected="false" @click="tabClicked('documents')">
                         Documents
                     </a>
                 </li>
                 <li class="nav-item">
                     <a id="pills-threats-tab" class="nav-link" data-bs-toggle="pill" :href="'#' + threatBody" role="tab"
-                        aria-selected="false" @click="tabClicked()">
+                        aria-selected="false" @click="tabClicked('threats')">
                         Threats
                     </a>
                 </li>
@@ -125,12 +125,13 @@ export default {
             default: true,
         },
     },
-    emits: ['refreshFromResponse', 'refreshOccurrenceReport'],
+    emits: ['refreshFromResponse', 'refreshOccurrenceReport', 'saveOccurrenceReport'],
     data: function () {
         let vm = this;
         return {
             values: null,
             reloadcount: 0,
+            threatsKey: 0,
             occurrenceReportBody: 'occurrenceReportBody' + vm._uid,
             locationBody: 'locationBody' + vm._uid,
             habitatBody: 'habitatBody' + vm._uid,
@@ -158,24 +159,30 @@ export default {
     mounted: function () {
         let vm = this;
         vm.form = document.forms.new_occurrence_report;
-        vm.eventListener();
+        document.querySelectorAll('a[data-bs-toggle="pill"]').forEach((el) => {
+            el.addEventListener('shown.bs.tab', () => {
+                if (el.id == 'pills-threats-tab') {
+                    this.$refs.ocr_threats.adjust_table_width();
+                } else if (el.id == 'pills-documents-tab') {
+                    this.$refs.ocr_documents.adjust_table_width();
+                }
+            });
+        });
     },
     methods: {
-        //----function to resolve datatable exceeding beyond the div
-        // eslint-disable-next-line no-unused-vars
         tabClicked: function (param) {
-            this.reloadcount = this.reloadcount + 1;
+            // TODO: This was reloading the components in every tab every time someone clicked on a tab.
+            // Leaving here for now in case it was needed for an unforseen reason, if not please delete this method.
+            // this.reloadcount = this.reloadcount + 1;
         },
-        eventListener: function () {
-            // eslint-disable-next-line no-unused-vars
-            let vm = this;
-        },
-        // eslint-disable-next-line no-unused-vars
-        refreshFromResponse: function (data) {
-            //this.$emit('refreshFromResponse', data);
+        refreshFromResponse: function () {
+            this.$emit('refreshFromResponse');
         },
         refreshOccurrenceReport: function () {
             this.$emit('refreshOccurrenceReport');
+        },
+        saveOccurrenceReport: function () {
+            this.$emit('saveOccurrenceReport');
         },
     },
 };

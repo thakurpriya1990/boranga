@@ -2261,7 +2261,7 @@ class OccurrenceReportViewSet(
             "PATCH",
         ],
         detail=True,
-        permission_classes=[OccurrencePermission]
+        permission_classes=[OccurrencePermission],
     )
     @renderer_classes((JSONRenderer,))
     def update_show_on_map(self, request, *args, **kwargs):
@@ -2616,7 +2616,7 @@ class OccurrenceReportDocumentViewSet(
         instance.add_documents(request, no_revision=True)
         instance.uploaded_by = request.user.id
 
-        if is_external_contributor(self.request):
+        if is_contributor(self.request):
             instance.can_submitter_access = True
 
         instance.save(version_user=request.user)

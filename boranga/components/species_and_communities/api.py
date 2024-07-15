@@ -822,7 +822,17 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
 class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (SpeciesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = Species.objects.all()
+    queryset = (
+        Species.objects.all()
+        .select_related(
+            "taxonomy",
+            "group_type",
+            "species_publishing_status",
+        )
+        .prefetch_related(
+            "conservation_status",
+        )
+    )
     serializer_class = ListSpeciesSerializer
     page_size = 10
 
@@ -1082,7 +1092,15 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
 class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (CommunitiesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = Community.objects.all()
+    queryset = (
+        Community.objects.all()
+        .select_related(
+            "taxonomy",
+            "group_type",
+            "community_publishing_status",
+        )
+        .prefetch_related("conservation_status", "regions", "districts")
+    )
     serializer_class = ListCommunitiesSerializer
     page_size = 10
 
@@ -1281,19 +1299,27 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Species.objects.none()
+    queryset = (
+        Species.objects.all()
+        .select_related(
+            "taxonomy",
+            "group_type",
+            "species_publishing_status",
+        )
+        .prefetch_related(
+            "conservation_status",
+        )
+    )
     serializer_class = SpeciesSerializer
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        if is_internal(self.request):
-            qs = Species.objects.all()
-            return qs
-        else:
-            qs = Species.objects.filter(
-                processing_status=Species.PROCESSING_STATUS_ACTIVE
-            ).filter(species_publishing_status__species_public=True)
-            return qs
+        qs = super().get_queryset()
+        if not is_internal(self.request):
+            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE).filter(
+                species_publishing_status__species_public=True
+            )
+        return qs
 
     @detail_route(
         methods=[
@@ -1338,15 +1364,25 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = Species.objects.none()
+    queryset = (
+        Species.objects.all()
+        .select_related(
+            "taxonomy",
+            "group_type",
+            "species_publishing_status",
+        )
+        .prefetch_related(
+            "conservation_status",
+        )
+    )
     serializer_class = InternalSpeciesSerializer
     lookup_field = "id"
 
     def get_queryset(self):
-        if is_internal(self.request):
-            qs = Species.objects.all()
-            return qs
-        return Species.objects.none()
+        qs = super().get_queryset()
+        if not is_internal(self.request):
+            return qs.none()
+        return qs
 
     @detail_route(
         methods=[

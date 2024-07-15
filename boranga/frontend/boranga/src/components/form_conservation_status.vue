@@ -34,14 +34,14 @@
                         :conservation_status_obj="conservation_status_obj" :referral="referral"
                         @saveConservationStatus="$emit('saveConservationStatus');">
                     </SpeciesStatus>
-                    <CSDocuments v-if="!is_internal" :key="reloadcount + 'cs_documents'" ref="cs_documents"
+                    <CSDocuments v-if="!is_internal && !referral" :key="reloadcount + 'cs_documents'" ref="cs_documents"
                         id="csDocuments" :is_internal="is_internal" :conservation_status_obj="conservation_status_obj">
                     </CSDocuments>
                     <SubmitterInformation v-if="conservation_status_obj.submitter_information"
                         :key="reloadcount + 'submitter_information'" ref="submitter_information"
                         id="submitter_information" :show_submitter_contact_details="show_submitter_contact_details"
                         :submitter_information="conservation_status_obj.submitter_information"
-                        :disabled="!conservation_status_obj.can_user_edit" />
+                        :disabled="!conservation_status_obj.can_user_edit || referral" />
                 </div>
                 <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
                     <CSDocuments :key="reloadcount" ref="cs_documents" id="csDocuments" :is_internal="is_internal"
