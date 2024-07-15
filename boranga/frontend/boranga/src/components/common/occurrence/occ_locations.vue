@@ -535,12 +535,9 @@ export default {
             // When in Entering Conditions status ApplicationForm might not be there
             // adding occ_geometry from the map_component to payload
             if (vm.$refs.component_map) {
-                const features = JSON.parse(vm.$refs.component_map.getJSONFeatures());
-                const buffer_opacity = vm.$refs.component_map
-                    .getLayerByName(vm.bufferLayerName)
-                    .getProperties().opacity;
-                features
-                payload.occ_geometry = vm.$refs.component_map.getJSONFeatures();
+                // Get the occ geometry with opacity fields set
+                const occ_geometry = vm.OccGeometryFromMap();
+                payload.occ_geometry = JSON.stringify(occ_geometry);
                 vm.$refs.component_map.setLoadingMap(true);
             }
 
@@ -797,6 +794,20 @@ export default {
                 return this.$refs.component_map.featureArea(feature);
             }
             return 0;
+        },
+        OccGeometryFromMap: function () {
+            const occ_geometry = JSON.parse(
+                this.$refs.component_map.getJSONFeatures()
+            );
+            const buffer_opacity = this.$refs.component_map
+                .getLayerByName(this.bufferLayerName)
+                .getProperties().opacity;
+            // Set buffer opacity to the features
+            occ_geometry.features.forEach((f) => {
+                f.properties.buffer_opacity = buffer_opacity;
+            });
+
+            return occ_geometry;
         },
     },
 };

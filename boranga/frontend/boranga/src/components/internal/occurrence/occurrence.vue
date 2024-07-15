@@ -266,8 +266,9 @@ export default {
                 vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(
                     true
                 );
-                vm.occurrence.occ_geometry =
-                    vm.$refs.occurrence.$refs.occ_location.$refs.component_map.getJSONFeatures();
+                const occ_geometry =
+                    vm.$refs.occurrence.$refs.occ_location.OccGeometryFromMap();
+                vm.occurrence.occ_geometry = JSON.stringify(occ_geometry);
                 vm.occurrence.site_geometry =
                     vm.$refs.occurrence.$refs.occ_location.$refs.component_map.getJSONFeatures("site_layer");
             }

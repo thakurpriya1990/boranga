@@ -389,7 +389,7 @@ def save_geometry(
                 # Only occurrence geometries can have buffer geometries
                 continue
 
-            opacity = feature.get("properties", {}).get("buffer_geometry", {}).get("opacity", 0.5)
+            opacity = feature.get("properties", {}).get("buffer_opacity", 0.5)
 
             try:
                 buffer_geometry = BufferGeometry.objects.get(
