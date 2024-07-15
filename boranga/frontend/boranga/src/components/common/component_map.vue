@@ -3160,6 +3160,17 @@ export default {
                 });
             }
 
+            this.layerSwitcher.on('layer:opacity', (e) => {
+                const layer = e.layer;
+                const opacity = layer.getProperties().opacity;
+                layer
+                    .getSource()
+                    .getFeatures()
+                    .forEach((feature) => {
+                        feature.set('opacity', opacity);
+                    });
+            });
+
             // Add a button to show/hide the layers
             const button = $('<div class="toggleVisibility" title="show/hide">')
                 .text('Show/hide all')
@@ -4212,7 +4223,12 @@ export default {
                     );
                     return;
                 }
-                if (feature.getProperties().opacity) {
+                const opacity = feature.getProperties().opacity;
+                if (
+                    typeof opacity === 'number' &&
+                    opacity >= 0 &&
+                    opacity <= 1
+                ) {
                     opacities.push(feature.getProperties().opacity);
                 }
                 source.addFeature(feature);

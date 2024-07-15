@@ -50,7 +50,7 @@
                             },
                         },
                         {
-                            name: 'buffer_layer',
+                            name: bufferLayerName,
                             title: 'Buffer Geometries',
                             default: false,
                             processed: false,
@@ -321,6 +321,7 @@ export default {
             mapContainerId: false,
             queryLayerName: 'query_layer',
             occurrenceLayerName: 'occurrence_layer',
+            bufferLayerName: 'buffer_layer',
         };
     },
     computed: {
@@ -534,6 +535,11 @@ export default {
             // When in Entering Conditions status ApplicationForm might not be there
             // adding occ_geometry from the map_component to payload
             if (vm.$refs.component_map) {
+                const features = JSON.parse(vm.$refs.component_map.getJSONFeatures());
+                const buffer_opacity = vm.$refs.component_map
+                    .getLayerByName(vm.bufferLayerName)
+                    .getProperties().opacity;
+                features
                 payload.occ_geometry = vm.$refs.component_map.getJSONFeatures();
                 vm.$refs.component_map.setLoadingMap(true);
             }

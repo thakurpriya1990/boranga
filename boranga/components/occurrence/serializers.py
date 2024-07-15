@@ -3233,6 +3233,7 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
             "buffer_radius",
             "content_type",
             "object_id",
+            "opacity",
         )
         read_only_fields = ("id",)
 
