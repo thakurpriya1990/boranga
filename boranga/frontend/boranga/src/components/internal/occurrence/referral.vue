@@ -64,11 +64,11 @@
                             <div class="row">
                                 <form :action="species_community_ocr_form_url" method="post"
                                     name="new_occurrence_report" enctype="multipart/form-data">
-                                    <ProposalOccurrenceReport v-if="occurrence_report_obj"
+                                    <ProposalOccurrenceReport v-if="occurrence_report_obj && profile"
                                         :occurrence_report_obj="occurrence_report_obj" id="OccurrenceReportStart"
                                         :canEditStatus="canEditStatus" ref="occurrence_report" :referral="referral"
                                         @refreshOccurrenceReport="refreshOccurrenceReport()" :show_observer_contact_information="false"
-                                        @refreshFromResponse="refreshFromResponse">
+                                        @refreshFromResponse="refreshFromResponse" :is_internal="is_internal">
                                     </ProposalOccurrenceReport>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                     <input type='hidden' name="occurrence_report_id" :value="1" />
@@ -107,6 +107,7 @@ export default {
     name: 'OccurrenceReportReferral',
     data: function () {
         return {
+            profile: null,
             savingOccurrenceReport: false,
             referral: null,
         }
@@ -115,11 +116,6 @@ export default {
         datatable,
         Submission,
         ProposalOccurrenceReport,
-    },
-    props: {
-        referralId: {
-            type: Number,
-        },
     },
     computed: {
         occurrence_report_obj: function () {
@@ -245,8 +241,18 @@ export default {
                     console.log(err);
                 });
         },
+        fetchProfile() {
+            this.$http.get(api_endpoints.profile)
+                .then(response => {
+                    this.profile = response.data
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+        },
     },
     created: function () {
+        this.fetchProfile();
         if (!this.referral) {
             this.fetchReferral();
         }

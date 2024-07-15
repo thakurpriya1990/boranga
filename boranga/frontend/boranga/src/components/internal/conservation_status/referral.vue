@@ -64,8 +64,9 @@
                             <div class="row">
                                 <form :action="species_community_cs_form_url" method="post"
                                     name="new_conservation_status" enctype="multipart/form-data">
-                                    <ProposalConservationStatus ref="conservation_status"
-                                        :conservation_status_obj="conservation_status_obj" :referral="referral">
+                                    <ProposalConservationStatus v-if="conservation_status_obj && profile"
+                                        ref="conservation_status" :conservation_status_obj="conservation_status_obj"
+                                        :referral="referral" :is_internal="profile.is_internal">
                                     </ProposalConservationStatus>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                     <input type='hidden' name="conservation_status_id" :value="1" />
@@ -104,6 +105,7 @@ export default {
     name: 'ConservationStatusReferral',
     data: function () {
         return {
+            profile: null,
             savingConservationStatus: false,
             referral: null,
         }
@@ -112,11 +114,6 @@ export default {
         datatable,
         Submission,
         ProposalConservationStatus,
-    },
-    props: {
-        referralId: {
-            type: Number,
-        },
     },
     computed: {
         conservation_status_obj: function () {
@@ -236,8 +233,18 @@ export default {
                     console.log(err);
                 });
         },
+        fetchProfile() {
+            this.$http.get(api_endpoints.profile)
+                .then(response => {
+                    this.profile = response.data
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+        },
     },
     created: function () {
+        this.fetchProfile();
         if (!this.referral) {
             this.fetchReferral();
         }
