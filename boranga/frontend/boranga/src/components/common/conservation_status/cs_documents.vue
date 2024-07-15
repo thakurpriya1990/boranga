@@ -227,8 +227,11 @@ export default {
     },
     computed: {
         show_document_actions: function () {
-            return this.conservation_status_obj.can_user_edit || (
-                this.conservation_status_obj.assessor_mode && this.conservation_status_obj.assessor_mode.assessor_can_assess && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor'
+            return (!this.is_internal && this.conservation_status_obj.can_user_edit) || (
+                this.is_internal &&
+                this.conservation_status_obj.assessor_mode &&
+                this.conservation_status_obj.assessor_mode.assessor_can_assess &&
+                this.conservation_status_obj.assessor_mode.assessor_level == 'assessor'
             );
         }
     },
