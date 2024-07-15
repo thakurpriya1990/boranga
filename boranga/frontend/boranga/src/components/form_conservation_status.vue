@@ -34,7 +34,7 @@
                         :conservation_status_obj="conservation_status_obj" :referral="referral"
                         @saveConservationStatus="$emit('saveConservationStatus');">
                     </SpeciesStatus>
-                    <CSDocuments v-if="!is_internal" :key="reloadcount + 'cs_documents'" ref="cs_documents"
+                    <CSDocuments v-if="!is_internal && !referral" :key="reloadcount + 'cs_documents'" ref="cs_documents"
                         id="csDocuments" :is_internal="is_internal" :conservation_status_obj="conservation_status_obj">
                     </CSDocuments>
                     <SubmitterInformation v-if="conservation_status_obj.submitter_information"
