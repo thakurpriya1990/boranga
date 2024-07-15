@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="speciesOccurrenceReport">
         <FormSection :formCollapse="false" label="Occurrence Report" Index="occurrence_report">
-            <fieldset id="occurrence-report-profile-fieldset" @change="$emit('saveOccurrenceReport');">
+            <fieldset id="occurrence-report-profile-fieldset" @change="saveOccurrenceReport">
                 <template v-if="!is_external">
                     <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments"
                         :collapsed="false">
@@ -244,6 +244,7 @@ export default {
                     vm.occurrence_report_obj.species_id = null;
                     vm.species_display = '';
                     vm.taxon_previous_name = '';
+                    vm.$emit('saveOccurrenceReport');
                 })
                 // eslint-disable-next-line no-unused-vars
                 .on('select2:open', function (e) {
@@ -297,12 +298,14 @@ export default {
                     let data = e.params.data.id;
                     vm.occurrence_report_obj.community_id = data;
                     vm.community_display = e.params.data.text;
+                    vm.$emit('saveOccurrenceReport');
                 })
                 .on('select2:unselect', function (e) {
                     // eslint-disable-next-line no-unused-vars
                     var selected = $(e.currentTarget);
                     vm.occurrence_report_obj.community_id = null;
                     vm.community_display = '';
+                    vm.$emit('saveOccurrenceReport');
                 })
                 // eslint-disable-next-line no-unused-vars
                 .on('select2:open', function (e) {
@@ -385,6 +388,12 @@ export default {
         refreshOccurrenceReport: function () {
             this.$emit('refreshOccurrenceReport');
         },
+        saveOccurrenceReport: function (e) {
+            console.log(e.target.id)
+            if(e.target.id!='select_scientific_name' && e.target.id!='select_community_name'){
+                this.$emit('saveOccurrenceReport');
+            }
+        }
     },
     created: async function () {
         let vm = this;
