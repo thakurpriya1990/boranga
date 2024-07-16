@@ -2261,12 +2261,12 @@ class OccurrenceReportViewSet(
             "PATCH",
         ],
         detail=True,
-        permission_classes=[OccurrencePermission],
+        permission_classes=[OccurrenceReportPermission],
     )
     @renderer_classes((JSONRenderer,))
     def update_show_on_map(self, request, *args, **kwargs):
         show_on_map = request.data.get("show_on_map")
-        model_id = request.data.get("model_id")        
+        model_id = request.data.get("model_id")
         instance = self.get_object()
         OccurrenceReportGeometry.objects.filter(
             occurrence_report=instance, id=model_id
