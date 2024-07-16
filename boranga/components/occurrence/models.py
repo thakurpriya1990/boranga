@@ -3459,7 +3459,7 @@ class Occurrence(RevisionedMixin):
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
         if filter_type == "all":
-            related_field_names = ["species", "community", "occurrence_report"]
+            related_field_names = ["species", "community", "occurrence_report", "conservation_status",]
         else:
             related_field_names = [
                 filter_type,
@@ -3490,7 +3490,17 @@ class Occurrence(RevisionedMixin):
                     if field_object:
                         related_item = field_object.as_related_item
                         return_list.append(related_item)
-
+        if 'conservation_status' in related_field_names:
+            cs_filter_type='conservation_status'
+            if self.species:
+                species_occurences=self.species.get_related_items(cs_filter_type)
+                if species_occurences:
+                    # return_list.append(species_occurences)
+                    return_list += species_occurences
+            if self.community:
+                community_occurences=self.community.get_related_items(cs_filter_type)
+                if community_occurences:
+                    return_list += community_occurences
         # serializer = RelatedItemsSerializer(return_list, many=True)
         # return serializer.data
         return return_list

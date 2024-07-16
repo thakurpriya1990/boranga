@@ -1621,14 +1621,14 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             species_filter.append('occurrences')
         if 'occurrence_report' in related_field_names:
             species_filter.append('occurrence_report')
-        for filter_type in species_filter:
+        for occ_filter_type in species_filter:
             if self.species:
-                species_occurences=self.species.get_related_items(filter_type)
+                species_occurences=self.species.get_related_items(occ_filter_type)
                 if species_occurences:
                     # return_list.append(species_occurences)
                     return_list += species_occurences
             if self.community:
-                community_occurences=self.community.get_related_items(filter_type)
+                community_occurences=self.community.get_related_items(occ_filter_type)
                 if community_occurences:
                     return_list += community_occurences
         return return_list
