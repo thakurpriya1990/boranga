@@ -23,6 +23,8 @@
                         api_url: ocrApiUrl,
                         ids: occurrenceReportIds,
                         geometry_name: 'ocr_geometry',
+                        identifier_name: 'occurrence_report_number',
+                        z_index: 2,
                         collapse: true,
                         property_display_map: ocrPropertyDisplayMap,
                     }" :additional-layers-definitions="[
@@ -36,15 +38,19 @@
                             api_url: occApiUrl,
                             ids: [occurrence_obj.id],
                             geometry_name: 'occ_geometry',
+                            identifier_name: 'occurrence_number',
+                            z_index: 3,
                             property_display_map: occPropertyDisplayMap,
                             property_overwrite: {
                                 area_sqm: featureAreaMeter,
                                 area_sqhm: (feature) =>
                                     featureAreaMeter(feature) / 10000,
+                                color: '#6273f5', // light blue
+                                stroke: '#192163', // dark blue
                             },
                         },
                         {
-                            name: 'buffer_layer',
+                            name: bufferLayerName,
                             title: 'Buffer Geometries',
                             default: false,
                             processed: false,
@@ -52,11 +58,15 @@
                             can_buffer: false,
                             handler: bufferGeometryHandler, // Buffer geometries are a property of occurrence geometry. This handler returns the buffer geometries from the occurrence geometries.
                             geometry_name: 'geometry',
+                            identifier_name: 'label',
+                            z_index: 1,
                             property_display_map: bufferPropertyDisplayMap,
                             property_overwrite: {
                                 area_sqm: featureAreaMeter,
                                 area_sqhm: (feature) =>
                                     featureAreaMeter(feature) / 10000,
+                                // color: '#ebeb49', // yellowish
+                                // stroke: '#db8223', // orange
                             },
                         },
                         {
@@ -68,9 +78,14 @@
                             can_buffer: false,
                             api_url: siteApiUrl,
                             query_param_key: 'occurrence_id',
+                            identifier_name: 'site_number',
+                            z_index: 4,
                             ids: [occurrence_obj.id],
                             property_display_map: sitePropertyDisplayMap,
-                            property_overwrite: { label: 'Site' },
+                            property_overwrite: {
+                                label: 'Site',
+                                // color: '#FF0000',
+                            },
                         },
                     ]"
                     @features-loaded="mapFeaturesLoaded"
@@ -306,6 +321,7 @@ export default {
             mapContainerId: false,
             queryLayerName: 'query_layer',
             occurrenceLayerName: 'occurrence_layer',
+            bufferLayerName: 'buffer_layer',
         };
     },
     computed: {
@@ -519,7 +535,9 @@ export default {
             // When in Entering Conditions status ApplicationForm might not be there
             // adding occ_geometry from the map_component to payload
             if (vm.$refs.component_map) {
-                payload.occ_geometry = vm.$refs.component_map.getJSONFeatures();
+                // Get the occ geometry with opacity fields set
+                const occ_geometry = vm.OccGeometryFromMap();
+                payload.occ_geometry = JSON.stringify(occ_geometry);
                 vm.$refs.component_map.setLoadingMap(true);
             }
 
@@ -775,7 +793,21 @@ export default {
             if (feature) {
                 return this.$refs.component_map.featureArea(feature);
             }
-            return null;
+            return 0;
+        },
+        OccGeometryFromMap: function () {
+            const occ_geometry = JSON.parse(
+                this.$refs.component_map.getJSONFeatures()
+            );
+            const buffer_opacity = this.$refs.component_map
+                .getLayerByName(this.bufferLayerName)
+                .getProperties().opacity;
+            // Set buffer opacity to the features
+            occ_geometry.features.forEach((f) => {
+                f.properties.buffer_opacity = buffer_opacity;
+            });
+
+            return occ_geometry;
         },
     },
 };

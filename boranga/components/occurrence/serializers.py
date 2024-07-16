@@ -767,6 +767,8 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
             "created_from",
             "source_of",
             "show_on_map",
+            "color",
+            "stroke",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -3013,6 +3015,9 @@ class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
             "buffer_radius",
             "created_from",
             "source_of",
+            "color",
+            "stroke",
+            "opacity",
         ] + BaseTypeSerializer.Meta.fields
 
     def get_srid(self, obj):
@@ -3076,6 +3081,9 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
             "buffer_geometry",
             "created_from",
             "source_of",
+            "color",
+            "stroke",
+            "opacity",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -3225,6 +3233,7 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
             "buffer_radius",
             "content_type",
             "object_id",
+            "opacity",
         )
         read_only_fields = ("id",)
 
@@ -3517,6 +3526,8 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
             "srid",
             "geometry_source",
             "original_geometry",
+            "color",
+            "stroke",
         ]
         read_only_fields = ("id",)
 

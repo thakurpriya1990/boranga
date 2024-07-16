@@ -504,7 +504,23 @@ class OccurrenceReportPermission(BasePermission):
     
     def is_authorised_to_change_lock(self, request, obj):
         return obj.can_change_lock(request)
-    
+
+    def is_authorised_to_update_show_on_map(self, request, obj):
+        if not obj.occurrence:
+            return False
+        return (
+            (is_occurrence_approver(request) or request.user.is_superuser)
+            and obj.processing_status
+            in [
+                OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
+                OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+                OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
+                OccurrenceReport.PROCESSING_STATUS_APPROVED,
+            ]
+            and obj.occurrence.processing_status
+            in [Occurrence.PROCESSING_STATUS_ACTIVE]
+        )
+
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS or view.action == "process_shapefile_document":
             return True
@@ -536,6 +552,9 @@ class OccurrenceReportPermission(BasePermission):
 
         if view.action in ["lock_occurrence_report","unlock_occurrence_report"]:
             return self.is_authorised_to_change_lock(request,obj)
+        
+        if hasattr(view, "action") and view.action == "update_show_on_map":
+            return self.is_authorised_to_update_show_on_map(request, obj)
 
         return self.is_authorised_to_update(request,obj) 
 
@@ -695,14 +714,6 @@ class OccurrencePermission(BasePermission):
             and (
                 obj.processing_status == Occurrence.PROCESSING_STATUS_LOCKED
             )
-        )
-
-    def is_authorised_to_update_show_on_map(self, request, obj):
-        return (
-            (is_occurrence_approver(request) or request.user.is_superuser)
-            and obj.processing_status in [OccurrenceReport.PROCESSING_STATUS_APPROVED]
-            and obj.occurrence.processing_status
-            in [Occurrence.PROCESSING_STATUS_ACTIVE]
         )
 
     def has_object_permission(self, request, view, obj):

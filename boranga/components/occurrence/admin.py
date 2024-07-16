@@ -115,6 +115,10 @@ class BufferGeometryInline(nested_admin.NestedStackedInline):
                         "created_from",
                         "source_of",
                     ),
+                    (
+                        "color",
+                        "stroke",
+                    )
                 )
             },
         ),
@@ -172,6 +176,10 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
                         "created_from",
                         "source_of",
                     ),
+                    (
+                        "color",
+                        "stroke",
+                    )
                 )
             },
         ),
@@ -232,6 +240,10 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
                         "created_from",
                         "source_of",
                     ),
+                    (
+                        "color",
+                        "stroke",
+                    )
                 )
             },
         ),
