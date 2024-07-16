@@ -1,6 +1,40 @@
 <template lang="html">
     <div class="container">
         <form :action="cs_proposal_form_url" method="post" name="new_cs_proposal" enctype="multipart/form-data">
+
+            <div v-if="!cs_proposal_readonly">
+                <div v-if="hasAmendmentRequest" class="row">
+                    <div class="col-lg-12 pull-right">
+                        <FormSection :formCollapse="false"
+                            label="One or more amendments have been requested for this Conservation Status Proposal"
+                            Index="amendment_request" customColor="red">
+                            <ul class="list-group list-group-numbered ps-2">
+                                <li v-for="a in amendment_request"
+                                    class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-4 me-auto">
+                                        <div><span class="fw-bold">Reason:</span> {{ a.reason }}</div>
+                                        <p v-for="t in splitText(a.text)">{{ t }}</p>
+                                        <template
+                                            v-if="a.cs_amendment_request_documents && a.cs_amendment_request_documents.length > 0">
+                                            <div class="fw-bold mb-1">Documents:</div>
+                                            <ul class="list-group list-group-numbered mb-2">
+                                                <li v-for="document in a.cs_amendment_request_documents"
+                                                    class="list-group-item">
+                                                    <i class="bi bi-file-earmark-text-fill text-secondary"></i> <a
+                                                        :href="document._file" target="_blank">{{
+                                                            document.name }}</a>
+                                                </li>
+                                            </ul>
+                                        </template>
+                                    </div>
+                                </li>
+                            </ul>
+                        </FormSection>
+                    </div>
+                </div>
+            </div>
+
+
             <div v-if="!cs_proposal_readonly">
                 <div v-if="hasAmendmentRequest" class="row">
                     <div class="col-lg-12 pull-right">
