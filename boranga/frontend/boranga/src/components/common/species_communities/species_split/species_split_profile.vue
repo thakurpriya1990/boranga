@@ -1608,6 +1608,7 @@ export default {
                 if($("#"+chkbox).is(':checked')== true){
                     this.species_community[obj_field] = this.species_original[obj_field];
                     console.log(this.species_community[obj_field])
+                    console.log(select2_ref)
                     if(select2_ref != ""){
                         $(this.$refs[select2_ref]).val(this.species_community[obj_field]).trigger("change");
                         this.chainedSelectDistricts(this.species_community.regions,"select");
@@ -1812,7 +1813,7 @@ export default {
             },
             chainedSelectDistricts: function(regions,action,deselect_region_id){
                 let vm = this;
-                if(action!= "fetch"){
+                if(action != "fetch" && action != "select"){
                     vm.species_community.districts = []; //-----to remove the previous selection
                 }
                 vm.district_list = [];
