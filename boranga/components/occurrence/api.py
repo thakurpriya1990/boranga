@@ -1189,6 +1189,13 @@ class OccurrenceReportViewSet(
     )
     def observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
+        group_type = request.GET.get("group_type", None)
+
+        if not group_type:
+            raise serializers.ValidationError(
+                "Group Type is required to return correct list of values"
+            )
+
         observation_method_list = []
         values = ObservationMethod.objects.all()
         if values:
@@ -1320,7 +1327,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         permit_type_list = []
-        values = PermitType.objects.all()
+        values = PermitType.objects.filter(group_type__name=group_type)
         if values:
             for val in values:
                 permit_type_list.append(
@@ -4833,6 +4840,13 @@ class OccurrenceViewSet(
     )
     def observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence external form"""
+        group_type = request.GET.get("group_type", None)
+
+        if not group_type:
+            raise serializers.ValidationError(
+                "Group Type is required to return correct list of values"
+            )
+
         observation_method_list = []
         values = ObservationMethod.objects.all()
         if values:
@@ -4964,7 +4978,7 @@ class OccurrenceViewSet(
                     }
                 )
         permit_type_list = []
-        values = PermitType.objects.all()
+        values = PermitType.objects.filter(group_type__name=group_type)
         if values:
             for val in values:
                 permit_type_list.append(
