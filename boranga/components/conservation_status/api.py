@@ -452,7 +452,9 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
 class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (SpeciesConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = ConservationStatus.objects.all()
+    queryset = ConservationStatus.objects.all().select_related(
+        "application_type", "species", "community"
+    )
     serializer_class = ListSpeciesConservationStatusSerializer
     page_size = 10
     permission_classes = [ConservationStatusPermission]
@@ -1008,7 +1010,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
     pagination_class = DatatablesPageNumberPagination
     queryset = ConservationStatus.objects.exclude(
         processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
-    )
+    ).select_related("application_type", "species", "community")
     serializer_class = ListCommunityConservationStatusSerializer
     page_size = 10
     permission_classes = [ConservationStatusPermission]
@@ -1358,7 +1360,9 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
 class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (ConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = ConservationStatus.objects.all()
+    queryset = ConservationStatus.objects.all().select_related(
+        "application_type", "species", "community"
+    )
     serializer_class = ListConservationStatusSerializer
     page_size = 10
     permission_classes = [ConservationStatusPermission]
