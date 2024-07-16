@@ -19,12 +19,29 @@ occ AS (
         occurrence_number,
         occurrence_name,
         processing_status,
-        group_type_id
+        group_type_id,
+        species_id,
+        community_id
     FROM
         boranga_occurrence,
         constants
     WHERE
         processing_status = ANY(constants.ProcessingStatusValues)
+),
+species AS (
+    SELECT
+        id,
+        species_number,
+        taxonomy_id
+    FROM
+        boranga_species
+),
+community AS (
+    SELECT
+        id,
+        community_number
+    FROM
+        boranga_community
 ),
 geom AS (
     SELECT
@@ -51,15 +68,18 @@ geom AS (
         INNER JOIN boranga_occurrencegeometry og ON og.id = bg.buffered_from_geometry_id
 )
 SELECT
-    occ.occurrence_number,
+    occ.occurrence_number AS occ_id,
     occ.occurrence_name AS occ_name,
     gt.name AS group_type,
     geom.geometry AS geometry,
     geom.geometry_type AS geom_type,
-    geom.data_type AS g_datatype
+    geom.data_type AS g_datatype,
+    species.species_number AS species_nr
 FROM
     occ
     RIGHT JOIN geom ON occ.id = geom.occurrence_id
     JOIN gt ON occ.group_type_id = gt.id
+    LEFT JOIN species ON occ.species_id = species.id
+    LEFT JOIN community ON occ.community_id = community.id
 WHERE
     occ.group_type_id = gt.id;
