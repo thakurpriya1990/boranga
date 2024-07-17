@@ -1401,7 +1401,9 @@
                 </div>
                 <!-- TODO: other loading cases -->
                 <div v-show="loadingMap" id="map-spinner" class="text-primary">
-                    <i class="fa fa-4x fa-spinner fa-spin"></i>
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
                 </div>
                 <!-- <BootstrapSpinner
                     v-if="
