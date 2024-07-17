@@ -280,6 +280,8 @@ def save_geometry(
                     InstanceCopiedFrom
                 )
 
+        opacity = feature.get("properties", {}).get("opacity", .5)
+
         geom_4326 = feature_json_to_geosgeometry(feature)
 
         original_geometry = feature.get("properties", {}).get("original_geometry")
@@ -320,6 +322,7 @@ def save_geometry(
                 "buffer_radius": buffer_radius,
                 "object_id": object_id,
                 "content_type": content_type_id,
+                "opacity": opacity,
             }
 
             intersect_data = {}
@@ -386,6 +389,8 @@ def save_geometry(
                 # Only occurrence geometries can have buffer geometries
                 continue
 
+            opacity = feature.get("properties", {}).get("buffer_opacity", 0.5)
+
             try:
                 buffer_geometry = BufferGeometry.objects.get(
                     buffered_from_geometry=geometry_instance
@@ -403,6 +408,7 @@ def save_geometry(
                         ),
                         object_id=geometry_instance.id,
                         content_type=content_type_object,
+                        opacity=opacity,
                     )
                     logger.info(
                         f"Created buffer geometry for {instance_model_name} geometry: {geometry_instance}"
@@ -412,6 +418,7 @@ def save_geometry(
                     buffer_geometry.geometry = buffer_geos_geometry(
                         geometry_instance.geometry, buffer_radius
                     )
+                    buffer_geometry.opacity = opacity
                     buffer_geometry.save()
                     logger.info(
                         f"Updated buffer geometry for {instance_model_name} geometry: {geometry_instance}"

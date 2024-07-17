@@ -118,6 +118,7 @@ INSTALLED_APPS += [
     "reversion",
     "reversion_compare",
     "nested_admin",
+    "colorfield",
 ]
 
 ADD_REVERSION_ADMIN = True
