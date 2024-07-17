@@ -394,6 +394,7 @@ export default {
                 { value: 'with_referral', name: 'With Referral' },
                 { value: 'approved', name: 'Approved' },
                 { value: 'declined', name: 'Declined' },
+                { value: 'discarded', name: 'Discarded' },
             ],
             processing_statuses: [],
         }
@@ -816,13 +817,16 @@ export default {
                             data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
                         }
                         else {
-                            if (full.assessor_process) {
+                            if (full.assessor_process || full.approver_process) {
                                 links += `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
                                 links += `<a href='#' data-history-conservation-status-community='${full.id}'
                                     data-history-community='${full.community_number}'
                                     data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
                             }
                             else {
+                                if(full.processing_status==constants.PROPOSAL_STATUS.DISCARDED.TEXT){
+                                    links += `<a href='#' data-reinstate-conservation-status-community='${full.id}'>Reinstate</a><br/>`;
+                                }
                                 links += `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
                                 links += `<a href='#' data-history-conservation-status-community='${full.id}'
                                 data-history-community='${full.community_number}'
@@ -1176,7 +1180,41 @@ export default {
                         });
                 }
             }, (error) => {
-
+                console.log(error);
+            });
+        },
+        reinstateCSProposal: function (conservation_status_id) {
+            let vm = this;
+            swal.fire({
+                title: "Reinstate Conservation Status Proposal",
+                text: "Are you sure you want to reinstate this proposal?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Reinstate Proposal',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    vm.$http.patch(api_endpoints.reinstate_cs_proposal(conservation_status_id))
+                        .then((response) => {
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'Your proposal has been reinstated',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
+                        }, (error) => {
+                            console.log(error);
+                        });
+                }
+            }, (error) => {
+                console.log(error);
             });
         },
         addToMeetingAgenda: function (conservation_status_id) {
@@ -1199,6 +1237,11 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-discard-cs-proposal');
                 vm.discardCSProposal(id);
+            });
+            vm.$refs.cs_communities_datatable.vmDataTable.on('click', 'a[data-reinstate-conservation-status-community]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-reinstate-conservation-status-community');
+                vm.reinstateCSProposal(id);
             });
             vm.$refs.cs_communities_datatable.vmDataTable.on('click', 'a[data-add-to-agenda]', function (e) {
                 e.preventDefault();
@@ -1456,8 +1499,11 @@ export default {
         },
     },
     mounted: function () {
-        this.fetchFilterLists();
         let vm = this;
+        if(vm.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS)){
+            vm.internal_status.push({ value: 'discarded_by_me', name: 'Discarded By Me' },);
+        }
+        vm.fetchFilterLists();
         $('a[data-toggle="collapse"]').on('click', function () {
             var chev = $(this).children()[0];
             window.setTimeout(function () {
