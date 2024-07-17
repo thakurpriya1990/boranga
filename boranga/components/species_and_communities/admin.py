@@ -16,7 +16,6 @@ from boranga.components.species_and_communities.models import (
     PotentialThreatOnset,
     Region,
     RootMorphology,
-    Species,
     Taxonomy,
     TaxonomyRank,
     TaxonPreviousName,
@@ -151,30 +150,6 @@ class TaxonomyRankAdmin(admin.ModelAdmin):
 @admin.register(ClassificationSystem)
 class ClassificationSystemAdmin(admin.ModelAdmin):
     list_display = ["id", "classification_system_id", "class_desc"]
-    actions = None
-
-    def get_readonly_fields(self, request, obj=None):
-        return [f.name for f in obj._meta.fields]
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None, **kwargs):
-        return False
-
-
-@admin.register(Species)
-class SpeciesAdmin(admin.ModelAdmin):
-    list_display = [
-        "id",
-        "species_number",
-        "group_type",
-        "taxonomy",
-        "processing_status",
-    ]
     actions = None
 
     def get_readonly_fields(self, request, obj=None):
