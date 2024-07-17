@@ -490,7 +490,11 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         if not self.assigned_officer == request.user.id:
             return False
 
-        return is_occurrence_assessor(request) or is_occurrence_approver(request) or request.user.is_superuser
+        return (
+            is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+            or request.user.is_superuser
+        )
 
     def get_approver_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
@@ -519,7 +523,11 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
             OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
         ]:
-            return is_occurrence_assessor(request) or is_occurrence_approver(request) or request.user.is_superuser
+            return (
+                is_occurrence_assessor(request)
+                or is_occurrence_approver(request)
+                or request.user.is_superuser
+            )
 
         elif self.processing_status == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER:
             return is_occurrence_approver(request) or request.user.is_superuser
@@ -907,7 +915,11 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             ).exists():
                 return True
 
-            return is_occurrence_assessor(request) or is_occurrence_approver(request) or request.user.is_superuser
+            return (
+                is_occurrence_assessor(request)
+                or is_occurrence_approver(request)
+                or request.user.is_superuser
+            )
         return False
 
     @transaction.atomic
@@ -2684,7 +2696,7 @@ class PermitType(models.Model):
 
     class Meta:
         app_label = "boranga"
-        ordering = ["name"]
+        ordering = ["group_type", "name"]
 
     def __str__(self):
         return str(self.name)
@@ -3392,7 +3404,9 @@ class Occurrence(RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
-            OccurrenceUserAction.ACTION_REOPEN_OCCURRENCE.format(self.occurrence_number),
+            OccurrenceUserAction.ACTION_REOPEN_OCCURRENCE.format(
+                self.occurrence_number
+            ),
             request,
         )
 
@@ -3417,7 +3431,7 @@ class Occurrence(RevisionedMixin):
             return False
 
         return is_occurrence_approver(request) or request.user.is_superuser
-    
+
     def can_user_reopen(self, request):
         user_editable_state = [
             Occurrence.PROCESSING_STATUS_HISTORICAL,
@@ -3821,11 +3835,11 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
     # when we go with the radius being a property of the geometry
     buffer_radius = models.FloatField(null=True, blank=True, default=0)
 
-    color = ColorField(default="#3333FF") # Light blue
-    stroke = ColorField(default="#0033CC") # Dark blue
+    color = ColorField(default="#3333FF")  # Light blue
+    stroke = ColorField(default="#0033CC")  # Dark blue
     opacity = models.FloatField(
         default=0.5, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)]
-    ) # Used for map layer opacity
+    )  # Used for map layer opacity
 
     class Meta:
         app_label = "boranga"
@@ -4623,11 +4637,11 @@ class BufferGeometry(GeometryBase):
         blank=False,
         related_name="buffer_geometry",
     )
-    color = ColorField(default="#FFFF00") # Yellow
-    stroke = ColorField(default="#FF9900") # Orange
+    color = ColorField(default="#FFFF00")  # Yellow
+    stroke = ColorField(default="#FF9900")  # Orange
     opacity = models.FloatField(
         default=0.5, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)]
-    ) # Used for map layer opacity
+    )  # Used for map layer opacity
 
     class Meta:
         app_label = "boranga"
@@ -4659,7 +4673,7 @@ class SiteType(models.Model):
         return str(self.name)
 
 
-class OccurrenceSite(GeometryBase,RevisionedMixin):
+class OccurrenceSite(GeometryBase, RevisionedMixin):
     site_number = models.CharField(max_length=9, blank=True, default="")
     occurrence = models.ForeignKey(
         "Occurrence", related_name="sites", on_delete=models.CASCADE
@@ -4677,8 +4691,8 @@ class OccurrenceSite(GeometryBase,RevisionedMixin):
 
     visible = models.BooleanField(default=True)
 
-    color = ColorField(default="#FF3300") # Light red
-    stroke = ColorField(default="#CC0000") # Dark red
+    color = ColorField(default="#FF3300")  # Light red
+    stroke = ColorField(default="#CC0000")  # Dark red
 
     def related_model_field(self):
         return self.occurrence
@@ -4719,18 +4733,21 @@ reversion.register(OCRAnimalObservation)
 reversion.register(OCRIdentification)
 
 # Occurrence Report
-reversion.register(OccurrenceReport, 
-    follow=["species", "community",
-            "habitat_composition",
-            "habitat_condition",
-            "vegetation_structure",
-            "fire_history",
-            "associated_species",
-            "observation_detail",
-            "plant_count",
-            "animal_observation",
-            "identification",
-        ]
+reversion.register(
+    OccurrenceReport,
+    follow=[
+        "species",
+        "community",
+        "habitat_composition",
+        "habitat_condition",
+        "vegetation_structure",
+        "fire_history",
+        "associated_species",
+        "observation_detail",
+        "plant_count",
+        "animal_observation",
+        "identification",
+    ],
 )
 
 # Occurrence Document
@@ -4759,7 +4776,11 @@ reversion.register(OCCAnimalObservation)
 reversion.register(OCCIdentification)
 
 # Occurrence
-reversion.register(Occurrence, follow=["species", "community",
+reversion.register(
+    Occurrence,
+    follow=[
+        "species",
+        "community",
         "habitat_composition",
         "habitat_condition",
         "vegetation_structure",
@@ -4769,5 +4790,5 @@ reversion.register(Occurrence, follow=["species", "community",
         "plant_count",
         "animal_observation",
         "identification",
-        ]
+    ],
 )

@@ -30,7 +30,6 @@ from boranga.components.conservation_status.models import (
     CommonwealthConservationList,
     ConservationChangeCode,
     ConservationStatus,
-    ConservationStatusUserAction,
     WALegislativeCategory,
     WALegislativeList,
     WAPriorityCategory,
@@ -1709,30 +1708,6 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         )
 
         serializer = self.get_serializer(instance)
-
-        # change current active conservation status of the original species to inactive
-        # TODO if the cs of species is in middle of workflow, then?
-        species_cons_status = ConservationStatus.objects.filter(
-            species=instance,
-            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-        )
-
-        if not species_cons_status.exists():
-            return Response(serializer.data)
-
-        species_cons_status.update(
-            processing_status=ConservationStatus.PROCESSING_STATUS_CLOSED,
-            customer_status=ConservationStatus.PROCESSING_STATUS_CLOSED,
-        )
-
-        # add the log_user_action
-        species_cons_status.log_user_action(
-            ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
-                species_cons_status.conservation_status_number
-            ),
-            request,
-        )
-
         return Response(serializer.data)
 
     @detail_route(

@@ -1430,15 +1430,13 @@ class ConservationStatusAmendmentRequestSerializer(serializers.ModelSerializer):
 
 
 class ConservationStatusAmendmentRequestDisplaySerializer(serializers.ModelSerializer):
-    reason = serializers.SerializerMethodField()
+    cs_amendment_request_documents = (
+        ConservationStatusAmendmentRequestDocumentSerializer(many=True, read_only=True)
+    )
 
     class Meta:
         model = ConservationStatusAmendmentRequest
         fields = "__all__"
-
-    def get_reason(self, obj):
-        # return obj.get_reason_display()
-        return obj.reason.reason if obj.reason else None
 
 
 class ProposedDeclineSerializer(serializers.Serializer):

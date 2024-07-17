@@ -363,7 +363,7 @@ export default {
     created: async function () {
         let vm = this;
         //------fetch list of values
-        const res = await Vue.http.get('/api/occurrence/observation_list_of_values.json');
+        const res = await Vue.http.get(`/api/occurrence/observation_list_of_values.json?group_type=${vm.occurrence_obj.group_type}`);
         vm.listOfValuesDict = res.body;
         vm.observation_method_list = vm.listOfValuesDict.observation_method_list;
         vm.observation_method_list.splice(0, 0,

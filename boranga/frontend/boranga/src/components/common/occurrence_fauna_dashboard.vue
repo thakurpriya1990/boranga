@@ -291,7 +291,7 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: "wild_status",
+                name: "wild_status__name",
             }
         },
         column_number_of_reports: function () {
