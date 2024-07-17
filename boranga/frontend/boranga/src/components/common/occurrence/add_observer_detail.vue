@@ -13,7 +13,8 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <input type="text" class="form-control" :disabled="isReadOnly"
-                                            v-model="observerObj.observer_name" ref="observer_name" required autofocus />
+                                            v-model="observerObj.observer_name" ref="observer_name" required
+                                            autofocus />
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -81,13 +82,16 @@
                 <div v-if="!isReadOnly">
                     <button type="button" class="btn btn-secondary me-2" @click="close()">Cancel</button>
                     <template v-if="observerObj.id">
-                        <button type="button" v-if="updatingObserver" disabled class="btn btn-primary" @click="ok"><i
-                                class="fa fa-spinnner fa-spin"></i> Updating</button>
+                        <button type="button" v-if="updatingObserver" disabled class="btn btn-primary"
+                            @click="ok">Updating <span class="spinner-border spinner-border-sm" role="status"
+                                aria-hidden="true"></span>
+                            <span class="visually-hidden">Loading...</span></button>
                         <button type="button" v-else class="btn btn-primary" @click="ok">Update Observer</button>
                     </template>
                     <template v-else>
-                        <button type="button" v-if="addingObserver" disabled class="btn btn-primary" @click="ok"><i
-                                class="fa fa-spinner fa-spin"></i> Adding</button>
+                        <button type="button" v-if="addingObserver" disabled class="btn btn-primary" @click="ok">Adding
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="visually-hidden">Loading...</span></button>
                         <button type="button" v-else class="btn btn-primary" @click="ok">Add Observer</button>
                     </template>
                 </div>
@@ -146,11 +150,11 @@ export default {
         isModalOpen: function (val) {
             if (val) {
                 this.$nextTick(() => {
-                    if(this.$refs.observer_name){
+                    if (this.$refs.observer_name) {
                         this.$refs.observer_name.focus();
                     }
                     if (this.observer_detail_action === 'add') {
-                        if(!this.occurrence_report.has_main_observer){
+                        if (!this.occurrence_report.has_main_observer) {
                             this.populateWithSubmitterInformation();
                         }
                         this.observerObj.main_observer = !this.occurrence_report.has_main_observer;
@@ -215,7 +219,7 @@ export default {
                 organisation: '',
                 role: '',
             };
-            observerObj = {...observerObj, ...this.observerObj};
+            observerObj = { ...observerObj, ...this.observerObj };
             console.log(this.occurrence_report.submitter_information);
             observerObj.observer_name = this.occurrence_report.submitter_information.name;
             observerObj.contact = this.occurrence_report.submitter_information.contact_details;

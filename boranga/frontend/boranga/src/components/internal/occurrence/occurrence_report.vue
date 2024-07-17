@@ -107,20 +107,20 @@
                                                 :data-bs-content="'Send a reminder to ' +
                                                     external_referee_invite.full_name
                                                     " data-bs-placement="bottom" @click.prevent="
-                                                                    remindExternalReferee(
-                                                                        external_referee_invite
-                                                                    )
-                                                                    "><i class="fa fa-bell text-warning"
+                                                        remindExternalReferee(
+                                                            external_referee_invite
+                                                        )
+                                                        "><i class="fa fa-bell text-warning"
                                                     aria-hidden="true"></i>
                                             </a>
                                             <a role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
                                                 :data-bs-content="'Retract the external referee invite sent to ' +
                                                     external_referee_invite.full_name
                                                     " data-bs-placement="bottom" @click.prevent="
-                                                                    retractExternalRefereeInvite(
-                                                                        external_referee_invite
-                                                                    )
-                                                                    "><i class="fa fa-times-circle text-danger"
+                                                        retractExternalRefereeInvite(
+                                                            external_referee_invite
+                                                        )
+                                                        "><i class="fa fa-times-circle text-danger"
                                                     aria-hidden="true"></i>
                                             </a>
                                         </td>
@@ -237,7 +237,8 @@
                         <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
                             id="OccurrenceReportStart" :canEditStatus="false" :is_external="false" :is_internal="true"
                             ref="occurrence_report" @refreshFromResponse="refreshFromResponse"
-                            @refreshOccurrenceReport="refreshOccurrenceReport()" @saveOccurrenceReport="save_before_submit()">
+                            @refreshOccurrenceReport="refreshOccurrenceReport()"
+                            @saveOccurrenceReport="save_before_submit()">
                         </ProposalOccurrenceReport>
 
                         <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
@@ -275,8 +276,10 @@
                                     class="container">
                                     <div class="col-md-12 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary"
-                                            style="margin-top:5px;" disabled>Save Changes&nbsp;
-                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            style="margin-top:5px;" disabled>Save Changes <span
+                                                class="spinner-border spinner-border-sm" role="status"
+                                                aria-hidden="true"></span>
+                                            <span class="visually-hidden">Loading...</span></button>
                                         <button v-else class="btn btn-primary" style="margin-top:5px;"
                                             @click.prevent="save()">Save
                                             Changes</button>

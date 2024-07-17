@@ -33,8 +33,9 @@
             </div>
             <div slot="footer">
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
-                <button type="button" v-if="decliningProposal" disabled class="btn btn-primary" @click="ok"><i
-                        class="fa fa-spinner fa-spin"></i> Processing</button>
+                <button type="button" v-if="decliningProposal" disabled class="btn btn-primary" @click="ok">Processing
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="visually-hidden">Loading...</span></button>
                 <button type="button" v-else class="btn btn-primary" @click="ok">Ok</button>
             </div>
         </modal>

@@ -1497,7 +1497,8 @@
                                 <div
                                     class="col-sm-12 text-nowrap text-truncate"
                                 >
-                                    <i class="fa fa-spinner fa-spin"></i>
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span class="visually-hidden">Loading...</span>
                                 </div>
                             </div>
                         </button>
