@@ -21,6 +21,7 @@
         <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="ocr_document_url"
             :is_internal="is_internal">
         </DocumentDetail>
+        <ViewDocument ref="view_document" :is_internal="is_internal"></ViewDocument>
         <div v-if="occurenceReportDocumentHistoryId">
             <OccurenceReportDocumentHistory ref="ocr_document_history" :key="occurenceReportDocumentHistoryId"
                 :document-id="occurenceReportDocumentHistoryId" :occurrence-report-id="occurrence_report_obj.id" />
@@ -30,6 +31,7 @@
 <script>
 import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
+import ViewDocument from '@/components/common/view_document.vue'
 import DocumentDetail from '@/components/common/add_document.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import OccurenceReportDocumentHistory from '../../internal/occurrence/ocr_document_history.vue';
@@ -59,6 +61,13 @@ export default {
             type: Boolean,
             default: false
         },
+    },
+    components: {
+        FormSection,
+        datatable,
+        DocumentDetail,
+        OccurenceReportDocumentHistory,
+        ViewDocument,
     },
     data: function () {
         let vm = this;
@@ -193,6 +202,7 @@ export default {
                         mRender: function (data, type, full) {
                             let links = '';
                             // to restrict submitter to edit doc when the report is in workflow
+                            links += `<a href='#' data-view-document='${full.id}'>View</a><br>`;
                             if (!vm.isReadOnly) {
                                 if (full.visible) {
                                     links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
@@ -224,12 +234,6 @@ export default {
             }
         }
     },
-    components: {
-        FormSection,
-        datatable,
-        DocumentDetail,
-        OccurenceReportDocumentHistory,
-    },
     computed: {
         isReadOnly: function () {
             //override for split reports
@@ -239,8 +243,11 @@ export default {
             return this.occurrence_report_obj.readonly
         },
     },
-    watch: {},
     methods: {
+        viewDocument: function (document) {
+            this.$refs.view_document.document = document;
+            this.$refs.view_document.isModalOpen = true;
+        },
         newDocument: function () {
             let vm = this;
             this.$refs.document_detail.document_id = '';
@@ -365,6 +372,11 @@ export default {
         },
         addEventListeners: function () {
             let vm = this;
+            vm.$refs.documents_datatable.vmDataTable.on('click', 'a[data-view-document]', function (e) {
+                e.preventDefault();
+                var document = vm.$refs.documents_datatable.vmDataTable.row($(this).parent()).data();
+                vm.viewDocument(document);
+            });
             vm.$refs.documents_datatable.vmDataTable.on('click', 'a[data-edit-document]', function (e) {
                 e.preventDefault();
                 var id = $(this).attr('data-edit-document');
