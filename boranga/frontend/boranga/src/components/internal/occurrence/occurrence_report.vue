@@ -684,7 +684,6 @@ export default {
                         confirmButton: 'btn btn-primary',
                     },
                 })
-                //vm.paySubmitting=false;
                 return false;
             }
             vm.saveExitOccurrenceReport = true;
@@ -710,12 +709,11 @@ export default {
 
             let payload = { proposal: vm.occurrence_report };
             const result = await vm.$http.post(vm.occurrence_report_form_url, payload).then(res => {
-                //return true;
+
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
                     title: 'Submit Error',
-                    //helpers.apiVueResourceError(err),
                     text: errorText,
                     icon: 'error',
                     customClass: {
@@ -724,7 +722,6 @@ export default {
                 })
                 vm.submitOccurrenceReport = false;
                 vm.saveError = true;
-                //return false;
             });
             return result;
         },
@@ -1300,9 +1297,11 @@ export default {
                 });
         },
         proposeDecline: function () {
+            this.save_before_submit();
             this.$refs.propose_decline.isModalOpen = true;
         },
         proposeApprove: function () {
+            this.save_before_submit();
             this.$refs.propose_approve.isModalOpen = true;
         },
         enablePopovers: function () {
