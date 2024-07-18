@@ -182,6 +182,8 @@ router.register(
     "occurrence-tenure-paginated",
 )
 
+router.registry.sort(key=lambda x: x[0])
+
 api_patterns = [
     url(r"^api/profile$", users_api.GetProfile.as_view(), name="get-profile"),
     url(
