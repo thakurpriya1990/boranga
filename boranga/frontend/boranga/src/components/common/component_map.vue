@@ -883,16 +883,26 @@
                             />
                         </div>
                     </div>
-                    <div class="optional-layers-button-wrapper">
+                    <div
+                        class="optional-layers-button-wrapper"
+                        title="Select features to download as GeoJSON"
+                    >
                         <div
-                            title="Download layers as GeoJSON"
                             class="optional-layers-button btn"
+                            :class="selectedFeatureIds.length ? '' : 'disabled'"
+                            :title="`Download selected features as GeoJSON`"
                             @click="geoJsonButtonClicked"
                         >
                             <img
                                 class="svg-icon"
                                 src="../../assets/download.svg"
                             />
+                            <span
+                                v-if="selectedFeatureIds.length"
+                                id="selectedFeatureCountWarning"
+                                class="badge badge-warning"
+                                >{{ selectedFeatureIds.length }}</span
+                            >
                         </div>
                     </div>
 
@@ -2386,12 +2396,28 @@ export default {
             a.click();
         },
         geoJsonButtonClicked: function () {
-            let vm = this;
-            let json = new GeoJSON().writeFeatures(
-                vm.layerSources[this.defaultQueryLayerName].getFeatures(),
-                {}
+            const selectedFeatures = this.selectedFeatureCollection.getArray();
+            if (selectedFeatures.length == 0) {
+                this.errorMessageProperty('Must select features to download');
+                console.error('Must select features to download');
+                return;
+            }
+
+            const format = new GeoJSON();
+            const features = [];
+            selectedFeatures.forEach((f) => {
+                const feature = f.clone();
+                console.log(feature.getProperties());
+                feature.unset('model');
+                features.push(feature);
+            });
+            const geojson = format.writeFeatures(features);
+
+            this.download_content(
+                geojson,
+                'boranga_layers.geojson',
+                'text/plain'
             );
-            vm.download_content(json, 'boranga_layers.geojson', 'text/plain');
         },
         displayAllFeatures: function (features) {
             console.log('in displayAllFeatures()');
