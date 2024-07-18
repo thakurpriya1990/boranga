@@ -41,7 +41,7 @@
 
             <ProposalOccurrenceReport v-if="occurrence_report_obj" :occurrence_report_obj="occurrence_report_obj"
                 id="OccurrenceReportStart" :canEditStatus="canEditStatus" :is_external="true" ref="occurrence_report"
-                @refreshOccurrenceReport="refreshOccurrenceReport()" @refreshFromResponse="refreshFromResponse">
+                @refreshOccurrenceReport="refreshOccurrenceReport()" @refreshFromResponse="refreshFromResponse" @saveOccurrenceReport="save_before_submit()">
             </ProposalOccurrenceReport>
 
             <div>
@@ -321,9 +321,7 @@ export default {
                 payload.action = 'submit';
             }
             const result = await vm.$http.post(vm.ocr_proposal_form_url, payload).then(res => {
-                this.$nextTick(async () => {
-                    this.$refs.occurrence_report.$refs.ocr_location.incrementComponentMapKey();
-                });
+                console.log('saved before submit');
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
@@ -511,7 +509,7 @@ export default {
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
-                    let result = await vm.save_before_submit()
+                    await vm.save_before_submit()
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.occurrence_report_obj);

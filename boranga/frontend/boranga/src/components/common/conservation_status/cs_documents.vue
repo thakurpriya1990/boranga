@@ -20,6 +20,7 @@
         <DocumentDetail ref="document_detail" @refreshFromResponse="refreshFromResponse" :url="cs_document_url"
             :is_internal="is_internal">
         </DocumentDetail>
+        <ViewDocument ref="view_document" :is_internal="is_internal"></ViewDocument>
         <div v-if="conservationStatusDocumentHistoryId">
             <ConservationStatusDocumentHistory ref="cs_document_history" :key="conservationStatusDocumentHistoryId"
                 :document-id="conservationStatusDocumentHistoryId"
@@ -30,6 +31,7 @@
 <script>
 import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue';
+import ViewDocument from '@/components/common/view_document.vue'
 import DocumentDetail from '@/components/common/add_document.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import ConservationStatusDocumentHistory from '../../internal/conservation_status/cs_document_history.vue';
@@ -142,7 +144,6 @@ export default {
                                 return '<s>' + full.document_sub_category_name + '</s>'
                             }
                         },
-
                     },
                     {
                         data: "name",
@@ -190,6 +191,7 @@ export default {
                         data: "id",
                         mRender: function (data, type, full) {
                             let links = '';
+                            links += `<a href='#' data-view-document='${full.id}'>View</a><br>`;
                             if (full.can_action && vm.show_document_actions) {
                                 if (full.visible) {
                                     links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
@@ -224,11 +226,15 @@ export default {
         datatable,
         DocumentDetail,
         ConservationStatusDocumentHistory,
+        ViewDocument,
     },
     computed: {
         show_document_actions: function () {
-            return this.conservation_status_obj.can_user_edit || (
-                this.conservation_status_obj.assessor_mode && this.conservation_status_obj.assessor_mode.assessor_can_assess && this.conservation_status_obj.assessor_mode.assessor_level == 'assessor'
+            return (!this.is_internal && this.conservation_status_obj.can_user_edit) || (
+                this.is_internal &&
+                this.conservation_status_obj.assessor_mode &&
+                this.conservation_status_obj.assessor_mode.assessor_can_assess &&
+                this.conservation_status_obj.assessor_mode.assessor_level == 'assessor'
             );
         }
     },
@@ -251,8 +257,11 @@ export default {
             this.$refs.document_detail.title = 'Add a new Document';
             this.$refs.document_detail.isModalOpen = true;
         },
+        viewDocument: function (document) {
+            this.$refs.view_document.document = document;
+            this.$refs.view_document.isModalOpen = true;
+        },
         editDocument: function (id) {
-            let vm = this;
             this.$refs.document_detail.document_id = id;
             this.$refs.document_detail.document_action = 'edit';
             this.$refs.document_detail.title = 'Edit a Document';
@@ -349,6 +358,11 @@ export default {
         },
         addEventListeners: function () {
             let vm = this;
+            vm.$refs.documents_datatable.vmDataTable.on('click', 'a[data-view-document]', function (e) {
+                e.preventDefault();
+                var document = vm.$refs.documents_datatable.vmDataTable.row($(this).parent()).data();
+                vm.viewDocument(document);
+            });
             vm.$refs.documents_datatable.vmDataTable.on('click', 'a[data-edit-document]', function (e) {
                 e.preventDefault();
                 var id = $(this).attr('data-edit-document');

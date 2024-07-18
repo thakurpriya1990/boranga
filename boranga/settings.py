@@ -118,6 +118,7 @@ INSTALLED_APPS += [
     "reversion",
     "reversion_compare",
     "nested_admin",
+    "colorfield",
 ]
 
 ADD_REVERSION_ADMIN = True
@@ -332,7 +333,7 @@ GIS_SERVER_URL = env(
 BASIC_AUTH_PROXY_PREFIX = env("BASIC_AUTH_PROXY_PREFIX", "kb-proxy/")
 
 # Set USE_X_FORWARDED_HOST env to True to ensure that if the request is https
-# then urls generated for file fields are also https (TODO: Waiting on nginx config update)
+# then urls generated for file fields are also https
 USE_X_FORWARDED_HOST = env("USE_X_FORWARDED_HOST", False)
 if USE_X_FORWARDED_HOST:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

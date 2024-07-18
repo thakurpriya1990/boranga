@@ -17,12 +17,17 @@
         <ObserverDetail v-if="occurrence_report_obj" ref="observer_detail" @refreshFromResponse="refreshFromResponse"
             :url="observer_detail_url" :occurrence_report="occurrence_report_obj">
         </ObserverDetail>
+        <div v-if="ocrObserverDetailHistoryId">
+            <OCRObserverDetailHistory ref="ocr_observer_detail_history" :key="ocrObserverDetailHistoryId"
+                :observer-id="ocrObserverDetailHistoryId" />
+        </div>
     </div>
 </template>
 <script>
 import Vue from 'vue';
 import datatable from '@vue-utils/datatable.vue';
 import ObserverDetail from './add_observer_detail.vue'
+import OCRObserverDetailHistory from '../../internal/occurrence/ocr_observer_detail_history.vue';
 import {
     constants,
     api_endpoints,
@@ -58,65 +63,34 @@ export default {
                 data: "observer_name",
                 orderable: true,
                 searchable: true,
-                mRender: function (data, type, full) {
-                    if (full.visible) {
-                        return full.observer_name;
-                    } else {
-                        return '<s>' + full.observer_name + '</s>'
-                    }
-                },
-            },
-            {
-                data: "role",
-                orderable: true,
-                searchable: true,
-                mRender: function (data, type, full) {
-                    if (full.visible) {
-                        return full.role;
-                    } else {
-                        return '<s>' + full.role + '</s>'
-                    }
-                },
             },
             {
                 data: "contact",
                 orderable: true,
                 searchable: true,
                 mRender: function (data, type, full) {
-                    if (full.visible) {
-                        let value = full.contact;
-                        let result = helpers.dtPopover(value, 30, 'hover');
-                        return type == 'export' ? value : result;
-                    } else {
-                        let value = full.contact;
-                        let result = helpers.dtPopover(value, 30, 'hover');
-                        return '<s>' + type == 'export' ? value : result + '</s>'
-                    }
+                    let value = full.contact;
+                    let result = helpers.dtPopover(value, 30, 'hover');
+                    return type == 'export' ? value : result;
                 },
+            },
+            {
+                data: "role",
+                orderable: true,
+                searchable: true,
             },
             {
                 data: "organisation",
                 orderable: true,
                 searchable: true,
-                mRender: function (data, type, full) {
-                    if (full.visible) {
-                        return full.organisation;
-                    } else {
-                        return '<s>' + full.organisation + '</s>'
-                    }
-                },
             },
             {
                 data: "main_observer",
                 orderable: true,
                 searchable: true,
-                mRender: function (data, type, full) {
-                    if (full.visible) {
-                        return full.main_observer;
-                    } else {
-                        return '<s>' + full.main_observer; + '</s>'
-                    }
-                },
+                render: function (data, type, full) {
+                    return full.main_observer ? 'Yes' : 'No';
+                }
             },
             {
                 data: "id",
@@ -132,6 +106,7 @@ export default {
                     } else if (!vm.isReadOnly) {
                         links += `<a href='#' data-reinstate-observer_det='${full.id}'>Reinstate</a><br>`;
                     }
+                    links += `<a href='#' data-history-observer='${full.id}'>History</a><br>`;
                     return links;
                 }
             },
@@ -140,6 +115,7 @@ export default {
             columns.splice(2, 1);
         }
         return {
+            ocrObserverDetailHistoryId: null,
             observer_detail_url: api_endpoints.observer_detail,
             observer_detail_headers: vm.show_observer_contact_information ? ['Contact Name', 'Observer Role', 'Contact Detail', 'Organisation', 'Main Observer', 'Action'] : ['Contact Name', 'Observer Role', 'Organisation', 'Main Observer', 'Action'],
             observer_detail_options: {
@@ -152,7 +128,7 @@ export default {
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 },
-                    { responsivePriority: 2, targets: -1 },
+                    { responsivePriority: 2, className: 'actions', targets: -1 },
                 ],
                 ajax: {
                     "url": helpers.add_endpoint_json(api_endpoints.occurrence_report, vm.occurrence_report_obj.id + '/observer_details'),
@@ -182,6 +158,11 @@ export default {
                 ],
                 columns: columns,
                 processing: true,
+                rowCallback: function (row, data, index) {
+                    if (!data.visible) {
+                        $(row).children('td:not(.actions)').addClass('text-decoration-line-through');
+                    }
+                },
                 drawCallback: function () {
                     helpers.enablePopovers();
                 },
@@ -198,6 +179,7 @@ export default {
     components: {
         datatable,
         ObserverDetail,
+        OCRObserverDetailHistory,
     },
     watch: {
         isReadOnly: function (newVal, oldVal) {
@@ -231,6 +213,11 @@ export default {
             vm.$refs.observer_detail_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                 helpers.enablePopovers();
             });
+            vm.$refs.observer_detail_datatable.vmDataTable.on('click', 'a[data-history-observer]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-history-observer');
+                vm.historyObserverDetail(id);
+            });
         },
         refreshFromResponse: function () {
             let vm = this;
@@ -242,26 +229,25 @@ export default {
         },
         newObserverDetail: function () {
             let vm = this;
-            this.$refs.observer_detail.observer_detail_id = '';
             //----for adding new observer
             var new_observer_detail = {
+                id: null,
                 occurrence_report: vm.occurrence_report_obj.id,
                 observer_name: '',
                 role: '',
                 contact: '',
                 organisation: '',
-                main_observer: null,
+                main_observer: false,
             }
             this.$refs.observer_detail.observerObj = new_observer_detail;
             this.$refs.observer_detail.observer_detail_action = 'add';
             this.$refs.observer_detail.isModalOpen = true;
         },
         editObserverDetail: async function (id) {
-            let vm = this;
-            this.$refs.observer_detail.observer_detail_id = id;
             this.$refs.observer_detail.observer_detail_action = 'edit';
             await Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then((response) => {
                 this.$refs.observer_detail.observerObj = response.body;
+                this.$refs.observer_detail.observerObj.id = id;
             },
                 err => {
                     console.log(err);
@@ -269,11 +255,11 @@ export default {
             this.$refs.observer_detail.isModalOpen = true;
         },
         viewObserverDetail: async function (id) {
-            let vm = this;
             this.$refs.observer_detail.observer_detail_id = id;
             this.$refs.observer_detail.observer_detail_action = 'view';
             await Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then((response) => {
                 this.$refs.observer_detail.observerObj = response.body;
+                this.$refs.observer_detail.observerObj.id = id;
             },
                 err => {
                     console.log(err);
@@ -356,6 +342,12 @@ export default {
             if (vm.occurrence_report_obj.processing_status == "Unlocked") {
                 vm.$router.go();
             }
+        },
+        historyObserverDetail: function (id) {
+            this.ocrObserverDetailHistoryId = parseInt(id);
+            this.$nextTick(() => {
+                this.$refs.ocr_observer_detail_history.isModalOpen = true;
+            });
         },
     },
     mounted: function () {

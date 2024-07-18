@@ -35,8 +35,9 @@
             </div>
             <div slot="footer">
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
-                <button type="button" v-if="delistingProposal" disabled class="btn btn-primary"><i
-                        class="fa fa-spinner fa-spin"></i> Processing</button>
+                <button type="button" v-if="delistingProposal" disabled class="btn btn-primary">Processing <span
+                        class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="visually-hidden">Loading...</span></button>
                 <button type="button" v-else class="btn btn-primary" @click="validateForm()">Propose Delist</button>
             </div>
         </modal>
@@ -48,16 +49,16 @@ import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import { helpers, api_endpoints } from "@/utils/hooks.js"
 const calculateDefaultDate = () => {
-  const now = new Date();
-  now.setHours(9, 0, 0, 0);  // Set time to 9:00 AM
+    const now = new Date();
+    now.setHours(9, 0, 0, 0);  // Set time to 9:00 AM
 
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
 
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 export default {
     name: 'Propose-Delist-Proposal',
@@ -114,7 +115,7 @@ export default {
         },
         close: function () {
             this.isModalOpen = false;
-            this.delist = {effective_to: new Date().toISOString().split('T')[0]};
+            this.delist = { effective_to: new Date().toISOString().split('T')[0] };
             this.errors = false;
             $('.was-validated').removeClass('was-validated');
         },

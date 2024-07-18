@@ -43,7 +43,7 @@
                         id="communityDocuments" :is_internal="is_internal" :species_community="species_community"
                         :is_readonly="is_readonly">
                     </CommunityDocuments>
-                    <SpeciesDocuments v-else :key="reloadcount" ref="species_documents" id="speciesDocuments"
+                    <SpeciesDocuments v-else :key="`${reloadcount}-else`" ref="species_documents" id="speciesDocuments"
                         :is_internal="is_internal" :species_community="species_community" :is_readonly="is_readonly">
                     </SpeciesDocuments>
                 </div>
@@ -52,7 +52,7 @@
                         id="communityThreats" :is_internal="is_internal" :species_community="species_community"
                         :is_readonly="is_readonly">
                     </CommunityThreats>
-                    <SpeciesThreats v-else :key="reloadcount" ref="species_threats" id="speciesThreats"
+                    <SpeciesThreats v-else :key="`${reloadcount}-else`" ref="species_threats" id="speciesThreats"
                         :is_internal="is_internal" :species_community="species_community" :is_readonly="is_readonly">
                     </SpeciesThreats>
                 </div>
@@ -160,32 +160,18 @@ export default {
         },
     },
     methods: {
-        //----function to resolve datatable exceeding beyond the div
         tabClicked: function (param) {
             this.reloadcount = this.reloadcount + 1;
         },
-        /*set_tabs:function(){
-            let vm = this;
-
-             set profile tab Active
-            //$('#pills-tab a[href="#pills-profile"]').tab('show');
-        },*/
         refreshSpeciesCommunity: function() {
             let vm = this;
             vm.$parent.refreshSpeciesCommunity();
         },
-        eventListener: function () {
-            let vm = this;
-        },
-
     },
     mounted: function () {
         let vm = this;
-        //vm.set_tabs();
         vm.form = document.forms.new_species;
-        vm.eventListener();
     }
-
 }
 </script>
 

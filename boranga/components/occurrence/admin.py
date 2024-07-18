@@ -1,6 +1,5 @@
 import nested_admin
 from django.contrib.gis import admin, forms
-from django.contrib.gis.geos import GEOSGeometry
 
 from boranga.admin import DeleteProtectedModelAdmin
 from boranga.components.occurrence.models import (
@@ -16,9 +15,7 @@ from boranga.components.occurrence.models import (
     LandForm,
     LocationAccuracy,
     ObservationMethod,
-    Occurrence,
     OccurrenceGeometry,
-    OccurrenceReport,
     OccurrenceReportGeometry,
     OccurrenceSite,
     OccurrenceTenure,
@@ -40,10 +37,7 @@ from boranga.components.occurrence.models import (
     SoilType,
     WildStatus,
 )
-from boranga.components.spatial.utils import (
-    transform_geosgeometry_3857_to_4326,
-    wkb_to_geojson,
-)
+from boranga.components.spatial.utils import wkb_to_geojson
 
 
 class GeometryField(forms.GeometryField):
@@ -115,6 +109,10 @@ class BufferGeometryInline(nested_admin.NestedStackedInline):
                         "created_from",
                         "source_of",
                     ),
+                    (
+                        "color",
+                        "stroke",
+                    ),
                 )
             },
         ),
@@ -171,6 +169,10 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
                         "content_type",
                         "created_from",
                         "source_of",
+                    ),
+                    (
+                        "color",
+                        "stroke",
                     ),
                 )
             },
@@ -232,6 +234,10 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
                         "created_from",
                         "source_of",
                     ),
+                    (
+                        "color",
+                        "stroke",
+                    ),
                 )
             },
         ),
@@ -248,44 +254,6 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
     ]
 
     inlines = [BufferGeometryInline, OccurrenceTenureInline]
-
-
-@admin.register(OccurrenceReport)
-class OccurrenceReportAdmin(admin.ModelAdmin):
-    inlines = [OccurrenceReportGeometryInline]
-
-    def save_formset(self, request, form, formset, change):
-        instances = formset.save(commit=False)
-        for obj in formset.deleted_objects:
-            obj.delete()
-        for instance in instances:
-            if hasattr(instance, "geometry"):
-                geometry = instance.geometry
-
-                instance_geometry = transform_geosgeometry_3857_to_4326(geometry)
-                instance.geometry = GEOSGeometry(instance_geometry.wkt)
-
-            instance.save()
-        formset.save_m2m()
-
-
-@admin.register(Occurrence)
-class OccurrenceAdmin(nested_admin.NestedModelAdmin):
-    inlines = [OccurrenceGeometryInline]
-
-    def save_formset(self, request, form, formset, change):
-        instances = formset.save(commit=False)
-        for obj in formset.deleted_objects:
-            obj.delete()
-        for instance in instances:
-            if hasattr(instance, "geometry"):
-                geometry = instance.geometry
-
-                instance_geometry = transform_geosgeometry_3857_to_4326(geometry)
-                instance.geometry = GEOSGeometry(instance_geometry.wkt)
-
-            instance.save()
-        formset.save_m2m()
 
 
 class OccurrenceTenureAdminForm(forms.ModelForm):
@@ -383,6 +351,10 @@ class OccurrenceTenureVestingAdmin(admin.ModelAdmin):
     pass
 
 
+class PermitTypeAdmin(DeleteProtectedModelAdmin):
+    list_filter = ("group_type",)
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, DeleteProtectedModelAdmin)
 admin.site.register(RockType, DeleteProtectedModelAdmin)
@@ -405,7 +377,7 @@ admin.site.register(AnimalHealth, DeleteProtectedModelAdmin)
 admin.site.register(IdentificationCertainty, DeleteProtectedModelAdmin)
 admin.site.register(SampleType, DeleteProtectedModelAdmin)
 admin.site.register(SampleDestination, DeleteProtectedModelAdmin)
-admin.site.register(PermitType, DeleteProtectedModelAdmin)
+admin.site.register(PermitType, PermitTypeAdmin)
 admin.site.register(Datum, DeleteProtectedModelAdmin)
 admin.site.register(CoordinateSource, DeleteProtectedModelAdmin)
 admin.site.register(LocationAccuracy, DeleteProtectedModelAdmin)

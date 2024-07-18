@@ -19,6 +19,7 @@ from boranga.components.users.models import (
 )
 from boranga.helpers import (
     is_contributor,
+    is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
 )
@@ -67,6 +68,8 @@ class UserSerializer(serializers.ModelSerializer):
     cs_referral_count = serializers.SerializerMethodField()
     ocr_referral_count = serializers.SerializerMethodField()
 
+    is_internal = serializers.SerializerMethodField()
+
     class Meta:
         model = EmailUser
         fields = (
@@ -81,9 +84,9 @@ class UserSerializer(serializers.ModelSerializer):
             "address_details",
             "contact_details",
             "full_name",
-            "is_staff",
             "system_settings",
             "groups",
+            "is_internal",
             "cs_referral_count",
             "ocr_referral_count",
         )
@@ -125,6 +128,10 @@ class UserSerializer(serializers.ModelSerializer):
         return groups.filter(
             systemgrouppermission__emailuser=request.user.id
         ).values_list("name", flat=True)
+
+    def get_is_internal(self, obj):
+        request = self.context["request"]
+        return is_internal(request)
 
     def get_cs_referral_count(self, obj):
         return ConservationStatusReferral.objects.filter(referral=obj.id).count()

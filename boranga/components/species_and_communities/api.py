@@ -7,6 +7,7 @@ from datetime import datetime
 from io import BytesIO
 
 import pandas as pd
+from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
@@ -29,7 +30,6 @@ from boranga.components.conservation_status.models import (
     CommonwealthConservationList,
     ConservationChangeCode,
     ConservationStatus,
-    ConservationStatusUserAction,
     WALegislativeCategory,
     WALegislativeList,
     WAPriorityCategory,
@@ -821,7 +821,17 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
 class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (SpeciesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = Species.objects.all()
+    queryset = (
+        Species.objects.all()
+        .select_related(
+            "taxonomy",
+            "group_type",
+            "species_publishing_status",
+        )
+        .prefetch_related(
+            "conservation_status",
+        )
+    )
     serializer_class = ListSpeciesSerializer
     page_size = 10
 
@@ -1081,7 +1091,15 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
 class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (CommunitiesFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = Community.objects.all()
+    queryset = (
+        Community.objects.all()
+        .select_related(
+            "taxonomy",
+            "group_type",
+            "community_publishing_status",
+        )
+        .prefetch_related("conservation_status", "regions", "districts")
+    )
     serializer_class = ListCommunitiesSerializer
     page_size = 10
 
@@ -1280,19 +1298,27 @@ class ExternalCommunityViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Species.objects.none()
+    queryset = (
+        Species.objects.all()
+        .select_related(
+            "taxonomy",
+            "group_type",
+            "species_publishing_status",
+        )
+        .prefetch_related(
+            "conservation_status",
+        )
+    )
     serializer_class = SpeciesSerializer
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        if is_internal(self.request):
-            qs = Species.objects.all()
-            return qs
-        else:
-            qs = Species.objects.filter(
-                processing_status=Species.PROCESSING_STATUS_ACTIVE
-            ).filter(species_publishing_status__species_public=True)
-            return qs
+        qs = super().get_queryset()
+        if not is_internal(self.request):
+            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE).filter(
+                species_publishing_status__species_public=True
+            )
+        return qs
 
     @detail_route(
         methods=[
@@ -1337,15 +1363,25 @@ class ExternalSpeciesViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = Species.objects.none()
+    queryset = (
+        Species.objects.all()
+        .select_related(
+            "taxonomy",
+            "group_type",
+            "species_publishing_status",
+        )
+        .prefetch_related(
+            "conservation_status",
+        )
+    )
     serializer_class = InternalSpeciesSerializer
     lookup_field = "id"
 
     def get_queryset(self):
-        if is_internal(self.request):
-            qs = Species.objects.all()
-            return qs
-        return Species.objects.none()
+        qs = super().get_queryset()
+        if not is_internal(self.request):
+            return qs.none()
+        return qs
 
     @detail_route(
         methods=[
@@ -1651,37 +1687,28 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     # Used to submit the original species after split data is submitted
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
+    @transaction.atomic
     def change_status_historical(self, request, *args, **kwargs):
-        species_instance = self.get_object()
-        species_instance.processing_status = "historical"
+        instance = self.get_object()
+        instance.processing_status = Species.PROCESSING_STATUS_HISTORICAL
 
-        ret1 = send_species_split_email_notification(request, species_instance)
-        if ret1:
-            species_instance.save(version_user=request.user)
-            # change current active conservation status of the original species to inactive
-            try:
-                if species_instance.processing_status == "historical":
-                    # TODO if the cs of species is in middle of workflow, then?
-                    species_cons_status = ConservationStatus.objects.get(
-                        species=species_instance, processing_status="approved"
-                    )
-                    if species_cons_status:
-                        species_cons_status.customer_status = "closed"
-                        species_cons_status.processing_status = "closed"
-                        species_cons_status.save()
-                        # add the log_user_action
-                        species_cons_status.log_user_action(
-                            ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
-                                species_cons_status.conservation_status_number
-                            ),
-                            request,
-                        )
-            except ConservationStatus.DoesNotExist:
-                pass
+        ret1 = send_species_split_email_notification(request, instance)
 
-            serializer = self.get_serializer(species_instance)
+        if not (settings.WORKING_FROM_HOME and settings.DEBUG) and not ret1:
+            raise serializers.ValidationError(
+                "Email could not be sent. Please try again later"
+            )
 
-            return Response(serializer.data)
+        instance.save(version_user=request.user)
+
+        # Log action
+        instance.log_user_action(
+            SpeciesUserAction.ACTION_MAKE_HISTORICAL.format(instance.species_number),
+            request,
+        )
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @detail_route(
         methods=[

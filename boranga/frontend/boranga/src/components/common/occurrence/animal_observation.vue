@@ -356,11 +356,9 @@ export default {
     },
     methods: {
         calculateTotalNumberSeen: function () {
-            console.log('Calculating total number seen')
             let vm = this;
             vm.total_seen = 0;
             $('input.animal-count-input').each(function (i, n) {
-                console.log('Adding ' + $(n).val())
                 vm.total_seen += parseInt($(n).val(), 10);
             });
             return vm.total_seen;

@@ -80,7 +80,6 @@ from boranga.helpers import (
     is_conservation_status_assessor,
     is_conservation_status_referee,
     is_contributor,
-    is_external_contributor,
     is_internal,
     is_internal_contributor,
     is_occurrence_approver,
@@ -390,11 +389,23 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
 
         filter_application_status = request.POST.get("filter_application_status")
         if queryset.model is ConservationStatus:
-            if (
-                filter_application_status
-                and not filter_application_status.lower() == "all"
-            ):
-                queryset = queryset.filter(processing_status=filter_application_status)
+            if filter_application_status:
+                if filter_application_status.lower() == "all":
+                    queryset = queryset.exclude(
+                        processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_DISCARDED_BY_ME
+                ):
+                    queryset = queryset.filter(
+                        submitter=request.user.id,
+                        processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED,
+                    )
+                else:
+                    queryset = queryset.filter(
+                        processing_status=filter_application_status
+                    )
         elif queryset.model is ConservationStatusReferral:
             if (
                 filter_application_status
@@ -453,7 +464,9 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
 class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (SpeciesConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = ConservationStatus.objects.all()
+    queryset = ConservationStatus.objects.all().select_related(
+        "application_type", "species", "community"
+    )
     serializer_class = ListSpeciesConservationStatusSerializer
     page_size = 10
     permission_classes = [ConservationStatusPermission]
@@ -631,7 +644,9 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     )
     def species_cs_referrals_internal(self, request, *args, **kwargs):
         self.serializer_class = DTConservationStatusReferralSerializer
-        qs = ConservationStatusReferral.objects.filter(referral=request.user.id)
+        qs = ConservationStatusReferral.objects.exclude(
+            processing_status=ConservationStatusReferral.PROCESSING_STATUS_RECALLED
+        ).filter(referral=request.user.id)
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
@@ -946,10 +961,29 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
                 )
 
         filter_application_status = request.POST.get("filter_application_status")
-        if filter_application_status and not filter_application_status.lower() == "all":
-            if queryset.model is ConservationStatus:
-                queryset = queryset.filter(processing_status=filter_application_status)
-            elif queryset.model is ConservationStatusReferral:
+        if queryset.model is ConservationStatus:
+            if filter_application_status:
+                if filter_application_status.lower() == "all":
+                    queryset = queryset.exclude(
+                        processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_DISCARDED_BY_ME
+                ):
+                    queryset = queryset.filter(
+                        submitter=request.user.id,
+                        processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED,
+                    )
+                else:
+                    queryset = queryset.filter(
+                        processing_status=filter_application_status
+                    )
+        elif queryset.model is ConservationStatusReferral:
+            if (
+                filter_application_status
+                and not filter_application_status.lower() == "all"
+            ):
                 queryset = queryset.filter(
                     conservation_status__processing_status=filter_application_status
                 )
@@ -1005,8 +1039,8 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
 class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (CommunityConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = ConservationStatus.objects.exclude(
-        processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+    queryset = ConservationStatus.objects.select_related(
+        "application_type", "species", "community"
     )
     serializer_class = ListCommunityConservationStatusSerializer
     page_size = 10
@@ -1178,11 +1212,9 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
         permission_classes=[ConservationStatusReferralPermission],
     )
     def community_cs_referrals_internal(self, request, *args, **kwargs):
-        qs = (
-            ConservationStatusReferral.objects.filter(referral=request.user.id)
-            if is_internal(self.request)
-            else ConservationStatusReferral.objects.none()
-        )
+        qs = ConservationStatusReferral.objects.exclude(
+            processing_status=ConservationStatusReferral.PROCESSING_STATUS_RECALLED
+        ).filter(referral=request.user.id)
 
         qs = self.filter_queryset(qs)
 
@@ -1359,7 +1391,9 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
 class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (ConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = ConservationStatus.objects.all()
+    queryset = ConservationStatus.objects.all().select_related(
+        "application_type", "species", "community"
+    )
     serializer_class = ListConservationStatusSerializer
     page_size = 10
     permission_classes = [ConservationStatusPermission]
@@ -1407,7 +1441,9 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     )
     def referred_to_me(self, request, *args, **kwargs):
         self.serializer_class = DTConservationStatusReferralSerializer
-        qs = ConservationStatusReferral.objects.filter(referral=request.user.id)
+        qs = ConservationStatusReferral.objects.exclude(
+            processing_status=ConservationStatusReferral.PROCESSING_STATUS_RECALLED
+        ).filter(referral=request.user.id)
         qs = self.filter_queryset(qs)
 
         self.paginator.page_size = qs.count()
@@ -1435,9 +1471,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             or is_occurrence_assessor(self.request)
             or is_occurrence_approver(self.request)
         ):
-            return ConservationStatus.objects.exclude(
-                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
-            )
+            return qs
         if is_contributor(self.request) and is_conservation_status_referee(
             self.request
         ):
@@ -2467,7 +2501,7 @@ class ConservationStatusDocumentViewSet(
             serializer = InternalSaveConservationStatusDocumentSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(no_revision=True)
-        if is_external_contributor(self.request):
+        if is_contributor(self.request):
             instance.can_submitter_access = True
             instance.save()
 

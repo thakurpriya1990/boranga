@@ -50,7 +50,7 @@
         <FormSection :formCollapse="false" label="Plant Count" :Index="plantCountBody" v-if="isFlora">
             <PlantCount v-if="isFlora" :plant_count="occurrence_obj.plant_count" :is_report=false
                 :occurrence_id="occurrence_obj.id" id="plantCountDetail" :is_external="is_external"
-                :isReadOnly="isReadOnly" ref="plantCountDetail">
+                :isReadOnly="isReadOnly" ref="plantCountDetail" @mounted="populatePlantCountLookups">
             </PlantCount>
             <RelatedReports :isReadOnly="isReadOnly" :occurrence_obj=occurrence_obj :section_type="'plant_count'"
                 @copyUpdate="copyUpdate" />
@@ -59,7 +59,7 @@
         <FormSection :formCollapse="false" label="Animal Observation" :Index="animalObsBody" v-if="isFauna">
             <AnimalObservation v-if="isFauna" :animal_observation="occurrence_obj.animal_observation" :is_report=false
                 :occurrence_id="occurrence_obj.id" id="animalObservationDetail" :is_external="is_external"
-                :isReadOnly="isReadOnly" ref="animalObservationDetail">
+                :isReadOnly="isReadOnly" ref="animalObservationDetail" @mounted="populateAnimalObservationLookups">
             </AnimalObservation>
             <RelatedReports :isReadOnly="isReadOnly" :occurrence_obj=occurrence_obj :section_type="'animal_observation'"
                 @copyUpdate="copyUpdate" />
@@ -75,7 +75,7 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label fw-bold">Identification Certainty: <span
-                    class="text-danger">*</span></label>
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <select :disabled="isReadOnly" class="form-select"
                         v-model="occurrence_obj.identification.identification_certainty_id">
@@ -298,19 +298,7 @@ export default {
                 vm.updatingIdentificationDetails = false;
             });
         },
-    },
-    created: async function () {
-        let vm = this;
-        //------fetch list of values
-        const res = await Vue.http.get('/api/occurrence/observation_list_of_values.json');
-        vm.listOfValuesDict = res.body;
-        vm.observation_method_list = vm.listOfValuesDict.observation_method_list;
-        vm.observation_method_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
-        if (this.isFlora) {
+        populatePlantCountLookups: function () {
             // using child refs to assign the list values to avoid calling the above api again in plantCount component
             vm.$refs.plantCountDetail.plant_count_method_list = vm.listOfValuesDict.plant_count_method_list;
             vm.$refs.plantCountDetail.plant_count_method_list.splice(0, 0,
@@ -336,8 +324,8 @@ export default {
                     id: null,
                     name: null,
                 });
-        }
-        else if (this.isFauna) {
+        },
+        populateAnimalObservationLookups: function () {
             // using child refs to assign the list values to avoid calling the above api again in AnimalObservation component
             vm.$refs.animalObservationDetail.primary_detection_method_list = vm.listOfValuesDict.primary_detection_method_list;
             vm.$refs.animalObservationDetail.primary_detection_method_list.splice(0, 0,
@@ -370,6 +358,19 @@ export default {
                     name: null,
                 });
         }
+
+    },
+    created: async function () {
+        let vm = this;
+        //------fetch list of values
+        const res = await Vue.http.get(`/api/occurrence/observation_list_of_values.json?group_type=${vm.occurrence_obj.group_type}`);
+        vm.listOfValuesDict = res.body;
+        vm.observation_method_list = vm.listOfValuesDict.observation_method_list;
+        vm.observation_method_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
         vm.identification_certainty_list = vm.listOfValuesDict.identification_certainty_list;
         vm.identification_certainty_list.splice(0, 0,
             {

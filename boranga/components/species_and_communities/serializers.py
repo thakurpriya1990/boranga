@@ -31,7 +31,6 @@ from boranga.components.species_and_communities.models import (
     SpeciesPublishingStatus,
     SpeciesUserAction,
     Taxonomy,
-    TaxonVernacular,
 )
 from boranga.helpers import is_internal, is_species_communities_approver
 from boranga.ledger_api_utils import retrieve_email_user
@@ -119,13 +118,11 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
         return ""
 
     def get_common_name(self, obj):
-        if obj.taxonomy:
-            if obj.taxonomy.vernaculars:
-                names_list = obj.taxonomy.vernaculars.all().values_list(
-                    "vernacular_name", flat=True
-                )
-                return ",".join(names_list)
-        return ""
+        if not obj.taxonomy or not obj.taxonomy.vernaculars:
+            return ""
+        return ", ".join(
+            str(vn.vernacular_name) for vn in obj.taxonomy.vernaculars.all()
+        )
 
     def get_family(self, obj):
         if obj.taxonomy:
@@ -150,13 +147,13 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     def get_regions(self, obj):
         if obj.regions:
             regions_list = obj.regions.all().values_list("name", flat=True)
-            return ",".join(regions_list)
+            return ", ".join(regions_list)
         return ""
 
     def get_districts(self, obj):
         if obj.districts:
             districts_list = obj.districts.all().values_list("name", flat=True)
-            return ",".join(districts_list)
+            return ", ".join(districts_list)
         return ""
 
     def get_user_process(self, obj):
@@ -171,52 +168,42 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
         return obj.can_user_edit
 
     def get_publishing_status(self, obj):
-        try:
-            # to create the publishing status instance for fetching the calculated values from serializer
-            ps_instance, created = SpeciesPublishingStatus.objects.get_or_create(
-                species=obj
-            )
-            return SpeciesPublishingStatusSerializer(ps_instance).data
-        except SpeciesPublishingStatus.DoesNotExist:
-            return SpeciesPublishingStatusSerializer().data
-
-    def approved_conservation_status(self, obj):
-        return obj.conservation_status.filter(
-            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
-        ).first()
+        if not hasattr(obj, "species_publishing_status"):
+            SpeciesPublishingStatus.objects.create(species=obj)
+        return SpeciesPublishingStatusSerializer(obj.species_publishing_status).data
 
     def get_wa_legislative_list(self, obj):
-        conservation_status = self.approved_conservation_status(obj)
+        conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.wa_legislative_list:
             return conservation_status.wa_legislative_list.code
         return ""
 
     def get_wa_legislative_category(self, obj):
-        conservation_status = self.approved_conservation_status(obj)
+        conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.wa_legislative_category:
             return conservation_status.wa_legislative_category.code
         return ""
 
     def get_wa_priority_category(self, obj):
-        conservation_status = self.approved_conservation_status(obj)
+        conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.wa_priority_category:
             return conservation_status.wa_priority_category.code
         return ""
 
     def get_commonwealth_conservation_list(self, obj):
-        conservation_status = self.approved_conservation_status(obj)
+        conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.commonwealth_conservation_list:
             return conservation_status.commonwealth_conservation_list.code
         return ""
 
     def get_international_conservation(self, obj):
-        conservation_status = self.approved_conservation_status(obj)
+        conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.international_conservation:
             return conservation_status.international_conservation
         return ""
 
     def get_conservation_criteria(self, obj):
-        conservation_status = self.approved_conservation_status(obj)
+        conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.conservation_criteria:
             return conservation_status.conservation_criteria
         return ""
@@ -295,22 +282,20 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             return ""
 
     def get_community_migrated_id(self, obj):
-        try:
-            taxonomy = CommunityTaxonomy.objects.get(community=obj)
-            return taxonomy.community_migrated_id
-        except CommunityTaxonomy.DoesNotExist:
+        if not obj.taxonomy:
             return ""
+        return obj.taxonomy.community_migrated_id
 
     def get_regions(self, obj):
         if obj.regions:
             regions_list = obj.regions.all().values_list("name", flat=True)
-            return ",".join(regions_list)
+            return ", ".join(regions_list)
         return ""
 
     def get_districts(self, obj):
         if obj.districts:
             districts_list = obj.districts.all().values_list("name", flat=True)
-            return ",".join(districts_list)
+            return ", ".join(districts_list)
         return ""
 
     def get_user_process(self, obj):
@@ -325,52 +310,42 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
         return obj.can_user_edit
 
     def get_publishing_status(self, obj):
-        try:
-            # to create the publishing status instance for fetching the calculated values from serializer
-            ps_instance, created = CommunityPublishingStatus.objects.get_or_create(
-                community=obj
-            )
-            return CommunityPublishingStatusSerializer(ps_instance).data
-        except CommunityPublishingStatus.DoesNotExist:
-            return CommunityPublishingStatusSerializer().data
-
-    def approved_conservation_status(self, obj):
-        return obj.conservation_status.filter(
-            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
-        ).first()
+        if not hasattr(obj, "community_publishing_status"):
+            CommunityPublishingStatus.objects.create(community=obj)
+        return CommunityPublishingStatusSerializer(obj.community_publishing_status).data
 
     def get_wa_legislative_list(self, obj):
-        conservation_status = self.approved_conservation_status(obj)
+        conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.wa_legislative_list:
             return conservation_status.wa_legislative_list.code
         return ""
 
     def get_wa_legislative_category(self, obj):
-        conservation_status = self.approved_conservation_status(obj)
+        conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.wa_legislative_category:
             return conservation_status.wa_legislative_category.code
         return ""
 
     def get_wa_priority_category(self, obj):
-        conservation_status = self.approved_conservation_status(obj)
+        conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.wa_priority_category:
             return conservation_status.wa_priority_category.code
         return ""
 
     def get_commonwealth_conservation_list(self, obj):
-        conservation_status = self.approved_conservation_status(obj)
+        conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.commonwealth_conservation_list:
             return conservation_status.commonwealth_conservation_list.code
         return ""
 
     def get_international_conservation(self, obj):
-        conservation_status = self.approved_conservation_status(obj)
+        conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.international_conservation:
             return conservation_status.international_conservation
         return ""
 
     def get_conservation_criteria(self, obj):
-        conservation_status = self.approved_conservation_status(obj)
+        conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.conservation_criteria:
             return conservation_status.conservation_criteria
         return ""
@@ -412,14 +387,9 @@ class TaxonomySerializer(serializers.ModelSerializer):
         return obj.scientific_name
 
     def get_common_name(self, obj):
-        try:
-            if obj.vernaculars:
-                names_list = obj.vernaculars.all().values_list(
-                    "vernacular_name", flat=True
-                )
-                return ",".join(names_list)
-        except TaxonVernacular.DoesNotExist:
+        if not obj.vernaculars:
             return ""
+        return ", ".join(str(vn.vernacular_name) for vn in obj.vernaculars.all())
 
     def get_phylogenetic_group(self, obj):
         try:
@@ -428,7 +398,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
                 informal_groups = InformalGroup.objects.filter(
                     taxonomy_id=obj.id
                 ).values_list("classification_system_fk__class_desc", flat=True)
-                return ",".join(informal_groups)
+                return ", ".join(informal_groups)
         except InformalGroup.DoesNotExist:
             return ""
 
@@ -723,15 +693,13 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
     def get_districts(self, obj):
         return [d.id for d in obj.districts.all()]
 
-    # TODO not used on the form yet as gives error for new species as taxonomy = null
     def get_taxonomy_details(self, obj):
-        request = self.context["request"]
-        try:
-            if obj.taxonomy:
-                qs = obj.taxonomy
-                return TaxonomySerializer(qs, context={"request": request}).data
-        except Taxonomy.DoesNotExist:
-            return TaxonomySerializer().data
+        if not obj.taxonomy:
+            return None
+
+        return TaxonomySerializer(
+            obj.taxonomy, context={"request": self.context["request"]}
+        ).data
 
     def get_conservation_status(self, obj):
         request = self.context["request"]
@@ -782,14 +750,9 @@ class BaseSpeciesSerializer(serializers.ModelSerializer):
             return None
 
     def get_publishing_status(self, obj):
-        try:
-            # to create the publishing status instance for fetching the calculated values from serializer
-            ps_instance, created = SpeciesPublishingStatus.objects.get_or_create(
-                species=obj
-            )
-            return SpeciesPublishingStatusSerializer(ps_instance).data
-        except SpeciesPublishingStatus.DoesNotExist:
-            return SpeciesPublishingStatusSerializer().data
+        if not hasattr(obj, "species_publishing_status"):
+            SpeciesPublishingStatus.objects.create(species=obj)
+        return SpeciesPublishingStatusSerializer(obj.species_publishing_status).data
 
     def get_image_doc(self, obj):
         if obj.image_doc and obj.image_doc._file:
@@ -1156,7 +1119,6 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
     def get_districts(self, obj):
         return [d.id for d in obj.districts.all()]
 
-    # TODO not used on the form yet as gives error for new species as taxonomy = null
     def get_taxonomy_details(self, obj):
         try:
             taxonomy_instance, created = CommunityTaxonomy.objects.get_or_create(
@@ -1203,14 +1165,9 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
             return None
 
     def get_publishing_status(self, obj):
-        try:
-            # to create the publishing status instance for fetching the calculated values from serializer
-            ps_instance, created = CommunityPublishingStatus.objects.get_or_create(
-                community=obj
-            )
-            return CommunityPublishingStatusSerializer(ps_instance).data
-        except CommunityPublishingStatus.DoesNotExist:
-            return CommunityPublishingStatusSerializer().data
+        if not hasattr(obj, "community_publishing_status"):
+            CommunityPublishingStatus.objects.create(community=obj)
+        return CommunityPublishingStatusSerializer(obj.community_publishing_status).data
 
     def get_conservation_attributes(self, obj):
         request = self.context["request"]

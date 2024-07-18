@@ -8,12 +8,12 @@ from boranga.components.main.serializers import (
 )
 from boranga.components.meetings.models import (
     AgendaItem,
+    Committee,
     CommitteeMembers,
     Meeting,
     MeetingLogEntry,
     MeetingUserAction,
     Minutes,
-    Committee,
 )
 from boranga.helpers import is_conservation_status_approver
 from boranga.ledger_api_utils import retrieve_email_user
@@ -196,7 +196,6 @@ class MeetingSerializer(serializers.ModelSerializer):
         return obj.can_user_view
 
     def get_user_edit_mode(self, obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
         return obj.has_user_edit_mode(request)
 
@@ -384,6 +383,7 @@ class CommitteeMembersSerializer(serializers.ModelSerializer):
             "email",
         )
         read_only_fields = ("id", "email")
+
 
 class CommitteeSerializer(serializers.ModelSerializer):
 

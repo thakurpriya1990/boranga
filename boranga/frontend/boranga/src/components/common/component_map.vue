@@ -169,6 +169,10 @@
                                 >
                                     <!-- Filter for not false to also catch undefined as trueish (not all geoms have show_on_map) -->
                                     <small
+                                        v-if="
+                                            getLayerDefinitionByName(name)
+                                                .can_hide_geometries === true
+                                        "
                                         >{{ layerNameTitles[name] }} ({{
                                             filterFeaturesShowOnMap(
                                                 features,
@@ -193,6 +197,11 @@
                                             hidden)
                                         </span>
                                     </small>
+                                    <small v-else
+                                        >{{ layerNameTitles[name] }} ({{
+                                            features.length
+                                        }})</small
+                                    >
                                 </a>
                                 <div
                                     :id="`geometry-list-collapsible-${name}`"
@@ -220,6 +229,13 @@
                                                 .original_geometry.properties
                                                 .longitude +
                                             feature.getProperties().show_on_map
+                                        "
+                                        :set="
+                                            (displayProperties =
+                                                featureGetDisplayProperties(
+                                                    feature,
+                                                    getLayerByName(name)
+                                                ))
                                         "
                                         class="input-group input-group-sm mb-1 text-nowrap"
                                     >
@@ -275,7 +291,8 @@
                                             data-bs-placement="top"
                                             data-bs-title="Zoom to feature"
                                             :title="`Toggle ${
-                                                feature.getProperties().label
+                                                feature.getProperties()
+                                                    .identifier_value
                                             } map visibility`"
                                             @click="
                                                 toggleFeatureShowOnMap(
@@ -297,9 +314,10 @@
                                             data-bs-toggle="tooltip"
                                             data-bs-placement="top"
                                             data-bs-title="Zoom to feature"
-                                            :title="
-                                                feature.getProperties().label
-                                            "
+                                            :title="`Zoom to ${
+                                                feature.getProperties()
+                                                    .identifier_value
+                                            }`"
                                             @mouseenter="
                                                 toggleHidden($event.target)
                                             "
@@ -1249,6 +1267,8 @@
                         aria-live="assertive"
                         aria-atomic="true"
                         style="z-index: 9999"
+                        @mouseenter="showToastCloseButton = true"
+                        @mouseleave="showToastCloseButton = false"
                     >
                         <template v-if="selectedModel">
                             <div class="toast-header">
@@ -1265,12 +1285,13 @@
                                     >
                                     {{ selectedModel['Identification Number'] }}
                                 </strong>
-                                <!-- <button
+                                <button
+                                    v-show="showToastCloseButton"
                                     type="button"
                                     class="btn-close"
                                     data-bs-dismiss="toast"
                                     aria-label="Close"
-                                ></button> -->
+                                ></button>
                             </div>
                             <div class="toast-body">
                                 <table class="table table-sm">
@@ -1380,7 +1401,9 @@
                 </div>
                 <!-- TODO: other loading cases -->
                 <div v-show="loadingMap" id="map-spinner" class="text-primary">
-                    <i class="fa fa-4x fa-spinner fa-spin"></i>
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
                 </div>
                 <!-- <BootstrapSpinner
                     v-if="
@@ -1476,7 +1499,8 @@
                                 <div
                                     class="col-sm-12 text-nowrap text-truncate"
                                 >
-                                    <i class="fa fa-spinner fa-spin"></i>
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span class="visually-hidden">Loading...</span>
                                 </div>
                             </div>
                         </button>
@@ -1588,21 +1612,6 @@ export default {
             },
             validator: function (val) {
                 return val.type == 'FeatureCollection' ? true : false;
-            },
-        },
-        /**
-         * A classifier to style the features by.
-         * `model` displays all features belonging to the same model by the same (randomly generated) color
-         * `assessor` displays all features by same color depending on the role of the user who created the feature
-         * @values model, assessor
-         */
-        styleBy: {
-            type: String,
-            required: false,
-            default: 'model',
-            validator: function (val) {
-                let options = ['model', 'assessor'];
-                return options.indexOf(val) != -1 ? true : false;
             },
         },
         /**
@@ -1843,9 +1852,11 @@ export default {
                     //  Empty list `[]` fetches all proposals
                     handler: null, // A callback function to invoke on fetched features
                     geometry_name: 'geometry', // The name of the geometry field in the model. If not provided, the object itself is treated as the geometry
+                    identifier_name: null, // The name of the identifier field in the model
+                    z_index: 0, // The z-index of the layer, can be used to order layers
                     collapse: false, // Whether the layer is collapsed by default
                     property_display_map: {}, // A dictionary to map property names to display names, e.g. for a popup or export to a geodata file
-                    property_overwrite: null, // A dictionary to overwrite the displayed property values
+                    property_overwrite: null, // A dictionary to overwrite the displayed property values, keys can take a (callback) function as well, e.g. to dynamically calculate the area of a shape
                 };
             },
         },
@@ -1902,7 +1913,7 @@ export default {
             defaultProcessedGeometryLayerName: null, // The layer to which processed geometries are added to
             editableFeatureCollection: new Collection([], { unique: true }),
             selectedFeatureCollection: new Collection([], { unique: true }),
-            zIndex: 10, // Incrementing Z-index for overlays
+            zIndex: 0, // Incrementing Z-index for overlays
             lastPoint: null,
             sketchCoordinates: [[]],
             defaultColor: '#eeeeee',
@@ -1945,6 +1956,7 @@ export default {
             fetchProposals: fetchProposals,
             cursorInLeftHalfOfMap: true,
             cursorInBottomHalfOfMap: true,
+            showToastCloseButton: false,
         };
     },
     computed: {
@@ -2300,7 +2312,10 @@ export default {
                 this.loadMapFeatures(proposals, this.queryLayerDefinition.name);
                 for (let i = 0; i < initialised.length; i++) {
                     const layerDef = this.additionalLayersDefinitions[i];
-                    let features = this.initialiseProposals(initialised[i]);
+                    let features = this.initialiseProposals(
+                        initialised[i],
+                        layerDef
+                    );
 
                     if (layerDef.handler) {
                         features = layerDef.handler(features);
@@ -2544,12 +2559,10 @@ export default {
                 ? vm.pointFeatureColors
                 : vm.featureColors;
 
-            if (vm.styleBy === 'assessor') {
-                // Assume the object is a feature containing a geometry_source property
-                return featureColors[geometry_source];
-            } else if (vm.styleBy === 'model') {
-                // Assume the object is a model containing a color field
+            if (model.color) {
                 return model.color;
+            } else if (featureColors[geometry_source]) {
+                return featureColors[geometry_source];
             } else {
                 return featureColors['unknown'] || vm.defaultColor;
             }
@@ -2696,7 +2709,7 @@ export default {
             layers.forEach((layer) => {
                 const features = layer.getSource().getFeatures();
                 features.forEach((feature) => {
-                    if (feature.getProperties().show_on_map === false) {
+                    if (this.isFeatureEligibleToHide(feature)) {
                         // Ignore hidden features
                         return;
                     }
@@ -2823,16 +2836,18 @@ export default {
             vm.map.addInteraction(vm.drawForMeasure);
             vm.map.addLayer(vm.measurementLayer);
         },
-        initialiseFeatureQueryLayer: function (title, name, can_edit) {
+        initialiseFeatureQueryLayer: function (title, name) {
             const modelQuerySource = new VectorSource({});
             const polygonStyle = this.createStyle(null, null, 'Polygon');
             this.layerSources[name] = modelQuerySource;
+            const layerDef = this.getLayerDefinitionByName(name);
+            let zIndex = layerDef.z_index;
 
             this.vectorLayers[name] = new VectorLayer({
                 title: title,
                 name: name,
                 source: modelQuerySource,
-                can_edit: can_edit,
+                can_edit: layerDef.can_edit,
                 editing: false,
                 style: (feature) => {
                     const color = feature.get('color') || this.defaultColor;
@@ -2857,22 +2872,28 @@ export default {
             // Add the layer
             this.map.addLayer(this.vectorLayers[name]);
             // Set zIndex to some layers to be rendered over the other layers
-            this.vectorLayers[name].setZIndex(this.zIndex);
-            this.zIndex += 10;
+            if (!zIndex) {
+                zIndex = this.zIndex;
+                this.zIndex += 1;
+            }
+            console.log('Setting zIndex', zIndex, 'for layer', name);
+            this.vectorLayers[name].setZIndex(zIndex);
+            // this.vectorLayers[name].setOpacity(0.5);
+            this.zIndex += 1;
         },
         initialiseQueryLayer: function () {
             this.initialiseFeatureQueryLayer(
                 this.queryLayerDefinition.title,
-                this.queryLayerDefinition.name,
-                this.queryLayerDefinition.can_edit
+                this.queryLayerDefinition.name
+                // this.queryLayerDefinition.can_edit
             );
         },
         initialiseProcessingLayer: function () {
             for (let def of this.additionalLayersDefinitions) {
                 this.initialiseFeatureQueryLayer(
                     def.title,
-                    def.name,
-                    def.can_edit
+                    def.name
+                    // def.can_edit
                 );
             }
         },
@@ -3001,9 +3022,9 @@ export default {
             vm.map.addInteraction(vm.drawPolygonsForModel);
             vm.map.addInteraction(vm.drawPointsForModel);
         },
-        initialiseProposals: function (proposals) {
+        initialiseProposals: function (proposals, layerDef = null) {
             this.proposals = proposals;
-            this.assignProposalFeatureColors(proposals);
+            this.assignProposalFeatureColors(proposals, layerDef);
 
             return proposals;
         },
@@ -3150,6 +3171,17 @@ export default {
                     }
                 });
             }
+
+            this.layerSwitcher.on('layer:opacity', (e) => {
+                const layer = e.layer;
+                const opacity = layer.getProperties().opacity;
+                layer
+                    .getSource()
+                    .getFeatures()
+                    .forEach((feature) => {
+                        feature.set('opacity', opacity);
+                    });
+            });
 
             // Add a button to show/hide the layers
             const button = $('<div class="toggleVisibility" title="show/hide">')
@@ -3430,8 +3462,8 @@ export default {
                             );
                             selected.setStyle(
                                 vm.createStyle(
-                                    selected.values_.color,
-                                    null,
+                                    selected.getProperties().color,
+                                    selected.getProperties().stroke,
                                     type,
                                     null,
                                     null,
@@ -4026,19 +4058,58 @@ export default {
          * Assigns colors to proposals
          * @param {Array} proposals An array of proposals to assign colors to
          */
-        assignProposalFeatureColors: function (proposals) {
+        assignProposalFeatureColors: function (proposals, layerDef = null) {
             let vm = this;
+            if (!layerDef) {
+                layerDef = {};
+            }
             if (Array.isArray(proposals)) {
                 // Assign a random color to each proposal
                 proposals.forEach(function (proposal) {
-                    proposal.color = vm.getRandomColor();
-                    console.log(proposal.lodgement_date);
-                    console.log(typeof proposal.lodgement_date);
-                });
+                    const properyOverwrite = this.property_overwrite || {};
+                    // TODO: A color picker fn: colorpicker([])
+                    const color =
+                        properyOverwrite.color ||
+                        proposal.color ||
+                        vm.getRandomColor();
+                    // TODO: custom stroke fn
+                    const stroke =
+                        properyOverwrite.stroke ||
+                        proposal.stroke ||
+                        vm.getRandomColor();
+                    proposal.color = color;
+                    // TODO: custom stroke fn
+                    proposal.stroke = stroke;
+                }, layerDef);
             } else {
-                // TODO: What to do if the api returns only a feature collection and not an array of proposals containing a geometry property?
-                console.error('Proposals must be an array');
-                // proposals.color = vm.getRandomColor();
+                // Assume that "proposals" is a feature collection
+                if (!proposals.features) {
+                    console.error(
+                        'Proposals must be an array or a feature collection. Skipping...'
+                    );
+                    return;
+                }
+                proposals.features.forEach(function (feature) {
+                    if (!feature.properties) {
+                        console.warn(
+                            'Feature has no properties. Creating...',
+                            feature
+                        );
+                        feature.properties = {};
+                    }
+                    const properyOverwrite = this.property_overwrite || {};
+                    const color =
+                        properyOverwrite.color ||
+                        feature.properties.color ||
+                        vm.getRandomColor();
+                    // TODO: custom stroke fn
+                    const stroke =
+                        properyOverwrite.color ||
+                        feature.properties.stroke ||
+                        vm.getRandomColor();
+                    feature.properties.color = color;
+                    feature.properties.stroke = stroke;
+                }, layerDef);
             }
         },
         /**
@@ -4056,6 +4127,7 @@ export default {
                 vm.getLayerDefinitionByName(toSource).geometry_name || null;
 
             console.log(`Loading features to source ${toSource}`, proposals);
+            let opacities;
             // Remove all features from the layer
             source.clear();
             if (geometry_name) {
@@ -4067,15 +4139,65 @@ export default {
                         );
                         return;
                     }
-                    vm.addGeometryToMapSource(geometry, proposal, source);
-                });
+                    const propertyOverwrite =
+                        this.getLayerDefinitionByName(toSource)
+                            .property_overwrite || {};
+
+                    const properties = Object.fromEntries(
+                        Object.entries(propertyOverwrite).map(([k, v]) => [
+                            k,
+                            typeof v === 'function' ? v() : v,
+                        ])
+                    );
+                    // Get the name of the identifier from the layer def, if exists
+                    const identifierName =
+                        this.getLayerDefinitionByName(toSource)
+                            .identifier_name || null;
+                    // Add the identifier to the properties
+                    properties['identifier_name'] = identifierName;
+                    properties['can_hide_geometries'] =
+                        this.getLayerDefinitionByName(toSource)
+                            .can_hide_geometries === true;
+                    for (const [key, value] of Object.entries(proposal)) {
+                        this.addFeatureDisplayPropertyValue(
+                            key,
+                            value,
+                            null, // feature
+                            properties,
+                            null, // propertyMap
+                            propertyOverwrite
+                        );
+                    }
+                    opacities = vm.addGeometryToMapSource(
+                        geometry,
+                        properties,
+                        source
+                    );
+                }, vm);
             } else {
                 const propertyOverwrite =
                     vm.getLayerDefinitionByName(toSource).property_overwrite ||
                     {};
-                vm.addGeometryToMapSource(proposals, propertyOverwrite, source);
+                const identifierName =
+                    this.getLayerDefinitionByName(toSource).identifier_name ||
+                    null;
+                propertyOverwrite['identifier_name'] = identifierName;
+                propertyOverwrite['layer_definition'] =
+                    this.getLayerDefinitionByName(toSource);
+                opacities = vm.addGeometryToMapSource(
+                    proposals,
+                    propertyOverwrite,
+                    source
+                );
             }
-            // vm.addFeatureCollectionToMap();
+
+            // Set the opacity of the associated layer
+            if (opacities.length > 0) {
+                const layer = this.vectorLayers[toSource];
+                if (layer) {
+                    layer.setOpacity(opacities[0]);
+                }
+            }
             vm.map.dispatchEvent({
                 type: 'features-loaded',
                 details: {
@@ -4097,6 +4219,7 @@ export default {
                 );
                 return;
             }
+            const opacities = [];
             geometry.features.forEach(function (featureData) {
                 if (!featureData) {
                     console.warn(
@@ -4117,8 +4240,18 @@ export default {
                     );
                     return;
                 }
+                const opacity = feature.getProperties().opacity;
+                if (
+                    typeof opacity === 'number' &&
+                    opacity >= 0 &&
+                    opacity <= 1
+                ) {
+                    opacities.push(feature.getProperties().opacity);
+                }
                 source.addFeature(feature);
             });
+
+            return opacities;
         },
         addTileLayers: function () {
             let vm = this;
@@ -4186,18 +4319,27 @@ export default {
                 coordinates: coords,
                 properties: { srid: this.mapSrid },
             };
-            // TODO: Pass in which values to use in the layer definition dict
+
             const color =
+                context.color ||
                 properties.color ||
                 this.featureColors['draw'] ||
                 this.featureColors['unknown'] ||
                 this.defaultColor;
-            const stroke = this.defaultColor;
+            const stroke =
+                properties.stroke || context.stroke || this.defaultColor;
 
             const label = properties.label || context.label || 'Draw';
 
             // Apply the passed in properties to the feature, but overwrite where necessary (nullish coalescing operator ??=)
             const featureProperties = structuredClone(properties);
+            featureProperties['can_hide_geometries'] =
+                context['can_hide_geometries'] || false;
+            // Make sure all features have an id under the same key
+            featureProperties['identifier_value'] =
+                context[context.identifier_name] ||
+                properties[context.identifier_name] ||
+                label;
             featureProperties['id'] ??= this.newFeatureId;
             featureProperties['model'] ??= context;
             featureProperties['geometry_source'] ??=
@@ -4774,7 +4916,7 @@ export default {
             }
         },
         selectFeature: function (feature) {
-            if (feature.getProperties().show_on_map === false) {
+            if (this.isFeatureEligibleToHide(feature)) {
                 // Prevent selecting hidden features
                 return;
             }
@@ -4800,14 +4942,14 @@ export default {
             });
         },
         createFeatureStyle: function (feature) {
-            if (feature.getProperties().show_on_map === false) {
+            if (this.isFeatureEligibleToHide(feature)) {
                 return new Style({});
             }
             const color = feature.getProperties().color;
             const stroke = feature.getProperties().stroke;
             const type = feature.getGeometry().getType();
 
-            let style = this.createStyle(color, stroke, type);
+            let style = this.createStyle(color, stroke, type, null, 1);
             let rgba = color;
             if (!Array.isArray(color)) {
                 rgba = this.colorHexToRgbaValues(color);
@@ -5359,14 +5501,14 @@ export default {
             if (isProxy(value)) {
                 return properties;
             }
-            if (propertyMap) {
-                if (propertyOverwrite && key in propertyOverwrite) {
-                    if (typeof propertyOverwrite[key] === 'function') {
-                        value = propertyOverwrite[key](feature);
-                    } else {
-                        value = propertyOverwrite[key];
-                    }
+            if (propertyOverwrite && key in propertyOverwrite) {
+                if (typeof propertyOverwrite[key] === 'function') {
+                    value = propertyOverwrite[key](feature);
+                } else {
+                    value = propertyOverwrite[key];
                 }
+            }
+            if (propertyMap) {
                 if (key in propertyMap) {
                     properties[propertyMap[key]] = value;
                 }
@@ -5429,6 +5571,12 @@ export default {
             return features.filter(
                 (f) => f.getProperties().show_on_map === what
             );
+        },
+        isFeatureEligibleToHide: function (feature) {
+            if (!feature.getProperties().can_hide_geometries) {
+                return false;
+            }
+            return feature.getProperties().show_on_map === false;
         },
     },
 };

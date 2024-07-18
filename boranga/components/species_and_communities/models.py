@@ -13,6 +13,7 @@ from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.db.models import Q, Sum
 from django.db.models.functions import Cast
+from django.utils.functional import cached_property
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
@@ -195,7 +196,7 @@ class TaxonomyRank(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.rank_name)  # TODO: is the most appropriate?
+        return str(self.rank_name)
 
 
 class Taxonomy(models.Model):
@@ -244,7 +245,7 @@ class Taxonomy(models.Model):
         verbose_name_plural = "Taxonomies"
 
     def __str__(self):
-        return str(self.scientific_name)  # TODO: is the most appropriate?
+        return str(self.scientific_name)
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -296,7 +297,7 @@ class TaxonVernacular(models.Model):
         ordering = ["vernacular_name"]
 
     def __str__(self):
-        return str(self.vernacular_name)  # TODO: is the most appropriate?
+        return str(self.vernacular_name)
 
 
 class TaxonPreviousName(models.Model):
@@ -314,7 +315,7 @@ class TaxonPreviousName(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.previous_scientific_name)  # TODO: is the most appropriate?
+        return str(self.previous_scientific_name)
 
 
 # TODO will need to delete this model
@@ -338,7 +339,7 @@ class CrossReference(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.cross_reference_id)  # TODO: is the most appropriate?
+        return str(self.cross_reference_id)
 
 
 class ClassificationSystem(models.Model):
@@ -357,7 +358,7 @@ class ClassificationSystem(models.Model):
         ordering = ["class_desc"]
 
     def __str__(self):
-        return str(self.class_desc)  # TODO: is the most appropriate?
+        return str(self.class_desc)
 
 
 class InformalGroup(models.Model):
@@ -382,9 +383,7 @@ class InformalGroup(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(
-            self.classification_system_fk.class_desc
-        )  # TODO: is the most appropriate?
+        return str(self.classification_system_fk.class_desc)
 
 
 class Species(RevisionedMixin):
@@ -647,6 +646,16 @@ class Species(RevisionedMixin):
         )
 
         self.delete()
+
+    @cached_property
+    def approved_conservation_status(self):
+        # Careful with this as it is cached for the duration of the life of the object (most likely the request)
+        # Using it to reduce queries in the species list view
+        from boranga.components.conservation_status.models import ConservationStatus
+
+        return self.conservation_status.filter(
+            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
+        ).first()
 
     def has_user_edit_mode(self, request):
         officer_view_state = ["draft", "historical"]
@@ -1040,6 +1049,7 @@ class SpeciesUserAction(UserAction):
     ACTION_EDIT_SPECIES = "Edit Species {}"
     ACTION_CREATE_SPECIES = "Create new species {}"
     ACTION_SAVE_SPECIES = "Save Species {}"
+    ACTION_MAKE_HISTORICAL = "Make Species {} historical"
     ACTION_IMAGE_UPDATE = "Species Image document updated for Species {}"
     ACTION_IMAGE_DELETE = "Species Image document deleted for Species {}"
     ACTION_IMAGE_REINSTATE = "Species Image document reinstated for Species {}"
@@ -1117,7 +1127,10 @@ class SpeciesDistribution(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.id)  # TODO: is the most appropriate?
+        string = f"Species Distribution {self.id}"
+        if self.species:
+            string += f" for Species ({self.species})"
+        return string
 
 
 class Community(RevisionedMixin):
@@ -1154,7 +1167,6 @@ class Community(RevisionedMixin):
 
     community_number = models.CharField(max_length=9, blank=True, default="")
     group_type = models.ForeignKey(GroupType, on_delete=models.CASCADE)
-    # TODO the species is noy required as per the new requirements
     species = models.ManyToManyField(Species, blank=True)
     regions = models.ManyToManyField(
         Region, blank=True, related_name="community_regions"
@@ -1404,6 +1416,16 @@ class Community(RevisionedMixin):
     def related_item_status(self):
         return self.processing_status
 
+    @cached_property
+    def approved_conservation_status(self):
+        # Careful with this as it is cached for the duration of the life of the object (most likely the request)
+        # Using it to reduce queries in the communities list view
+        from boranga.components.conservation_status.models import ConservationStatus
+
+        return self.conservation_status.filter(
+            processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
+        ).first()
+
     @transaction.atomic
     def discard(self, request):
         if not self.processing_status == Community.PROCESSING_STATUS_DRAFT:
@@ -1642,7 +1664,7 @@ class CommunityTaxonomy(models.Model):
         ordering = ["community_name"]
 
     def __str__(self):
-        return str(self.community_name)  # TODO: is the most appropriate?
+        return str(self.community_name)
 
 
 class CommunityLogDocument(Document):
@@ -1765,7 +1787,10 @@ class CommunityDistribution(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.id)  # TODO: is the most appropriate?
+        string = f"Community Distribution {self.id}"
+        if self.community:
+            string += f" for Community ({self.community})"
+        return string
 
 
 class DocumentCategory(models.Model):
@@ -2153,7 +2178,13 @@ class ConservationThreat(RevisionedMixin):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.id)  # TODO: is the most appropriate?
+        string = f"Conservation Threat {self.id}"
+        if self.species:
+            string += f" for Species ({self.species})"
+        elif self.community:
+            string += f" for Community ({self.community})"
+
+        return string
 
     def save(self, *args, **kwargs):
         if self.threat_number == "":
@@ -2403,7 +2434,10 @@ class SpeciesConservationAttributes(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.species)  # TODO: is the most appropriate?
+        string = f"Conservation Attributes: {self.id}"
+        if self.species:
+            string += f" for Species ({self.species})"
+        return string
 
 
 class CommunityConservationAttributes(models.Model):
@@ -2449,7 +2483,65 @@ class CommunityConservationAttributes(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.community)  # TODO: is the most appropriate?
+        string = f"Conservation Attributes: {self.id}"
+        if self.community:
+            string += f" for Community ({self.community})"
+        return string
+
+
+class SystemEmailGroup(models.Model):
+    AREA_CONSERVATION_STATUS = "conservation_status"
+    AREA_OCCURRENCE = "occurrence"
+    AREA_CHOICES = [
+        (AREA_CONSERVATION_STATUS, "Conservation Status"),
+        (AREA_OCCURRENCE, "Occurrence"),
+    ]
+    group_type = models.ForeignKey(
+        GroupType, on_delete=models.PROTECT, null=False, blank=False
+    )
+    area = models.CharField(max_length=50, choices=AREA_CHOICES, blank=True, null=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "System Email Group"
+
+    def __str__(self):
+        return self.label
+
+    @property
+    def label(self):
+        label = self.group_type.name.title()
+        if self.area:
+            label += f" {self.get_area_display()}"
+        label += " Notification Group"
+        return label
+
+    @property
+    def email_address_list(self):
+        return [email.email for email in self.systememail_set.all()]
+
+    @property
+    def email_address_list_str(self):
+        return ", ".join(self.email_address_list)
+
+    @classmethod
+    def emails_by_group_and_area(cls, group_type, area=None):
+        group = cls.objects.get(group_type=group_type, area=area)
+        return group.email_address_list
+
+
+class SystemEmail(models.Model):
+    system_email_group = models.ForeignKey(
+        SystemEmailGroup, on_delete=models.PROTECT, null=False, blank=False
+    )
+    email = models.EmailField(max_length=255, blank=False, null=False)
+
+    class Meta:
+        app_label = "boranga"
+        ordering = ["system_email_group", "email"]
+
+    def __str__(self):
+        return f"{self.email} - {self.system_email_group}"
 
 
 # Species Document History

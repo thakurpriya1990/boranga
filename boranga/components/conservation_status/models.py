@@ -385,6 +385,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_DELISTED, "DeListed"),
         (PROCESSING_STATUS_CLOSED, "Closed"),
     )
+    # This status is used as a front end filter but shouldn't be in most cases
+    # So it is deliberately not included in PROCESSING_STATUS_CHOICES
+    PROCESSING_STATUS_DISCARDED_BY_ME = "discarded_by_me"
     REVIEW_STATUS_CHOICES = (
         ("not_reviewed", "Not Reviewed"),
         ("awaiting_amendments", "Awaiting Amendments"),
@@ -1495,7 +1498,10 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 "You cannot reinstate a conservation status that has not been discarded"
             )
 
-        if not request.user.id == self.submitter:
+        if (
+            not is_conservation_status_assessor(request)
+            and request.user.id != self.submitter
+        ):
             raise ValidationError(
                 "You cannot reinstate a conservation status that is not yours"
             )

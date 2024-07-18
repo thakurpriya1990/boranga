@@ -13,6 +13,7 @@ from django.views.generic.base import TemplateView
 from boranga.components.conservation_status.mixins import ReferralOwnerMixin
 from boranga.components.conservation_status.models import (
     ConservationStatus,
+    ConservationStatusAmendmentRequestDocument,
     ConservationStatusDocument,
     ConservationStatusReferral,
 )
@@ -20,6 +21,7 @@ from boranga.components.meetings.models import Meeting
 from boranga.components.occurrence.models import (
     Occurrence,
     OccurrenceReport,
+    OccurrenceReportAmendmentRequestDocument,
     OccurrenceReportDocument,
 )
 from boranga.components.species_and_communities.models import Community, Species
@@ -27,8 +29,8 @@ from boranga.forms import LoginForm
 from boranga.helpers import (
     is_conservation_status_assessor,
     is_conservation_status_referee,
+    is_contributor,
     is_django_admin,
-    is_external_contributor,
     is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
@@ -268,23 +270,57 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
             or is_occurrence_approver(request)
         )
 
+    if is_occurrence_report_referee(request) and is_contributor(request):
+        referee_allowed_paths = ["documents"]
+        contributor_allowed_paths = ["documents", "amendment_request_documents"]
+        file_name = get_file_name_from_path(request.path)
+        qs = OccurrenceReportDocument.objects.filter(
+            visible=True,
+            occurrence_report_id=document_id,
+            _file=file_name,
+        )
+
+        return (
+            qs.filter(occurrence_report__referrals__referral=request.user.id).exists()
+            and check_allowed_path(document_id, request.path, referee_allowed_paths)
+            or qs.filter(
+                can_submitter_access=True,
+                occurrence_report__submitter=request.user.id,
+            ).exists()
+            and check_allowed_path(document_id, request.path, contributor_allowed_paths)
+            or OccurrenceReportAmendmentRequestDocument.objects.filter(
+                visible=True,
+                occurrence_report_amendment_request__occurrence_report_id=document_id,
+                _file=file_name,
+            ).exists()
+            and check_allowed_path(document_id, request.path, contributor_allowed_paths)
+        )
+
     if is_occurrence_report_referee(request):
+        allowed_paths = ["documents"]
         file_name = get_file_name_from_path(request.path)
         return OccurrenceReportDocument.objects.filter(
             visible=True,
             occurrence_report__referrals__referral=request.user.id,
             occurrence_report_id=document_id,
             _file=file_name,
-        ).exists()
+        ).exists() and check_allowed_path(document_id, request.path, allowed_paths)
 
-    if is_external_contributor(request):
+    if is_contributor(request):
         allowed_paths = ["documents", "amendment_request_documents"]
         path = request.path
         user = request.user
-        return OccurrenceReport.objects.filter(
-            internal_application=False, id=document_id
-        ).filter(submitter=user.id).exists() and check_allowed_path(
-            document_id, path, allowed_paths
+        return (
+            OccurrenceReport.objects.filter(internal_application=False, id=document_id)
+            .filter(submitter=user.id)
+            .exists()
+            and check_allowed_path(document_id, path, allowed_paths)
+            or OccurrenceReportAmendmentRequestDocument.objects.filter(
+                visible=True,
+                occurrence_report_amendment_request__occurrence_report_id=document_id,
+                _file=file_name,
+            ).exists()
+            and check_allowed_path(document_id, request.path, contributor_allowed_paths)
         )
 
     return False
@@ -313,25 +349,66 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
             or is_conservation_status_assessor(request)
         )
 
+    if is_conservation_status_referee(request) and is_contributor(request):
+        referee_allowed_paths = ["documents"]
+        contributor_allowed_paths = ["documents", "amendment_request_documents"]
+        file_name = get_file_name_from_path(request.path)
+        qs = ConservationStatusDocument.objects.filter(
+            visible=True,
+            conservation_status_id=document_id,
+            _file=file_name,
+        )
+
+        return (
+            qs.filter(
+                conservation_status__referrals__referral=request.user.id,
+            )
+            and check_allowed_path(document_id, request.path, referee_allowed_paths)
+            or qs.filter(
+                can_submitter_access=True,
+                conservation_status__submitter=request.user.id,
+            ).exists()
+            and check_allowed_path(document_id, request.path, contributor_allowed_paths)
+            or ConservationStatusAmendmentRequestDocument.objects.filter(
+                visible=True,
+                conservation_status_amendment_request__conservation_status_id=document_id,
+                _file=file_name,
+            ).exists()
+            and check_allowed_path(document_id, request.path, contributor_allowed_paths)
+        )
+
     if is_conservation_status_referee(request):
+        referee_allowed_paths = ["documents"]
         file_name = get_file_name_from_path(request.path)
         return ConservationStatusDocument.objects.filter(
             visible=True,
             conservation_status__referrals__referral=request.user.id,
             conservation_status_id=document_id,
             _file=file_name,
-        ).exists()
+        ).exists() and check_allowed_path(
+            document_id, request.path, referee_allowed_paths
+        )
 
-    if is_external_contributor(request):
+    if is_contributor(request):
         # TODO: Would be nice if the document id was included in the upload path to simplify this query
+        allowed_paths = ["documents", "amendment_request_documents"]
         file_name = get_file_name_from_path(request.path)
-        return ConservationStatusDocument.objects.filter(
-            visible=True,
-            can_submitter_access=True,
-            conservation_status__submitter=request.user.id,
-            conservation_status_id=document_id,
-            _file=file_name,
-        ).exists()
+        return (
+            ConservationStatusDocument.objects.filter(
+                visible=True,
+                can_submitter_access=True,
+                conservation_status__submitter=request.user.id,
+                conservation_status_id=document_id,
+                _file=file_name,
+            ).exists()
+            and check_allowed_path(document_id, request.path, allowed_paths)
+            or ConservationStatusAmendmentRequestDocument.objects.filter(
+                visible=True,
+                conservation_status_amendment_request__conservation_status_id=document_id,
+                _file=file_name,
+            ).exists()
+            and check_allowed_path(document_id, request.path, contributor_allowed_paths)
+        )
 
     return False
 

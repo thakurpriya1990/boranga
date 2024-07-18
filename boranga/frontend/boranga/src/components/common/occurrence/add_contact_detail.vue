@@ -43,7 +43,7 @@
                                             v-model="contactObj.organisation" />
                                     </div>
                                 </div>
-                                
+
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left">Notes</label>
@@ -72,13 +72,16 @@
                 <div v-if="!isReadOnly">
                     <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
                     <template v-if="contact_detail_id">
-                        <button type="button" v-if="updatingContact" disabled class="btn btn-primary" @click="ok"><i
-                                class="fa fa-spinnner fa-spin"></i> Updating</button>
+                        <button type="button" v-if="updatingContact" disabled class="btn btn-primary" @click="ok">
+                            Updating <span class="spinner-border spinner-border-sm" role="status"
+                                aria-hidden="true"></span>
+                            <span class="visually-hidden">Loading...</span></button>
                         <button type="button" v-else class="btn btn-primary" @click="ok">Update Contact</button>
                     </template>
                     <template v-else>
-                        <button type="button" v-if="addingContact" disabled class="btn btn-primary" @click="ok"><i
-                                class="fa fa-spinner fa-spin"></i> Adding</button>
+                        <button type="button" v-if="addingContact" disabled class="btn btn-primary" @click="ok">Adding
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="visually-hidden">Loading...</span></button>
                         <button type="button" v-else class="btn btn-primary" @click="ok">Add Contact</button>
                     </template>
                 </div>
