@@ -623,7 +623,14 @@ def buffer_geometries(geoms, distance, unit):
                 )
             else:
                 # A polygon (dim 2), can there possibly be a dim-3 geometry?
-                buffer_geom = buffer_polygon_m(geom, distance)
+                if geom.geom_type == "MultiPolygon":
+                    buffer_geoms = []
+                    for polygon in geom:
+                        buffer_geoms.append(buffer_polygon_m(polygon, distance))
+                    buffer_geom_mp = shp.MultiPolygon(buffer_geoms)
+                    buffer_geom = unary_union(buffer_geom_mp)
+                else:
+                    buffer_geom = buffer_polygon_m(geom, distance)
 
             buffered_geoms.append(GEOSGeometry(buffer_geom.wkt))
 
