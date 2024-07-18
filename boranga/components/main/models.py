@@ -168,17 +168,6 @@ class GlobalSettings(models.Model):
         verbose_name_plural = "Global Settings"
 
 
-class SystemEmail(models.Model):
-    key = models.CharField(max_length=255, blank=False, null=False)
-    email = models.EmailField(max_length=255, blank=False, null=False)
-
-    class Meta:
-        app_label = "boranga"
-
-    def __str__(self):
-        return f"{self.key} - {self.email}"
-
-
 # @python_2_unicode_compatible
 class SystemMaintenance(models.Model):
     name = models.CharField(max_length=100)
