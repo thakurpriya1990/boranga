@@ -2485,6 +2485,61 @@ class CommunityConservationAttributes(models.Model):
         return string
 
 
+class SystemEmailGroup(models.Model):
+    AREA_CONSERVATION_STATUS = "conservation_status"
+    AREA_OCCURRENCE = "occurrence"
+    AREA_CHOICES = [
+        (AREA_CONSERVATION_STATUS, "Conservation Status"),
+        (AREA_OCCURRENCE, "Occurrence"),
+    ]
+    group_type = models.ForeignKey(
+        GroupType, on_delete=models.PROTECT, null=False, blank=False
+    )
+    area = models.CharField(max_length=50, choices=AREA_CHOICES, blank=True, null=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "System Email Group"
+
+    def __str__(self):
+        return self.label
+
+    @property
+    def label(self):
+        label = self.group_type.name.title()
+        if self.area:
+            label += f" {self.get_area_display()}"
+        label += " Notification Group"
+        return label
+
+    @property
+    def email_address_list(self):
+        return [email.email for email in self.systememail_set.all()]
+
+    @property
+    def email_address_list_str(self):
+        return ", ".join(self.email_address_list)
+
+    @classmethod
+    def emails_by_group_and_area(cls, group_type, area=None):
+        group = cls.objects.get(group_type=group_type, area=area)
+        return group.email_address_list
+
+
+class SystemEmail(models.Model):
+    system_email_group = models.ForeignKey(
+        SystemEmailGroup, on_delete=models.PROTECT, null=False, blank=False
+    )
+    email = models.EmailField(max_length=255, blank=False, null=False)
+
+    class Meta:
+        app_label = "boranga"
+        ordering = ["system_email_group", "email"]
+
+    def __str__(self):
+        return f"{self.email} - {self.system_email_group}"
+
+
 # Species Document History
 reversion.register(SpeciesDocument)
 # reversion.register(DocumentCategory)

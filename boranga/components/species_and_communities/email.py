@@ -8,7 +8,10 @@ from django.utils.encoding import smart_text
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from boranga.components.emails.emails import TemplateEmailBase
-from boranga.components.species_and_communities.models import private_storage
+from boranga.components.species_and_communities.models import (
+    SystemEmailGroup,
+    private_storage,
+)
 from boranga.helpers import convert_external_url_to_internal_url
 
 logger = logging.getLogger(__name__)
@@ -153,6 +156,12 @@ def send_species_split_email_notification(request, species_proposal):
     )
     url = convert_external_url_to_internal_url(url)
 
+    notification_emails = SystemEmailGroup.emails_by_group_and_area(
+        group_type=species_proposal.group_type,
+    )
+
+    all_ccs = notification_emails
+
     conservation_status_url = []
     conservation_status_list = species_proposal.conservation_status.filter(
         processing_status="approved"
@@ -164,6 +173,11 @@ def send_species_split_email_notification(request, species_proposal):
                 kwargs={"cs_proposal_pk": conservation_status_list[0].id},
             )
         )
+        cs_notification_emails = SystemEmailGroup.emails_by_group_and_area(
+            group_type=species_proposal.group_type,
+            area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
+        )
+        all_ccs.extend(cs_notification_emails)
 
     occurrences_url = []
     occurrences = species_proposal.occurrences.filter(processing_status="active")
@@ -180,6 +194,11 @@ def send_species_split_email_notification(request, species_proposal):
                     "occurrence_number": occ.occurrence_number,
                 }
             )
+        occ_notification_emails = SystemEmailGroup.emails_by_group_and_area(
+            group_type=species_proposal.group_type,
+            area=SystemEmailGroup.AREA_OCCURRENCE,
+        )
+        all_ccs.extend(occ_notification_emails)
 
     context = {
         "species_proposal": species_proposal,
@@ -188,7 +207,7 @@ def send_species_split_email_notification(request, species_proposal):
         "occurrences_url": occurrences_url,
     }
 
-    all_ccs = []
+    all_ccs = list(set(all_ccs))
 
     msg = email.send(
         EmailUser.objects.get(id=species_proposal.submitter).email,

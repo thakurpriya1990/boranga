@@ -208,7 +208,8 @@
                             class="btn btn-primary"
                             @click="ok"
                         >
-                            <i class="fa fa-spinner fa-spin"></i> Updating
+                            Updating <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="visually-hidden">Loading...</span>
                         </button>
                         <button
                             v-else
@@ -227,7 +228,8 @@
                             class="btn btn-primary"
                             @click="ok"
                         >
-                            <i class="fa fa-spinner fa-spin"></i> Adding
+                            Adding <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="visually-hidden">Loading...</span>
                         </button>
                         <button
                             v-else
