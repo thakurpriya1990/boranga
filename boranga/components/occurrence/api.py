@@ -102,6 +102,15 @@ from boranga.components.occurrence.models import (
     SoilType,
     WildStatus,
 )
+from boranga.components.occurrence.permissions import (
+    ExternalOccurrenceReportObjectPermission,
+    ExternalOccurrenceReportPermission,
+    IsOccurrenceReportReferee,
+    OccurrenceObjectPermission,
+    OccurrencePermission,
+    OccurrenceReportObjectPermission,
+    OccurrenceReportPermission,
+)
 from boranga.components.occurrence.serializers import (
     BackToAssessorSerializer,
     CreateOccurrenceReportSerializer,
@@ -190,15 +199,6 @@ from boranga.helpers import (
     is_occurrence_assessor,
     is_occurrence_report_referee,
     is_readonly_user,
-)
-from boranga.permissions import (
-    ExternalOccurrenceReportObjectPermission,
-    ExternalOccurrenceReportPermission,
-    IsOccurrenceReportReferee,
-    OccurrenceObjectPermission,
-    OccurrencePermission,
-    OccurrenceReportObjectPermission,
-    OccurrenceReportPermission,
 )
 
 logger = logging.getLogger(__name__)

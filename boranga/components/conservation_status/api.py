@@ -41,6 +41,13 @@ from boranga.components.conservation_status.models import (
     WAPriorityCategory,
     WAPriorityList,
 )
+from boranga.components.conservation_status.permissions import (
+    ConservationStatusAmendmentRequestPermission,
+    ConservationStatusDocumentPermission,
+    ConservationStatusPermission,
+    ConservationStatusReferralPermission,
+    ExternalConservationStatusPermission,
+)
 from boranga.components.conservation_status.serializers import (
     ConservationStatusAmendmentRequestDisplaySerializer,
     ConservationStatusAmendmentRequestSerializer,
@@ -86,13 +93,6 @@ from boranga.helpers import (
     is_occurrence_assessor,
     is_readonly_user,
     is_species_communities_approver,
-)
-from boranga.permissions import (
-    ConservationStatusAmendmentRequestPermission,
-    ConservationStatusDocumentPermission,
-    ConservationStatusPermission,
-    ConservationStatusReferralPermission,
-    ExternalConservationStatusPermission,
 )
 
 logger = logging.getLogger(__name__)

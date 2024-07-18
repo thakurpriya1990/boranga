@@ -28,8 +28,11 @@ from boranga.components.meetings.models import (
     MeetingUserAction,
     Minutes,
 )
+from boranga.components.meetings.permissions import MeetingPermission
 from boranga.components.meetings.serializers import (
     AgendaItemSerializer,
+    CommitteeMembersSerializer,
+    CommitteeSerializer,
     CreateMeetingSerializer,
     EditMeetingSerializer,
     ListAgendaItemSerializer,
@@ -40,11 +43,8 @@ from boranga.components.meetings.serializers import (
     MinutesSerializer,
     SaveMeetingSerializer,
     SaveMinutesSerializer,
-    CommitteeSerializer,
-    CommitteeMembersSerializer,
 )
 from boranga.helpers import is_conservation_status_approver
-from boranga.permissions import MeetingPermission
 
 logger = logging.getLogger(__name__)
 
@@ -244,7 +244,7 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if serializer.is_valid():
             saved_instance = serializer.save()
             # add the committee selected members to the meeting
-            if 'sel_committee_members_arr' in request_data:
+            if "sel_committee_members_arr" in request_data:
                 saved_instance.selected_committee_members.set(
                     request_data.get("sel_committee_members_arr")
                 )
@@ -264,7 +264,7 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance.save()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
-    
+
     @detail_route(methods=["PUT"], detail=True)
     @renderer_classes((JSONRenderer,))
     def schedule_meeting(self, request, *args, **kwargs):
@@ -273,7 +273,7 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance.save()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
-    
+
     @detail_route(methods=["PUT"], detail=True)
     @renderer_classes((JSONRenderer,))
     def complete_meeting(self, request, *args, **kwargs):
@@ -652,6 +652,7 @@ class AgendaItemViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
+
 class CommitteeViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Committee.objects.all()
     serializer_class = CommitteeSerializer
@@ -668,4 +669,3 @@ class CommitteeViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         qs = instance.committeemembers_set.all()
         serializer = CommitteeMembersSerializer(qs, many=True)
         return Response(serializer.data)
-
