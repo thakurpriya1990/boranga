@@ -747,6 +747,7 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
     srid = serializers.SerializerMethodField(read_only=True)
     original_geometry = serializers.SerializerMethodField(read_only=True)
     drawn_by = serializers.SerializerMethodField(read_only=True)
+    updated_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
 
     class Meta:
         model = OccurrenceReportGeometry
@@ -3004,6 +3005,7 @@ class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
     original_geometry = serializers.SerializerMethodField(read_only=True)
     label = serializers.SerializerMethodField(read_only=True)
     buffer_radius = serializers.SerializerMethodField(read_only=True)
+    updated_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
 
     class Meta:
         model = BufferGeometry
@@ -3070,6 +3072,7 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
     original_geometry = serializers.SerializerMethodField(read_only=True)
     buffer_geometry = BufferGeometrySerializer(read_only=True)
     drawn_by = serializers.SerializerMethodField(read_only=True)
+    updated_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
 
     class Meta:
         model = OccurrenceGeometry
@@ -3531,6 +3534,7 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
     geometry_source = serializers.SerializerMethodField()
     original_geometry = serializers.SerializerMethodField(read_only=True)
     drawn_by = serializers.SerializerMethodField(read_only=True)
+    updated_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
 
     class Meta:
         model = OccurrenceSite
