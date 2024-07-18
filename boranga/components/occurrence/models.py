@@ -1682,6 +1682,9 @@ class GeometryBase(models.Model):
 
     copied_from = fields.GenericRelation("self", related_query_name="copied_to")
 
+    created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
+    updated_date = models.DateTimeField(auto_now=True, null=False, blank=False)
+
     class Meta:
         abstract = True
         indexes = [
@@ -4673,7 +4676,7 @@ class SiteType(models.Model):
         return str(self.name)
 
 
-class OccurrenceSite(GeometryBase, RevisionedMixin):
+class OccurrenceSite(GeometryBase, DrawnByGeometry, RevisionedMixin):
     site_number = models.CharField(max_length=9, blank=True, default="")
     occurrence = models.ForeignKey(
         "Occurrence", related_name="sites", on_delete=models.CASCADE

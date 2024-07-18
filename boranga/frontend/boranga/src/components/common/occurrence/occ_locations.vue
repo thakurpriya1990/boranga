@@ -371,6 +371,7 @@ export default {
                 processing_status: 'Processing Status',
                 lodgement_date_display: 'Lodgement Date',
                 locked: 'Locked',
+                drawn_by: 'Drawn By', // fullname
             };
         },
         occPropertyDisplayMap: function () {
@@ -383,6 +384,7 @@ export default {
                 processing_status_display: 'Processing Status',
                 area_sqm: 'Area [m²]',
                 area_sqhm: 'Area [ha]',
+                drawn_by: 'Drawn By', // fullname
             };
         },
         bufferPropertyDisplayMap: function () {
@@ -396,6 +398,7 @@ export default {
                 area_sqm: 'Area [m²]',
                 area_sqhm: 'Area [ha]',
                 buffer_radius: 'Buffer Radius [m]',
+                // drawn_by: 'Drawn By', // fullname
             };
         },
         sitePropertyDisplayMap: function () {
@@ -404,6 +407,7 @@ export default {
                 label: 'Label', // Site
                 site_number: 'Identification Number', // ST1
                 site_name: 'Site Name', // My Site
+                drawn_by: 'Drawn By', // fullname
             };
         },
         bufferGeometriesApiUrl: function () {

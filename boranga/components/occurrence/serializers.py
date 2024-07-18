@@ -746,6 +746,7 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
     report_copied_from = serializers.SerializerMethodField(read_only=True)
     srid = serializers.SerializerMethodField(read_only=True)
     original_geometry = serializers.SerializerMethodField(read_only=True)
+    drawn_by = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReportGeometry
@@ -769,6 +770,8 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
             "show_on_map",
             "color",
             "stroke",
+            "updated_date",
+            "drawn_by",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -804,6 +807,12 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
     def get_source_of(self, obj):
         if obj.source_of:
             return obj.source_of.__str__()
+        return None
+
+    def get_drawn_by(self, obj):
+        if obj.drawn_by:
+            email_user = retrieve_email_user(obj.drawn_by)
+            return EmailUserSerializer(email_user).data.get("fullname", None)
         return None
 
 
@@ -1832,7 +1841,6 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
                     setattr(instance, field_name, validated_data[field_name])
             instance.save(*args, **kwargs)
             return instance
-
 
 
 class OCRObserverDetailLimitedSerializer(OCRObserverDetailSerializer):
@@ -3018,6 +3026,7 @@ class BufferGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer):
             "color",
             "stroke",
             "opacity",
+            "updated_date",
         ] + BaseTypeSerializer.Meta.fields
 
     def get_srid(self, obj):
@@ -3060,6 +3069,7 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
     srid = serializers.SerializerMethodField(read_only=True)
     original_geometry = serializers.SerializerMethodField(read_only=True)
     buffer_geometry = BufferGeometrySerializer(read_only=True)
+    drawn_by = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceGeometry
@@ -3084,6 +3094,8 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
             "color",
             "stroke",
             "opacity",
+            "updated_date",
+            "drawn_by",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -3119,6 +3131,12 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
     def get_source_of(self, obj):
         if obj.source_of:
             return obj.source_of.__str__()
+        return None
+
+    def get_drawn_by(self, obj):
+        if obj.drawn_by:
+            email_user = retrieve_email_user(obj.drawn_by)
+            return EmailUserSerializer(email_user).data.get("fullname", None)
         return None
 
 
@@ -3512,6 +3530,7 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
     srid = serializers.SerializerMethodField(read_only=True)
     geometry_source = serializers.SerializerMethodField()
     original_geometry = serializers.SerializerMethodField(read_only=True)
+    drawn_by = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceSite
@@ -3528,6 +3547,8 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
             "original_geometry",
             "color",
             "stroke",
+            "updated_date",
+            "drawn_by",
         ]
         read_only_fields = ("id",)
 
@@ -3545,3 +3566,9 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
             return wkb_to_geojson(obj.original_geometry_ewkb)
         else:
             return None
+
+    def get_drawn_by(self, obj):
+        if obj.drawn_by:
+            email_user = retrieve_email_user(obj.drawn_by)
+            return EmailUserSerializer(email_user).data.get("fullname", None)
+        return None
