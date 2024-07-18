@@ -3488,6 +3488,7 @@ class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
             "related_occurrence_reports",
             "geometry",
             "original_geometry_ewkb",
+            "drawn_by",
         )
         read_only_fields = ("id",)
 
