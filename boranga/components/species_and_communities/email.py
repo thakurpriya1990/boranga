@@ -254,15 +254,45 @@ def send_species_combine_email_notification(request, species_proposal):
 
 
 # here species_proposal is the original species from rename functionality
-def send_species_rename_email_notification(request, species_proposal):
+def send_species_rename_email_notification(request, species_proposal, new_species):
     email = RenameSpeciesSendNotificationEmail()
     # TODO this url is doe conservation status dash, will need to add one more url for occurrences dash
     url = request.build_absolute_uri(
         reverse("internal-conservation-status-dashboard", kwargs={})
     )
-    url = convert_external_url_to_internal_url(url)
+    species_url= request.build_absolute_uri(
+            reverse("internal-species-detail", kwargs={"species_proposal_pk": species_proposal.id })
+        )
+    species_url = convert_external_url_to_internal_url(species_url)
 
-    context = {"species_proposal": species_proposal, "url": url}
+    new_species_url= request.build_absolute_uri(
+            reverse("internal-species-detail", kwargs={"species_proposal_pk": new_species.id })
+        )
+    new_species_url = convert_external_url_to_internal_url(new_species_url)
+
+    conservation_status_url=[]
+    conservation_status_list= species_proposal.conservation_status.filter(processing_status='approved')
+    if conservation_status_list:
+        conservation_status_url=request.build_absolute_uri(
+        reverse("internal-conservation-status-detail", kwargs={"cs_proposal_pk": conservation_status_list[0].id})
+    )
+    
+    occurrences_url=[]
+    occurrences=species_proposal.occurrences.filter(processing_status='active')
+    if occurrences:
+        for occ in occurrences:
+            occurrences_url.append({'occurrence_url': request.build_absolute_uri(
+            reverse("internal-occurrence-detail", kwargs={"occurrence_pk": occ.id })), 'occurrence_number': occ.occurrence_number})
+
+    context = {
+        "species_proposal": species_proposal, 
+        "url": url,
+        "species_url": species_url,
+        "new_species_url": new_species_url,
+        "new_species": new_species,
+        "conservation_status_url": conservation_status_url,
+        "occurrences_url" : occurrences_url,
+    }
 
     all_ccs = []
 
