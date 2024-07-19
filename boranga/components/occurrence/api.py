@@ -5359,10 +5359,10 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         results = []
         if search_term:
-            queryset = queryset.filter(vesting__name__icontains=search_term).distinct()[
+            queryset = queryset.filter(vesting__label__icontains=search_term).distinct()[
                 :10
             ]
-        results = [{"id": row.vesting.id, "text": row.vesting.name} for row in queryset]
+        results = [{"id": row.vesting.id, "text": row.vesting.label} for row in queryset]
 
         return Response({"results": results})
 
@@ -5382,10 +5382,10 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = self.current_and_historical_tenures(queryset, occurrence_id)
 
         if search_term:
-            queryset = queryset.filter(purpose__name__icontains=search_term).distinct()[
+            queryset = queryset.filter(purpose__label__icontains=search_term).distinct()[
                 :10
             ]
-        results = [{"id": row.purpose.id, "text": row.purpose.name} for row in queryset]
+        results = [{"id": row.purpose.id, "text": row.purpose.label} for row in queryset]
 
         return Response({"results": results})
 
@@ -5437,8 +5437,8 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         detail=False,
     )
     def occurrence_tenure_list_of_values(self, request, *args, **kwargs):
-        purpose_list = list(OccurrenceTenurePurpose.objects.all().values("id", "name"))
-        vesting_list = list(OccurrenceTenureVesting.objects.all().values("id", "name"))
+        purpose_list = list(OccurrenceTenurePurpose.objects.all().values("id", "label"))
+        vesting_list = list(OccurrenceTenureVesting.objects.all().values("id", "label"))
 
         res_json = {
             "purpose_list": purpose_list,
