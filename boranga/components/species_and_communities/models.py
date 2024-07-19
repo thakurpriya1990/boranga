@@ -657,12 +657,21 @@ class Species(RevisionedMixin):
             processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED
         ).first()
 
+    def can_user_reopen(self, request):
+        user_editable_state = [
+            Species.PROCESSING_STATUS_HISTORICAL,
+        ]
+        if self.processing_status not in user_editable_state:
+            return False
+
+        return is_species_communities_approver(request) or request.user.is_superuser
+
     def has_user_edit_mode(self, request):
         officer_view_state = ["draft", "historical"]
         if self.processing_status in officer_view_state:
             return False
 
-        return is_species_communities_approver(request)
+        return is_species_communities_approver(request) or request.user.is_superuser
 
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
@@ -848,6 +857,14 @@ class Species(RevisionedMixin):
                 )
 
     @transaction.atomic
+    def reopen(self, request):
+        if not self.processing_status == Species.PROCESSING_STATUS_HISTORICAL:
+            raise ValidationError("You cannot reopen a species that is not closed/historical")
+        
+        self.processing_status = Species.PROCESSING_STATUS_ACTIVE
+        self.save(version_user=request.user)
+
+    @transaction.atomic
     def discard(self, request):
         if not self.processing_status == Species.PROCESSING_STATUS_DRAFT:
             raise ValidationError("You cannot discard a species that is not a draft")
@@ -863,7 +880,7 @@ class Species(RevisionedMixin):
             )
 
         self.processing_status = Species.PROCESSING_STATUS_DISCARDED
-        self.save()
+        self.save(version_user=request.user)
 
         # Log proposal action
         self.log_user_action(
@@ -885,7 +902,7 @@ class Species(RevisionedMixin):
             )
 
         self.processing_status = Species.PROCESSING_STATUS_DRAFT
-        self.save()
+        self.save(version_user=request.user)
 
         # Log proposal action
         self.log_user_action(
@@ -1333,12 +1350,21 @@ class Community(RevisionedMixin):
             return True
         return False
 
+    def can_user_reopen(self, request):
+        user_editable_state = [
+            Community.PROCESSING_STATUS_HISTORICAL,
+        ]
+        if self.processing_status not in user_editable_state:
+            return False
+
+        return is_species_communities_approver(request) or request.user.is_superuser
+
     def has_user_edit_mode(self, request):
         officer_view_state = ["draft", "historical"]
         if self.processing_status in officer_view_state:
             return False
 
-        return is_species_communities_approver(request)
+        return is_species_communities_approver(request) or request.user.is_superuser
 
     @property
     def reference(self):
@@ -1423,6 +1449,14 @@ class Community(RevisionedMixin):
         ).first()
 
     @transaction.atomic
+    def reopen(self, request):
+        if not self.processing_status == Community.PROCESSING_STATUS_HISTORICAL:
+            raise ValidationError("You cannot reopen a community that is not closed/historical")
+        
+        self.processing_status = Community.PROCESSING_STATUS_ACTIVE
+        self.save(version_user=request.user)
+
+    @transaction.atomic
     def discard(self, request):
         if not self.processing_status == Community.PROCESSING_STATUS_DRAFT:
             raise ValidationError("You cannot discard a community that is not a draft")
@@ -1438,7 +1472,7 @@ class Community(RevisionedMixin):
             )
 
         self.processing_status = Community.PROCESSING_STATUS_DISCARDED
-        self.save()
+        self.save(version_user=request.user)
 
         # Log proposal action
         self.log_user_action(
@@ -1460,7 +1494,7 @@ class Community(RevisionedMixin):
             )
 
         self.processing_status = Community.PROCESSING_STATUS_DRAFT
-        self.save()
+        self.save(version_user=request.user)
 
         # Log proposal action
         self.log_user_action(
