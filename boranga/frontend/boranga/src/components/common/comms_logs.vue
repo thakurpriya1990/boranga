@@ -414,12 +414,3 @@ export default {
     }
 }
 </script>
-<style scoped>
-.top-buffer-s {
-    margin-top: 10px;
-}
-
-.actionBtn {
-    cursor: pointer;
-}
-</style>
