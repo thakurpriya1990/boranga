@@ -7,7 +7,7 @@
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
                     :disable_add_entry="false" />
 
-                <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
+                <Submission :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name" :lodgement_date="conservation_status_obj.lodgement_date"
                     :is_new_contributor="conservation_status_obj.is_new_contributor" class="mt-3" />
 
@@ -354,7 +354,6 @@
                                         :conservation_status_obj="conservation_status_obj"
                                         :canEditStatus="canEditStatus" id="ConservationStatusStart" :is_internal="true"
                                         @saveConservationStatus="save_wo()">
-                                        <!-- TODO add hasAssessorMode props to ProposalConservationStatus -->
                                     </ProposalConservationStatus>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                     <input type='hidden' name="conservation_status_id" :value="1" />
@@ -526,9 +525,6 @@ export default {
             } else {
                 //return this.conservation_status_obj.applicant_obj.email
             }
-        },
-        canSeeSubmission: function () {
-            return true; // TODO the Processing Status based value
         },
         canEditStatus: function () {
             return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit : 'false';
@@ -780,7 +776,6 @@ export default {
                     { 'id': 'approval_level', 'display': 'Appplicable Workflow' }
                 ];
             }
-            // TODO Add any other required validation for other statuses
             let missing_fields = [];
             for (let field of required_fields) {
                 if (this.conservation_status_obj[field.id] == null || this.conservation_status_obj[field.id] == '') {
@@ -977,7 +972,6 @@ export default {
                         Object.assign(payload, vm.conservation_status_obj);
                         vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/submit'), payload).then(res => {
                             vm.conservation_status_obj = res.body;
-                            // TODO router should push to submit_cs_proposal for internal side
                             vm.$router.push({
                                 name: 'internal-conservation_status-dash'
                             });

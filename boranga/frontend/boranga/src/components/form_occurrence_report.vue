@@ -171,9 +171,7 @@ export default {
     },
     methods: {
         tabClicked: function (param) {
-            // TODO: This was reloading the components in every tab every time someone clicked on a tab.
-            // Leaving here for now in case it was needed for an unforseen reason, if not please delete this method.
-            // this.reloadcount = this.reloadcount + 1;
+
         },
         refreshFromResponse: function () {
             this.$emit('refreshFromResponse');
