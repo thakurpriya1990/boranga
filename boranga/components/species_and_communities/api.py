@@ -20,7 +20,7 @@ from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
@@ -77,6 +77,9 @@ from boranga.components.species_and_communities.models import (
     ThreatAgent,
     ThreatCategory,
 )
+from boranga.components.species_and_communities.permissions import (
+    SpeciesCommunitiesPermission,
+)
 from boranga.components.species_and_communities.serializers import (
     CommunityDistributionSerializer,
     CommunityDocumentSerializer,
@@ -120,6 +123,7 @@ from boranga.components.species_and_communities.utils import (
 )
 from boranga.components.users.models import SubmitterCategory
 from boranga.helpers import is_internal
+from boranga.permissions import IsSuperuser
 
 logger = logging.getLogger(__name__)
 
@@ -195,6 +199,8 @@ class GetCommunities(views.APIView):
 
 # used on dashboards and forms
 class GetScientificName(views.APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         search_term = request.GET.get("term", "")
         group_type_id = request.GET.get("group_type_id", "")
@@ -248,6 +254,8 @@ class GetScientificNameByGroup(views.APIView):
 
 
 class GetCommonName(views.APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         group_type_id = request.GET.get("group_type_id", "")
         search_term = request.GET.get("term", "")
@@ -272,6 +280,8 @@ class GetCommonName(views.APIView):
 
 
 class GetFamily(views.APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         group_type_id = request.GET.get("group_type_id", "")
         search_term = request.GET.get("term", "")
@@ -309,6 +319,8 @@ class GetFamily(views.APIView):
 
 
 class GetGenera(views.APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         group_type_id = request.GET.get("group_type_id", "")
         search_term = request.GET.get("term", "")
@@ -346,6 +358,8 @@ class GetGenera(views.APIView):
 
 
 class GetPhyloGroup(views.APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         #  group_type_id  retrive as may need to use later
         group_type_id = request.GET.get("group_type_id", "")
@@ -389,6 +403,8 @@ class GetPhyloGroup(views.APIView):
 
 
 class GetCommunityId(views.APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         search_term = request.GET.get("term", "")
         cs_referral = request.GET.get("cs_referral", "")
@@ -411,6 +427,8 @@ class GetCommunityId(views.APIView):
 
 
 class GetCommunityName(views.APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         search_term = request.GET.get("term", "")
         cs_referral = request.GET.get("cs_referral", "")
@@ -562,10 +580,11 @@ class GetDocumentCategoriesDict(views.APIView):
         return HttpResponse(res_json, content_type="application/json")
 
 
-# Not used now on SpeciesProfile
+# TODO: Remove this viewset and any references to it in urls.py and .vue files
 class TaxonomyViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Taxonomy.objects.none()
     serializer_class = TaxonomySerializer
+    permission_classes = [IsSuperuser | IsAuthenticated & SpeciesCommunitiesPermission]
 
     def get_queryset(self):
         if is_internal(self.request):
@@ -834,6 +853,7 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     )
     serializer_class = ListSpeciesSerializer
     page_size = 10
+    permission_classes = [IsSuperuser | IsAuthenticated & SpeciesCommunitiesPermission]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -1102,6 +1122,7 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     )
     serializer_class = ListCommunitiesSerializer
     page_size = 10
+    permission_classes = [IsSuperuser | IsAuthenticated & SpeciesCommunitiesPermission]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -1376,6 +1397,7 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     serializer_class = InternalSpeciesSerializer
     lookup_field = "id"
+    permission_classes = [IsSuperuser | IsAuthenticated & SpeciesCommunitiesPermission]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -2060,6 +2082,7 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = Community.objects.none()
     serializer_class = InternalCommunitySerializer
     lookup_field = "id"
+    permission_classes = [IsSuperuser | IsAuthenticated & SpeciesCommunitiesPermission]
 
     def get_queryset(self):
         if is_internal(self.request):
@@ -2478,6 +2501,7 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = SpeciesDocument.objects.none()
     serializer_class = SpeciesDocumentSerializer
+    permission_classes = [IsSuperuser | IsAuthenticated & SpeciesCommunitiesPermission]
 
     def get_queryset(self):
         if is_internal(self.request):
@@ -2560,6 +2584,7 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
 class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = CommunityDocument.objects.none()
     serializer_class = CommunityDocumentSerializer
+    permission_classes = [IsSuperuser | IsAuthenticated & SpeciesCommunitiesPermission]
 
     def get_queryset(self):
         if is_internal(self.request):
@@ -2703,6 +2728,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     queryset = ConservationThreat.objects.none()
     serializer_class = ConservationThreatSerializer
     filter_backends = (ConservationThreatFilterBackend,)
+    permission_classes = [IsSuperuser | IsAuthenticated & SpeciesCommunitiesPermission]
 
     def get_queryset(self):
         if is_internal(self.request):
