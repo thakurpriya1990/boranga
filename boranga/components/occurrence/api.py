@@ -5204,6 +5204,15 @@ class OccurrenceReportReferralViewSet(
         instance.referral_comment = request_data.get("referral_comment")
         instance.save()
 
+        # Save the geometry data
+        geometry_data = request_data.get("occurrence_report", {}).get(
+            "ocr_geometry", None
+        )
+        if geometry_data:
+            save_geometry(
+                request, instance.occurrence_report, geometry_data, "occurrence_report"
+            )
+
         # Create a log entry for the occurrence report
         instance.occurrence_report.log_user_action(
             OccurrenceReportUserAction.COMMENT_REFERRAL.format(

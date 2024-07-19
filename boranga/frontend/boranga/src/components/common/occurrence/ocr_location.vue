@@ -334,12 +334,13 @@ export default {
                 mode.assessor_mode &&
                 mode.assessor_can_assess;
 
-            // Note: potentially allow referees to edit geometries, but commented for now
+            // Allow referees to edit geometries, but commented for now
             const userCanEdit =
-                this.occurrence_report_obj.can_user_edit || assessorCanAssess; //|| refereeCanAssess;
+                this.occurrence_report_obj.can_user_edit ||
+                assessorCanAssess ||
+                refereeCanAssess;
 
-            // const readOnly = refereeCanAssess ? false : this.isReadOnly;
-            const readOnly = this.isReadOnly;
+            const readOnly = refereeCanAssess ? false : this.isReadOnly;
             if (!userCanEdit || readOnly) {
                 return false;
             }
