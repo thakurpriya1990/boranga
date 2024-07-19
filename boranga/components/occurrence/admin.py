@@ -224,6 +224,10 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
                         "locked",
                     ),
                     (
+                        "created_date",
+                        "updated_date",
+                    ),
+                    (
                         # "copied_from",
                         "drawn_by",
                     ),
