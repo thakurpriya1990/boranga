@@ -5449,16 +5449,9 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
 
 
 class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = OCCContactDetail.objects.none()
+    queryset = OCCContactDetail.objects.all().order_by("id")
     serializer_class = OCCContactDetailSerializer
     permission_classes = [OccurrenceObjectPermission]
-
-    def get_queryset(self):
-        qs = OCCContactDetail.objects.none()
-
-        if is_internal(self.request):
-            qs = OCCContactDetail.objects.all().order_by("id")
-        return qs
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
