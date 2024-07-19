@@ -63,6 +63,15 @@
 
         <label for="" class="col-lg-3 control-label fs-5 fw-bold">Plant Count - Detailed</label>
         <div class="row mb-3">
+            <div class="col-sm-2">
+                <label class="form-check-label fw-bold" for="not-counted">Not Counted</label>
+            </div>
+            <div class="col-sm-2">
+                <input type="checkbox" id="not-counted"
+                    v-model="plant_count.counted" true-value="false" false-value="true" @change="checkboxChanged">
+            </div>
+        </div>
+        <div class="row mb-3">
             <div class="col-sm-3">
 
             </div>
@@ -84,19 +93,19 @@
                 Alive
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="alive_mature"
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="alive_mature"
                     placeholder="" min="0" v-model="plant_count.detailed_alive_mature" />
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="plant_alive_juvenile"
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="plant_alive_juvenile"
                     placeholder="" min="0" v-model="plant_count.detailed_alive_juvenile" />
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="alive_seedling"
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="alive_seedling"
                     placeholder="" min="0" v-model="plant_count.detailed_alive_seedling" />
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="alive_unknown"
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="alive_unknown"
                     placeholder="" min="0" v-model="plant_count.detailed_alive_unknown" />
             </div>
         </div>
@@ -105,19 +114,19 @@
                 Dead
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="dead_mature"
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="dead_mature"
                     placeholder="" min="0" v-model="plant_count.detailed_dead_mature" />
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="plant_dead_juvenile"
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="plant_dead_juvenile"
                     placeholder="" min="0" v-model="plant_count.detailed_dead_juvenile" />
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="dead_seedling"
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="dead_seedling"
                     placeholder="" min="0" v-model="plant_count.detailed_dead_seedling" />
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly" type="number" class="form-control plant_count" id="dead_unknown"
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="dead_unknown"
                     placeholder="" min="0" v-model="plant_count.detailed_dead_unknown" />
             </div>
         </div>
@@ -126,14 +135,14 @@
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Number alive :</label>
             <div class="col-sm-6">
-                <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="simple_alive"
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control ocr_number" id="simple_alive"
                     placeholder="" min="0" v-model="plant_count.simple_alive" />
             </div>
         </div>
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Number dead :</label>
             <div class="col-sm-6">
-                <input :disabled="isReadOnly" type="number" class="form-control ocr_number" id="simple_dead"
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control ocr_number" id="simple_dead"
                     placeholder="" min="0" v-model="plant_count.simple_dead" />
             </div>
         </div>
@@ -390,6 +399,7 @@ export default {
             plant_condition_list: [],
             counted_subject_list: [],
             updatingPlantCountDetails: false,
+            not_counted: false,
         }
     },
     components: {
@@ -401,6 +411,9 @@ export default {
     },
     methods: {
         eventListeners: function () {
+        },
+        checkboxChanged: function () {
+            this.not_counted = this.plant_count.counted == 'false';
         },
         updatePlantCountDetails: function () {
             let vm = this;
@@ -445,6 +458,7 @@ export default {
     },
     mounted: function () {
         let vm = this;
+        vm.not_counted = !vm.plant_count.counted;
     },
 }
 </script>

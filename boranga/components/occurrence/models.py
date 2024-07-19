@@ -2420,6 +2420,8 @@ class OCRPlantCount(models.Model):
     )
     estimated_population_area = models.IntegerField(null=True, blank=True, default=0)
 
+    counted = models.BooleanField(default=True)
+
     detailed_alive_mature = models.IntegerField(null=True, blank=True, default=0)
     detailed_dead_mature = models.IntegerField(null=True, blank=True, default=0)
     detailed_alive_juvenile = models.IntegerField(null=True, blank=True, default=0)
@@ -2602,6 +2604,8 @@ class OCRAnimalObservation(models.Model):
     observation_detail_comment = models.CharField(
         max_length=1000, null=True, blank=True
     )
+
+    counted = models.BooleanField(default=True)
 
     alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
     dead_adult_male = models.IntegerField(null=True, blank=True, default=0)
@@ -4323,6 +4327,8 @@ class OCCPlantCount(models.Model):
     )
     estimated_population_area = models.IntegerField(null=True, blank=True, default=0)
 
+    counted = models.BooleanField(default=True)
+
     detailed_alive_mature = models.IntegerField(null=True, blank=True, default=0)
     detailed_dead_mature = models.IntegerField(null=True, blank=True, default=0)
     detailed_alive_juvenile = models.IntegerField(null=True, blank=True, default=0)
@@ -4406,6 +4412,8 @@ class OCCAnimalObservation(models.Model):
     observation_detail_comment = models.CharField(
         max_length=1000, null=True, blank=True
     )
+
+    counted = models.BooleanField(default=True)
 
     alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
     dead_adult_male = models.IntegerField(null=True, blank=True, default=0)

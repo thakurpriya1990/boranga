@@ -95,6 +95,15 @@
 
             <label for="" class="col-lg-3 control-label fs-5 fw-bold">Animal Count :</label>
             <div class="row mb-3">
+                <div class="col-sm-2">
+                <label class="form-check-label fw-bold" for="not-counted">Not Counted</label>
+                </div>
+                <div class="col-sm-2">
+                    <input type="checkbox" id="not-counted"
+                        v-model="animal_observation.counted" true-value="false" false-value="true" @change="checkboxChanged">
+                </div>
+            </div>
+            <div class="row mb-3">
                 <div class="col-sm-4">
 
                 </div>
@@ -114,19 +123,19 @@
                 </div>
                 <div class="col-sm-2">
                     Male
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="alive_adult_male" placeholder="" min="0" step="1"
                         v-model="animal_observation.alive_adult_male" />
                 </div>
                 <div class="col-sm-2">
                     Male
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="alive_juvenile_male" placeholder="" min="0" step="1"
                         v-model="animal_observation.alive_juvenile_male" />
                 </div>
                 <div class="col-sm-2">
                     Male
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="alive_unsure_male" placeholder="" min="0" step="1"
                         v-model="animal_observation.alive_unsure_male" />
                 </div>
@@ -137,19 +146,19 @@
                 </div>
                 <div class="col-sm-2">
                     Female
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="alive_adult_female" placeholder="" min="0" step="1"
                         v-model="animal_observation.alive_adult_female" />
                 </div>
                 <div class="col-sm-2">
                     Female
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="alive_juvenile_female" placeholder="" min="0" step="1"
                         v-model="animal_observation.alive_juvenile_female" />
                 </div>
                 <div class="col-sm-2">
                     Female
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="alive_unsure_female" placeholder="" min="0" step="1"
                         v-model="animal_observation.alive_unsure_female" />
                 </div>
@@ -160,19 +169,19 @@
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="alive_adult_unknown" placeholder="" min="0" step="1"
                         v-model="animal_observation.alive_adult_unknown" />
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="alive_juvenile_unknown" placeholder="" min="0" step="1"
                         v-model="animal_observation.alive_juvenile_unknown" />
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="alive_unsure_unknown" placeholder="" min="0" step="1"
                         v-model="animal_observation.alive_unsure_unknown" />
                 </div>
@@ -198,19 +207,19 @@
                 </div>
                 <div class="col-sm-2">
                     Male
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="dead_adult_male" placeholder="" min="0" step="1"
                         v-model="animal_observation.dead_adult_male" />
                 </div>
                 <div class="col-sm-2">
                     Male
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="dead_juvenile_male" placeholder="" min="0" step="1"
                         v-model="animal_observation.dead_juvenile_male" />
                 </div>
                 <div class="col-sm-2">
                     Male
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="dead_unsure_male" placeholder="" min="0" step="1"
                         v-model="animal_observation.dead_unsure_male" />
                 </div>
@@ -221,19 +230,19 @@
                 </div>
                 <div class="col-sm-2">
                     Female
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="dead_adult_female" placeholder="" min="0" step="1"
                         v-model="animal_observation.dead_adult_female" />
                 </div>
                 <div class="col-sm-2">
                     Female
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="dead_juvenile_female" placeholder="" min="0" step="1"
                         v-model="animal_observation.dead_juvenile_female" />
                 </div>
                 <div class="col-sm-2">
                     Female
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="dead_unsure_female" placeholder="" min="0" step="1"
                         v-model="animal_observation.dead_unsure_female" />
                 </div>
@@ -244,19 +253,19 @@
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="dead_adult_unknown" placeholder="" min="0" step="1"
                         v-model="animal_observation.dead_adult_unknown" />
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="dead_juvenile_unknown" placeholder="" min="0" step="1"
                         v-model="animal_observation.dead_juvenile_unknown" />
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
-                    <input :disabled="isReadOnly" type="number" class="form-control animal-count-input"
+                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
                         id="dead_unsure_unknown" placeholder="" min="0" step="1"
                         v-model="animal_observation.dead_unsure_unknown" />
                 </div>
@@ -363,6 +372,9 @@ export default {
             });
             return vm.total_seen;
         },
+        checkboxChanged: function () {
+            this.not_counted = this.animal_observation.counted == 'false';
+        },
         initialisePrimaryDetectionSelect: function () {
             let vm = this;
             // Initialise select2 for proposed Conservation Criteria
@@ -464,6 +476,7 @@ export default {
         vm.initialiseSecondarySignSelect();
         vm.initialiseReprodStateSelect();
         vm.calculateTotalNumberSeen();
+        vm.not_counted = !vm.animal_observation.counted;
     },
 }
 </script>
@@ -499,7 +512,7 @@ input[type=number] {
     width: 50%;
 }
 
-input.plant_count {
+input.animal_observation {
     width: 63%;
 }
 

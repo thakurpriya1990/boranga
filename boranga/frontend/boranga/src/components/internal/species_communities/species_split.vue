@@ -251,6 +251,8 @@ export default {
                             });
                         }
                     }
+                } else {
+                    vm.submitSpeciesSplit = false;
                 }
             }, (error) => {
                 vm.submitSpeciesSplit = false;

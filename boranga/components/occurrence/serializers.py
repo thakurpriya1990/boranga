@@ -590,6 +590,7 @@ class OCRPlantCountSerializer(serializers.ModelSerializer):
             "detailed_alive_unknown",
             "detailed_dead_unknown",
             "count_date",
+            "counted",
         )
 
 
@@ -634,6 +635,7 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "alive_unsure_unknown",
             "dead_unsure_unknown",
             "count_date",
+            "counted",
         )
 
     def __init__(self, *args, **kwargs):
@@ -1690,6 +1692,7 @@ class SaveOCRPlantCountSerializer(serializers.ModelSerializer):
             "detailed_alive_unknown",
             "detailed_dead_unknown",
             "count_date",
+            "counted",
         )
 
 
@@ -1738,6 +1741,7 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
             "alive_unsure_unknown",
             "dead_unsure_unknown",
             "count_date",
+            "counted",
         )
 
     def __init__(self, *args, **kwargs):
@@ -2615,6 +2619,7 @@ class OCCPlantCountSerializer(serializers.ModelSerializer):
             "detailed_alive_unknown",
             "detailed_dead_unknown",
             "count_date",
+            "counted",
         )
 
     def get_copied_ocr(self, obj):
@@ -2665,6 +2670,7 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "alive_unsure_unknown",
             "dead_unsure_unknown",
             "count_date",
+            "counted",
         )
 
     def __init__(self, *args, **kwargs):
@@ -2890,6 +2896,7 @@ class SaveOCCPlantCountSerializer(serializers.ModelSerializer):
             "detailed_alive_unknown",
             "detailed_dead_unknown",
             "count_date",
+            "counted",
         )
 
 
@@ -2938,6 +2945,7 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
             "alive_unsure_unknown",
             "dead_unsure_unknown",
             "count_date",
+            "counted",
         )
 
     def __init__(self, *args, **kwargs):

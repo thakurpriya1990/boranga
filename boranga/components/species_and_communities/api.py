@@ -1444,6 +1444,16 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
+    def reopen_species_community(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reopen(request)
+        serializer = InternalSpeciesSerializer(instance, context={"request": request})
+
+        return Response(serializer.data)
+
+    @detail_route(methods=["post"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    @transaction.atomic
     def update_publishing_status(self, request, *args, **kwargs):
         instance = self.get_object()
         request_data = request.data
@@ -2105,6 +2115,16 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 request,
             )
 
+        serializer = InternalCommunitySerializer(instance, context={"request": request})
+
+        return Response(serializer.data)
+
+    @detail_route(methods=["post"], detail=True)
+    @renderer_classes((JSONRenderer,))
+    @transaction.atomic
+    def reopen_species_community(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reopen(request)
         serializer = InternalCommunitySerializer(instance, context={"request": request})
 
         return Response(serializer.data)
