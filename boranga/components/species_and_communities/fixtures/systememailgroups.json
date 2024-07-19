@@ -3,7 +3,7 @@
         "model": "boranga.systememailgroup",
         "pk": 2,
         "fields": {
-            "group_type": 3,
+            "group_type": 1,
             "area": "conservation_status"
         }
     },
@@ -11,7 +11,7 @@
         "model": "boranga.systememailgroup",
         "pk": 3,
         "fields": {
-            "group_type": 3,
+            "group_type": 1,
             "area": "occurrence"
         }
     },
@@ -19,7 +19,7 @@
         "model": "boranga.systememailgroup",
         "pk": 4,
         "fields": {
-            "group_type": 3,
+            "group_type": 1,
             "area": null
         }
     },
@@ -51,7 +51,7 @@
         "model": "boranga.systememailgroup",
         "pk": 8,
         "fields": {
-            "group_type": 4,
+            "group_type": 3,
             "area": "conservation_status"
         }
     },
@@ -59,7 +59,7 @@
         "model": "boranga.systememailgroup",
         "pk": 9,
         "fields": {
-            "group_type": 4,
+            "group_type": 3,
             "area": "occurrence"
         }
     },
@@ -67,7 +67,7 @@
         "model": "boranga.systememailgroup",
         "pk": 10,
         "fields": {
-            "group_type": 4,
+            "group_type": 3,
             "area": null
         }
     }
