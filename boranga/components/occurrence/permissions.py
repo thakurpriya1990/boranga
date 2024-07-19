@@ -435,6 +435,9 @@ class OccurrenceObjectPermission(BasePermission):
         if not request.user.is_authenticated:
             return False
 
+        if request.user.is_superuser:
+            return True
+
         if hasattr(view, "action") and view.action == "create":
             try:
                 request_data = request.data.get("data")
@@ -444,7 +447,7 @@ class OccurrenceObjectPermission(BasePermission):
                 )
             try:
                 data = json.loads(request_data)
-            except json.JSONDecodeError:
+            except (TypeError, json.JSONDecodeError):
                 raise serializers.ValidationError(
                     "Data parameter is not a valid JSON string"
                 )
@@ -456,11 +459,8 @@ class OccurrenceObjectPermission(BasePermission):
                 raise serializers.ValidationError(
                     f"No occurrence found with id: {occurrence_id}"
                 )
-            if not self.is_authorised_to_update(request, occurrence):
-                return False
 
-        if request.user.is_superuser:
-            return True
+            return self.is_authorised_to_update(request, occurrence)
 
         return (
             is_readonly_user(request)
@@ -469,7 +469,7 @@ class OccurrenceObjectPermission(BasePermission):
             or is_species_communities_approver(request)
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
-            or is_conservation_status_referee(request)
+            or is_occurrence_report_referee(request)
         )
 
     def is_authorised_to_update(self, request, occurrence):
