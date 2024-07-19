@@ -1032,14 +1032,6 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     page_size = 10
     permission_classes = [IsSuperuser | IsAuthenticated & SpeciesCommunitiesPermission]
 
-    def get_queryset(self):
-        qs = super().get_queryset()
-        if not is_internal(self.request):
-            qs = qs.filter(processing_status=Species.PROCESSING_STATUS_ACTIVE).filter(
-                community_publishing_status__community_public=True
-            )
-        return qs
-
     @list_route(
         methods=[
             "GET",
