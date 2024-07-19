@@ -4153,7 +4153,7 @@ export default {
                 vm.getLayerDefinitionByName(toSource).geometry_name || null;
 
             console.log(`Loading features to source ${toSource}`, proposals);
-            let opacities;
+            let opacities = [];
             // Remove all features from the layer
             source.clear();
             if (geometry_name) {
