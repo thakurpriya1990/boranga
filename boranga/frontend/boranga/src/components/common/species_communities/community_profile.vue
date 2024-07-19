@@ -112,7 +112,7 @@
                     <label for="" class="col-sm-5 col-form-label">Extent of Occurrences: <i
                             v-if="species_community.distribution.eoo_auto" class="bi bi-info-circle-fill text-primary"
                             data-bs-toggle="popover" data-bs-trigger="hover focus"
-                            data-bs-content="Calculated by creating a 'convex hull' from all occurrence geometries for this species."></i></label>
+                            data-bs-content="Calculated by creating a 'convex hull' from all occurrence geometries for this species." data-bs-placement="top"></i></label>
                     <div class="col-sm-4">
                         <div class="input-group">
                             <input v-if="species_community.distribution.eoo_auto" :disabled="isEOOReadOnly"
@@ -154,7 +154,7 @@
                             v-if="species_community.distribution.aoo_actual_auto"
                             class="bi bi-info-circle-fill text-primary" data-bs-toggle="popover"
                             data-bs-trigger="hover focus"
-                            data-bs-content="Calculated by combining the total land area of all occurrence geometries for this species."></i></label>
+                            data-bs-content="Calculated by combining the total land area of all occurrence geometries for this species." data-bs-placement="top"></i></label>
                     <div class="col-sm-4">
                         <div class="input-group">
                             <input v-if="species_community.distribution.aoo_actual_auto" :disabled="isAOOActualReadOnly"
@@ -338,7 +338,7 @@
         <FormSection v-if="is_internal" :formCollapse="false" label="General" Index="general">
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
-                <div v-if="distribution_public" class="col-sm-9">
+                <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="department_file_numbers"
                         placeholder="" v-model="species_community.distribution.department_file_numbers" />
                 </div>

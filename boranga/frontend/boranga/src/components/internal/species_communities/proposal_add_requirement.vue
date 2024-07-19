@@ -23,7 +23,8 @@
                                         <div style="width:70% !important">
                                             <select class="form-control" ref="standard_req" name="standard_requirement"
                                                 v-model="requirement.standard_requirement">
-                                                <option v-for="r in requirements" :value="r.id">{{ r.code }} {{ r.text }}
+                                                <option v-for="r in requirements" :value="r.id">{{ r.code }} {{ r.text
+                                                    }}
                                                 </option>
                                             </select>
                                         </div>
@@ -132,13 +133,16 @@
             <div slot="footer">
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
                 <template v-if="requirement.id">
-                    <button type="button" v-if="updatingRequirement" disabled class="btn btn-primary" @click="ok"><i
-                            class="fa fa-spinnner fa-spin"></i> Updating</button>
+                    <button type="button" v-if="updatingRequirement" disabled class="btn btn-primary"
+                        @click="ok">Updating <span class="spinner-border spinner-border-sm" role="status"
+                            aria-hidden="true"></span>
+                        <span class="visually-hidden">Loading...</span></button>
                     <button type="button" v-else class="btn btn-primary" @click="ok">Update</button>
                 </template>
                 <template v-else>
-                    <button type="button" v-if="addingRequirement" disabled class="btn btn-primary" @click="ok"><i
-                            class="fa fa-spinner fa-spin"></i> Adding</button>
+                    <button type="button" v-if="addingRequirement" disabled class="btn btn-primary" @click="ok">Adding
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="visually-hidden">Loading...</span></button>
                     <button type="button" v-else class="btn btn-primary" @click="ok">Add</button>
                 </template>
             </div>

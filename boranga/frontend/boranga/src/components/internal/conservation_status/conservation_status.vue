@@ -242,7 +242,7 @@
                                         </div>
                                     </div>
                                     <template
-                                        v-if="conservation_status_obj.processing_status == 'With Assessor' || conservation_status_obj.processing_status == 'With Referral'">
+                                        v-if="conservation_status_obj.processing_status == 'With Assessor'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
@@ -250,10 +250,10 @@
                                                     Amendment</button><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="conservation_status_obj.approval_level == 'minister'">
+                                        <div class="row" v-if="conservation_status_obj.approval_level == 'minister' && conservation_status_obj.processing_status == 'With Assessor'">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="proposedReadyForAgenda()">Propose Ready For
+                                                    @click.prevent="proposedReadyForAgenda()">Propose Ready for
                                                     Agenda</button><br />
                                             </div>
                                         </div>

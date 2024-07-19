@@ -1,0 +1,74 @@
+[
+    {
+        "model": "boranga.systememailgroup",
+        "pk": 2,
+        "fields": {
+            "group_type": 3,
+            "area": "conservation_status"
+        }
+    },
+    {
+        "model": "boranga.systememailgroup",
+        "pk": 3,
+        "fields": {
+            "group_type": 3,
+            "area": "occurrence"
+        }
+    },
+    {
+        "model": "boranga.systememailgroup",
+        "pk": 4,
+        "fields": {
+            "group_type": 3,
+            "area": null
+        }
+    },
+    {
+        "model": "boranga.systememailgroup",
+        "pk": 5,
+        "fields": {
+            "group_type": 2,
+            "area": "conservation_status"
+        }
+    },
+    {
+        "model": "boranga.systememailgroup",
+        "pk": 6,
+        "fields": {
+            "group_type": 2,
+            "area": "occurrence"
+        }
+    },
+    {
+        "model": "boranga.systememailgroup",
+        "pk": 7,
+        "fields": {
+            "group_type": 2,
+            "area": null
+        }
+    },
+    {
+        "model": "boranga.systememailgroup",
+        "pk": 8,
+        "fields": {
+            "group_type": 4,
+            "area": "conservation_status"
+        }
+    },
+    {
+        "model": "boranga.systememailgroup",
+        "pk": 9,
+        "fields": {
+            "group_type": 4,
+            "area": "occurrence"
+        }
+    },
+    {
+        "model": "boranga.systememailgroup",
+        "pk": 10,
+        "fields": {
+            "group_type": 4,
+            "area": null
+        }
+    }
+]

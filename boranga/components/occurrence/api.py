@@ -102,6 +102,15 @@ from boranga.components.occurrence.models import (
     SoilType,
     WildStatus,
 )
+from boranga.components.occurrence.permissions import (
+    ExternalOccurrenceReportObjectPermission,
+    ExternalOccurrenceReportPermission,
+    IsOccurrenceReportReferee,
+    OccurrenceObjectPermission,
+    OccurrencePermission,
+    OccurrenceReportObjectPermission,
+    OccurrenceReportPermission,
+)
 from boranga.components.occurrence.serializers import (
     BackToAssessorSerializer,
     CreateOccurrenceReportSerializer,
@@ -190,15 +199,6 @@ from boranga.helpers import (
     is_occurrence_assessor,
     is_occurrence_report_referee,
     is_readonly_user,
-)
-from boranga.permissions import (
-    ExternalOccurrenceReportObjectPermission,
-    ExternalOccurrenceReportPermission,
-    IsOccurrenceReportReferee,
-    OccurrenceObjectPermission,
-    OccurrencePermission,
-    OccurrenceReportObjectPermission,
-    OccurrenceReportPermission,
 )
 
 logger = logging.getLogger(__name__)
@@ -1189,6 +1189,13 @@ class OccurrenceReportViewSet(
     )
     def observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
+        group_type = request.GET.get("group_type", None)
+
+        if not group_type:
+            raise serializers.ValidationError(
+                "Group Type is required to return correct list of values"
+            )
+
         observation_method_list = []
         values = ObservationMethod.objects.all()
         if values:
@@ -1320,7 +1327,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         permit_type_list = []
-        values = PermitType.objects.all()
+        values = PermitType.objects.filter(group_type__name=group_type)
         if values:
             for val in values:
                 permit_type_list.append(
@@ -4832,6 +4839,13 @@ class OccurrenceViewSet(
     )
     def observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence external form"""
+        group_type = request.GET.get("group_type", None)
+
+        if not group_type:
+            raise serializers.ValidationError(
+                "Group Type is required to return correct list of values"
+            )
+
         observation_method_list = []
         values = ObservationMethod.objects.all()
         if values:
@@ -4963,7 +4977,7 @@ class OccurrenceViewSet(
                     }
                 )
         permit_type_list = []
-        values = PermitType.objects.all()
+        values = PermitType.objects.filter(group_type__name=group_type)
         if values:
             for val in values:
                 permit_type_list.append(
@@ -5562,6 +5576,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         data["original_geometry_ewkb"] = original_geom.ewkb
         data["geometry"] = geom
+        data["drawn_by"] = request.user.id
 
         serializer = SaveOccurrenceSiteSerializer(instance, data=data)
         serializer.is_valid(raise_exception=True)
@@ -5595,6 +5610,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         data["original_geometry_ewkb"] = original_geom.ewkb
         data["geometry"] = geom
+        data["drawn_by"] = request.user.id
 
         serializer = SaveOccurrenceSiteSerializer(data=data)
         serializer.is_valid(raise_exception=True)

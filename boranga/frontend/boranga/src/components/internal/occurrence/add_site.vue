@@ -5,7 +5,8 @@
                 <div class="row">
                     <form class="form-horizontal" name="siteForm">
                         <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
-                        <alert v-if="change_warning && !isReadOnly" type="warning"><strong>{{ change_warning }}</strong></alert>
+                        <alert v-if="change_warning && !isReadOnly" type="warning"><strong>{{ change_warning }}</strong>
+                        </alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
@@ -20,29 +21,15 @@
                                 </div>
                             </div>
                             <div class="row mb-3">
-                                <label for="" class="col-sm-3 control-label"
-                                    >Point Coordinate (Lat-Long)</label
-                                >
+                                <label for="" class="col-sm-3 control-label">Point Coordinate (Lat-Long)</label>
                                 <div class="col-sm-4">
-                                    <input
-                                        id="point_coord2"
-                                        :disabled="isReadOnly"
-                                        type="decimal"
-                                        class="form-control"
-                                        placeholder=""
-                                        v-model="siteObj.point_coord2"
-                                    />
+                                    <input id="point_coord2" :disabled="isReadOnly" type="decimal" class="form-control"
+                                        placeholder="" v-model="siteObj.point_coord2" />
                                 </div>
                                 -
                                 <div class="col-sm-4">
-                                    <input
-                                        id="point_coord1"
-                                        :disabled="isReadOnly"
-                                        type="decimal"
-                                        class="form-control"
-                                        placeholder=""
-                                        v-model="siteObj.point_coord1"
-                                    />
+                                    <input id="point_coord1" :disabled="isReadOnly" type="decimal" class="form-control"
+                                        placeholder="" v-model="siteObj.point_coord1" />
                                 </div>
                             </div>
                             <div class="row mb-3">
@@ -50,10 +37,8 @@
                                     <label class="control-label pull-left">Datum</label>
                                 </div>
                                 <div class="col-sm-9">
-                                    <select :disabled="isReadOnly" class="form-select"
-                                        v-model="siteObj.datum">
-                                        <option v-for="datum in datum_list" :value="datum.srid"
-                                            v-bind:key="datum.srid">
+                                    <select :disabled="isReadOnly" class="form-select" v-model="siteObj.datum">
+                                        <option v-for="datum in datum_list" :value="datum.srid" v-bind:key="datum.srid">
                                             {{ datum.name }}
                                         </option>
                                     </select>
@@ -64,10 +49,8 @@
                                     <label class="control-label pull-left">Site Type</label>
                                 </div>
                                 <div class="col-sm-9">
-                                    <select :disabled="isReadOnly" class="form-select"
-                                        v-model="siteObj.site_type">
-                                        <option v-for="site in site_type_list" :value="site.id"
-                                            v-bind:key="site.id">
+                                    <select :disabled="isReadOnly" class="form-select" v-model="siteObj.site_type">
+                                        <option v-for="site in site_type_list" :value="site.id" v-bind:key="site.id">
                                             {{ site.name }}
                                         </option>
                                     </select>
@@ -80,12 +63,14 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="form-group" id="select_occurrence_reports">
-                                        <select :disabled="isReadOnly" style="width:100%;" class="form-select input-sm"
-                                            ref="occurrence_report_select" v-model="siteObj.related_occurrence_reports">
-                                            <option v-for="option in occurrence_obj.occurrence_reports" :value="option.id" :key="option.id">
-                                                {{ option.occurrence_report_number }}
-                                            </option>
-                                        </select>
+                                            <select :disabled="isReadOnly" style="width:100%;"
+                                                class="form-select input-sm" ref="occurrence_report_select"
+                                                v-model="siteObj.related_occurrence_reports">
+                                                <option v-for="option in occurrence_obj.occurrence_reports"
+                                                    :value="option.id" :key="option.id">
+                                                    {{ option.occurrence_report_number }}
+                                                </option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -115,8 +100,9 @@
                         <button type="button" v-else class="btn btn-primary" @click="ok">Update</button>
                     </template>
                     <template v-else>
-                        <button type="button" v-if="addingSite" disabled class="btn btn-primary" @click="ok"><i
-                                class="fa fa-spinner fa-spin"></i> Adding</button>
+                        <button type="button" v-if="addingSite" disabled class="btn btn-primary" @click="ok">Adding
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="visually-hidden">Loading...</span></button>
                         <button type="button" v-else class="btn btn-primary" @click="ok">Add Site</button>
                     </template>
                 </template>
@@ -300,8 +286,8 @@ export default {
     mounted: function () {
         let vm = this;
         vm.form = document.forms.siteForm;
-        
-        this.$nextTick(() => {           
+
+        this.$nextTick(() => {
             vm.eventListeners();
             vm.initialiseOCRSelect();
         });

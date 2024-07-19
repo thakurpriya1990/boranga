@@ -41,6 +41,13 @@ from boranga.components.conservation_status.models import (
     WAPriorityCategory,
     WAPriorityList,
 )
+from boranga.components.conservation_status.permissions import (
+    ConservationStatusAmendmentRequestPermission,
+    ConservationStatusDocumentPermission,
+    ConservationStatusPermission,
+    ConservationStatusReferralPermission,
+    ExternalConservationStatusPermission,
+)
 from boranga.components.conservation_status.serializers import (
     ConservationStatusAmendmentRequestDisplaySerializer,
     ConservationStatusAmendmentRequestSerializer,
@@ -86,13 +93,6 @@ from boranga.helpers import (
     is_occurrence_assessor,
     is_readonly_user,
     is_species_communities_approver,
-)
-from boranga.permissions import (
-    ConservationStatusAmendmentRequestPermission,
-    ConservationStatusDocumentPermission,
-    ConservationStatusPermission,
-    ConservationStatusReferralPermission,
-    ExternalConservationStatusPermission,
 )
 
 logger = logging.getLogger(__name__)
@@ -389,11 +389,23 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
 
         filter_application_status = request.POST.get("filter_application_status")
         if queryset.model is ConservationStatus:
-            if (
-                filter_application_status
-                and not filter_application_status.lower() == "all"
-            ):
-                queryset = queryset.filter(processing_status=filter_application_status)
+            if filter_application_status:
+                if filter_application_status.lower() == "all":
+                    queryset = queryset.exclude(
+                        processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_DISCARDED_BY_ME
+                ):
+                    queryset = queryset.filter(
+                        submitter=request.user.id,
+                        processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED,
+                    )
+                else:
+                    queryset = queryset.filter(
+                        processing_status=filter_application_status
+                    )
         elif queryset.model is ConservationStatusReferral:
             if (
                 filter_application_status
@@ -452,7 +464,9 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
 class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (SpeciesConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = ConservationStatus.objects.all()
+    queryset = ConservationStatus.objects.all().select_related(
+        "application_type", "species", "community"
+    )
     serializer_class = ListSpeciesConservationStatusSerializer
     page_size = 10
     permission_classes = [ConservationStatusPermission]
@@ -947,10 +961,29 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
                 )
 
         filter_application_status = request.POST.get("filter_application_status")
-        if filter_application_status and not filter_application_status.lower() == "all":
-            if queryset.model is ConservationStatus:
-                queryset = queryset.filter(processing_status=filter_application_status)
-            elif queryset.model is ConservationStatusReferral:
+        if queryset.model is ConservationStatus:
+            if filter_application_status:
+                if filter_application_status.lower() == "all":
+                    queryset = queryset.exclude(
+                        processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_DISCARDED_BY_ME
+                ):
+                    queryset = queryset.filter(
+                        submitter=request.user.id,
+                        processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED,
+                    )
+                else:
+                    queryset = queryset.filter(
+                        processing_status=filter_application_status
+                    )
+        elif queryset.model is ConservationStatusReferral:
+            if (
+                filter_application_status
+                and not filter_application_status.lower() == "all"
+            ):
                 queryset = queryset.filter(
                     conservation_status__processing_status=filter_application_status
                 )
@@ -1006,8 +1039,8 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
 class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (CommunityConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = ConservationStatus.objects.exclude(
-        processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
+    queryset = ConservationStatus.objects.select_related(
+        "application_type", "species", "community"
     )
     serializer_class = ListCommunityConservationStatusSerializer
     page_size = 10
@@ -1358,7 +1391,9 @@ class ConservationStatusFilterBackend(DatatablesFilterBackend):
 class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (ConservationStatusFilterBackend,)
     pagination_class = DatatablesPageNumberPagination
-    queryset = ConservationStatus.objects.all()
+    queryset = ConservationStatus.objects.all().select_related(
+        "application_type", "species", "community"
+    )
     serializer_class = ListConservationStatusSerializer
     page_size = 10
     permission_classes = [ConservationStatusPermission]
@@ -1436,9 +1471,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             or is_occurrence_assessor(self.request)
             or is_occurrence_approver(self.request)
         ):
-            return ConservationStatus.objects.exclude(
-                processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED
-            )
+            return qs
         if is_contributor(self.request) and is_conservation_status_referee(
             self.request
         ):

@@ -16,7 +16,8 @@ from boranga.components.species_and_communities.models import (
     PotentialThreatOnset,
     Region,
     RootMorphology,
-    Species,
+    SystemEmail,
+    SystemEmailGroup,
     Taxonomy,
     TaxonomyRank,
     TaxonPreviousName,
@@ -166,25 +167,36 @@ class ClassificationSystemAdmin(admin.ModelAdmin):
         return False
 
 
-@admin.register(Species)
-class SpeciesAdmin(admin.ModelAdmin):
-    list_display = [
-        "id",
-        "species_number",
-        "group_type",
-        "taxonomy",
-        "processing_status",
-    ]
-    actions = None
+class SystemEmailTabularInline(admin.TabularInline):
+    model = SystemEmail
+    list_display = "email"
+    verbose_name = "Email"
+    verbose_name_plural = "Emails"
+    extra = 0
+
+
+@admin.register(SystemEmailGroup)
+class SystemEmailGroupAdmin(admin.ModelAdmin):
+    list_display = ["label", "group_type", "area"]
+    ordering = ["group_type", "area"]
+    inlines = [SystemEmailTabularInline]
 
     def get_readonly_fields(self, request, obj=None):
+        if request.user.is_superuser:
+            return []
         return [f.name for f in obj._meta.fields]
 
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if "delete_selected" in actions and not request.user.is_superuser:
+            del actions["delete_selected"]
+        return actions
+
     def has_delete_permission(self, request, obj=None):
-        return False
+        return request.user.is_superuser
 
     def has_add_permission(self, request):
-        return False
+        return request.user.is_superuser
 
     def has_change_permission(self, request, obj=None, **kwargs):
-        return False
+        return request.user.is_superuser
