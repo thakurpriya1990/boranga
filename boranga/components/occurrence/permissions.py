@@ -13,7 +13,6 @@ from boranga.components.occurrence.models import (
 from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
-    is_conservation_status_referee,
     is_external_contributor,
     is_internal_contributor,
     is_occurrence_approver,
@@ -51,6 +50,8 @@ class IsOccurrenceReportReferee(BasePermission):
         else:
             return obj.referral == request.user.id
 
+        return False
+
 
 class OccurrenceReportPermission(BasePermission):
     def has_permission(self, request, view):
@@ -68,7 +69,7 @@ class OccurrenceReportPermission(BasePermission):
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
             or is_internal_contributor(request)
-            or is_conservation_status_referee(request)
+            or is_occurrence_report_referee(request)
         )
 
     def is_authorised_to_update(self, request, obj):
@@ -234,6 +235,8 @@ class ExternalOccurrenceReportPermission(BasePermission):
         ):
             return is_external_contributor(request)
 
+        return False
+
 
 # accounts for objects that belong to an occurrence report
 # only works if the object has an assigned occurrence report
@@ -243,16 +246,15 @@ class OccurrenceReportObjectPermission(BasePermission):
             return False
 
         if hasattr(view, "action") and view.action == "create":
-            try:
-                request_data = request.data.get("data")
-            except KeyError:
+            request_data = request.data.get("data")
+            if not request_data:
                 raise serializers.ValidationError(
                     "No parameter named 'data' found in request"
                 )
 
             try:
                 data = json.loads(request_data)
-            except json.JSONDecodeError:
+            except (TypeError, json.JSONDecodeError):
                 raise serializers.ValidationError(
                     "Data parameter is not a valid JSON string"
                 )
@@ -286,7 +288,7 @@ class OccurrenceReportObjectPermission(BasePermission):
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
             or is_internal_contributor(request)
-            or is_conservation_status_referee(request)
+            or is_occurrence_report_referee(request)
         )
 
     def is_authorised_to_update(self, request, occurrence_report):
@@ -316,6 +318,8 @@ class OccurrenceReportObjectPermission(BasePermission):
         if occurrence_report:
             return self.is_authorised_to_update(request, occurrence_report)
 
+        return False
+
 
 # accounts for objects that belong to an occurrence report and can be managed externally
 # only works if the object has an assigned occurrence report
@@ -325,16 +329,15 @@ class ExternalOccurrenceReportObjectPermission(BasePermission):
             return False
 
         if hasattr(view, "action") and view.action == "create":
-            try:
-                request_data = request.data.get("data")
-            except KeyError:
+            request_data = request.data.get("data")
+            if not request_data:
                 raise serializers.ValidationError(
                     "No parameter named 'data' found in request"
                 )
 
             try:
                 data = json.loads(request_data)
-            except json.JSONDecodeError:
+            except (TypeError, json.JSONDecodeError):
                 raise serializers.ValidationError(
                     "Data parameter is not a valid JSON string"
                 )
@@ -378,6 +381,8 @@ class ExternalOccurrenceReportObjectPermission(BasePermission):
         ):
             return is_external_contributor(request)
 
+        return False
+
 
 class OccurrencePermission(BasePermission):
     def has_permission(self, request, view):
@@ -397,7 +402,7 @@ class OccurrencePermission(BasePermission):
             or is_species_communities_approver(request)
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
-            or is_conservation_status_referee(request)
+            or is_occurrence_report_referee(request)
         )
 
     def is_authorised_to_update(self, request, obj):
@@ -439,12 +444,12 @@ class OccurrenceObjectPermission(BasePermission):
             return True
 
         if hasattr(view, "action") and view.action == "create":
-            try:
-                request_data = request.data.get("data")
-            except KeyError:
+            request_data = request.data.get("data")
+            if not request_data:
                 raise serializers.ValidationError(
                     "No parameter named 'data' found in request"
                 )
+
             try:
                 data = json.loads(request_data)
             except (TypeError, json.JSONDecodeError):
@@ -486,3 +491,5 @@ class OccurrenceObjectPermission(BasePermission):
 
         if occurrence:
             return self.is_authorised_to_update(request, occurrence)
+
+        return False
