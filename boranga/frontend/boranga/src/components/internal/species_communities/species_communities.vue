@@ -3,7 +3,6 @@
         <div class="row" style="padding-bottom: 50px;">
             <h3>{{ display_group_type }} {{ display_number }} - {{ display_name }}</h3>
             <div v-if="!comparing" class="col-md-3">
-                <!-- TODO -->
                 <template>
                     <div class="">
                         <div class="card card-default mb-3">
@@ -705,7 +704,6 @@ export default {
                 }
             }
             if (check_action == 'submit') {
-                //TODO add validation for fields required before submit
                 if (vm.species_community.distribution.distribution == null || vm.species_community.distribution.distribution == '') {
                     blank_fields.push(' Distribution is required')
                 }

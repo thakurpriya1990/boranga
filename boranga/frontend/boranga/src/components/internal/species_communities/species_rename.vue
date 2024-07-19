@@ -163,7 +163,6 @@ export default {
                             new_species.parent_species = [vm.species_community_original];
                             let payload = new Object();
                             Object.assign(payload, new_species);
-                            // TODO May be need to create another submit method for rename as the mail and action could be different
                             let submit_url = helpers.add_endpoint_json(api_endpoints.species, new_species.id + '/rename_new_species_submit')
                             vm.$http.post(submit_url, payload).then(res => {
                                 vm.new_species = res.body;
