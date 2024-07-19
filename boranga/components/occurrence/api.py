@@ -5569,6 +5569,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         data["original_geometry_ewkb"] = original_geom.ewkb
         data["geometry"] = geom
+        data["drawn_by"] = request.user.id
 
         serializer = SaveOccurrenceSiteSerializer(instance, data=data)
         serializer.is_valid(raise_exception=True)
@@ -5602,6 +5603,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         data["original_geometry_ewkb"] = original_geom.ewkb
         data["geometry"] = geom
+        data["drawn_by"] = request.user.id
 
         serializer = SaveOccurrenceSiteSerializer(data=data)
         serializer.is_valid(raise_exception=True)
