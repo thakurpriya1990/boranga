@@ -6,7 +6,7 @@ from boranga.components.spatial.models import TileLayer
 from boranga.components.spatial.serializers import TileLayerSerializer
 
 from boranga.helpers import is_customer, is_internal, is_referee
-from boranga.permissions import TileLayerPermission
+from boranga.components.spatial.permissions import TileLayerPermission
 
 
 class TileLayerViewSet(viewsets.ReadOnlyModelViewSet):
