@@ -1,20 +1,36 @@
 {%  extends 'boranga/emails/base_email.txt' %}
 
 {%  block content %}
-        The following species 
-        {% for org_species in species_proposal.parent_species_list %}
-                {{ org_species.species_number }} - {{ org_species.taxonomy.scientific_name }} 
-        {% endfor %} has been combined into the new species  
-        {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }} .
         
-        You will need to manage conservation status and occurrences of the new species.
+        The following Species has been combined: {{parent_species_numbers}}
         
-        The conservation status originally associated with historical species has been set to delisted.
-        You will need to create a new Conservation Status and link to this newly created species {{url}}
         
-        The occurrence status originally associated with historical species has been set to delisted.
-        You will need to create a new Occurrence and link to this newly created species {{url}}
+            You can review the historical and new Species Profiles at:
+            
+                
+                {% for new_species in parent_species_url %}
+                     Historical Species {{ forloop.counter }} :  
+                        {{ new_species.species_url}} - {{new_species.species_instance.species_number}} - {{new_species.species_instance.taxonomy.scientific_name}}
+                    
+                {% endfor %}
+                New Species: {{species_url}} {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }}
+            
         
-        These actions are also available from the respective dashboard pages.
+        {% if conservation_status_url %}            
+                Please action for related Conservation Status:
+                    {% for cs in conservation_status_url %}
+                            {{ cs.cs_url}} - {{cs.cs_instance.conservation_status_number}} 
+                    {% endfor %}              
+            
+        {% endif %}
+        
+            {% if occurrences_url %}
+                Please action for related Occurrences:
+                {% for occ in occurrences_url %}
+                    {{occ.occurrence_url}} - {{ occ.occurrence_number }} 
+                {% endfor %}
+            {% endif %}
+        
+        
 
 {%  endblock %}

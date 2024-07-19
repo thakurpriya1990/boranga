@@ -670,6 +670,8 @@ class Species(RevisionedMixin):
             related_field_names = [
                 "parent_species",
                 "conservation_status",
+                "occurrences",
+                "occurrence_report",
             ]
         else:
             related_field_names = [
@@ -1350,6 +1352,8 @@ class Community(RevisionedMixin):
             related_field_names = [
                 "species",
                 "conservation_status",
+                "occurrences",
+                "occurrence_report",
             ]
         else:
             related_field_names = [

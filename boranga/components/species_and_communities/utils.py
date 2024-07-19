@@ -144,12 +144,12 @@ def combine_species_original_submit(species_instance, request):
 
 
 @transaction.atomic
-def rename_species_original_submit(species_instance, request):
+def rename_species_original_submit(species_instance, new_species, request):
     if species_instance.processing_status == "active":
         species_instance.processing_status = "historical"
         species_instance.save(version_user=request.user)
         #  send the rename species email notification
-        send_species_rename_email_notification(request, species_instance)
+        send_species_rename_email_notification(request, species_instance, new_species)
 
         # change current active conservation status of the original species to inactive
         try:

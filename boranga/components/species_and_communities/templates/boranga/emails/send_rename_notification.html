@@ -1,25 +1,22 @@
 {%  extends 'boranga/emails/base_email.html' %}
 
 {%  block content %}
-        The following species 
-        {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }}
-         has been renamed into the new species  
-        {% for new_species in species_proposal.child_species %}
-                {{ new_species.species_number }} - {{ new_species.taxonomy.scientific_name }} 
-        {% endfor %} .
-        
-        <p>
-            You will need to manage conservation status and occurrences of the new species.
-        </p>
-        <p>
-            The conservation status originally associated with historical species has been set to closed.
-            You will need to create a new Conservation Status and link to this newly created species <a href="{{url}}">click here</a>
-        </p>
-        <p>
-            The occurrence status originally associated with historical species has been set to closed.
-            You will need to create a new Occurrence and link to this newly created species <a href="{{url}}">click here</a>
-        </p>
-        <p>
-            These actions are also available from the respective dashboard pages.
-        </p>
-    {%  endblock %}
+    <p>Species {{ species_proposal.species_number }} has been renamed. You can review the historical and new Species Profiles at:</p>
+    <ul>
+        <li>Historical: <a href="{{species_url}}">{{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }}</a></li>
+        <li>New: <a href="{{new_species_url}}">{{ new_species.species_number }} - {{ new_species.taxonomy.scientific_name }}</a></li>
+    </ul>
+    <p>
+        {% if conservation_status_url %}
+            Please action for related Conservation Status <a href="{{conservation_status_url}}">here</a>
+        {% endif %}
+    </p>
+    <p>
+        {% if occurrences_url %}
+            Please action for related Occurrences:
+            {% for occ in occurrences_url %}
+                <li><a href="{{occ.occurrence_url}}">{{ occ.occurrence_number }}</a></li>
+            {% endfor %}
+        {% endif %}
+    </p>
+{%  endblock %}

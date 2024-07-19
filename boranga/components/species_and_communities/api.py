@@ -1732,7 +1732,7 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             parent_instance = Species.objects.get(id=species.get("id"))
             instance.parent_species.add(parent_instance)
             # set the original species from the rename  to historical and its conservation status to 'closed'
-            rename_species_original_submit(parent_instance, request)
+            rename_species_original_submit(parent_instance, instance, request)
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)

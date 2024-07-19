@@ -4,7 +4,7 @@
             <div class="col">
                 <h3 class="mb-1">Occurrence Report: {{ occurrence_report.occurrence_report_number }} - <span
                         class="text-capitalize">{{ display_group_type }}</span></h3>
-                <h4 class="text-muted mb-3">
+                <!-- <h4 class="text-muted mb-3">
                     Occurrence:
                     <template v-if="occurrence_report.occurrence">
                         {{ occurrence_report.occurrence.occurrence_number }} <small><a
@@ -13,6 +13,36 @@
                     </template>
                     <template v-else>
                         NOT SET
+                    </template>
+                </h4> -->
+                <h4 class="text-muted mb-3">
+                    <template v-if="occurrence_report.occurrence">Occurrence: 
+                        {{ occurrence_report.occurrence.occurrence_number }} <small><a
+                                :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${occurrence_report.group_type}&action=view`"
+                                target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
+                    </template>
+                    <template v-else>
+                        Occurrence: NOT SET
+                    </template>
+                    <template v-if="isCommunity">
+                        <template v-if="occurrence_report.community_id">
+                          Community: {{ occurrence_report.community_number }} <small><a
+                                :href="`/internal/species_communities/${occurrence_report.community_id}?group_type_name=${occurrence_report.group_type}&action=view`"
+                                target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
+                        </template>     
+                        <template v-else>
+                            Community: NOT SET
+                        </template>
+                    </template>
+                    <template v-else>
+                        <template v-if="occurrence_report.species_id">
+                          Species: {{ occurrence_report.species_number }} <small><a
+                                :href="`/internal/species_communities/${occurrence_report.species_id}?group_type_name=${occurrence_report.group_type}&action=view`"
+                                target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
+                        </template>
+                        <template v-else>
+                            Species: NOT SET
+                        </template>
                     </template>
                 </h4>
             </div>

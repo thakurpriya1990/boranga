@@ -1595,7 +1595,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
         if filter_type == "all":
-            related_field_names = ["species", "community", "agendaitem"]
+            related_field_names = ["species", "community", "agendaitem", "occurrences", "occurrence_report",]
         else:
             related_field_names = [
                 filter_type,
@@ -1622,7 +1622,21 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                     if field_object:
                         related_item = field_object.as_related_item
                         return_list.append(related_item)
-
+        species_filter=[]
+        if 'occurrences' in related_field_names:
+            species_filter.append('occurrences')
+        if 'occurrence_report' in related_field_names:
+            species_filter.append('occurrence_report')
+        for occ_filter_type in species_filter:
+            if self.species:
+                species_occurences=self.species.get_related_items(occ_filter_type)
+                if species_occurences:
+                    # return_list.append(species_occurences)
+                    return_list += species_occurences
+            if self.community:
+                community_occurences=self.community.get_related_items(occ_filter_type)
+                if community_occurences:
+                    return_list += community_occurences
         return return_list
 
     @property
