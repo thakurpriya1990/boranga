@@ -1840,7 +1840,7 @@ class GeometryBase(models.Model):
 
 class DrawnByGeometry(models.Model):
     drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
-    # last_updated_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
+    last_updated_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
 
     class Meta:
         abstract = True

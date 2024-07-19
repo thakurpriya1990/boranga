@@ -379,6 +379,7 @@ def save_geometry(
                     )
                     continue
                 geometry_data["drawn_by"] = geometry.drawn_by
+                geometry_data["last_updated_by"] = request.user.id
                 geometry_data["locked"] = (
                     action in ["submit"]
                     and geometry.drawn_by == request.user.id
@@ -392,6 +393,7 @@ def save_geometry(
                     f"Creating new geometry for {instance_model_name}: {instance}"
                 )
                 geometry_data["drawn_by"] = request.user.id
+                geometry_data["last_updated_by"] = request.user.id
                 geometry_data["locked"] = action in ["submit"]
                 serializer = InstanceGeometrySaveSerializer(data=geometry_data)
 
