@@ -96,7 +96,7 @@
             <label for="" class="col-lg-3 control-label fs-5 fw-bold">Animal Count :</label>
             <div class="row mb-3">
                 <div class="col-sm-2">
-                <label class="form-check-label" for="not-counted">Not Counted</label>
+                <label class="form-check-label fw-bold" for="not-counted">Not Counted</label>
                 </div>
                 <div class="col-sm-2">
                     <input type="checkbox" id="not-counted"
