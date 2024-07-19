@@ -77,6 +77,7 @@ from boranga.components.species_and_communities.models import (
     ThreatCategory,
 )
 from boranga.components.species_and_communities.permissions import (
+    ConservationThreatPermission,
     SpeciesCommunitiesPermission,
 )
 from boranga.components.species_and_communities.serializers import (
@@ -2588,18 +2589,16 @@ class ConservationThreatFilterBackend(DatatablesFilterBackend):
 
 
 class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = ConservationThreat.objects.none()
+    queryset = ConservationThreat.objects.order_by("id")
     serializer_class = ConservationThreatSerializer
     filter_backends = (ConservationThreatFilterBackend,)
-    permission_classes = [IsSuperuser | IsAuthenticated & SpeciesCommunitiesPermission]
+    permission_classes = [IsSuperuser | IsAuthenticated & ConservationThreatPermission]
 
     def get_queryset(self):
-        if is_internal(self.request):
-            qs = ConservationThreat.objects.order_by("id")
-            return qs
-        else:
+        qs = super().get_queryset()
+        if not is_internal(self.request):
             qs = (
-                ConservationThreat.objects.filter(visible=True)
+                qs.filter(visible=True)
                 .filter(
                     (
                         Q(species__species_publishing_status__species_public=True)
@@ -2612,7 +2611,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 )
                 .order_by("id")
             )
-            return qs
+        return qs
 
     def update_publishing_status(self):
 
@@ -2715,8 +2714,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         detail=True,
     )
     def discard(self, request, *args, **kwargs):
-        if not is_internal(self.request):  # TODO group checks
-            raise serializers.ValidationError("user not authorised to discard threat")
         instance = self.get_object()
         instance.visible = False
         instance.save(version_user=request.user)
@@ -2747,8 +2744,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         detail=True,
     )
     def reinstate(self, request, *args, **kwargs):
-        if not is_internal(self.request):  # TODO group checks
-            raise serializers.ValidationError("user not authorised to reinstate threat")
         instance = self.get_object()
         instance.visible = True
         instance.save(version_user=request.user)
