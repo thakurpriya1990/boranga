@@ -61,12 +61,6 @@ router.register(
 router.register(r"species", species_communities_api.SpeciesViewSet, "species")
 router.register(r"community", species_communities_api.CommunityViewSet, "community")
 router.register(
-    r"taxonomy", species_communities_api.TaxonomyViewSet
-)  # not used on species_profile
-router.register(
-    r"community_taxonomy", species_communities_api.CommunityTaxonomyViewSet
-)  # not used on community_profile
-router.register(
     r"species_paginated",
     species_communities_api.SpeciesPaginatedViewSet,
     "species_paginated",

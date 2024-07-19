@@ -60,7 +60,6 @@ from boranga.components.species_and_communities.models import (
     FloraRecruitmentType,
     GroupType,
     InformalGroup,
-    Kingdom,
     PostFireHabitatInteraction,
     PotentialImpact,
     PotentialThreatOnset,
@@ -85,7 +84,6 @@ from boranga.components.species_and_communities.serializers import (
     CommunityDocumentSerializer,
     CommunityLogEntrySerializer,
     CommunitySerializer,
-    CommunityTaxonomySerializer,
     CommunityUserActionSerializer,
     ConservationThreatSerializer,
     CreateCommunitySerializer,
@@ -580,62 +578,6 @@ class GetDocumentCategoriesDict(views.APIView):
         return HttpResponse(res_json, content_type="application/json")
 
 
-# TODO: Remove this viewset and any references to it in urls.py and .vue files
-class TaxonomyViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Taxonomy.objects.none()
-    serializer_class = TaxonomySerializer
-    permission_classes = [IsSuperuser | IsAuthenticated & SpeciesCommunitiesPermission]
-
-    def get_queryset(self):
-        if is_internal(self.request):
-            qs = Taxonomy.objects.all()
-            return qs
-        return Taxonomy.objects.none()
-
-    @list_route(
-        methods=[
-            "GET",
-        ],
-        detail=False,
-    )
-    def taxon_names(self, request, *args, **kwargs):
-        qs = self.get_queryset()
-        serializer = TaxonomySerializer(qs, context={"request": request}, many=True)
-        return Response(serializer.data)
-
-    #  not used for species profile now
-    @list_route(
-        methods=[
-            "GET",
-        ],
-        detail=False,
-    )
-    def flora_taxon_names(self, request, *args, **kwargs):
-        qs = self.get_queryset()
-        flora_kingdoms = Kingdom.objects.filter(
-            grouptype__name=GroupType.GROUP_TYPE_FLORA
-        ).values_list("id", flat=True)
-        qs = qs.filter(kingdom_fk_id__in=flora_kingdoms)
-        serializer = TaxonomySerializer(qs, context={"request": request}, many=True)
-        return Response(serializer.data)
-
-    #  not used for species profile now
-    @list_route(
-        methods=[
-            "GET",
-        ],
-        detail=False,
-    )
-    def fauna_taxon_names(self, request, *args, **kwargs):
-        qs = self.get_queryset()
-        fauna_kingdoms = Kingdom.objects.filter(
-            grouptype__name=GroupType.GROUP_TYPE_FAUNA
-        ).values_list("id", flat=True)
-        qs = qs.filter(kingdom_fk_id__in=fauna_kingdoms)
-        serializer = TaxonomySerializer(qs, context={"request": request}, many=True)
-        return Response(serializer.data)
-
-
 class GetSpeciesProfileDict(views.APIView):
     def get(self, request, format=None):
         flora_recruitment_type_list = []
@@ -675,32 +617,6 @@ class GetSpeciesProfileDict(views.APIView):
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
-
-
-# Not used now on CommunityProfile
-class CommunityTaxonomyViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = CommunityTaxonomy.objects.none()
-    serializer_class = CommunityTaxonomySerializer
-
-    def get_queryset(self):
-        if is_internal(self.request):
-            qs = CommunityTaxonomy.objects.all()
-            return qs
-        return CommunityTaxonomy.objects.none()
-
-    # not used for community profile now
-    @list_route(
-        methods=[
-            "GET",
-        ],
-        detail=False,
-    )
-    def taxon_names(self, request, *args, **kwargs):
-        qs = self.get_queryset()
-        serializer = CommunityTaxonomySerializer(
-            qs, context={"request": request}, many=True
-        )
-        return Response(serializer.data)
 
 
 class GetCommunityProfileDict(views.APIView):
