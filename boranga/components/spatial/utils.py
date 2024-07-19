@@ -141,25 +141,41 @@ def populate_occurrence_tenure_data(geometry_instance, features, request):
                 continue
         else:
             occurrence_tenures = OccurrenceTenure.objects.filter(
-                occurrence_geometry=geometry_instance,
-                status="current",
                 tenure_area_id=feature_id
             ).exclude(occurrence_geometry=None,tenure_area_id=None)
 
-            if occurrence_tenures.exists():
-                occurrence_tenure = occurrence_tenures.first()
+            occurrence_tenures_current = occurrence_tenures.filter(
+                occurrence_geometry=geometry_instance,
+                status="current"
+            )
+
+            occurrence_tenures_historical = occurrence_tenures.filter(
+                historical_occurrence=geometry_instance.occurrence.id,
+                status="historical"
+            )
+
+            if occurrence_tenures_current.exists():
+                occurrence_tenure = occurrence_tenures_current.first()
                 occurrence_tenure.owner_name = owner_name
                 occurrence_tenure.owner_count = owner_count
                 occurrence_tenure.tenure_area_ewkb = tenure_area_ewkb
                 occurrence_tenure.save(version_user=request.user)
             else:
                 created = True
+                # Restore historical tenure details to current one if applicable
+                occurrence_tenure_historical = occurrence_tenures_historical.order_by(
+                    "-datetime_updated"
+                ).first()
                 occurrence_tenure = OccurrenceTenure(
                     occurrence_geometry=geometry_instance,
                     tenure_area_id=feature_id,
                     owner_name=owner_name,
                     owner_count=owner_count,
                     tenure_area_ewkb=tenure_area_ewkb,
+                    purpose=occurrence_tenure_historical.purpose,
+                    vesting=occurrence_tenure_historical.vesting,
+                    significant_to_occurrence=occurrence_tenure_historical.significant_to_occurrence,
+                    comments=occurrence_tenure_historical.comments,
                 )
                 occurrence_tenure.save(version_user=request.user)
 
@@ -623,7 +639,14 @@ def buffer_geometries(geoms, distance, unit):
                 )
             else:
                 # A polygon (dim 2), can there possibly be a dim-3 geometry?
-                buffer_geom = buffer_polygon_m(geom, distance)
+                if geom.geom_type == "MultiPolygon":
+                    buffer_geoms = []
+                    for polygon in geom:
+                        buffer_geoms.append(buffer_polygon_m(polygon, distance))
+                    buffer_geom_mp = shp.MultiPolygon(buffer_geoms)
+                    buffer_geom = unary_union(buffer_geom_mp)
+                else:
+                    buffer_geom = buffer_polygon_m(geom, distance)
 
             buffered_geoms.append(GEOSGeometry(buffer_geom.wkt))
 
