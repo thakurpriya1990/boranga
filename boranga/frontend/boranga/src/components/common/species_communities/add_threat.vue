@@ -52,12 +52,18 @@
                                         <label class="control-label pull-left">Current Impact?</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <div v-for="option in current_impact_list" class="form-check form-check-inline">
-                                            <input :disabled="isReadOnly" type="radio" class="form-check-input"
-                                                :value="option.id" :id="'current_impact_' + option.id"
-                                                v-bind:key="option.id" v-model="threatObj.current_impact" />
-                                            <label :for="'current_impact_' + option.id">{{ option.name }}</label>
-                                        </div>
+                                        <template v-if="current_impact_list && current_impact_list.length > 0">
+                                            <div v-for="option in current_impact_list"
+                                                class="form-check form-check-inline">
+                                                <input :disabled="isReadOnly" type="radio" class="form-check-input"
+                                                    :value="option.id" :id="'current_impact_' + option.id"
+                                                    v-bind:key="option.id" v-model="threatObj.current_impact" />
+                                                <label :for="'current_impact_' + option.id">{{ option.name }}</label>
+                                            </div>
+                                        </template>
+                                        <template v-else>
+                                            <div>There are no current impact options available</div>
+                                        </template>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -65,13 +71,18 @@
                                         <label class="control-label pull-left">Potential Impact?</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <div v-for="option in potential_impact_list"
-                                            class="form-check form-check-inline">
-                                            <input :disabled="isReadOnly" type="radio" class="form-check-input"
-                                                :value="option.id" :id="'potential_impact_' + option.id"
-                                                v-bind:key="option.id" v-model="threatObj.potential_impact" />
-                                            <label :for="'potential_impact_' + option.id">{{ option.name }}</label>
-                                        </div>
+                                        <template v-if="potential_impact_list && potential_impact_list.length > 0">
+                                            <div v-for="option in potential_impact_list"
+                                                class="form-check form-check-inline">
+                                                <input :disabled="isReadOnly" type="radio" class="form-check-input"
+                                                    :value="option.id" :id="'potential_impact_' + option.id"
+                                                    v-bind:key="option.id" v-model="threatObj.potential_impact" />
+                                                <label :for="'potential_impact_' + option.id">{{ option.name }}</label>
+                                            </div>
+                                        </template>
+                                        <template v-else>
+                                            <div>There are no potential impact options available</div>
+                                        </template>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -79,14 +90,19 @@
                                         <label class="control-label pull-left">Potential Threat Onset?</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <div v-for="option in potential_threat_onset_list"
-                                            class="form-check form-check-inline ">
-                                            <input :disabled="isReadOnly" type="radio" class="form-check-input"
-                                                :value="option.id" :id="'potential_threat_onset_' + option.id"
-                                                v-bind:key="option.id" v-model="threatObj.potential_threat_onset" />
-                                            <label :for="'potential_threat_onset_' + option.id">{{ option.name
-                                                }}</label>
-                                        </div>
+                                        <template v-if="potential_threat_onset_list && potential_threat_onset_list.length > 0">
+                                            <div v-for="option in potential_threat_onset_list"
+                                                class="form-check form-check-inline ">
+                                                <input :disabled="isReadOnly" type="radio" class="form-check-input"
+                                                    :value="option.id" :id="'potential_threat_onset_' + option.id"
+                                                    v-bind:key="option.id" v-model="threatObj.potential_threat_onset" />
+                                                <label :for="'potential_threat_onset_' + option.id">{{ option.name
+                                                    }}</label>
+                                            </div>
+                                        </template>
+                                        <template v-else>
+                                            <div>There are no potential threat onset options available</div>
+                                        </template>
                                     </div>
                                 </div>
                                 <div class="row mb-3">

@@ -1,21 +1,14 @@
 {%  extends 'boranga/emails/base_email.txt' %}
 
 {%  block content %}
-        The following species 
-        {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }}
-         has been renamed into the new species  
-        {% for new_species in species_proposal.child_species %}
-                {{ new_species.species_number }} - {{ new_species.taxonomy.scientific_name }} 
-        {% endfor %} .
-        
-        You will need to manage conservation status and occurrences of the new species.
-        
-        The conservation status originally associated with historical species has been set to delisted.
-        You will need to create a new Conservation Status and link to this newly created species {{url}}
-        
-        The occurrence status originally associated with historical species has been set to delisted.
-        You will need to create a new Occurrence and link to this newly created species {{url}}
-        
-        These actions are also available from the respective dashboard pages.
-
+        Species {{ species_proposal.species_number }} has been renamed. You can review the historical and new Species Profiles at:
+        Historical: {{species_url}} {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }}
+        New: {{new_species_url}} {{ new_species.species_number }} - {{ new_species.taxonomy.scientific_name }}
+        Please action for related Conservation Status here {{conservation_status_url}}
+        {% if occurrences_url %}
+            To action related Occurrences:
+            {% for occ in occurrences_url %}
+                {{ occ.occurrence_number }}
+            {% endfor %}
+        {% endif %}
 {%  endblock %}

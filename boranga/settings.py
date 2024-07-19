@@ -126,12 +126,20 @@ ADD_REVERSION_ADMIN = True
 # maximum number of days allowed for a booking
 WSGI_APPLICATION = "boranga.wsgi.application"
 
-REST_FRAMEWORK = {
-    "DEFAULT_RENDERER_CLASSES": (
+if DEBUG:
+    rest_framework_renderer_classes = (
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
         "rest_framework_datatables.renderers.DatatablesRenderer",
-    ),
+    )
+else:
+    rest_framework_renderer_classes = (
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework_datatables.renderers.DatatablesRenderer",
+    )
+
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": rest_framework_renderer_classes,
     "EXCEPTION_HANDLER": "boranga.exceptions.custom_exception_handler",
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",

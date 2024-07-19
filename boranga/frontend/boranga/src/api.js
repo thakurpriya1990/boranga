@@ -11,7 +11,6 @@ module.exports = {
     approvals: "/api/approvals.json",
     assessments: "/api/assessments.json",
     community_documents: "/api/community_documents.json",
-    community_taxonomy: "/api/community_taxonomy",
     community: "/api/community",
     compliances: "/api/compliances.json",
     conservation_status_documents: "/api/conservation_status_documents.json",

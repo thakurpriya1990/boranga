@@ -1,24 +1,40 @@
 {%  extends 'boranga/emails/base_email.html' %}
 
 {%  block content %}
-        The following species 
-        {% for org_species in species_proposal.parent_species_list %}
-                {{ org_species.species_number }} - {{ org_species.taxonomy.scientific_name }} 
-        {% endfor %} has been combined into the new species  
-        {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }} .
+        <p>
+        The following Species has been combined: {{parent_species_numbers}}
+        </p>
+        <p>
+            You can review the historical and new Species Profiles at:
+            <ul>
+                
+                {% for new_species in parent_species_url %}
+                    <li> Historical Species {{ forloop.counter }} :  
+                        <a href="{{ new_species.species_url}}"> {{new_species.species_instance.species_number}} - {{new_species.species_instance.taxonomy.scientific_name}}</a> 
+                    </li>
+                {% endfor %}
+                <li>New Species: <a href="{{species_url}}">{{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }} </a></li>
+            </ul>
+        </p>
+        {% if conservation_status_url %}
+            <p>
+                Please action for related Conservation Status:
+                <ul>
+                    {% for cs in conservation_status_url %}
+                        <li>   
+                            <a href="{{ cs.cs_url}}"> {{cs.cs_instance.conservation_status_number}} </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </p>
+        {% endif %}
+        <p>
+            {% if occurrences_url %}
+                Please action for related Occurrences:
+                {% for occ in occurrences_url %}
+                    <li> <a href="{{occ.occurrence_url}}">{{ occ.occurrence_number }}</a> </li>
+                {% endfor %}
+            {% endif %}
+        </p>
         
-        <p>
-            You will need to manage conservation status and occurrences of the new species.
-        </p>
-        <p>
-            The conservation status originally associated with historical species has been set to closed.
-            You will need to create a new Conservation Status and link to this newly created species <a href="{{url}}">click here</a>
-        </p>
-        <p>
-            The occurrence status originally associated with historical species has been set to closed.
-            You will need to create a new Occurrence and link to this newly created species <a href="{{url}}">click here</a>
-        </p>
-        <p>
-            These actions are also available from the respective dashboard pages.
-        </p>
     {%  endblock %}
