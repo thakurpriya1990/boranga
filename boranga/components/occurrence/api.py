@@ -5359,10 +5359,15 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         results = []
         if search_term:
-            queryset = queryset.filter(vesting__label__icontains=search_term).distinct()[
-                :10
-            ]
-        results = [{"id": row.vesting.id, "text": row.vesting.label} for row in queryset]
+            queryset = (
+                queryset.filter(vesting__label__icontains=search_term)
+                .values("vesting__id", "vesting__label")
+                .distinct()[:10]
+            )
+        results = [
+            {"id": row["vesting__id"], "text": row["vesting__label"]}
+            for row in queryset
+        ]
 
         return Response({"results": results})
 
@@ -5382,10 +5387,15 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = self.current_and_historical_tenures(queryset, occurrence_id)
 
         if search_term:
-            queryset = queryset.filter(purpose__label__icontains=search_term).distinct()[
-                :10
-            ]
-        results = [{"id": row.purpose.id, "text": row.purpose.label} for row in queryset]
+            queryset = (
+                queryset.filter(purpose__label__icontains=search_term)
+                .values("purpose__id", "purpose__label")
+                .distinct()[:10]
+            )
+        results = [
+            {"id": row["purpose__id"], "text": row["purpose__label"]}
+            for row in queryset
+        ]
 
         return Response({"results": results})
 
