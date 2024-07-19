@@ -46,6 +46,17 @@
                                         :species_community_original="species_community" id="speciesCommunityStart"
                                         :is_internal="false" :is_readonly="true">
                                     </ProposalSpeciesCommunities>
+                                    <div class="row" style="margin-bottom: 50px">
+                                        <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                                            <div class="container">
+                                                <div class="col-md-6">
+                                                    <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
+                                                    @click.prevent="returnToDashboard">
+                                                        Return to Dashboard</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -101,6 +112,12 @@ export default {
     methods: {
         onImageLoad: function () {
             this.downloadingImage = false;
+        },
+        returnToDashboard: function () {
+            let vm = this;
+            vm.$router.push({
+                name: 'external-species-communities-dash'
+            });
         },
     },
     mounted: function () {

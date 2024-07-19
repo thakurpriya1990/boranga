@@ -245,9 +245,12 @@
                         <input type='hidden' name="occurrence_report_id" :value="1" />
                         <div class="row" style="margin-bottom: 50px">
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit"
-                                    class="container">
-                                    <div class="col-md-12 text-end">
+                                <div class="container">
+                                    <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
+                                        @click.prevent="returnToDashboard">
+                                            Return to Dashboard</button>
+                                    <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit"
+                                    class="col-md-6 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
                                             style="margin-top:5px;" disabled>Save and Continue&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -271,10 +274,8 @@
                                             @click.prevent="submit()"
                                             :disabled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
-                                </div>
-                                <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)"
-                                    class="container">
-                                    <div class="col-md-12 text-end">
+                                    <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)" 
+                                    class="col-md-6 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Save Changes <span
                                                 class="spinner-border spinner-border-sm" role="status"
@@ -609,6 +610,12 @@ export default {
         },
         approve: function () {
             this.$refs.approve.isModalOpen = true;
+        },
+        returnToDashboard: function () {
+            let vm = this;
+            vm.$router.push({
+                name: 'internal-occurrence-dash'
+            });
         },
         save: async function () {
             let vm = this;

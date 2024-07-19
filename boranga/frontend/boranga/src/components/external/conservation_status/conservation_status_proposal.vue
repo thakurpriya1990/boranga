@@ -68,7 +68,14 @@
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
                                 <div v-if="conservation_status_obj && !conservation_status_obj.readonly"
                                     class="container">
-                                    <div class="col-md-12 text-end" style="margin-top:5px">
+                                    <div class="col-md-6" style="margin-top:5px">
+                                        <p class="pull-right" style="margin-top:5px;">
+                                            <router-link class="btn btn-primary"
+                                                :to="{ name: 'external-conservation_status-dash' }">Back to
+                                                Dashboard</router-link>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6 text-end" style="margin-top:5px">                                        
                                         <button v-if="savingCSProposal" type="button" class="btn btn-primary me-2"
                                             disabled>Save and Continue&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -93,10 +100,10 @@
                                 </div>
                                 <div v-else class="container">
                                     <p class="pull-right" style="margin-top:5px;">
-                                        <router-link class="btn btn-primary"
-                                            :to="{ name: 'external-conservation_status-dash' }">Back to
-                                            Dashboard</router-link>
-                                    </p>
+                                            <router-link class="btn btn-primary"
+                                                :to="{ name: 'external-conservation_status-dash' }">Back to
+                                                Dashboard</router-link>
+                                        </p>
                                 </div>
                             </div>
                         </div>
