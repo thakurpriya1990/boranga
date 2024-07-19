@@ -693,6 +693,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "GET",
         ],
         detail=False,
+        permission_classes=[IsOccurrenceReportReferee],
     )
     def referred_to_me(self, request, *args, **kwargs):
         self.serializer_class = DTOccurrenceReportReferralSerializer
