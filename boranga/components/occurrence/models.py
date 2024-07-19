@@ -1840,6 +1840,7 @@ class GeometryBase(models.Model):
 
 class DrawnByGeometry(models.Model):
     drawn_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
+    last_updated_by = models.IntegerField(blank=True, null=True)  # EmailUserRO
 
     class Meta:
         abstract = True
@@ -4530,7 +4531,7 @@ class OCRExternalRefereeInvite(models.Model):
 
 
 class OccurrenceTenurePurpose(models.Model):
-    name = models.CharField(max_length=100, blank=True, null=True)
+    label = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         app_label = "boranga"
@@ -4542,7 +4543,7 @@ class OccurrenceTenurePurpose(models.Model):
 
 
 class OccurrenceTenureVesting(models.Model):
-    name = models.CharField(max_length=100, blank=True, null=True)
+    label = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         app_label = "boranga"

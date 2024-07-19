@@ -747,6 +747,7 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
     srid = serializers.SerializerMethodField(read_only=True)
     original_geometry = serializers.SerializerMethodField(read_only=True)
     drawn_by = serializers.SerializerMethodField(read_only=True)
+    last_updated_by = serializers.SerializerMethodField(read_only=True)
     updated_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
 
     class Meta:
@@ -773,6 +774,7 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
             "stroke",
             "updated_date",
             "drawn_by",
+            "last_updated_by",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -813,6 +815,12 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
     def get_drawn_by(self, obj):
         if obj.drawn_by:
             email_user = retrieve_email_user(obj.drawn_by)
+            return EmailUserSerializer(email_user).data.get("fullname", None)
+        return None
+
+    def get_last_updated_by(self, obj):
+        if obj.last_updated_by:
+            email_user = retrieve_email_user(obj.last_updated_by)
             return EmailUserSerializer(email_user).data.get("fullname", None)
         return None
 
@@ -1882,7 +1890,8 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
             "geometry",
             "original_geometry_ewkb",
             "intersects",
-            "drawn_by",
+            # "drawn_by",
+            "last_updated_by",
             "locked",
             "content_type",
             "object_id",
@@ -3082,6 +3091,7 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
     original_geometry = serializers.SerializerMethodField(read_only=True)
     buffer_geometry = BufferGeometrySerializer(read_only=True)
     drawn_by = serializers.SerializerMethodField(read_only=True)
+    last_updated_by = serializers.SerializerMethodField(read_only=True)
     updated_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
 
     class Meta:
@@ -3109,6 +3119,7 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
             "opacity",
             "updated_date",
             "drawn_by",
+            "last_updated_by",
         ] + BaseTypeSerializer.Meta.fields
         read_only_fields = ("id",)
 
@@ -3149,6 +3160,12 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
     def get_drawn_by(self, obj):
         if obj.drawn_by:
             email_user = retrieve_email_user(obj.drawn_by)
+            return EmailUserSerializer(email_user).data.get("fullname", None)
+        return None
+
+    def get_last_updated_by(self, obj):
+        if obj.last_updated_by:
+            email_user = retrieve_email_user(obj.last_updated_by)
             return EmailUserSerializer(email_user).data.get("fullname", None)
         return None
 
@@ -3259,7 +3276,8 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
             "geometry",
             "original_geometry_ewkb",
             "intersects",
-            "drawn_by",
+            # "drawn_by",
+            "last_updated_by",
             "locked",
             "buffer_radius",
             "content_type",
@@ -3284,7 +3302,7 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
 
     def get_vesting(self, obj):
         if obj.vesting:
-            return obj.vesting.name
+            return obj.vesting.label
         return None
 
     def get_featureid(self, obj):
@@ -3292,7 +3310,7 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
 
     def get_purpose(self, obj):
         if obj.purpose:
-            return obj.purpose.name
+            return obj.purpose.label
         return None
 
 
@@ -3498,7 +3516,7 @@ class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
             "related_occurrence_reports",
             "geometry",
             "original_geometry_ewkb",
-            "drawn_by",
+            "last_updated_by",
         )
         read_only_fields = ("id",)
 
@@ -3520,6 +3538,8 @@ class SaveOccurrenceSiteSerializer(serializers.ModelSerializer):
                 ):
                     setattr(instance, field_name, validated_data[field_name])
 
+            # Initially set the drawn_by field
+            setattr(instance, "drawn_by", validated_data["last_updated_by"])
             instance.save()
 
             for field_name in self.Meta.fields:
@@ -3545,6 +3565,7 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
     geometry_source = serializers.SerializerMethodField()
     original_geometry = serializers.SerializerMethodField(read_only=True)
     drawn_by = serializers.SerializerMethodField(read_only=True)
+    last_updated_by = serializers.SerializerMethodField(read_only=True)
     updated_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
 
     class Meta:
@@ -3564,6 +3585,7 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
             "stroke",
             "updated_date",
             "drawn_by",
+            "last_updated_by",
         ]
         read_only_fields = ("id",)
 
@@ -3585,5 +3607,11 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
     def get_drawn_by(self, obj):
         if obj.drawn_by:
             email_user = retrieve_email_user(obj.drawn_by)
+            return EmailUserSerializer(email_user).data.get("fullname", None)
+        return None
+
+    def get_last_updated_by(self, obj):
+        if obj.last_updated_by:
+            email_user = retrieve_email_user(obj.last_updated_by)
             return EmailUserSerializer(email_user).data.get("fullname", None)
         return None

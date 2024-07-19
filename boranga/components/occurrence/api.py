@@ -693,6 +693,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "GET",
         ],
         detail=False,
+        permission_classes=[IsOccurrenceReportReferee],
     )
     def referred_to_me(self, request, *args, **kwargs):
         self.serializer_class = DTOccurrenceReportReferralSerializer
@@ -5203,6 +5204,15 @@ class OccurrenceReportReferralViewSet(
         instance.referral_comment = request_data.get("referral_comment")
         instance.save()
 
+        # Save the geometry data
+        geometry_data = request_data.get("occurrence_report", {}).get(
+            "ocr_geometry", None
+        )
+        if geometry_data:
+            save_geometry(
+                request, instance.occurrence_report, geometry_data, "occurrence_report"
+            )
+
         # Create a log entry for the occurrence report
         instance.occurrence_report.log_user_action(
             OccurrenceReportUserAction.COMMENT_REFERRAL.format(
@@ -5359,10 +5369,15 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         results = []
         if search_term:
-            queryset = queryset.filter(vesting__name__icontains=search_term).distinct()[
-                :10
-            ]
-        results = [{"id": row.vesting.id, "text": row.vesting.name} for row in queryset]
+            queryset = (
+                queryset.filter(vesting__label__icontains=search_term)
+                .values("vesting__id", "vesting__label")
+                .distinct()[:10]
+            )
+        results = [
+            {"id": row["vesting__id"], "text": row["vesting__label"]}
+            for row in queryset
+        ]
 
         return Response({"results": results})
 
@@ -5382,10 +5397,15 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = self.current_and_historical_tenures(queryset, occurrence_id)
 
         if search_term:
-            queryset = queryset.filter(purpose__name__icontains=search_term).distinct()[
-                :10
-            ]
-        results = [{"id": row.purpose.id, "text": row.purpose.name} for row in queryset]
+            queryset = (
+                queryset.filter(purpose__label__icontains=search_term)
+                .values("purpose__id", "purpose__label")
+                .distinct()[:10]
+            )
+        results = [
+            {"id": row["purpose__id"], "text": row["purpose__label"]}
+            for row in queryset
+        ]
 
         return Response({"results": results})
 
@@ -5437,8 +5457,8 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         detail=False,
     )
     def occurrence_tenure_list_of_values(self, request, *args, **kwargs):
-        purpose_list = list(OccurrenceTenurePurpose.objects.all().values("id", "name"))
-        vesting_list = list(OccurrenceTenureVesting.objects.all().values("id", "name"))
+        purpose_list = list(OccurrenceTenurePurpose.objects.all().values("id", "label"))
+        vesting_list = list(OccurrenceTenureVesting.objects.all().values("id", "label"))
 
         res_json = {
             "purpose_list": purpose_list,
@@ -5569,7 +5589,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         data["original_geometry_ewkb"] = original_geom.ewkb
         data["geometry"] = geom
-        data["drawn_by"] = request.user.id
+        data["last_updated_by"] = request.user.id
 
         serializer = SaveOccurrenceSiteSerializer(instance, data=data)
         serializer.is_valid(raise_exception=True)
@@ -5604,6 +5624,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         data["original_geometry_ewkb"] = original_geom.ewkb
         data["geometry"] = geom
         data["drawn_by"] = request.user.id
+        data["last_updated_by"] = request.user.id
 
         serializer = SaveOccurrenceSiteSerializer(data=data)
         serializer.is_valid(raise_exception=True)

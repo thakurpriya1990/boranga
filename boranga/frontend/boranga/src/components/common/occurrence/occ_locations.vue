@@ -368,10 +368,11 @@ export default {
                 label: 'Label', // Occurrence Report
                 geometry_source: 'Geometry Source',
                 occurrence_report_number: 'Identification Number',
-                processing_status: 'Processing Status',
+                processing_status_display: 'Processing Status',
                 lodgement_date_display: 'Lodgement Date',
                 locked: 'Locked',
                 drawn_by: 'Drawn By', // fullname
+                last_updated_by: 'Updated By', // fullname
                 updated_date: 'Last updated',
             };
         },
@@ -386,6 +387,7 @@ export default {
                 area_sqm: 'Area [m²]',
                 area_sqhm: 'Area [ha]',
                 drawn_by: 'Drawn By', // fullname
+                last_updated_by: 'Updated By', // fullname
                 updated_date: 'Last updated',
             };
         },
@@ -410,6 +412,7 @@ export default {
                 site_number: 'Identification Number', // ST1
                 site_name: 'Site Name', // My Site
                 drawn_by: 'Drawn By', // fullname
+                last_updated_by: 'Updated By', // fullname
                 updated_date: 'Last updated',
             };
         },
