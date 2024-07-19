@@ -389,6 +389,8 @@ export default {
                 geometry_source: 'Geometry Source',
                 occurrence_report_number: 'Identification Number',
                 processing_status: 'Processing Status',
+                drawn_by: 'Drawn By', // fullname
+                updated_date: 'Last updated',
             };
         },
     },
