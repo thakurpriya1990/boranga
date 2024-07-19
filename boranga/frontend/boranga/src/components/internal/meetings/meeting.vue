@@ -74,13 +74,10 @@
                                     enctype="multipart/form-data">
                                     <MeetingSection ref="meeting" :meeting_obj="meeting_obj" :userCanEdit="userCanEdit"
                                         id="MeetingStart" :is_internal="true">
-                                        <!-- TODO add hasAssessorMode props to ProposalMeeting -->
                                     </MeetingSection>
                                     <CSQueue ref="cs_queue" :meeting_obj="meeting_obj" id="CSQueue" :is_internal="true">
-                                        <!-- TODO add hasAssessorMode props to ProposalMeeting -->
                                     </CSQueue>
                                     <Minutes ref="minutes" :meeting_obj="meeting_obj" id="Minutes" :is_internal="true">
-                                        <!-- TODO add hasAssessorMode props to ProposalMeeting -->
                                     </Minutes>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                     <input type='hidden' name="meeting_id" :value="1" />
@@ -386,7 +383,7 @@ export default {
             let vm = this;
             let blank_fields = []
 
-           
+
             if(vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count()==0){
                 blank_fields.push(' Please add atleast one Minutes record')
             }
@@ -467,14 +464,6 @@ export default {
                         Object.assign(payload, vm.meeting_obj);
                         vm.$http.put(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/schedule_meeting'), payload).then(res => {
                             vm.meeting_obj = res.body;
-                            // vm.$router.push({
-                            //     name: 'submit_cs_proposal',
-                            //     params: { meeting_obj: vm.meeting_obj}
-                            // });
-                            // TODO router should push to submit_cs_proposal for internal side
-                            // vm.$router.push({
-                            //     name: 'internal-meetings-dash'
-                            // });
                         }, err => {
                             swal.fire({
                                 title: 'Schedule Error',
@@ -527,14 +516,6 @@ export default {
                         vm.$http.put(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/complete_meeting'), payload).then(res => {
                             vm.meeting_obj = res.body;
                             vm.completingMeeting = false;
-                            // vm.$router.push({
-                            //     name: 'submit_cs_proposal',
-                            //     params: { meeting_obj: vm.meeting_obj}
-                            // });
-                            // TODO router should push to submit_cs_proposal for internal side
-                            // vm.$router.push({
-                            //     name: 'internal-meetings-dash'
-                            // });
                         }, err => {
                             swal.fire({
                                 title: 'Complete Error',
@@ -676,11 +657,6 @@ export default {
                         Object.assign(payload, vm.meeting_obj);
                         vm.$http.put(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/submit'), payload).then(res => {
                             vm.meeting_obj = res.body;
-                            // vm.$router.push({
-                            //     name: 'submit_cs_proposal',
-                            //     params: { meeting_obj: vm.meeting_obj}
-                            // });
-                            // TODO router should push to submit_cs_proposal for internal side
                             vm.$router.push({
                                 name: 'internal-meetings-dash'
                             });
