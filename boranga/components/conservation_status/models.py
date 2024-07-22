@@ -557,7 +557,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         choices=RECURRENCE_PATTERNS, default=1
     )
     recurrence_schedule = models.IntegerField(null=True, blank=True)
-    proposed_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     effective_from = models.DateField(null=True, blank=True)
     effective_to = models.DateField(null=True, blank=True)
     submitter = models.IntegerField(null=True)  # EmailUserRO
