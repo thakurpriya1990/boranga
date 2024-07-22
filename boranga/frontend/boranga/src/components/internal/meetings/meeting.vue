@@ -84,8 +84,15 @@
                                     <div class="row" style="margin-bottom: 50px">
                                         <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
                                             <!--the below as internal proposal submission ELSE just saving proposal changes -->
-                                            <div v-if="meeting_obj.can_user_edit" class="container">
-                                                <div class="col-md-12 text-end">
+                                            <div class="container">
+                                                <div class="col-md-6" style="margin-top:5px">
+                                                    <div class="col-md-6">
+                                                    <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
+                                                    @click.prevent="returnToDashboard">
+                                                        Return to Dashboard</button>
+                                                </div>
+                                                </div>
+                                                <div v-if="meeting_obj.can_user_edit" class="col-md-6 text-end">
                                                     <button v-if="savingMeeting" class="btn btn-primary me-2 pull-right"
                                                         style="margin-top:5px;" disabled>Save and Continue&nbsp;
                                                         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -103,10 +110,7 @@
                                                         :disabled="savingMeeting || submitMeeting">Save and
                                                         Exit</button>
                                                 </div>
-                                            </div>
-
-                                            <div v-else-if="userCanEdit" class="container">
-                                                <div class="col-md-12 text-end">
+                                                <div v-else-if="userCanEdit" class="col-md-6 text-end">
                                                     <button v-if="savingMeeting" class="btn btn-primary pull-right"
                                                         style="margin-top:5px;" disabled>Save Changes&nbsp;
                                                         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -235,7 +239,12 @@ export default {
         commaToNewline(s) {
             return s.replace(/[,;]/g, '\n');
         },
-
+        returnToDashboard: function () {
+            let vm = this;
+            vm.$router.push({
+                name: 'internal-meetings-dash'
+            });
+        },
         save: async function (e) {
             let vm = this;
             var missing_data = vm.can_submit("");

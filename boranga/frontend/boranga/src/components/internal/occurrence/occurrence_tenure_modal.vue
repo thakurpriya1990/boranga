@@ -105,7 +105,7 @@
                                             :key="vesting.id"
                                             :value="vesting.id"
                                         >
-                                            {{ vesting.name }}
+                                            {{ vesting.label }}
                                         </option>
                                     </select>
                                 </div>
@@ -135,7 +135,7 @@
                                             :key="purpose.id"
                                             :value="purpose.id"
                                         >
-                                            {{ purpose.name }}
+                                            {{ purpose.label }}
                                         </option>
                                     </select>
                                 </div>

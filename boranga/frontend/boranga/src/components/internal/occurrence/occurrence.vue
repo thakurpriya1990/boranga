@@ -98,8 +98,13 @@
                                 <input type='hidden' name="occurrence_id" :value="1" />
                                 <div class="row" style="margin-bottom: 50px">
                                     <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                        <div v-if="hasUserEditMode" class="container">
-                                            <div class="col-md-12 text-end">
+                                        <div  class="container">
+                                            <div class="col-md-6">
+                                                    <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
+                                                    @click.prevent="returnToDashboard">
+                                                        Return to Dashboard</button>
+                                                </div>
+                                            <div v-if="hasUserEditMode" class="col-md-6 text-end">
                                                 <button v-if="savingOccurrence" class="btn btn-primary pull-right"
                                                     style="margin-top:5px;" disabled>Save Changes&nbsp;
                                                     <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -436,6 +441,12 @@ export default {
                 }
             }, (error) => {
                 vm.submitOccurrence = false;
+            });
+        },
+        returnToDashboard: function () {
+            let vm = this;
+            vm.$router.push({
+                name: 'internal-occurrence-dash'
             });
         },
         refreshFromResponse: function (response) {

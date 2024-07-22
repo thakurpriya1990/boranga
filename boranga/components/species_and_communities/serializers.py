@@ -813,6 +813,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
     current_assessor = serializers.SerializerMethodField()
     user_edit_mode = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField()
+    can_user_reopen = serializers.SerializerMethodField()
 
     class Meta:
         model = Species
@@ -834,6 +835,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "processing_status",
             "readonly",
             "can_user_edit",
+            "can_user_reopen",
             "can_user_view",
             "submitter",
             "lodgement_date",
@@ -865,6 +867,12 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
         request = self.context["request"]
         if is_species_communities_approver(request):
             return obj.can_user_edit
+        return False
+
+    def get_can_user_reopen(self, obj):
+        request = self.context["request"]
+        if is_species_communities_approver(request):
+            return obj.can_user_reopen(request)
         return False
 
     def get_current_assessor(self, obj):

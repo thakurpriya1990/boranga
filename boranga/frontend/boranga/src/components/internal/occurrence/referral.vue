@@ -157,6 +157,14 @@ export default {
             vm.savingOccurrenceReport = true;
             let payload = new Object();
             Object.assign(payload, vm.referral);
+            const ocr_location = vm.$refs.occurrence_report.$refs.ocr_location;
+            const component_map = ocr_location.$refs.component_map;
+            if (component_map) {
+                const layerName = component_map.queryLayerDefinition.name;
+                payload.occurrence_report.ocr_geometry =
+                    component_map.getJSONFeatures(layerName);
+                component_map.setLoadingMap(true);
+            }
             vm.$http.post(vm.species_community_ocr_referral_form_url, payload).then(res => {
                 swal.fire({
                     title: 'Saved',
@@ -167,8 +175,13 @@ export default {
                     },
                 });
                 vm.savingOccurrenceReport = false;
+                component_map.setLoadingMap(false);
+                this.$nextTick(async () => {
+                    ocr_location.incrementComponentMapKey();
+                });
             }, err => {
                 vm.savingOccurrenceReport = false;
+                component_map.setLoadingMap(false);
             });
         },
         refreshFromResponse: function (response) {

@@ -51,8 +51,16 @@
                     <div class="container">
                         <div class="row" style="margin-bottom: 50px">
                             <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                <div v-if="occurrence_report_obj && !occurrence_report_obj.readonly" class="container">
-                                    <div class="col-md-12 text-end" style="margin-top:5px">
+                                <div class="container">
+                                    <div class="col-md-6" style="margin-top:5px">
+                                        <p class="pull-right" style="margin-top:5px;">
+                                            <router-link class="btn btn-primary"
+                                                :to="{ name: 'external-occurrence_report-dash' }">Back
+                                                to
+                                                Dashboard</router-link>
+                                        </p>
+                                    </div>
+                                    <div v-if="occurrence_report_obj && !occurrence_report_obj.readonly" class="col-md-6 text-end" style="margin-top:5px">
                                         <button v-if="savingOCRProposal" type="button" class="btn btn-primary me-2"
                                             disabled>Save
                                             and Continue&nbsp;
@@ -77,14 +85,6 @@
                                         <input id="save_and_continue_btn" type="hidden" @click.prevent="save_wo_confirm"
                                             class="btn btn-primary" value="Save Without Confirmation" />
                                     </div>
-                                </div>
-                                <div v-else class="container">
-                                    <p class="pull-right" style="margin-top:5px;">
-                                        <router-link class="btn btn-primary"
-                                            :to="{ name: 'external-occurrence_report-dash' }">Back
-                                            to
-                                            Dashboard</router-link>
-                                    </p>
                                 </div>
                             </div>
                         </div>

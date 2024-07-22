@@ -334,12 +334,13 @@ export default {
                 mode.assessor_mode &&
                 mode.assessor_can_assess;
 
-            // Note: potentially allow referees to edit geometries, but commented for now
+            // Allow referees to edit geometries, but commented for now
             const userCanEdit =
-                this.occurrence_report_obj.can_user_edit || assessorCanAssess; //|| refereeCanAssess;
+                this.occurrence_report_obj.can_user_edit ||
+                assessorCanAssess ||
+                refereeCanAssess;
 
-            // const readOnly = refereeCanAssess ? false : this.isReadOnly;
-            const readOnly = this.isReadOnly;
+            const readOnly = refereeCanAssess ? false : this.isReadOnly;
             if (!userCanEdit || readOnly) {
                 return false;
             }
@@ -383,12 +384,26 @@ export default {
             return api_endpoints.occurrence_report + '/list_for_map/';
         },
         ocrPropertyDisplayMap: function () {
-            return {
+            const displayMap = {
                 label: 'Label', // Occurrence Report
                 geometry_source: 'Geometry Source',
                 occurrence_report_number: 'Identification Number',
-                processing_status: 'Processing Status',
+                processing_status_display: 'Processing Status',
+                drawn_by: 'Drawn By', // fullname
+                updated_date: 'Last updated',
             };
+            const mode = this.occurrence_report_obj.assessor_mode || {};
+            const assessorCanAssess =
+                mode.assessor_level === 'assessor' &&
+                mode.assessor_mode &&
+                mode.assessor_can_assess;
+            if (assessorCanAssess) {
+                displayMap['last_updated_by'] = 'Updated By';
+                displayMap['lodgement_date_display'] = 'Lodgement Date';
+                displayMap['locked'] = 'Locked';
+            }
+
+            return displayMap;
         },
     },
     watch: {},

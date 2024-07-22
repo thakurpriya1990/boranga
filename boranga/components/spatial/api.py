@@ -5,7 +5,8 @@ from rest_framework.response import Response
 from boranga.components.spatial.models import TileLayer
 from boranga.components.spatial.serializers import TileLayerSerializer
 
-from boranga.helpers import is_customer, is_internal
+from boranga.helpers import is_customer, is_internal, is_referee
+from boranga.components.spatial.permissions import TileLayerPermission
 
 
 class TileLayerViewSet(viewsets.ReadOnlyModelViewSet):
@@ -15,6 +16,7 @@ class TileLayerViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = TileLayer.objects.none()
     serializer_class = TileLayerSerializer
+    permission_classes = [TileLayerPermission]
 
     def list(self, request):
         queryset = self.get_queryset()
@@ -28,8 +30,6 @@ class TileLayerViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return TileLayer.objects.none()
         if is_customer(self.request):
             return TileLayer.objects.filter(active=True, is_external=True).order_by(
                 "id"
@@ -38,5 +38,9 @@ class TileLayerViewSet(viewsets.ReadOnlyModelViewSet):
             return TileLayer.objects.filter(active=True, is_internal=True).order_by(
                 "id"
             )
+        elif is_referee(self.request):
+            return TileLayer.objects.filter(active=True, is_external=True).order_by(
+                "id"
+            )
         else:
-            raise ValueError("User is not a customer or internal user")
+            raise ValueError("User is not a customer, internal user, or referee.")

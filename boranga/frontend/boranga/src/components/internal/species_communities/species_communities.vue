@@ -146,6 +146,25 @@
                                 </div>
                             </div>
                         </div>
+                        <div v-else-if='canReopen' class="card-body border-top">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="col-sm-12 top-buffer-s">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <strong>Action</strong><br />
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="reopen()">Reopen</button><br />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -166,8 +185,13 @@
                                     <input type='hidden' name="species_community_id" :value="1" />
                                     <div class="row" style="margin-bottom: 50px">
                                         <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                            <div v-if="species_community.can_user_edit" class="container">
-                                                <div class="col-md-12 text-end">
+                                            <div class="container">
+                                                <div class="col-md-6">
+                                                    <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
+                                                    @click.prevent="returnToDashboard">
+                                                        Return to Dashboard</button>
+                                                </div>
+                                                <div v-if="species_community.can_user_edit"class="col-md-6 text-end">
                                                     <button v-if="savingSpeciesCommunity"
                                                         class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
                                                         disabled>Save and Continue&nbsp;
@@ -192,11 +216,9 @@
                                                         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
                                                     <button v-else class="btn btn-primary pull-right"
                                                         style="margin-top:5px;" @click.prevent="submit()"
-                                                        :disbaled="saveExitSpeciesCommunity || savingSpeciesCommunity">Submit</button>
+                                                        :disabled="saveExitSpeciesCommunity || savingSpeciesCommunity">Submit</button>
                                                 </div>
-                                            </div>
-                                            <div v-else-if="hasUserEditMode" class="container">
-                                                <div class="col-md-12 text-end">
+                                                <div v-else-if="hasUserEditMode" class="col-md-6 text-end">
                                                     <button v-if="savingSpeciesCommunity"
                                                         class="btn btn-primary pull-right" style="margin-top:5px;"
                                                         disabled>Save Changes&nbsp;
@@ -345,6 +367,9 @@ export default {
                 return false;
             }
         },
+        canReopen: function () {
+            return (this.species_community && this.species_community.can_user_reopen) ? true : false;
+        },
         isPublic: function () {
             return (this.species_community.group_type === "community") ?
                 this.species_community.publishing_status.community_public ? true : false :
@@ -382,6 +407,12 @@ export default {
     methods: {
         commaToNewline(s) {
             return s.replace(/[,;]/g, '\n');
+        },
+        returnToDashboard: function () {
+            let vm = this;
+            vm.$router.push({
+                name: 'internal-species-communities-dash'
+            });
         },
         uploadImage: function (event) {
             let vm = this;
@@ -436,6 +467,52 @@ export default {
         },
         showReinstateImageModal: function () {
             this.$refs.reinstateImage.isModalOpen = true;
+        },
+        reopen: async function () {
+            let vm = this;
+            swal.fire({
+                title: "Reopen",
+                text: "Are you sure you want to reopen this record?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Reopen",
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
+            }).then(async (swalresult) => {
+
+                let endpoint = api_endpoints.species;
+                if (this.species_community.group_type === "community") {
+                    endpoint = api_endpoints.community;
+                } 
+
+                if (swalresult.isConfirmed) {
+                    await vm.$http.post(`${endpoint}/${this.species_community.id}/reopen_species_community.json`).then(res => {
+                        swal.fire({
+                            title: "Reopened",
+                            text: "Record has been reopened",
+                            icon: "success",
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        }).then(async (swalresult) => {
+                            this.$router.go(this.$router.currentRoute);
+                        });
+                    }, err => {
+                        var errorText = helpers.apiVueResourceError(err);
+                        swal.fire({
+                            title: 'Reopen Error',
+                            text: errorText,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                    });
+                }
+            });
         },
         reinstateImage: function (image) {
             let vm = this;
