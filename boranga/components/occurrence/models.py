@@ -261,9 +261,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         related_name="occurrence_report",
     )
     submitter = models.IntegerField(null=True)  # EmailUserRO
-    lodgement_date = models.DateTimeField(
-        blank=True, null=True
-    )  # TODO confirm if proposed date is the same or different
+    lodgement_date = models.DateTimeField(blank=True, null=True)
 
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
     assigned_approver = models.IntegerField(null=True)  # EmailUserRO
@@ -290,7 +288,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         ordering = ["-id"]
 
     def __str__(self):
-        return str(self.occurrence_report_number)  # TODO: is the most appropriate?
+        return str(self.occurrence_report_number)
 
     def save(self, *args, **kwargs):
         # Clear the cache
@@ -306,8 +304,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     @property
     def reference(self):
-        # TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
-        return f"{self.occurrence_report_number}-{self.occurrence_report_number}"
+        return f"{self.occurrence_report_number}"
 
     @property
     def applicant(self):
@@ -1090,7 +1087,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             sent_by=request.user.id,
             sent_from=sent_from,
             text=referral_text,
-            assigned_officer=request.user.id,  # TODO should'nt use assigned officer as per das
+            assigned_officer=request.user.id,
         )
 
         # Create a log entry for the proposal
@@ -1757,7 +1754,9 @@ class OCRLocation(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)  # TODO: is the most appropriate?
+        return (
+            f"OCR Location: {self.id} for Occurrence Report: {self.occurrence_report}"
+        )
 
 
 class GeometryManager(models.Manager):
@@ -2001,7 +2000,7 @@ class OCRObserverDetail(RevisionedMixin):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)  # TODO: is the most appropriate?
+        return f"OCRObserver Detail: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 # Is used in HabitatComposition for multiple selection
@@ -2173,7 +2172,7 @@ class OCRHabitatComposition(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)  # TODO: is the most appropriate?\
+        return f"OCRHabitat Composition: {self.id} for Occurrence Report: {self.occurrence_report}"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -3037,7 +3036,7 @@ class OCRConservationThreat(RevisionedMixin):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.id)  # TODO: is the most appropriate?
+        return f"OCRConservationThreat: {self.threat_number} for Occurrence Report: {self.occurrence_report}"
 
     def save(self, *args, **kwargs):
         if self.threat_number == "":
@@ -4054,7 +4053,7 @@ class OCCLocation(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence)  # TODO: is the most appropriate?
+        return f"OCCLocation: {self.id} for Occurrence: {self.occurrence}"
 
 
 class GeometryType(Func):
@@ -4122,7 +4121,7 @@ class OCCContactDetail(RevisionedMixin):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence)  # TODO: is the most appropriate?
+        return f"OCCContactDetail {self.id} for Occurrence: {self.occurrence}"
 
 
 class OCCConservationThreat(RevisionedMixin):
@@ -4190,7 +4189,7 @@ class OCCConservationThreat(RevisionedMixin):
         )
 
     def __str__(self):
-        return str(self.id)  # TODO: is the most appropriate?
+        return f"OCCConservationThreat {self.id} for Occurrence: {self.occurrence}"
 
     def save(self, *args, **kwargs):
         if self.threat_number == "":
@@ -4256,7 +4255,7 @@ class OCCHabitatComposition(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence)  # TODO: is the most appropriate?\
+        return f"OCCHabitatComposition {self.id} for Occurrence: {self.occurrence}"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
