@@ -5498,12 +5498,20 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         results = []
         if search_term:
             queryset = (
-                queryset.filter(vesting__label__icontains=search_term)
-                .values("vesting__id", "vesting__label")
+                queryset.annotate(
+                    vesting_code_label=Concat(
+                        "vesting__code", Value(" - "), "vesting__label"
+                    )
+                )
+                .filter(vesting_code_label__icontains=search_term)
+                .values("vesting__id", "vesting__code", "vesting__label")
                 .distinct()[:10]
             )
         results = [
-            {"id": row["vesting__id"], "text": row["vesting__label"]}
+            {
+                "id": row["vesting__id"],
+                "text": f"{row['vesting__code']} - {row['vesting__label']}",
+            }
             for row in queryset
         ]
 
@@ -5526,12 +5534,20 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         if search_term:
             queryset = (
-                queryset.filter(purpose__label__icontains=search_term)
-                .values("purpose__id", "purpose__label")
+                queryset.annotate(
+                    purpose_code_label=Concat(
+                        "purpose__code", Value(" - "), "purpose__label"
+                    )
+                )
+                .filter(purpose_code_label__icontains=search_term)
+                .values("purpose__id", "purpose__code", "purpose__label")
                 .distinct()[:10]
             )
         results = [
-            {"id": row["purpose__id"], "text": row["purpose__label"]}
+            {
+                "id": row["purpose__id"],
+                "text": f"{row['purpose__code']} - {row['purpose__label']}",
+            }
             for row in queryset
         ]
 
