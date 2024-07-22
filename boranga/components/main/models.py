@@ -4,7 +4,10 @@ import os
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db import models
+from django.core.exceptions import ValidationError
 from reversion.models import Version
+
+from boranga.helpers import compressed_content_valid
 
 private_storage = FileSystemStorage(
     location=settings.BASE_DIR + "/private-media/", base_url="/private-media/"
@@ -137,6 +140,20 @@ class Document(RevisionedMixin):
 
     def __str__(self):
         return self.name or self.filename
+    
+    def save(self, *args, **kwargs):
+
+        #check file type/extension
+        if self._file and os.path.isfile(self._file.path):
+            #check if extension in whitelist
+
+
+            #supported compression check
+            valid = compressed_content_valid(self._file.path)
+            if not valid:
+                raise ValidationError("Invalid extension in compressed file")
+
+        super().save(*args, **kwargs)
 
 
 class GlobalSettings(models.Model):

@@ -464,7 +464,7 @@ class Minutes(Document):
             super().save(*args, **kwargs)
 
     @transaction.atomic
-    def add_minutes_documents(self, request, *args, **kwargs):
+    def add_documents(self, request, *args, **kwargs):
         # save the files
         data = json.loads(request.data.get("data"))
 

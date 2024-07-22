@@ -20,6 +20,50 @@ from boranga.settings import (
 
 logger = logging.getLogger(__name__)
 
+import zipfile
+import io
+import py7zr
+import tarfile
+
+def tar_content_valid(file):
+    with open(file, 'rb') as file_data:
+        bytes_content = file_data.read()
+        file = io.BytesIO(bytes_content)
+        tarFile = tarfile.open(fileobj=file)
+        print(tarFile.getnames())
+
+    return True
+
+def sevenz_content_valid(file):
+    with open(file, 'rb') as file_data:
+        bytes_content = file_data.read()
+        file = io.BytesIO(bytes_content)
+        sevenZipFile = py7zr.SevenZipFile(file, 'r')
+        print(sevenZipFile.getnames())
+
+    return True
+
+def zip_content_valid(file):
+    with open(file, 'rb') as file_data:
+        bytes_content = file_data.read()
+        file = io.BytesIO(bytes_content)
+        zipFile = zipfile.ZipFile(file)
+        print(zipFile.filelist)
+
+    return True
+
+def compressed_content_valid(file):
+
+    if zipfile.is_zipfile(file):
+        return zip_content_valid(file)
+    
+    if py7zr.is_7zfile(file):
+        return sevenz_content_valid(file)
+    
+    if tarfile.is_tarfile(file):
+        return tar_content_valid(file)
+    
+    return True
 
 def superuser_ids_list():
     cache_key = settings.CACHE_KEY_SUPERUSER_IDS
