@@ -14,7 +14,6 @@ from boranga.components.conservation_status.models import (
     ConservationStatusAmendmentRequest,
     ConservationStatusUserAction,
 )
-from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger(__name__)
 
@@ -39,12 +38,10 @@ def cs_proposal_submit(cs_proposal, request):
     )
 
     # Create a log entry for the user
-    submitter = retrieve_email_user(cs_proposal.submitter)
-    if submitter:
-        submitter.log_user_action(
-            ConservationStatusUserAction.ACTION_LODGE_PROPOSAL.format(cs_proposal.id),
-            request,
-        )
+    request.user.log_user_action(
+        ConservationStatusUserAction.ACTION_LODGE_PROPOSAL.format(cs_proposal.id),
+        request,
+    )
 
     ret1 = send_submit_email_notification(request, cs_proposal)
     ret2 = send_external_submit_email_notification(request, cs_proposal)

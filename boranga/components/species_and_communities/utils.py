@@ -22,7 +22,6 @@ from boranga.components.species_and_communities.models import (
     Species,
     SpeciesUserAction,
 )
-from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger(__name__)
 
@@ -46,14 +45,10 @@ def species_form_submit(species_instance, request, split=False):
     )
 
     # Create a log entry for the user
-    submitter = retrieve_email_user(species_instance.submitter)
-    if submitter:
-        submitter.log_user_action(
-            SpeciesUserAction.ACTION_CREATE_SPECIES.format(
-                species_instance.species_number
-            ),
-            request,
-        )
+    request.user.log_user_action(
+        SpeciesUserAction.ACTION_CREATE_SPECIES.format(species_instance.species_number),
+        request,
+    )
 
     ret1 = send_species_create_email_notification(request, species_instance)
     ret2 = send_user_species_create_email_notification(request, species_instance)
@@ -61,7 +56,7 @@ def species_form_submit(species_instance, request, split=False):
     if (settings.WORKING_FROM_HOME and settings.DEBUG) or ret1 and ret2:
         species_instance.processing_status = Species.PROCESSING_STATUS_ACTIVE
         species_instance.species_documents.all().update(can_delete=False)
-        #all functions that call this save after - otherwise we can parametise this if need be
+        # all functions that call this save after - otherwise we can parametise this if need be
         species_instance.save(no_revision=True)
     else:
         raise ValidationError(
@@ -87,14 +82,12 @@ def community_form_submit(community_instance, request):
     )
 
     # Create a log entry for the user
-    submitter = retrieve_email_user(community_instance.submitter)
-    if submitter:
-        submitter.log_user_action(
-            CommunityUserAction.ACTION_CREATE_COMMUNITY.format(
-                community_instance.community_number
-            ),
-            request,
-        )
+    request.user.log_user_action(
+        CommunityUserAction.ACTION_CREATE_COMMUNITY.format(
+            community_instance.community_number
+        ),
+        request,
+    )
 
     ret1 = send_community_create_email_notification(request, community_instance)
     ret2 = send_user_community_create_email_notification(request, community_instance)
@@ -134,6 +127,12 @@ def combine_species_original_submit(species_instance, request):
                         ),
                         request,
                     )
+                    request.user.log_user_action(
+                        ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
+                            species_cons_status.conservation_status_number
+                        ),
+                        request,
+                    )
         except ConservationStatus.DoesNotExist:
             pass
 
@@ -163,6 +162,12 @@ def rename_species_original_submit(species_instance, new_species, request):
                     species_cons_status.save(version_user=request.user)
                     # add the log_user_action
                     species_cons_status.log_user_action(
+                        ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
+                            species_cons_status.conservation_status_number
+                        ),
+                        request,
+                    )
+                    request.user.log_user_action(
                         ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
                             species_cons_status.conservation_status_number
                         ),
