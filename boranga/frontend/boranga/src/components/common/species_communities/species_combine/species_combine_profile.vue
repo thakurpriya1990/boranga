@@ -79,6 +79,19 @@
         </FormSection>
         <FormSection :formCollapse="false" label="Distribution" :Index="distributionBody">
             <div class="row mb-3">
+                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                    <label for="" class="col-sm-3 control-label">{{ species.species_number }} Distribution:</label>
+                    <div class="col-sm-8">
+                        <textarea :disabled="true" type="text" class="form-control" placeholder=""
+                        v-model="species.distribution.distribution"/>
+                    </div>
+                    <div class="col-sm-1">
+                        <input class="form-check-input" type="checkbox" name="distribution_chk" :id="'distribution'+species.id"
+                        @change="checkDistributionInput('distribution_chk','distribution'+species.id,'distribution',species.distribution.distribution)" />
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Distribution:</label>
                 <div class="col-sm-9">
                     <textarea :disabled="isReadOnly" class="form-control" rows="1" id="distribution" placeholder="" v-model="species_community.distribution.distribution"/>
