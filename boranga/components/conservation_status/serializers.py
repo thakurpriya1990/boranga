@@ -568,7 +568,6 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "deficiency_data",
             "assessor_data",
             "approval_level",
-            "can_view_recommended",
             "submitter_information",
         )
 
@@ -791,7 +790,6 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "internal_user_edit",
             "conservation_status_approval_document",
             "approval_level",
-            "can_view_recommended",
             "can_edit_recommended",
             "internal_application",
             "is_new_contributor",
@@ -918,7 +916,6 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
             "assessor_data",
             "proposed_decline_status",
             "conservationstatusdeclineddetails",
-            "can_view_recommended",
         )
 
     def get_submitter(self, obj):

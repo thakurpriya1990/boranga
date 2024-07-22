@@ -3,7 +3,6 @@
         <div class="row" style="padding-bottom: 50px;">
             <h3>{{ display_group_type }} {{ display_number }} - {{ display_name }}</h3>
             <div v-if="!comparing" class="col-md-3">
-                <!-- TODO -->
                 <template>
                     <div class="">
                         <div class="card card-default mb-3">
@@ -782,7 +781,6 @@ export default {
                 }
             }
             if (check_action == 'submit') {
-                //TODO add validation for fields required before submit
                 if (vm.species_community.distribution.distribution == null || vm.species_community.distribution.distribution == '') {
                     blank_fields.push(' Distribution is required')
                 }
@@ -841,11 +839,6 @@ export default {
                         vm.$http.post(submit_url, payload).then(res => {
                             vm.species_community = res.body;
                             vm.species_community_original = helpers.copyObject(vm.species_community);
-                            // vm.$router.push({
-                            //     name: 'submit_cs_proposal',
-                            //     params: { conservation_status_obj: vm.conservation_status_obj}
-                            // });
-                            // TODO router should push to submit_cs_proposal for internal side
                             vm.$router.push({
                                 name: 'internal-species-communities-dash'
                             });

@@ -356,6 +356,7 @@ class OccurrenceTenureVestingAdmin(admin.ModelAdmin):
 
 
 class PermitTypeAdmin(DeleteProtectedModelAdmin):
+    list_display = ("group_type", "name")
     list_filter = ("group_type",)
 
 

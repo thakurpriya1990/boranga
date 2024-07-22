@@ -16,7 +16,7 @@
                     </template>
                 </h4> -->
                 <h4 class="text-muted mb-3">
-                    <template v-if="occurrence_report.occurrence">Occurrence: 
+                    <template v-if="occurrence_report.occurrence">Occurrence:
                         {{ occurrence_report.occurrence.occurrence_number }} <small><a
                                 :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${occurrence_report.group_type}&action=view`"
                                 target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
@@ -29,7 +29,7 @@
                           Community: {{ occurrence_report.community_number }} <small><a
                                 :href="`/internal/species_communities/${occurrence_report.community_id}?group_type_name=${occurrence_report.group_type}&action=view`"
                                 target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
-                        </template>     
+                        </template>
                         <template v-else>
                             Community: NOT SET
                         </template>
@@ -53,7 +53,7 @@
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
                     :disable_add_entry="false" class="mb-3" />
 
-                <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
+                <Submission :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name" :lodgement_date="occurrence_report.lodgement_date"
                     :is_new_contributor="occurrence_report.is_new_contributor" class="mb-3" />
 
@@ -249,8 +249,6 @@
 
                             <button v-if="with_assessor || with_approver" style="width:80%;"
                                 class="btn btn-primary mb-2" @click.prevent="splitSpecies()">Split</button><br />
-                            <button v-if="canDiscard" style="width:80%;" class="btn btn-primary mb-2"
-                                @click.prevent="discardOCRProposal()">Discard</button>
 
                             <button v-if="approved" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="unlock()">Unlock</button>
@@ -490,10 +488,6 @@ export default {
         unlocked: function () {
             return this.occurrence_report && this.occurrence_report.processing_status === 'Unlocked'
         },
-        canSeeSubmission: function () {
-            // TODO define condition
-            return true
-        },
         isAssignedOfficer: function () {
             return this.occurrence_report && this.occurrence_report.assigned_officer == this.occurrence_report.current_assessor.id;
         },
@@ -502,10 +496,6 @@ export default {
         },
         canAction: function () {
             return this.occurrence_report && this.occurrence_report.can_user_action;
-        },
-        canDiscard: function () {
-            //return this.occurrence_report && this.occurrence_report.processing_status === "Draft" ? true : false;
-            return false; //TODO do we need this here?
         },
         comms_url: function () {
             return helpers.add_endpoint_json(api_endpoints.occurrence_report, this.$route.params.occurrence_report_id + '/comms_log')
@@ -776,7 +766,6 @@ export default {
                 }
             }
             if (check_action == 'submit') {
-                //TODO add validation for fields required before submit
                 if (!vm.occurrence_report.submitter_information.submitter_category) {
                     blank_fields.push(' Please select a submitter category')
                 }

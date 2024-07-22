@@ -340,7 +340,6 @@ export default {
         can_submit: function (check_action) {
             let vm = this;
             let blank_fields = []
-            // TODO check blank
             blank_fields = vm.can_submit_conservation_status(check_action);
 
             if (blank_fields.length == 0) {

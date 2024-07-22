@@ -265,7 +265,6 @@ export default {
             let submit_url = helpers.add_endpoint_json(api_endpoints.species, vm.species_community_original.id + '/change_status_historical')
             vm.$http.post(submit_url, payload).then(res => {
                 vm.species_community_original = res.body;
-                // TODO Not sure where it should go after the split process
                 vm.$router.push({
                     name: 'internal-species-communities-dash'
                 });

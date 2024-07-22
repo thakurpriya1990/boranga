@@ -514,9 +514,6 @@ export default {
         fetchFilterLists: function () {
             let vm = this;
             //large FilterList of Species Values object
-
-            //TODO occurrence status filters...
-
             vm.$http.get(api_endpoints.filter_lists_species + '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsSpecies = response.body;
                 vm.occurrence_list = vm.filterListsSpecies.occurrence_list;
@@ -524,8 +521,6 @@ export default {
                 vm.status_list = vm.filterListsSpecies.status_list;
                 vm.submissions_from_list = vm.filterListsSpecies.submissions_from_list;
                 vm.submissions_to_list = vm.filterListsSpecies.submissions_to_list;
-                // vm.filterConservationCategory();
-                // vm.filterDistrict();
                 vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());
                 });

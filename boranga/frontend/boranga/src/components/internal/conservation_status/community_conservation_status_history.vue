@@ -205,7 +205,6 @@ export default {
                 orderable: false,
                 searchable: true,
                 visible: true,
-                //TODO: determine if communities can have multiple taxonomies (if not, change this to be more simple)
                 render: function (row, type, full) {
                     if (full.data.communitytaxonomy !== undefined) {
                         //list not dict
