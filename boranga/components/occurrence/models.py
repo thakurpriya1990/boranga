@@ -4706,7 +4706,7 @@ class OccurrenceTenurePurpose(models.Model):
         verbose_name_plural = "Occurrence Tenure Purposes"
 
     def __str__(self):
-        return self.name
+        return f"{self.code} - {self.label}"
 
 
 class OccurrenceTenureVesting(models.Model):
@@ -4719,7 +4719,7 @@ class OccurrenceTenureVesting(models.Model):
         verbose_name_plural = "Occurrence Tenure Vestings"
 
     def __str__(self):
-        return self.name
+        return f"{self.code} - {self.label}"
 
 
 def SET_NULL_AND_HISTORICAL(collector, field, sub_objs, using):
