@@ -4479,11 +4479,13 @@ export default {
                 layer_name = this.defaultQueryLayerName;
             }
             const format = new GeoJSON();
-            const features = this.layerSources[layer_name].getFeatures();
+            const layerFeatures = this.layerSources[layer_name].getFeatures();
 
-            features.forEach(function (feature) {
-                console.log(feature.getProperties());
+            const features = [];
+            layerFeatures.forEach(function (f) {
+                const feature = f.clone();
                 feature.unset('model');
+                features.push(feature);
             });
 
             return format.writeFeatures(features);
