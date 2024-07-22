@@ -71,7 +71,7 @@
 import Vue from 'vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
-import FileField2 from '@/components/forms/filefield2.vue'
+import FileField2 from '@/components/forms/filefield.vue'
 import SpeciesCommunitiesComponent from '@/components/form_species_communities.vue'
 import SpeciesSplitForm from '@/components/form_species_split.vue'
 import { helpers, api_endpoints } from "@/utils/hooks.js"

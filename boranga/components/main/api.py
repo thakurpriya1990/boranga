@@ -23,7 +23,7 @@ class GlobalSettingsViewSet(viewsets.ReadOnlyModelViewSet):
             return qs
 
 
-class RetrieveActionLoggingViewset:
+class RetrieveActionLoggingViewsetMixin:
     """Mixin to automatically log user actions when a user retrieves an instance.
 
     will scan the instance provided for the fields listed in settings
@@ -33,6 +33,13 @@ class RetrieveActionLoggingViewset:
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.log_user_action(
+            settings.ACTION_VIEW.format(
+                instance._meta.verbose_name.title(),
+                helpers.get_instance_identifier(instance),
+            ),
+            request,
+        )
+        request.user.log_user_action(
             settings.ACTION_VIEW.format(
                 instance._meta.verbose_name.title(),
                 helpers.get_instance_identifier(instance),
@@ -116,4 +123,3 @@ def search_datums(search, codes=None):
     datums = [c for c in geodetic_crs if f"{search}".lower() in c["name"].lower()]
 
     return datums
-

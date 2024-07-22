@@ -557,7 +557,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         choices=RECURRENCE_PATTERNS, default=1
     )
     recurrence_schedule = models.IntegerField(null=True, blank=True)
-    proposed_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     effective_from = models.DateField(null=True, blank=True)
     effective_to = models.DateField(null=True, blank=True)
     submitter = models.IntegerField(null=True)  # EmailUserRO
@@ -568,9 +567,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         null=True,
         related_name="conservation_status",
     )
-    lodgement_date = models.DateTimeField(
-        blank=True, null=True
-    )  # TODO confirm if proposed date is the same or different
+    lodgement_date = models.DateTimeField(blank=True, null=True)
 
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
     assigned_approver = models.IntegerField(null=True)  # EmailUserRO
@@ -581,6 +578,8 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         choices=PROCESSING_STATUS_CHOICES,
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
+    # Currently prev_processing_status is only used to keep track of status prior to unlock
+    # so that when locked the record returns to the correct status
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     review_status = models.CharField(
         "Review Status",
@@ -989,7 +988,14 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                     request,
                 )
 
-                # TODO: Create a log entry for the user
+                # Create a log entry for the user
+                request.user.log_user_action(
+                    ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(
+                        self.conservation_status_number,
+                        f"{officer.get_full_name()}({officer.email})",
+                    ),
+                    request,
+                )
 
         if is_conservation_status_assessor(request):
             allowed_statuses = [
@@ -1013,7 +1019,14 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                     request,
                 )
 
-                # TODO: Create a log entry for the user
+                # Create a log entry for the user
+                request.user.log_user_action(
+                    ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
+                        self.conservation_status_number,
+                        f"{officer.get_full_name()}({officer.email})",
+                    ),
+                    request,
+                )
 
     @transaction.atomic
     def unassign(self, request):
@@ -1038,7 +1051,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                     request,
                 )
 
-                # TODO: Create a log entry for the user
+                # Create a log entry for the user
+                request.user.log_user_action(
+                    ConservationStatusUserAction.ACTION_UNASSIGN_APPROVER.format(
+                        self.conservation_status_number
+                    ),
+                    request,
+                )
         else:
             if self.assigned_officer:
                 self.assigned_officer = None
@@ -1052,7 +1071,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                     request,
                 )
 
-                # TODO: Create a log entry for the user
+                # Create a log entry for the user
+                request.user.log_user_action(
+                    ConservationStatusUserAction.ACTION_UNASSIGN_ASSESSOR.format(
+                        self.conservation_status_number
+                    ),
+                    request,
+                )
 
     @transaction.atomic
     def send_referral(self, request, referral_email, referral_text):
@@ -1100,7 +1125,15 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
-        # TODO Create a log entry for the user
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
+                referral.id,
+                self.conservation_status_number,
+                f"{user.get_full_name()}({user.email})",
+            ),
+            request,
+        )
 
         # send email
         send_conservation_status_referral_email_notification(referral, request)
@@ -1136,19 +1169,29 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 self.approver_comment = approver_comment
                 self.save()
                 send_proposal_approver_sendback_email_notification(request, self)
+        previous_status = self.processing_status
         self.processing_status = status
         self.save()
 
         # Create a log entry for the conservation status
-        if self.processing_status == self.PROCESSING_STATUS_WITH_ASSESSOR:
-            self.log_user_action(
-                ConservationStatusUserAction.ACTION_BACK_TO_PROCESSING.format(
-                    self.conservation_status_number
-                ),
-                request,
-            )
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_MOVE_TO_STATUS.format(
+                self.conservation_status_number,
+                previous_status,
+                self.processing_status,
+            ),
+            request,
+        )
 
-        # TODO: Create a log entry for the user
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_MOVE_TO_STATUS.format(
+                self.conservation_status_number,
+                previous_status,
+                self.processing_status,
+            ),
+            request,
+        )
 
     @transaction.atomic
     def proposed_decline(self, request, details):
@@ -1185,7 +1228,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
-        # TODO create a log entry for the user
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_PROPOSED_DECLINE.format(
+                self.conservation_status_number,
+            ),
+            request,
+        )
 
         send_approver_decline_email_notification(reason, request, self)
 
@@ -1224,7 +1273,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
-        # TODO create a log entry for the user
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_DECLINE.format(
+                self.conservation_status_number,
+            ),
+            request,
+        )
 
         send_conservation_status_decline_email_notification(
             self, request, conservation_status_decline
@@ -1269,7 +1324,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
-        # TODO create a log entry for the user
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_PROPOSED_APPROVAL.format(
+                self.conservation_status_number,
+            ),
+            request,
+        )
 
         send_approver_approve_email_notification(request, self)
 
@@ -1356,7 +1417,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
-        # TODO create a log entry for the user
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_APPROVE_PROPOSAL_.format(
+                self.conservation_status_number,
+            ),
+            request,
+        )
 
         # Delist / Close the previous approved version
         previous_approved_version = ConservationStatus.objects.filter(
@@ -1409,6 +1476,14 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 request,
             )
 
+            # Create a log entry for the user
+            request.user.log_user_action(
+                ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
+                    previous_approved_version.conservation_status_number,
+                ),
+                request,
+            )
+
         # send Proposal approval email with attachment
         send_conservation_status_approval_email_notification(self, request)
 
@@ -1437,7 +1512,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
-        # TODO create a log entry for the user
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_PROPOSED_READY_FOR_AGENDA.format(
+                self.conservation_status_number,
+            ),
+            request,
+        )
 
         send_assessor_ready_for_agenda_email_notification(request, self)
 
@@ -1477,7 +1558,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
-        # TODO create a log entry for the user
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_DISCARD_PROPOSAL.format(
+                self.conservation_status_number,
+            ),
+            request,
+        )
 
     @transaction.atomic
     def reinstate(self, request):
@@ -1518,7 +1605,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
-        # TODO create a log entry for the user
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_REINSTATE_PROPOSAL.format(
+                self.conservation_status_number,
+            ),
+            request,
+        )
 
     @transaction.atomic
     def propose_delist(self, request):
@@ -1549,7 +1642,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
-        # TODO create a log entry for the user
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_PROPOSE_DELIST_PROPOSAL.format(
+                self.conservation_status_number,
+            ),
+            request,
+        )
 
         send_approver_propose_delist_email_notification(request, self, reason)
 
@@ -1581,6 +1680,14 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         self.log_user_action(
             ConservationStatusUserAction.ACTION_DELIST_PROPOSAL.format(
                 self.conservation_status_number
+            ),
+            request,
+        )
+
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_DELIST_PROPOSAL.format(
+                self.conservation_status_number,
             ),
             request,
         )
@@ -1709,6 +1816,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_LOCK.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
     def unlock(self, request):
         if not self.can_unlock(request):
             return
@@ -1718,6 +1832,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         self.save(version_user=request.user)
 
         self.log_user_action(
+            ConservationStatusUserAction.ACTION_UNLOCK.format(
+                self.conservation_status_number
+            ),
+            request,
+        )
+
+        request.user.log_user_action(
             ConservationStatusUserAction.ACTION_UNLOCK.format(
                 self.conservation_status_number
             ),
@@ -1831,12 +1952,14 @@ class ConservationStatusUserAction(UserAction):
     ACTION_REMIND_REFERRAL = (
         "Send reminder for referral {} for conservation status proposal {} to {}"
     )
-    ACTION_BACK_TO_PROCESSING = "Back to processing for conservation status proposal {}"
+    ACTION_MOVE_TO_STATUS = (
+        "Change status for conservation status proposal {} from {} to {}"
+    )
     RECALL_REFERRAL = (
         "Referral {} for conservation status proposal {} has been recalled"
     )
-    COMMENT_REFERRAL = (
-        "Referral {} for conservation status proposal {} has been commented by {}"
+    SAVE_REFERRAL = (
+        "Referral {} for conservation status proposal {} has been saved by {}"
     )
     CONCLUDE_REFERRAL = (
         "Referral {} for conservation status proposal {} has been concluded by {}"
@@ -2060,7 +2183,15 @@ class ConservationStatusReferral(models.Model):
             request,
         )
 
-        # TODO Create a log entry for the user who performed the action
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_REMIND_REFERRAL.format(
+                self.id,
+                self.conservation_status.conservation_status_number,
+                f"{self.referral_as_email_user.get_full_name()}",
+            ),
+            request,
+        )
 
         # send email
         send_conservation_status_referral_email_notification(
@@ -2097,7 +2228,15 @@ class ConservationStatusReferral(models.Model):
             request,
         )
 
-        # TODO Create a log entry for the user who performed the action
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.RECALL_REFERRAL.format(
+                self.id,
+                self.conservation_status.conservation_status_number,
+                f"{self.referral_as_email_user.get_full_name()}",
+            ),
+            request,
+        )
 
     @transaction.atomic
     def resend(self, request):
@@ -2125,7 +2264,15 @@ class ConservationStatusReferral(models.Model):
             request,
         )
 
-        # TODO Create a log entry for the user who performed the action
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.RECALL_REFERRAL.format(
+                self.id,
+                self.conservation_status.conservation_status_number,
+                f"{self.referral_as_email_user.get_full_name()}({self.referral_as_email_user.email})",
+            ),
+            request,
+        )
 
         # send email
         send_conservation_status_referral_email_notification(self, request)
@@ -2189,7 +2336,15 @@ class ConservationStatusReferral(models.Model):
             request,
         )
 
-        # TODO Create a log entry for the user who performed the action
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
+                referral.id,
+                self.conservation_status.conservation_status_number,
+                f"{referee.get_full_name()}({referee.email})",
+            ),
+            request,
+        )
 
         # send email
         send_conservation_status_referral_email_notification(referral, request)
@@ -2221,7 +2376,15 @@ class ConservationStatusReferral(models.Model):
             request,
         )
 
-        # TODO Create a log entry for the user who performed the action
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.CONCLUDE_REFERRAL.format(
+                self.id,
+                self.conservation_status.conservation_status_number,
+                f"{self.referral_as_email_user.get_full_name()}({self.referral_as_email_user.email})",
+            ),
+            request,
+        )
 
         send_conservation_status_referral_complete_email_notification(self, request)
 
@@ -2310,6 +2473,10 @@ class ConservationStatusAmendmentRequest(ConservationStatusProposalRequest):
             )
 
             # Create a log entry for the user
+            request.user.log_user_action(
+                ConservationStatusUserAction.ACTION_ID_REQUEST_AMENDMENTS,
+                request,
+            )
 
             # send email
             send_conservation_status_amendment_email_notification(

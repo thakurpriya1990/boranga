@@ -1,93 +1,138 @@
 <template lang="html">
-    <div>
-        <div class="form-group">
-
-            
-
-            <!-- using num_files to determine if files have been uploaded for this question/label (used in boranga/frontend/boranga/src/components/external/proposal.vue) -->
-            <label v-if="label" :id="id" :num_files="num_documents()">{{label}}</label>
-            <div v-if="files">
-                <div v-for="v in documents" class="col-sm-12">
-                <!-- <div v-for="v in files"> -->
-                    <p>
-                        File: <a :href="v.file" target="_blank">{{v.name}}</a> &nbsp;
-                        <span v-if="!readonly && v.can_delete">
-                            <a @click="delete_document(v)" class="fa fa-trash-o" title="Remove file" :filename="v.name" style="cursor: pointer; color:red;"></a>
-                        </span>
-                        <span v-else-if="!readonly && !v.can_delete && v.can_hide">
-                            <a @click="hide_document(v)" class="fa fa-trash-o" title="Remove file" :filename="v.name" style="cursor: pointer; color:red;"></a>
-                        </span>
-                        <span v-else>
-                            <span v-if="!assessorMode">
-                                <i class="fa fa-info-circle" aria-hidden="true" title="Previously submitted documents cannot be deleted" style="cursor: pointer;"></i>
+    <div class="border p-3">
+        <div v-if="has_uploaded_docs">
+            <div class="row">
+                <div class="col-sm-6">
+                    <label class="control-label pull-left" for="Name">Uploaded Documents</label>
+                </div>
+                <div class="col-sm-6">
+                    <div class="input-group date" ref="due_date" style="width: 70%;">
+                        <div v-for="v in uploaded_documents" class="row">
+                            <span>
+                                <a :href="v._file" target="_blank">{{ v.name }}</a> &nbsp;
+                                <a @click="delete_document(v)" class="fa fa-trash-o" title="Remove file"
+                                    :filename="v.name" style="cursor: pointer; color:red;"></a>
                             </span>
-                        </span>
-                    </p>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div v-if="!readonly" v-for="n in repeat">
-                <div v-if="isRepeatable || (!isRepeatable && num_documents()==0)">
-                    <span class="btn btn-link btn-file"><u>Attach Document</u>
-                    <input :name="name" type="file" class="form-control" :data-que="n" :accept="fileTypes" @change="handleChange($event)" :required="isRequired"/></span>
+        </div>
+        <div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div v-for="n in repeat">
+                        <div v-if="isRepeatable || (!isRepeatable && num_documents() == 0)">
+                            <span class="btn btn-primary btn-file">
+                                <i class="bi bi-file-earmark-arrow-up me-1"></i>
+                                <input :name="name" type="file" :data-que="n" :accept="fileTypes"
+                                    @change="handleChange($event)" :required="isRequired" />
+                                <template v-if="isRepeatable">
+                                    Attach <template v-if="isRepeatable && files && files.length > 0">Another
+                                    </template>Document
+                                </template>
+                                <template v-else>
+                                    <template v-if="files && files.length > 0">
+                                        Replace Document
+                                    </template>
+                                    <template v-else>
+                                        Attach Document
+                                    </template>
+                                </template>
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <span v-if="show_spinner"><i class='fa fa-2x fa-spinner fa-spin'></i></span>
-
         </div>
+        <div v-if="files && files.length > 0" class="mt-3 pt-3 border-top">
+            <div class="mt-3">
+                <ul class="list-group" :class="isRepeatable ? 'list-group-numbered' : ''">
+                    <li v-for="v in files" class="list-group-item">
+                        <i class="bi bi-file-earmark-text-fill text-secondary"></i> {{ v.name }} &nbsp;
+                        <a @click="pop_file(v)" class="bi bi-trash" title="Remove file" :filename="v.name"
+                            style="cursor: pointer; color:red;"></a>
+                    </li>
+                </ul>
+            </div>
         </div>
+        <span v-if="show_spinner"><i class='fa fa-2x fa-spinner fa-spin'></i></span>
+    </div>
 </template>
 
 <script>
 import {
-  api_endpoints,
-  helpers
+    helpers
 }
-from '@/utils/hooks'
+    from '@/utils/hooks'
 
 export default {
-    props:{
+    props: {
         proposal_id: null,
-        required_doc_id:null,
-        name:String,
-        label:String,
-        id:String,
-        isRequired:String,
-        comment_value: String,
-        assessor_readonly: Boolean,
-        help_text:String,
-        help_text_assessor:String,
-        assessorMode:{
-            default:function(){
-                return false;
-            }
-        },
-        value:{
-            default:function () {
+        required_doc_id: null,
+        name: String,
+        label: String,
+        id: String,
+        isRequired: String,
+        value: {
+            default: function () {
                 return null;
             }
         },
-        fileTypes:{
-            default:function () {
-                var file_types = 
-                    "image/*," + 
+        fileTypesOrig: {
+            default: function () {
+                var file_types =
+                    "image/*," +
                     "video/*," +
                     "audio/*," +
                     "application/pdf,text/csv,application/msword,application/vnd.ms-excel,application/x-msaccess," +
-                    "application/x-7z-compressed,application/x-bzip,application/x-bzip2,application/zip," + 
-                    ".dbf,.gdb,.gpx,.prj,.shp,.shx," + 
+                    "application/x-7z-compressed,application/x-bzip,application/x-bzip2,application/zip," +
+                    ".dbf,.gdb,.gpx,.prj,.shp,.shx," +
                     ".json,.kml,.gpx";
                 return file_types;
             }
         },
-        isRepeatable:Boolean,
-        readonly:Boolean,
-        docsUrl: String,
+        fileTypes: {
+            default: function () {
+                return [
+                    "image/*",
+                    "video/*",
+                    "audio/*",
+                    "application/pdf",
+                    "text/csv",
+                    "application/msword",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "application/vnd.ms-excel",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "application/x-msaccess",
+                    "application/x-7z-compressed",
+                    "application/x-bzip",
+                    "application/x-bzip2",
+                    "application/zip",
+                    ".dbf",
+                    ".gdb",
+                    ".gpx",
+                    ".prj",
+                    ".shp",
+                    ".shx",
+                    ".json",
+                    ".kml",
+                    ".gpx"
+                ].join(',');
+            }
+        },
+
+        isRepeatable: Boolean,
+        readonly: Boolean,
+        delete_url: String,
+        uploaded_documents: Array,
     },
     components: {},
-    data:function(){
+    data: function () {
         return {
-            repeat:1,
-            files: [
+            repeat: 1,
+            files: [],
+            _files: [
                 {
                     'file': null,
                     'name': ''
@@ -95,189 +140,139 @@ export default {
             ],
             showingComment: false,
             show_spinner: false,
-            documents:[],
-   filename:null,
+            documents: [],
+            filename: null,
         }
     },
-
-    //computed: {
-    //    csrf_token: function() {
-    //        return helpers.getCookie('csrftoken')
-    //    }
-    //},
-
     computed: {
-        csrf_token: function() {
+        csrf_token: function () {
             return helpers.getCookie('csrftoken')
         },
-        proposal_document_action: function() {
-          return (this.proposal_id) ? `/api/proposal/${this.proposal_id}/process_document/` : '';
+        has_uploaded_docs: function () {
+            return this.uploaded_documents && this.uploaded_documents.length > 0;
         }
     },
-
-    methods:{
-//        reset_files(){
-//            this.files = [{'file': null, 'name': ''}];
-//        },
-        toggleComment(){
-            this.showingComment = ! this.showingComment;
+    methods: {
+        reset_files() {
+            this.files = [];
         },
-        handleChange:function (e) {
+        toggleComment() {
+            this.showingComment = !this.showingComment;
+        },
+        handleChange: function (e) {
             let vm = this;
-            //console.log(e.target.name)
             if (vm.isRepeatable) {
-                let  el = $(e.target).attr('data-que');
-                let avail = $('input[name='+e.target.name+']');
+                let el = $(e.target).attr('data-que');
+                let avail = $('input[name=' + e.target.name + ']');
 
                 avail = [...avail.map(id => {
                     return $(avail[id]).attr('data-que');
                 })];
                 avail.pop();
                 if (vm.repeat == 1) {
-                    vm.repeat+=1;
-                }else {
-                    if (avail.indexOf(el) < 0 ){
-                        vm.repeat+=1;
+                    vm.repeat += 1;
+                } else {
+                    if (avail.indexOf(el) < 0) {
+                        vm.repeat += 1;
                     }
                 }
-                $(e.target).css({ 'display': 'none'});
-                $(e.target.parentElement).css({ 'display': 'none'});//to hide <span> element btn-link
-
+                $(e.target).css({ 'display': 'none' });
+                $(e.target.parentElement).css({ 'display': 'none' });//to hide <span> element btn-link
             } else {
                 vm.files = [];
             }
-            vm.files.push(e.target.files[0]);
-            //vm.files.push( {name: e.target.files[0].name, file: e.target.files[0]} );
-
-            if (e.target.files.length > 0) {
-                vm.save_document(e);
+            vm.add_file(e)
+        },
+        add_file(e) {
+            let vm = this;
+            var file_updated = false;
+            for (var idx in vm.files) {
+                for (var key in vm.files[idx]) {
+                    var name = vm.files[idx][key];
+                    if (name == e.target.files[0].name) {
+                        // replace the file with new one with same name
+                        vm.files[idx]['file'] = e.target.files[0];
+                        file_updated = true;
+                    }
+                }
             }
 
-        },
-        get_documents: function() {
-            let vm = this;
-            vm.show_spinner = true;
-
-            var formData = new FormData();
-            formData.append('action', 'list');
-            formData.append('input_name', vm.name);
-            //formData.append('required_doc_id', vm.required_doc_id);
-            //formData.append('csrfmiddlewaretoken', vm.csrf_token);
-            vm.$http.post(vm.proposal_document_action, formData)
-                .then(res=>{
-                    vm.documents = res.body;
-                    //console.log(vm.documents);
-                    vm.show_spinner = false;
-                });
-
-        },
-
-        delete_document: function(file) {
-            let vm = this;
-            vm.show_spinner = true;
-
-            var formData = new FormData();
-            formData.append('action', 'delete');
-            formData.append('document_id', file.id);
-            //formData.append('required_doc_id', vm.required_doc_id);
-            //formData.append('csrfmiddlewaretoken', vm.csrf_token);
-
-            vm.$http.post(vm.proposal_document_action, formData)
-                .then(res=>{
-                    vm.documents = vm.get_documents()
-                    vm.show_spinner = false;
-                });
-
-        },
-        hide_document: function(file) {
-            let vm = this;
-            vm.show_spinner = true;
-            var formData = new FormData();
-            formData.append('action', 'hide');
-            formData.append('document_id', file.id);
-            formData.append('csrfmiddlewaretoken', vm.csrf_token);
-            vm.$http.post(vm.proposal_document_action, formData)
-                .then(res=>{
-                    vm.documents = vm.get_documents()
-                    //vm.documents = res.body;
-                    vm.show_spinner = false;
-                });
-        },
-        
-        uploadFile(e){
-            let vm = this;
-            vm.show_spinner = true;
-            let _file = null;
-
-            if (e.target.files && e.target.files[0]) {
-                var reader = new FileReader();
-                reader.readAsDataURL(e.target.files[0]); 
-                reader.onload = function(e) {
-                    _file = e.target.result;
-                };
-                _file = e.target.files[0];
+            if (!file_updated) {
+                vm.files.push({ name: e.target.files[0].name, file: e.target.files[0] });
             }
-            return _file
-
         },
+        pop_file(v) {
+            /* pops file from the local files array - client side (before it has been saved to the server) */
+            let vm = this;
+            for (var idx in vm.files) {
+                for (var key in vm.files[idx]) {
+                    var name = vm.files[idx][key];
+                    if (name == v.name) {
+                        // Remove the file from the array
+                        vm.files.splice(idx, 1);
+                        return;
+                    }
+                }
+            }
 
-        save_document: function(e) {
-            let vm = this; 
+            if (!file_updated) {
+                vm.files.push({ name: e.target.files[0].name, file: e.target.files[0] });
+            }
+        },
+        delete_document: function (file) {
+            /* deletes, previously saved file, from the server */
+            let vm = this;
+            vm.show_spinner = true;
+            var data = { id: file.id, name: file.name }
 
-            var formData = new FormData();
-            formData.append('action', 'save');
-            formData.append('proposal_id', vm.proposal_id);
-            formData.append('input_name', vm.name);
-            formData.append('filename', e.target.files[0].name);
-            formData.append('_file', vm.uploadFile(e));
-            //formData.append('required_doc_id', vm.required_doc_id);
-            //formData.append('csrfmiddlewaretoken', vm.csrf_token);
-
-            vm.$http.post(vm.proposal_document_action, formData)
-                .then(res=>{
-                    vm.documents = res.body;
+            swal({
+                title: "Delete Document",
+                text: "Are you sure you want to delete this document?",
+                type: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Delete Document',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
+            }).then(() => {
+                vm.$http.post(vm.delete_url, data, {
+                    emulateJSON: true,
+                }).then((response) => {
+                    vm.uploaded_documents = response.body;
+                    vm.$emit('refreshFromResponse', response.body);
                     vm.show_spinner = false;
-                },err=>{
+                }, err => {
+                    console.log(err);
                 });
-
+            }, (error) => {
+            });
         },
-
-        num_documents: function() {
+        num_documents: function () {
             let vm = this;
             if (vm.documents) {
                 return vm.documents.length;
             }
             return 0;
         },
-
     },
-    mounted:function () {
-        let vm = this;
-        vm.documents = vm.get_documents();
-        if (vm.value) {
-            //vm.files = (Array.isArray(vm.value))? vm.value : [vm.value];
-            if (Array.isArray(vm.value)) {
-                vm.value;
-            } else {
-                var file_names = vm.value.replace(/ /g,'_').split(",")
-                vm.files = file_names.map(function( file_name ) { 
-                      return {name: file_name}; 
-                });
-            }
-        }
+    mounted: function () {
     }
 }
 
 </script>
 
-<style lang="css">
-    input {
-        box-shadow:none;
-    }
-    .btn-file {
+<style scoped lang="css">
+input {
+    box-shadow: none;
+}
+
+.btn-file {
     position: relative;
     overflow: hidden;
 }
+
 .btn-file input[type=file] {
     position: absolute;
     top: 0;
