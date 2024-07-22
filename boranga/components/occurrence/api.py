@@ -5585,16 +5585,12 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         detail=False,
     )
     def occurrence_tenure_list_of_values(self, request, *args, **kwargs):
-        purpose_labels = list(OccurrenceTenurePurpose.objects.all().values("id", "label"))
-        purpose_codes = list(OccurrenceTenurePurpose.objects.all().values("id", "code"))
-        vesting_labels = list(OccurrenceTenureVesting.objects.all().values("id", "label"))
-        vesting_codes = list(OccurrenceTenureVesting.objects.all().values("id", "code"))
+        purposes = list(OccurrenceTenurePurpose.objects.all().values("id", "code", "label"))
+        vestings = list(OccurrenceTenureVesting.objects.all().values("id", "code", "label"))
 
         res_json = {
-            "purpose_labels": purpose_labels,
-            "purpose_codes": purpose_codes,
-            "vesting_labels": vesting_labels,
-            "vesting_codes": vesting_codes,
+            "purposes": purposes,
+            "vestings": vestings,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
