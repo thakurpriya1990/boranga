@@ -577,7 +577,6 @@ export default {
         },
         has_comment_value: function () {
             let has_value = false;
-            // TODO need to add assessor comment value as well
             for (var i = 0; i < this.referral_comments_boxes.length; i++) {
                 if (this.referral_comments_boxes[i].hasOwnProperty('value')) {
                     if (this.referral_comments_boxes[i].value != null && this.referral_comments_boxes[i].value != undefined && this.referral_comments_boxes[i].value != '') {

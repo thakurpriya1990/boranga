@@ -762,11 +762,6 @@ export default {
                         vm.$http.post(submit_url, payload).then(res => {
                             vm.species_community = res.body;
                             vm.species_community_original = helpers.copyObject(vm.species_community);
-                            // vm.$router.push({
-                            //     name: 'submit_cs_proposal',
-                            //     params: { conservation_status_obj: vm.conservation_status_obj}
-                            // });
-                            // TODO router should push to submit_cs_proposal for internal side
                             vm.$router.push({
                                 name: 'internal-species-communities-dash'
                             });

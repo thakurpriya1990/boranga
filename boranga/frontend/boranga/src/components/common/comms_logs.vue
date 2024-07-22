@@ -161,12 +161,6 @@ export default {
                             }
                             return result;
                         },
-                        'createdCell': function (cell) {
-                            console.log('in createdCell of TO')
-                            //TODO why this is not working?
-                            // the call to popover is done in the 'draw' event
-                            //$(cell).popover();
-                        }
                     },
                     {
                         title: 'CC',
@@ -194,13 +188,6 @@ export default {
                             }
                             return result;
                         },
-
-                        'createdCell': function (cell) {
-                            console.log('in createdCell of CC')
-                            //TODO why this is not working?
-                            // the call to popover is done in the 'draw' event
-                            //$(cell).popover();
-                        }
                     },
                     {
                         title: 'From',
@@ -233,12 +220,6 @@ export default {
                             }
                             return result;
                         },
-                        'createdCell': function (cell) {
-                            console.log('in createdCell of Subject/Desc')
-                            //TODO why this is not working?
-                            // the call to popover is done in the 'draw' event
-                            //$(cell).popover();
-                        }
                     },
                     {
                         title: 'Text',
@@ -266,12 +247,6 @@ export default {
                             }
                             return result;
                         },
-                        'createdCell': function (cell) {
-                            console.log('in createdCell of Text')
-                            //TODO why this is not working?
-                            // the call to popover is done in the 'draw' event
-                            //$(cell).popover();
-                        }
                     },
                     {
                         title: 'Documents',

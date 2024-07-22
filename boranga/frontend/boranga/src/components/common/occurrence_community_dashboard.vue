@@ -327,7 +327,6 @@ export default {
                 name: "processing_status",
             }
         },
-        // TODO update this to suit the design
         column_action: function () {
             let vm = this
             return {
@@ -524,9 +523,6 @@ export default {
         fetchFilterLists: function () {
             let vm = this;
             //large FilterList of Community Values object
-
-            //TODO occurrence status filters...
-
             vm.$http.get(api_endpoints.community_filter_dict + '?group_type_name=' + vm.group_type_name).then((response) => {
                 vm.filterListsCommunity = response.body;
                 vm.occurrence_list = vm.filterListsCommunity.occurrence_list;
@@ -537,8 +533,6 @@ export default {
                 vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
                     return a.name.trim().localeCompare(b.name.trim());
                 });
-                //vm.proposal_status = vm.level == 'internal' ? response.body.processing_status_choices: response.body.customer_status_choices;
-                //vm.proposal_status = vm.level == 'internal' ? vm.internal_status: vm.external_status;
             }, (error) => {
                 console.log(error);
             })

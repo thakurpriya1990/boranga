@@ -404,7 +404,6 @@ export default {
                 name: "processing_status",
             }
         },
-        // TODO update this to suit the design
         column_action: function () {
             let vm = this
             return {
