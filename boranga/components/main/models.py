@@ -6,6 +6,7 @@ from django.core.files.storage import FileSystemStorage
 from django.db import models
 from django.core.exceptions import ValidationError
 from reversion.models import Version
+from django.apps import apps
 
 from boranga.helpers import compressed_content_valid
 
@@ -111,6 +112,24 @@ class CommunicationsLogEntry(models.Model):
     class Meta:
         app_label = "boranga"
 
+class FileExtensionWhitelist(models.Model):
+
+    name = models.CharField(
+        max_length=16
+    )
+    model = models.CharField(max_length=255, default="all")
+
+    compressed = models.BooleanField()
+
+    class Meta:
+        app_label = "boranga"
+        unique_together=("name","model")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._meta.get_field("model").choices = (("all","all",),) + tuple(
+            map(lambda m: (m,m), filter(lambda m: Document in apps.get_app_config('boranga').models[m].__bases__, apps.get_app_config('boranga').models))
+        ) 
 
 class Document(RevisionedMixin):
     name = models.CharField(
