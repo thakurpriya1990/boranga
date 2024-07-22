@@ -567,9 +567,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         null=True,
         related_name="conservation_status",
     )
-    lodgement_date = models.DateTimeField(
-        blank=True, null=True
-    )  # TODO confirm if proposed date is the same or different
+    lodgement_date = models.DateTimeField(blank=True, null=True)
 
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
     assigned_approver = models.IntegerField(null=True)  # EmailUserRO
