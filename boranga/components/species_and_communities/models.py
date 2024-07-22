@@ -645,6 +645,12 @@ class Species(RevisionedMixin):
             request,
         )
 
+        # Create a log entry for the user
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_DISCARD_SPECIES.format(self.species_number),
+            request,
+        )
+
         self.delete()
 
     @cached_property
@@ -814,6 +820,13 @@ class Species(RevisionedMixin):
                     ),
                     request,
                 )
+                request.user.log_user_action(
+                    SpeciesUserAction.ACTION_ADD_DOCUMENT.format(
+                        new_species_doc.document_number,
+                        new_species_doc.species.species_number,
+                    ),
+                    request,
+                )
 
                 check_path = os.path.exists(
                     f"private-media/boranga/species/{self.id}/species_documents/"
@@ -857,12 +870,21 @@ class Species(RevisionedMixin):
                     ),
                     request,
                 )
+                request.user.log_user_action(
+                    SpeciesUserAction.ACTION_ADD_THREAT.format(
+                        new_species_threat.threat_number,
+                        new_species_threat.species.species_number,
+                    ),
+                    request,
+                )
 
     @transaction.atomic
     def reopen(self, request):
         if not self.processing_status == Species.PROCESSING_STATUS_HISTORICAL:
-            raise ValidationError("You cannot reopen a species that is not closed/historical")
-        
+            raise ValidationError(
+                "You cannot reopen a species that is not closed/historical"
+            )
+
         self.processing_status = Species.PROCESSING_STATUS_ACTIVE
         self.save(version_user=request.user)
 
@@ -890,7 +912,11 @@ class Species(RevisionedMixin):
             request,
         )
 
-        # TODO create a log entry for the user
+        # Create a log entry for the user
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_DISCARD_SPECIES.format(self.species_number),
+            request,
+        )
 
     def reinstate(self, request):
         if not self.processing_status == Species.PROCESSING_STATUS_DISCARDED:
@@ -908,6 +934,12 @@ class Species(RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
+            SpeciesUserAction.ACTION_REINSTATE_SPECIES.format(self.species_number),
+            request,
+        )
+
+        # Create a log entry for the user
+        request.user.log_user_action(
             SpeciesUserAction.ACTION_REINSTATE_SPECIES.format(self.species_number),
             request,
         )
@@ -1455,8 +1487,10 @@ class Community(RevisionedMixin):
     @transaction.atomic
     def reopen(self, request):
         if not self.processing_status == Community.PROCESSING_STATUS_HISTORICAL:
-            raise ValidationError("You cannot reopen a community that is not closed/historical")
-        
+            raise ValidationError(
+                "You cannot reopen a community that is not closed/historical"
+            )
+
         self.processing_status = Community.PROCESSING_STATUS_ACTIVE
         self.save(version_user=request.user)
 
@@ -1484,7 +1518,11 @@ class Community(RevisionedMixin):
             request,
         )
 
-        # TODO create a log entry for the user
+        # create a log entry for the user
+        request.user.log_user_action(
+            CommunityUserAction.ACTION_DISCARD_COMMUNITY.format(self.community_number),
+            request,
+        )
 
     def reinstate(self, request):
         if not self.processing_status == Community.PROCESSING_STATUS_DISCARDED:
@@ -1502,6 +1540,14 @@ class Community(RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
+            CommunityUserAction.ACTION_REINSTATE_COMMUNITY.format(
+                self.community_number
+            ),
+            request,
+        )
+
+        # Create a log entry for the user
+        request.user.log_user_action(
             CommunityUserAction.ACTION_REINSTATE_COMMUNITY.format(
                 self.community_number
             ),

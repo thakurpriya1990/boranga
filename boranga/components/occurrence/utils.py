@@ -21,7 +21,6 @@ from boranga.components.occurrence.models import (
     OccurrenceReportAmendmentRequest,
     OccurrenceReportUserAction,
 )
-from boranga.ledger_api_utils import retrieve_email_user
 from boranga.components.species_and_communities.models import Species
 
 logger = logging.getLogger(__name__)
@@ -52,12 +51,10 @@ def ocr_proposal_submit(ocr_proposal, request):
     )
 
     # Create a log entry for the user
-    submitter = retrieve_email_user(ocr_proposal.submitter)
-    if submitter:
-        submitter.log_user_action(
-            OccurrenceReportUserAction.ACTION_LODGE_PROPOSAL.format(ocr_proposal.id),
-            request,
-        )
+    request.user.log_user_action(
+        OccurrenceReportUserAction.ACTION_LODGE_PROPOSAL.format(ocr_proposal.id),
+        request,
+    )
 
     ret1 = send_submit_email_notification(request, ocr_proposal)
     ret2 = send_external_submit_email_notification(request, ocr_proposal)
@@ -295,21 +292,25 @@ def validate_map_files(request, instance, foreign_key_field=None):
 
     return valid_geometry_saved
 
-#gets all species that are related to the occurrence's species - parents, children, parent's parents, etc
+
+# gets all species that are related to the occurrence's species - parents, children, parent's parents, etc
 def get_all_related_species(species_id, exclude=[]):
-    
+
     species_ids = []
-    #add species id to list
+    # add species id to list
     species_ids.append(species_id)
     species = Species.objects.get(id=species_id)
 
-    #iterate through many to many relationship - this should contain both "parents" and "children"
+    # iterate through many to many relationship - this should contain both "parents" and "children"
     for i in species.parent_species.all():
-        #only process what has not already been processed
-        if not i.id in exclude:
-            #update list here (temporarily) to prevent infinite loop caused by a circular relation (unlikely but possible)
+        # only process what has not already been processed
+        if i.id not in exclude:
+            # update list here (temporarily) to prevent infinite loop caused by a circular relation
+            # (unlikely but possible)
             temp_exclude = exclude + species_ids
-            species_ids = species_ids + get_all_related_species(i.id, exclude=temp_exclude)
-            #update the exclude list with the newly added species_ids so they are not processed again
+            species_ids = species_ids + get_all_related_species(
+                i.id, exclude=temp_exclude
+            )
+            # update the exclude list with the newly added species_ids so they are not processed again
             exclude = exclude + species_ids
     return species_ids

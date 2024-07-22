@@ -2375,7 +2375,24 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             == OccurrenceReport.PROCESSING_STATUS_UNLOCKED
         ):
             self.unlocked_back_to_assessor(instance.occurrence_report)
-        # instance.community.log_user_action(CommunityUserAction.ACTION_ADD_THREAT.format(instance.threat_number,instance.community.community_number),request)
+
+        # TODO: Make sure this log action exists
+        instance.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.ACTION_UPDATE_OBSERVER_DETAIL.format(
+                instance.observer_name,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
+
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_UPDATE_OBSERVER_DETAIL.format(
+                instance.observer_name,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
+
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
@@ -2539,14 +2556,20 @@ class OccurrenceReportDocumentViewSet(
         instance = self.get_object()
         instance.visible = False
         instance.save(version_user=request.user)
-        if instance.occurrence_report:
-            instance.occurrence_report.log_user_action(
-                OccurrenceReportUserAction.ACTION_DISCARD_DOCUMENT.format(
-                    instance.document_number,
-                    instance.occurrence_report.occurrence_report_number,
-                ),
-                request,
-            )
+        instance.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.ACTION_DISCARD_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_DISCARD_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
         if (
             instance.occurrence_report.processing_status
@@ -2565,14 +2588,20 @@ class OccurrenceReportDocumentViewSet(
         instance = self.get_object()
         instance.visible = True
         instance.save(version_user=request.user)
-        if instance.occurrence_report:
-            instance.occurrence_report.log_user_action(
-                OccurrenceReportUserAction.ACTION_REINSTATE_DOCUMENT.format(
-                    instance.document_number,
-                    instance.occurrence_report.occurrence_report_number,
-                ),
-                request,
-            )
+        instance.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.ACTION_REINSTATE_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_REINSTATE_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
         if (
             instance.occurrence_report.processing_status
@@ -2596,14 +2625,20 @@ class OccurrenceReportDocumentViewSet(
         instance.add_documents(request, no_revision=True)
         instance.uploaded_by = request.user.id
         instance.save(version_user=request.user)
-        if instance.occurrence_report:
-            instance.occurrence_report.log_user_action(
-                OccurrenceReportUserAction.ACTION_UPDATE_DOCUMENT.format(
-                    instance.document_number,
-                    instance.occurrence_report.occurrence_report_number,
-                ),
-                request,
-            )
+        instance.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.ACTION_UPDATE_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_UPDATE_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
         if (
             instance.occurrence_report.processing_status
             == OccurrenceReport.PROCESSING_STATUS_UNLOCKED
@@ -2627,14 +2662,20 @@ class OccurrenceReportDocumentViewSet(
             instance.can_submitter_access = True
 
         instance.save(version_user=request.user)
-        if instance.occurrence_report:
-            instance.occurrence_report.log_user_action(
-                OccurrenceReportUserAction.ACTION_ADD_DOCUMENT.format(
-                    instance.document_number,
-                    instance.occurrence_report.occurrence_report_number,
-                ),
-                request,
-            )
+        instance.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.ACTION_ADD_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_ADD_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
         if (
             instance.occurrence_report.processing_status
             == OccurrenceReport.PROCESSING_STATUS_UNLOCKED
@@ -2743,14 +2784,20 @@ class OCRConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
         instance = self.get_object()
         instance.visible = False
         instance.save(version_user=request.user)
-        if instance.occurrence_report:
-            instance.occurrence_report.log_user_action(
-                OccurrenceReportUserAction.ACTION_DISCARD_THREAT.format(
-                    instance.threat_number,
-                    instance.occurrence_report.occurrence_report_number,
-                ),
-                request,
-            )
+        instance.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.ACTION_DISCARD_THREAT.format(
+                instance.threat_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_DISCARD_THREAT.format(
+                instance.threat_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
 
         if (
@@ -2771,14 +2818,20 @@ class OCRConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
         instance = self.get_object()
         instance.visible = True
         instance.save(version_user=request.user)
-        if instance.occurrence_report:
-            instance.occurrence_report.log_user_action(
-                OccurrenceReportUserAction.ACTION_REINSTATE_THREAT.format(
-                    instance.threat_number,
-                    instance.occurrence_report.occurrence_report_number,
-                ),
-                request,
-            )
+        instance.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.ACTION_REINSTATE_THREAT.format(
+                instance.threat_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_REINSTATE_THREAT.format(
+                instance.threat_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
 
         if (
@@ -2798,14 +2851,20 @@ class OCRConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
         validate_threat_request(request)
         serializer.is_valid(raise_exception=True)
         serializer.save(version_user=request.user)
-        if instance.occurrence_report:
-            instance.occurrence_report.log_user_action(
-                OccurrenceReportUserAction.ACTION_UPDATE_THREAT.format(
-                    instance.threat_number,
-                    instance.occurrence_report.occurrence_report_number,
-                ),
-                request,
-            )
+        instance.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.ACTION_UPDATE_THREAT.format(
+                instance.threat_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_UPDATE_THREAT.format(
+                instance.threat_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
 
         if (
@@ -2824,14 +2883,20 @@ class OCRConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
         validate_threat_request(request)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(version_user=request.user)
-        if instance.occurrence_report:
-            instance.occurrence_report.log_user_action(
-                OccurrenceReportUserAction.ACTION_ADD_THREAT.format(
-                    instance.threat_number,
-                    instance.occurrence_report.occurrence_report_number,
-                ),
-                request,
-            )
+        instance.occurrence_report.log_user_action(
+            OccurrenceReportUserAction.ACTION_ADD_THREAT.format(
+                instance.threat_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_ADD_THREAT.format(
+                instance.threat_number,
+                instance.occurrence_report.occurrence_report_number,
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
 
         if (
@@ -3462,14 +3527,20 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
         instance.visible = False
         instance.save(version_user=request.user)
-        if instance.occurrence:
-            instance.occurrence.log_user_action(
-                OccurrenceUserAction.ACTION_DISCARD_DOCUMENT.format(
-                    instance.document_number,
-                    instance.occurrence.occurrence_number,
-                ),
-                request,
-            )
+        instance.occurrence.log_user_action(
+            OccurrenceUserAction.ACTION_DISCARD_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_DISCARD_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -3483,14 +3554,20 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         instance = self.get_object()
         instance.visible = True
         instance.save(version_user=request.user)
-        if instance.occurrence:
-            instance.occurrence.log_user_action(
-                OccurrenceUserAction.ACTION_REINSTATE_DOCUMENT.format(
-                    instance.document_number,
-                    instance.occurrence.occurrence_number,
-                ),
-                request,
-            )
+        instance.occurrence.log_user_action(
+            OccurrenceUserAction.ACTION_REINSTATE_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_REINSTATE_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -3502,14 +3579,20 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         )
         serializer.is_valid(raise_exception=True)
         serializer.save(no_revision=True)
-        if instance.occurrence:
-            instance.occurrence.log_user_action(
-                OccurrenceUserAction.ACTION_UPDATE_DOCUMENT.format(
-                    instance.document_number,
-                    instance.occurrence.occurrence_number,
-                ),
-                request,
-            )
+        instance.occurrence.log_user_action(
+            OccurrenceUserAction.ACTION_UPDATE_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_UPDATE_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
         instance.add_documents(request, no_revision=True)
         instance.uploaded_by = request.user.id
         instance.save(version_user=request.user)
@@ -3525,14 +3608,20 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         instance.add_documents(request, no_revision=True)
         instance.uploaded_by = request.user.id
         instance.save(version_user=request.user)
-        if instance.occurrence:
-            instance.occurrence.log_user_action(
-                OccurrenceUserAction.ACTION_ADD_DOCUMENT.format(
-                    instance.document_number,
-                    instance.occurrence.occurrence_number,
-                ),
-                request,
-            )
+        instance.occurrence.log_user_action(
+            OccurrenceUserAction.ACTION_ADD_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_ADD_DOCUMENT.format(
+                instance.document_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
         return Response(serializer.data)
 
 
@@ -3630,14 +3719,20 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
         instance = self.get_object()
         instance.visible = False
         instance.save(version_user=request.user)
-        if instance.occurrence:
-            instance.occurrence.log_user_action(
-                OccurrenceUserAction.ACTION_DISCARD_THREAT.format(
-                    instance.threat_number,
-                    instance.occurrence.occurrence_number,
-                ),
-                request,
-            )
+        instance.occurrence.log_user_action(
+            OccurrenceUserAction.ACTION_DISCARD_THREAT.format(
+                instance.threat_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_DISCARD_THREAT.format(
+                instance.threat_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -3651,14 +3746,20 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
         instance = self.get_object()
         instance.visible = True
         instance.save(version_user=request.user)
-        if instance.occurrence:
-            instance.occurrence.log_user_action(
-                OccurrenceUserAction.ACTION_REINSTATE_THREAT.format(
-                    instance.threat_number,
-                    instance.occurrence.occurrence_number,
-                ),
-                request,
-            )
+        instance.occurrence.log_user_action(
+            OccurrenceUserAction.ACTION_REINSTATE_THREAT.format(
+                instance.threat_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_REINSTATE_THREAT.format(
+                instance.threat_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -3671,14 +3772,20 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
         validate_threat_request(request)
         serializer.is_valid(raise_exception=True)
         serializer.save(version_user=request.user)
-        if instance.occurrence:
-            instance.occurrence.log_user_action(
-                OccurrenceUserAction.ACTION_UPDATE_THREAT.format(
-                    instance.threat_number,
-                    instance.occurrence.occurrence_number,
-                ),
-                request,
-            )
+        instance.occurrence.log_user_action(
+            OccurrenceUserAction.ACTION_UPDATE_THREAT.format(
+                instance.threat_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_UPDATE_THREAT.format(
+                instance.threat_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -3690,14 +3797,20 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
         validate_threat_request(request)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(version_user=request.user)
-        if instance.occurrence:
-            instance.occurrence.log_user_action(
-                OccurrenceUserAction.ACTION_ADD_THREAT.format(
-                    instance.threat_number,
-                    instance.occurrence.occurrence_number,
-                ),
-                request,
-            )
+        instance.occurrence.log_user_action(
+            OccurrenceUserAction.ACTION_ADD_THREAT.format(
+                instance.threat_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_ADD_THREAT.format(
+                instance.threat_number,
+                instance.occurrence.occurrence_number,
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -4447,6 +4560,12 @@ class OccurrenceViewSet(
             serializer.save(version_user=request.user)
 
             instance.log_user_action(
+                OccurrenceUserAction.ACTION_SAVE_OCCURRENCE.format(
+                    instance.occurrence_number
+                ),
+                request,
+            )
+            request.user.log_user_action(
                 OccurrenceUserAction.ACTION_SAVE_OCCURRENCE.format(
                     instance.occurrence_number
                 ),
@@ -5215,7 +5334,16 @@ class OccurrenceReportReferralViewSet(
 
         # Create a log entry for the occurrence report
         instance.occurrence_report.log_user_action(
-            OccurrenceReportUserAction.COMMENT_REFERRAL.format(
+            OccurrenceReportUserAction.SAVE_REFERRAL.format(
+                instance.id,
+                instance.occurrence_report.occurrence_report_number,
+                f"{instance.referral_as_email_user.get_full_name()}({instance.referral_as_email_user.email})",
+            ),
+            request,
+        )
+        # Create a log entry for the user
+        request.user.log_user_action(
+            OccurrenceReportUserAction.SAVE_REFERRAL.format(
                 instance.id,
                 instance.occurrence_report.occurrence_report_number,
                 f"{instance.referral_as_email_user.get_full_name()}({instance.referral_as_email_user.email})",

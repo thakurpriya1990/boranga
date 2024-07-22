@@ -22,7 +22,6 @@ from django.db.models.functions import Cast
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
-from boranga.components.main.related_item import RelatedItem
 
 from boranga import exceptions
 from boranga.components.conservation_status.models import ProposalAmendmentReason
@@ -32,6 +31,7 @@ from boranga.components.main.models import (
     RevisionedMixin,
     UserAction,
 )
+from boranga.components.main.related_item import RelatedItem
 from boranga.components.occurrence.email import (
     send_approve_email_notification,
     send_approver_approve_email_notification,
@@ -517,7 +517,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
-    
+
     @property
     def related_item_identifier(self):
         return self.occurrence_report_number
@@ -532,7 +532,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     @property
     def related_item_status(self):
         return self.get_processing_status_display
-    
+
     @property
     def as_related_item(self):
         related_item = RelatedItem(
@@ -595,6 +595,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
+        # Create a log entry for the user
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_DISCARD_PROPOSAL.format(
+                self.occurrence_report_number
+            ),
+            request,
+        )
+
     @transaction.atomic
     def reinstate(self, request):
         if not self.processing_status == OccurrenceReport.PROCESSING_STATUS_DISCARDED:
@@ -606,6 +614,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
+            OccurrenceReportUserAction.ACTION_REINSTATE_PROPOSAL.format(
+                self.occurrence_report_number
+            ),
+            request,
+        )
+
+        # Create a log entry for the user
+        request.user.log_user_action(
             OccurrenceReportUserAction.ACTION_REINSTATE_PROPOSAL.format(
                 self.occurrence_report_number
             ),
@@ -630,6 +646,15 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                     ),
                     request,
                 )
+
+                # Create a log entry for the user
+                request.user.log_user_action(
+                    OccurrenceReportUserAction.ACTION_ASSIGN_TO_APPROVER.format(
+                        self.occurrence_report_number,
+                        f"{officer.get_full_name()}({officer.email})",
+                    ),
+                    request,
+                )
         else:
             if officer.id != self.assigned_officer:
                 self.assigned_officer = officer.id
@@ -637,6 +662,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
                 # Create a log entry for the proposal
                 self.log_user_action(
+                    OccurrenceReportUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
+                        self.occurrence_report_number,
+                        f"{officer.get_full_name()}({officer.email})",
+                    ),
+                    request,
+                )
+                # Create a log entry for the user
+                request.user.log_user_action(
                     OccurrenceReportUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
                         self.occurrence_report_number,
                         f"{officer.get_full_name()}({officer.email})",
@@ -660,6 +693,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                     ),
                     request,
                 )
+
+                # Create a log entry for the user
+                request.user.log_user_action(
+                    OccurrenceReportUserAction.ACTION_UNASSIGN_APPROVER.format(
+                        self.occurrence_report_number
+                    ),
+                    request,
+                )
         else:
             if self.assigned_officer:
                 self.assigned_officer = None
@@ -667,6 +708,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
                 # Create a log entry for the proposal
                 self.log_user_action(
+                    OccurrenceReportUserAction.ACTION_UNASSIGN_ASSESSOR.format(
+                        self.occurrence_report_number
+                    ),
+                    request,
+                )
+
+                # Create a log entry for the user
+                request.user.log_user_action(
                     OccurrenceReportUserAction.ACTION_UNASSIGN_ASSESSOR.format(
                         self.occurrence_report_number
                     ),
@@ -711,6 +760,13 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_PROPOSED_DECLINE.format(
+                self.occurrence_report_number
+            ),
+            request,
+        )
+
         send_approver_decline_email_notification(reason, request, self)
 
     @transaction.atomic
@@ -733,6 +789,15 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
+            OccurrenceReportUserAction.ACTION_DECLINE.format(
+                self.occurrence_report_number,
+                reason,
+            ),
+            request,
+        )
+
+        # Create a log entry for the user
+        request.user.log_user_action(
             OccurrenceReportUserAction.ACTION_DECLINE.format(
                 self.occurrence_report_number,
                 reason,
@@ -841,6 +906,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
+        # Create a log entry for the user
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_PROPOSED_APPROVAL.format(
+                self.occurrence_report_number
+            ),
+            request,
+        )
+
         send_approver_approve_email_notification(request, self)
 
     @transaction.atomic
@@ -885,6 +958,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_APPROVE.format(
+                self.occurrence_report_number,
+                request.user.get_full_name(),
+            ),
+            request,
+        )
+
         send_approve_email_notification(request, self)
 
     @transaction.atomic
@@ -902,6 +983,15 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         # Create a log entry for the proposal
         self.log_user_action(
+            OccurrenceReportUserAction.ACTION_BACK_TO_ASSESSOR.format(
+                self.occurrence_report_number,
+                reason,
+            ),
+            request,
+        )
+
+        # Create a log entry for the user
+        request.user.log_user_action(
             OccurrenceReportUserAction.ACTION_BACK_TO_ASSESSOR.format(
                 self.occurrence_report_number,
                 reason,
@@ -1005,6 +1095,16 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         # Create a log entry for the proposal
         self.log_user_action(
+            OccurrenceReportUserAction.ACTION_SEND_REFERRAL_TO.format(
+                referral.id,
+                self.occurrence_report_number,
+                f"{referee.get_full_name()}({referee.email})",
+            ),
+            request,
+        )
+
+        # Create a log entry for the user
+        request.user.log_user_action(
             OccurrenceReportUserAction.ACTION_SEND_REFERRAL_TO.format(
                 referral.id,
                 self.occurrence_report_number,
@@ -1128,7 +1228,7 @@ class OccurrenceReportUserAction(UserAction):
     )
     ACTION_BACK_TO_ASSESSOR = "{} sent back to assessor. Reason: {}"
     RECALL_REFERRAL = "Referral {} for occurrence report {} has been recalled by {}"
-    COMMENT_REFERRAL = "Referral {} for occurrence report {} has been commented by {}"
+    SAVE_REFERRAL = "Referral {} for occurrence report {} has been saved by {}"
     CONCLUDE_REFERRAL = "Referral {} for occurrence report {} has been concluded by {}"
 
     # Document
@@ -1212,10 +1312,10 @@ class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
                 OccurrenceReportUserAction.ACTION_ID_REQUEST_AMENDMENTS, request
             )
 
-            # Create a log entry for the organisation
-            # if occurrence_report.applicant:
-            #     occurrence_report.applicant.log_user_action
-            # (OccurrenceReportUserAction.ACTION_ID_REQUEST_AMENDMENTS, request)
+            # Create a log entry for the user
+            request.user.log_user_action(
+                OccurrenceReportUserAction.ACTION_ID_REQUEST_AMENDMENTS, request
+            )
 
             # send email
             send_occurrence_report_amendment_email_notification(
@@ -1397,16 +1497,14 @@ class OccurrenceReportReferral(models.Model):
         )
 
         # Create a log entry for the submitter
-        if self.occurrence_report.submitter:
-            submitter = retrieve_email_user(self.occurrence_report.submitter)
-            submitter.log_user_action(
-                OccurrenceReportUserAction.ACTION_REMIND_REFERRAL.format(
-                    self.id,
-                    self.occurrence_report.occurrence_report_number,
-                    f"{submitter.get_full_name()}",
-                ),
-                request,
-            )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_REMIND_REFERRAL.format(
+                self.id,
+                self.occurrence_report.occurrence_report_number,
+                f"{self.referral_as_email_user.get_full_name()}",
+            ),
+            request,
+        )
 
         # send email
         send_occurrence_report_referral_email_notification(
@@ -1445,16 +1543,14 @@ class OccurrenceReportReferral(models.Model):
         )
 
         # Create a log entry for the submitter
-        if self.occurrence_report.submitter:
-            submitter = retrieve_email_user(self.occurrence_report.submitter)
-            submitter.log_user_action(
-                OccurrenceReportUserAction.RECALL_REFERRAL.format(
-                    self.id,
-                    self.occurrence_report.occurrence_report_number,
-                    request.user.get_full_name(),
-                ),
-                request,
-            )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.RECALL_REFERRAL.format(
+                self.id,
+                self.occurrence_report.occurrence_report_number,
+                request.user.get_full_name(),
+            ),
+            request,
+        )
 
     @transaction.atomic
     def resend(self, request):
@@ -1481,19 +1577,17 @@ class OccurrenceReportReferral(models.Model):
         )
 
         # Create a log entry for the submitter
-        if self.occurrence_report.submitter:
-            submitter = retrieve_email_user(self.occurrence_report.submitter)
-            submitter.log_user_action(
-                OccurrenceReportUserAction.ACTION_RESEND_REFERRAL_TO.format(
-                    self.id,
-                    self.occurrence_report.occurrence_report_number,
-                    "{}({})".format(
-                        self.referral_as_email_user.get_full_name(),
-                        self.referral_as_email_user.email,
-                    ),
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_RESEND_REFERRAL_TO.format(
+                self.id,
+                self.occurrence_report.occurrence_report_number,
+                "{}({})".format(
+                    self.referral_as_email_user.get_full_name(),
+                    self.referral_as_email_user.email,
                 ),
-                request,
-            )
+            ),
+            request,
+        )
 
         # send email
         send_occurrence_report_referral_email_notification(self, request)
@@ -1529,19 +1623,17 @@ class OccurrenceReportReferral(models.Model):
         )
 
         # Create a log entry for the submitter
-        if self.occurrence_report.submitter:
-            submitter = retrieve_email_user(self.occurrence_report.submitter)
-            submitter.log_user_action(
-                OccurrenceReportUserAction.CONCLUDE_REFERRAL.format(
-                    self.id,
-                    self.occurrence_report.occurrence_report_number,
-                    "{}({})".format(
-                        submitter.get_full_name(),
-                        submitter.email,
-                    ),
+        request.user.log_user_action(
+            OccurrenceReportUserAction.CONCLUDE_REFERRAL.format(
+                self.id,
+                self.occurrence_report.occurrence_report_number,
+                "{}({})".format(
+                    self.referral_as_email_user.get_full_name(),
+                    self.referral_as_email_user.email,
                 ),
-                request,
-            )
+            ),
+            request,
+        )
 
         send_occurrence_report_referral_complete_email_notification(self, request)
 
@@ -3115,7 +3207,7 @@ class Occurrence(RevisionedMixin):
     @property
     def number_of_reports(self):
         return self.occurrence_report_count
-    
+
     @property
     def related_item_identifier(self):
         return self.occurrence_number
@@ -3130,7 +3222,7 @@ class Occurrence(RevisionedMixin):
     @property
     def related_item_status(self):
         return self.get_processing_status_display
-    
+
     @property
     def as_related_item(self):
         related_item = RelatedItem(
@@ -3328,6 +3420,19 @@ class Occurrence(RevisionedMixin):
             request,
         )
 
+        # Create a log entry for the user
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_COMBINE_OCCURRENCE.format(
+                ", ".join(
+                    list(
+                        combine_occurrences.values_list("occurrence_number", flat=True)
+                    )
+                ),
+                self.occurrence_number,
+            ),
+            request,
+        )
+
     def validate_activate(self):
         missing_values = []
 
@@ -3386,6 +3491,14 @@ class Occurrence(RevisionedMixin):
             request,
         )
 
+        # Create a log entry for the user
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_DISCARD_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
     @transaction.atomic
     def reinstate(self, request):
         if not self.processing_status == Occurrence.PROCESSING_STATUS_DISCARDED:
@@ -3396,6 +3509,14 @@ class Occurrence(RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
+            OccurrenceUserAction.ACTION_REINSTATE_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
+        # Create a log entry for the user
+        request.user.log_user_action(
             OccurrenceUserAction.ACTION_REINSTATE_OCCURRENCE.format(
                 self.occurrence_number
             ),
@@ -3419,6 +3540,14 @@ class Occurrence(RevisionedMixin):
             request,
         )
 
+        # Create a log entry for the user
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_ACTIVATE_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
     def lock(self, request):
         if (
             is_occurrence_approver(request)
@@ -3429,6 +3558,10 @@ class Occurrence(RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
+            OccurrenceUserAction.ACTION_LOCK_OCCURRENCE.format(self.occurrence_number),
+            request,
+        )
+        request.user.log_user_action(
             OccurrenceUserAction.ACTION_LOCK_OCCURRENCE.format(self.occurrence_number),
             request,
         )
@@ -3449,6 +3582,14 @@ class Occurrence(RevisionedMixin):
             request,
         )
 
+        # Create a log entry for the user
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_UNLOCK_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
     def close(self, request):
         if (
             is_occurrence_approver(request)
@@ -3463,6 +3604,12 @@ class Occurrence(RevisionedMixin):
             request,
         )
 
+        # Create a log entry for the user
+        request.user.log_user_action(
+            OccurrenceUserAction.ACTION_CLOSE_OCCURRENCE.format(self.occurrence_number),
+            request,
+        )
+
     def reopen(self, request):
         if (
             is_occurrence_approver(request)
@@ -3473,6 +3620,14 @@ class Occurrence(RevisionedMixin):
 
         # Log proposal action
         self.log_user_action(
+            OccurrenceUserAction.ACTION_REOPEN_OCCURRENCE.format(
+                self.occurrence_number
+            ),
+            request,
+        )
+
+        # Create a log entry for the user
+        request.user.log_user_action(
             OccurrenceUserAction.ACTION_REOPEN_OCCURRENCE.format(
                 self.occurrence_number
             ),
@@ -3516,12 +3671,16 @@ class Occurrence(RevisionedMixin):
     def get_related_occurrence_reports(self, **kwargs):
 
         return OccurrenceReport.objects.filter(occurrence=self)
-    
 
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
         if filter_type == "all":
-            related_field_names = ["species", "community", "occurrence_report", "conservation_status",]
+            related_field_names = [
+                "species",
+                "community",
+                "occurrence_report",
+                "conservation_status",
+            ]
         else:
             related_field_names = [
                 filter_type,
@@ -3552,15 +3711,15 @@ class Occurrence(RevisionedMixin):
                     if field_object:
                         related_item = field_object.as_related_item
                         return_list.append(related_item)
-        if 'conservation_status' in related_field_names:
-            cs_filter_type='conservation_status'
+        if "conservation_status" in related_field_names:
+            cs_filter_type = "conservation_status"
             if self.species:
-                species_occurences=self.species.get_related_items(cs_filter_type)
+                species_occurences = self.species.get_related_items(cs_filter_type)
                 if species_occurences:
                     # return_list.append(species_occurences)
                     return_list += species_occurences
             if self.community:
-                community_occurences=self.community.get_related_items(cs_filter_type)
+                community_occurences = self.community.get_related_items(cs_filter_type)
                 if community_occurences:
                     return_list += community_occurences
         # serializer = RelatedItemsSerializer(return_list, many=True)
