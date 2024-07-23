@@ -1932,6 +1932,16 @@ export default {
                 return [];
             },
         },
+        /**
+         * Whether to validate the feature before saving it
+         * If set to true, the `validate-feature` event is emitted before saving the feature
+         * and the parent component needs to call finishDrawing on the map component
+         */
+        validateFeatureBeforeSave: {
+            type: Boolean,
+            required: false,
+            default: false,
+        },
     },
     emits: [
         'validate-feature',
@@ -3068,8 +3078,20 @@ export default {
                 },
                 finishCondition: function () {
                     if (vm.lastPoint) {
-                        // vm.$emit('validate-feature');
-                        vm.finishDrawing();
+                        if (vm.validateFeatureBeforeSave) {
+                            const coordinates = vm.sketchCoordinates.slice();
+                            coordinates.push(coordinates[0]);
+                            const feature = new Feature({
+                                id: -1,
+                                geometry: new Polygon([coordinates]),
+                                label: 'validation',
+                                color: vm.defaultColor,
+                                geometry_source: 'validation',
+                            });
+                            vm.$emit('validate-feature', feature);
+                        } else {
+                            vm.finishDrawing();
+                        }
                     }
                     return true;
                 },

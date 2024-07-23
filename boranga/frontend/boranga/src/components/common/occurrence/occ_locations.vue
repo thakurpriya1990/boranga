@@ -14,6 +14,7 @@
                     :map-info-text="isInternal ? '' : 'Some text to explain the map and its use.'
                         " :selectable="true" :coordinate-reference-systems="coordinateReferenceSystems"
                     :spatial-operations-allowed="['__all__']" :tile-layer-api-url="tileLayerApiUrl"
+                    :validate-feature-before-save="true"
                     :query-layer-definition="{
                         name: queryLayerName,
                         title: 'Occurrence Reports',
@@ -88,8 +89,12 @@
                                 // color: '#FF0000',
                             },
                         },
-                    ]" @features-loaded="mapFeaturesLoaded" @crs-select-search="searchForCRS"
-                    @toggle-show-hide="toggleShowOnMapLayer"></MapComponent>
+                    ]"
+                    @features-loaded="mapFeaturesLoaded"
+                    @crs-select-search="searchForCRS"
+                    @toggle-show-hide="toggleShowOnMapLayer"
+                    @validate-feature="validateFeature"
+                ></MapComponent>
             </div>
             <!-- @refreshFromResponse="refreshFromResponse" -->
             <!-- @validate-feature="validateFeature.bind(this)()" -->
@@ -826,6 +831,11 @@ export default {
             });
 
             return occ_geometry;
+        },
+        validateFeature: function (feature) {
+            // Validate the feature
+            console.log('Validating feature:', feature);
+            this.$refs.component_map.finishDrawing();
         },
     },
 };
