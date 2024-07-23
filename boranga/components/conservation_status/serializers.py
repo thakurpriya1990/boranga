@@ -548,7 +548,6 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "recommended_international_conservation",
             "recommended_conservation_criteria",
             "comment",
-            "proposed_date",
             "lodgement_date",
             "applicant_type",
             "applicant",
@@ -568,7 +567,6 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "deficiency_data",
             "assessor_data",
             "approval_level",
-            "can_view_recommended",
             "submitter_information",
         )
 
@@ -762,7 +760,6 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "conservation_criteria",
             "recommended_conservation_criteria",
             "comment",
-            "proposed_date",
             "processing_status",
             "customer_status",
             "readonly",
@@ -791,7 +788,6 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "internal_user_edit",
             "conservation_status_approval_document",
             "approval_level",
-            "can_view_recommended",
             "can_edit_recommended",
             "internal_application",
             "is_new_contributor",
@@ -899,7 +895,6 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
             "conservation_category_id",
             "conservation_criteria",
             "comment",
-            "proposed_date",
             "processing_status",
             "customer_status",
             "readonly",
@@ -918,7 +913,6 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
             "assessor_data",
             "proposed_decline_status",
             "conservationstatusdeclineddetails",
-            "can_view_recommended",
         )
 
     def get_submitter(self, obj):
@@ -1056,7 +1050,6 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
             "conservation_category_id",
             "conservation_criteria",
             "comment",
-            "proposed_date",
             "processing_status",
             "customer_status",
             "readonly",

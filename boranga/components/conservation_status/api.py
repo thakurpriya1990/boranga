@@ -1547,6 +1547,13 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 request,
             )
 
+            request.user.log_user_action(
+                ConservationStatusUserAction.ACTION_SAVE_APPLICATION.format(
+                    instance.conservation_status_number
+                ),
+                request,
+            )
+
         return redirect(reverse("internal"))
 
     @detail_route(methods=["post"], detail=True)
@@ -1580,6 +1587,13 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 serializer.save(version_user=request.user)
 
                 instance.log_user_action(
+                    ConservationStatusUserAction.ACTION_EDIT_APPLICATION.format(
+                        instance.conservation_status_number
+                    ),
+                    request,
+                )
+
+                request.user.log_user_action(
                     ConservationStatusUserAction.ACTION_EDIT_APPLICATION.format(
                         instance.conservation_status_number
                     ),
@@ -2354,13 +2368,23 @@ class ConservationStatusReferralViewSet(
 
         # Create a log entry for the conservation status
         instance.conservation_status.log_user_action(
-            ConservationStatusUserAction.COMMENT_REFERRAL.format(
+            ConservationStatusUserAction.SAVE_REFERRAL.format(
                 instance.id,
                 instance.conservation_status.conservation_status_number,
                 f"{instance.referral_as_email_user.get_full_name()}({instance.referral_as_email_user.email})",
             ),
             request,
         )
+
+        request.user.log_user_action(
+            ConservationStatusUserAction.SAVE_REFERRAL.format(
+                instance.id,
+                instance.conservation_status.conservation_status_number,
+                f"{instance.referral_as_email_user.get_full_name()}({instance.referral_as_email_user.email})",
+            ),
+            request,
+        )
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 

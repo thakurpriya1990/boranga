@@ -71,7 +71,7 @@
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
-import FileField2 from '@/components/forms/filefield2.vue'
+import FileField2 from '@/components/forms/filefield.vue'
 import SpeciesCommunitiesComponent from '@/components/form_species_communities.vue'
 import SpeciesCombineForm from '@/components/form_species_combine.vue'
 import AddCombineSpecies from '@/components/common/species_communities/species_combine/add_combine_species.vue'

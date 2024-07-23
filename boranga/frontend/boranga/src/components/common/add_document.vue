@@ -81,8 +81,7 @@
                                     <div class="col">
                                         <FileField2 ref="filefield" :proposal_id="document_id"
                                             :uploaded_documents="uploaded_document" :isRepeatable="false"
-                                            id="documents_file" name="documents_file"
-                                            @refreshFromResponse="refreshFromResponse" />
+                                            id="documents_file" name="documents_file" />
                                     </div>
                                 </div>
                             </div>
@@ -110,7 +109,7 @@
 </template>
 
 <script>
-import FileField2 from '@/components/forms/filefield2.vue'
+import FileField2 from '@/components/forms/filefield.vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import { helpers, api_endpoints } from "@/utils/hooks.js"
@@ -178,9 +177,6 @@ export default {
             this.$nextTick(() => {
                 this.$refs['description'].focus();
             });
-        },
-        refreshFromResponse: function (updated_docs) {
-            //this.documentObj= updated_docs; TODO: This is being referenced. It should do something or be removed.
         },
         filterSubCategory: function (event) {
             this.$nextTick(() => {

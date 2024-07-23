@@ -7,8 +7,8 @@
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
                     :disable_add_entry="false" />
 
-                <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
-                    :submitter_last_name="submitter_last_name" :lodgement_date="conservation_status_obj.lodgement_date"
+                <Submission :submitter_first_name="submitter_first_name" :submitter_last_name="submitter_last_name"
+                    :lodgement_date="conservation_status_obj.lodgement_date"
                     :is_new_contributor="conservation_status_obj.is_new_contributor" class="mt-3" />
 
                 <div class="mt-3">
@@ -20,7 +20,7 @@
                             <strong>Status</strong><br />
                             {{ conservation_status_obj.processing_status }}
                         </div>
-                        <div v-if="conservation_status_obj.processing_status!='Draft'" class="card-body border-top">
+                        <div v-if="conservation_status_obj.processing_status != 'Draft'" class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
                                     <strong>Currently assigned to</strong><br />
@@ -37,7 +37,8 @@
                                                 @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
                                                 to me</a>
                                         </template>
-                                        <template v-else-if="['With Assessor', 'With Referral'].includes(conservation_status_obj.processing_status)">
+                                        <template
+                                            v-else-if="['With Assessor', 'With Referral'].includes(conservation_status_obj.processing_status)">
                                             <select ref="assigned_officer" :disabled="!canAction" class="form-control"
                                                 v-model="conservation_status_obj.assigned_officer">
                                                 <option v-for="member in conservation_status_obj.allowed_assessors"
@@ -241,8 +242,7 @@
                                             <strong>Action</strong><br />
                                         </div>
                                     </div>
-                                    <template
-                                        v-if="conservation_status_obj.processing_status == 'With Assessor'">
+                                    <template v-if="conservation_status_obj.processing_status == 'With Assessor'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
@@ -250,22 +250,21 @@
                                                     Amendment</button><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="conservation_status_obj.approval_level == 'minister' && conservation_status_obj.processing_status == 'With Assessor'">
+                                        <div class="row"
+                                            v-if="conservation_status_obj.approval_level == 'minister' && conservation_status_obj.processing_status == 'With Assessor'">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="proposedReadyForAgenda()">Propose Ready for
                                                     Agenda</button><br />
                                             </div>
                                         </div>
-                                        <div class="row"
-                                            v-if="conservation_status_obj.approval_level == 'immediate'">
+                                        <div class="row" v-if="conservation_status_obj.approval_level == 'immediate'">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="declineProposal()">Decline</button><br />
                                             </div>
                                         </div>
-                                        <div class="row"
-                                            v-if="conservation_status_obj.approval_level == 'immediate'">
+                                        <div class="row" v-if="conservation_status_obj.approval_level == 'immediate'">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="issueProposal()">Approve</button><br />
@@ -354,22 +353,22 @@
                                         :conservation_status_obj="conservation_status_obj"
                                         :canEditStatus="canEditStatus" id="ConservationStatusStart" :is_internal="true"
                                         @saveConservationStatus="save_wo()">
-                                        <!-- TODO add hasAssessorMode props to ProposalConservationStatus -->
                                     </ProposalConservationStatus>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                     <input type='hidden' name="conservation_status_id" :value="1" />
                                     <div class="row" style="margin-bottom: 50px">
                                         <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
                                             <!--the below as internal proposal submission ELSE just saving proposal changes -->
-                                            <div  class="container">
+                                            <div class="container">
                                                 <div class="col-md-6">
                                                     <p class="pull-right" style="margin-top:5px;">
-                                                    <router-link class="btn btn-primary"
-                                                        :to="{ name: 'internal-conservation_status-dash' }">Back to
-                                                        Dashboard</router-link>
+                                                        <router-link class="btn btn-primary"
+                                                            :to="{ name: 'internal-conservation_status-dash' }">Back to
+                                                            Dashboard</router-link>
                                                     </p>
                                                 </div>
-                                                <div v-if="conservation_status_obj.internal_user_edit" class="col-md-6 text-end">
+                                                <div v-if="conservation_status_obj.internal_user_edit"
+                                                    class="col-md-6 text-end">
                                                     <button v-if="savingConservationStatus" class="btn btn-primary me-2"
                                                         style="margin-top:5px;" disabled>Save and Continue&nbsp;
                                                         <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
@@ -530,9 +529,6 @@ export default {
             } else {
                 //return this.conservation_status_obj.applicant_obj.email
             }
-        },
-        canSeeSubmission: function () {
-            return true; // TODO the Processing Status based value
         },
         canEditStatus: function () {
             return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit : 'false';
@@ -784,7 +780,6 @@ export default {
                     { 'id': 'approval_level', 'display': 'Appplicable Workflow' }
                 ];
             }
-            // TODO Add any other required validation for other statuses
             let missing_fields = [];
             for (let field of required_fields) {
                 if (this.conservation_status_obj[field.id] == null || this.conservation_status_obj[field.id] == '') {
@@ -916,10 +911,22 @@ export default {
             });
             return result;
         },
+        validateConservationStatusListsCategories: function (blank_fields) {
+            let required_fields = [
+                { 'id': 'wa_legislative_list_id', 'display': 'WA Legislative List' },
+                { 'id': 'wa_priority_list_id', 'display': 'WA Priority List' },
+            ];
+            for (let field of required_fields) {
+                if (this.conservation_status_obj[field.id] != null && this.conservation_status_obj[field.id] != '') {
+                    return blank_fields;
+                }
+            }
+            blank_fields.push(`At least one of the following fields are required: ${required_fields.map(f => f.display).join(', ')}`);
+            return blank_fields;
+        },
         can_submit: function (check_action) {
             let vm = this;
             let blank_fields = []
-            // TODO check blank
             blank_fields = vm.can_submit_conservation_status(check_action);
 
             if (blank_fields.length == 0) {
@@ -943,7 +950,10 @@ export default {
                 }
             }
             if (check_action == "submit") {
-                // TODO: Check for required conservation list / category fields
+                vm.validateConservationStatusListsCategories(blank_fields)
+                if (vm.conservation_status_obj.comment == null || vm.conservation_status_obj.comment == '') {
+                    blank_fields.push(' Please enter some comments regarding your conservation status proposal.')
+                }
             }
             return blank_fields
         },
@@ -982,7 +992,6 @@ export default {
                         Object.assign(payload, vm.conservation_status_obj);
                         vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/submit'), payload).then(res => {
                             vm.conservation_status_obj = res.body;
-                            // TODO router should push to submit_cs_proposal for internal side
                             vm.$router.push({
                                 name: 'internal-conservation_status-dash'
                             });

@@ -1426,6 +1426,11 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 request,
             )
 
+            request.user.log_user_action(
+                SpeciesUserAction.ACTION_SAVE_SPECIES.format(instance.species_number),
+                request,
+            )
+
         serializer = InternalSpeciesSerializer(instance, context={"request": request})
 
         return Response(serializer.data)
@@ -1533,6 +1538,11 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 request,
             )
 
+            request.user.log_user_action(
+                SpeciesUserAction.ACTION_SAVE_SPECIES.format(instance.species_number),
+                request,
+            )
+
         return Response()
 
     @detail_route(methods=["post"], detail=True)
@@ -1617,6 +1627,11 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             request,
         )
 
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_MAKE_HISTORICAL.format(instance.species_number),
+            request,
+        )
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -1665,6 +1680,13 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 ),
                 request,
             )
+            request.user.log_user_action(
+                SpeciesUserAction.ACTION_ADD_DOCUMENT.format(
+                    new_doc_instance.document_number,
+                    new_doc_instance.species.species_number,
+                ),
+                request,
+            )
 
             check_path = os.path.exists(
                 "private-media/boranga/species/{}/species_documents/".format(
@@ -1704,6 +1726,13 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             new_threat_instance.threat_number = ""
             new_threat_instance.save(version_user=request.user)
             new_threat_instance.species.log_user_action(
+                SpeciesUserAction.ACTION_ADD_THREAT.format(
+                    new_threat_instance.threat_number,
+                    new_threat_instance.species.species_number,
+                ),
+                request,
+            )
+            request.user.log_user_action(
                 SpeciesUserAction.ACTION_ADD_THREAT.format(
                     new_threat_instance.threat_number,
                     new_threat_instance.species.species_number,
@@ -1911,6 +1940,10 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             SpeciesUserAction.ACTION_IMAGE_UPDATE.format(f"{instance.id} "),
             request,
         )
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_IMAGE_UPDATE.format(f"{instance.id} "),
+            request,
+        )
         serializer = InternalSpeciesSerializer(
             instance, context={"request": request}, partial=True
         )
@@ -1942,6 +1975,10 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             SpeciesUserAction.ACTION_IMAGE_REINSTATE.format(f"{instance.id} "),
             request,
         )
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_IMAGE_REINSTATE.format(f"{instance.id} "),
+            request,
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @detail_route(
@@ -1957,6 +1994,10 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             instance.image_doc = None
             instance.save(version_user=request.user)
             instance.log_user_action(
+                SpeciesUserAction.ACTION_IMAGE_DELETE.format(f"{instance.id} "),
+                request,
+            )
+            request.user.log_user_action(
                 SpeciesUserAction.ACTION_IMAGE_DELETE.format(f"{instance.id} "),
                 request,
             )
@@ -2109,6 +2150,12 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             serializer.save(version_user=request.user)
 
             instance.log_user_action(
+                CommunityUserAction.ACTION_SAVE_COMMUNITY.format(
+                    instance.community_number
+                ),
+                request,
+            )
+            request.user.log_user_action(
                 CommunityUserAction.ACTION_SAVE_COMMUNITY.format(
                     instance.community_number
                 ),
@@ -2334,6 +2381,10 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             CommunityUserAction.ACTION_IMAGE_UPDATE.format(f"{instance.id} "),
             request,
         )
+        request.user.log_user_action(
+            CommunityUserAction.ACTION_IMAGE_UPDATE.format(f"{instance.id} "),
+            request,
+        )
         serializer = InternalCommunitySerializer(
             instance, context={"request": request}, partial=True
         )
@@ -2362,7 +2413,11 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             raise serializers.ValidationError("No pk provided")
         instance.reinstate_image(pk)
         instance.log_user_action(
-            CommunityUserAction.ACTION_IMAGE_REINSTATE.format(f"{instance.id} "),
+            CommunityUserAction.ACTION_IMAGE_UPDATE.format(f"{instance.id} "),
+            request,
+        )
+        request.user.log_user_action(
+            CommunityUserAction.ACTION_IMAGE_UPDATE.format(f"{instance.id} "),
             request,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -2381,6 +2436,10 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             instance.image_doc = None
             instance.save(version_user=request.user)
             instance.log_user_action(
+                CommunityUserAction.ACTION_IMAGE_DELETE.format(f"{instance.id} "),
+                request,
+            )
+            request.user.log_user_action(
                 CommunityUserAction.ACTION_IMAGE_DELETE.format(f"{instance.id} "),
                 request,
             )
@@ -2413,6 +2472,12 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
             ),
             request,
         )
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_DISCARD_DOCUMENT.format(
+                instance.document_number, instance.species.species_number
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -2428,6 +2493,12 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
         instance.species.log_user_action(
+            SpeciesUserAction.ACTION_REINSTATE_DOCUMENT.format(
+                instance.document_number, instance.species.species_number
+            ),
+            request,
+        )
+        request.user.log_user_action(
             SpeciesUserAction.ACTION_REINSTATE_DOCUMENT.format(
                 instance.document_number, instance.species.species_number
             ),
@@ -2450,6 +2521,12 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
             ),
             request,
         )
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_UPDATE_DOCUMENT.format(
+                instance.document_number, instance.species.species_number
+            ),
+            request,
+        )
         return Response(serializer.data)
 
     @transaction.atomic
@@ -2461,6 +2538,12 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
         instance = serializer.save(no_revision=True)
         instance.add_documents(request, version_user=request.user)
         instance.species.log_user_action(
+            SpeciesUserAction.ACTION_ADD_DOCUMENT.format(
+                instance.document_number, instance.species.species_number
+            ),
+            request,
+        )
+        request.user.log_user_action(
             SpeciesUserAction.ACTION_ADD_DOCUMENT.format(
                 instance.document_number, instance.species.species_number
             ),
@@ -2492,6 +2575,12 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
             ),
             request,
         )
+        request.user.log_user_action(
+            CommunityUserAction.ACTION_DISCARD_DOCUMENT.format(
+                instance.document_number, instance.community.community_number
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -2506,6 +2595,12 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
         instance.visible = True
         instance.save(version_user=request.user)
         instance.community.log_user_action(
+            CommunityUserAction.ACTION_REINSTATE_DOCUMENT.format(
+                instance.document_number, instance.community.community_number
+            ),
+            request,
+        )
+        request.user.log_user_action(
             CommunityUserAction.ACTION_REINSTATE_DOCUMENT.format(
                 instance.document_number, instance.community.community_number
             ),
@@ -2529,6 +2624,12 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
             ),
             request,
         )
+        request.user.log_user_action(
+            CommunityUserAction.ACTION_UPDATE_DOCUMENT.format(
+                instance.document_number, instance.community.community_number
+            ),
+            request,
+        )
         return Response(serializer.data)
 
     @transaction.atomic
@@ -2542,6 +2643,12 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
         )  # only conduct revisions when documents have been added
         instance.add_documents(request, version_user=request.user)
         instance.community.log_user_action(
+            CommunityUserAction.ACTION_ADD_DOCUMENT.format(
+                instance.document_number, instance.community.community_number
+            ),
+            request,
+        )
+        request.user.log_user_action(
             CommunityUserAction.ACTION_ADD_DOCUMENT.format(
                 instance.document_number, instance.community.community_number
             ),
@@ -2744,8 +2851,20 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 ),
                 request,
             )
+            request.user.log_user_action(
+                SpeciesUserAction.ACTION_DISCARD_THREAT.format(
+                    instance.threat_number, instance.species.species_number
+                ),
+                request,
+            )
         elif instance.community:
             instance.community.log_user_action(
+                CommunityUserAction.ACTION_DISCARD_THREAT.format(
+                    instance.threat_number, instance.community.community_number
+                ),
+                request,
+            )
+            request.user.log_user_action(
                 CommunityUserAction.ACTION_DISCARD_THREAT.format(
                     instance.threat_number, instance.community.community_number
                 ),
@@ -2774,8 +2893,20 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 ),
                 request,
             )
+            request.user.log_user_action(
+                SpeciesUserAction.ACTION_REINSTATE_THREAT.format(
+                    instance.threat_number, instance.species.species_number
+                ),
+                request,
+            )
         elif instance.community:
             instance.community.log_user_action(
+                CommunityUserAction.ACTION_REINSTATE_THREAT.format(
+                    instance.threat_number, instance.community.community_number
+                ),
+                request,
+            )
+            request.user.log_user_action(
                 CommunityUserAction.ACTION_REINSTATE_THREAT.format(
                     instance.threat_number, instance.community.community_number
                 ),
@@ -2805,8 +2936,20 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 ),
                 request,
             )
+            request.user.log_user_action(
+                SpeciesUserAction.ACTION_UPDATE_THREAT.format(
+                    instance.threat_number, instance.species.species_number
+                ),
+                request,
+            )
         elif instance.community:
             instance.community.log_user_action(
+                CommunityUserAction.ACTION_UPDATE_THREAT.format(
+                    instance.threat_number, instance.community.community_number
+                ),
+                request,
+            )
+            request.user.log_user_action(
                 CommunityUserAction.ACTION_UPDATE_THREAT.format(
                     instance.threat_number, instance.community.community_number
                 ),
@@ -2835,6 +2978,12 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 ),
                 request,
             )
+            request.user.log_user_action(
+                SpeciesUserAction.ACTION_ADD_THREAT.format(
+                    instance.threat_number, instance.species.species_number
+                ),
+                request,
+            )
             publishing_status_instance, created = (
                 SpeciesPublishingStatus.objects.get_or_create(species=instance.species)
             )
@@ -2843,6 +2992,12 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 publishing_status_instance.save()
         elif instance.community:
             instance.community.log_user_action(
+                CommunityUserAction.ACTION_ADD_THREAT.format(
+                    instance.threat_number, instance.community.community_number
+                ),
+                request,
+            )
+            request.user.log_user_action(
                 CommunityUserAction.ACTION_ADD_THREAT.format(
                     instance.threat_number, instance.community.community_number
                 ),

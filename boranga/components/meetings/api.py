@@ -202,6 +202,10 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             MeetingUserAction.ACTION_CREATE_MEETING.format(instance.meeting_number),
             request,
         )
+        request.user.log_user_action(
+            MeetingUserAction.ACTION_CREATE_MEETING.format(instance.meeting_number),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -214,6 +218,13 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def internal_meeting(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.log_user_action(
+            settings.ACTION_VIEW.format(
+                instance._meta.verbose_name.title(),
+                helpers.get_instance_identifier(instance),
+            ),
+            request,
+        )
+        request.user.log_user_action(
             settings.ACTION_VIEW.format(
                 instance._meta.verbose_name.title(),
                 helpers.get_instance_identifier(instance),
@@ -250,6 +261,10 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 )
 
             instance.log_user_action(
+                MeetingUserAction.ACTION_SAVE_MEETING.format(instance.meeting_number),
+                request,
+            )
+            request.user.log_user_action(
                 MeetingUserAction.ACTION_SAVE_MEETING.format(instance.meeting_number),
                 request,
             )
@@ -305,6 +320,10 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             MeetingUserAction.ACTION_DISCARD_MEETING.format(instance.meeting_number),
             request,
         )
+        request.user.log_user_action(
+            MeetingUserAction.ACTION_DISCARD_MEETING.format(instance.meeting_number),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -319,6 +338,10 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance.reinstate(request)
         serializer = self.get_serializer(instance)
         instance.log_user_action(
+            MeetingUserAction.ACTION_REINSTATE_MEETING.format(instance.meeting_number),
+            request,
+        )
+        request.user.log_user_action(
             MeetingUserAction.ACTION_REINSTATE_MEETING.format(instance.meeting_number),
             request,
         )
@@ -569,6 +592,12 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             ),
             request,
         )
+        request.user.log_user_action(
+            MeetingUserAction.ACTION_DISCARD_MINUTE.format(
+                instance.minutes_number, instance.meeting.meeting_number
+            ),
+            request,
+        )
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -584,6 +613,12 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
         instance.meeting.log_user_action(
+            MeetingUserAction.ACTION_REINSTATE_MINUTE.format(
+                instance.minutes_number, instance.meeting.meeting_number
+            ),
+            request,
+        )
+        request.user.log_user_action(
             MeetingUserAction.ACTION_REINSTATE_MINUTE.format(
                 instance.minutes_number, instance.meeting.meeting_number
             ),
@@ -605,6 +640,12 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             ),
             request,
         )
+        request.user.log_user_action(
+            MeetingUserAction.ACTION_UPDATE_MINUTE.format(
+                instance.minutes_number, instance.meeting.meeting_number
+            ),
+            request,
+        )
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
@@ -613,6 +654,12 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = serializer.save(no_revision=True)
         instance.add_documents(request, version_user=request.user)
         instance.meeting.log_user_action(
+            MeetingUserAction.ACTION_ADD_MINUTE.format(
+                instance.minutes_number, instance.meeting.meeting_number
+            ),
+            request,
+        )
+        request.user.log_user_action(
             MeetingUserAction.ACTION_ADD_MINUTE.format(
                 instance.minutes_number, instance.meeting.meeting_number
             ),

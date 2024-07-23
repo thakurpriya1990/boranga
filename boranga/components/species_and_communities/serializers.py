@@ -883,7 +883,6 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
         }
 
     def get_user_edit_mode(self, obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
         return obj.has_user_edit_mode(request)
 
@@ -1300,7 +1299,6 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
         }
 
     def get_user_edit_mode(self, obj):
-        # TODO check if the proposal has been accepted or declined
         request = self.context["request"]
         return obj.has_user_edit_mode(request)
 

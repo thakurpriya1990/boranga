@@ -71,7 +71,7 @@
 import Vue from 'vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
-import FileField2 from '@/components/forms/filefield2.vue'
+import FileField2 from '@/components/forms/filefield.vue'
 import SpeciesCommunitiesComponent from '@/components/form_species_communities.vue'
 import SpeciesSplitForm from '@/components/form_species_split.vue'
 import { helpers, api_endpoints } from "@/utils/hooks.js"
@@ -265,7 +265,6 @@ export default {
             let submit_url = helpers.add_endpoint_json(api_endpoints.species, vm.species_community_original.id + '/change_status_historical')
             vm.$http.post(submit_url, payload).then(res => {
                 vm.species_community_original = res.body;
-                // TODO Not sure where it should go after the split process
                 vm.$router.push({
                     name: 'internal-species-communities-dash'
                 });

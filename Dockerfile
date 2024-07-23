@@ -114,7 +114,7 @@ RUN wget -O /tmp/GDAL-3.8.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_
 RUN pip install --no-cache-dir -r requirements.txt && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
-# TODO: Is this still needed?
+# Libgeos patch. If not used when deploying to production then may be removed.
 # COPY libgeos.py.patch /app/
 # RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
 # RUN rm /app/libgeos.py.patch

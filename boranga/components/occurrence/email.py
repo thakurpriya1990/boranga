@@ -314,7 +314,7 @@ def _log_occurrence_report_email(email_message, occurrence_report, sender=None):
             EmailMessage,
         ),
     ):
-        # TODO this will log the plain text body, should we log the html instead
+        # Note: this will log the plain text body
         text = email_message.body
         subject = email_message.subject
         fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
@@ -513,7 +513,7 @@ def _log_occurrence_report_referral_email(email_message, referral, sender=None):
             EmailMessage,
         ),
     ):
-        # TODO this will log the plain text body, should we log the html instead
+        # Note: this will log the plain text body
         text = email_message.body
         subject = email_message.subject
         fromm = smart_text(sender) if sender else smart_text(email_message.from_email)

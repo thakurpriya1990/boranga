@@ -209,8 +209,12 @@ def send_species_split_email_notification(request, species_proposal):
 
     all_ccs = list(set(all_ccs))
 
+    submitter_email = EmailUser.objects.get(id=species_proposal.submitter).email
+
+    to = request.user.email if request else submitter_email
+
     msg = email.send(
-        EmailUser.objects.get(id=species_proposal.submitter).email,
+        to,
         cc=all_ccs,
         context=context,
     )
@@ -231,54 +235,110 @@ def send_species_combine_email_notification(request, species_proposal):
         reverse("internal-conservation-status-dashboard", kwargs={})
     )
     url = convert_external_url_to_internal_url(url)
-    species_url= request.build_absolute_uri(
-            reverse("internal-species-detail", kwargs={"species_proposal_pk": species_proposal.id }))
+    species_url = request.build_absolute_uri(
+        reverse(
+            "internal-species-detail",
+            kwargs={"species_proposal_pk": species_proposal.id},
+        )
+    )
 
-    
-    parent_species_url=[]
+    notification_emails = SystemEmailGroup.emails_by_group_and_area(
+        group_type=species_proposal.group_type,
+    )
+
+    all_ccs = notification_emails
+
+    parent_species_url = []
     if species_proposal.parent_species_list:
         for sp in species_proposal.parent_species_list:
-            parent_species_url.append({'species_url': request.build_absolute_uri(
-            reverse("internal-species-detail", kwargs={"species_proposal_pk": sp.id })), 'species_instance': sp })
-    
-    parent_species_ids=[l.id for l in species_proposal.parent_species_list]
-    parent_species_numbers=[l.species_number for l in species_proposal.parent_species_list]
-    
-    conservation_status_url=[]
-    from boranga.components.conservation_status.models import ConservationStatus
-    conservation_status_list= ConservationStatus.objects.filter(species_id__in=parent_species_ids,processing_status='approved')
-    if conservation_status_list:
-        for conservation_status in conservation_status_list:
-            conservation_status_url.append({
-                'cs_url': request.build_absolute_uri(
-                    reverse("internal-conservation-status-detail", kwargs={"cs_proposal_pk": conservation_status.id})),
-                'cs_instance': conservation_status                
+            parent_species_url.append(
+                {
+                    "species_url": request.build_absolute_uri(
+                        reverse(
+                            "internal-species-detail",
+                            kwargs={"species_proposal_pk": sp.id},
+                        )
+                    ),
+                    "species_instance": sp,
                 }
             )
-    
-    #Get the list of all active Occurrence
-    occurrences_url=[]
+
+    parent_species_ids = [psl.id for psl in species_proposal.parent_species_list]
+    parent_species_numbers = [
+        psl.species_number for psl in species_proposal.parent_species_list
+    ]
+
+    conservation_status_url = []
+    from boranga.components.conservation_status.models import ConservationStatus
+
+    conservation_status_list = ConservationStatus.objects.filter(
+        species_id__in=parent_species_ids, processing_status="approved"
+    )
+    if conservation_status_list:
+        for conservation_status in conservation_status_list:
+            conservation_status_url.append(
+                {
+                    "cs_url": request.build_absolute_uri(
+                        reverse(
+                            "internal-conservation-status-detail",
+                            kwargs={"cs_proposal_pk": conservation_status.id},
+                        )
+                    ),
+                    "cs_instance": conservation_status,
+                }
+            )
+
+        cs_notification_emails = SystemEmailGroup.emails_by_group_and_area(
+            group_type=species_proposal.group_type,
+            area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
+        )
+        all_ccs.extend(cs_notification_emails)
+
+    # Get the list of all active Occurrence
+    occurrences_url = []
     from boranga.components.occurrence.models import Occurrence
-    occurrences=Occurrence.objects.filter(species_id__in=parent_species_ids, processing_status='active')
+
+    occurrences = Occurrence.objects.filter(
+        species_id__in=parent_species_ids, processing_status="active"
+    )
     if occurrences:
         for occ in occurrences:
-            occurrences_url.append({'occurrence_url': request.build_absolute_uri(
-            reverse("internal-occurrence-detail", kwargs={"occurrence_pk": occ.id })), 'occurrence_number': occ.occurrence_number})
+            occurrences_url.append(
+                {
+                    "occurrence_url": request.build_absolute_uri(
+                        reverse(
+                            "internal-occurrence-detail",
+                            kwargs={"occurrence_pk": occ.id},
+                        )
+                    ),
+                    "occurrence_number": occ.occurrence_number,
+                }
+            )
+
+        occ_notification_emails = SystemEmailGroup.emails_by_group_and_area(
+            group_type=species_proposal.group_type,
+            area=SystemEmailGroup.AREA_OCCURRENCE,
+        )
+        all_ccs.extend(occ_notification_emails)
 
     context = {
-            "species_proposal": species_proposal, 
-            "url": url, 
-            "species_url": species_url, 
-            "parent_species_url": parent_species_url, 
-            "occurrences_url": occurrences_url,
-            "parent_species_numbers": parent_species_numbers,
-            "conservation_status_url": conservation_status_url,
-        }
+        "species_proposal": species_proposal,
+        "url": url,
+        "species_url": species_url,
+        "parent_species_url": parent_species_url,
+        "occurrences_url": occurrences_url,
+        "parent_species_numbers": parent_species_numbers,
+        "conservation_status_url": conservation_status_url,
+    }
 
-    all_ccs = []
+    all_ccs = list(set(all_ccs))
+
+    submitter_email = EmailUser.objects.get(id=species_proposal.submitter).email
+
+    to = request.user.email if request else submitter_email
 
     msg = email.send(
-        EmailUser.objects.get(id=species_proposal.submitter).email,
+        to,
         cc=all_ccs,
         context=context,
     )
@@ -298,44 +358,84 @@ def send_species_rename_email_notification(request, species_proposal, new_specie
     url = request.build_absolute_uri(
         reverse("internal-conservation-status-dashboard", kwargs={})
     )
-    species_url= request.build_absolute_uri(
-            reverse("internal-species-detail", kwargs={"species_proposal_pk": species_proposal.id })
+    species_url = request.build_absolute_uri(
+        reverse(
+            "internal-species-detail",
+            kwargs={"species_proposal_pk": species_proposal.id},
         )
+    )
     species_url = convert_external_url_to_internal_url(species_url)
 
-    new_species_url= request.build_absolute_uri(
-            reverse("internal-species-detail", kwargs={"species_proposal_pk": new_species.id })
+    new_species_url = request.build_absolute_uri(
+        reverse(
+            "internal-species-detail", kwargs={"species_proposal_pk": new_species.id}
         )
+    )
     new_species_url = convert_external_url_to_internal_url(new_species_url)
 
-    conservation_status_url=[]
-    conservation_status_list= species_proposal.conservation_status.filter(processing_status='approved')
-    if conservation_status_list:
-        conservation_status_url=request.build_absolute_uri(
-        reverse("internal-conservation-status-detail", kwargs={"cs_proposal_pk": conservation_status_list[0].id})
+    notification_emails = SystemEmailGroup.emails_by_group_and_area(
+        group_type=species_proposal.group_type,
     )
-    
-    occurrences_url=[]
-    occurrences=species_proposal.occurrences.filter(processing_status='active')
+
+    all_ccs = notification_emails
+
+    conservation_status_url = []
+    conservation_status_list = species_proposal.conservation_status.filter(
+        processing_status="approved"
+    )
+    if conservation_status_list:
+        conservation_status_url = request.build_absolute_uri(
+            reverse(
+                "internal-conservation-status-detail",
+                kwargs={"cs_proposal_pk": conservation_status_list[0].id},
+            )
+        )
+        cs_notification_emails = SystemEmailGroup.emails_by_group_and_area(
+            group_type=species_proposal.group_type,
+            area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
+        )
+        all_ccs.extend(cs_notification_emails)
+
+    occurrences_url = []
+    occurrences = species_proposal.occurrences.filter(processing_status="active")
     if occurrences:
         for occ in occurrences:
-            occurrences_url.append({'occurrence_url': request.build_absolute_uri(
-            reverse("internal-occurrence-detail", kwargs={"occurrence_pk": occ.id })), 'occurrence_number': occ.occurrence_number})
+            occurrences_url.append(
+                {
+                    "occurrence_url": request.build_absolute_uri(
+                        reverse(
+                            "internal-occurrence-detail",
+                            kwargs={"occurrence_pk": occ.id},
+                        )
+                    ),
+                    "occurrence_number": occ.occurrence_number,
+                }
+            )
+
+        occ_notification_emails = SystemEmailGroup.emails_by_group_and_area(
+            group_type=species_proposal.group_type,
+            area=SystemEmailGroup.AREA_OCCURRENCE,
+        )
+        all_ccs.extend(occ_notification_emails)
 
     context = {
-        "species_proposal": species_proposal, 
+        "species_proposal": species_proposal,
         "url": url,
         "species_url": species_url,
         "new_species_url": new_species_url,
         "new_species": new_species,
         "conservation_status_url": conservation_status_url,
-        "occurrences_url" : occurrences_url,
+        "occurrences_url": occurrences_url,
     }
 
     all_ccs = []
 
+    submitter_email = EmailUser.objects.get(id=species_proposal.submitter).email
+
+    to = request.user.email if request else submitter_email
+
     msg = email.send(
-        EmailUser.objects.get(id=species_proposal.submitter).email,
+        to,
         cc=all_ccs,
         context=context,
     )

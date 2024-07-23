@@ -342,7 +342,6 @@ export default {
                 });
         },
         // render on change of comittee and also on new meeting form
-        //TODO this function can be centralised and the sel_committee_members_arr to be sent to the function
         renderMembersTable: function (add) {
             let vm = this;
             let committee_id = vm.meeting_obj.committee_id;
@@ -467,7 +466,7 @@ export default {
     },
     mounted: function () {
         let vm = this;
-        
+
         this.$nextTick(() => {
             vm.eventListeners();
             vm.hideActionColumn();
