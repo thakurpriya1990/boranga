@@ -2376,7 +2376,6 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         ):
             self.unlocked_back_to_assessor(instance.occurrence_report)
 
-        # TODO: Make sure this log action exists
         instance.occurrence_report.log_user_action(
             OccurrenceReportUserAction.ACTION_UPDATE_OBSERVER_DETAIL.format(
                 instance.observer_name,
@@ -5601,8 +5600,12 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         detail=False,
     )
     def occurrence_tenure_list_of_values(self, request, *args, **kwargs):
-        purposes = list(OccurrenceTenurePurpose.objects.all().values("id", "code", "label"))
-        vestings = list(OccurrenceTenureVesting.objects.all().values("id", "code", "label"))
+        purposes = list(
+            OccurrenceTenurePurpose.objects.all().values("id", "code", "label")
+        )
+        vestings = list(
+            OccurrenceTenureVesting.objects.all().values("id", "code", "label")
+        )
 
         res_json = {
             "purposes": purposes,
