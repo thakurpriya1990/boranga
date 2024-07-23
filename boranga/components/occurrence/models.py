@@ -2233,6 +2233,7 @@ class OCRHabitatCondition(models.Model):
         default=0,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
+    count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -4319,6 +4320,7 @@ class OCCHabitatCondition(models.Model):
         default=0,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
+    count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
