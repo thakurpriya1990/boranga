@@ -367,7 +367,7 @@ export default {
                 }
             }
             if(vm.$refs.cs_queue.$refs.cs_queue_datatable.vmDataTable.rows().count()==0){
-                blank_fields.push(' Please add atleast one Agenda record')
+                blank_fields.push(' Please add at least one Agenda record')
             }
             if (vm.meeting_obj.location_id == null || vm.meeting_obj.location_id == '') {
                 blank_fields.push(' Please select Location')
@@ -394,7 +394,7 @@ export default {
 
 
             if(vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count()==0){
-                blank_fields.push(' Please add atleast one Minutes record')
+                blank_fields.push(' Please add at least one Minutes record')
             }
             if(vm.isFutureMeeting()){
                 blank_fields.push('You cannot Complete the meeting before the End Date/Time')
