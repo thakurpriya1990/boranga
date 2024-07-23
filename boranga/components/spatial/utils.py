@@ -163,7 +163,7 @@ def populate_occurrence_tenure_data(geometry_instance, features, request):
             else:
                 created = True
                 # Restore historical tenure details to current one if applicable
-                occurrence_tenure_historical = occurrence_tenures_historical.order_by(
+                historical = occurrence_tenures_historical.order_by(
                     "-datetime_updated"
                 ).first()
                 occurrence_tenure = OccurrenceTenure(
@@ -172,10 +172,12 @@ def populate_occurrence_tenure_data(geometry_instance, features, request):
                     owner_name=owner_name,
                     owner_count=owner_count,
                     tenure_area_ewkb=tenure_area_ewkb,
-                    purpose=occurrence_tenure_historical.purpose,
-                    vesting=occurrence_tenure_historical.vesting,
-                    significant_to_occurrence=occurrence_tenure_historical.significant_to_occurrence,
-                    comments=occurrence_tenure_historical.comments,
+                    purpose=historical.purpose if historical else None,
+                    vesting=historical.vesting if historical else None,
+                    significant_to_occurrence=(
+                        historical.significant_to_occurrence if historical else None
+                    ),
+                    comments=historical.comments if historical else None,
                 )
                 occurrence_tenure.save(version_user=request.user)
 
