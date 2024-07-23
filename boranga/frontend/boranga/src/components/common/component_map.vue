@@ -4080,7 +4080,9 @@ export default {
             let cannot_delete_features = [];
             const features = vm.selectedFeatures().filter((feature) => {
                 if (
-                    feature.getProperties().locked === false ||
+                    [undefined, false].includes(
+                        feature.getProperties().locked
+                    ) ||
                     vm.debug // Allow deletion of locked features if debug mode is enabled
                 ) {
                     return feature;
