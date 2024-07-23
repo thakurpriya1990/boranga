@@ -12,7 +12,6 @@ class MeetingRoomAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
 class CommitteeMembersInline(admin.TabularInline):
     model = CommitteeMembers
     extra = 0
-    verbose_name = "Committee Member"
     # raw_id_fields = ('email',)
 
 
@@ -20,7 +19,7 @@ class CommitteeMembersAdmin(DeleteProtectedModelAdmin):
     list_display = ["email", "id", "first_name", "last_name", "committee"]
 
 
-class CommitteeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class CommitteeAdmin(DeleteProtectedModelAdmin):
     list_display = ["name", "id"]
     inlines = [CommitteeMembersInline]
 
