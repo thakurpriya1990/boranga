@@ -1,7 +1,8 @@
-from django import forms
-from django.contrib import admin
+# from django import forms
+# from django.contrib import admin
+from django.contrib.gis import admin, forms
 
-from .models import GeoserverUrl, Proxy, TileLayer
+from .models import GeoserverUrl, PlausibilityGeometry, Proxy, TileLayer
 
 
 class TileLayerModelForm(forms.ModelForm):
@@ -175,6 +176,43 @@ class ProxyAdmin(admin.ModelAdmin):
                     "username",
                     "password",
                     "active",
+                )
+            },
+        ),
+    )
+
+class GeometryField(forms.GeometryField):
+    widget = forms.OSMWidget(
+        attrs={
+            "display_raw": False,
+            "map_width": 800,
+            "map_srid": 4326,
+            "map_height": 600,
+            "default_lat": -31.9502682,
+            "default_lon": 115.8590241,
+        }
+    )
+
+class PlausibilityGeometryForm(forms.ModelForm):
+    geometry = GeometryField()
+
+    class Meta:
+        model = PlausibilityGeometry
+        fields = "__all__"
+
+@admin.register(PlausibilityGeometry)
+class PlausibilityGeometryAdmin(admin.ModelAdmin):
+    list_display = ("geometry",)
+    # search_fields = ("name",)
+    # ordering = ("name",)
+    form = PlausibilityGeometryForm
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    # "name",
+                    "geometry",
                 )
             },
         ),
