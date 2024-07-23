@@ -277,6 +277,7 @@
                                     <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
                                         @click.prevent="returnToDashboard">
                                             Return to Dashboard</button>
+                                            submitOccurrenceReport {{ submitOccurrenceReport }}
                                     <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit"
                                     class="col-md-6 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
@@ -302,7 +303,7 @@
                                             @click.prevent="submit()"
                                             :disabled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
-                                    <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)" 
+                                    <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)"
                                     class="col-md-6 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Save Changes <span
@@ -639,7 +640,7 @@ export default {
         },
         save: async function () {
             let vm = this;
-            var missing_data = vm.can_submit("");
+            var missing_data = await vm.can_submit("");
             vm.isSaved = false;
             if (missing_data != true) {
                 swal.fire({
@@ -701,7 +702,7 @@ export default {
         },
         save_exit: async function (e) {
             let vm = this;
-            var missing_data = vm.can_submit("");
+            var missing_data = await vm.can_submit("");
             if (missing_data != true) {
                 swal.fire({
                     title: "Please fix following errors before saving",
@@ -752,7 +753,7 @@ export default {
             });
             return result;
         },
-        can_submit: function (check_action) {
+        can_submit: async function (check_action) {
             let vm = this;
             let blank_fields = []
             if (vm.occurrence_report.group_type == 'flora' || vm.occurrence_report.group_type == 'fauna') {
@@ -766,8 +767,29 @@ export default {
                 }
             }
             if (check_action == 'submit') {
+                await vm.save_before_submit()
+
                 if (!vm.occurrence_report.submitter_information.submitter_category) {
                     blank_fields.push(' Please select a submitter category')
+                }
+
+                if (!vm.occurrence_report.observation_date) {
+                    blank_fields.push(' Please enter the observation date')
+                }
+
+                if (!vm.occurrence_report.number_of_observers || vm.occurrence_report.number_of_observers == 0) {
+                    blank_fields.push(' Please add the details for at least one observer')
+                }
+
+                if (!vm.occurrence_report.location || !vm.occurrence_report.location.location_description) {
+                    blank_fields.push(' Please enter the location description')
+                }
+                let ocr_geometry = vm.occurrence_report.ocr_geometry;
+                if(typeof ocr_geometry == 'string'){
+                    ocr_geometry = JSON.parse(ocr_geometry)
+                }
+                if(!Array.isArray(ocr_geometry.features) || ocr_geometry.features.length == 0){
+                    blank_fields.push(' Please add at least one location on the map')
                 }
             }
             if (blank_fields.length == 0) {
@@ -780,7 +802,7 @@ export default {
         submit: async function () {
             let vm = this;
 
-            var missing_data = vm.can_submit("submit");
+            var missing_data = await vm.can_submit("submit");
             if (missing_data != true) {
                 swal.fire({
                     title: "Please fix following errors before submitting",
@@ -830,6 +852,7 @@ export default {
                         });
                     }
                 }
+                vm.submitOccurrenceReport = false;
             }, (error) => {
                 vm.submitOccurrenceReport = false;
             });

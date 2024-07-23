@@ -21,7 +21,6 @@ from boranga.components.species_and_communities.models import (
     DocumentSubCategory,
 )
 from boranga.helpers import is_conservation_status_approver
-from boranga.ledger_api_utils import retrieve_email_user
 from boranga.ordered_model import OrderedModel
 
 logger = logging.getLogger(__name__)
@@ -219,14 +218,12 @@ class Meeting(models.Model):
         )
 
         # Create a log entry for the submitter
-        if self.submitter:
-            submitter = retrieve_email_user(self.submitter)
-            submitter.log_user_action(
-                MeetingUserAction.ACTION_DISCARD_MEETING.format(
-                    self.meeting_number,
-                ),
-                request,
-            )
+        request.user.log_user_action(
+            MeetingUserAction.ACTION_DISCARD_MEETING.format(
+                self.meeting_number,
+            ),
+            request,
+        )
 
     @transaction.atomic
     def reinstate(self, request):
@@ -255,14 +252,12 @@ class Meeting(models.Model):
         )
 
         # Create a log entry for the submitter
-        if self.submitter:
-            submitter = retrieve_email_user(self.submitter)
-            submitter.log_user_action(
-                MeetingUserAction.ACTION_REINSTATE_MEETING.format(
-                    self.meeting_number,
-                ),
-                request,
-            )
+        request.user.log_user_action(
+            MeetingUserAction.ACTION_REINSTATE_MEETING.format(
+                self.meeting_number,
+            ),
+            request,
+        )
 
     @transaction.atomic
     def submit(self, request, viewset):
@@ -278,14 +273,12 @@ class Meeting(models.Model):
         )
 
         # Create a log entry for the submitter
-        if self.submitter:
-            submitter = retrieve_email_user(self.submitter)
-            submitter.log_user_action(
-                MeetingUserAction.ACTION_SUBMIT_MEETING.format(
-                    self.meeting_number,
-                ),
-                request,
-            )
+        request.user.log_user_action(
+            MeetingUserAction.ACTION_SUBMIT_MEETING.format(
+                self.meeting_number,
+            ),
+            request,
+        )
 
         self.save()
 
@@ -305,14 +298,12 @@ class Meeting(models.Model):
         )
 
         # Create a log entry for the submitter
-        if self.submitter:
-            submitter = retrieve_email_user(self.submitter)
-            submitter.log_user_action(
-                MeetingUserAction.ACTION_SCHEDULE_MEETING.format(
-                    self.meeting_number,
-                ),
-                request,
-            )
+        request.user.log_user_action(
+            MeetingUserAction.ACTION_SCHEDULE_MEETING.format(
+                self.meeting_number,
+            ),
+            request,
+        )
 
         self.save()
 
@@ -332,14 +323,12 @@ class Meeting(models.Model):
         )
 
         # Create a log entry for the submitter
-        if self.submitter:
-            submitter = retrieve_email_user(self.submitter)
-            submitter.log_user_action(
-                MeetingUserAction.ACTION_COMPLETE_MEETING.format(
-                    self.meeting_number,
-                ),
-                request,
-            )
+        request.user.log_user_action(
+            MeetingUserAction.ACTION_COMPLETE_MEETING.format(
+                self.meeting_number,
+            ),
+            request,
+        )
 
         self.save()
 

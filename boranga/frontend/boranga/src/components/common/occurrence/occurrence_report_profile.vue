@@ -341,7 +341,6 @@ export default {
         },
         has_comment_value: function () {
             let has_value = false;
-            // TODO need to add assessor comment value as well
             for (let i = 0; i < this.referral_comments_boxes.length; i++) {
                 if (Object.hasOwn(this.referral_comments_boxes[i], 'value')) {
                     if (
