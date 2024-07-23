@@ -4487,9 +4487,11 @@ export default {
 
             const features = [];
             layerFeatures.forEach(function (f) {
+                // Keep the feature-id of an existing feature
+                const featureId = f.getId();
                 const feature = f.clone();
                 feature.unset('model');
-                feature.setId(feature.getProperties().name);
+                feature.setId(featureId);
                 features.push(feature);
             });
 
