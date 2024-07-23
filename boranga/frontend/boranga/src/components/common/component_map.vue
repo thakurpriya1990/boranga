@@ -240,7 +240,6 @@
                                         class="input-group input-group-sm mb-1 text-nowrap"
                                     >
                                         <!-- Select geometry-checkbox -->
-                                        <!-- TODO: disabled based on show hide -->
                                         <div class="input-group-text">
                                             <input
                                                 :id="`feature-${feature.ol_uid}-checkbox`"
@@ -1409,7 +1408,6 @@
                         </div>
                     </template>
                 </div>
-                <!-- TODO: other loading cases -->
                 <div v-show="loadingMap" id="map-spinner" class="text-primary">
                     <div
                         class="spinner-border text-primary"
@@ -4103,18 +4101,15 @@ export default {
                 // Assign a random color to each proposal
                 proposals.forEach(function (proposal) {
                     const properyOverwrite = this.property_overwrite || {};
-                    // TODO: A color picker fn: colorpicker([])
-                    const color =
-                        properyOverwrite.color ||
-                        proposal.color ||
-                        vm.getRandomColor();
-                    // TODO: custom stroke fn
-                    const stroke =
-                        properyOverwrite.stroke ||
-                        proposal.stroke ||
-                        vm.getRandomColor();
+                    const color = vm.colorPickOrRandom(
+                        properyOverwrite.color,
+                        proposal.color
+                    );
+                    const stroke = vm.colorPickOrRandom(
+                        properyOverwrite.stroke,
+                        proposal.stroke
+                    );
                     proposal.color = color;
-                    // TODO: custom stroke fn
                     proposal.stroke = stroke;
                 }, layerDef);
             } else {
@@ -4134,15 +4129,14 @@ export default {
                         feature.properties = {};
                     }
                     const properyOverwrite = this.property_overwrite || {};
-                    const color =
-                        properyOverwrite.color ||
-                        feature.properties.color ||
-                        vm.getRandomColor();
-                    // TODO: custom stroke fn
-                    const stroke =
-                        properyOverwrite.color ||
-                        feature.properties.stroke ||
-                        vm.getRandomColor();
+                    const color = vm.colorPickOrRandom(
+                        properyOverwrite.color,
+                        feature.properties.color
+                    );
+                    const stroke = vm.colorPickOrRandom(
+                        properyOverwrite.stroke,
+                        feature.properties.stroke
+                    );
                     feature.properties.color = color;
                     feature.properties.stroke = stroke;
                 }, layerDef);
@@ -5616,6 +5610,17 @@ export default {
                 return false;
             }
             return feature.getProperties().show_on_map === false;
+        },
+        colorPickOrRandom: function (...colors) {
+            const color = colors.find((color) => {
+                if (this.isColor(color)) {
+                    return color;
+                }
+            });
+            if (color) {
+                return color;
+            }
+            return this.getRandomColor();
         },
     },
 };
