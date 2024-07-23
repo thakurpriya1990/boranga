@@ -7,12 +7,12 @@
                 <label for="assigned-to" class="form-label">Communications</label>
                 <div class="rounded border py-2">
                     <span class="ps-3 pe-2"><i class="bi bi-card-list"></i> </span>
-                    <a href="#" class="pe-5" ref="showCommsBtn">View</a>
+                    <a href="#" class="pe-5" ref="showCommsBtn" @click.prevent>View</a>
                     <template v-if="!disable_add_entry">
                         <span class="pe-2">
                             <i class="bi bi-plus-circle"></i>
                         </span>
-                        <a href="#" ref="addCommsBtn" @click="addComm()">Add
+                        <a href="#" ref="addCommsBtn" @click.prevent="addComm()">Add
                             Entry</a>
                     </template>
                 </div>
@@ -21,7 +21,7 @@
                 <label for="assigned-to" class="form-label">Actions</label>
                 <div class="rounded border py-2">
                     <span class="ps-3 pe-2"><i class="bi bi-card-list"></i> </span>
-                    <a href="#" ref="showActionBtn">View</a>
+                    <a href="#" ref="showActionBtn" @click.prevent>View</a>
                 </div>
             </div>
         </div>
