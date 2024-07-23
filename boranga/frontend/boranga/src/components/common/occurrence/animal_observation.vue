@@ -350,6 +350,7 @@ export default {
             animal_health_list: [],
             updatingAnimalOnservationDetails: false,
             total_seen: 0,
+            not_counted: false,
         }
     },
     components: {
