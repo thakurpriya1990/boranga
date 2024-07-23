@@ -12,7 +12,7 @@
                                         <label class="control-label pull-left" for="Name">To</label>
                                     </div>
                                     <div class="col-sm-4">
-                                        <input type="text" class="form-control" name="to" v-model="comms.to">
+                                        <input type="text" class="form-control" ref="to" name="to" v-model="comms.to">
                                     </div>
                                 </div>
                             </div>
@@ -157,6 +157,16 @@ export default {
         },
         title: function () {
             return this.processing_status == 'With Approver' ? 'Issue Comms' : 'Propose to issue approval';
+        }
+    },
+    watch: {
+        isModalOpen: function (val) {
+            let vm = this;
+            if (val) {
+                vm.$nextTick(function () {
+                    vm.$refs.to.focus();
+                })
+            }
         }
     },
     methods: {
