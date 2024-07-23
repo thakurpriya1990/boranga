@@ -1202,7 +1202,7 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_DISCARD_PROPOSAL = "Discard occurrence report {}"
     ACTION_REINSTATE_PROPOSAL = "Reinstate occurrence report {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
-
+    ACTION_UPDATE_OBSERVER_DETAIL = "Update Observer {} on occurrence report {}"
     # Amendment
     ACTION_ID_REQUEST_AMENDMENTS = "Request amendments"
 
