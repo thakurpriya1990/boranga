@@ -52,7 +52,7 @@ class MeetingRoom(ArchivableModel):
         return str(self.room_name)
 
 
-class Committee(models.Model):
+class Committee(ArchivableModel):
     name = models.CharField(max_length=328, blank=True, null=True)
 
     class Meta:
