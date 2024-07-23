@@ -376,7 +376,7 @@ export default {
                 visible: true,
                 name: "main_observer",
                 render: function (data, type, full) {
-                    return full.main_observer ? 'Yes' : 'No';
+                    return full.main_observer;
                 }
             }
         },
