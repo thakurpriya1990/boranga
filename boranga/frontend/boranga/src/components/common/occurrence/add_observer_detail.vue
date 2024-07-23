@@ -50,12 +50,12 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="form-check form-check-inline">
-                                            <input :disabled="isReadOnly" id="mainObserverYes" class="form-check-input"
+                                            <input :disabled="isReadOnly || occurrence_report.has_main_observer" id="mainObserverYes" class="form-check-input"
                                                 type="radio" v-model="observerObj.main_observer" value="true">
                                             <label for="mainObserverYes" class="form-check-label">Yes</label>
                                         </div>
                                         <div class="form-check form-check-inline">
-                                            <input :disabled="isReadOnly" id="mainObserverNo" class="form-check-input"
+                                            <input :disabled="isReadOnly || occurrence_report.has_main_observer" id="mainObserverNo" class="form-check-input"
                                                 type="radio" v-model="observerObj.main_observer" value="false">
                                             <label for="mainObserverNo" class="form-check-label">No</label>
                                         </div>
