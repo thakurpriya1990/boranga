@@ -1411,7 +1411,11 @@
                 </div>
                 <!-- TODO: other loading cases -->
                 <div v-show="loadingMap" id="map-spinner" class="text-primary">
-                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                    <div
+                        class="spinner-border text-primary"
+                        style="width: 3rem; height: 3rem"
+                        role="status"
+                    >
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
@@ -1509,8 +1513,14 @@
                                 <div
                                     class="col-sm-12 text-nowrap text-truncate"
                                 >
-                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                <span class="visually-hidden">Loading...</span>
+                                    <span
+                                        class="spinner-border spinner-border-sm"
+                                        role="status"
+                                        aria-hidden="true"
+                                    ></span>
+                                    <span class="visually-hidden"
+                                        >Loading...</span
+                                    >
                                 </div>
                             </div>
                         </button>
@@ -4485,6 +4495,7 @@ export default {
             layerFeatures.forEach(function (f) {
                 const feature = f.clone();
                 feature.unset('model');
+                feature.setId(feature.getProperties().name);
                 features.push(feature);
             });
 
