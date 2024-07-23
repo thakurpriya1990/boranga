@@ -143,8 +143,8 @@ geom AS (
                     ',',
                     otc.tenure_area_id,
                     otc.status,
-                    coalesce(p.label, ''),
-                    coalesce(v.label, '')
+                    coalesce(p.code, ''),
+                    coalesce(v.code, '')
                 )
             ),
             '; '
