@@ -671,7 +671,7 @@ export default {
             await vm.$http.post(vm.occurrence_report_form_url, payload).then(res => {
                 swal.fire({
                     title: "Saved",
-                    text: "Your changes has been saved",
+                    text: "Your changes have been saved",
                     icon: "success",
                     customClass: {
                         confirmButton: 'btn btn-primary',
