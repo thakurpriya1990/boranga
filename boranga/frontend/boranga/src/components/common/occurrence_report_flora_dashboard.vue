@@ -511,6 +511,9 @@ export default {
                 buttons: buttons,
                 columns: columns,
                 processing: true,
+                drawCallback: function () {
+                    helpers.enablePopovers();
+                },
                 initComplete: function () {
                     helpers.enablePopovers();
                 },

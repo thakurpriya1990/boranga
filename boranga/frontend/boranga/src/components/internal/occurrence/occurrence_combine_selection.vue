@@ -64,7 +64,7 @@ export default {
                             let links = '';
                             if (vm.section_type === "" || vm.section_type === undefined) {
                                 links += `<a href='/internal/occurrence/${full.id}' target="_blank">View</a><br>`;
-                                
+
                                 if (full.id != vm.mainOccurrenceId) {
                                     links += `<a href='#' data-remove-occurrence='${full.id}'>Remove</a><br>`;
                                 }
@@ -76,7 +76,7 @@ export default {
                         }
                     },
                 ]
-        
+
         if (vm.section_type !== "" && vm.section_type !== undefined) {
             headers.push("");
             columns.push({
@@ -117,6 +117,12 @@ export default {
                         "<'row'<'col-sm-12'tr>>" +
                         "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: columns,
+                drawCallback: function () {
+                    helpers.enablePopovers();
+                },
+                initComplete: function () {
+                    helpers.enablePopovers();
+                },
             },
         }
     },
@@ -160,8 +166,8 @@ export default {
             },
             err => {
                 console.log(err);
-            });  
-        }, 
+            });
+        },
         addEventListeners:function (){
             let vm=this;
             vm.$refs.occurrences_datatable.vmDataTable.on('change', 'input[data-section-radio]', function(e) {
@@ -179,7 +185,7 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-view-section');
                 vm.viewSection(id);
-            });     
+            });
             vm.$refs.occurrences_datatable.vmDataTable.on('click', 'a[data-remove-occurrence]', function(e) {
                 e.preventDefault();
                 var id = $(this).attr('data-remove-occurrence');
