@@ -318,30 +318,6 @@ class TaxonPreviousName(models.Model):
         return str(self.previous_scientific_name)
 
 
-# TODO will need to delete this model
-class CrossReference(models.Model):
-    """
-    Previous Name(old name) of taxon which is also derived from taxon
-    """
-
-    cross_reference_id = models.IntegerField(null=True, blank=True)
-    cross_reference_type = models.CharField(max_length=512, null=True, blank=True)
-    old_name_id = models.IntegerField(null=True, blank=True)
-    new_name_id = models.IntegerField(null=True, blank=True)
-    old_taxonomy = models.ForeignKey(
-        Taxonomy, on_delete=models.CASCADE, null=True, related_name="old_taxon"
-    )
-    new_taxonomy = models.ForeignKey(
-        Taxonomy, on_delete=models.CASCADE, null=True, related_name="new_taxon"
-    )
-
-    class Meta:
-        app_label = "boranga"
-
-    def __str__(self):
-        return str(self.cross_reference_id)
-
-
 class ClassificationSystem(models.Model):
     """
     Classification Suystem for a taxon
