@@ -5076,7 +5076,7 @@ class OccurrenceViewSet(
                     }
                 )
         sample_type_list = []
-        values = SampleType.objects.all()
+        values = SampleType.objects.filter(group_type__name=group_type)
         if values:
             for val in values:
                 sample_type_list.append(
