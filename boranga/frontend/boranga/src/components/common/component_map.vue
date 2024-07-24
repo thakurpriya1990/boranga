@@ -365,6 +365,53 @@
                                                 />
                                             </svg>
                                             <svg
+                                                v-else-if="
+                                                    isMultiPolygonFeature(
+                                                        feature
+                                                    )
+                                                "
+                                                class="svg-object"
+                                                width="24"
+                                                height="24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <!-- Two intersecting rectangles -->
+                                                <path
+                                                    d="M2 2 16 2 16 16 2 16 z"
+                                                    :fill="
+                                                        feature.getProperties()
+                                                            .color
+                                                    "
+                                                    :stroke="
+                                                        selectedFeatureIds.includes(
+                                                            feature.getProperties()
+                                                                .id
+                                                        )
+                                                            ? 'red'
+                                                            : feature.getProperties()
+                                                                  .stroke
+                                                    "
+                                                    stroke-width="2"
+                                                />
+                                                <path
+                                                    d="M9 9 22 9 22 22 9 22 z"
+                                                    :fill="
+                                                        feature.getProperties()
+                                                            .color
+                                                    "
+                                                    :stroke="
+                                                        selectedFeatureIds.includes(
+                                                            feature.getProperties()
+                                                                .id
+                                                        )
+                                                            ? 'red'
+                                                            : feature.getProperties()
+                                                                  .stroke
+                                                    "
+                                                    stroke-width="2"
+                                                />
+                                            </svg>
+                                            <svg
                                                 v-else
                                                 class="svg-object"
                                                 width="24"
@@ -4487,9 +4534,11 @@ export default {
 
             const features = [];
             layerFeatures.forEach(function (f) {
+                // Keep the feature-id of an existing feature
+                const featureId = f.getId();
                 const feature = f.clone();
                 feature.unset('model');
-                feature.setId(feature.getProperties().name);
+                feature.setId(featureId);
                 features.push(feature);
             });
 
@@ -5208,6 +5257,9 @@ export default {
             return ['Point', 'MultiPoint'].includes(
                 feature.getGeometry().getType()
             );
+        },
+        isMultiPolygonFeature: function (feature) {
+            return feature.getGeometry().getType() === 'MultiPolygon';
         },
         isPolygonLikeFeature: function (feature) {
             return ['Polygon', 'MultiPolygon'].includes(

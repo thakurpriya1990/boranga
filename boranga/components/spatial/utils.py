@@ -50,6 +50,8 @@ def invert_xy_coordinates(geometries):
 
 
 def intersect_geometry_with_layer(geometry, intersect_layer, geometry_name="SHAPE"):
+    """Query a geoserver WFS layer with a geometry and return the intersecting features as JSON."""
+
     geoserver_url = intersect_layer.geoserver_url
     intersect_layer_name = intersect_layer.layer_name
     invert_xy = intersect_layer.invert_xy
@@ -58,6 +60,22 @@ def intersect_geometry_with_layer(geometry, intersect_layer, geometry_name="SHAP
     if invert_xy:
         test_geom = invert_xy_coordinates([geometry])[0]
 
+    if test_geom.geom_type in ["MultiPoint"]:
+        # For some unknown silly reason, geoserver's jts cannot handle valid single-bracketed multipoint geometries,
+        # e.g. MULTIPOINT (3 1, 4 1, 5 2), and rather throws unintelligible java class exceptions at me, so we
+        # have to convert them to a double-bracket notation in the form of MULTIPOINT ((3 1), (4 1), (5 2)). Even
+        # though both forms are (topologically) valid by OGC definition, the jts (java topology suite) library only
+        # seems to except singleton lists (https://www.tsusiatsoftware.net/jts/javadoc/com/vividsolutions/jts/io/WKTReader.html)
+        logger.warn(
+            f"Converting MultiPoint geometry {test_geom} to double-bracket notation"
+        )
+        test_geom_wkt = (
+            f'MULTIPOINT ({", ".join([f"({c[0]} {c[1]})" for c in test_geom.coords])})'
+        )
+    else:
+        test_geom_wkt = test_geom.wkt
+
+    wkt.loads(test_geom.wkt)
     params = {
         "service": "WFS",
         "version": "2.0.0",
@@ -67,7 +85,7 @@ def intersect_geometry_with_layer(geometry, intersect_layer, geometry_name="SHAP
         "srsName": "EPSG:4326",  # using the default projection for open layers and geodjango
         "outputFormat": "application/json",
         "propertyName": f"{geometry_name},CAD_OWNER_NAME,CAD_OWNER_COUNT",
-        "CQL_FILTER": f"INTERSECTS({geometry_name}, {test_geom.wkt})",
+        "CQL_FILTER": f"INTERSECTS({geometry_name}, {test_geom_wkt})",
     }
 
     request_path = (
@@ -142,16 +160,15 @@ def populate_occurrence_tenure_data(geometry_instance, features, request):
         else:
             occurrence_tenures = OccurrenceTenure.objects.filter(
                 tenure_area_id=feature_id
-            ).exclude(occurrence_geometry=None,tenure_area_id=None)
+            ).exclude(occurrence_geometry=None, tenure_area_id=None)
 
             occurrence_tenures_current = occurrence_tenures.filter(
-                occurrence_geometry=geometry_instance,
-                status="current"
+                occurrence_geometry=geometry_instance, status="current"
             )
 
             occurrence_tenures_historical = occurrence_tenures.filter(
                 historical_occurrence=geometry_instance.occurrence.id,
-                status="historical"
+                status="historical",
             )
 
             if occurrence_tenures_current.exists():
@@ -163,7 +180,7 @@ def populate_occurrence_tenure_data(geometry_instance, features, request):
             else:
                 created = True
                 # Restore historical tenure details to current one if applicable
-                occurrence_tenure_historical = occurrence_tenures_historical.order_by(
+                historical = occurrence_tenures_historical.order_by(
                     "-datetime_updated"
                 ).first()
                 occurrence_tenure = OccurrenceTenure(
@@ -172,10 +189,12 @@ def populate_occurrence_tenure_data(geometry_instance, features, request):
                     owner_name=owner_name,
                     owner_count=owner_count,
                     tenure_area_ewkb=tenure_area_ewkb,
-                    purpose=occurrence_tenure_historical.purpose,
-                    vesting=occurrence_tenure_historical.vesting,
-                    significant_to_occurrence=occurrence_tenure_historical.significant_to_occurrence,
-                    comments=occurrence_tenure_historical.comments,
+                    purpose=historical.purpose if historical else None,
+                    vesting=historical.vesting if historical else None,
+                    significant_to_occurrence=(
+                        historical.significant_to_occurrence if historical else None
+                    ),
+                    comments=historical.comments if historical else None,
                 )
                 occurrence_tenure.save(version_user=request.user)
 
@@ -296,7 +315,7 @@ def save_geometry(
                     InstanceCopiedFrom
                 )
 
-        opacity = feature.get("properties", {}).get("opacity", .5)
+        opacity = feature.get("properties", {}).get("opacity", 0.5)
 
         geom_4326 = feature_json_to_geosgeometry(feature)
 
@@ -452,9 +471,20 @@ def save_geometry(
     # or have been drawn by another user
     geometry_ids = list(geometry_id_intersect_data.keys())
     if instance_fk_field_name == "occurrence":
-        affected_tenure_ids = list(OccurrenceTenure.objects.filter(occurrence_geometry__in=(InstanceGeometry.objects.filter(**{instance_fk_field_name: instance})
-            .exclude(Q(id__in=geometry_ids) | Q(locked=True) | ~Q(drawn_by=request.user.id)))).values_list("id",flat=True))
-    
+        affected_tenure_ids = list(
+            OccurrenceTenure.objects.filter(
+                occurrence_geometry__in=(
+                    InstanceGeometry.objects.filter(
+                        **{instance_fk_field_name: instance}
+                    ).exclude(
+                        Q(id__in=geometry_ids)
+                        | Q(locked=True)
+                        | ~Q(drawn_by=request.user.id)
+                    )
+                )
+            ).values_list("id", flat=True)
+        )
+
     deleted_geometries = (
         InstanceGeometry.objects.filter(**{instance_fk_field_name: instance})
         .exclude(Q(id__in=geometry_ids) | Q(locked=True) | ~Q(drawn_by=request.user.id))
@@ -464,9 +494,9 @@ def save_geometry(
         logger.info(
             f"Deleted {instance_model_name} geometries: {deleted_geometries} for {instance}"
         )
-    
+
     if instance_fk_field_name == "occurrence":
-        #we save affected tenures to record the historical change
+        # we save affected tenures to record the historical change
         affected_tenures = OccurrenceTenure.objects.filter(id__in=affected_tenure_ids)
         for i in affected_tenures:
             i.save(version_user=request.user)
