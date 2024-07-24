@@ -592,4 +592,7 @@
    "compressed": false}},
  {"model": "boranga.fileextensionwhitelist",
   "pk": 135,
-  "fields": {"name": "zip", "model": "all", "compressed": true}}]
+  "fields": {"name": "zip", "model": "all", "compressed": true}},
+{"model": "boranga.fileextensionwhitelist",
+  "pk": 136,
+  "fields": {"name": "gz", "model": "all", "compressed": true}}]

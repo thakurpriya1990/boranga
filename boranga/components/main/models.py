@@ -7,8 +7,9 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from reversion.models import Version
 from django.apps import apps
+from django.core.cache import cache
 
-from boranga.helpers import compressed_content_valid
+from boranga.helpers import compressed_content_valid, file_extension_valid
 
 private_storage = FileSystemStorage(
     location=settings.BASE_DIR + "/private-media/", base_url="/private-media/"
@@ -160,19 +161,24 @@ class Document(RevisionedMixin):
     def __str__(self):
         return self.name or self.filename
     
-    def save(self, *args, **kwargs):
+    def check_file(self,file):
+        #check if extension in whitelist
+        cache_key = settings.CACHE_KEY_FILE_EXTENSION_WHITELIST
+        whitelist = cache.get(cache_key)
+        if whitelist is None:
+            whitelist = FileExtensionWhitelist.objects.all()
+            cache.set(cache_key, whitelist, settings.CACHE_TIMEOUT_2_HOURS)
 
-        #check file type/extension
-        if self._file and os.path.isfile(self._file.path):
-            #check if extension in whitelist
+        valid, compression = file_extension_valid(str(file), whitelist, self._meta.model_name)
 
+        if not valid:
+            raise ValidationError("File type/extension not supported")
 
+        if compression:
             #supported compression check
-            valid = compressed_content_valid(self._file.path)
+            valid = compressed_content_valid(file, whitelist, self._meta.model_name)
             if not valid:
-                raise ValidationError("Invalid extension in compressed file")
-
-        super().save(*args, **kwargs)
+                raise ValidationError("Unsupported type/extension in compressed file")
 
 
 class GlobalSettings(models.Model):

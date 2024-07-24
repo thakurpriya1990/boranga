@@ -458,6 +458,7 @@ class Minutes(Document):
         data = json.loads(request.data.get("data"))
 
         for idx in range(data["num_files"]):
+            self.check_file(request.data.get("file-" + str(idx)))
             _file = request.data.get("file-" + str(idx))
             self._file = _file
             self.name = _file.name
