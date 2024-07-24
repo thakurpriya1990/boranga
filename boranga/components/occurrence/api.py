@@ -2377,7 +2377,6 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         ):
             self.unlocked_back_to_assessor(instance.occurrence_report)
 
-        # TODO: Make sure this log action exists
         instance.occurrence_report.log_user_action(
             OccurrenceReportUserAction.ACTION_UPDATE_OBSERVER_DETAIL.format(
                 instance.observer_name,
@@ -5500,12 +5499,20 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         results = []
         if search_term:
             queryset = (
-                queryset.filter(vesting__label__icontains=search_term)
-                .values("vesting__id", "vesting__label")
+                queryset.annotate(
+                    vesting_code_label=Concat(
+                        "vesting__code", Value(" - "), "vesting__label"
+                    )
+                )
+                .filter(vesting_code_label__icontains=search_term)
+                .values("vesting__id", "vesting__code", "vesting__label")
                 .distinct()[:10]
             )
         results = [
-            {"id": row["vesting__id"], "text": row["vesting__label"]}
+            {
+                "id": row["vesting__id"],
+                "text": f"{row['vesting__code']} - {row['vesting__label']}",
+            }
             for row in queryset
         ]
 
@@ -5528,12 +5535,20 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         if search_term:
             queryset = (
-                queryset.filter(purpose__label__icontains=search_term)
-                .values("purpose__id", "purpose__label")
+                queryset.annotate(
+                    purpose_code_label=Concat(
+                        "purpose__code", Value(" - "), "purpose__label"
+                    )
+                )
+                .filter(purpose_code_label__icontains=search_term)
+                .values("purpose__id", "purpose__code", "purpose__label")
                 .distinct()[:10]
             )
         results = [
-            {"id": row["purpose__id"], "text": row["purpose__label"]}
+            {
+                "id": row["purpose__id"],
+                "text": f"{row['purpose__code']} - {row['purpose__label']}",
+            }
             for row in queryset
         ]
 
@@ -5587,12 +5602,16 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         detail=False,
     )
     def occurrence_tenure_list_of_values(self, request, *args, **kwargs):
-        purpose_list = list(OccurrenceTenurePurpose.objects.all().values("id", "label"))
-        vesting_list = list(OccurrenceTenureVesting.objects.all().values("id", "label"))
+        purposes = list(
+            OccurrenceTenurePurpose.objects.all().values("id", "code", "label")
+        )
+        vestings = list(
+            OccurrenceTenureVesting.objects.all().values("id", "code", "label")
+        )
 
         res_json = {
-            "purpose_list": purpose_list,
-            "vesting_list": vesting_list,
+            "purposes": purposes,
+            "vestings": vestings,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")

@@ -486,7 +486,7 @@ export default {
                 let endpoint = api_endpoints.species;
                 if (this.species_community.group_type === "community") {
                     endpoint = api_endpoints.community;
-                } 
+                }
 
                 if (swalresult.isConfirmed) {
                     await vm.$http.post(`${endpoint}/${this.species_community.id}/reopen_species_community.json`).then(res => {
@@ -670,7 +670,7 @@ export default {
                 vm.species_community_original = helpers.copyObject(vm.species_community); //update original after save
                 swal.fire({
                     title: "Saved",
-                    text: "Your changes has been saved" + was_public,
+                    text: "Your changes have been saved" + was_public,
                     icon: "success",
                     customClass: {
                         confirmButton: 'btn btn-primary',

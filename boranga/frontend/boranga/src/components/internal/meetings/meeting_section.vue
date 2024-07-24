@@ -19,7 +19,8 @@
                 </div>
             </div> -->
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label fw-bold">Start Date/ Time: <span class="text-danger">*</span></label>
+                <label for="" class="col-sm-4 control-label fw-bold">Start Date/ Time: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-8">
 
                     <input :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date"
@@ -34,14 +35,16 @@
                 </div>
             </div> -->
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label fw-bold">End Date/ Time: <span class="text-danger">*</span></label>
+                <label for="" class="col-sm-4 control-label fw-bold">End Date/ Time: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <input :disabled="isReadOnly" type="datetime-local" class="form-control" id="end_date"
                         v-model="end_date" @change="validateMeetingDate()" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label fw-bold">Meeting Type: <span class="text-danger">*</span></label>
+                <label for="" class="col-sm-4 control-label fw-bold">Meeting Type: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <select :disabled="isReadOnly" style="width:100%;" class="form-select"
                         v-model="meeting_obj.meeting_type" @change="toggleAttendees(meeting_obj.meeting_type)">
@@ -52,7 +55,8 @@
                 </div>
             </div>
             <div v-show="!isCommitteeMeeting" class="row mb-3">
-                <label for="" class="col-sm-4 control-label fw-bold">Attendees: <span class="text-danger">*</span></label>
+                <label for="" class="col-sm-4 control-label fw-bold">Attendees: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-8">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="title" placeholder=""
                         v-model="meeting_obj.attendees" />
@@ -60,14 +64,17 @@
             </div>
             <div v-show="isCommitteeMeeting">
                 <div class="row mb-3">
-                    <label for="" class="col-sm-4 control-label fw-bold">Committee: <span class="text-danger">*</span></label>
+                    <label for="" class="col-sm-4 control-label fw-bold">Committee: <span
+                            class="text-danger">*</span></label>
                     <div class="col-sm-8">
-                        <select :disabled="isReadOnly" style="width:100%;" class="form-select"
+                        <select v-if="!isReadOnly" class="form-select"
                             v-model="meeting_obj.committee_id" @change="renderMembersTable()">
                             <option v-for="option in committee_list" :value="option.id" :key="option.id">
                                 {{ option.name }}
                             </option>
                         </select>
+                        <input v-else type="text" readonly class="form-control" id="committee" placeholder=""
+                            v-model="meeting_obj.committee" />
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -76,10 +83,10 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label fw-bold">Location: <span class="text-danger">*</span></label>
+                <label for="" class="col-sm-4 control-label fw-bold">Location: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-8">
-                    <select  v-if="!isReadOnly" class="form-select"
-                        v-model="meeting_obj.location_id">
+                    <select v-if="!isReadOnly" class="form-select" v-model="meeting_obj.location_id">
                         <option v-for="option in location_list" :value="option.id" :key="option.id">
                             {{ option.name }}
                         </option>
@@ -118,28 +125,28 @@ import {
     from '@/utils/hooks'
 import { meeting } from '../../../api';
 const calculateDefaultDate = () => {
-  const now = new Date();
-  now.setHours(9, 0, 0, 0);  // Set time to 9:00 AM
+    const now = new Date();
+    now.setHours(9, 0, 0, 0);  // Set time to 9:00 AM
 
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
 
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 const calculateDefaultEndDate = () => {
-  const now = new Date();
-  now.setHours(17, 0, 0, 0);  // Set time to 9:00 AM
+    const now = new Date();
+    now.setHours(17, 0, 0, 0);  // Set time to 9:00 AM
 
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
 
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 export default {
     name: 'MeetingSection',
@@ -243,7 +250,7 @@ export default {
                         data: "id",
                         mRender: function (data, type, full) {
                             let links = '';
-                            if (vm.meeting_obj.sel_committee_members_arr.includes(full.id)) {
+                            if (vm.meeting_obj.sel_committee_members_arr && vm.meeting_obj.sel_committee_members_arr.includes(full.id)) {
                                 return `<a href='#${full.id}' data-remove-member='${full.id}'>Remove</a><br/>`;
                             }
                             else {
@@ -298,12 +305,12 @@ export default {
             if (selectedValue === "") {
                 vm.meeting_obj.start_date = null;
             }
-            else{
-                vm.meeting_obj.start_date=vm.start_date;
+            else {
+                vm.meeting_obj.start_date = vm.start_date;
                 // if(vm.meeting_obj.end_date=='' || vm.meeting_obj.end_date==null ){
                 //     vm.end_date=vm.start_date;
                 // }
-                vm.end_date=vm.start_date;
+                vm.end_date = vm.start_date;
             }
         },
         end_date: function (newVal) {
@@ -312,8 +319,8 @@ export default {
             if (selectedValue === "") {
                 vm.meeting_obj.end_date = null;
             }
-            else{
-                vm.meeting_obj.end_date=vm.end_date;
+            else {
+                vm.meeting_obj.end_date = vm.end_date;
             }
         },
     },
@@ -396,6 +403,9 @@ export default {
             vm.$refs.members_datatable.vmDataTable.on('click', 'a[data-add-member]', function (e) {
                 e.preventDefault();
                 let id = $(this).attr('data-add-member');
+                if (!vm.meeting_obj.sel_committee_members_arr) {
+                    vm.meeting_obj.sel_committee_members_arr = [];
+                }
                 vm.meeting_obj.sel_committee_members_arr.push(parseInt(id));
                 //--to add only the requested memvbr to the sel_committee_members_arr
                 vm.renderMembersTable('add');
@@ -419,12 +429,12 @@ export default {
             }
         },
         setMeetingDates: function () {
-            let vm=this;
-            if(vm.meeting_obj.start_date){
-                vm.start_date=vm.meeting_obj.start_date;
+            let vm = this;
+            if (vm.meeting_obj.start_date) {
+                vm.start_date = vm.meeting_obj.start_date;
             }
-            if(vm.meeting_obj.end_date){
-                vm.end_date=vm.meeting_obj.end_date;
+            if (vm.meeting_obj.end_date) {
+                vm.end_date = vm.meeting_obj.end_date;
             }
         },
     },
@@ -433,8 +443,8 @@ export default {
         //------fetch list of values
         vm.$http.get(api_endpoints.meeting_dict).then((response) => {
             vm.meeting_dict = response.body;
-            if(vm.meeting_obj.processing_status=='completed'){
-                vm.meetingStatusEditable=false;
+            if (vm.meeting_obj.processing_status == 'completed') {
+                vm.meetingStatusEditable = false;
             }
             //--meeting room list
             vm.location_list = vm.meeting_dict.location_list;
@@ -475,31 +485,3 @@ export default {
     }
 }
 </script>
-
-<style lang="css" scoped>
-fieldset.scheduler-border {
-    border: 1px groove #ddd !important;
-    padding: 0 1.4em 1.4em 1.4em !important;
-    margin: 0 0 1.5em 0 !important;
-    -webkit-box-shadow: 0px 0px 0px 0px #000;
-    box-shadow: 0px 0px 0px 0px #000;
-}
-
-legend.scheduler-border {
-    width: inherit;
-    /* Or auto */
-    padding: 0 10px;
-    /* To give a bit of padding on the left and right */
-    border-bottom: none;
-}
-
-input[type=text],
-select {
-    width: 100%;
-}
-
-.disable {
-    pointer-events: none;
-    cursor: default;
-}
-</style>

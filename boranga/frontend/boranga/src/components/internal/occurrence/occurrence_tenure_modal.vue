@@ -101,10 +101,11 @@
                                             Select a Vesting
                                         </option>
                                         <option
-                                            v-for="vesting in vesting_list"
+                                            v-for="vesting in vestings"
                                             :key="vesting.id"
                                             :value="vesting.id"
                                         >
+                                            {{ vesting.code }} -
                                             {{ vesting.label }}
                                         </option>
                                     </select>
@@ -131,10 +132,11 @@
                                             Select a Purpose
                                         </option>
                                         <option
-                                            v-for="purpose in purpose_list"
+                                            v-for="purpose in purposes"
                                             :key="purpose.id"
                                             :value="purpose.id"
                                         >
+                                            {{ purpose.code }} -
                                             {{ purpose.label }}
                                         </option>
                                     </select>
@@ -297,8 +299,8 @@ export default {
             errorString: '',
             successString: '',
             success: false,
-            purpose_list: [],
-            vesting_list: [],
+            purposes: [],
+            vestings: [],
         };
     },
     computed: {
@@ -325,7 +327,7 @@ export default {
         this.fetchSelectionValues(
             api_endpoints.occurrence_tenure_list_of_values,
             {},
-            ['purpose_list', 'vesting_list']
+            ['purposes', 'vestings']
         );
     },
     mounted: function () {

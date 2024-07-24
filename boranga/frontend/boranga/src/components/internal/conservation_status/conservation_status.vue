@@ -841,7 +841,7 @@ export default {
             await vm.$http.post(vm.species_community_cs_form_url, payload).then(res => {
                 swal.fire({
                     title: 'Saved',
-                    text: 'Your changes has been saved',
+                    text: 'Your changes have been saved',
                     icon: 'success',
                     customClass: {
                         confirmButton: 'btn btn-primary',

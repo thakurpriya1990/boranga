@@ -223,14 +223,14 @@ export default {
         },
         column_vesting: function () {
             return {
-                data: 'data.data.occurrencetenure.fields.vesting.label',
+                data: 'data.data.occurrencetenure.fields.vesting.code',
                 defaultContent: '',
                 orderable: true,
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occurrencetenure.fields.vesting) {
-                        return full.data.occurrencetenure.fields.vesting.label;
+                        return full.data.occurrencetenure.fields.vesting.code;
                     } else {
                         return "";
                     }
@@ -240,14 +240,14 @@ export default {
         },
         column_purpose: function () {
             return {
-                data: 'data.data.occurrencetenure.fields.purpose.label',
+                data: 'data.data.occurrencetenure.fields.purpose.code',
                 defaultContent: '',
                 orderable: true,
                 searchable: true, 
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occurrencetenure.fields.purpose) {
-                        return full.data.occurrencetenure.fields.purpose.label;
+                        return full.data.occurrencetenure.fields.purpose.code;
                     } else {
                         return "";
                     }

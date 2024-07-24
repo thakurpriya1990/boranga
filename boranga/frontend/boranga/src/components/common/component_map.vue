@@ -240,7 +240,6 @@
                                         class="input-group input-group-sm mb-1 text-nowrap"
                                     >
                                         <!-- Select geometry-checkbox -->
-                                        <!-- TODO: disabled based on show hide -->
                                         <div class="input-group-text">
                                             <input
                                                 :id="`feature-${feature.ol_uid}-checkbox`"
@@ -349,6 +348,53 @@
                                                     cx="12"
                                                     cy="12"
                                                     r="5"
+                                                    :fill="
+                                                        feature.getProperties()
+                                                            .color
+                                                    "
+                                                    :stroke="
+                                                        selectedFeatureIds.includes(
+                                                            feature.getProperties()
+                                                                .id
+                                                        )
+                                                            ? 'red'
+                                                            : feature.getProperties()
+                                                                  .stroke
+                                                    "
+                                                    stroke-width="2"
+                                                />
+                                            </svg>
+                                            <svg
+                                                v-else-if="
+                                                    isMultiPolygonFeature(
+                                                        feature
+                                                    )
+                                                "
+                                                class="svg-object"
+                                                width="24"
+                                                height="24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <!-- Two intersecting rectangles -->
+                                                <path
+                                                    d="M2 2 16 2 16 16 2 16 z"
+                                                    :fill="
+                                                        feature.getProperties()
+                                                            .color
+                                                    "
+                                                    :stroke="
+                                                        selectedFeatureIds.includes(
+                                                            feature.getProperties()
+                                                                .id
+                                                        )
+                                                            ? 'red'
+                                                            : feature.getProperties()
+                                                                  .stroke
+                                                    "
+                                                    stroke-width="2"
+                                                />
+                                                <path
+                                                    d="M9 9 22 9 22 22 9 22 z"
                                                     :fill="
                                                         feature.getProperties()
                                                             .color
@@ -1409,9 +1455,12 @@
                         </div>
                     </template>
                 </div>
-                <!-- TODO: other loading cases -->
                 <div v-show="loadingMap" id="map-spinner" class="text-primary">
-                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                    <div
+                        class="spinner-border text-primary"
+                        style="width: 3rem; height: 3rem"
+                        role="status"
+                    >
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
@@ -1509,8 +1558,14 @@
                                 <div
                                     class="col-sm-12 text-nowrap text-truncate"
                                 >
-                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                <span class="visually-hidden">Loading...</span>
+                                    <span
+                                        class="spinner-border spinner-border-sm"
+                                        role="status"
+                                        aria-hidden="true"
+                                    ></span>
+                                    <span class="visually-hidden"
+                                        >Loading...</span
+                                    >
                                 </div>
                             </div>
                         </button>
@@ -4093,18 +4148,15 @@ export default {
                 // Assign a random color to each proposal
                 proposals.forEach(function (proposal) {
                     const properyOverwrite = this.property_overwrite || {};
-                    // TODO: A color picker fn: colorpicker([])
-                    const color =
-                        properyOverwrite.color ||
-                        proposal.color ||
-                        vm.getRandomColor();
-                    // TODO: custom stroke fn
-                    const stroke =
-                        properyOverwrite.stroke ||
-                        proposal.stroke ||
-                        vm.getRandomColor();
+                    const color = vm.colorPickOrRandom(
+                        properyOverwrite.color,
+                        proposal.color
+                    );
+                    const stroke = vm.colorPickOrRandom(
+                        properyOverwrite.stroke,
+                        proposal.stroke
+                    );
                     proposal.color = color;
-                    // TODO: custom stroke fn
                     proposal.stroke = stroke;
                 }, layerDef);
             } else {
@@ -4124,15 +4176,14 @@ export default {
                         feature.properties = {};
                     }
                     const properyOverwrite = this.property_overwrite || {};
-                    const color =
-                        properyOverwrite.color ||
-                        feature.properties.color ||
-                        vm.getRandomColor();
-                    // TODO: custom stroke fn
-                    const stroke =
-                        properyOverwrite.color ||
-                        feature.properties.stroke ||
-                        vm.getRandomColor();
+                    const color = vm.colorPickOrRandom(
+                        properyOverwrite.color,
+                        feature.properties.color
+                    );
+                    const stroke = vm.colorPickOrRandom(
+                        properyOverwrite.stroke,
+                        feature.properties.stroke
+                    );
                     feature.properties.color = color;
                     feature.properties.stroke = stroke;
                 }, layerDef);
@@ -4479,11 +4530,16 @@ export default {
                 layer_name = this.defaultQueryLayerName;
             }
             const format = new GeoJSON();
-            const features = this.layerSources[layer_name].getFeatures();
+            const layerFeatures = this.layerSources[layer_name].getFeatures();
 
-            features.forEach(function (feature) {
-                console.log(feature.getProperties());
+            const features = [];
+            layerFeatures.forEach(function (f) {
+                // Keep the feature-id of an existing feature
+                const featureId = f.getId();
+                const feature = f.clone();
                 feature.unset('model');
+                feature.setId(featureId);
+                features.push(feature);
             });
 
             return format.writeFeatures(features);
@@ -5202,6 +5258,9 @@ export default {
                 feature.getGeometry().getType()
             );
         },
+        isMultiPolygonFeature: function (feature) {
+            return feature.getGeometry().getType() === 'MultiPolygon';
+        },
         isPolygonLikeFeature: function (feature) {
             return ['Polygon', 'MultiPolygon'].includes(
                 feature.getGeometry().getType()
@@ -5603,6 +5662,17 @@ export default {
                 return false;
             }
             return feature.getProperties().show_on_map === false;
+        },
+        colorPickOrRandom: function (...colors) {
+            const color = colors.find((color) => {
+                if (this.isColor(color)) {
+                    return color;
+                }
+            });
+            if (color) {
+                return color;
+            }
+            return this.getRandomColor();
         },
     },
 };

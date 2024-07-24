@@ -131,6 +131,7 @@ geom AS (
         CASE
             ST_GeometryType(geometry)
             WHEN 'ST_Point' THEN ST_Buffer(geometry, 0.00001)
+            WHEN 'ST_MultiPoint' THEN ST_Buffer(geometry, 0.00001)
             ELSE geometry
         END AS geometry,
         ST_GeometryType(geometry) AS geometry_type,
@@ -143,8 +144,8 @@ geom AS (
                     ',',
                     otc.tenure_area_id,
                     otc.status,
-                    coalesce(p.label, ''),
-                    coalesce(v.label, '')
+                    coalesce(p.code, ''),
+                    coalesce(v.code, '')
                 )
             ),
             '; '

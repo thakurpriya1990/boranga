@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from ledger_api_client.ledger_models import Address
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
@@ -24,6 +26,8 @@ from boranga.helpers import (
     is_occurrence_assessor,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class DocumentSerializer(serializers.ModelSerializer):
 
@@ -41,7 +45,7 @@ class UserAddressSerializer(serializers.ModelSerializer):
 class UserSystemSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserSystemSettings
-        fields = ("one_row_per_park",)
+        fields = ["area_of_interest"]
 
 
 class UserFilterSerializer(serializers.ModelSerializer):
@@ -61,14 +65,15 @@ class UserSerializer(serializers.ModelSerializer):
     address_details = serializers.SerializerMethodField()
     contact_details = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
-    system_settings = serializers.SerializerMethodField()
-
+    area_of_interest = serializers.SerializerMethodField()
     groups = serializers.SerializerMethodField()
 
     cs_referral_count = serializers.SerializerMethodField()
     ocr_referral_count = serializers.SerializerMethodField()
 
     is_internal = serializers.SerializerMethodField()
+    is_superuser = serializers.SerializerMethodField()
+    last_login = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = EmailUser
@@ -84,9 +89,11 @@ class UserSerializer(serializers.ModelSerializer):
             "address_details",
             "contact_details",
             "full_name",
-            "system_settings",
+            "area_of_interest",
             "groups",
             "is_internal",
+            "is_superuser",
+            "last_login",
             "cs_referral_count",
             "ocr_referral_count",
         )
@@ -110,15 +117,18 @@ class UserSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return obj.get_full_name()
 
-    def get_system_settings(self, obj):
-        try:
-            user_system_settings = obj.system_settings.first()
-            serialized_settings = UserSystemSettingsSerializer(
-                user_system_settings
-            ).data
-            return serialized_settings
-        except Exception:
-            return None
+    def get_area_of_interest(self, obj):
+        user_system_settings, created = UserSystemSettings.objects.get_or_create(
+            user=obj.id
+        )
+        if created:
+            logger.info(f"Created UserSystemSettings: {user_system_settings}")
+        group_type_name = (
+            user_system_settings.area_of_interest.name
+            if user_system_settings.area_of_interest
+            else None
+        )
+        return group_type_name if group_type_name else None
 
     def get_groups(self, obj):
         groups = SystemGroup.objects.all().values_list("name", flat=True)
@@ -132,6 +142,9 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_internal(self, obj):
         request = self.context["request"]
         return is_internal(request)
+
+    def get_is_superuser(self, obj):
+        return obj.is_superuser
 
     def get_cs_referral_count(self, obj):
         return ConservationStatusReferral.objects.filter(referral=obj.id).count()

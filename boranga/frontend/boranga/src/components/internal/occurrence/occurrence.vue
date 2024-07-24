@@ -76,7 +76,7 @@
                                                 <div class="col-sm-12">
                                                     <button style="width:80%;" class="btn btn-primary mb-2"
                                                         @click.prevent="reopenOccurrence()">Reopen</button><br />
-                                                </div> 
+                                                </div>
                                             </div>
                                         </template>
                                     </div>
@@ -283,7 +283,7 @@ export default {
             await vm.$http.post(vm.occurrence_form_url, payload).then(res => {
                 swal.fire({
                     title: "Saved",
-                    text: "Your changes has been saved",
+                    text: "Your changes have been saved",
                     icon: "success",
                     customClass: {
                         confirmButton: 'btn btn-primary',

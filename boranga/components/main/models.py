@@ -240,10 +240,10 @@ class SystemMaintenance(models.Model):
 
 
 class UserSystemSettings(models.Model):
-    # user = models.OneToOneField(EmailUser, related_name='system_settings', on_delete=models.CASCADE)
     user = models.IntegerField(unique=True)  # EmailUserRO
-    event_training_completed = models.BooleanField(default=False)
-    event_training_date = models.DateField(blank=True, null=True)
+    area_of_interest = models.ForeignKey(
+        "GroupType", on_delete=models.PROTECT, null=True, blank=True
+    )
 
     class Meta:
         app_label = "boranga"

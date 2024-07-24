@@ -33,23 +33,6 @@
                     </div>
                 </div>
             </div>
-
-
-            <div v-if="!cs_proposal_readonly">
-                <div v-if="hasAmendmentRequest" class="row">
-                    <div class="col-lg-12 pull-right">
-                        <FormSection :formCollapse="false" label="An amendment has been requested for this Application"
-                            Index="amendment_request" customColor="red">
-                            <div v-for="a in amendment_request">
-                                <p>Reason: {{ a.reason }}</p>
-                                <p>Details:
-                                <p v-for="t in splitText(a.text)">{{ t }}</p>
-                                </p>
-                            </div>
-                        </FormSection>
-                    </div>
-                </div>
-            </div>
             <div v-if="conservation_status_obj" id="scrollspy-heading" class="col-lg-12 mb-3">
                 <h4>Conservation List - {{ display_group_type }} Application: {{
                     conservation_status_obj.conservation_status_number }}</h4>
@@ -75,7 +58,7 @@
                                                 Dashboard</router-link>
                                         </p>
                                     </div>
-                                    <div class="col-md-6 text-end" style="margin-top:5px">                                        
+                                    <div class="col-md-6 text-end" style="margin-top:5px">
                                         <button v-if="savingCSProposal" type="button" class="btn btn-primary me-2"
                                             disabled>Save and Continue&nbsp;
                                             <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
