@@ -30,7 +30,7 @@ import tarfile
 
 def file_extension_valid(file, whitelist, model):
 
-    print(file, model)
+    logger.info("Uploaded File: "+file+" For Model: "+model)
 
     filename, extension = os.path.splitext(file)
     extension = extension.replace(".","").lower()
@@ -41,6 +41,8 @@ def file_extension_valid(file, whitelist, model):
 
     if valid:
         compression = check.first().compressed
+    else:
+        logger.warn("Uploaded File: "+file+" For Model: "+model+" to be Rejected")
 
     return valid, compression
 
@@ -50,6 +52,7 @@ def tar_content_valid(file, whitelist, model):
     for i in tarFile.getnames():
         valid, compression = file_extension_valid(i, whitelist, model)
         if compression:
+            logger.warn("Uploaded File: "+str(file)+" For Model: "+model+" to be Rejected")
             raise ValidationError("Compressed files not supported within compressed files")
         if not valid:
             return False
@@ -61,6 +64,7 @@ def sevenz_content_valid(file, whitelist, model):
     for i in sevenZipFile.getnames():
         valid, compression = file_extension_valid(i, whitelist, model)
         if compression:
+            logger.warn("Uploaded File: "+str(file)+" For Model: "+model+" to be Rejected")
             raise ValidationError("Compressed files not supported within compressed files")
         if not valid:
             return False
@@ -72,6 +76,7 @@ def zip_content_valid(file, whitelist, model):
     for i in zipFile.filelist:
         valid, compression = file_extension_valid(i.filename, whitelist, model)
         if compression:
+            logger.warn("Uploaded File: "+str(file)+" For Model: "+model+" to be Rejected")
             raise ValidationError("Compressed files not supported within compressed files")
         if not valid:
             return False
