@@ -1379,6 +1379,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                     name=str(proposal_approval_document),
                 )[0]
 
+            document.check_file(proposal_approval_document)
             document.name = str(proposal_approval_document)
             document._file = proposal_approval_document
             document.save()
@@ -2035,6 +2036,7 @@ class ConservationStatusDocument(Document):
         data = json.loads(request.data.get("data"))
 
         for idx in range(data["num_files"]):
+            self.check_file(request.data.get("file-" + str(idx)))
             _file = request.data.get("file-" + str(idx))
             self._file = _file
             self.name = _file.name
@@ -2499,6 +2501,7 @@ class ConservationStatusAmendmentRequest(ConservationStatusProposalRequest):
                 document = self.cs_amendment_request_documents.create(
                     _file=_file, name=_file.name
                 )
+                document.check_file(request.data.get("file-" + str(idx)))
                 document.input_name = data["input_name"]
                 document.can_delete = True
                 document.save()
