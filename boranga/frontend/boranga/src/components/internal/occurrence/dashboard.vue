@@ -15,7 +15,6 @@
                     @click="set_active_tab('community')">Communities</a>
             </li>
         </ul>
-
         <div class="tab-content" id="pills-tabContent">
             <div class="tab-pane" id="pills-flora" role="tabpanel" aria-labelledby="pills-flora-tab">
                 <FormSection v-if="show_occurrences" :formCollapse="false" label="Occurrences - Flora"
@@ -114,7 +113,6 @@ export default {
     name: 'InternalOccurrenceDashboard',
     data() {
         return {
-            user_preference: 'flora',    // TODO : set it to default user preference but for now is hardcoded value
             group_types: [],
             group_name: null,
             species_occ_url: api_endpoints.occurrence_paginated_internal,
@@ -157,15 +155,6 @@ export default {
                 constants.GROUPS.INTERNAL_CONTRIBUTORS
             ].includes(i));
         },
-        showFloraTab: function () {
-            return this.group_types.includes('flora');
-        },
-        showFaunaTab: function () {
-            return this.group_types.includes('fauna');
-        },
-        showCommunityTab: function () {
-            return this.group_types.includes('community');
-        },
         isFlora: function () {
             return this.group_name == 'flora';
         },
@@ -186,7 +175,9 @@ export default {
     methods: {
         set_active_tab: function (group_name) {
             this.group_name = group_name;
-            localStorage.setItem("occurrenceActiveTab", group_name);
+            if(!this.profile || !this.profile.area_of_interest){
+                localStorage.setItem("occurrenceActiveTab", group_name);
+            }
             let elem = $('#pills-tab a[href="#pills-' + group_name + '"]')
             let tab = bootstrap.Tab.getInstance(elem)
             if (!tab)
@@ -194,8 +185,21 @@ export default {
             tab.show()
         },
         fetchProfile: function () {
-            this.$http.get(api_endpoints.profile).then((response) => {
-                this.profile = response.body;
+            let vm = this;
+            vm.$http.get(api_endpoints.profile).then(async (response) => {
+                vm.profile = await response.body;
+                vm.$nextTick(() => {
+                    if (vm.profile && vm.profile.area_of_interest) {
+                        vm.set_active_tab(vm.profile.area_of_interest);
+                        return;
+                    }
+                    let occurrenceActiveTab = localStorage.getItem('occurrenceActiveTab')
+                    if (occurrenceActiveTab === null) {
+                        vm.set_active_tab('flora');
+                    } else {
+                        vm.set_active_tab(occurrenceActiveTab);
+                    }
+                })
             }, (error) => {
                 console.log(error);
             });
@@ -210,71 +214,7 @@ export default {
         this.fetchProfile();
     },
     mounted: function () {
-        let vm = this;
-        this.$nextTick(function () {
-            chevron_toggle.init();
-            if (localStorage.getItem('occurrenceActiveTab') === null) {
-                vm.set_active_tab(vm.user_preference);
-            }
-            else {
-                vm.set_active_tab(localStorage.getItem('occurrenceActiveTab'));
-            }
-            this.getGroupId;
-        })
+        chevron_toggle.init();
     },
 }
 </script>
-
-<style lang="css" scoped>
-.section {
-    text-transform: capitalize;
-}
-
-.list-group {
-    margin-bottom: 0;
-}
-
-.fixed-top {
-    position: fixed;
-    top: 56px;
-}
-
-.nav-item {
-    margin-bottom: 2px;
-}
-
-.nav-item>li>a {
-    background-color: yellow !important;
-    color: #fff;
-}
-
-.nav-item>li.active>a,
-.nav-item>li.active>a:hover,
-.nav-item>li.active>a:focus {
-    color: white;
-    background-color: blue;
-    border: 1px solid #888888;
-}
-
-.admin>div {
-    display: inline-block;
-    vertical-align: top;
-    margin-right: 1em;
-}
-
-.nav-pills .nav-link {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 0.5em;
-    border-top-right-radius: 0.5em;
-    margin-right: 0.25em;
-}
-
-.nav-pills .nav-link {
-    background: lightgray;
-}
-
-.nav-pills .nav-link.active {
-    background: gray;
-}
-</style>

@@ -40,6 +40,7 @@ module.exports = {
     referrals: "/api/referrals.json",
     regions: "/api/regions.json",
     save_submitter_information: "/api/save_submitter_information",
+    save_area_of_interest: "/api/save_area_of_interest",
     species_documents: "/api/species_documents.json",
     species: "/api/species",
     submitter_categories: "/api/submitter_categories",
