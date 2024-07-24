@@ -2785,7 +2785,7 @@ class SampleType(models.Model):
 
     class Meta:
         app_label = "boranga"
-        ordering = ["name"]
+        ordering = ["group_type", "name"]
 
     def __str__(self):
         return str(self.name)
