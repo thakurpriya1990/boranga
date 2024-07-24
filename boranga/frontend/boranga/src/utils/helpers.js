@@ -118,7 +118,7 @@ module.exports = {
         endpoint = endpoint.replace("//", "/")  // Remove duplicated '/' just in case
         return endpoint
     },
-    dtPopover: function(value,truncate_length=30,trigger='hover'){
+    dtPopover: function(value,truncate_length=30, trigger='hover'){
         var ellipsis = '...',
         truncated = _.truncate(value, {
             length: truncate_length,
@@ -126,14 +126,14 @@ module.exports = {
             separator: ' '
         }),
         result = '<span>' + truncated + '</span>',
-        popTemplate = _.template('<a href="#" ' +
+        popTemplate = _.template('<a class="mx-0 ps-1 pe-0" href="javascript://" ' +
             'role="button" ' +
             'data-bs-toggle="popover" ' +
             'data-bs-trigger="'+trigger+'" ' +
             'data-bs-placement="top"' +
             'data-bs-html="true" ' +
             'data-bs-content="<%= text %>" ' +
-            '>more</a>');
+            '><small>hover for more</small></a>');
         if (_.endsWith(truncated, ellipsis)) {
             result += popTemplate({
                 text: value
@@ -167,7 +167,7 @@ module.exports = {
             return {"text":result, link: ""}
         };
     },
-    
+
 
 /*
     dtPopoverCellFn: function(cell){
@@ -210,7 +210,7 @@ module.exports = {
         await swal("Error", errorText, "error");
     },
     post_and_redirect: function(url, postData) {
-        /* http.post and ajax do not allow redirect from Django View (post method), 
+        /* http.post and ajax do not allow redirect from Django View (post method),
            this function allows redirect by mimicking a form submit.
 
            usage:  vm.post_and_redirect(vm.application_fee_url, {'csrfmiddlewaretoken' : vm.csrf_token});
