@@ -253,15 +253,17 @@ class Taxonomy(models.Model):
 
     @property
     def taxon_previous_name(self):
-        if self.previous_names.all():
+        if hasattr(self, "previous_names") and self.previous_names.exists():
             previous_names_list = TaxonPreviousName.objects.filter(
                 taxonomy=self.id
             ).values_list("previous_scientific_name", flat=True)
             return ",".join(previous_names_list)
+        else:
+            return ""
 
     @property
     def taxon_previous_queryset(self):
-        if self.new_taxon.all():
+        if hasattr(self, "new_taxon") and self.new_taxon.exists():
             previous_queryset = TaxonPreviousName.objects.filter(
                 taxonomy=self.id
             ).order_by("id")
@@ -271,11 +273,13 @@ class Taxonomy(models.Model):
 
     @property
     def taxon_vernacular_name(self):
-        if self.vernaculars.all():
+        if hasattr(self, "vernaculars") and self.vernaculars.exists():
             vernacular_names_list = TaxonVernacular.objects.filter(
                 taxonomy=self.id
             ).values_list("vernacular_name", flat=True)
             return ",".join(vernacular_names_list)
+        else:
+            return ""
 
 
 class TaxonVernacular(models.Model):
