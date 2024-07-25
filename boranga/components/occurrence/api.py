@@ -1355,6 +1355,135 @@ class OccurrenceReportViewSet(
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
 
+    # used for Occurrence Report Observation Plant count external form
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def plant_count_list_of_values(self, request, *args, **kwargs):
+        """used for Occurrence Report external form"""
+
+        plant_count_method_list = []
+        values = PlantCountMethod.objects.all()
+        if values:
+            for val in values:
+                plant_count_method_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        plant_count_accuracy_list = []
+        values = PlantCountAccuracy.objects.all()
+        if values:
+            for val in values:
+                plant_count_accuracy_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        plant_condition_list = []
+        values = PlantCondition.objects.all()
+        if values:
+            for val in values:
+                plant_condition_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        counted_subject_list = []
+        values = CountedSubject.objects.all()
+        if values:
+            for val in values:
+                counted_subject_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        res_json = {
+            "plant_count_method_list": plant_count_method_list,
+            "plant_count_accuracy_list": plant_count_accuracy_list,
+            "plant_condition_list": plant_condition_list,
+            "counted_subject_list": counted_subject_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
+    # used for Occurrence Report Observation external form
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def animal_observation_list_of_values(self, request, *args, **kwargs):
+        """used for Occurrence Report external form"""
+
+        primary_detection_method_list = []
+        values = PrimaryDetectionMethod.objects.all()
+        if values:
+            for val in values:
+                primary_detection_method_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        secondary_sign_list = []
+        values = SecondarySign.objects.all()
+        if values:
+            for val in values:
+                secondary_sign_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        reprod_state_list = []
+        values = ReproductiveState.objects.all()
+        if values:
+            for val in values:
+                reprod_state_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        death_reason_list = []
+        values = DeathReason.objects.all()
+        if values:
+            for val in values:
+                death_reason_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        animal_health_list = []
+        values = AnimalHealth.objects.all()
+        if values:
+            for val in values:
+                animal_health_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        res_json = {
+            "primary_detection_method_list": primary_detection_method_list,
+            "secondary_sign_list": secondary_sign_list,
+            "reprod_state_list": reprod_state_list,
+            "death_reason_list": death_reason_list,
+            "animal_health_list": animal_health_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
     def unlocked_back_to_assessor(self):
         instance = self.get_object()
         request = self.request
@@ -1944,6 +2073,7 @@ class OccurrenceReportViewSet(
         # Save the files
         for f in request.FILES:
             document = comms.documents.create()
+            document.check_file(request.FILES[f])
             document.name = str(request.FILES[f])
             document._file = request.FILES[f]
             document.save()
@@ -4150,6 +4280,7 @@ class OccurrenceViewSet(
         # Save the files
         for f in request.FILES:
             document = comms.documents.create()
+            document.check_file(request.FILES[f])
             document.name = str(request.FILES[f])
             document._file = request.FILES[f]
             document.save()
@@ -5135,6 +5266,135 @@ class OccurrenceViewSet(
             "sample_type_list": sample_type_list,
             "sample_dest_list": sample_dest_list,
             "permit_type_list": permit_type_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
+    # used for Occurrence Observation Plant count external form
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def plant_count_list_of_values(self, request, *args, **kwargs):
+        """used for Occurrence external form"""
+
+        plant_count_method_list = []
+        values = PlantCountMethod.objects.all()
+        if values:
+            for val in values:
+                plant_count_method_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        plant_count_accuracy_list = []
+        values = PlantCountAccuracy.objects.all()
+        if values:
+            for val in values:
+                plant_count_accuracy_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        plant_condition_list = []
+        values = PlantCondition.objects.all()
+        if values:
+            for val in values:
+                plant_condition_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        counted_subject_list = []
+        values = CountedSubject.objects.all()
+        if values:
+            for val in values:
+                counted_subject_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        res_json = {
+            "plant_count_method_list": plant_count_method_list,
+            "plant_count_accuracy_list": plant_count_accuracy_list,
+            "plant_condition_list": plant_condition_list,
+            "counted_subject_list": counted_subject_list,
+        }
+        res_json = json.dumps(res_json)
+        return HttpResponse(res_json, content_type="application/json")
+
+    # used for Occurrence Report Observation external form
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def animal_observation_list_of_values(self, request, *args, **kwargs):
+        """used for Occurrence Report external form"""
+
+        primary_detection_method_list = []
+        values = PrimaryDetectionMethod.objects.all()
+        if values:
+            for val in values:
+                primary_detection_method_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        secondary_sign_list = []
+        values = SecondarySign.objects.all()
+        if values:
+            for val in values:
+                secondary_sign_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        reprod_state_list = []
+        values = ReproductiveState.objects.all()
+        if values:
+            for val in values:
+                reprod_state_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        death_reason_list = []
+        values = DeathReason.objects.all()
+        if values:
+            for val in values:
+                death_reason_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        animal_health_list = []
+        values = AnimalHealth.objects.all()
+        if values:
+            for val in values:
+                animal_health_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        res_json = {
+            "primary_detection_method_list": primary_detection_method_list,
+            "secondary_sign_list": secondary_sign_list,
+            "reprod_state_list": reprod_state_list,
+            "death_reason_list": death_reason_list,
+            "animal_health_list": animal_health_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")

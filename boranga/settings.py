@@ -380,6 +380,7 @@ CACHE_KEY_MAP_OCCURRENCES = "map-occurrences"
 CACHE_KEY_MAP_OCCURRENCE_REPORTS = "map-occurrence-reports"
 CACHE_KEY_USER_BELONGS_TO_GROUP = "user-{user_id}-belongs-to-{group_name}"
 CACHE_KEY_SUPERUSER_IDS = "superuser-ids"
+CACHE_KEY_FILE_EXTENSION_WHITELIST = "file-extension-whitelist"
 
 # ---------- Conservation Change Codes ----------
 

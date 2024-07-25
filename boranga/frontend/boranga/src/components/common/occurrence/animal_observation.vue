@@ -350,6 +350,8 @@ export default {
             animal_health_list: [],
             updatingAnimalOnservationDetails: false,
             total_seen: 0,
+            listOfAnimalValuesDict: {},
+            not_counted: false,
         }
     },
     components: {
@@ -469,6 +471,38 @@ export default {
     },
     created: async function () {
         let vm = this;
+        const res = await Vue.http.get(`/api/occurrence/animal_observation_list_of_values.json`);
+        vm.listOfAnimalValuesDict = res.body;
+        vm.primary_detection_method_list = vm.listOfAnimalValuesDict.primary_detection_method_list;
+            vm.primary_detection_method_list.splice(0, 0,
+                {
+                    id: '',
+                    name: '',
+                });
+            vm.secondary_sign_list = vm.listOfAnimalValuesDict.secondary_sign_list;
+            vm.secondary_sign_list.splice(0, 0,
+                {
+                    id: '',
+                    name: '',
+                });
+            vm.reprod_state_list = vm.listOfAnimalValuesDict.reprod_state_list;
+            vm.reprod_state_list.splice(0, 0,
+                {
+                    id: '',
+                    name: '',
+                });
+            vm.death_reason_list = vm.listOfAnimalValuesDict.death_reason_list;
+            vm.death_reason_list.splice(0, 0,
+                {
+                    id: null,
+                    name: null,
+                });
+            vm.animal_health_list = vm.listOfAnimalValuesDict.animal_health_list;
+            vm.animal_health_list.splice(0, 0,
+                {
+                    id: null,
+                    name: null,
+                });
     },
     mounted: function () {
         let vm = this;

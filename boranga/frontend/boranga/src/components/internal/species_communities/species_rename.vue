@@ -8,6 +8,7 @@
                         <div>
                             <div class="col-md-12">
                                 <SpeciesCommunitiesComponent v-if="new_rename_species != null" ref="rename_species"
+                                    :species_community_original="new_rename_species"
                                     :species_community.sync="new_rename_species" id="rename_species" :is_internal="true"
                                     :is_readonly="true" :rename_species="true"> // rename=true used to make only taxon
                                     select editable on form

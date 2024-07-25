@@ -43,7 +43,7 @@
             <PlantCount v-if="isFlora" :plant_count="occurrence_report_obj.plant_count"
                 :processing_status="occurrence_report_obj.processing_status" :is_report=true
                 :occurrence_id="occurrence_report_obj.id" id="plantCountDetail" :is_external="is_external"
-                :isReadOnly="isReadOnly" ref="plantCountDetail" @mounted="populatePlantCountLookups">
+                :isReadOnly="isReadOnly" ref="plantCountDetail">
             </PlantCount>
         </FormSection>
 
@@ -51,7 +51,7 @@
             <AnimalObservation v-if="isFauna" :animal_observation="occurrence_report_obj.animal_observation"
                 :processing_status="occurrence_report_obj.processing_status" :is_report=true
                 :occurrence_id="occurrence_report_obj.id" id="animalObservationDetail" :is_external="is_external"
-                :isReadOnly="isReadOnly" ref="animalObservationDetail" @mounted="populateAnimalObservationLookups">
+                :isReadOnly="isReadOnly" ref="animalObservationDetail">
             </AnimalObservation>
         </FormSection>
 
@@ -285,66 +285,6 @@ export default {
                 vm.updatingIdentificationDetails = false;
             });
         },
-        populatePlantCountLookups: function () {
-            // using child refs to assign the list values to avoid calling the above api again in plantCount component
-            vm.$refs.plantCountDetail.plant_count_method_list = vm.listOfValuesDict.plant_count_method_list;
-            vm.$refs.plantCountDetail.plant_count_method_list.splice(0, 0,
-                {
-                    id: null,
-                    name: null,
-                });
-            vm.$refs.plantCountDetail.plant_count_accuracy_list = vm.listOfValuesDict.plant_count_accuracy_list;
-            vm.$refs.plantCountDetail.plant_count_accuracy_list.splice(0, 0,
-                {
-                    id: null,
-                    name: null,
-                });
-            vm.$refs.plantCountDetail.plant_condition_list = vm.listOfValuesDict.plant_condition_list;
-            vm.$refs.plantCountDetail.plant_condition_list.splice(0, 0,
-                {
-                    id: null,
-                    name: null,
-                });
-            vm.$refs.plantCountDetail.counted_subject_list = vm.listOfValuesDict.counted_subject_list;
-            vm.$refs.plantCountDetail.counted_subject_list.splice(0, 0,
-                {
-                    id: null,
-                    name: null,
-                });
-        },
-        populateAnimalObservationLookups: function () {
-            // using child refs to assign the list values to avoid calling the above api again in AnimalObservation component
-            vm.$refs.animalObservationDetail.primary_detection_method_list = vm.listOfValuesDict.primary_detection_method_list;
-            vm.$refs.animalObservationDetail.primary_detection_method_list.splice(0, 0,
-                {
-                    id: '',
-                    name: '',
-                });
-            vm.$refs.animalObservationDetail.secondary_sign_list = vm.listOfValuesDict.secondary_sign_list;
-            vm.$refs.animalObservationDetail.secondary_sign_list.splice(0, 0,
-                {
-                    id: '',
-                    name: '',
-                });
-            vm.$refs.animalObservationDetail.reprod_state_list = vm.listOfValuesDict.reprod_state_list;
-            vm.$refs.animalObservationDetail.reprod_state_list.splice(0, 0,
-                {
-                    id: '',
-                    name: '',
-                });
-            vm.$refs.animalObservationDetail.death_reason_list = vm.listOfValuesDict.death_reason_list;
-            vm.$refs.animalObservationDetail.death_reason_list.splice(0, 0,
-                {
-                    id: null,
-                    name: null,
-                });
-            vm.$refs.animalObservationDetail.animal_health_list = vm.listOfValuesDict.animal_health_list;
-            vm.$refs.animalObservationDetail.animal_health_list.splice(0, 0,
-                {
-                    id: null,
-                    name: null,
-                });
-        }
     },
     created: async function () {
         let vm = this;

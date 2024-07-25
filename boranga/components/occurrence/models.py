@@ -1337,6 +1337,7 @@ class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
             document = self.amendment_request_documents.create(
                 _file=_file, name=_file.name
             )
+            document.check_file(request.data.get("file-" + str(idx)))
             document.input_name = data["input_name"]
             document.can_delete = True
             document.save()
@@ -2233,6 +2234,7 @@ class OCRHabitatCondition(models.Model):
         default=0,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
+    count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -2928,6 +2930,7 @@ class OccurrenceReportDocument(Document):
         #     documents_qs = self.filter(input_name='species_doc', visible=True)
         #     documents_qs.delete()
         for idx in range(data["num_files"]):
+            self.check_file(request.data.get("file-" + str(idx)))
             _file = request.data.get("file-" + str(idx))
             self._file = _file
             self.name = _file.name
@@ -3998,6 +4001,7 @@ class OccurrenceDocument(Document):
         #     documents_qs = self.filter(input_name='species_doc', visible=True)
         #     documents_qs.delete()
         for idx in range(data["num_files"]):
+            self.check_file(request.data.get("file-" + str(idx)))
             _file = request.data.get("file-" + str(idx))
             self._file = _file
             self.name = _file.name
@@ -4319,6 +4323,7 @@ class OCCHabitatCondition(models.Model):
         default=0,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
+    count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"

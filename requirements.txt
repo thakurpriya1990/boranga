@@ -73,3 +73,4 @@ pre-commit~=3.7
 django-debug-toolbar~=4.3
 django-nested-admin~=4.0
 django-colorfield~=0.11.0
+py7zr~=0.21.1

@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import subprocess
 
 import reversion
 import shapely.geometry as shp
@@ -747,6 +746,7 @@ class Species(RevisionedMixin):
             _file=speciesCommunitiesImageFile,
             species=self,
         )
+        document.check_file(speciesCommunitiesImageFile)
         document.save()
         self.image_doc = document
         self.save()
@@ -785,13 +785,11 @@ class Species(RevisionedMixin):
             original_species_documents = request.data["documents"]
             for doc_id in original_species_documents:
                 new_species_doc = SpeciesDocument.objects.get(id=doc_id)
-                original_species = new_species_doc.species
                 new_species_doc.species = self
                 new_species_doc.id = None
                 new_species_doc.document_number = ""
-                new_species_doc._file.name = f"boranga/species/{self.id}/species_documents/{new_species_doc.name}"
                 new_species_doc.can_delete = True
-                new_species_doc.save()
+                new_species_doc.save(version_user=request.user)
                 new_species_doc.species.log_user_action(
                     SpeciesUserAction.ACTION_ADD_DOCUMENT.format(
                         new_species_doc.document_number,
@@ -806,31 +804,6 @@ class Species(RevisionedMixin):
                     ),
                     request,
                 )
-
-                check_path = os.path.exists(
-                    f"private-media/boranga/species/{self.id}/species_documents/"
-                )
-                if check_path:
-                    # copy documents on file system
-                    subprocess.call(
-                        f"cp -p private-media/boranga/species/{original_species.id}"
-                        f"/species_documents/{new_species_doc.name} "
-                        f"private-media/boranga/species/{self.id}/species_documents/",
-                        shell=True,
-                    )
-                else:
-                    # create new directory
-                    os.makedirs(
-                        f"private-media/boranga/species/{self.id}/species_documents/",
-                        mode=0o777,
-                    )
-                    # then copy documents on file system
-                    subprocess.call(
-                        f"cp -p private-media/boranga/species/{original_species.id}"
-                        f"/species_documents/{new_species_doc.name} "
-                        f"private-media/boranga/species/{self.id}/species_documents/",
-                        shell=True,
-                    )
 
     def clone_threats(self, request):
         with transaction.atomic():
@@ -1540,6 +1513,7 @@ class Community(RevisionedMixin):
             _file=speciesCommunitiesImageFile,
             community=self,
         )
+        document.check_file(speciesCommunitiesImageFile)
         document.save()
         self.image_doc = document
         self.save()
@@ -1973,6 +1947,7 @@ class SpeciesDocument(Document):
         #     documents_qs = self.filter(input_name='species_doc', visible=True)
         #     documents_qs.delete()
         for idx in range(data["num_files"]):
+            self.check_file(request.data.get("file-" + str(idx)))
             _file = request.data.get("file-" + str(idx))
             self._file = _file
             self.name = _file.name
@@ -2070,6 +2045,7 @@ class CommunityDocument(Document):
         #     documents_qs = self.filter(input_name='species_doc', visible=True)
         #     documents_qs.delete()
         for idx in range(data["num_files"]):
+            self.check_file(request.data.get("file-" + str(idx)))
             _file = request.data.get("file-" + str(idx))
             self._file = _file
             self.name = _file.name
@@ -2580,7 +2556,10 @@ class SystemEmailGroup(models.Model):
 
     @classmethod
     def emails_by_group_and_area(cls, group_type, area=None):
-        group = cls.objects.get(group_type=group_type, area=area)
+        try:
+            group = cls.objects.get(group_type=group_type, area=area)
+        except cls.DoesNotExist:
+            return []
         return group.email_address_list
 
 

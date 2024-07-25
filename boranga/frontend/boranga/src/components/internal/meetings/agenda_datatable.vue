@@ -167,7 +167,6 @@ export default {
     data: function () {
         let vm = this;
         return {
-            species_community_original: null,
             isModalOpen: false,
             new_species_list: [],
             group_types: [],
@@ -190,10 +189,6 @@ export default {
         },
         title: function () {
             return 'Agenda (Add Conservation Status)';
-        },
-        species_split_form_url: function () {
-            var vm = this;
-            return `/api/species/${vm.species_community_original.id}/species_split_save.json`;
         },
         isFlora: function () {
             return this.group_name == 'flora' && this.$parent.updateModal === true; // parent condition checked as to resolve the datatable css problem onload

@@ -485,6 +485,7 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
 
 
 class OCRHabitatConditionSerializer(serializers.ModelSerializer):
+    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
 
     class Meta:
         model = OCRHabitatCondition
@@ -497,6 +498,7 @@ class OCRHabitatConditionSerializer(serializers.ModelSerializer):
             "good",
             "degraded",
             "completely_degraded",
+            "count_date",
         )
 
 
@@ -1571,6 +1573,9 @@ class SaveOCRHabitatConditionSerializer(serializers.ModelSerializer):
     # occurrence_report_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
+    count_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    )
 
     class Meta:
         model = OCRHabitatCondition
@@ -1583,6 +1588,7 @@ class SaveOCRHabitatConditionSerializer(serializers.ModelSerializer):
             "good",
             "degraded",
             "completely_degraded",
+            "count_date",
         )
 
 
@@ -2470,6 +2476,7 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
 class OCCHabitatConditionSerializer(serializers.ModelSerializer):
 
     copied_ocr = serializers.SerializerMethodField()
+    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
 
     class Meta:
         model = OCCHabitatCondition
@@ -2483,6 +2490,7 @@ class OCCHabitatConditionSerializer(serializers.ModelSerializer):
             "good",
             "degraded",
             "completely_degraded",
+            "count_date",
         )
 
     def get_copied_ocr(self, obj):
@@ -2806,6 +2814,9 @@ class SaveOCCHabitatConditionSerializer(serializers.ModelSerializer):
     # occurrence_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_id = serializers.IntegerField(required=False, allow_null=True)
+    count_date = serializers.DateTimeField(
+        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    )
 
     class Meta:
         model = OCCHabitatCondition
@@ -2818,6 +2829,7 @@ class SaveOCCHabitatConditionSerializer(serializers.ModelSerializer):
             "good",
             "degraded",
             "completely_degraded",
+            "count_date",
         )
 
 

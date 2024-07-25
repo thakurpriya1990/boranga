@@ -44,6 +44,7 @@
                                         :key="'div' + species.id" class="tab-pane fade" :id="'species-body-' + index"
                                         role="tabpanel" :aria-labelledby="'pills-species' + index + '-tab'">
                                         <SpeciesCommunitiesComponent :ref="'species_communities_species' + index"
+                                            :species_community_original="species"
                                             :species_community.sync="species" :id="'species-' + index"
                                             :is_internal="true" :is_readonly="true">
                                         </SpeciesCommunitiesComponent>

@@ -36,6 +36,7 @@
                                         aria-labelledby="pills-original-tab">
                                         <SpeciesCommunitiesComponent v-if="species_community_original != null"
                                             ref="species_communities_original"
+                                            :species_community_original="species_community_original"
                                             :species_community.sync="species_community_original" id="species_original"
                                             :is_internal="true" :is_readonly="true">
                                             <!-- this prop is only send from split species form to make the original species readonly -->

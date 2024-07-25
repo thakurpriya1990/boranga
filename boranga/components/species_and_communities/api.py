@@ -1,8 +1,6 @@
 import json
 import logging
 import mimetypes
-import os
-import subprocess
 from datetime import datetime
 from io import BytesIO
 
@@ -1599,11 +1597,11 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             new_doc_instance.species = new_rename_instance
             new_doc_instance.id = None
             new_doc_instance.document_number = ""
-            new_doc_instance._file.name = (
-                "boranga/species/{}/species_documents/{}".format(
-                    new_rename_instance.id, new_doc_instance.name
-                )
-            )
+            # new_doc_instance._file.name = (
+            #    "boranga/species/{}/species_documents/{}".format(
+            #        new_rename_instance.id, new_doc_instance.name
+            #    )
+            # )
             new_doc_instance.can_delete = True
             new_doc_instance.save(version_user=request.user)
             new_doc_instance.species.log_user_action(
@@ -1620,37 +1618,6 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 ),
                 request,
             )
-
-            check_path = os.path.exists(
-                "private-media/boranga/species/{}/species_documents/".format(
-                    new_rename_instance.id
-                )
-            )
-            if check_path is True:
-                # copy documents on file system
-                subprocess.call(
-                    "cp -p private-media/boranga/species/{}/species_documents/{}  \
-                        private-media/boranga/species/{}/species_documents/".format(
-                        instance.id, new_doc_instance.name, new_rename_instance.id
-                    ),
-                    shell=True,
-                )
-            else:
-                # create new directory
-                os.makedirs(
-                    "private-media/boranga/species/{}/species_documents/".format(
-                        new_rename_instance.id
-                    ),
-                    mode=0o777,
-                )
-                # then copy documents on file system
-                subprocess.call(
-                    "cp -p private-media/boranga/species/{}/species_documents/{}  \
-                        private-media/boranga/species/{}/species_documents/".format(
-                        instance.id, new_doc_instance.name, new_rename_instance.id
-                    ),
-                    shell=True,
-                )
 
         for new_threat in instance_threats:
             new_threat_instance = new_threat
@@ -1827,6 +1794,7 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # Save the files
         for f in request.FILES:
             document = comms.documents.create()
+            document.check_file(request.FILES[f])
             document.name = str(request.FILES[f])
             document._file = request.FILES[f]
             document.save()
@@ -2276,6 +2244,7 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # Save the files
         for f in request.FILES:
             document = comms.documents.create()
+            document.check_file(request.FILES[f])
             document.name = str(request.FILES[f])
             document._file = request.FILES[f]
             document.save()
