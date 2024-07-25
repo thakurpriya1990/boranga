@@ -183,6 +183,8 @@ from boranga.components.occurrence.utils import (
     process_shapefile_document,
     validate_map_files,
 )
+from boranga.components.spatial.models import PlausibilityGeometry
+from boranga.components.spatial.serializers import PlausibilityGeometrySerializer
 from boranga.components.spatial.utils import (
     populate_occurrence_tenure_data,
     save_geometry,
@@ -5491,6 +5493,21 @@ class OccurrenceViewSet(
         serializer = OccurrenceSiteSerializer(
             qs, many=True, context={"request": request}
         )
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+        url_path="plausibility-geometry",
+    )
+    def plausibility_geometry(self, request, *args, **kwargs):
+        qs = PlausibilityGeometry.objects.all()
+        serializer = PlausibilityGeometrySerializer(
+            qs, many=True, context={"request": request}
+        )
+
         return Response(serializer.data)
 
 
