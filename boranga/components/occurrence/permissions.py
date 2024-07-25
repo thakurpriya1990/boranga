@@ -473,7 +473,6 @@ class OccurrenceObjectPermission(BasePermission):
             or is_species_communities_approver(request)
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
-            or is_occurrence_report_referee(request)
         )
 
     def is_authorised_to_update(self, request, occurrence):
