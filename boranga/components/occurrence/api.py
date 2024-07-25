@@ -2329,7 +2329,7 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def retrieve(self, request, *args, **kwargs):
         # Needed an object level way to decide the serializer to use
         instance = self.get_object()
-        serializer = self.get_serializer(instance)
+        serializer = self.get_serializer(instance, context={"request": request})
         if (
             not is_occurrence_assessor(self.request)
             and not is_occurrence_approver(self.request)
@@ -2337,7 +2337,9 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             and is_occurrence_report_referee(request, instance.occurrence_report)
         ):
             # Don't let referees see observer contact details
-            serializer = OCRObserverDetailLimitedSerializer(instance)
+            serializer = OCRObserverDetailLimitedSerializer(
+                instance, context={"request": request}
+            )
         return Response(serializer.data)
 
     def unlocked_back_to_assessor(self, occurrence_report):
@@ -2359,7 +2361,9 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             raise serializers.ValidationError("Discarded observer cannot be updated.")
 
         serializer = OCRObserverDetailSerializer(
-            instance, data=json.loads(request.data.get("data"))
+            instance,
+            data=json.loads(request.data.get("data")),
+            context={"request": request},
         )
         serializer.is_valid(raise_exception=True)
 
@@ -2407,7 +2411,7 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     def create(self, request, *args, **kwargs):
         serializer = OCRObserverDetailSerializer(
-            data=json.loads(request.data.get("data"))
+            data=json.loads(request.data.get("data")), context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
         occurrence_report = serializer.validated_data["occurrence_report"]
