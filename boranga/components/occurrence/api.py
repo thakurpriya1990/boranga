@@ -194,7 +194,6 @@ from boranga.helpers import (
     is_customer,
     is_external_contributor,
     is_internal,
-    is_internal_contributor,
     is_occurrence_approver,
     is_occurrence_assessor,
     is_occurrence_report_referee,
@@ -1308,7 +1307,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         sample_type_list = []
-        values = SampleType.objects.all()
+        values = SampleType.objects.filter(group_type__name=group_type)
         if values:
             for val in values:
                 sample_type_list.append(
@@ -1355,7 +1354,7 @@ class OccurrenceReportViewSet(
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
-    
+
     # used for Occurrence Report Observation Plant count external form
     @list_route(
         methods=[
@@ -1365,7 +1364,7 @@ class OccurrenceReportViewSet(
     )
     def plant_count_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
-        
+
         plant_count_method_list = []
         values = PlantCountMethod.objects.all()
         if values:
@@ -1414,7 +1413,7 @@ class OccurrenceReportViewSet(
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
-    
+
     # used for Occurrence Report Observation external form
     @list_route(
         methods=[
@@ -1425,7 +1424,6 @@ class OccurrenceReportViewSet(
     def animal_observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
 
-        
         primary_detection_method_list = []
         values = PrimaryDetectionMethod.objects.all()
         if values:
@@ -1814,7 +1812,6 @@ class OccurrenceReportViewSet(
         if (
             is_occurrence_assessor(request)
             or is_occurrence_approver(request)
-            or is_occurrence_report_referee(request, instance)
             or ((is_contributor(request)) and instance.submitter == request.user.id)
         ):
             serializer = OCRObserverDetailSerializer(
@@ -2426,9 +2423,8 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if (
             is_occurrence_assessor(self.request)
             or is_occurrence_approver(self.request)
-            or is_external_contributor(self.request)
-            or is_internal_contributor(self.request)
             or is_readonly_user(self.request)
+            or is_contributor(self.request)
         ):
             return OCRObserverDetailSerializer
         return super().get_serializer_class()
@@ -2460,6 +2456,22 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         return qs
 
+    def retrieve(self, request, *args, **kwargs):
+        # Needed an object level way to decide the serializer to use
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, context={"request": request})
+        if (
+            not is_occurrence_assessor(self.request)
+            and not is_occurrence_approver(self.request)
+            and not is_readonly_user(self.request)
+            and is_occurrence_report_referee(request, instance.occurrence_report)
+        ):
+            # Don't let referees see observer contact details
+            serializer = OCRObserverDetailLimitedSerializer(
+                instance, context={"request": request}
+            )
+        return Response(serializer.data)
+
     def unlocked_back_to_assessor(self, occurrence_report):
         request = self.request
         if (
@@ -2479,7 +2491,9 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             raise serializers.ValidationError("Discarded observer cannot be updated.")
 
         serializer = OCRObserverDetailSerializer(
-            instance, data=json.loads(request.data.get("data"))
+            instance,
+            data=json.loads(request.data.get("data")),
+            context={"request": request},
         )
         serializer.is_valid(raise_exception=True)
 
@@ -2527,7 +2541,7 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     def create(self, request, *args, **kwargs):
         serializer = OCRObserverDetailSerializer(
-            data=json.loads(request.data.get("data"))
+            data=json.loads(request.data.get("data")), context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
         occurrence_report = serializer.validated_data["occurrence_report"]
@@ -5208,7 +5222,7 @@ class OccurrenceViewSet(
                     }
                 )
         sample_type_list = []
-        values = SampleType.objects.all()
+        values = SampleType.objects.filter(group_type__name=group_type)
         if values:
             for val in values:
                 sample_type_list.append(
@@ -5255,7 +5269,7 @@ class OccurrenceViewSet(
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
-    
+
     # used for Occurrence Observation Plant count external form
     @list_route(
         methods=[
@@ -5265,7 +5279,7 @@ class OccurrenceViewSet(
     )
     def plant_count_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence external form"""
-        
+
         plant_count_method_list = []
         values = PlantCountMethod.objects.all()
         if values:
@@ -5314,7 +5328,7 @@ class OccurrenceViewSet(
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
-    
+
     # used for Occurrence Report Observation external form
     @list_route(
         methods=[
@@ -5325,7 +5339,6 @@ class OccurrenceViewSet(
     def animal_observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
 
-        
         primary_detection_method_list = []
         values = PrimaryDetectionMethod.objects.all()
         if values:

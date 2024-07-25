@@ -106,18 +106,20 @@ export default {
                     } else if (!vm.isReadOnly) {
                         links += `<a href='#' data-reinstate-observer_det='${full.id}'>Reinstate</a><br>`;
                     }
-                    links += `<a href='#' data-history-observer='${full.id}'>History</a><br>`;
+                    if(full.can_action){
+                        links += `<a href='#' data-history-observer='${full.id}'>History</a><br>`;
+                    }
                     return links;
                 }
             },
         ]
         if (!vm.show_observer_contact_information) {
-            columns.splice(2, 1);
+            columns.splice(1, 1);
         }
         return {
             ocrObserverDetailHistoryId: null,
             observer_detail_url: api_endpoints.observer_detail,
-            observer_detail_headers: vm.show_observer_contact_information ? ['Contact Name', 'Observer Role', 'Contact Detail', 'Organisation', 'Main Observer', 'Action'] : ['Contact Name', 'Observer Role', 'Organisation', 'Main Observer', 'Action'],
+            observer_detail_headers: vm.show_observer_contact_information ? ['Contact Name', 'Contact Detail', 'Observer Role', 'Organisation', 'Main Observer', 'Action'] : ['Contact Name', 'Observer Role', 'Organisation', 'Main Observer', 'Action'],
             observer_detail_options: {
                 autowidth: false,
                 language: {

@@ -1,7 +1,6 @@
 import json
 import logging
 import mimetypes
-import os
 from datetime import datetime
 from io import BytesIO
 
@@ -162,9 +161,9 @@ class GetSpecies(views.APIView):
             else:
                 species_data_cache = dumped_species
             # don't allow to choose species that are still in draft status
-            exculde_status = ["draft"]
+            exclude_status = ["draft"]
             data = species_data_cache.filter(
-                ~Q(processing_status__in=exculde_status)
+                ~Q(processing_status__in=exclude_status)
                 & ~Q(taxonomy=None)
                 & Q(taxonomy__scientific_name__icontains=search_term)
             ).values("id", "taxonomy__scientific_name")[:10]
@@ -182,9 +181,9 @@ class GetCommunities(views.APIView):
         search_term = request.GET.get("term", "")
         if search_term:
             # don't allow to choose communities that are still in draft status
-            exculde_status = ["draft"]
+            exclude_status = ["draft"]
             data = Community.objects.filter(
-                ~Q(processing_status__in=exculde_status)
+                ~Q(processing_status__in=exclude_status)
                 & Q(taxonomy__community_name__icontains=search_term)
             ).values("id", "taxonomy__community_name")[:10]
             data_transform = [
@@ -257,19 +256,11 @@ class GetCommonName(views.APIView):
     def get(self, request, format=None):
         group_type_id = request.GET.get("group_type_id", "")
         search_term = request.GET.get("term", "")
-        cs_referral = request.GET.get("cs_referral", "")
         if search_term:
-            if cs_referral != "":
-                # TODO may need to change the query for referral
-                data = TaxonVernacular.objects.filter(
-                    vernacular_name__icontains=search_term,
-                    taxonomy__kingdom_fk__grouptype=group_type_id,
-                ).values("id", "vernacular_name")[:10]
-            else:
-                data = TaxonVernacular.objects.filter(
-                    vernacular_name__icontains=search_term,
-                    taxonomy__kingdom_fk__grouptype=group_type_id,
-                ).values("id", "vernacular_name")[:10]
+            data = TaxonVernacular.objects.filter(
+                vernacular_name__icontains=search_term,
+                taxonomy__kingdom_fk__grouptype=group_type_id,
+            ).values("id", "vernacular_name")[:10]
             data_transform = [
                 {"id": vern["id"], "text": vern["vernacular_name"]} for vern in data
             ]
@@ -283,31 +274,17 @@ class GetFamily(views.APIView):
     def get(self, request, format=None):
         group_type_id = request.GET.get("group_type_id", "")
         search_term = request.GET.get("term", "")
-        cs_referral = request.GET.get("cs_referral", "")
         if search_term:
-            if cs_referral != "":
-                # TODO may need to change the query for referral
-                data = (
-                    Taxonomy.objects.filter(
-                        ~Q(family_id=None),
-                        family_name__icontains=search_term,
-                        kingdom_fk__grouptype=group_type_id,
-                    )
-                    .order_by("family_name")
-                    .values("family_id", "family_name")
-                    .distinct()[:10]
+            data = (
+                Taxonomy.objects.filter(
+                    ~Q(family_id=None),
+                    family_name__icontains=search_term,
+                    kingdom_fk__grouptype=group_type_id,
                 )
-            else:
-                data = (
-                    Taxonomy.objects.filter(
-                        ~Q(family_id=None),
-                        family_name__icontains=search_term,
-                        kingdom_fk__grouptype=group_type_id,
-                    )
-                    .order_by("family_name")
-                    .values("family_id", "family_name")
-                    .distinct()[:10]
-                )
+                .order_by("family_name")
+                .values("family_id", "family_name")
+                .distinct()[:10]
+            )
             data_transform = [
                 {"id": taxon["family_id"], "text": taxon["family_name"]}
                 for taxon in data
@@ -322,31 +299,17 @@ class GetGenera(views.APIView):
     def get(self, request, format=None):
         group_type_id = request.GET.get("group_type_id", "")
         search_term = request.GET.get("term", "")
-        cs_referral = request.GET.get("cs_referral", "")
         if search_term:
-            if cs_referral != "":
-                # TODO may need to change the query for referral
-                data = (
-                    Taxonomy.objects.filter(
-                        ~Q(genera_id=None),
-                        genera_name__icontains=search_term,
-                        kingdom_fk__grouptype=group_type_id,
-                    )
-                    .order_by("genera_name")
-                    .values("genera_id", "genera_name")
-                    .distinct()[:10]
+            data = (
+                Taxonomy.objects.filter(
+                    ~Q(genera_id=None),
+                    genera_name__icontains=search_term,
+                    kingdom_fk__grouptype=group_type_id,
                 )
-            else:
-                data = (
-                    Taxonomy.objects.filter(
-                        ~Q(genera_id=None),
-                        genera_name__icontains=search_term,
-                        kingdom_fk__grouptype=group_type_id,
-                    )
-                    .order_by("genera_name")
-                    .values("genera_id", "genera_name")
-                    .distinct()[:10]
-                )
+                .order_by("genera_name")
+                .values("genera_id", "genera_name")
+                .distinct()[:10]
+            )
             data_transform = [
                 {"id": taxon["genera_id"], "text": taxon["genera_name"]}
                 for taxon in data
@@ -362,33 +325,18 @@ class GetPhyloGroup(views.APIView):
         #  group_type_id  retrive as may need to use later
         group_type_id = request.GET.get("group_type_id", "")
         search_term = request.GET.get("term", "")
-        cs_referral = request.GET.get("cs_referral", "")
         if search_term:
-            if cs_referral != "":
-                # TODO may need to change the query for referral
-                data = (
-                    InformalGroup.objects.filter(
-                        classification_system_fk__class_desc__icontains=search_term,
-                        taxonomy__kingdom_fk__grouptype=group_type_id,
-                    )
-                    .distinct()
-                    .values(
-                        "classification_system_fk",
-                        "classification_system_fk__class_desc",
-                    )[:10]
+            data = (
+                InformalGroup.objects.filter(
+                    classification_system_fk__class_desc__icontains=search_term,
+                    taxonomy__kingdom_fk__grouptype=group_type_id,
                 )
-            else:
-                data = (
-                    InformalGroup.objects.filter(
-                        classification_system_fk__class_desc__icontains=search_term,
-                        taxonomy__kingdom_fk__grouptype=group_type_id,
-                    )
-                    .distinct()
-                    .values(
-                        "classification_system_fk",
-                        "classification_system_fk__class_desc",
-                    )[:10]
-                )
+                .distinct()
+                .values(
+                    "classification_system_fk",
+                    "classification_system_fk__class_desc",
+                )[:10]
+            )
             data_transform = [
                 {
                     "id": group["classification_system_fk"],
@@ -405,17 +353,10 @@ class GetCommunityId(views.APIView):
 
     def get(self, request, format=None):
         search_term = request.GET.get("term", "")
-        cs_referral = request.GET.get("cs_referral", "")
         if search_term:
-            if cs_referral != "":
-                # TODO may need to change the query for referral
-                data = CommunityTaxonomy.objects.filter(
-                    community_migrated_id__icontains=search_term
-                ).values("id", "community_migrated_id")[:10]
-            else:
-                data = CommunityTaxonomy.objects.filter(
-                    community_migrated_id__icontains=search_term
-                ).values("id", "community_migrated_id")[:10]
+            data = CommunityTaxonomy.objects.filter(
+                community_migrated_id__icontains=search_term
+            ).values("id", "community_migrated_id")[:10]
             data_transform = [
                 {"id": community["id"], "text": community["community_migrated_id"]}
                 for community in data
@@ -429,23 +370,12 @@ class GetCommunityName(views.APIView):
 
     def get(self, request, format=None):
         search_term = request.GET.get("term", "")
-        cs_referral = request.GET.get("cs_referral", "")
-        # taxon_details = request.GET.get('taxon_details', '')
         cs_community = request.GET.get("cs_community", "")
         if search_term:
-            if cs_referral != "":
-                # TODO may need to change the query for referral
+            if cs_community != "":
+                exclude_status = ["draft"]
                 data = CommunityTaxonomy.objects.filter(
-                    community_name__icontains=search_term
-                ).values("id", "community_name")[:10]
-                data_transform = [
-                    {"id": taxon["id"], "text": taxon["community_name"]}
-                    for taxon in data
-                ]
-            elif cs_community != "":
-                exculde_status = ["draft"]
-                data = CommunityTaxonomy.objects.filter(
-                    ~Q(community__processing_status__in=exculde_status)
+                    ~Q(community__processing_status__in=exclude_status)
                     & Q(community_name__icontains=search_term)
                 )[:10]
                 data_transform = [
@@ -1052,7 +982,7 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[AllowAny],
     )
     def communities_external(self, request, *args, **kwargs):
-        qs = self.get_queryset(
+        qs = self.get_queryset().filter(
             processing_status=Species.PROCESSING_STATUS_ACTIVE,
             community_publishing_status__community_public=True,
         )
@@ -1440,7 +1370,9 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # and saved to the database then if the user presses the cancel button on the modal, the
         # new species is deleted. As such I belive using the delete method is justifiable for now
         # However if we have time we can change the split action to only create the new species
-        # on submit. Potential TODO
+        # on submit. NOTE: PHASE2 Consider reworking split, combine and rename actions so they
+        # don't create records up front but rather only when the user submits the form. That way
+        # we won't need to have DELETE endpoints.
         instance = self.get_object()
         instance.remove(request)
         return Response(status.HTTP_204_NO_CONTENT)
@@ -1514,7 +1446,7 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             if serializer.is_valid():
                 serializer.save()
 
-        # TODO - move this to dedicated save and replace with setting to private
+        # TODO @Ash - move this to dedicated save and replace with setting to private
         if request_data.get("publishing_status"):
             publishing_status_instance, created = (
                 SpeciesPublishingStatus.objects.get_or_create(species=instance)
@@ -1665,11 +1597,11 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             new_doc_instance.species = new_rename_instance
             new_doc_instance.id = None
             new_doc_instance.document_number = ""
-            #new_doc_instance._file.name = (
+            # new_doc_instance._file.name = (
             #    "boranga/species/{}/species_documents/{}".format(
             #        new_rename_instance.id, new_doc_instance.name
             #    )
-            #)
+            # )
             new_doc_instance.can_delete = True
             new_doc_instance.save(version_user=request.user)
             new_doc_instance.species.log_user_action(
@@ -2890,8 +2822,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
-        if not is_internal(self.request):  # TODO group checks
-            raise serializers.ValidationError("user not authorised to update threat")
         instance = self.get_object()
         serializer = SaveConservationThreatSerializer(
             instance, data=json.loads(request.data.get("data"))
@@ -2933,8 +2863,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        if not is_internal(self.request):  # TODO group checks
-            raise serializers.ValidationError("user not authorised to create threat")
         serializer = SaveConservationThreatSerializer(
             data=json.loads(request.data.get("data"))
         )

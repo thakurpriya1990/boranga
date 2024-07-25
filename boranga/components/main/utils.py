@@ -3,7 +3,6 @@ import logging
 from datetime import datetime
 
 import pytz
-import requests
 from django.conf import settings
 from django.db import connection
 from django.db.models import Q
@@ -28,20 +27,6 @@ def retrieve_department_users():
     )
     serialiser = EmailUserROSerializerForReferral(dep_users, many=True)
     return serialiser.data
-
-
-def get_department_user(email):
-    res = requests.get(
-        f"{settings.CMS_URL}/api/users?email={email}",
-        auth=(settings.LEDGER_USER, settings.LEDGER_PASS),
-        verify=False,
-    )
-    res.raise_for_status()
-    data = json.loads(res.content).get("objects")
-    if len(data) > 0:
-        return data[0]
-    else:
-        return None
 
 
 def to_local_tz(_date):

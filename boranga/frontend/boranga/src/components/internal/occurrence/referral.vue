@@ -68,7 +68,7 @@
                                         :occurrence_report_obj="occurrence_report_obj" id="OccurrenceReportStart"
                                         :canEditStatus="canEditStatus" ref="occurrence_report" :referral="referral"
                                         @refreshOccurrenceReport="refreshOccurrenceReport()" :show_observer_contact_information="false"
-                                        @refreshFromResponse="refreshFromResponse" :is_internal="is_internal">
+                                        @refreshFromResponse="refreshFromResponse" :is_internal="profile.is_internal">
                                     </ProposalOccurrenceReport>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                     <input type='hidden' name="occurrence_report_id" :value="1" />

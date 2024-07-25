@@ -592,7 +592,7 @@ ResponsiveDatatablesHelper.prototype.disable = function (disable) {
  * Get state from cookie.
  */
 ResponsiveDatatablesHelper.prototype.getState = function () {
-    if (typeof(Storage)) {
+    if (typeof(Storage)!='undefined') {
         // Use local storage
         var value = JSON.parse(localStorage.getItem(this.cookieName));
         if (value) {
@@ -611,7 +611,7 @@ ResponsiveDatatablesHelper.prototype.getState = function () {
  * Saves state to cookie.
  */
 ResponsiveDatatablesHelper.prototype.setState = function () {
-    if (typeof(Storage)) {
+    if (typeof(Storage)!='undefined') {
         // Use local storage
         var d1 = this.difference(this.lastColumnsHiddenIndexes, this.columnsHiddenIndexes).length;
         var d2 = this.difference(this.columnsHiddenIndexes, this.lastColumnsHiddenIndexes).length;

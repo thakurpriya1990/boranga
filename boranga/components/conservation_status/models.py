@@ -1112,7 +1112,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 referral=user.id,
                 sent_by=request.user.id,
                 text=referral_text,
-                assigned_officer=request.user.id,  # TODO should'nt use assigned officer as per das
+                assigned_officer=request.user.id,
             )
 
         # Create a log entry for the proposal
@@ -2465,8 +2465,6 @@ class ConservationStatusAmendmentRequest(ConservationStatusProposalRequest):
                     ConservationStatus.PROCESSING_STATUS_DRAFT
                 )
                 conservation_status.save()
-                # TODO at the moment conservation_status is not having it's document model
-                # conservation_status.documents.all().update(can_hide=True)
 
             # Create a log entry for the conservationstatus
             conservation_status.log_user_action(

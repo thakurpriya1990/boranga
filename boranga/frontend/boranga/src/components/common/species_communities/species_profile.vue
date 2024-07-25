@@ -591,13 +591,7 @@
                     </select>
                 </div>
             </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 col-form-label">Response to Disturbance:</label>
-                <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" class="form-control" id="response_to_disturbance"
-                        placeholder="" v-model="species_community.conservation_attributes.response_to_disturbance" />
-                </div>
-            </div>
+
             <div class="row mb-3">
                 <label for="" class="col-sm-3 col-form-label">Habitat:</label>
                 <div class="col-sm-9">

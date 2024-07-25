@@ -277,7 +277,6 @@
                                     <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
                                         @click.prevent="returnToDashboard">
                                             Return to Dashboard</button>
-                                            submitOccurrenceReport {{ submitOccurrenceReport }}
                                     <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit"
                                     class="col-md-6 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
