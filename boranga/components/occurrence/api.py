@@ -344,9 +344,13 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if is_internal(self.request):
-            qs = OccurrenceReport.objects.all()
+            return qs
+        elif is_occurrence_report_referee(self.request) and is_contributor(self.request):
+            return qs.filter(Q(submitter=self.request.user.id)|Q(referrals__referral=self.request.user.id))
+        elif is_occurrence_report_referee(self.request):
+            qs = qs.filter(referrals__referral=self.request.user.id)
         elif is_contributor(self.request):
-            qs = OccurrenceReport.objects.filter(submitter=self.request.user.id)
+            qs = qs.filter(submitter=self.request.user.id)
 
         return qs
 
