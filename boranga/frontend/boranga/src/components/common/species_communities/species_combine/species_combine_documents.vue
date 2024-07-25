@@ -266,9 +266,9 @@ export default {
         mounted: function(){
             let vm = this;
             this.$nextTick(() => {
-                if(vm.species_original.document_selection!=null){
+                if(vm.species_original.document_selection !== undefined && vm.species_original.document_selection !== null){
 
-                    if(vm.species_original.document_selection==="selectAll"){
+                    if(vm.species_original.document_selection === "selectAll"){
                         document.getElementById('doc_select_all'+vm.species_original.id).checked=true;
                     }
                     else{

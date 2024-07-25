@@ -169,7 +169,6 @@ export default {
     data: function () {
         let vm = this;
         return {
-            species_community_original: null,
             isModalOpen: false,
             new_species_list: [],
             user_preference: 'flora',    // TODO : set it to default user preference but for now is hardcoded value
@@ -194,10 +193,6 @@ export default {
         title: function () {
             //return this.processing_status == 'With Approver' ? 'Approve Conservation Status' : 'Propose to approve Conservation Status';
             return 'Agenda (Add Conservation Status)';
-        },
-        species_split_form_url: function () {
-            var vm = this;
-            return `/api/species/${vm.species_community_original.id}/species_split_save.json`;
         },
         /*---------properties to load group related vue components-------------*/
         isFlora: function () {
