@@ -984,7 +984,7 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[AllowAny],
     )
     def communities_external(self, request, *args, **kwargs):
-        qs = self.get_queryset(
+        qs = self.get_queryset().filter(
             processing_status=Species.PROCESSING_STATUS_ACTIVE,
             community_publishing_status__community_public=True,
         )
@@ -1372,7 +1372,9 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # and saved to the database then if the user presses the cancel button on the modal, the
         # new species is deleted. As such I belive using the delete method is justifiable for now
         # However if we have time we can change the split action to only create the new species
-        # on submit. Potential TODO
+        # on submit. NOTE: PHASE2 Consider reworking split, combine and rename actions so they
+        # don't create records up front but rather only when the user submits the form. That way
+        # we won't need to have DELETE endpoints.
         instance = self.get_object()
         instance.remove(request)
         return Response(status.HTTP_204_NO_CONTENT)
