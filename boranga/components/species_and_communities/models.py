@@ -2480,8 +2480,6 @@ class SpeciesConservationAttributes(models.Model):
     post_fire_habitat_interaction = models.ForeignKey(
         PostFireHabitatInteraction, on_delete=models.SET_NULL, null=True, blank=True
     )
-    # TODO Remove the response to dist field
-    response_to_disturbance = models.CharField(max_length=500, null=True, blank=True)
     habitat = models.CharField(max_length=1000, null=True, blank=True)
     hydrology = models.CharField(max_length=200, null=True, blank=True)
     research_requirements = models.CharField(max_length=1500, null=True, blank=True)
