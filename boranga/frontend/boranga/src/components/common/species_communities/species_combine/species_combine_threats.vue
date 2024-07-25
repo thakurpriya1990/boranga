@@ -278,7 +278,7 @@ export default {
                         vm.species_community.threats.splice(index,1);
                     }
                 });
-                vm.$refs.documents_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                vm.$refs.threats_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                     helpers.enablePopovers();
                 });
             },
