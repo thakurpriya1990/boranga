@@ -768,6 +768,7 @@ class Species(RevisionedMixin):
             _file=speciesCommunitiesImageFile,
             species=self,
         )
+        document.check_file(speciesCommunitiesImageFile)
         document.save()
         self.image_doc = document
         self.save()
@@ -1564,6 +1565,7 @@ class Community(RevisionedMixin):
             _file=speciesCommunitiesImageFile,
             community=self,
         )
+        document.check_file(speciesCommunitiesImageFile)
         document.save()
         self.image_doc = document
         self.save()
@@ -1997,6 +1999,7 @@ class SpeciesDocument(Document):
         #     documents_qs = self.filter(input_name='species_doc', visible=True)
         #     documents_qs.delete()
         for idx in range(data["num_files"]):
+            self.check_file(request.data.get("file-" + str(idx)))
             _file = request.data.get("file-" + str(idx))
             self._file = _file
             self.name = _file.name
@@ -2094,6 +2097,7 @@ class CommunityDocument(Document):
         #     documents_qs = self.filter(input_name='species_doc', visible=True)
         #     documents_qs.delete()
         for idx in range(data["num_files"]):
+            self.check_file(request.data.get("file-" + str(idx)))
             _file = request.data.get("file-" + str(idx))
             self._file = _file
             self.name = _file.name

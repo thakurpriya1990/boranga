@@ -351,6 +351,7 @@ export default {
             updatingAnimalOnservationDetails: false,
             total_seen: 0,
             listOfAnimalValuesDict: {},
+            not_counted: false,
         }
     },
     components: {

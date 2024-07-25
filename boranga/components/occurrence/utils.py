@@ -86,6 +86,7 @@ def save_document(request, instance, comms_instance, document_type, input_name=N
         else:
             raise ValidationError(f"Invalid document type {document_type}")
 
+        document.check_file(request.data.get("_file"))
         document._file = _file
         document.save()
 

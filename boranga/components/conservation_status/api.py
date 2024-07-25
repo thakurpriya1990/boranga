@@ -1698,8 +1698,9 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         comms = serializer.save()
         for f in request.FILES:
             document = comms.documents.create()
+            document.check_file(request.FILES[f])
             document.name = str(request.FILES[f])
-            document._file = request.FILES[f]
+            document._file = request.FILES[f]          
             document.save()
 
         return Response(serializer.data)

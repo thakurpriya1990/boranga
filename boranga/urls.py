@@ -185,6 +185,11 @@ api_patterns = [
         users_api.SaveSubmitterInformation.as_view(),
         name="save-submitter-information",
     ),
+    url(
+        r"^api/save_area_of_interest$",
+        users_api.SaveAreaOfInterest.as_view(),
+        name="save-area-of-interest",
+    ),
     url(r"^api/countries$", users_api.GetCountries.as_view(), name="get-countries"),
     url(
         r"^api/submitter_categories$",

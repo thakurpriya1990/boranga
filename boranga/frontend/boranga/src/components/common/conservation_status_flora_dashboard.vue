@@ -1685,7 +1685,7 @@ export default {
     },
     mounted: function () {
         let vm = this;
-        if(vm.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS)){
+        if(vm.profile && vm.profile.groups && vm.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS)){
             vm.internal_status.push({ value: 'discarded_by_me', name: 'Discarded By Me' },);
         }
         vm.fetchFilterLists();

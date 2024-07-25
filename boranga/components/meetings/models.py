@@ -52,7 +52,7 @@ class MeetingRoom(ArchivableModel):
         return str(self.room_name)
 
 
-class Committee(models.Model):
+class Committee(ArchivableModel):
     name = models.CharField(max_length=328, blank=True, null=True)
 
     class Meta:
@@ -63,7 +63,7 @@ class Committee(models.Model):
         return str(self.name)
 
 
-class CommitteeMembers(models.Model):
+class CommitteeMembers(ArchivableModel):
     first_name = models.CharField(max_length=128, blank=True, null=True)
     last_name = models.CharField(max_length=128, blank=True, null=True)
     email = models.CharField(max_length=328, blank=True, null=True)
@@ -453,11 +453,12 @@ class Minutes(Document):
             super().save(*args, **kwargs)
 
     @transaction.atomic
-    def add_minutes_documents(self, request, *args, **kwargs):
+    def add_documents(self, request, *args, **kwargs):
         # save the files
         data = json.loads(request.data.get("data"))
 
         for idx in range(data["num_files"]):
+            self.check_file(request.data.get("file-" + str(idx)))
             _file = request.data.get("file-" + str(idx))
             self._file = _file
             self.name = _file.name

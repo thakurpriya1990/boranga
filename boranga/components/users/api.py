@@ -17,8 +17,10 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from boranga.components.conservation_status.models import ConservationStatusReferral
+from boranga.components.main.models import UserSystemSettings
 from boranga.components.main.utils import retrieve_department_users
 from boranga.components.occurrence.models import OccurrenceReportReferral
+from boranga.components.species_and_communities.models import GroupType
 from boranga.components.users.models import SubmitterCategory, SubmitterInformation
 from boranga.components.users.serializers import (
     EmailUserActionSerializer,
@@ -28,6 +30,7 @@ from boranga.components.users.serializers import (
     SubmitterInformationSerializer,
     UserSerializer,
 )
+from boranga.helpers import is_internal
 from boranga.permissions import IsApprover, IsAssessor, IsInternal
 
 logger = logging.getLogger(__name__)
@@ -101,6 +104,42 @@ class SaveSubmitterInformation(views.APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class SaveAreaOfInterest(views.APIView):
+    renderer_classes = [
+        JSONRenderer,
+    ]
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, format=None):
+        if not is_internal(request):
+            raise PermissionDenied("You do not have permission to perform this action.")
+
+        user_system_settings, created = UserSystemSettings.objects.get_or_create(
+            user=request.user.id
+        )
+        if created:
+            logger.info(f"Created UserSystemSettings: {user_system_settings}")
+
+        area_of_interest = request.data.get("area_of_interest", None)
+
+        if not area_of_interest:
+            user_system_settings.area_of_interest = None
+            user_system_settings.save()
+            return Response({"area_of_interest": None})
+
+        try:
+            group_type = GroupType.objects.get(name=area_of_interest)
+            user_system_settings.area_of_interest_id = group_type.id
+        except GroupType.DoesNotExist:
+            return Response(
+                {"error": "GroupType does not exist"},
+                status=400,
+            )
+
+        user_system_settings.save()
+        return Response({"area_of_interest": group_type.name})
 
 
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
@@ -303,6 +342,7 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # Save the files
         for f in request.FILES:
             document = comms.documents.create()
+            document.check_file(request.FILES[f])
             document.name = str(request.FILES[f])
             document._file = request.FILES[f]
             document.save()

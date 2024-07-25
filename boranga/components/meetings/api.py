@@ -516,6 +516,7 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # Save the files
         for f in request.FILES:
             document = comms.documents.create()
+            document.check_file(request.FILES[f])
             document.name = str(request.FILES[f])
             document._file = request.FILES[f]
             document.save()
@@ -633,7 +634,7 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save(no_revision=True)
-        instance.add_minutes_documents(request, version_user=request.user)
+        instance.add_documents(request, version_user=request.user)
         instance.meeting.log_user_action(
             MeetingUserAction.ACTION_UPDATE_MINUTE.format(
                 instance.minutes_number, instance.meeting.meeting_number
@@ -652,7 +653,7 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = SaveMinutesSerializer(data=json.loads(request.data.get("data")))
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(no_revision=True)
-        instance.add_minutes_documents(request, version_user=request.user)
+        instance.add_documents(request, version_user=request.user)
         instance.meeting.log_user_action(
             MeetingUserAction.ACTION_ADD_MINUTE.format(
                 instance.minutes_number, instance.meeting.meeting_number

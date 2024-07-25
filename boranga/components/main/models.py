@@ -4,7 +4,12 @@ import os
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db import models
+from django.core.exceptions import ValidationError
 from reversion.models import Version
+from django.apps import apps
+from django.core.cache import cache
+
+from boranga.helpers import compressed_content_valid, file_extension_valid
 
 private_storage = FileSystemStorage(
     location=settings.BASE_DIR + "/private-media/", base_url="/private-media/"
@@ -108,6 +113,24 @@ class CommunicationsLogEntry(models.Model):
     class Meta:
         app_label = "boranga"
 
+class FileExtensionWhitelist(models.Model):
+
+    name = models.CharField(
+        max_length=16
+    )
+    model = models.CharField(max_length=255, default="all")
+
+    compressed = models.BooleanField()
+
+    class Meta:
+        app_label = "boranga"
+        unique_together=("name","model")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._meta.get_field("model").choices = (("all","all",),) + tuple(
+            map(lambda m: (m,m), filter(lambda m: Document in apps.get_app_config('boranga').models[m].__bases__, apps.get_app_config('boranga').models))
+        ) 
 
 class Document(RevisionedMixin):
     name = models.CharField(
@@ -137,6 +160,25 @@ class Document(RevisionedMixin):
 
     def __str__(self):
         return self.name or self.filename
+    
+    def check_file(self,file):
+        #check if extension in whitelist
+        cache_key = settings.CACHE_KEY_FILE_EXTENSION_WHITELIST
+        whitelist = cache.get(cache_key)
+        if whitelist is None:
+            whitelist = FileExtensionWhitelist.objects.all()
+            cache.set(cache_key, whitelist, settings.CACHE_TIMEOUT_2_HOURS)
+
+        valid, compression = file_extension_valid(str(file), whitelist, self._meta.model_name)
+
+        if not valid:
+            raise ValidationError("File type/extension not supported")
+
+        if compression:
+            #supported compression check
+            valid = compressed_content_valid(file, whitelist, self._meta.model_name)
+            if not valid:
+                raise ValidationError("Unsupported type/extension in compressed file")
 
 
 class GlobalSettings(models.Model):
@@ -198,10 +240,10 @@ class SystemMaintenance(models.Model):
 
 
 class UserSystemSettings(models.Model):
-    # user = models.OneToOneField(EmailUser, related_name='system_settings', on_delete=models.CASCADE)
     user = models.IntegerField(unique=True)  # EmailUserRO
-    event_training_completed = models.BooleanField(default=False)
-    event_training_date = models.DateField(blank=True, null=True)
+    area_of_interest = models.ForeignKey(
+        "GroupType", on_delete=models.PROTECT, null=True, blank=True
+    )
 
     class Meta:
         app_label = "boranga"

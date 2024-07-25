@@ -223,7 +223,7 @@ export default {
         column_vesting: function () {
             return {
                 data: 'vesting',
-                name: 'vesting.label',
+                name: 'vesting.code, vesting.label',
                 orderable: true,
                 searchable: true,
                 visible: true,
@@ -232,7 +232,7 @@ export default {
         column_purpose: function () {
             return {
                 data: 'purpose',
-                name: 'purpose.label',
+                name: 'purpose.code, purpose.label',
                 orderable: true,
                 searchable: true,
                 visible: true,

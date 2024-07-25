@@ -49,9 +49,7 @@ import {
 export default {
     name: 'InternalSpeciesCommunitiesDashboard',
     data() {
-        let vm = this;
         return {
-            user_preference: 'flora',    // TODO : set it to default user preference but for now is hardcoded value
             group_types: [],
             group_name: null,
             species_url: api_endpoints.species_paginated_internal,
@@ -66,18 +64,6 @@ export default {
         FormSection,
     },
     computed: {
-        /*------properties to show the user authenticated Tabs only-----------*/
-        showFloraTab: function () {
-            return this.group_types.includes('flora');
-        },
-        showFaunaTab: function () {
-            return this.group_types.includes('fauna');
-        },
-        showCommunityTab: function () {
-            return this.group_types.includes('community');
-        },
-        /*---------------------------------------------------------------------*/
-        /*---------properties to load group related vue components-------------*/
         isFlora: function () {
             return this.group_name == 'flora';
         },
@@ -87,7 +73,6 @@ export default {
         isCommunity: function () {
             return this.group_name == 'community';
         },
-        /*---------------------------------------------------------------------*/
         getGroupId: function () {
             for (var i = 0; i < this.group_types.length; i++) {
                 if (this.group_name === this.group_types[i].name) {
@@ -97,36 +82,37 @@ export default {
         }
     },
     methods: {
-        set_tabs: function () {
-            let vm = this;
-            /* set user preference tab by default on load of dashboard (Note: doesn't affect on the load group component)*/
-            if (vm.user_preference === 'flora') {
-                $('#pills-tab a[href="#pills-flora"]').tab('show');
-            }
-            if (vm.user_preference === 'fauna') {
-                $('#pills-tab a[href="#pills-fauna"]').tab('show');
-            }
-            if (vm.user_preference === 'community') {
-                $('#pills-tab a[href="#pills-community"]').tab('show');
-            }
-        },
         set_active_tab: function (group_name) {
             this.group_name = group_name;
-            localStorage.setItem('speciesCommunitiesActiveTab', group_name);
+            if(!this.profile || !this.profile.area_of_interest){
+                localStorage.setItem('speciesCommunitiesActiveTab', group_name);
+            }
             let elem = $('#pills-tab a[href="#pills-' + group_name + '"]')
             let tab = bootstrap.Tab.getInstance(elem)
             if (!tab)
                 tab = new bootstrap.Tab(elem)
             tab.show()
         },
-        fetchProfile: function(){
+        fetchProfile: function () {
             let vm = this;
-            vm.$http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body;
-            },(error) => {
+            vm.$http.get(api_endpoints.profile).then(async (response) => {
+                vm.profile = await response.body;
+                vm.$nextTick(() => {
+                    let speciesCommunitiesActiveTab = localStorage.getItem('speciesCommunitiesActiveTab')
+                    if (vm.profile && vm.profile.area_of_interest) {
+                        vm.set_active_tab(vm.profile.area_of_interest);
+                        return;
+                    }
+                    if(speciesCommunitiesActiveTab === null) {
+                        vm.set_active_tab('flora');
+                    } else {
+                        vm.set_active_tab(speciesCommunitiesActiveTab);
+                    }
+                })
+            }, (error) => {
                 console.log(error);
-            })
-        },
+            });
+        }
     },
     created: function () {
         this.$http.get(api_endpoints.group_types_dict).then((response) => {
@@ -137,72 +123,7 @@ export default {
         this.fetchProfile();
     },
     mounted: function () {
-        let vm = this;
-        this.$nextTick(function () {
-            chevron_toggle.init();
-            if (localStorage.getItem('speciesCommunitiesActiveTab') === null) {
-                vm.set_active_tab(vm.user_preference);
-            }
-            else {
-                vm.set_active_tab(localStorage.getItem('speciesCommunitiesActiveTab'));
-            }
-            this.getGroupId;
-        })
+        chevron_toggle.init();
     },
-
 }
 </script>
-
-<style lang="css" scoped>
-.section {
-    text-transform: capitalize;
-}
-
-.list-group {
-    margin-bottom: 0;
-}
-
-.fixed-top {
-    position: fixed;
-    top: 56px;
-}
-
-.nav-item {
-    margin-bottom: 2px;
-}
-
-.nav-item>li>a {
-    background-color: yellow !important;
-    color: #fff;
-}
-
-.nav-item>li.active>a,
-.nav-item>li.active>a:hover,
-.nav-item>li.active>a:focus {
-    color: white;
-    background-color: blue;
-    border: 1px solid #888888;
-}
-
-.admin>div {
-    display: inline-block;
-    vertical-align: top;
-    margin-right: 1em;
-}
-
-.nav-pills .nav-link {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 0.5em;
-    border-top-right-radius: 0.5em;
-    margin-right: 0.25em;
-}
-
-.nav-pills .nav-link {
-    background: lightgray;
-}
-
-.nav-pills .nav-link.active {
-    background: gray;
-}
-</style>

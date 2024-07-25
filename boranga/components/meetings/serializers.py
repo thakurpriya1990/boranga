@@ -144,6 +144,9 @@ class MeetingSerializer(serializers.ModelSerializer):
     location = serializers.CharField(
         source="location.room_name", read_only=True, allow_null=True
     )
+    committee = serializers.CharField(
+        source="committee.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = Meeting
@@ -153,6 +156,7 @@ class MeetingSerializer(serializers.ModelSerializer):
             "start_date",
             "end_date",
             "location",
+            "committee",
             "location_id",
             "title",
             "meeting_type",
