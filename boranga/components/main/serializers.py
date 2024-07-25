@@ -83,3 +83,16 @@ class EmailUserSerializer(serializers.ModelSerializer):
 
     def get_fullname(self, obj):
         return f"{obj.first_name} {obj.last_name}"
+
+
+class LimitedEmailUserSerializer(EmailUserSerializer):
+    class Meta:
+        model = EmailUser
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "title",
+            "organisation",
+            "fullname",
+        ]
