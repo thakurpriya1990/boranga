@@ -1224,7 +1224,6 @@ class Community(RevisionedMixin):
     )
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True)
-    # TODO not be used as the taxonomy will be editable for community
     comment = models.CharField(max_length=500, null=True, blank=True)
 
     class Meta:
