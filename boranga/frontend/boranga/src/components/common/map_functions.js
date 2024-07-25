@@ -335,7 +335,7 @@ export function intersects(feature1, feature2) {
     const coordinates2 = geom2.getCoordinates();
     if (geom2.getType() == 'Polygon') {
         poly2 = polygon(coordinates2);
-        return booleanIntersects(poly1, poly1);
+        return booleanIntersects(poly1, poly2);
     } else if (geom2.getType() == 'MultiPolygon') {
         for (let i = 0; i < coordinates2.length; i++) {
             poly2 = _helper.polygonFromCoordinate(coordinates2[i], poly1);

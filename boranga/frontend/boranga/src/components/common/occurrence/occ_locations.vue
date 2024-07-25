@@ -282,6 +282,7 @@ import { VueSelect } from 'vue-select';
 import OccurrenceSiteDatatable from '@/components/internal/occurrence/occurrence_site_datatable.vue';
 import OccurrenceTenureDatatable from '@/components/internal/occurrence/occurrence_tenure_datatable.vue';
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
+import { intersects } from '@/components/common/map_functions.js';
 
 export default {
     name: 'OCClocations',
@@ -337,6 +338,7 @@ export default {
             queryLayerName: 'query_layer',
             occurrenceLayerName: 'occurrence_layer',
             bufferLayerName: 'buffer_layer',
+            plausibilityGeometryFeatures: [],
         };
     },
     computed: {
@@ -515,6 +517,36 @@ export default {
             .catch((error) => {
                 console.error(
                     'Error fetching available ocr crs values list:',
+                    error
+                );
+            });
+
+        fetch(
+            helpers.add_endpoint_join(
+                api_endpoints.occurrence,
+                `/plausibility-geometry/?id=${this.occurrence_obj.id}`
+            )
+        )
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then((data) => {
+                const features = [];
+                if (data.features) {
+                    for (let featureData of data.features) {
+                        let feature =
+                            vm.$refs.component_map.featureFromDict(featureData);
+                        features.push(feature);
+                    }
+                }
+                this.plausibilityGeometryFeatures = Object.assign([], features);
+            })
+            .catch((error) => {
+                console.error(
+                    'Error fetching available plausibility-geometry:',
                     error
                 );
             });
@@ -835,7 +867,18 @@ export default {
         validateFeature: function (feature) {
             // Validate the feature
             console.log('Validating feature:', feature);
-            this.$refs.component_map.finishDrawing();
+            if (this.plausibilityGeometryFeatures) {
+                const featuresIntersects =
+                    this.plausibilityGeometryFeatures.every((f) => {
+                        if (intersects(feature, f)) {
+                            return f;
+                        }
+                    });
+                console.log('Features intersects', featuresIntersects);
+            } else {
+                console.log('No plausibility geometry features found.');
+                this.$refs.component_map.finishDrawing();
+            }
         },
     },
 };
