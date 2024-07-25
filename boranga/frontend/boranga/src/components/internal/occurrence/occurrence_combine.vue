@@ -101,10 +101,10 @@
                                         v-model="occ_combine_data.occurrence_source" :key="occ_form_key">
                                         <option v-for="occurrence in selectedOccurrences" :value="occurrence.id"
                                             v-bind:key="occurrence.id">
-                                            {{occurrence.occurrence_number}}: 
+                                            {{occurrence.occurrence_number}}:
                                             <span v-for="source in occurrence.occurrence_source">
-                                                <span v-for="occ_source in occurrence_source_list">                                                    
-                                                    <span v-if="occ_source[0] == source">{{occ_source[1]}}</span>             
+                                                <span v-for="occ_source in occurrence_source_list">
+                                                    <span v-if="occ_source[0] == source">{{occ_source[1]}}</span>
                                                 </span>
                                                 <span v-if="source != occurrence.occurrence_source[occurrence.occurrence_source.length-1]">, </span>
                                             </span>
@@ -155,11 +155,11 @@
                         <!--Key Contacts Table-->
                         <FormSection :formCollapse="true" label="Key Contacts" Index="combine_keyContacts" @toggle-collapse="toggleKeyContacts">
                             <div class="row mb-3">
-                            <OccurrenceCombineContacts 
-                            :selectedKeyContacts="key_contacts" 
-                            :combineKeyContactIds="occ_combine_data.combine_key_contact_ids" 
+                            <OccurrenceCombineContacts
+                            :selectedKeyContacts="key_contacts"
+                            :combineKeyContactIds="occ_combine_data.combine_key_contact_ids"
                             :mainOccurrenceId="main_occurrence_obj.id"
-                            :key="contact_table_key" 
+                            :key="contact_table_key"
                             ref="key_contacts_section"/>
                             </div>
                         </FormSection>
@@ -174,21 +174,21 @@
                         </FormSection>
                         <FormSection :formCollapse="true" label="Sites" Index="combine_sites" @toggle-collapse="toggleSites">
                             <div class="row mb-3">
-                            <OccurrenceCombineSites 
-                            :selectedSites="sites" 
-                            :combineSiteIds="occ_combine_data.combine_site_ids" 
+                            <OccurrenceCombineSites
+                            :selectedSites="sites"
+                            :combineSiteIds="occ_combine_data.combine_site_ids"
                             :mainOccurrenceId="main_occurrence_obj.id"
-                            :key="site_table_key" 
+                            :key="site_table_key"
                             ref="sites_section"/>
                             </div>
                         </FormSection>
                         <FormSection :formCollapse="true" label="Tenures" Index="combine_tenures" @toggle-collapse="toggleTenures">
                             <div class="row mb-3">
                             <OccurrenceCombineTenures
-                            :selectedTenures="tenures" 
-                            :combineTenureIds="occ_combine_data.combine_tenure_ids" 
+                            :selectedTenures="tenures"
+                            :combineTenureIds="occ_combine_data.combine_tenure_ids"
                             :mainOccurrenceId="main_occurrence_obj.id"
-                            :key="tenure_table_key" 
+                            :key="tenure_table_key"
                             ref="tenures_section"/>
                             </div>
                         </FormSection>
@@ -257,10 +257,10 @@
                         <FormSection :formCollapse="false" label="Documents" Index="combine_documents" @toggle-collapse="toggleDocuments">
                             <div class="row mb-3">
                             <OccurrenceCombineDocuments
-                            :selectedDocuments="documents" 
-                            :combineDocumentIds="occ_combine_data.combine_document_ids" 
+                            :selectedDocuments="documents"
+                            :combineDocumentIds="occ_combine_data.combine_document_ids"
                             :mainOccurrenceId="main_occurrence_obj.id"
-                            :key="document_table_key" 
+                            :key="document_table_key"
                             ref="documents_section"/>
                             </div>
                         </FormSection>
@@ -270,17 +270,17 @@
                         <FormSection :formCollapse="false" label="Threats" Index="combine_threats">
                             <div class="row mb-3">
                             <OccurrenceCombineThreats
-                            :selectedThreats="threats" 
-                            :combineThreatIds="occ_combine_data.combine_threat_ids" 
+                            :selectedThreats="threats"
+                            :combineThreatIds="occ_combine_data.combine_threat_ids"
                             :mainOccurrenceId="main_occurrence_obj.id"
-                            :key="threat_table_key" 
+                            :key="threat_table_key"
                             ref="threats_section"/>
                             </div>
                         </FormSection>
                     </div>
                 </div>
             </div>
-        </div>           
+        </div>
 
         </modal>
     </div>
@@ -384,7 +384,7 @@
                         icon: 'success',
                         customClass: {
                             confirmButton: 'btn btn-primary',
-                        },                            
+                        },
                     }).then((swalresult) => {
                         vm.$router.go();
                     });
@@ -480,7 +480,11 @@
                     vm.toggleSites();
                     vm.toggleKeyContacts();
                     vm.toggleTenures();
-                }, 200); //set to 200 due to the tab fade (TODO: consider better handling of this)
+                }, 200);
+                // set to 200 due to the tab fade (TODO: consider better handling of this)
+                // Note from @oak: Changing the keys means rebuilding all the components every time a tab is clicked.
+                // search codebase for "addEventListener('shown.bs.tab'" and try that method. Seems like it works very
+                // well with datatables.
             },
             addOccurrence: function () {
                 let vm = this;
@@ -519,7 +523,7 @@
                 }
                 if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_animal_observation_section)) {
                     vm.occ_combine_data.chosen_animal_observation_section = vm.main_occurrence_obj.id;
-                }   
+                }
                 if (!vm.selectedOccurrenceIds.includes(vm.occ_combine_data.chosen_plant_count_section)) {
                     vm.occ_combine_data.chosen_plant_count_section = vm.main_occurrence_obj.id;
                 }
@@ -574,14 +578,14 @@
                     response.body.id_list.forEach(id => {
                         if (!old_list.includes(id) && !taken_names.includes(contact_names[id])) {
                             vm.occ_combine_data.combine_key_contact_ids.push(id);
-                            taken_names.push(contact_names[id]);      
+                            taken_names.push(contact_names[id]);
                         }
                     });
 
                     vm.contact_table_key++;
                 }, (error) => {
                     console.error(error);
-                });                
+                });
             },
             getDocumentIds: function() {
                 let vm = this;
@@ -647,7 +651,7 @@
                     response.body.id_list.forEach(id => {
                         if (!old_list.includes(id) && !taken_reports.includes(threat_original_reports[id])) {
                             vm.occ_combine_data.combine_threat_ids.push(id);
-                            taken_reports.push(threat_original_reports[id]);      
+                            taken_reports.push(threat_original_reports[id]);
                         }
                     });
                     vm.threat_table_key++;
@@ -689,14 +693,14 @@
                     response.body.id_list.forEach(id => {
                         if (!old_list.includes(id) && !taken_names.includes(site_names[id])) {
                             vm.occ_combine_data.combine_site_ids.push(id);
-                            taken_names.push(site_names[id]);        
+                            taken_names.push(site_names[id]);
                         }
                     });
 
                     vm.site_table_key++;
                 }, (error) => {
                     console.error(error);
-                });                
+                });
             },
             getTenureIds: function() {
                 let vm = this;
@@ -733,7 +737,7 @@
                     //add new ids to combine list if not in old list - unless they share a feature id while current
                     response.body.id_list.forEach(id => {
                         if (!old_list.includes(id) && !(tenure_feature_ids[id] && taken_feature_ids.includes(tenure_feature_ids[id]))) {
-                            vm.occ_combine_data.combine_tenure_ids.push(id); 
+                            vm.occ_combine_data.combine_tenure_ids.push(id);
                             if (tenure_feature_ids[id]) {
                                 taken_feature_ids.push(tenure_feature_ids[id]);
                             }
@@ -743,7 +747,7 @@
                     vm.tenure_table_key++;
                 }, (error) => {
                     console.error(error);
-                });                
+                });
             },
             initialiseOccurrenceNameLookup: function () {
                 let vm = this;
@@ -780,7 +784,7 @@
             },
         },
         created: async function () {
-            
+
         },
         mounted: function () {
             this.initialiseOccurrenceNameLookup();
