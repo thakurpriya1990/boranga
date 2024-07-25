@@ -2463,8 +2463,6 @@ class ConservationStatusAmendmentRequest(ConservationStatusProposalRequest):
                     ConservationStatus.PROCESSING_STATUS_DRAFT
                 )
                 conservation_status.save()
-                # TODO at the moment conservation_status is not having it's document model
-                # conservation_status.documents.all().update(can_hide=True)
 
             # Create a log entry for the conservationstatus
             conservation_status.log_user_action(
