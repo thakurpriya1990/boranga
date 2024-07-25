@@ -194,7 +194,6 @@ from boranga.helpers import (
     is_customer,
     is_external_contributor,
     is_internal,
-    is_internal_contributor,
     is_occurrence_approver,
     is_occurrence_assessor,
     is_occurrence_report_referee,
@@ -1684,7 +1683,6 @@ class OccurrenceReportViewSet(
         if (
             is_occurrence_assessor(request)
             or is_occurrence_approver(request)
-            or is_occurrence_report_referee(request, instance)
             or ((is_contributor(request)) and instance.submitter == request.user.id)
         ):
             serializer = OCRObserverDetailSerializer(
@@ -2295,9 +2293,8 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if (
             is_occurrence_assessor(self.request)
             or is_occurrence_approver(self.request)
-            or is_external_contributor(self.request)
-            or is_internal_contributor(self.request)
             or is_readonly_user(self.request)
+            or is_contributor(self.request)
         ):
             return OCRObserverDetailSerializer
         return super().get_serializer_class()
