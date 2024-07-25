@@ -1052,8 +1052,8 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[AllowAny],
     )
     def communities_external(self, request, *args, **kwargs):
-        qs = self.get_queryset(
-            processing_status=Species.PROCESSING_STATUS_ACTIVE,
+        qs = self.get_queryset().filter(
+            processing_status=Community.PROCESSING_STATUS_ACTIVE,
             community_publishing_status__community_public=True,
         )
         qs = self.filter_queryset(qs)
