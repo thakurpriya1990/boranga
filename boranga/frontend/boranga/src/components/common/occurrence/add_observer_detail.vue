@@ -50,13 +50,17 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <div class="form-check form-check-inline">
-                                            <input :disabled="isReadOnly || (occurrence_report.has_main_observer && !observerObj.main_observer)" id="mainObserverYes" class="form-check-input"
-                                                type="radio" v-model="observerObj.main_observer" value="true">
+                                            <input
+                                                :disabled="isReadOnly || (occurrence_report.has_main_observer && !observerObj.main_observer)"
+                                                id="mainObserverYes" class="form-check-input" type="radio"
+                                                v-model="observerObj.main_observer" value="true">
                                             <label for="mainObserverYes" class="form-check-label">Yes</label>
                                         </div>
                                         <div class="form-check form-check-inline">
-                                            <input :disabled="isReadOnly || (occurrence_report.has_main_observer && !observerObj.main_observer)" id="mainObserverNo" class="form-check-input"
-                                                type="radio" v-model="observerObj.main_observer" value="false">
+                                            <input
+                                                :disabled="isReadOnly || (occurrence_report.has_main_observer && !observerObj.main_observer)"
+                                                id="mainObserverNo" class="form-check-input" type="radio"
+                                                v-model="observerObj.main_observer" value="false">
                                             <label for="mainObserverNo" class="form-check-label">No</label>
                                         </div>
                                     </div>
@@ -79,20 +83,24 @@
                 </div>
             </div>
             <div slot="footer">
-                <div v-if="!isReadOnly">
-                    <button type="button" class="btn btn-secondary me-2" @click="close()">Cancel</button>
-                    <template v-if="observerObj.id">
-                        <button type="button" v-if="updatingObserver" disabled class="btn btn-primary"
-                            @click="ok">Updating <span class="spinner-border spinner-border-sm" role="status"
-                                aria-hidden="true"></span>
-                            <span class="visually-hidden">Loading...</span></button>
-                        <button type="button" v-else class="btn btn-primary" @click="ok">Update Observer</button>
-                    </template>
-                    <template v-else>
-                        <button type="button" v-if="addingObserver" disabled class="btn btn-primary" @click="ok">Adding
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            <span class="visually-hidden">Loading...</span></button>
-                        <button type="button" v-else class="btn btn-primary" @click="ok">Add Observer</button>
+                <div>
+                    <button type="button" class="btn btn-secondary me-2" @click="close()"><template
+                            v-if="isReadOnly">Close</template><template v-else>Cancel</template></button>
+                    <template v-if="!isReadOnly">
+                        <template v-if="observerObj.id">
+                            <button type="button" v-if="updatingObserver" disabled class="btn btn-primary"
+                                @click="ok">Updating <span class="spinner-border spinner-border-sm" role="status"
+                                    aria-hidden="true"></span>
+                                <span class="visually-hidden">Loading...</span></button>
+                            <button type="button" v-else class="btn btn-primary" @click="ok">Update Observer</button>
+                        </template>
+                        <template v-else>
+                            <button type="button" v-if="addingObserver" disabled class="btn btn-primary"
+                                @click="ok">Adding
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span class="visually-hidden">Loading...</span></button>
+                            <button type="button" v-else class="btn btn-primary" @click="ok">Add Observer</button>
+                        </template>
                     </template>
                 </div>
             </div>
@@ -137,7 +145,7 @@ export default {
             var action = this.observer_detail_action;
             if (typeof action === "string" && action.length > 0) {
                 var capitalizedAction = action.charAt(0).toUpperCase() + action.slice(1);
-                return `${capitalizedAction} Observer to ${this.occurrence_report.occurrence_report_number}`;
+                return `${capitalizedAction} Observer of ${this.occurrence_report.occurrence_report_number}`;
             } else {
                 return "Invalid Observer detail action"; // Or handle the error in an appropriate way
             }
