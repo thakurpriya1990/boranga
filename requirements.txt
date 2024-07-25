@@ -64,7 +64,7 @@ git+https://github.com/dbca-wa/wagov_utils
 git+https://github.com/dbca-wa/appmonitor_client.git#egg=appmonitor_client
 python-decouple~=3.8
 numpy~=1.26
-setuptools~=69.2
+setuptools~=70.0
 wheel~=0.43
 pygraphviz~=1.12
 geopandas~=0.14
