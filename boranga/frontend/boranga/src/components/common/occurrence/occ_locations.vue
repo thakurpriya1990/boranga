@@ -868,10 +868,12 @@ export default {
             // Validate the feature
             console.log('Validating feature:', feature);
             if (this.plausibilityGeometryFeatures) {
+                let plausibilityFeature;
                 const featuresIntersects =
                     this.plausibilityGeometryFeatures.every((f) => {
-                        if (intersects(feature, f)) {
-                            return f;
+                        plausibilityFeature = intersects(feature, f);
+                        if (plausibilityFeature.getGeometry()) {
+                            return true;
                         }
                     });
                 console.log('Features intersects', featuresIntersects);

@@ -308,12 +308,12 @@ export function validateFeature(feature, component_map) {
 }
 /**
  * Compares two features to determine whether they intersect. If one of the feature
- * is a polygon with holes, the function will return true if the other feature is
- * within the outer polygon and not within any of the holes.
+ * is a polygon with holes, the function will return a valid feature if the other feature
+ * is within the outer polygon and not completely within any of the holes.
  * The feature that likely contains the holes should be the second argument.
  * @param {Object} feature1 A feature to compare
  * @param {Object} feature2 A feature to compare
- * @returns Boolean value indicating whether the two features intersect
+ * @returns The intersected feature if the two features intersect, otherwise an empty feature
  */
 export function intersects(feature1, feature2) {
     // Two polygons to compare
@@ -329,25 +329,37 @@ export function intersects(feature1, feature2) {
         poly1 = multiPolygon(coordinates1);
     } else {
         console.error('Feature 1 is not a polygon or multipolygon');
-        return false;
+        return new Feature({}); // Return an empty feature
     }
 
     const coordinates2 = geom2.getCoordinates();
     if (geom2.getType() == 'Polygon') {
         poly2 = polygon(coordinates2);
-        return booleanIntersects(poly1, poly2);
+        if (booleanIntersects(poly1, poly2)) {
+            return new Feature({
+                geometry: new Polygon(coordinates2),
+            });
+        }
+        return new Feature({}); // Return an empty feature
     } else if (geom2.getType() == 'MultiPolygon') {
+        let intersectFeature = new Feature({});
         for (let i = 0; i < coordinates2.length; i++) {
             poly2 = _helper.polygonFromCoordinate(coordinates2[i], poly1);
+            if (poly2 === null) {
+                return intersectFeature;
+            }
             if (booleanIntersects(poly1, poly2)) {
-                return true;
+                intersectFeature = new Feature({
+                    geometry: new Polygon(poly2.geometry.coordinates),
+                });
+                break;
             }
         }
+        return intersectFeature;
     } else {
         console.error('Feature 2 is not a polygon or multipolygon');
-        return false;
+        return new Feature({}); // Return an empty feature
     }
-    return false;
 }
 
 export let owsQuery = {

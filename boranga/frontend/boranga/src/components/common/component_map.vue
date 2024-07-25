@@ -3090,6 +3090,7 @@ export default {
                             });
                             vm.$emit('validate-feature', feature);
                         } else {
+                            console.log('Skipping feature validation');
                             vm.finishDrawing();
                         }
                     }
