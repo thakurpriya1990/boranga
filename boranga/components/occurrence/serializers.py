@@ -9,6 +9,7 @@ from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
+    LimitedEmailUserSerializer,
 )
 from boranga.components.main.utils import get_geometry_source
 from boranga.components.occurrence.models import (
@@ -65,6 +66,7 @@ from boranga.components.species_and_communities.models import (
 )
 from boranga.components.users.serializers import SubmitterInformationSerializer
 from boranga.helpers import (
+    is_contributor,
     is_internal,
     is_new_external_contributor,
     is_occurrence_approver,
@@ -125,7 +127,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
     def get_can_user_edit(self, obj):
         request = self.context["request"]
         return obj.can_user_edit(request)
-    
+
     def get_can_user_reopen(self, obj):
         request = self.context["request"]
         return obj.can_user_reopen(request)
@@ -420,14 +422,14 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         try:
             if obj.location and obj.location.location_accuracy:
                 return obj.location.location_accuracy.name
-        except:
+        except AttributeError:
             return ""
 
     def get_identification_certainty(self, obj):
         try:
             if obj.identification and obj.identification.identification_certainty:
                 return obj.identification.identification_certainty.name
-        except:
+        except AttributeError:
             return ""
 
     def get_main_observer(self, obj):
@@ -483,9 +485,7 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
 
 
 class OCRHabitatConditionSerializer(serializers.ModelSerializer):
-    count_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
+    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
 
     class Meta:
         model = OCRHabitatCondition
@@ -1240,7 +1240,9 @@ class OccurrenceReportProposalReferralSerializer(serializers.ModelSerializer):
 
     def get_referral(self, obj):
         referral_email_user = retrieve_email_user(obj.referral)
-        serializer = EmailUserSerializer(referral_email_user)
+        # Use a serializer that removes the email address (for privacy)
+        # TODO: In the process of being confirmed with business
+        serializer = LimitedEmailUserSerializer(referral_email_user)
         return serializer.data
 
 
@@ -1635,7 +1637,7 @@ class SaveOCRAssociatedSpeciesSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_id",
             "comment",
-            #"related_species",
+            # "related_species",
         )
 
 
@@ -1841,6 +1843,7 @@ class SaveOCRLocationSerializer(serializers.ModelSerializer):
 
 
 class OCRObserverDetailSerializer(serializers.ModelSerializer):
+    can_action = serializers.SerializerMethodField()
 
     class Meta:
         model = OCRObserverDetail
@@ -1853,8 +1856,21 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             "organisation",
             "main_observer",
             "visible",
+            "can_action",
         )
-        read_only_fields=(id,)
+        read_only_fields = (id,)
+        datatables_always_serialize = ("id", "can_action")
+
+    def get_can_action(self, obj):
+        request = self.context["request"]
+        return (
+            is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+            or (
+                is_contributor(request)
+                and obj.occurrence_report.submitter == request.user.id
+            )
+        )
 
     # override save so we can include our kwargs
     def save(self, *args, **kwargs):
@@ -1887,6 +1903,7 @@ class OCRObserverDetailLimitedSerializer(OCRObserverDetailSerializer):
             "organisation",
             "main_observer",
             "visible",
+            "can_action",
         )
 
 
@@ -2459,9 +2476,7 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
 class OCCHabitatConditionSerializer(serializers.ModelSerializer):
 
     copied_ocr = serializers.SerializerMethodField()
-    count_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
+    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
 
     class Meta:
         model = OCCHabitatCondition
@@ -2740,7 +2755,7 @@ class OCCContactDetailSerializer(serializers.ModelSerializer):
             "notes",
             "visible",
         )
-        read_only_fields=("id",)
+        read_only_fields = ("id",)
 
     # override save so we can include our kwargs
     def save(self, *args, **kwargs):
@@ -2847,7 +2862,7 @@ class SaveOCCAssociatedSpeciesSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_id",
             "comment",
-            #"related_species",
+            # "related_species",
         )
 
 

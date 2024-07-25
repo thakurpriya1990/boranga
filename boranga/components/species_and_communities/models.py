@@ -252,15 +252,17 @@ class Taxonomy(models.Model):
 
     @property
     def taxon_previous_name(self):
-        if self.previous_names.all():
+        if hasattr(self, "previous_names") and self.previous_names.exists():
             previous_names_list = TaxonPreviousName.objects.filter(
                 taxonomy=self.id
             ).values_list("previous_scientific_name", flat=True)
             return ",".join(previous_names_list)
+        else:
+            return ""
 
     @property
     def taxon_previous_queryset(self):
-        if self.new_taxon.all():
+        if hasattr(self, "new_taxon") and self.new_taxon.exists():
             previous_queryset = TaxonPreviousName.objects.filter(
                 taxonomy=self.id
             ).order_by("id")
@@ -270,11 +272,13 @@ class Taxonomy(models.Model):
 
     @property
     def taxon_vernacular_name(self):
-        if self.vernaculars.all():
+        if hasattr(self, "vernaculars") and self.vernaculars.exists():
             vernacular_names_list = TaxonVernacular.objects.filter(
                 taxonomy=self.id
             ).values_list("vernacular_name", flat=True)
             return ",".join(vernacular_names_list)
+        else:
+            return ""
 
 
 class TaxonVernacular(models.Model):
@@ -315,30 +319,6 @@ class TaxonPreviousName(models.Model):
 
     def __str__(self):
         return str(self.previous_scientific_name)
-
-
-# TODO will need to delete this model
-class CrossReference(models.Model):
-    """
-    Previous Name(old name) of taxon which is also derived from taxon
-    """
-
-    cross_reference_id = models.IntegerField(null=True, blank=True)
-    cross_reference_type = models.CharField(max_length=512, null=True, blank=True)
-    old_name_id = models.IntegerField(null=True, blank=True)
-    new_name_id = models.IntegerField(null=True, blank=True)
-    old_taxonomy = models.ForeignKey(
-        Taxonomy, on_delete=models.CASCADE, null=True, related_name="old_taxon"
-    )
-    new_taxonomy = models.ForeignKey(
-        Taxonomy, on_delete=models.CASCADE, null=True, related_name="new_taxon"
-    )
-
-    class Meta:
-        app_label = "boranga"
-
-    def __str__(self):
-        return str(self.cross_reference_id)
 
 
 class ClassificationSystem(models.Model):
@@ -487,8 +467,7 @@ class Species(RevisionedMixin):
 
     @property
     def reference(self):
-        return f"{self.species_number}-{self.species_number}"
-        # TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
+        return f"{self.species_number}"
 
     @property
     def applicant(self):
@@ -806,7 +785,6 @@ class Species(RevisionedMixin):
             original_species_documents = request.data["documents"]
             for doc_id in original_species_documents:
                 new_species_doc = SpeciesDocument.objects.get(id=doc_id)
-                original_species = new_species_doc.species
                 new_species_doc.species = self
                 new_species_doc.id = None
                 new_species_doc.document_number = ""
@@ -1218,10 +1196,7 @@ class Community(RevisionedMixin):
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
-    lodgement_date = models.DateTimeField(
-        blank=True, null=True
-    )  # TODO confirm if proposed date is the same or different
-    # TODO not be used as the taxonomy will be editable for community
+    lodgement_date = models.DateTimeField(blank=True, null=True)
     comment = models.CharField(max_length=500, null=True, blank=True)
 
     class Meta:
@@ -2480,8 +2455,6 @@ class SpeciesConservationAttributes(models.Model):
     post_fire_habitat_interaction = models.ForeignKey(
         PostFireHabitatInteraction, on_delete=models.SET_NULL, null=True, blank=True
     )
-    # TODO Remove the response to dist field
-    response_to_disturbance = models.CharField(max_length=500, null=True, blank=True)
     habitat = models.CharField(max_length=1000, null=True, blank=True)
     hydrology = models.CharField(max_length=200, null=True, blank=True)
     research_requirements = models.CharField(max_length=1500, null=True, blank=True)
@@ -2585,7 +2558,7 @@ class SystemEmailGroup(models.Model):
     def emails_by_group_and_area(cls, group_type, area=None):
         try:
             group = cls.objects.get(group_type=group_type, area=area)
-        except:
+        except cls.DoesNotExist:
             return []
         return group.email_address_list
 

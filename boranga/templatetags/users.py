@@ -93,6 +93,22 @@ def show_internal_menu_items(context):
     )
 
 
+@register.simple_tag(takes_context=True)
+def show_meetings_menu_item(context):
+    request = context["request"]
+    if not request.user.is_authenticated:
+        return False
+    return (
+        request.user.is_superuser
+        or boranga_helpers.is_conservation_status_approver(request)
+        or boranga_helpers.is_conservation_status_assessor(request)
+        or boranga_helpers.is_occurrence_approver(request)
+        or boranga_helpers.is_occurrence_assessor(request)
+        or boranga_helpers.is_readonly_user(request)
+        or boranga_helpers.is_species_communities_approver(request)
+    )
+
+
 @register.simple_tag()
 def system_maintenance_due():
     """Returns True (actually a time str), if within <timedelta hours> of system maintenance due datetime"""

@@ -376,9 +376,6 @@ export default {
                     blank_fields.push('Community Name is missing')
                 }
             }
-            if (check_action == 'submit') {
-                //TODO add validation for fields required before submit
-            }
             if (blank_fields.length == 0) {
                 return true;
             }

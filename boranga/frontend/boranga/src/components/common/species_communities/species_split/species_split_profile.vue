@@ -1052,27 +1052,6 @@
             </div>
 
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Response to Disturbance:</label>
-                <div class="col-sm-8">
-                    <textarea :disabled="true" type="text" class="form-control"
-                    id="response_to_disturbance" placeholder=""
-                    v-model="species_original.conservation_attributes.response_to_disturbance"/>
-                </div>
-                <div class="col-sm-1">
-                    <!- - checkInput(checkbox_id , v-model object attribute of this field) - ->
-                    <input class="form-check-input" type="checkbox" :id="'disturbance_resp_chk'+species_community.id" @change="checkConservationInput('disturbance_resp_chk'+species_community.id,'response_to_disturbance')" />
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Response to Disturbance:</label>
-                <div class="col-sm-8">
-                    <textarea :disabled="isReadOnly" type="text" class="form-control"
-                    id="response_to_disturbance" placeholder=""
-                    v-model="species_community.conservation_attributes.response_to_disturbance"/>
-                </div>
-            </div>
-
-            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">{{ species_original.species_number }} Habitat:</label>
                 <div class="col-sm-8">
                     <textarea :disabled="true" type="text" class="form-control" id="habitat"

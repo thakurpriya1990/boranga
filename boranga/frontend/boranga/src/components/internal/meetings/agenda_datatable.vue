@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="AgendaModal">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large id="myModal">
+        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large id="agenda-modal">
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="agendaForm">
@@ -136,9 +136,6 @@
 </template>
 
 <script>
-//import $ from 'jquery'
-import Vue from 'vue'
-import { createApp, h } from 'vue';
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import ConservationStatusFloraDashTable from '@common-utils/conservation_status_flora_dashboard.vue'
@@ -146,6 +143,7 @@ import ConservationStatusFaunaDashTable from '@common-utils/conservation_status_
 import ConservationStatusCommunityDashTable from '@common-utils/conservation_status_community_dashboard.vue'
 import FormSection from '@/components/forms/section_toggle.vue'
 import { helpers, api_endpoints } from "@/utils/hooks.js"
+
 export default {
     name: 'AgendaModal',
     components: {
@@ -171,7 +169,6 @@ export default {
         return {
             isModalOpen: false,
             new_species_list: [],
-            user_preference: 'flora',    // TODO : set it to default user preference but for now is hardcoded value
             group_types: [],
             group_name: null,
             species_agenda_cs_url: api_endpoints.species_agenda_conservation_status_paginated_internal,
@@ -191,10 +188,8 @@ export default {
             return vm.errors;
         },
         title: function () {
-            //return this.processing_status == 'With Approver' ? 'Approve Conservation Status' : 'Propose to approve Conservation Status';
             return 'Agenda (Add Conservation Status)';
         },
-        /*---------properties to load group related vue components-------------*/
         isFlora: function () {
             return this.group_name == 'flora' && this.$parent.updateModal === true; // parent condition checked as to resolve the datatable css problem onload
         },
@@ -204,7 +199,6 @@ export default {
         isCommunity: function () {
             return this.group_name == 'community';
         },
-        /*---------------------------------------------------------------------*/
         getGroupId: function () {
             for (var i = 0; i < this.group_types.length; i++) {
                 if (this.group_name === this.group_types[i].name) {
@@ -218,24 +212,12 @@ export default {
             let vm = this;
             vm.$parent.updateAgendaItems();
         },
-        tabClicked: function () {
-        },
-        ok: function () {
-            let vm = this;
-            if ($(vm.form).valid()) {
-                //vm.sendData();
-                //vm.$router.push({ path: '/internal' });
-            }
-        },
         cancel: function () {
             this.close()
         },
         close: function () {
             this.$parent.updateModal = false;
             this.isModalOpen = false;
-        },
-        eventListeners: function () {
-
         },
         set_active_tab: function (tab_href_name, group_name) {
             this.group_name = group_name;
@@ -247,17 +229,10 @@ export default {
         },
     },
     mounted: function () {
-        // let vm =this;
-        // vm.form = document.forms.agendaForm;
-        // //vm.addFormValidations();
-        // this.$nextTick(()=>{
-        //     //vm.eventListeners();
-        // });
         let vm = this;
         this.$nextTick(function () {
             chevron_toggle.init();
-            vm.set_active_tab('pills-' + vm.user_preference, vm.user_preference);
-            this.getGroupId;
+            vm.set_active_tab('pills-flora', 'flora');
         })
     },
     created: function () {
@@ -269,78 +244,3 @@ export default {
     },
 }
 </script>
-
-<style lang="css" scoped>
-.section {
-    text-transform: capitalize;
-}
-
-.list-group {
-    margin-bottom: 0;
-}
-
-.fixed-top {
-    position: fixed;
-    top: 56px;
-}
-
-.nav-item {
-    margin-bottom: 2px;
-}
-
-.nav-item>li>a {
-    background-color: yellow !important;
-    color: #fff;
-}
-
-.nav-item>li.active>a,
-.nav-item>li.active>a:hover,
-.nav-item>li.active>a:focus {
-    color: white;
-    background-color: blue;
-    border: 1px solid #888888;
-}
-
-.admin>div {
-    display: inline-block;
-    vertical-align: top;
-    margin-right: 1em;
-}
-
-.nav-pills .nav-link {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 0.5em;
-    border-top-right-radius: 0.5em;
-    margin-right: 0.25em;
-}
-
-.nav-pills .nav-link {
-    background: lightgray;
-}
-
-.nav-pills .nav-link.active {
-    background: gray;
-}
-
-.nav-pills>li {
-    position: relative;
-}
-
-.nav-pills>li>a {
-    display: inline-block;
-}
-
-.nav-pills>li>span {
-    display: none;
-    cursor: pointer;
-    position: absolute;
-    right: 6px;
-    top: 8px;
-    color: red;
-}
-
-.nav-pills>li:hover>span {
-    display: inline-block;
-}
-</style>

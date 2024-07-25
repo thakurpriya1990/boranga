@@ -1075,30 +1075,6 @@
 
             <div>
                 <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
-                    <label for="" class="col-sm-3 control-label">{{ species.species_number }} Response to Disturbance:</label>
-                    <div class="col-sm-8">
-                        <textarea :disabled="true" type="text" class="form-control"
-                        id="response_to_disturbance" placeholder=""
-                        v-model="species.conservation_attributes.response_to_disturbance"/>
-                    </div>
-                    <div class="col-sm-1">
-                        <!- - checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) - ->
-                        <input class="form-check-input" type="checkbox" name="disturbance_resp_chk" :id="'disturbance_resp_chk'+species.id"
-                        @change="checkConservationInput('disturbance_resp_chk','disturbance_resp_chk'+species.id,'response_to_disturbance', species.conservation_attributes.response_to_disturbance)" />
-                    </div>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Response to Disturbance:</label>
-                <div class="col-sm-8">
-                    <textarea :disabled="isReadOnly" type="text" class="form-control"
-                    id="response_to_disturbance" placeholder=""
-                    v-model="species_community.conservation_attributes.response_to_disturbance"/>
-                </div>
-            </div>
-
-            <div>
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Habitat:</label>
                     <div class="col-sm-8">
                         <textarea :disabled="true" type="text" class="form-control" id="habitat"

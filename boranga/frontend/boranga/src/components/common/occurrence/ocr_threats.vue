@@ -1,3 +1,4 @@
+
 <template lang="html">
     <div id="ocr_threats">
         <FormSection :formCollapse="false" label="Threats" :Index="threatBody">
@@ -323,6 +324,9 @@ export default {
                     },
                 ],
                 processing: true,
+                drawCallback: function () {
+                    helpers.enablePopovers();
+                },
                 initComplete: function () {
                     helpers.enablePopovers();
                     // another option to fix the responsive table overflow css on tab switch
@@ -570,6 +574,9 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-reinstate-threat');
                 vm.reinstateThreat(id);
+            });
+            vm.$refs.threats_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
             });
         },
         refreshFromResponse: function () {
