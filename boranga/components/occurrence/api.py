@@ -2330,8 +2330,11 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         # Needed an object level way to decide the serializer to use
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        if not is_internal(request) and is_occurrence_report_referee(
-            request, instance.occurrence_report
+        if (
+            not is_occurrence_assessor(self.request)
+            and not is_occurrence_approver(self.request)
+            and not is_readonly_user(self.request)
+            and is_occurrence_report_referee(request, instance.occurrence_report)
         ):
             # Don't let referees see observer contact details
             serializer = OCRObserverDetailLimitedSerializer(instance)
