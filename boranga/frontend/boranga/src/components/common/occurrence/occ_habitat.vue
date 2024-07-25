@@ -171,6 +171,14 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Count Date: </label>
+                <div class="col-sm-9">
+                    <input v-model="occurrence_obj.habitat_condition.count_date
+                        " :disabled="true" type="datetime-local" class="form-control" name="count_date"
+                         />
+                </div>
+            </div>
+            <div class="row mb-3">
                 <div class="col-sm-12">
                     <span v-if="occurrence_obj.habitat_condition.copied_ocr" class="float-end"><b>Sourced from
                             {{ occurrence_obj.habitat_condition.copied_ocr }}</b></span>

@@ -163,6 +163,14 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Count Date: </label>
+                <div class="col-sm-9">
+                    <input v-model="occurrence_report_obj.habitat_condition.count_date
+                        " :disabled="true" type="datetime-local" class="form-control" name="count_date"
+                         />
+                </div>
+            </div>
+            <div class="row mb-3">
                 <div class="col-sm-12">
                     <button v-if="!updatingHabitatConditionDetails" :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"

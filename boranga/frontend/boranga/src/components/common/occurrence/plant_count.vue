@@ -394,6 +394,7 @@ export default {
         let vm = this;
         return {
             //----list of values dictionary
+            listOfPlantValuesDict:{},
             plant_count_method_list: [],
             plant_count_accuracy_list: [],
             plant_condition_list: [],
@@ -455,10 +456,39 @@ export default {
     },
     created: async function () {
         let vm = this;
+        const res = await Vue.http.get(`/api/occurrence/plant_count_list_of_values.json`);
+        vm.listOfPlantValuesDict = res.body;
+        vm.plant_count_method_list = vm.listOfPlantValuesDict.plant_count_method_list;
+           vm.plant_count_method_list.splice(0, 0,
+                {
+                    id: null,
+                    name: null,
+                });
+           vm.plant_count_accuracy_list = vm.listOfPlantValuesDict.plant_count_accuracy_list;
+           vm.plant_count_accuracy_list.splice(0, 0,
+                {
+                    id: null,
+                    name: null,
+                });
+           vm.plant_condition_list = vm.listOfPlantValuesDict.plant_condition_list;
+           vm.plant_condition_list.splice(0, 0,
+                {
+                    id: null,
+                    name: null,
+                });
+            vm.counted_subject_list = vm.listOfPlantValuesDict.counted_subject_list;
+            vm.counted_subject_list.splice(0, 0,
+                {
+                    id: null,
+                    name: null,
+                });
+
     },
     mounted: function () {
         let vm = this;
+        //this.$emit('component-mounted');
         vm.not_counted = !vm.plant_count.counted;
+        
     },
 }
 </script>
