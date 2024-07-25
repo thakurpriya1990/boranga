@@ -468,8 +468,7 @@ class Species(RevisionedMixin):
 
     @property
     def reference(self):
-        return f"{self.species_number}-{self.species_number}"
-        # TODO : the second parameter is lodgement.sequence no. don't know yet what for species it should be
+        return f"{self.species_number}"
 
     @property
     def applicant(self):
