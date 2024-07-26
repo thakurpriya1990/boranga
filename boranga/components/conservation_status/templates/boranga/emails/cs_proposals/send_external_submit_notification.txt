@@ -1,4 +1,4 @@
-{%  extends 'boranga/emails/base_email.html' %}
+{%  extends 'boranga/emails/base_email.txt' %}
 
 {%  block content %}
 	{% if cs_proposal.is_flora_application %}

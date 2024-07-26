@@ -146,7 +146,7 @@ export default {
                                     separator: ' '
                                 }),
                                 result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="#" ' +
+                                popTemplate = _.template('<a href="javascript://" ' +
                                     'role="button" ' +
                                     'data-bs-toggle="popover" ' +
                                     'data-trigger="click" ' +
@@ -173,7 +173,7 @@ export default {
                                     separator: ' '
                                 }),
                                 result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="#" ' +
+                                popTemplate = _.template('<a href="javascript://" ' +
                                     'role="button" ' +
                                     'data-bs-toggle="popover" ' +
                                     'data-trigger="click" ' +
@@ -205,7 +205,7 @@ export default {
                                     separator: ' '
                                 }),
                                 result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="#" ' +
+                                popTemplate = _.template('<a href="javascript://" ' +
                                     'role="button" ' +
                                     'data-bs-toggle="popover" ' +
                                     'data-trigger="click" ' +
@@ -232,7 +232,7 @@ export default {
                                     separator: ' '
                                 }),
                                 result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="#" ' +
+                                popTemplate = _.template('<a href="javascript://" ' +
                                     'role="button" ' +
                                     'data-bs-toggle="popover" ' +
                                     'data-trigger="click" ' +
@@ -299,7 +299,7 @@ export default {
             let commsLogId = 'comms-log-table' + vm.uuid;
             let popover_name = 'popover-' + vm.uuid + '-comms';
             let popover_elem = $(vm.$refs.showCommsBtn)[0]
-            let my_content = '<table id="' + commsLogId + '" class="hover table table-striped table-bordered dt-responsive" cellspacing="0" width="100%"></table>'
+            let my_content = '<table id="' + commsLogId + '" class="hover table table-striped table-bordered dt-responsive" cellspacing="0"></table>'
             let my_template = '<div class="popover ' + popover_name + '" role="tooltip"><div class="popover-arrow" style="top:110px;"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>'
             new bootstrap.Popover(popover_elem, {
                 sanitize: false,
@@ -308,7 +308,7 @@ export default {
                 template: my_template,
                 title: 'Communication logs',
                 container: 'body',
-                placement: 'right',
+                placement: 'auto',
                 trigger: "click",
             })
             popover_elem.addEventListener('inserted.bs.popover', () => {
@@ -328,7 +328,7 @@ export default {
                 var el_bounding_top = parseInt($(el)[0].getBoundingClientRect().top);
                 var diff = el_bounding_top - popover_bounding_top;
                 var x = diff + 5;
-                $('.' + popover_name).children('.arrow').css('top', x + 'px');
+                // $('.' + popover_name).children('.arrow').css('top', x + 'px');
             })
         },
         initialiseActionLogs: function () {
@@ -347,7 +347,7 @@ export default {
                 template: my_template,
                 title: 'Action logs',
                 container: 'body',
-                placement: 'right',
+                placement: 'auto',
                 trigger: "click",
             })
             popover_elem.addEventListener('inserted.bs.popover', () => {
