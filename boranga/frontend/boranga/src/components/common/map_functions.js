@@ -313,7 +313,7 @@ export function validateFeature(feature, component_map) {
  * The feature that likely contains the holes should be the second argument.
  * @param {Object} feature1 A feature to compare
  * @param {Object} feature2 A feature to compare
- * @returns The intersected feature if the two features intersect, otherwise an empty feature
+ * @returns The intersected features if the two features intersect, otherwise an empty list
  */
 export function intersects(feature1, feature2) {
     // Two polygons to compare
@@ -329,36 +329,50 @@ export function intersects(feature1, feature2) {
         poly1 = multiPolygon(coordinates1);
     } else {
         console.error('Feature 1 is not a polygon or multipolygon');
-        return new Feature({}); // Return an empty feature
+        return []; // Return an empty feature list
     }
 
     const coordinates2 = geom2.getCoordinates();
     if (geom2.getType() == 'Polygon') {
         poly2 = polygon(coordinates2);
         if (booleanIntersects(poly1, poly2)) {
-            return new Feature({
-                geometry: new Polygon(coordinates2),
-            });
+            return [
+                new Feature({
+                    geometry: new Polygon(coordinates2),
+                }),
+            ];
         }
-        return new Feature({}); // Return an empty feature
+        return []; // Return an empty feature list
     } else if (geom2.getType() == 'MultiPolygon') {
-        let intersectFeature = new Feature({});
+        // let intersectFeature = new Feature({});
+        const intersectFeatures = [];
         for (let i = 0; i < coordinates2.length; i++) {
             poly2 = _helper.polygonFromCoordinate(coordinates2[i], poly1);
             if (poly2 === null) {
-                return intersectFeature;
+                // We might have to consider edge cases of 'islands' within holes, for instance:
+                // ----------------
+                // |    hole      |
+                // |  +--------+  |
+                // |  | island |  |
+                // |  |        |  |
+                // |  +--------+  |
+                // |              |
+                // ----------------
+                // This is likely to be a rare case, so we can ignore it for now
+                return intersectFeatures;
             }
             if (booleanIntersects(poly1, poly2)) {
-                intersectFeature = new Feature({
+                const intersectFeature = new Feature({
                     geometry: new Polygon(poly2.geometry.coordinates),
                 });
-                break;
+                intersectFeatures.push(intersectFeature);
+                console.log('Feature 1 intersects with', intersectFeature);
             }
         }
-        return intersectFeature;
+        return intersectFeatures;
     } else {
         console.error('Feature 2 is not a polygon or multipolygon');
-        return new Feature({}); // Return an empty feature
+        return []; // Return an empty feature list
     }
 }
 

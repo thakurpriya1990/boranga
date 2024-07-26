@@ -868,15 +868,19 @@ export default {
             // Validate the feature
             console.log('Validating feature:', feature);
             if (this.plausibilityGeometryFeatures) {
-                let plausibilityFeature;
+                let plausibilityFeatures;
                 const featuresIntersects =
                     this.plausibilityGeometryFeatures.every((f) => {
-                        plausibilityFeature = intersects(feature, f);
-                        if (plausibilityFeature.getGeometry()) {
+                        plausibilityFeatures = intersects(feature, f);
+                        if (plausibilityFeatures.length > 0) {
                             return true;
                         }
                     });
                 console.log('Features intersects', featuresIntersects);
+                if (featuresIntersects) {
+                    // Need to also return the hole
+                    // this.$refs.component_map.layerSources['occurrence_layer'].addFeature(plausibilityFeatures);
+                };
             } else {
                 console.log('No plausibility geometry features found.');
                 this.$refs.component_map.finishDrawing();
