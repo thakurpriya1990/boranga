@@ -43,4 +43,5 @@ class TileLayerViewSet(viewsets.ReadOnlyModelViewSet):
                 "id"
             )
         else:
-            raise ValueError("User is not a customer, internal user, or referee.")
+            return TileLayer.objects.none()
+            #raise ValueError("User is not a customer, internal user, or referee.")
