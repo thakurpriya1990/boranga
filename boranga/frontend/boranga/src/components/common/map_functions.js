@@ -605,7 +605,8 @@ const _helper = {
      * Returns a polygon object from a list of coordinates
      * @param {Array} coordinate A list of coordinates
      * @param {Object} otherPolygon A polygon object to test coordinate against when there are holes
-     * @returns A polygon object
+     * @returns A list of polygon objects that each contain an intersecting polygon at the first index
+     * and zero or more intersecting holes at the following indices
      */
     polygonFromCoordinate: function (coordinate, otherPolygon) {
         let numCoords = 0;
@@ -634,7 +635,20 @@ const _helper = {
                 console.log('Feature is within a hole');
                 return null;
             }
-            return polygon([coordinate[0]]);
+            // Find the intersecting holes
+            const holes = coordinate
+                .slice(1, coordinate.length)
+                .filter((hole) => {
+                    return booleanIntersects(otherPolygon, polygon([hole]));
+                });
+            if (holes.length == 0) {
+                // No intersecting holes
+                return polygon([coordinate[0]]);
+            }
+            console.log('Feature intersects with holes', holes);
+            // The outer polygon is the first element in the list
+            const outer = coordinate[0];
+            return polygon([outer, ...holes]);
         }
     },
 };
