@@ -2558,7 +2558,7 @@ class AmendmentRequestReasonChoicesView(views.APIView):
         return Response(choices_list)
 
 
-class CSExternalRefereeInviteViewSet(viewsets.ModelViewSet):
+class CSExternalRefereeInviteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = CSExternalRefereeInvite.objects.filter(archived=False)
     serializer_class = CSExternalRefereeInviteSerializer
 

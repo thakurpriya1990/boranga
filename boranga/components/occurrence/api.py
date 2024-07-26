@@ -6141,7 +6141,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         return Response(serializer.data)
 
 
-class OCRExternalRefereeInviteViewSet(viewsets.ModelViewSet):
+class OCRExternalRefereeInviteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OCRExternalRefereeInvite.objects.filter(archived=False)
     serializer_class = OCRExternalRefereeInviteSerializer
     permission_classes = [OccurrenceReportObjectPermission]
