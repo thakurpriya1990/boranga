@@ -122,8 +122,6 @@ RUN $VIRTUAL_ENV_PATH/bin/pip3 install --no-cache-dir -r requirements.txt && \
 
 FROM python_dependencies_boranga as collectstatic_boranga
 
-RUN which python
-RUN python --version
 RUN touch /app/.env && \
     $VIRTUAL_ENV_PATH/bin/python manage.py collectstatic --noinput
 
