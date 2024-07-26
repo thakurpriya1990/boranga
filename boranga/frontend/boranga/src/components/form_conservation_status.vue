@@ -48,7 +48,7 @@
                         :conservation_status_obj="conservation_status_obj">
                     </CSDocuments>
                 </div>
-                <div class="tab-pane fade" :id="relatedItemBody" role="tabpanel"
+                <div v-if="!is_external" class="tab-pane fade" :id="relatedItemBody" role="tabpanel"
                     aria-labelledby="pills-related-items-tab">
                     <RelatedItems :key="reloadcount" ref="cs_related_items" id="csRelatedItems"
                         :ajax_url="related_items_ajax_url" :filter_list_url="related_items_filter_list_url">
