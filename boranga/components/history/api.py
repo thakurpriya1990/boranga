@@ -16,13 +16,7 @@ from reversion import is_registered
 from reversion.models import Version
 
 from boranga.helpers import (
-    is_conservation_status_approver,
-    is_conservation_status_assessor,
-    is_django_admin,
     is_internal,
-    is_occurrence_approver,
-    is_occurrence_assessor,
-    is_species_communities_approver,
 )
 
 logger = logging.getLogger("log")
@@ -34,44 +28,21 @@ class InternalAuthorizationView(views.APIView):
     return data.
     """
 
-    django_admin_models = [
-        "Species",
-        "SpeciesDocument",
-        "Community",
-        "CommunityDocument",
-        "ConservationStatus",
-        "ConservationStatusDocument",
-        "Occurrence",
-        "OccurrenceReport",
-        "OccurrenceDocument",
-        "OccurrenceReportDocument",
-        "OCRConservationThreat",
-        "OCCConservationThreat",
-        "Minutes",
-        "ConservationThreat",
-    ]
-    species_communities_approver_models = [
+    species_communities_models = [
         "Community",
         "CommunityDocument",
         "Species",
         "SpeciesDocument",
         "ConservationThreat",
+    ]
+    meeting_models = [
         "Minutes",
     ]
-    conservation_status_editor_models = [
+    conservation_status_models = [
         "ConservationStatus",
         "ConservationStatusDocument",
-        "Minutes",
     ]
-    occurrence_assessor_models = [
-        "Occurrence",
-        "OccurrenceReport",
-        "OccurrenceDocument",
-        "OccurrenceReportDocument",
-        "OCRConservationThreat",
-        "OCCConservationThreat",
-    ]
-    occurrence_approver_models = [
+    occurrence_models = [
         "Occurrence",
         "OccurrenceReport",
         "OccurrenceDocument",
@@ -84,29 +55,28 @@ class InternalAuthorizationView(views.APIView):
         if request.user.is_superuser:
             return True
         else:
-            # go through each list, if model is in it run function for user
+            # go through each list, if model is in it run function for allowed group(s)
             # return the result if true, otherwise run other checks until all possibilities exhausted
-            if model_name in self.django_admin_models and is_django_admin(request):
-                return True
+            #NOTE: currently redundant as is_internal is not constrained to internal group members and all 
+            # internal group members should have access - but might be worth keeping as is in case granularity required
             if (
-                model_name in self.species_communities_approver_models
-                and is_species_communities_approver(request)
+                model_name in self.species_communities_models
+                and is_internal(request)
             ):
                 return True
             if (
-                model_name in self.conservation_status_editor_models
-                and is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
+                model_name in self.conservation_status_models
+                and is_internal(request)
             ):
                 return True
             if (
-                model_name in self.occurrence_assessor_models
-                and is_occurrence_assessor(request)
+                model_name in self.meeting_models
+                and is_internal(request)
             ):
                 return True
             if (
-                model_name in self.occurrence_approver_models
-                and is_occurrence_approver(request)
+                model_name in self.occurrence_models
+                and is_internal(request)
             ):
                 return True
 
