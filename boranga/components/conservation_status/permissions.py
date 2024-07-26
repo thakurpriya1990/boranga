@@ -107,6 +107,11 @@ class ExternalConservationStatusPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
+        
+        if (hasattr(view, "action") and view.action == "reinstate" 
+            and obj.submitter == request.user.id and 
+            obj.processing_status == ConservationStatus.PROCESSING_STATUS_DISCARDED):
+            return is_contributor(request)
 
         if (obj.submitter == request.user.id and 
             obj.processing_status == ConservationStatus.PROCESSING_STATUS_DRAFT):
