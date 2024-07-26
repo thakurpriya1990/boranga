@@ -25,6 +25,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
+from rest_framework.permissions import AllowAny
 
 from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
@@ -1190,6 +1191,7 @@ class OccurrenceReportViewSet(
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
@@ -1365,6 +1367,7 @@ class OccurrenceReportViewSet(
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def plant_count_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
@@ -1424,6 +1427,7 @@ class OccurrenceReportViewSet(
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def animal_observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
@@ -5105,6 +5109,7 @@ class OccurrenceViewSet(
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence external form"""
@@ -5280,6 +5285,7 @@ class OccurrenceViewSet(
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def plant_count_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence external form"""
@@ -5339,6 +5345,7 @@ class OccurrenceViewSet(
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def animal_observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
