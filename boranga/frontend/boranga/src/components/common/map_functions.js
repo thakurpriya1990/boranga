@@ -376,6 +376,15 @@ export function intersects(feature1, feature2) {
     }
 }
 
+export function intersectedArea(feature1, feature2) {
+    let area = 0;
+
+    const coords = feature2.getGeometry().getCoordinates();
+    const outer = coords[0];
+    const inner = coords.slice(1, coords.length);
+    console.log('Features intersected', feature2);
+}
+
 export let owsQuery = {
     version: '1.0.0', // TODO: Change to 1.1.0 or 2.0.0 when supported by the geoserver
     landwater: {

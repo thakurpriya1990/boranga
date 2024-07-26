@@ -282,7 +282,10 @@ import { VueSelect } from 'vue-select';
 import OccurrenceSiteDatatable from '@/components/internal/occurrence/occurrence_site_datatable.vue';
 import OccurrenceTenureDatatable from '@/components/internal/occurrence/occurrence_tenure_datatable.vue';
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
-import { intersects } from '@/components/common/map_functions.js';
+import {
+    intersects,
+    intersectedArea,
+} from '@/components/common/map_functions.js';
 
 export default {
     name: 'OCClocations',
@@ -879,8 +882,9 @@ export default {
                 console.log('Features intersects', featuresIntersects);
                 if (featuresIntersects) {
                     // Need to also return the hole
-                    // this.$refs.component_map.layerSources['occurrence_layer'].addFeature(plausibilityFeatures);
-                };
+                    const plausibilityFeature = plausibilityFeatures[0];
+                    const area = intersectedArea(feature, plausibilityFeature);
+                }
             } else {
                 console.log('No plausibility geometry features found.');
                 this.$refs.component_map.finishDrawing();
