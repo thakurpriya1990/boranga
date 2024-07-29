@@ -5,7 +5,7 @@ from boranga.components.users import models
 
 
 class SubmitterCategoryAdmin(DeleteProtectedModelAdmin):
-    list_display = ("name",)
+    list_display = ("name", "visible_to")
 
 
 class SubmitterInformationAdmin(admin.ModelAdmin):
