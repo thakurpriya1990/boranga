@@ -12,6 +12,7 @@ from boranga.components.species_and_communities.models import (
     SystemEmailGroup,
     private_storage,
 )
+from boranga.components.users.email import _log_user_email
 from boranga.helpers import convert_external_url_to_internal_url
 
 logger = logging.getLogger(__name__)
@@ -95,11 +96,9 @@ def send_species_create_email_notification(request, species_proposal):
 
     msg = email.send(species_proposal.approver_recipients, context=context)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+
     _log_species_email(msg, species_proposal, sender=sender)
-    # if species_proposal.org_applicant:
-    #     _log_org_email(msg, species_proposal.org_applicant, species_proposal.submitter, sender=sender)
-    # else:
-    #     _log_user_email(msg, species_proposal.submitter, species_proposal.submitter, sender=sender)
+
     return msg
 
 
@@ -121,30 +120,26 @@ def send_user_species_create_email_notification(request, species_proposal):
 
     context = {
         "species_community_proposal": species_proposal,
-        # 'submitter': species_proposal.submitter.get_full_name(),
         "submitter": EmailUser.objects.get(
             id=species_proposal.submitter
         ).get_full_name(),
         "url": url,
     }
     all_ccs = []
-    # if species_proposal.org_applicant and species_proposal.org_applicant.email:
-    #     cc_list = species_proposal.org_applicant.email
-    #     if cc_list:
-    #         all_ccs = [cc_list]
+
+    to_user = EmailUser.objects.get(id=species_proposal.submitter)
 
     msg = email.send(
-        EmailUser.objects.get(id=species_proposal.submitter).email,
+        to_user.email,
         cc=all_ccs,
         context=context,
     )
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+
     _log_species_email(msg, species_proposal, sender=sender)
-    # if species_proposal.org_applicant:
-    #     _log_org_email(msg, species_proposal.org_applicant, species_proposal.submitter, sender=sender)
-    # else:
-    #     _log_user_email(msg, species_proposal.submitter, species_proposal.submitter, sender=sender)
-    # _log_user_email(msg, species_proposal.submitter, species_proposal.submitter, sender=sender)
+
+    _log_user_email(msg, to_user, to_user, sender=sender)
+
     return msg
 
 
@@ -219,11 +214,9 @@ def send_species_split_email_notification(request, species_proposal):
         context=context,
     )
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+
     _log_species_email(msg, species_proposal, sender=sender)
-    # if species_proposal.org_applicant:
-    #     _log_org_email(msg, species_proposal.org_applicant, species_proposal.submitter, sender=sender)
-    # else:
-    #     _log_user_email(msg, species_proposal.submitter, species_proposal.submitter, sender=sender)
+
     return msg
 
 
@@ -343,11 +336,9 @@ def send_species_combine_email_notification(request, species_proposal):
         context=context,
     )
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+
     _log_species_email(msg, species_proposal, sender=sender)
-    # if species_proposal.org_applicant:
-    #     _log_org_email(msg, species_proposal.org_applicant, species_proposal.submitter, sender=sender)
-    # else:
-    #     _log_user_email(msg, species_proposal.submitter, species_proposal.submitter, sender=sender)
+
     return msg
 
 
@@ -440,11 +431,9 @@ def send_species_rename_email_notification(request, species_proposal, new_specie
         context=context,
     )
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+
     _log_species_email(msg, species_proposal, sender=sender)
-    # if species_proposal.org_applicant:
-    #     _log_org_email(msg, species_proposal.org_applicant, species_proposal.submitter, sender=sender)
-    # else:
-    #     _log_user_email(msg, species_proposal.submitter, species_proposal.submitter, sender=sender)
+
     return msg
 
 
@@ -466,11 +455,9 @@ def send_community_create_email_notification(request, community_proposal):
 
     msg = email.send(community_proposal.approver_recipients, context=context)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+
     _log_community_email(msg, community_proposal, sender=sender)
-    # if community_proposal.org_applicant:
-    #     _log_org_email(msg, community_proposal.org_applicant, community_proposal.submitter, sender=sender)
-    # else:
-    #     _log_user_email(msg, community_proposal.submitter, community_proposal.submitter, sender=sender)
+
     return msg
 
 
@@ -499,10 +486,6 @@ def send_user_community_create_email_notification(request, community_proposal):
         "url": url,
     }
     all_ccs = []
-    # if species_proposal.org_applicant and species_proposal.org_applicant.email:
-    #     cc_list = species_proposal.org_applicant.email
-    #     if cc_list:
-    #         all_ccs = [cc_list]
 
     msg = email.send(
         EmailUser.objects.get(id=community_proposal.submitter).email,
@@ -510,12 +493,9 @@ def send_user_community_create_email_notification(request, community_proposal):
         context=context,
     )
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+
     _log_community_email(msg, community_proposal, sender=sender)
-    # if community_proposal.org_applicant:
-    #     _log_org_email(msg, community_proposal.org_applicant, community_proposal.submitter, sender=sender)
-    # else:
-    #     _log_user_email(msg, community_proposal.submitter, community_proposal.submitter, sender=sender)
-    # _log_user_email(msg, community_proposal.submitter, community_proposal.submitter, sender=sender)
+
     return msg
 
 
