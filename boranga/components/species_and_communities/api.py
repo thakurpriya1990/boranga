@@ -2916,9 +2916,11 @@ class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.order_by("id")
     serializer_class = DistrictSerializer
     permission_classes = [AllowAny]
+    pagination_class = None
 
 
 class RegionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Region.objects.order_by("id")
     serializer_class = RegionSerializer
     permission_classes = [AllowAny]
+    pagination_class = None
