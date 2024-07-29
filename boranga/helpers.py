@@ -1,12 +1,16 @@
 import logging
+import os
+import tarfile
+import zipfile
 
+import py7zr
 from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
-from django.core.exceptions import ValidationError
 
 from boranga.settings import (
     DJANGO_ADMIN_GROUP,
@@ -22,29 +26,29 @@ from boranga.settings import (
 
 logger = logging.getLogger(__name__)
 
-import os
-import zipfile
-import io
-import py7zr
-import tarfile
 
 def file_extension_valid(file, whitelist, model):
 
-    logger.info("Uploaded File: "+file+" For Model: "+model)
+    logger.info("Uploaded File: " + file + " For Model: " + model)
 
     filename, extension = os.path.splitext(file)
-    extension = extension.replace(".","").lower()
+    extension = extension.replace(".", "").lower()
 
-    check = whitelist.filter(name=extension).filter(Q(model="all")|Q(model__iexact=model))
+    check = whitelist.filter(name=extension).filter(
+        Q(model="all") | Q(model__iexact=model)
+    )
     valid = check.exists()
     compression = False
 
     if valid:
         compression = check.first().compressed
     else:
-        logger.warn("Uploaded File: "+file+" For Model: "+model+" to be Rejected")
+        logger.warn(
+            "Uploaded File: " + file + " For Model: " + model + " to be Rejected"
+        )
 
     return valid, compression
+
 
 def tar_content_valid(file, whitelist, model):
     file = file.open()
@@ -52,36 +56,63 @@ def tar_content_valid(file, whitelist, model):
     for i in tarFile.getnames():
         valid, compression = file_extension_valid(i, whitelist, model)
         if compression:
-            logger.warn("Uploaded File: "+str(file)+" For Model: "+model+" to be Rejected")
-            raise ValidationError("Compressed files not supported within compressed files")
+            logger.warn(
+                "Uploaded File: "
+                + str(file)
+                + " For Model: "
+                + model
+                + " to be Rejected"
+            )
+            raise ValidationError(
+                "Compressed files not supported within compressed files"
+            )
         if not valid:
             return False
 
     return True
+
 
 def sevenz_content_valid(file, whitelist, model):
     sevenZipFile = py7zr.SevenZipFile(file.file)
     for i in sevenZipFile.getnames():
         valid, compression = file_extension_valid(i, whitelist, model)
         if compression:
-            logger.warn("Uploaded File: "+str(file)+" For Model: "+model+" to be Rejected")
-            raise ValidationError("Compressed files not supported within compressed files")
+            logger.warn(
+                "Uploaded File: "
+                + str(file)
+                + " For Model: "
+                + model
+                + " to be Rejected"
+            )
+            raise ValidationError(
+                "Compressed files not supported within compressed files"
+            )
         if not valid:
             return False
 
     return True
+
 
 def zip_content_valid(file, whitelist, model):
     zipFile = zipfile.ZipFile(file)
     for i in zipFile.filelist:
         valid, compression = file_extension_valid(i.filename, whitelist, model)
         if compression:
-            logger.warn("Uploaded File: "+str(file)+" For Model: "+model+" to be Rejected")
-            raise ValidationError("Compressed files not supported within compressed files")
+            logger.warn(
+                "Uploaded File: "
+                + str(file)
+                + " For Model: "
+                + model
+                + " to be Rejected"
+            )
+            raise ValidationError(
+                "Compressed files not supported within compressed files"
+            )
         if not valid:
             return False
 
     return True
+
 
 def compressed_content_valid(file, whitelist, model):
 
@@ -94,13 +125,14 @@ def compressed_content_valid(file, whitelist, model):
 
     if py7zr.is_7zfile(file.file):
         return sevenz_content_valid(file, whitelist, model)
-    
+
     file = file.open()
 
     if tarfile.is_tarfile(file):
         return tar_content_valid(file, whitelist, model)
-    
+
     raise ValidationError("Compression/Archive format type not supported")
+
 
 def superuser_ids_list():
     cache_key = settings.CACHE_KEY_SUPERUSER_IDS
