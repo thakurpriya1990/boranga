@@ -503,7 +503,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListSpeciesConservationStatusSerializer(
             result_page, context={"request": request}, many=True
@@ -524,7 +524,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         )
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListSpeciesConservationStatusSerializer(
             result_page, context={"request": request}, many=True
@@ -657,7 +657,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         ).filter(referral=request.user.id)
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = DTConservationStatusReferralSerializer(
             result_page, context={"request": request}, many=True
@@ -1085,7 +1085,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunityConservationStatusSerializer(
             result_page, context={"request": request}, many=True
@@ -1104,7 +1104,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
         )
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunityConservationStatusSerializer(
             result_page, context={"request": request}, many=True
@@ -1236,7 +1236,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
 
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = DTConservationStatusReferralSerializer(
             result_page, context={"request": request}, many=True
@@ -1444,7 +1444,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = qs.filter(internal_application=False)
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListConservationStatusSerializer(
             result_page, context={"request": request}, many=True
@@ -1465,7 +1465,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         ).filter(referral=request.user.id)
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = DTConservationStatusReferralSerializer(
             result_page, context={"request": request}, many=True

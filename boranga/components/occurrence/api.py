@@ -367,7 +367,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = qs.filter(internal_application=False)
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListOccurrenceReportSerializer(
             result_page, context={"request": request}, many=True
@@ -384,7 +384,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListInternalOccurrenceReportSerializer(
             result_page, context={"request": request}, many=True
@@ -706,7 +706,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         self.filter_backends = (OccurrenceReportReferralFilterBackend,)
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = DTOccurrenceReportReferralSerializer(
             result_page, context={"request": request}, many=True
@@ -3142,7 +3142,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListOccurrenceSerializer(
             result_page, context={"request": request}, many=True
@@ -5713,7 +5713,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset().distinct()
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         Serializer = self.get_serializer_class()
         serializer = Serializer(result_page, context={"request": request}, many=True)

@@ -705,7 +705,6 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListSpeciesSerializer(
             result_page, context={"request": request}, many=True
@@ -724,7 +723,6 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         )
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListSpeciesSerializer(
             result_page, context={"request": request}, many=True
@@ -967,7 +965,7 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunitiesSerializer(
             result_page, context={"request": request}, many=True
@@ -988,7 +986,7 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         )
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunitiesSerializer(
             result_page, context={"request": request}, many=True
