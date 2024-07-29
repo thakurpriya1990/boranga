@@ -216,125 +216,6 @@ def send_external_referee_invite_email(
     external_referee_invite.save()
 
 
-def _log_conservation_status_email(
-    email_message, cs_proposal, sender=None, file_bytes=None, filename=None
-):
-    from boranga.components.conservation_status.models import ConservationStatusLogEntry
-
-    if isinstance(
-        email_message,
-        (
-            EmailMultiAlternatives,
-            EmailMessage,
-        ),
-    ):
-        # This will log the plain text body
-        text = email_message.body
-        subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
-        # the to email is normally a list
-        if isinstance(email_message.to, list):
-            to = ",".join(email_message.to)
-        else:
-            to = smart_text(email_message.to)
-        # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
-        all_ccs = []
-        if email_message.cc:
-            all_ccs += list(email_message.cc)
-        if email_message.bcc:
-            all_ccs += list(email_message.bcc)
-        all_ccs = ",".join(all_ccs)
-
-    else:
-        text = smart_text(email_message)
-        subject = ""
-        to = EmailUser.objects.get(id=cs_proposal.submitter).email
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
-        all_ccs = ""
-
-    customer = cs_proposal.submitter
-
-    staff = sender.id
-
-    kwargs = {
-        "subject": subject,
-        "text": text,
-        "conservation_status": cs_proposal,
-        "customer": customer,
-        "staff": staff,
-        "to": to,
-        "fromm": fromm,
-        "cc": all_ccs,
-    }
-
-    email_entry = ConservationStatusLogEntry.objects.create(**kwargs)
-
-    if file_bytes and filename:
-        # attach the file to the comms_log also
-        path_to_file = "{}/conservation_status/{}/communications/{}".format(
-            settings.MEDIA_APP_DIR, cs_proposal.id, filename
-        )
-        private_storage.save(path_to_file, ContentFile(file_bytes))
-        email_entry.documents.get_or_create(_file=path_to_file, name=filename)
-
-    return email_entry
-
-
-def _log_user_email(email_message, emailuser, customer, sender=None):
-    from boranga.components.users.models import EmailUserLogEntry
-
-    if isinstance(
-        email_message,
-        (
-            EmailMultiAlternatives,
-            EmailMessage,
-        ),
-    ):
-        text = email_message.body
-        subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
-
-        # the to email is normally a list
-        if isinstance(email_message.to, list):
-            to = ",".join(email_message.to)
-        else:
-            to = smart_text(email_message.to)
-
-        # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
-        all_ccs = []
-        if email_message.cc:
-            all_ccs += list(email_message.cc)
-        if email_message.bcc:
-            all_ccs += list(email_message.bcc)
-        all_ccs = ",".join(all_ccs)
-
-    else:
-        text = smart_text(email_message)
-        subject = ""
-        to = customer
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
-        all_ccs = ""
-
-    staff_id = None
-    if sender and hasattr(sender, "id"):
-        staff_id = sender.id
-
-    kwargs = {
-        "subject": subject,
-        "text": text,
-        "email_user": emailuser.id,
-        "customer": customer.id,
-        "staff": staff_id,
-        "to": to,
-        "fromm": fromm,
-        "cc": all_ccs,
-    }
-
-    email_entry = EmailUserLogEntry.objects.create(**kwargs)
-
-    return email_entry
-
-
 def send_conservation_status_referral_email_notification(
     referral, request, reminder=False
 ):
@@ -688,3 +569,122 @@ def send_conservation_status_approval_email_notification(conservation_status, re
     _log_conservation_status_email(msg, conservation_status, sender=sender)
 
     _log_user_email(msg, to_user, to_user, sender=sender)
+
+
+def _log_conservation_status_email(
+    email_message, cs_proposal, sender=None, file_bytes=None, filename=None
+):
+    from boranga.components.conservation_status.models import ConservationStatusLogEntry
+
+    if isinstance(
+        email_message,
+        (
+            EmailMultiAlternatives,
+            EmailMessage,
+        ),
+    ):
+        # This will log the plain text body
+        text = email_message.body
+        subject = email_message.subject
+        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        # the to email is normally a list
+        if isinstance(email_message.to, list):
+            to = ",".join(email_message.to)
+        else:
+            to = smart_text(email_message.to)
+        # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
+        all_ccs = []
+        if email_message.cc:
+            all_ccs += list(email_message.cc)
+        if email_message.bcc:
+            all_ccs += list(email_message.bcc)
+        all_ccs = ",".join(all_ccs)
+
+    else:
+        text = smart_text(email_message)
+        subject = ""
+        to = EmailUser.objects.get(id=cs_proposal.submitter).email
+        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        all_ccs = ""
+
+    customer = cs_proposal.submitter
+
+    staff = sender.id
+
+    kwargs = {
+        "subject": subject,
+        "text": text,
+        "conservation_status": cs_proposal,
+        "customer": customer,
+        "staff": staff,
+        "to": to,
+        "fromm": fromm,
+        "cc": all_ccs,
+    }
+
+    email_entry = ConservationStatusLogEntry.objects.create(**kwargs)
+
+    if file_bytes and filename:
+        # attach the file to the comms_log also
+        path_to_file = "{}/conservation_status/{}/communications/{}".format(
+            settings.MEDIA_APP_DIR, cs_proposal.id, filename
+        )
+        private_storage.save(path_to_file, ContentFile(file_bytes))
+        email_entry.documents.get_or_create(_file=path_to_file, name=filename)
+
+    return email_entry
+
+
+def _log_user_email(email_message, emailuser, customer, sender=None):
+    from boranga.components.users.models import EmailUserLogEntry
+
+    if isinstance(
+        email_message,
+        (
+            EmailMultiAlternatives,
+            EmailMessage,
+        ),
+    ):
+        text = email_message.body
+        subject = email_message.subject
+        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+
+        # the to email is normally a list
+        if isinstance(email_message.to, list):
+            to = ",".join(email_message.to)
+        else:
+            to = smart_text(email_message.to)
+
+        # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
+        all_ccs = []
+        if email_message.cc:
+            all_ccs += list(email_message.cc)
+        if email_message.bcc:
+            all_ccs += list(email_message.bcc)
+        all_ccs = ",".join(all_ccs)
+
+    else:
+        text = smart_text(email_message)
+        subject = ""
+        to = customer
+        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        all_ccs = ""
+
+    staff_id = None
+    if sender and hasattr(sender, "id"):
+        staff_id = sender.id
+
+    kwargs = {
+        "subject": subject,
+        "text": text,
+        "email_user": emailuser.id,
+        "customer": customer.id,
+        "staff": staff_id,
+        "to": to,
+        "fromm": fromm,
+        "cc": all_ccs,
+    }
+
+    email_entry = EmailUserLogEntry.objects.create(**kwargs)
+
+    return email_entry
