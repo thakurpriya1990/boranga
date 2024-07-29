@@ -106,6 +106,7 @@ FROM configure_boranga as python_dependencies_boranga
 WORKDIR /app
 USER oim
 ENV VIRTUAL_ENV_PATH=/app/venv
+ENV PATH=$VIRTUAL_ENV_PATH/bin:$PATH
 
 COPY --chown=oim:oim requirements.txt gunicorn.ini.py manage.py ./
 COPY --chown=oim:oim .git ./.git

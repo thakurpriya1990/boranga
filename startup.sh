@@ -11,18 +11,21 @@ if [ $ENABLE_CRON == "True" ];
         echo "Failed to start cron: $status"
         exit $status
     fi
+else
+   echo "ENABLE_CRON environment variable not set to True, python cron is not starting."
+   /bin/bash
 fi
 
 if [ $ENABLE_WEB == "True" ];
     then
     echo "Starting Gunicorn"
-    /app/venv/bin/gunicorn  boranga.wsgi --bind :8080 --config /app/gunicorn.ini
+    /app/venv/bin/gunicorn  boranga.wsgi --bind :8080 --config /app/gunicorn.ini.py
     status=$?
     if [ $status -ne 0 ]; then
     echo "Failed to start gunicorn: $status"
     exit $status
     fi
 else
-   echo "ENABLE_WEB environment vairable not set to True, web server is not starting."
+   echo "ENABLE_WEB environment variable not set to True, web server is not starting."
    /bin/bash
 fi
