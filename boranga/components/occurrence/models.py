@@ -802,7 +802,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
-        send_decline_email_notification(reason, request, self)
+        send_decline_email_notification(reason, self)
 
     def validate_submit(self):
         missing_values = []
@@ -963,7 +963,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
-        send_approve_email_notification(request, self)
+        send_approve_email_notification(self)
 
     @transaction.atomic
     def back_to_assessor(self, request, validated_data):

@@ -13,8 +13,8 @@ from django.db.models import Q
 from django.utils import timezone
 
 from boranga.components.occurrence.email import (
-    send_external_submit_email_notification,
     send_submit_email_notification,
+    send_submitter_submit_email_notification,
 )
 from boranga.components.occurrence.models import (
     OccurrenceReport,
@@ -57,7 +57,7 @@ def ocr_proposal_submit(ocr_proposal, request):
     )
 
     ret1 = send_submit_email_notification(request, ocr_proposal)
-    ret2 = send_external_submit_email_notification(request, ocr_proposal)
+    ret2 = send_submitter_submit_email_notification(request, ocr_proposal)
 
     if (settings.WORKING_FROM_HOME and settings.DEBUG) or ret1 and ret2:
         ocr_proposal.processing_status = (
