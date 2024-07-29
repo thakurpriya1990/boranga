@@ -211,10 +211,7 @@ def is_authorised_to_access_community_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_django_admin(request)
-            or is_species_communities_approver(request)
-            or is_occurrence_assessor(request)
-            or is_occurrence_approver(request)
+            or is_internal(request)
         )
     else:
         return False
@@ -225,10 +222,7 @@ def is_authorised_to_access_species_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_django_admin(request)
-            or is_species_communities_approver(request)
-            or is_occurrence_assessor(request)
-            or is_occurrence_approver(request)
+            or is_internal(request)
         )
     else:
         return False
@@ -236,13 +230,10 @@ def is_authorised_to_access_species_document(request, document_id):
 
 def is_authorised_to_access_meeting_document(request, document_id):
     if is_internal(request):
-        # check auth #TODO review
+        # check auth
         return (
             request.user.is_superuser
-            or is_django_admin(request)
-            or is_species_communities_approver(request)
-            or is_conservation_status_assessor(request)
-            or is_conservation_status_referee(request)
+            or is_internal(request)
         )
     else:
         return False
@@ -265,9 +256,7 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_django_admin(request)
-            or is_occurrence_assessor(request)
-            or is_occurrence_approver(request)
+            or is_internal(request)
         )
 
     if is_occurrence_report_referee(request) and is_contributor(request):
@@ -331,9 +320,7 @@ def is_authorised_to_access_occurrence_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_django_admin(request)
-            or is_occurrence_assessor(request)
-            or is_occurrence_approver(request)
+            or is_internal(request)
         )
     else:
         return False
@@ -344,9 +331,7 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_django_admin(request)
-            or is_species_communities_approver(request)
-            or is_conservation_status_assessor(request)
+            or is_internal(request)
         )
 
     if is_conservation_status_referee(request) and is_contributor(request):
