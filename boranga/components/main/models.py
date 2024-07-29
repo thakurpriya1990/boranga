@@ -1,13 +1,13 @@
 import logging
 import os
 
+from django.apps import apps
 from django.conf import settings
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.db import models
-from django.core.exceptions import ValidationError
 from reversion.models import Version
-from django.apps import apps
-from django.core.cache import cache
 
 from boranga.helpers import compressed_content_valid, file_extension_valid
 
@@ -113,24 +113,45 @@ class CommunicationsLogEntry(models.Model):
     class Meta:
         app_label = "boranga"
 
+
 class FileExtensionWhitelist(models.Model):
 
     name = models.CharField(
-        max_length=16
+        max_length=16,
+        help_text="The file extension without the dot, e.g. jpg, pdf, docx, etc",
     )
     model = models.CharField(max_length=255, default="all")
 
-    compressed = models.BooleanField()
+    compressed = models.BooleanField(
+        help_text="Check this box for extensions such as zip, 7z, and tar",
+    )
 
     class Meta:
         app_label = "boranga"
-        unique_together=("name","model")
+        unique_together = ("name", "model")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._meta.get_field("model").choices = (("all","all",),) + tuple(
-            map(lambda m: (m,m), filter(lambda m: Document in apps.get_app_config('boranga').models[m].__bases__, apps.get_app_config('boranga').models))
-        ) 
+        self._meta.get_field("model").choices = (
+            (
+                "all",
+                "all",
+            ),
+        ) + tuple(
+            map(
+                lambda m: (m, m),
+                filter(
+                    lambda m: Document
+                    in apps.get_app_config("boranga").models[m].__bases__,
+                    apps.get_app_config("boranga").models,
+                ),
+            )
+        )
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        cache.delete(settings.CACHE_KEY_FILE_EXTENSION_WHITELIST)
+
 
 class Document(RevisionedMixin):
     name = models.CharField(
@@ -160,22 +181,24 @@ class Document(RevisionedMixin):
 
     def __str__(self):
         return self.name or self.filename
-    
-    def check_file(self,file):
-        #check if extension in whitelist
+
+    def check_file(self, file):
+        # check if extension in whitelist
         cache_key = settings.CACHE_KEY_FILE_EXTENSION_WHITELIST
         whitelist = cache.get(cache_key)
         if whitelist is None:
             whitelist = FileExtensionWhitelist.objects.all()
             cache.set(cache_key, whitelist, settings.CACHE_TIMEOUT_2_HOURS)
 
-        valid, compression = file_extension_valid(str(file), whitelist, self._meta.model_name)
+        valid, compression = file_extension_valid(
+            str(file), whitelist, self._meta.model_name
+        )
 
         if not valid:
             raise ValidationError("File type/extension not supported")
 
         if compression:
-            #supported compression check
+            # supported compression check
             valid = compressed_content_valid(file, whitelist, self._meta.model_name)
             if not valid:
                 raise ValidationError("Unsupported type/extension in compressed file")
