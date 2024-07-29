@@ -286,7 +286,6 @@ class OccurrenceReportObjectPermission(BasePermission):
             or is_species_communities_approver(request)
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
-            or is_internal_contributor(request)
             or is_occurrence_report_referee(request)
         )
 

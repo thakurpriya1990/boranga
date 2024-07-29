@@ -165,7 +165,7 @@ export default {
                 vm.amendingProposal = true;
                 vm.close();
 
-                Vue.http.get(`/api/occurrence_report/${vm.occurrence_report_id}/internal_occurrence_report.json`).then((response) => {
+                Vue.http.get(`/api/occurrence_report/${vm.occurrence_report_id}`).then((response) => {
                     vm.$emit('refreshFromResponse', response);
 
                 }, (error) => {
