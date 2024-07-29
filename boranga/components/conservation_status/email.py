@@ -10,6 +10,7 @@ from django.utils.encoding import smart_text
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from boranga.components.emails.emails import TemplateEmailBase
+from boranga.components.users.email import _log_user_email
 from boranga.helpers import (
     convert_external_url_to_internal_url,
     convert_internal_url_to_external_url,
@@ -631,60 +632,5 @@ def _log_conservation_status_email(
         )
         private_storage.save(path_to_file, ContentFile(file_bytes))
         email_entry.documents.get_or_create(_file=path_to_file, name=filename)
-
-    return email_entry
-
-
-def _log_user_email(email_message, emailuser, customer, sender=None):
-    from boranga.components.users.models import EmailUserLogEntry
-
-    if isinstance(
-        email_message,
-        (
-            EmailMultiAlternatives,
-            EmailMessage,
-        ),
-    ):
-        text = email_message.body
-        subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
-
-        # the to email is normally a list
-        if isinstance(email_message.to, list):
-            to = ",".join(email_message.to)
-        else:
-            to = smart_text(email_message.to)
-
-        # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
-        all_ccs = []
-        if email_message.cc:
-            all_ccs += list(email_message.cc)
-        if email_message.bcc:
-            all_ccs += list(email_message.bcc)
-        all_ccs = ",".join(all_ccs)
-
-    else:
-        text = smart_text(email_message)
-        subject = ""
-        to = customer
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
-        all_ccs = ""
-
-    staff_id = None
-    if sender and hasattr(sender, "id"):
-        staff_id = sender.id
-
-    kwargs = {
-        "subject": subject,
-        "text": text,
-        "email_user": emailuser.id,
-        "customer": customer.id,
-        "staff": staff_id,
-        "to": to,
-        "fromm": fromm,
-        "cc": all_ccs,
-    }
-
-    email_entry = EmailUserLogEntry.objects.create(**kwargs)
 
     return email_entry
