@@ -521,7 +521,6 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
     group_type_id = serializers.SerializerMethodField(read_only=True)
-    allowed_assessors = EmailUserSerializer(many=True)
 
     class Meta:
         model = ConservationStatus
@@ -563,7 +562,6 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "applicant_details",
             "assigned_officer",
             "assigned_approver",
-            "allowed_assessors",
             "deficiency_data",
             "assessor_data",
             "approval_level",
