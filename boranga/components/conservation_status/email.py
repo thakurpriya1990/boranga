@@ -228,6 +228,8 @@ def send_external_referee_invite_email(
     external_referee_invite.datetime_sent = timezone.now()
     external_referee_invite.save()
 
+    return msg
+
 
 def send_conservation_status_referral_email_notification(
     referral, request, reminder=False
@@ -270,6 +272,8 @@ def send_conservation_status_referral_email_notification(
 
     _log_user_email(msg, to_user, to_user, sender=sender)
 
+    return msg
+
 
 def send_conservation_status_referral_recall_email_notification(referral, request):
     """Recipient: May be internal or external user"""
@@ -308,9 +312,12 @@ def send_conservation_status_referral_recall_email_notification(referral, reques
 
     _log_user_email(msg, to_user, to_user, sender=sender)
 
+    return msg
+
 
 def send_conservation_status_referral_complete_email_notification(referral, request):
     """Recipient: Always an internal user"""
+
     email = ConservationStatusReferralCompleteNotificationEmail()
     url = request.build_absolute_uri(
         reverse(
@@ -332,6 +339,8 @@ def send_conservation_status_referral_complete_email_notification(referral, requ
     sender = get_sender_user()
 
     _log_conservation_status_referral_email(msg, referral, to_user.email, sender=sender)
+
+    return msg
 
 
 def send_conservation_status_amendment_email_notification(
@@ -386,6 +395,8 @@ def send_conservation_status_amendment_email_notification(
 
     _log_user_email(msg, to_user, to_user, sender=sender)
 
+    return msg
+
 
 # send email when Conservation Status Proposal is 'proposed to decline' by assessor.
 def send_approver_decline_email_notification(reason, request, conservation_status):
@@ -405,6 +416,8 @@ def send_approver_decline_email_notification(reason, request, conservation_statu
     sender = get_sender_user()
 
     _log_conservation_status_email(msg, conservation_status, sender=sender)
+
+    return msg
 
 
 def send_approver_propose_delist_email_notification(
@@ -426,6 +439,8 @@ def send_approver_propose_delist_email_notification(
     sender = get_sender_user()
 
     _log_conservation_status_email(msg, conservation_status, sender=sender)
+
+    return msg
 
 
 def send_approver_approve_email_notification(request, conservation_status):
@@ -452,6 +467,8 @@ def send_approver_approve_email_notification(request, conservation_status):
 
     _log_conservation_status_email(msg, conservation_status, sender=sender)
 
+    return msg
+
 
 def send_assessor_ready_for_agenda_email_notification(request, conservation_status):
     """Recipient: Always internal users"""
@@ -465,6 +482,8 @@ def send_assessor_ready_for_agenda_email_notification(request, conservation_stat
     sender = get_sender_user()
 
     _log_conservation_status_email(msg, conservation_status, sender=sender)
+
+    return msg
 
 
 def send_proposal_approver_sendback_email_notification(request, conservation_status):
@@ -495,6 +514,8 @@ def send_proposal_approver_sendback_email_notification(request, conservation_sta
 
     _log_conservation_status_email(msg, conservation_status, sender=sender)
 
+    return msg
+
 
 def send_conservation_status_decline_email_notification(
     conservation_status, conservation_status_decline
@@ -523,6 +544,8 @@ def send_conservation_status_decline_email_notification(
 
     _log_user_email(msg, to_user, to_user, sender=sender)
 
+    return msg
+
 
 def send_conservation_status_approval_email_notification(conservation_status):
     """Recipient: May be internal or external user Note: Currently does not include a url
@@ -548,6 +571,8 @@ def send_conservation_status_approval_email_notification(conservation_status):
     _log_conservation_status_email(msg, conservation_status, sender=sender)
 
     _log_user_email(msg, to_user, to_user, sender=sender)
+
+    return msg
 
 
 def _log_conservation_status_email(
