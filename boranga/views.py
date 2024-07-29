@@ -252,6 +252,9 @@ def check_allowed_path(document_id, path, allowed_paths):
 
 
 def is_authorised_to_access_occurrence_report_document(request, document_id):
+    referee_allowed_paths = ["documents"]
+    contributor_allowed_paths = ["documents", "amendment_request_documents"]
+
     if is_internal(request):
         # check auth
         return (
@@ -260,8 +263,6 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
         )
 
     if is_occurrence_report_referee(request) and is_contributor(request):
-        referee_allowed_paths = ["documents"]
-        contributor_allowed_paths = ["documents", "amendment_request_documents"]
         file_name = get_file_name_from_path(request.path)
         qs = OccurrenceReportDocument.objects.filter(
             visible=True,
@@ -286,24 +287,26 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
         )
 
     if is_occurrence_report_referee(request):
-        allowed_paths = ["documents"]
         file_name = get_file_name_from_path(request.path)
         return OccurrenceReportDocument.objects.filter(
             visible=True,
             occurrence_report__referrals__referral=request.user.id,
             occurrence_report_id=document_id,
             _file=file_name,
-        ).exists() and check_allowed_path(document_id, request.path, allowed_paths)
+        ).exists() and check_allowed_path(
+            document_id, request.path, referee_allowed_paths
+        )
 
     if is_contributor(request):
-        allowed_paths = ["documents", "amendment_request_documents"]
-        path = request.path
-        user = request.user
         return (
-            OccurrenceReport.objects.filter(internal_application=False, id=document_id)
-            .filter(submitter=user.id)
-            .exists()
-            and check_allowed_path(document_id, path, allowed_paths)
+            OccurrenceReportDocument.objects.filter(
+                visible=True,
+                can_submitter_access=True,
+                occurrence_report__submitter=request.user.id,
+                Occurrence_report_id=document_id,
+                _file=file_name,
+            ).exists()
+            and check_allowed_path(document_id, request.path, contributor_allowed_paths)
             or OccurrenceReportAmendmentRequestDocument.objects.filter(
                 visible=True,
                 occurrence_report_amendment_request__occurrence_report_id=document_id,
@@ -327,6 +330,9 @@ def is_authorised_to_access_occurrence_document(request, document_id):
 
 
 def is_authorised_to_access_conservation_status_document(request, document_id):
+    referee_allowed_paths = ["documents"]
+    contributor_allowed_paths = ["documents", "amendment_request_documents"]
+
     if is_internal(request):
         # check auth
         return (
@@ -335,8 +341,6 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
         )
 
     if is_conservation_status_referee(request) and is_contributor(request):
-        referee_allowed_paths = ["documents"]
-        contributor_allowed_paths = ["documents", "amendment_request_documents"]
         file_name = get_file_name_from_path(request.path)
         qs = ConservationStatusDocument.objects.filter(
             visible=True,
@@ -363,7 +367,6 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
         )
 
     if is_conservation_status_referee(request):
-        referee_allowed_paths = ["documents"]
         file_name = get_file_name_from_path(request.path)
         return ConservationStatusDocument.objects.filter(
             visible=True,
@@ -386,6 +389,7 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
                 conservation_status_id=document_id,
                 _file=file_name,
             ).exists()
+            and check_allowed_path(document_id, request.path, contributor_allowed_paths)
             and check_allowed_path(document_id, request.path, contributor_allowed_paths)
             or ConservationStatusAmendmentRequestDocument.objects.filter(
                 visible=True,

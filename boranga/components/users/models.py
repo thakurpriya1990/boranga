@@ -19,6 +19,19 @@ logger = logging.getLogger(__name__)
 
 class SubmitterCategory(models.Model):
     name = models.CharField(max_length=100)
+    USER_TYPE_CHOICE_EXTERNAL = "external"
+    USER_TYPE_CHOICE_INTERNAL = "internal"
+    USER_TYPE_CHOICES = [
+        (USER_TYPE_CHOICE_EXTERNAL, "External Users"),
+        (USER_TYPE_CHOICE_INTERNAL, "Internal Users"),
+    ]
+    visible_to = models.CharField(
+        choices=USER_TYPE_CHOICES,
+        max_length=10,
+        blank=False,
+        null=False,
+        default=USER_TYPE_CHOICE_EXTERNAL,
+    )
 
     class Meta:
         app_label = "boranga"
