@@ -126,12 +126,12 @@ FROM python_dependencies_boranga as collectstatic_boranga
 RUN touch /app/.env && \
     $VIRTUAL_ENV_PATH/bin/python manage.py collectstatic --noinput
 
-FROM python_dependencies_boranga as build_vue_boranga
+FROM collectstatic_boranga as build_vue_boranga
 
 RUN cd /app/boranga/frontend/boranga; npm ci --omit=dev && \
     cd /app/boranga/frontend/boranga; npm run build
 
-FROM python_dependencies_boranga as launch_boranga
+FROM build_vue_boranga as launch_boranga
 
 RUN $VIRTUAL_ENV_PATH/bin/python manage.py collectstatic --noinput
 
