@@ -116,10 +116,15 @@ class CommunicationsLogEntry(models.Model):
 
 class FileExtensionWhitelist(models.Model):
 
-    name = models.CharField(max_length=16)
+    name = models.CharField(
+        max_length=16,
+        help_text="The file extension without the dot, e.g. jpg, pdf, docx, etc",
+    )
     model = models.CharField(max_length=255, default="all")
 
-    compressed = models.BooleanField()
+    compressed = models.BooleanField(
+        help_text="Check this box for extensions such as zip, 7z, and tar",
+    )
 
     class Meta:
         app_label = "boranga"
