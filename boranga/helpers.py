@@ -193,7 +193,7 @@ def is_conservation_status_approver(request):
 
 
 def is_internal_contributor(request):
-    return belongs_to(request, GROUP_NAME_INTERNAL_CONTRIBUTOR, internal_only=True)
+    return belongs_to(request, GROUP_NAME_INTERNAL_CONTRIBUTOR, internal_only=False)
 
 
 def is_occurrence_assessor(request):
