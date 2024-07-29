@@ -1,8 +1,8 @@
-{%  extends 'boranga/emails/base_email.html' %}
+{%  extends 'boranga/emails/base_email.txt' %}
 
 {%  block content %}
- 
-        The following are the errors for NOMOS management Script failed: 
+
+        The following are the errors for NOMOS management Script failed:
 
         {% for e in errors %}
                 {{ e }} <br>
