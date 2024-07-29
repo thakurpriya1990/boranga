@@ -2432,7 +2432,7 @@ class ConservationStatusAmendmentRequestViewSet(
         qs = self.queryset
         if is_conservation_status_assessor(self.request):
             return qs
-        if is_conservation_status_referee(self.request):
+        if is_conservation_status_referee(self.request) or is_contributor(self.request):
             qs = qs.filter(conservation_status__submitter=self.request.user.id)
         return qs
 

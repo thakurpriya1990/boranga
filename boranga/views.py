@@ -391,7 +391,7 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
 
     if is_contributor(request):
         # TODO: Would be nice if the document id was included in the upload path to simplify this query
-        allowed_paths = ["documents", "amendment_request_documents"]
+        contributor_allowed_paths = ["documents", "amendment_request_documents"]
         file_name = get_file_name_from_path(request.path)
         return (
             ConservationStatusDocument.objects.filter(
@@ -401,7 +401,7 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
                 conservation_status_id=document_id,
                 _file=file_name,
             ).exists()
-            and check_allowed_path(document_id, request.path, allowed_paths)
+            and check_allowed_path(document_id, request.path, contributor_allowed_paths)
             or ConservationStatusAmendmentRequestDocument.objects.filter(
                 visible=True,
                 conservation_status_amendment_request__conservation_status_id=document_id,
