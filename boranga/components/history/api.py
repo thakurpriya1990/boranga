@@ -49,6 +49,10 @@ class InternalAuthorizationView(views.APIView):
         "OccurrenceReportDocument",
         "OCRConservationThreat",
         "OCCConservationThreat",
+        "OCRObserverDetail",
+        "OCCContactDetail",
+        "OccurrenceTenure",
+        "OccurrenceSite",
     ]
 
     def check_auth_by_model(self, request, model_name):
