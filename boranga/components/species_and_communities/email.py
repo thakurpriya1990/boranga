@@ -12,7 +12,6 @@ from boranga.components.species_and_communities.models import (
     SystemEmailGroup,
     private_storage,
 )
-from boranga.components.users.email import _log_user_email
 from boranga.helpers import convert_external_url_to_internal_url
 
 logger = logging.getLogger(__name__)
@@ -127,18 +126,14 @@ def send_user_species_create_email_notification(request, species_proposal):
     }
     all_ccs = []
 
-    to_user = EmailUser.objects.get(id=species_proposal.submitter)
-
     msg = email.send(
-        to_user.email,
+        request.user.email,
         cc=all_ccs,
         context=context,
     )
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
 
     _log_species_email(msg, species_proposal, sender=sender)
-
-    _log_user_email(msg, to_user, to_user, sender=sender)
 
     return msg
 
@@ -204,12 +199,8 @@ def send_species_split_email_notification(request, species_proposal):
 
     all_ccs = list(set(all_ccs))
 
-    submitter_email = EmailUser.objects.get(id=species_proposal.submitter).email
-
-    to = request.user.email if request else submitter_email
-
     msg = email.send(
-        to,
+        request.user.email,
         cc=all_ccs,
         context=context,
     )
