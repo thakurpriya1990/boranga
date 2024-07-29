@@ -13,7 +13,6 @@ if [ $ENABLE_CRON == "True" ];
     fi
 else
    echo "ENABLE_CRON environment variable not set to True, python cron is not starting."
-   /bin/bash
 fi
 
 if [ $ENABLE_WEB == "True" ];
