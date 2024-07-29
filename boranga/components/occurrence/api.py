@@ -5667,7 +5667,7 @@ class OccurrenceTenureFilterBackend(DatatablesFilterBackend):
 
 
 class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = OccurrenceTenure.objects.none()
+    queryset = OccurrenceTenure.objects.all()
     serializer_class = OccurrenceTenureSerializer
     pagination_class = DatatablesPageNumberPagination
     filter_backends = [
@@ -5839,7 +5839,7 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
         qs = self.queryset
 
         if is_internal(self.request) or self.request.user.is_superuser:
-            qs = OccurrenceTenure.objects.all().order_by("id")
+            return OccurrenceTenure.objects.all().order_by("id")
         return OccurrenceTenure.objects.none()
 
     def retrieve(self, request, pk=None):
