@@ -480,6 +480,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             or is_species_communities_approver(self.request)
             or is_occurrence_assessor(self.request)
             or is_occurrence_approver(self.request)
+            or self.request.user.is_superuser
         ):
             return qs
         if is_conservation_status_referee(self.request) and is_contributor(self.request):
@@ -1063,6 +1064,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             or is_species_communities_approver(self.request)
             or is_occurrence_assessor(self.request)
             or is_occurrence_approver(self.request)
+            or self.request.user.is_superuser
         ):
             return qs
         
@@ -1423,6 +1425,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             or is_species_communities_approver(self.request)
             or is_occurrence_assessor(self.request)
             or is_occurrence_approver(self.request)
+            or self.request.user.is_superuser
         ):
             return qs
         if is_contributor(self.request):
@@ -1434,7 +1437,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "GET",
         ],
         detail=False,
-        permission_classes=[ExternalConservationStatusPermission],
+        permission_classes=[ConservationStatusPermission|ExternalConservationStatusPermission],
     )
     def conservation_status_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
@@ -1486,6 +1489,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             or is_species_communities_approver(self.request)
             or is_occurrence_assessor(self.request)
             or is_occurrence_approver(self.request)
+            or self.request.user.is_superuser
         ):
             return qs
         if is_contributor(self.request) and is_conservation_status_referee(
@@ -2078,9 +2082,15 @@ class ConservationStatusReferralViewSet(
 
     def get_queryset(self):
         qs = self.queryset
-        if is_conservation_status_assessor(
-            self.request
-        ) or is_conservation_status_approver(self.request):
+        if (
+            is_readonly_user(self.request)
+            or is_conservation_status_assessor(self.request)
+            or is_conservation_status_approver(self.request)
+            or is_species_communities_approver(self.request)
+            or is_occurrence_assessor(self.request)
+            or is_occurrence_approver(self.request)
+            or self.request.user.is_superuser
+        ):
             return qs
         if is_conservation_status_referee(self.request):
             qs = qs.filter(referral=self.request.user.id)
@@ -2430,7 +2440,15 @@ class ConservationStatusAmendmentRequestViewSet(
 
     def get_queryset(self):
         qs = self.queryset
-        if is_conservation_status_assessor(self.request):
+        if (
+            is_readonly_user(self.request)
+            or is_conservation_status_assessor(self.request)
+            or is_conservation_status_approver(self.request)
+            or is_species_communities_approver(self.request)
+            or is_occurrence_assessor(self.request)
+            or is_occurrence_approver(self.request)
+            or self.request.user.is_superuser
+        ):
             return qs
         if is_conservation_status_referee(self.request) or is_contributor(self.request):
             qs = qs.filter(conservation_status__submitter=self.request.user.id)
@@ -2481,6 +2499,7 @@ class ConservationStatusDocumentViewSet(
             or is_species_communities_approver(self.request)
             or is_occurrence_assessor(self.request)
             or is_occurrence_approver(self.request)
+            or self.request.user.is_superuser
         ):
             return qs
         elif is_contributor(self.request) and is_conservation_status_referee(

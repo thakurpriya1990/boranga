@@ -2625,7 +2625,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if not is_internal(self.request):
+        if not(is_internal(self.request) or self.request.user.is_superuser):
             qs = (
                 qs.filter(visible=True)
                 .filter(

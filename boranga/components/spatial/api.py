@@ -30,15 +30,15 @@ class TileLayerViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
     def get_queryset(self):
-        if is_customer(self.request):
-            return TileLayer.objects.filter(active=True, is_external=True).order_by(
-                "id"
-            )
-        elif is_internal(self.request):
+        if is_internal(self.request):
             return TileLayer.objects.filter(active=True, is_internal=True).order_by(
                 "id"
             )
         elif is_referee(self.request):
+            return TileLayer.objects.filter(active=True, is_external=True).order_by(
+                "id"
+            )
+        elif is_customer(self.request):
             return TileLayer.objects.filter(active=True, is_external=True).order_by(
                 "id"
             )
