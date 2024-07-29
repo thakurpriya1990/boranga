@@ -85,7 +85,6 @@ def show_internal_menu_items(context):
         request.user.is_superuser
         or boranga_helpers.is_conservation_status_approver(request)
         or boranga_helpers.is_conservation_status_assessor(request)
-        or boranga_helpers.is_internal_contributor(request)
         or boranga_helpers.is_occurrence_approver(request)
         or boranga_helpers.is_occurrence_assessor(request)
         or boranga_helpers.is_readonly_user(request)

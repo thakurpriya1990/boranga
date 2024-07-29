@@ -193,7 +193,6 @@ from boranga.components.species_and_communities.serializers import TaxonomySeria
 from boranga.helpers import (
     is_contributor,
     is_customer,
-    is_external_contributor,
     is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
@@ -2106,7 +2105,7 @@ class OccurrenceReportViewSet(
                     occurrence_report__referrals__referral=request.user.id,
                     visible=True,
                 )
-            elif is_external_contributor(request):
+            elif is_contributor(request):
                 qs = qs.filter(
                     occurrence_report__submitter=self.request.user.id,
                     visible=True,
@@ -2690,7 +2689,7 @@ class OccurrenceReportDocumentViewSet(
     def get_queryset(self):
         if is_internal(self.request):
             return OccurrenceReportDocument.objects.all().order_by("id")
-        if is_external_contributor(self.request):
+        if is_contributor(self.request):
             return OccurrenceReportDocument.objects.filter(
                 occurrence_report__submitter=self.request.user.id,
                 visible=True,

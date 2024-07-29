@@ -13,7 +13,7 @@ from boranga.components.occurrence.models import (
 from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
-    is_external_contributor,
+    is_contributor,
     is_internal_contributor,
     is_occurrence_approver,
     is_occurrence_assessor,
@@ -68,7 +68,6 @@ class OccurrenceReportPermission(BasePermission):
             or is_species_communities_approver(request)
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
-            or is_internal_contributor(request)
             or is_occurrence_report_referee(request)
         )
 
@@ -220,7 +219,7 @@ class ExternalOccurrenceReportPermission(BasePermission):
         if request.user.is_superuser:
             return True
 
-        return is_external_contributor(request)
+        return is_contributor(request)
 
     def has_object_permission(self, request, view, obj):
         if (
@@ -233,7 +232,7 @@ class ExternalOccurrenceReportPermission(BasePermission):
             obj.can_user_edit
             or (hasattr(view, "action") and view.action == "process_shapefile_document")
         ):
-            return is_external_contributor(request)
+            return is_contributor(request)
 
         return False
 
@@ -368,7 +367,7 @@ class ExternalOccurrenceReportObjectPermission(BasePermission):
         if request.user.is_superuser:
             return True
 
-        return is_external_contributor(request)
+        return is_contributor(request)
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -381,7 +380,7 @@ class ExternalOccurrenceReportObjectPermission(BasePermission):
             and occurrence_report.submitter == request.user.id
             and occurrence_report.can_user_edit
         ):
-            return is_external_contributor(request)
+            return is_contributor(request)
 
         return False
 

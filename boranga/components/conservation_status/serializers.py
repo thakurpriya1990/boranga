@@ -24,8 +24,8 @@ from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_contributor,
-    is_internal_contributor,
     is_new_external_contributor,
+    is_internal,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 
@@ -314,7 +314,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
         return (
             obj.can_user_edit
             and obj.internal_application
-            and is_internal_contributor(request)
+            and is_internal(request)
             and obj.submitter == request.user.id
         )
 
@@ -506,7 +506,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
         return (
             obj.can_user_edit
             and obj.internal_application
-            and is_internal_contributor(request)
+            and is_internal(request)
             and obj.submitter == request.user.id
         )
 
@@ -841,7 +841,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         return (
             obj.can_user_edit
             and obj.internal_application
-            and is_internal_contributor(request)
+            and is_internal(request)
             and obj.submitter == request.user.id
         )
 
