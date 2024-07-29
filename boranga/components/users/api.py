@@ -30,7 +30,7 @@ from boranga.components.users.serializers import (
     SubmitterInformationSerializer,
     UserSerializer,
 )
-from boranga.helpers import is_internal
+from boranga.helpers import is_internal, is_internal_contributor
 from boranga.permissions import IsApprover, IsAssessor, IsInternal
 
 logger = logging.getLogger(__name__)
@@ -82,8 +82,12 @@ class GetSubmitterCategories(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        submitter_categories = SubmitterCategory.objects.all()
-        serializer = SubmitterCategorySerializer(submitter_categories, many=True)
+        qs = SubmitterCategory.objects.all()
+        if is_internal(request) or is_internal_contributor(request):
+            qs = qs.filter(visible_to=SubmitterCategory.USER_TYPE_CHOICE_INTERNAL)
+        else:
+            qs = qs.filter(visible_to=SubmitterCategory.USER_TYPE_CHOICE_EXTERNAL)
+        serializer = SubmitterCategorySerializer(qs, many=True)
         return Response(serializer.data)
 
 
