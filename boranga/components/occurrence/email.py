@@ -416,7 +416,7 @@ def send_approver_decline_email_notification(reason, request, occurrence_report)
     return msg
 
 
-def send_decline_email_notification(reason, request, occurrence_report):
+def send_decline_email_notification(reason, occurrence_report):
     """Recipient: May be internal or external user Note: Currently does not include a url
     If a url is added in future it must be able to handle both internal and external users
     """
@@ -438,7 +438,7 @@ def send_decline_email_notification(reason, request, occurrence_report):
     return msg
 
 
-def send_approve_email_notification(request, occurrence_report):
+def send_approve_email_notification(occurrence_report):
     """Recipient: May be internal or external user Note: Currently does not include a url
     If a url is added in future it must be able to handle both internal and external users
     """
