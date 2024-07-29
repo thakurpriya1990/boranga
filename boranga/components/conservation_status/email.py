@@ -14,7 +14,7 @@ from boranga.components.users.email import _log_user_email
 from boranga.helpers import (
     convert_external_url_to_internal_url,
     convert_internal_url_to_external_url,
-    email_in_dbca_domain,
+    is_internal_by_user_id,
 )
 
 private_storage = FileSystemStorage(
@@ -131,6 +131,7 @@ class ConservationStatusApprovalSendNotificationEmail(TemplateEmailBase):
 
 
 def send_submit_email_notification(request, cs_proposal):
+    """Recipient: Always internal users"""
     email = SubmitSendNotificationEmail()
     url = request.build_absolute_uri(
         reverse(
@@ -151,24 +152,32 @@ def send_submit_email_notification(request, cs_proposal):
     return msg
 
 
-def send_external_submit_email_notification(request, cs_proposal):
+def send_submitter_submit_email_notification(request, cs_proposal):
+    """Recipient: Maybe internal or external user"""
     email = ExternalSubmitSendNotificationEmail()
+
+    to_user = EmailUser.objects.get(id=cs_proposal.submitter)
+
+    url_name_prefix = "internal"
+
+    if not is_internal_by_user_id(to_user.id):
+        url_name_prefix = "external"
+
     url = request.build_absolute_uri(
         reverse(
-            "external-conservation-status-detail",
+            f"{url_name_prefix}-conservation-status-detail",
             kwargs={"cs_proposal_pk": cs_proposal.id},
         )
     )
 
-    url = convert_internal_url_to_external_url(url)
+    if not is_internal_by_user_id(to_user.id):
+        url = convert_internal_url_to_external_url(url)
 
     context = {
         "cs_proposal": cs_proposal,
-        "submitter": EmailUser.objects.get(id=cs_proposal.submitter).get_full_name(),
+        "submitter": to_user.get_full_name(),
         "url": url,
     }
-
-    to_user = EmailUser.objects.get(id=cs_proposal.submitter)
 
     msg = email.send(to_user.email, context=context)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
@@ -183,6 +192,8 @@ def send_external_submit_email_notification(request, cs_proposal):
 def send_external_referee_invite_email(
     conservation_status, request, external_referee_invite, reminder=False
 ):
+    """Recipient: Always an external user"""
+
     subject = (
         f"Referral Request for DBCA's Boranga System "
         f"Conservation Status Proposal: {conservation_status.conservation_status_number}"
@@ -211,6 +222,7 @@ def send_external_referee_invite_email(
         context=context,
     )
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+
     _log_conservation_status_email(msg, conservation_status, sender=sender)
 
     external_referee_invite.datetime_sent = timezone.now()
@@ -220,13 +232,14 @@ def send_external_referee_invite_email(
 def send_conservation_status_referral_email_notification(
     referral, request, reminder=False
 ):
+    """Recipient: May be internal or external user"""
     email = ConservationStatusReferralSendNotificationEmail()
 
     to_user = EmailUser.objects.get(id=referral.referral)
 
     url_name_prefix = "internal"
 
-    if not email_in_dbca_domain(to_user.email):
+    if not is_internal_by_user_id(to_user.id):
         url_name_prefix = "external"
 
     url = request.build_absolute_uri(
@@ -239,7 +252,7 @@ def send_conservation_status_referral_email_notification(
         )
     )
 
-    if not email_in_dbca_domain(to_user.email):
+    if not is_internal_by_user_id(to_user.id):
         url = convert_internal_url_to_external_url(url)
 
     context = {
@@ -259,13 +272,14 @@ def send_conservation_status_referral_email_notification(
 
 
 def send_conservation_status_referral_recall_email_notification(referral, request):
+    """Recipient: May be internal or external user"""
     email = ConservationStatusReferralRecallNotificationEmail()
 
     to_user = EmailUser.objects.get(id=referral.referral)
 
     url_name_prefix = "internal"
 
-    if not email_in_dbca_domain(to_user.email):
+    if not is_internal_by_user_id(to_user.id):
         url_name_prefix = "external"
 
     url = request.build_absolute_uri(
@@ -278,7 +292,7 @@ def send_conservation_status_referral_recall_email_notification(referral, reques
         )
     )
 
-    if not email_in_dbca_domain(to_user.email):
+    if not is_internal_by_user_id(to_user.id):
         url = convert_internal_url_to_external_url(url)
 
     context = {
@@ -296,6 +310,7 @@ def send_conservation_status_referral_recall_email_notification(referral, reques
 
 
 def send_conservation_status_referral_complete_email_notification(referral, request):
+    """Recipient: Always an internal user"""
     email = ConservationStatusReferralCompleteNotificationEmail()
     url = request.build_absolute_uri(
         reverse(
@@ -318,79 +333,31 @@ def send_conservation_status_referral_complete_email_notification(referral, requ
 
     _log_conservation_status_referral_email(msg, referral, to_user.email, sender=sender)
 
-    _log_user_email(msg, to_user, to_user, sender=sender)
-
-
-def _log_conservation_status_referral_email(
-    email_message, referral, to_email, sender=None
-):
-    from boranga.components.conservation_status.models import ConservationStatusLogEntry
-
-    if isinstance(
-        email_message,
-        (
-            EmailMultiAlternatives,
-            EmailMessage,
-        ),
-    ):
-        text = email_message.body
-        subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
-
-        # the to email is normally a list
-        if isinstance(email_message.to, list):
-            to = ",".join(email_message.to)
-        else:
-            to = smart_text(email_message.to)
-
-        # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
-        all_ccs = []
-        if email_message.cc:
-            all_ccs += list(email_message.cc)
-        if email_message.bcc:
-            all_ccs += list(email_message.bcc)
-        all_ccs = ",".join(all_ccs)
-
-    else:
-        text = smart_text(email_message)
-        subject = ""
-        to = to_email
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
-        all_ccs = ""
-
-    customer = referral.referral
-
-    staff = sender.id
-
-    kwargs = {
-        "subject": subject,
-        "text": text,
-        "conservation_status": referral.conservation_status,
-        "customer": customer,
-        "staff": staff,
-        "to": to,
-        "fromm": fromm,
-        "cc": all_ccs,
-    }
-
-    email_entry = ConservationStatusLogEntry.objects.create(**kwargs)
-
-    return email_entry
-
 
 def send_conservation_status_amendment_email_notification(
     amendment_request, request, conservation_status
 ):
+    """Recipient: May be internal or external user"""
+
     email = ConservationStatusAmendmentRequestSendNotificationEmail()
     reason = amendment_request.reason.reason
+
+    to_user = EmailUser.objects.get(id=conservation_status.submitter)
+
+    url_name_prefix = "internal"
+
+    if not is_internal_by_user_id(to_user.id):
+        url_name_prefix = "external"
+
     url = request.build_absolute_uri(
         reverse(
-            "external-conservation-status-detail",
+            f"{url_name_prefix}-conservation-status-detail",
             kwargs={"cs_proposal_pk": conservation_status.id},
         )
     )
 
-    url = convert_internal_url_to_external_url(url)
+    if not is_internal_by_user_id(to_user.id):
+        url = convert_internal_url_to_external_url(url)
 
     attachments = []
     if amendment_request.cs_amendment_request_documents:
@@ -407,8 +374,6 @@ def send_conservation_status_amendment_email_notification(
         "url": url,
     }
 
-    to_user = EmailUser.objects.get(id=conservation_status.submitter)
-
     msg = email.send(
         to_user.email,
         context=context,
@@ -424,6 +389,8 @@ def send_conservation_status_amendment_email_notification(
 
 # send email when Conservation Status Proposal is 'proposed to decline' by assessor.
 def send_approver_decline_email_notification(reason, request, conservation_status):
+    """Recipient: Always internal users"""
+
     email = ApproverDeclineSendNotificationEmail()
     url = request.build_absolute_uri(
         reverse(
@@ -443,6 +410,8 @@ def send_approver_decline_email_notification(reason, request, conservation_statu
 def send_approver_propose_delist_email_notification(
     request, conservation_status, reason
 ):
+    """Recipient: Always internal users"""
+
     email = ApproverProposeDelistNotificationEmail()
     url = request.build_absolute_uri(
         reverse(
@@ -460,6 +429,8 @@ def send_approver_propose_delist_email_notification(
 
 
 def send_approver_approve_email_notification(request, conservation_status):
+    """Recipient: Always internal users"""
+
     email = ApproverApproveSendNotificationEmail()
     url = request.build_absolute_uri(
         reverse(
@@ -483,6 +454,8 @@ def send_approver_approve_email_notification(request, conservation_status):
 
 
 def send_assessor_ready_for_agenda_email_notification(request, conservation_status):
+    """Recipient: Always internal users"""
+
     email = AssessorReadyForAgendaSendNotificationEmail()
     url = request.build_absolute_uri(reverse("internal-meeting-dashboard", kwargs={}))
     context = {"cs_proposal": conservation_status, "url": url}
@@ -495,6 +468,8 @@ def send_assessor_ready_for_agenda_email_notification(request, conservation_stat
 
 
 def send_proposal_approver_sendback_email_notification(request, conservation_status):
+    """Recipient: Always internal users"""
+
     email = ApproverSendBackNotificationEmail()
     url = request.build_absolute_uri(
         reverse(
@@ -522,8 +497,12 @@ def send_proposal_approver_sendback_email_notification(request, conservation_sta
 
 
 def send_conservation_status_decline_email_notification(
-    conservation_status, request, conservation_status_decline
+    conservation_status, conservation_status_decline
 ):
+    """Recipient: May be internal or external user Note: Currently does not include a url
+    If a url is added in future it must be able to handle both internal and external users
+    """
+
     email = ConservationStatusDeclineSendNotificationEmail()
 
     context = {
@@ -545,17 +524,16 @@ def send_conservation_status_decline_email_notification(
     _log_user_email(msg, to_user, to_user, sender=sender)
 
 
-def send_conservation_status_approval_email_notification(conservation_status, request):
+def send_conservation_status_approval_email_notification(conservation_status):
+    """Recipient: May be internal or external user Note: Currently does not include a url
+    If a url is added in future it must be able to handle both internal and external users
+    """
     email = ConservationStatusApprovalSendNotificationEmail()
 
     cc_list = conservation_status.conservationstatusissuanceapprovaldetails.cc_email
     all_ccs = []
     if cc_list:
         all_ccs = cc_list.split(",")
-
-    url = request.build_absolute_uri(reverse("external"))
-
-    url = convert_internal_url_to_external_url(url)
 
     context = {
         "cs_proposal": conservation_status,
@@ -632,5 +610,62 @@ def _log_conservation_status_email(
         )
         private_storage.save(path_to_file, ContentFile(file_bytes))
         email_entry.documents.get_or_create(_file=path_to_file, name=filename)
+
+    return email_entry
+
+
+def _log_conservation_status_referral_email(
+    email_message, referral, to_email, sender=None
+):
+    from boranga.components.conservation_status.models import ConservationStatusLogEntry
+
+    if isinstance(
+        email_message,
+        (
+            EmailMultiAlternatives,
+            EmailMessage,
+        ),
+    ):
+        text = email_message.body
+        subject = email_message.subject
+        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+
+        # the to email is normally a list
+        if isinstance(email_message.to, list):
+            to = ",".join(email_message.to)
+        else:
+            to = smart_text(email_message.to)
+
+        # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
+        all_ccs = []
+        if email_message.cc:
+            all_ccs += list(email_message.cc)
+        if email_message.bcc:
+            all_ccs += list(email_message.bcc)
+        all_ccs = ",".join(all_ccs)
+
+    else:
+        text = smart_text(email_message)
+        subject = ""
+        to = to_email
+        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        all_ccs = ""
+
+    customer = referral.referral
+
+    staff = sender.id
+
+    kwargs = {
+        "subject": subject,
+        "text": text,
+        "conservation_status": referral.conservation_status,
+        "customer": customer,
+        "staff": staff,
+        "to": to,
+        "fromm": fromm,
+        "cc": all_ccs,
+    }
+
+    email_entry = ConservationStatusLogEntry.objects.create(**kwargs)
 
     return email_entry
