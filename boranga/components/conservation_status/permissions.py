@@ -87,9 +87,7 @@ class ConservationStatusPermission(BasePermission):
             request
         ) or is_conservation_status_approver(
             request
-        ) or request.user.is_superuser(
-            request
-        )
+        ) or request.user.is_superuser
 
 class ExternalConservationStatusPermission(BasePermission):
     def has_permission(self, request, view):
