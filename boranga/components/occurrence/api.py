@@ -1817,8 +1817,7 @@ class OccurrenceReportViewSet(
             qs, many=True, context={"request": request}
         )
         if (
-            is_occurrence_assessor(request)
-            or is_occurrence_approver(request)
+            is_internal(request)
             or ((is_contributor(request)) and instance.submitter == request.user.id)
         ):
             serializer = OCRObserverDetailSerializer(
@@ -2468,9 +2467,7 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         serializer = self.get_serializer(instance, context={"request": request})
         if (
-            not is_occurrence_assessor(self.request)
-            and not is_occurrence_approver(self.request)
-            and not is_readonly_user(self.request)
+            not is_internal(self.request)
             and is_occurrence_report_referee(request, instance.occurrence_report)
         ):
             # Don't let referees see observer contact details
