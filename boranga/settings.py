@@ -69,7 +69,7 @@ GROUP_NAME_CHOICES = [
 ]
 
 INTERNAL_GROUPS = [
-    g for g in GROUP_NAME_CHOICES if g != GROUP_NAME_EXTERNAL_CONTRIBUTOR
+    g for g in GROUP_NAME_CHOICES if g != GROUP_NAME_EXTERNAL_CONTRIBUTOR and g != GROUP_NAME_INTERNAL_CONTRIBUTOR
 ]
 
 if env("CONSOLE_EMAIL_BACKEND", False):
@@ -144,6 +144,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
+    'PAGE_SIZE': 100,
 }
 
 MIDDLEWARE_CLASSES += [

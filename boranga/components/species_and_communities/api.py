@@ -705,7 +705,6 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListSpeciesSerializer(
             result_page, context={"request": request}, many=True
@@ -724,7 +723,6 @@ class SpeciesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         )
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListSpeciesSerializer(
             result_page, context={"request": request}, many=True
@@ -967,7 +965,7 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunitiesSerializer(
             result_page, context={"request": request}, many=True
@@ -983,12 +981,12 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     )
     def communities_external(self, request, *args, **kwargs):
         qs = self.get_queryset().filter(
-            processing_status=Species.PROCESSING_STATUS_ACTIVE,
+            processing_status=Community.PROCESSING_STATUS_ACTIVE,
             community_publishing_status__community_public=True,
         )
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunitiesSerializer(
             result_page, context={"request": request}, many=True
@@ -2625,7 +2623,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if not is_internal(self.request):
+        if not(is_internal(self.request) or self.request.user.is_superuser):
             qs = (
                 qs.filter(visible=True)
                 .filter(
@@ -2918,9 +2916,11 @@ class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.order_by("id")
     serializer_class = DistrictSerializer
     permission_classes = [AllowAny]
+    pagination_class = None
 
 
 class RegionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Region.objects.order_by("id")
     serializer_class = RegionSerializer
     permission_classes = [AllowAny]
+    pagination_class = None

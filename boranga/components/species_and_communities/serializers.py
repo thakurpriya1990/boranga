@@ -1209,7 +1209,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
 
 class CommunitySerializer(BaseCommunitySerializer):
-    submitter = serializers.SerializerMethodField(read_only=True)
+    #submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
 
     def get_readonly(self, obj):
