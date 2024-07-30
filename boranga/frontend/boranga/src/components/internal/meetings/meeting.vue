@@ -433,7 +433,7 @@ export default {
                 blank_fields.push('Please select End Date that is later than Start Date');
             }
             if (check_action == "submit") {
-                //TODO add validation for fields required before submit
+                //NOTE add validation for fields required before submit
             }
 
             return blank_fields
