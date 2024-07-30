@@ -1850,7 +1850,7 @@ class DocumentCategory(ArchivableModel):
         return str(self.document_category_name)
 
 
-class DocumentSubCategory(models.Model):
+class DocumentSubCategory(ArchivableModel):
     """
     This is particularly useful for organisation of sub documents e.g. preventing inappropriate documents being added
     to certain tables.
