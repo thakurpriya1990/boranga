@@ -25,6 +25,14 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Wild Status:</label>
                 <div class="col-sm-9">
+                    <template
+                        v-if="wild_status_list && wild_status_list.length > 0 && occurrence_obj.wild_status && !wild_status_list.map((d) => d.id).includes(occurrence_obj.wild_status)">
+                        <input type="text" v-if="occurrence_obj.wild_status_name" class="form-control mb-3"
+                            :value="occurrence_obj.wild_status_name + ' (Now Archived)'" disabled />
+                        <div class="mb-3 text-muted">
+                            Change wild status to:
+                        </div>
+                    </template>
                     <select :disabled="isReadOnly"
                         class="form-select"
                         v-model="occurrence_obj.wild_status">

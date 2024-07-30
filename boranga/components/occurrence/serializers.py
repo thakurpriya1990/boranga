@@ -112,6 +112,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
         required=False,
     )
     combined_occurrence_id = serializers.SerializerMethodField()
+    wild_status_name = serializers.CharField(source="wild_status.name", allow_null=True)
 
     class Meta:
         model = Occurrence

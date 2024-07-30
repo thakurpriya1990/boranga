@@ -370,6 +370,10 @@ class DatumAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     search_fields = ("srid", "name")
 
 
+class WildStatusAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, DeleteProtectedModelAdmin)
 admin.site.register(RockType, DeleteProtectedModelAdmin)
@@ -396,5 +400,5 @@ admin.site.register(PermitType, PermitTypeAdmin)
 admin.site.register(Datum, DatumAdmin)
 admin.site.register(CoordinateSource, DeleteProtectedModelAdmin)
 admin.site.register(LocationAccuracy, DeleteProtectedModelAdmin)
-admin.site.register(WildStatus, DeleteProtectedModelAdmin)
+admin.site.register(WildStatus, WildStatusAdmin)
 admin.site.register(OccurrenceSite)
