@@ -36,6 +36,16 @@
                                         <label for="document_sub_category" class="control-label">Sub Category</label>
                                     </div>
                                     <div class="col-sm-6">
+                                        <template
+                                            v-if="filteredDocumentSubCategories && filteredDocumentSubCategories.length > 0 && !filteredDocumentSubCategories.map((category) => category.id).includes(documentObj.document_sub_category)">
+                                            <input type="text" v-if="documentObj.document_category_name"
+                                                class="form-control mb-3"
+                                                :value="documentObj.document_category_name + ' (Now Archived)'"
+                                                disabled />
+                                            <div class="mb-3 text-muted">
+                                                Change document sub category to:
+                                            </div>
+                                        </template>
                                         <select id="document_sub_category" ref="document_sub_category"
                                             class="form-select" v-model="documentObj.document_sub_category"
                                             @change="focusDescription">

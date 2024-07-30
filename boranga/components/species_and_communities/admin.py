@@ -32,7 +32,7 @@ class DocumentCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin
 
 
 @admin.register(DocumentSubCategory)
-class DocumentSubCategoryAdmin(DeleteProtectedModelAdmin):
+class DocumentSubCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["document_sub_category_name", "document_category"]
 
 
