@@ -298,12 +298,13 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
         )
 
     if is_contributor(request):
+        file_name = get_file_name_from_path(request.path)
         return (
             OccurrenceReportDocument.objects.filter(
                 visible=True,
                 can_submitter_access=True,
                 occurrence_report__submitter=request.user.id,
-                Occurrence_report_id=document_id,
+                occurrence_report_id=document_id,
                 _file=file_name,
             ).exists()
             and check_allowed_path(document_id, request.path, contributor_allowed_paths)
