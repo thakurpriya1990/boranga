@@ -2658,6 +2658,16 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def threat_list_of_values(self, request, *args, **kwargs):
         """Used by the internal threat form"""
+        active_threat_category_lists = []
+        threat_categories = ThreatCategory.objects.active()
+        if threat_categories:
+            for choice in threat_categories:
+                active_threat_category_lists.append(
+                    {
+                        "id": choice.id,
+                        "name": choice.name,
+                    }
+                )
         threat_category_lists = []
         threat_categories = ThreatCategory.objects.all()
         if threat_categories:
@@ -2710,6 +2720,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                     }
                 )
         res_json = {
+            "active_threat_category_lists": active_threat_category_lists,
             "threat_category_lists": threat_category_lists,
             "current_impact_lists": current_impact_lists,
             "potential_impact_lists": potential_impact_lists,
