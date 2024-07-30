@@ -541,7 +541,7 @@ class GetMeetingDict(views.APIView):
 
     def get(self, request, format=None):
         location_list = []
-        locations = MeetingRoom.objects.all()
+        locations = MeetingRoom.objects.active()
         if locations:
             for option in locations:
                 location_list.append(
