@@ -1868,7 +1868,8 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             or is_occurrence_approver(request)
             or (
                 is_contributor(request)
-                and obj.occurrence_report.submitter == request.user.id
+                and ((hasattr(obj,"occurrence_report") and obj.occurrence_report.submitter == request.user.id) or 
+                    "occurrence_report" in obj and obj["occurrence_report"].submitter == request.user.id)
             )
         )
 

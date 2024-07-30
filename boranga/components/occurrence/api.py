@@ -25,6 +25,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_datatables.filters import DatatablesFilterBackend
 from rest_framework_datatables.pagination import DatatablesPageNumberPagination
+from rest_framework.permissions import AllowAny
 
 from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
@@ -192,7 +193,6 @@ from boranga.components.species_and_communities.serializers import TaxonomySeria
 from boranga.helpers import (
     is_contributor,
     is_customer,
-    is_external_contributor,
     is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
@@ -342,10 +342,14 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if is_internal(self.request):
-            qs = OccurrenceReport.objects.all()
+        if is_internal(self.request) or self.request.user.is_superuser:
+            return qs
+        elif is_occurrence_report_referee(self.request) and is_contributor(self.request):
+            return qs.filter(Q(submitter=self.request.user.id)|Q(referrals__referral=self.request.user.id))
+        elif is_occurrence_report_referee(self.request):
+            qs = qs.filter(referrals__referral=self.request.user.id)
         elif is_contributor(self.request):
-            qs = OccurrenceReport.objects.filter(submitter=self.request.user.id)
+            qs = qs.filter(submitter=self.request.user.id)
 
         return qs
 
@@ -363,7 +367,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = qs.filter(internal_application=False)
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListOccurrenceReportSerializer(
             result_page, context={"request": request}, many=True
@@ -380,7 +384,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListInternalOccurrenceReportSerializer(
             result_page, context={"request": request}, many=True
@@ -702,7 +706,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         self.filter_backends = (OccurrenceReportReferralFilterBackend,)
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = DTOccurrenceReportReferralSerializer(
             result_page, context={"request": request}, many=True
@@ -713,7 +717,7 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 class OccurrenceReportViewSet(
     viewsets.GenericViewSet, mixins.RetrieveModelMixin, DatumSearchMixin
 ):
-    queryset = OccurrenceReport.objects.none()
+    queryset = OccurrenceReport.objects.all()
     serializer_class = OccurrenceReportSerializer
     lookup_field = "id"
     permission_classes = [
@@ -723,11 +727,9 @@ class OccurrenceReportViewSet(
     def get_queryset(self):
         request = self.request
         qs = self.queryset
-        if not is_internal(request) and not is_contributor(request):
-            return qs
 
-        if is_internal(request):
-            qs = OccurrenceReport.objects.all()
+        if is_internal(self.request) or self.request.user.is_superuser:
+            return qs
         elif is_contributor(request) and is_occurrence_report_referee(request):
             qs = OccurrenceReport.objects.filter(
                 Q(submitter=request.user.id) | Q(referrals__referral=request.user.id)
@@ -1186,6 +1188,7 @@ class OccurrenceReportViewSet(
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
@@ -1361,6 +1364,7 @@ class OccurrenceReportViewSet(
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def plant_count_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
@@ -1420,6 +1424,7 @@ class OccurrenceReportViewSet(
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def animal_observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
@@ -1810,8 +1815,7 @@ class OccurrenceReportViewSet(
             qs, many=True, context={"request": request}
         )
         if (
-            is_occurrence_assessor(request)
-            or is_occurrence_approver(request)
+            is_internal(request)
             or ((is_contributor(request)) and instance.submitter == request.user.id)
         ):
             serializer = OCRObserverDetailSerializer(
@@ -2098,7 +2102,7 @@ class OccurrenceReportViewSet(
                     occurrence_report__referrals__referral=request.user.id,
                     visible=True,
                 )
-            elif is_external_contributor(request):
+            elif is_contributor(request):
                 qs = qs.filter(
                     occurrence_report__submitter=self.request.user.id,
                     visible=True,
@@ -2432,11 +2436,7 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def get_queryset(self):
         qs = OCRObserverDetail.objects.none()
 
-        if (
-            is_occurrence_assessor(self.request)
-            or is_occurrence_approver(self.request)
-            or is_readonly_user(self.request)
-        ):
+        if is_internal(self.request) or self.request.user.is_superuser:
             qs = OCRObserverDetail.objects.all().order_by("id")
         elif is_contributor(self.request) and is_occurrence_report_referee(
             self.request
@@ -2461,9 +2461,7 @@ class ObserverDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         serializer = self.get_serializer(instance, context={"request": request})
         if (
-            not is_occurrence_assessor(self.request)
-            and not is_occurrence_approver(self.request)
-            and not is_readonly_user(self.request)
+            not is_internal(self.request)
             and is_occurrence_report_referee(request, instance.occurrence_report)
         ):
             # Don't let referees see observer contact details
@@ -2624,9 +2622,10 @@ class OccurrenceReportAmendmentRequestViewSet(
     permission_classes = [OccurrenceReportObjectPermission]
 
     def get_queryset(self):
-        if is_internal(self.request):  # user.is_authenticated():
+        if is_internal(self.request) or self.request.user.is_superuser:
             qs = OccurrenceReportAmendmentRequest.objects.all().order_by("id")
             return qs
+        #external users access amendment requests via the OCR viewset
         return OccurrenceReportAmendmentRequest.objects.none()
 
     def create(self, request, *args, **kwargs):
@@ -2680,9 +2679,9 @@ class OccurrenceReportDocumentViewSet(
             occurrence_report.back_to_assessor(request, serializer.validated_data)
 
     def get_queryset(self):
-        if is_internal(self.request):
+        if is_internal(self.request) or self.request.user.is_superuser:
             return OccurrenceReportDocument.objects.all().order_by("id")
-        if is_external_contributor(self.request):
+        if is_contributor(self.request):
             return OccurrenceReportDocument.objects.filter(
                 occurrence_report__submitter=self.request.user.id,
                 visible=True,
@@ -2909,7 +2908,7 @@ class OCRConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
         request_user = self.request.user
         qs = OCRConservationThreat.objects.none()
 
-        if is_internal(self.request):
+        if is_internal(self.request) or self.request.user.is_superuser:
             qs = OCRConservationThreat.objects.all().order_by("id")
         elif is_customer(self.request):
             qs = OCRConservationThreat.objects.filter(
@@ -3129,7 +3128,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = Occurrence.objects.all()
-        if is_customer(self.request):
+        if not (is_internal(self.request) or self.request.user.is_superuser):
             return Occurrence.objects.none()
         return qs
 
@@ -3143,7 +3142,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListOccurrenceSerializer(
             result_page, context={"request": request}, many=True
@@ -3648,14 +3647,14 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = OccurrenceDocument.objects.none()
+    queryset = OccurrenceDocument.objects.all()
     serializer_class = OccurrenceDocumentSerializer
     permission_classes = [OccurrenceObjectPermission]
 
     def get_queryset(self):
         qs = OccurrenceDocument.objects.none()
 
-        if is_internal(self.request):
+        if is_internal(self.request) or self.request.user.is_superuser:
             qs = OccurrenceDocument.objects.all().order_by("id")
 
         return qs
@@ -3840,7 +3839,7 @@ class OCCConservationThreatFilterBackend(DatatablesFilterBackend):
 
 
 class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = OCCConservationThreat.objects.none()
+    queryset = OCCConservationThreat.objects.all()
     serializer_class = OCCConservationThreatSerializer
     filter_backends = (OCCConservationThreatFilterBackend,)
     permission_classes = [OccurrenceObjectPermission]
@@ -3848,7 +3847,7 @@ class OCCConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
     def get_queryset(self):
         qs = OCCConservationThreat.objects.none()
 
-        if is_internal(self.request):
+        if is_internal(self.request) or self.request.user.is_superuser:
             qs = OCCConservationThreat.objects.all().order_by("id")
 
         return qs
@@ -3984,7 +3983,7 @@ class OccurrenceViewSet(
 
     def get_queryset(self):
         qs = Occurrence.objects.all()
-        if is_customer(self.request):
+        if not(is_internal(self.request) or self.request.user.is_superuser):
             qs = qs.filter(submitter=self.request.user.id)
         return qs
 
@@ -5101,6 +5100,7 @@ class OccurrenceViewSet(
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence external form"""
@@ -5276,6 +5276,7 @@ class OccurrenceViewSet(
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def plant_count_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence external form"""
@@ -5335,6 +5336,7 @@ class OccurrenceViewSet(
             "GET",
         ],
         detail=False,
+        permission_classes=[AllowAny],
     )
     def animal_observation_list_of_values(self, request, *args, **kwargs):
         """used for Occurrence Report external form"""
@@ -5508,7 +5510,7 @@ class OccurrenceReportReferralViewSet(
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if not is_internal(self.request):
+        if not(is_internal(self.request) or self.request.user.is_superuser):
             if is_contributor(self.request) and is_occurrence_report_referee(
                 self.request
             ):
@@ -5665,7 +5667,7 @@ class OccurrenceTenureFilterBackend(DatatablesFilterBackend):
 
 
 class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = OccurrenceTenure.objects.none()
+    queryset = OccurrenceTenure.objects.all()
     serializer_class = OccurrenceTenureSerializer
     pagination_class = DatatablesPageNumberPagination
     filter_backends = [
@@ -5681,7 +5683,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if not is_internal(self.request):
+        if not (is_internal(self.request) or self.request.user.is_superuser):
             return qs.none()
         occurrence_id = self.request.query_params.get("occurrence_id", None)
         if occurrence_id and occurrence_id.isnumeric():
@@ -5711,7 +5713,7 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset().distinct()
         qs = self.filter_queryset(qs)
 
-        self.paginator.page_size = qs.count()
+        
         result_page = self.paginator.paginate_queryset(qs, request)
         Serializer = self.get_serializer_class()
         serializer = Serializer(result_page, context={"request": request}, many=True)
@@ -5829,16 +5831,16 @@ class OccurrenceTenurePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = OccurrenceTenure.objects.none()
+    queryset = OccurrenceTenure.objects.all()
     serializer_class = OccurrenceTenureSerializer
     permission_classes = [OccurrenceObjectPermission]
 
     def get_queryset(self):
         qs = self.queryset
 
-        if is_internal(self.request):
-            qs = OccurrenceTenure.objects.all().order_by("id")
-        return qs
+        if is_internal(self.request) or self.request.user.is_superuser:
+            return OccurrenceTenure.objects.all().order_by("id")
+        return OccurrenceTenure.objects.none()
 
     def retrieve(self, request, pk=None):
         queryset = self.get_queryset()
@@ -5985,14 +5987,14 @@ class ContactDetailViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
 
 class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
-    queryset = OccurrenceSite.objects.none()
+    queryset = OccurrenceSite.objects.all()
     serializer_class = OccurrenceSiteSerializer
     permission_classes = [OccurrenceObjectPermission]
 
     def get_queryset(self):
         qs = OccurrenceSite.objects.none()
 
-        if is_internal(self.request):
+        if is_internal(self.request) or self.request.user.is_superuser:
             qs = OccurrenceSite.objects.all().order_by("id")
         return qs
 
@@ -6137,14 +6139,14 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         return Response(serializer.data)
 
 
-class OCRExternalRefereeInviteViewSet(viewsets.ModelViewSet):
+class OCRExternalRefereeInviteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = OCRExternalRefereeInvite.objects.filter(archived=False)
     serializer_class = OCRExternalRefereeInviteSerializer
     permission_classes = [OccurrenceReportObjectPermission]
 
     def get_queryset(self):
         qs = self.queryset
-        if not is_occurrence_assessor(self.request):
+        if not (is_internal(self.request) or self.request.user.is_superuser):
             qs = OCRExternalRefereeInvite.objects.none()
         return qs
 

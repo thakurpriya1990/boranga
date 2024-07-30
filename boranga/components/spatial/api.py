@@ -30,11 +30,7 @@ class TileLayerViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
     def get_queryset(self):
-        if is_customer(self.request):
-            return TileLayer.objects.filter(active=True, is_external=True).order_by(
-                "id"
-            )
-        elif is_internal(self.request):
+        if is_internal(self.request):
             return TileLayer.objects.filter(active=True, is_internal=True).order_by(
                 "id"
             )
@@ -42,5 +38,10 @@ class TileLayerViewSet(viewsets.ReadOnlyModelViewSet):
             return TileLayer.objects.filter(active=True, is_external=True).order_by(
                 "id"
             )
+        elif is_customer(self.request):
+            return TileLayer.objects.filter(active=True, is_external=True).order_by(
+                "id"
+            )
         else:
-            raise ValueError("User is not a customer, internal user, or referee.")
+            return TileLayer.objects.none()
+            #raise ValueError("User is not a customer, internal user, or referee.")

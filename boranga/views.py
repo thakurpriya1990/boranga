@@ -211,10 +211,7 @@ def is_authorised_to_access_community_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_django_admin(request)
-            or is_species_communities_approver(request)
-            or is_occurrence_assessor(request)
-            or is_occurrence_approver(request)
+            or is_internal(request)
         )
     else:
         return False
@@ -225,10 +222,7 @@ def is_authorised_to_access_species_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_django_admin(request)
-            or is_species_communities_approver(request)
-            or is_occurrence_assessor(request)
-            or is_occurrence_approver(request)
+            or is_internal(request)
         )
     else:
         return False
@@ -236,13 +230,10 @@ def is_authorised_to_access_species_document(request, document_id):
 
 def is_authorised_to_access_meeting_document(request, document_id):
     if is_internal(request):
-        # check auth #TODO review
+        # check auth
         return (
             request.user.is_superuser
-            or is_django_admin(request)
-            or is_species_communities_approver(request)
-            or is_conservation_status_assessor(request)
-            or is_conservation_status_referee(request)
+            or is_internal(request)
         )
     else:
         return False
@@ -268,9 +259,7 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_django_admin(request)
-            or is_occurrence_assessor(request)
-            or is_occurrence_approver(request)
+            or is_internal(request)
         )
 
     if is_occurrence_report_referee(request) and is_contributor(request):
@@ -309,12 +298,13 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
         )
 
     if is_contributor(request):
+        file_name = get_file_name_from_path(request.path)
         return (
             OccurrenceReportDocument.objects.filter(
                 visible=True,
                 can_submitter_access=True,
                 occurrence_report__submitter=request.user.id,
-                Occurrence_report_id=document_id,
+                occurrence_report_id=document_id,
                 _file=file_name,
             ).exists()
             and check_allowed_path(document_id, request.path, contributor_allowed_paths)
@@ -334,9 +324,7 @@ def is_authorised_to_access_occurrence_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_django_admin(request)
-            or is_occurrence_assessor(request)
-            or is_occurrence_approver(request)
+            or is_internal(request)
         )
     else:
         return False
@@ -350,9 +338,7 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
         # check auth
         return (
             request.user.is_superuser
-            or is_django_admin(request)
-            or is_species_communities_approver(request)
-            or is_conservation_status_assessor(request)
+            or is_internal(request)
         )
 
     if is_conservation_status_referee(request) and is_contributor(request):
@@ -394,6 +380,7 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
 
     if is_contributor(request):
         # TODO: Would be nice if the document id was included in the upload path to simplify this query
+        contributor_allowed_paths = ["documents", "amendment_request_documents"]
         file_name = get_file_name_from_path(request.path)
         return (
             ConservationStatusDocument.objects.filter(
@@ -403,6 +390,7 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
                 conservation_status_id=document_id,
                 _file=file_name,
             ).exists()
+            and check_allowed_path(document_id, request.path, contributor_allowed_paths)
             and check_allowed_path(document_id, request.path, contributor_allowed_paths)
             or ConservationStatusAmendmentRequestDocument.objects.filter(
                 visible=True,

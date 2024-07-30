@@ -63,6 +63,10 @@ def is_species_communities_approver(context):
     request = context["request"]
     return boranga_helpers.is_species_communities_approver(request)
 
+@register.simple_tag(takes_context=True)
+def is_contributor(context):
+    request = context["request"]
+    return boranga_helpers.is_contributor(request)
 
 @register.simple_tag(takes_context=True)
 def is_external_contributor(context):
@@ -85,7 +89,6 @@ def show_internal_menu_items(context):
         request.user.is_superuser
         or boranga_helpers.is_conservation_status_approver(request)
         or boranga_helpers.is_conservation_status_assessor(request)
-        or boranga_helpers.is_internal_contributor(request)
         or boranga_helpers.is_occurrence_approver(request)
         or boranga_helpers.is_occurrence_assessor(request)
         or boranga_helpers.is_readonly_user(request)

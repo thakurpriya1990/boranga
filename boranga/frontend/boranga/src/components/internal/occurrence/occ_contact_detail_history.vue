@@ -30,7 +30,7 @@
                                         :primary_model_number="''"
                                         :revision_id="historyId"
                                         :revision_sequence="historySequence"
-                                        :primary_model="'OccContactDetail'"
+                                        :primary_model="'OCCContactDetail'"
                                     />
                                     </div>
                                 </div>
@@ -51,7 +51,7 @@ import DisplayHistory from '../../common/display_history.vue';
 import { v4 as uuid } from 'uuid';
 
 export default {
-    name: 'OccContactDetailHistory',
+    name: 'OCCContactDetailHistory',
     components: {
         modal,
         alert,

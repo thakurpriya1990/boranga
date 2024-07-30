@@ -67,10 +67,7 @@ class ConservationStatusPermission(BasePermission):
 
         if request.user.is_superuser:
             return True
-
-        if hasattr(view, "action") and view.action == "create":
-            return is_contributor(request)
-
+        
         return (
             is_readonly_user(request)
             or is_conservation_status_assessor(request)
@@ -78,21 +75,19 @@ class ConservationStatusPermission(BasePermission):
             or is_species_communities_approver(request)
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
-            or is_contributor(request)
             or is_conservation_status_referee(request)
         )
 
     def has_object_permission(self, request, view, obj):
+        
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        if obj.submitter == request.user.id:
-            return is_contributor(request)
-
         return is_conservation_status_assessor(
             request
-        ) or is_conservation_status_approver(request)
-
+        ) or is_conservation_status_approver(
+            request
+        ) or request.user.is_superuser
 
 class ExternalConservationStatusPermission(BasePermission):
     def has_permission(self, request, view):
@@ -101,15 +96,24 @@ class ExternalConservationStatusPermission(BasePermission):
 
         if request.user.is_superuser:
             return True
+        
+        if hasattr(view, "action") and view.action == "create":
+            return is_contributor(request)
 
-        return is_external_contributor(request)
+        return is_contributor(request)
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
+        
+        if (hasattr(view, "action") and view.action == "reinstate" 
+            and obj.submitter == request.user.id and 
+            obj.processing_status == ConservationStatus.PROCESSING_STATUS_DISCARDED):
+            return is_contributor(request)
 
-        if obj.submitter == request.user.id:
-            return is_external_contributor(request)
+        if (obj.submitter == request.user.id and 
+            obj.processing_status == ConservationStatus.PROCESSING_STATUS_DRAFT):
+            return is_contributor(request)
 
 
 class ConservationStatusReferralPermission(BasePermission):
@@ -236,5 +240,31 @@ class ConservationStatusDocumentPermission(BasePermission):
                 return is_internal_contributor(request) or is_external_contributor(
                     request
                 )
+
+        return is_conservation_status_assessor(request)
+
+class ConservationStatusExternalRefereeInvitePermission(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        if hasattr(view, "action") and view.action == "create":
+            return is_conservation_status_assessor(request)
+
+        return (
+            is_readonly_user(request)
+            or is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+        )
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
 
         return is_conservation_status_assessor(request)
