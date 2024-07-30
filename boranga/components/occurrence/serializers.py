@@ -1868,8 +1868,14 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             or is_occurrence_approver(request)
             or (
                 is_contributor(request)
-                and ((hasattr(obj,"occurrence_report") and obj.occurrence_report.submitter == request.user.id) or 
-                    "occurrence_report" in obj and obj["occurrence_report"].submitter == request.user.id)
+                and (
+                    (
+                        hasattr(obj, "occurrence_report")
+                        and obj.occurrence_report.submitter == request.user.id
+                    )
+                    or "occurrence_report" in obj
+                    and obj["occurrence_report"].submitter == request.user.id
+                )
             )
         )
 
@@ -3538,7 +3544,7 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
     def get_datum_name(self, obj):
         datum = self.get_datum(obj)
         try:
-            return Datum.objects.all_with_archived().get(srid=datum).name
+            return Datum.objects.all().get(srid=datum).name
         except Datum.DoesNotExist:
             logger.warning(f"Could not find Datum with srid {datum}")
             return datum
