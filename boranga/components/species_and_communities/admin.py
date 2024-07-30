@@ -1,6 +1,6 @@
 from django.contrib.gis import admin
 
-from boranga.admin import DeleteProtectedModelAdmin
+from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
 from boranga.components.species_and_communities.models import (
     ClassificationSystem,
     CurrentImpact,
@@ -27,6 +27,10 @@ from boranga.components.species_and_communities.models import (
 )
 
 
+class DocumentCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["document_category_name"]
+
+
 @admin.register(DocumentSubCategory)
 class DocumentSubCategoryAdmin(DeleteProtectedModelAdmin):
     list_display = ["document_sub_category_name", "document_category"]
@@ -36,7 +40,7 @@ class DocumentSubCategoryAdmin(DeleteProtectedModelAdmin):
 admin.site.register(GroupType)
 admin.site.register(Region, DeleteProtectedModelAdmin)
 admin.site.register(District, DeleteProtectedModelAdmin)
-admin.site.register(DocumentCategory, DeleteProtectedModelAdmin)
+admin.site.register(DocumentCategory, DocumentCategoryAdmin)
 admin.site.register(ThreatCategory, DeleteProtectedModelAdmin)
 admin.site.register(FloraRecruitmentType, DeleteProtectedModelAdmin)
 admin.site.register(RootMorphology, DeleteProtectedModelAdmin)
