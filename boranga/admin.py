@@ -57,6 +57,8 @@ class ArchivableModelAdminMixin:
 
     def get_list_display(self, request):
         list_display = super().get_list_display(request)
+        if type(list_display) is tuple:
+            list_display = list(list_display)
         return list_display + ["achived_list_view_display"]
 
     def achived_list_view_display(self, obj):

@@ -1,7 +1,7 @@
 import nested_admin
 from django.contrib.gis import admin, forms
 
-from boranga.admin import DeleteProtectedModelAdmin
+from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
 from boranga.components.occurrence.models import (
     AnimalHealth,
     BufferGeometry,
@@ -365,6 +365,11 @@ class SampleTypeAdmin(DeleteProtectedModelAdmin):
     list_filter = ("group_type",)
 
 
+class DatumAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ("srid", "name")
+    search_fields = ("srid", "name")
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, DeleteProtectedModelAdmin)
 admin.site.register(RockType, DeleteProtectedModelAdmin)
@@ -388,7 +393,7 @@ admin.site.register(IdentificationCertainty, DeleteProtectedModelAdmin)
 admin.site.register(SampleType, SampleTypeAdmin)
 admin.site.register(SampleDestination, DeleteProtectedModelAdmin)
 admin.site.register(PermitType, PermitTypeAdmin)
-admin.site.register(Datum, DeleteProtectedModelAdmin)
+admin.site.register(Datum, DatumAdmin)
 admin.site.register(CoordinateSource, DeleteProtectedModelAdmin)
 admin.site.register(LocationAccuracy, DeleteProtectedModelAdmin)
 admin.site.register(WildStatus, DeleteProtectedModelAdmin)

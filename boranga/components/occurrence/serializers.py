@@ -3537,8 +3537,9 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
     def get_datum_name(self, obj):
         datum = self.get_datum(obj)
         try:
-            return Datum.objects.get(srid=datum).name
+            return Datum.objects.all_with_archived().get(srid=datum).name
         except Datum.DoesNotExist:
+            logger.warning(f"Could not find Datum with srid {datum}")
             return datum
 
 

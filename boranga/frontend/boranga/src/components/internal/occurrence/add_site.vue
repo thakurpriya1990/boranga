@@ -37,11 +37,17 @@
                                     <label class="control-label pull-left">Datum</label>
                                 </div>
                                 <div class="col-sm-9">
-                                    <select :disabled="isReadOnly" class="form-select" v-model="siteObj.datum">
-                                        <option v-for="datum in datum_list" :value="datum.srid" v-bind:key="datum.srid">
-                                            {{ datum.name }}
-                                        </option>
-                                    </select>
+                                    <template v-if="!isReadOnly">
+                                        <select :disabled="isReadOnly" class="form-select" v-model="siteObj.datum">
+                                            <option v-for="datum in datum_list" :value="datum.srid" v-bind:key="datum.srid">
+                                                {{ datum.name }}
+                                            </option>
+                                        </select>
+                                    </template>
+                                    <template v-else>
+                                        <input class="form-control" type="text" :disabled="isReadOnly"
+                                            v-model="siteObj.datum_name" />
+                                    </template>
                                 </div>
                             </div>
                             <div class="row mb-3">
