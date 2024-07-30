@@ -11,7 +11,7 @@
                                     <div class="col-sm-3">
                                         <label for="document_category" class="control-label">Category</label>
                                     </div>
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-9">
                                         <template
                                             v-if="documentCategories && documentCategories.length > 0 && !documentCategories.map((category) => category.id).includes(documentObj.document_category)">
                                             <input type="text" v-if="documentObj.document_category_name"
@@ -35,12 +35,12 @@
                                     <div class="col-sm-3">
                                         <label for="document_sub_category" class="control-label">Sub Category</label>
                                     </div>
-                                    <div class="col-sm-6">
+                                    <div class="col-sm-9">
                                         <template
                                             v-if="filteredDocumentSubCategories && filteredDocumentSubCategories.length > 0 && !filteredDocumentSubCategories.map((category) => category.id).includes(documentObj.document_sub_category)">
-                                            <input type="text" v-if="documentObj.document_category_name"
+                                            <input type="text" v-if="documentObj.document_sub_category_name"
                                                 class="form-control mb-3"
-                                                :value="documentObj.document_category_name + ' (Now Archived)'"
+                                                :value="documentObj.document_sub_category_name + ' (Now Archived)'"
                                                 disabled />
                                             <div class="mb-3 text-muted">
                                                 Change document sub category to:
