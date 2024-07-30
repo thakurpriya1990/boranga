@@ -66,9 +66,6 @@ class ArchivableModelAdminMixin:
 
     achived_list_view_display.short_description = "Archived"
 
-    def get_queryset(self, request):
-        return self.model.objects.all_with_archived()
-
 
 admin.site.index_template = "admin-index.html"
 admin.autodiscover()
