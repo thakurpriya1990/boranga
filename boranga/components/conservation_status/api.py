@@ -47,6 +47,7 @@ from boranga.components.conservation_status.permissions import (
     ConservationStatusPermission,
     ConservationStatusReferralPermission,
     ExternalConservationStatusPermission,
+    ConservationStatusExternalRefereeInvitePermission,
 )
 from boranga.components.conservation_status.serializers import (
     ConservationStatusAmendmentRequestDisplaySerializer,
@@ -2602,10 +2603,11 @@ class AmendmentRequestReasonChoicesView(views.APIView):
 class CSExternalRefereeInviteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = CSExternalRefereeInvite.objects.filter(archived=False)
     serializer_class = CSExternalRefereeInviteSerializer
+    permission_classes = [ConservationStatusExternalRefereeInvitePermission]
 
     def get_queryset(self):
         qs = self.queryset
-        if not is_conservation_status_assessor(self.request):
+        if not is_internal(self.request) or self.request.user.is_superuser:
             qs = CSExternalRefereeInvite.objects.none()
         return qs
 
