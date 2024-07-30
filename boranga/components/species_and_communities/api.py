@@ -480,7 +480,7 @@ class GetDocumentCategoriesDict(views.APIView):
 
     def get(self, request, format=None):
         document_category_list = []
-        categories = DocumentCategory.objects.all()
+        categories = DocumentCategory.objects.active()
         if categories:
             for option in categories:
                 document_category_list.append(
@@ -490,7 +490,7 @@ class GetDocumentCategoriesDict(views.APIView):
                     }
                 )
         document_sub_category_list = []
-        sub_categories = DocumentSubCategory.objects.all()
+        sub_categories = DocumentSubCategory.objects.active()
         if sub_categories:
             for option in sub_categories:
                 document_sub_category_list.append(
@@ -965,7 +965,6 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunitiesSerializer(
             result_page, context={"request": request}, many=True
@@ -986,7 +985,6 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         )
         qs = self.filter_queryset(qs)
 
-        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunitiesSerializer(
             result_page, context={"request": request}, many=True
@@ -2623,7 +2621,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if not(is_internal(self.request) or self.request.user.is_superuser):
+        if not (is_internal(self.request) or self.request.user.is_superuser):
             qs = (
                 qs.filter(visible=True)
                 .filter(
