@@ -36,12 +36,16 @@ class DocumentSubCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAd
     list_display = ["document_sub_category_name", "document_category"]
 
 
+class ThreatCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(GroupType)
 admin.site.register(Region, DeleteProtectedModelAdmin)
 admin.site.register(District, DeleteProtectedModelAdmin)
 admin.site.register(DocumentCategory, DocumentCategoryAdmin)
-admin.site.register(ThreatCategory, DeleteProtectedModelAdmin)
+admin.site.register(ThreatCategory, ThreatCategoryAdmin)
 admin.site.register(FloraRecruitmentType, DeleteProtectedModelAdmin)
 admin.site.register(RootMorphology, DeleteProtectedModelAdmin)
 admin.site.register(PostFireHabitatInteraction, DeleteProtectedModelAdmin)
