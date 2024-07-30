@@ -20,6 +20,7 @@ from pyproj import Geod
 from reversion.models import Version
 
 from boranga.components.main.models import (
+    ArchivableModel,
     CommunicationsLogEntry,
     Document,
     RevisionedMixin,
@@ -1823,7 +1824,7 @@ class CommunityDistribution(models.Model):
         return string
 
 
-class DocumentCategory(models.Model):
+class DocumentCategory(ArchivableModel):
     """
     This is particularly useful for organisation of documents e.g. preventing inappropriate documents being added
     to certain tables.
