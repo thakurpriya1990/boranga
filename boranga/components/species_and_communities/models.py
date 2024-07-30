@@ -10,14 +10,13 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
-from django.db.models import Q, Sum
+from django.db.models import Sum
 from django.db.models.functions import Cast
 from django.utils.functional import cached_property
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
 from pyproj import Geod
-from reversion.models import Version
 
 from boranga.components.main.models import (
     ArchivableModel,
@@ -1957,7 +1956,7 @@ class SpeciesDocument(Document):
             self.save(no_revision=True)  # no need to have multiple revisions
         # end save documents
         self.save(*args, **kwargs)
-        
+
 
 class CommunityDocument(Document):
     """
@@ -2035,7 +2034,7 @@ class CommunityDocument(Document):
         self.save(*args, **kwargs)
 
 
-class ThreatCategory(models.Model):
+class ThreatCategory(ArchivableModel):
     """
     # e.g. mechnical disturbance
     """
