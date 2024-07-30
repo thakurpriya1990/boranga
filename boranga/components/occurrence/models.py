@@ -26,6 +26,7 @@ from multiselectfield import MultiSelectField
 from boranga import exceptions
 from boranga.components.conservation_status.models import ProposalAmendmentReason
 from boranga.components.main.models import (
+    ArchivableModel,
     CommunicationsLogEntry,
     Document,
     RevisionedMixin,
@@ -1643,7 +1644,7 @@ class OccurrenceReportReferral(models.Model):
         return self.processing_status == self.PROCESSING_STATUS_WITH_REFERRAL
 
 
-class Datum(models.Model):
+class Datum(ArchivableModel):
     """
     # Admin List
 
