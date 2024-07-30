@@ -1726,9 +1726,7 @@ class OCRLocation(models.Model):
     )
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
-    new_occurrence = models.BooleanField(
-        null=True, blank=True
-    )  
+    new_occurrence = models.BooleanField(null=True, blank=True)
     boundary = models.IntegerField(null=True, blank=True, default=0)
     mapped_boundary = models.BooleanField(null=True, blank=True)
     buffer_radius = models.IntegerField(null=True, blank=True, default=0)
@@ -3056,7 +3054,7 @@ class OCRConservationThreat(RevisionedMixin):
         return self.occurrence_report.occurrence_report_number
 
 
-class WildStatus(models.Model):
+class WildStatus(ArchivableModel):
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
 
     class Meta:
@@ -4795,8 +4793,8 @@ class OccurrenceTenure(RevisionedMixin):
 
         force_insert = kwargs.pop("force_insert", False)
         if force_insert:
-           super().save(no_revision=True, force_insert=force_insert)
-           self.save(*args, **kwargs)
+            super().save(no_revision=True, force_insert=force_insert)
+            self.save(*args, **kwargs)
         else:
             override_datetime_updated = kwargs.pop("override_datetime_updated", False)
             if not override_datetime_updated:
