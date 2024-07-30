@@ -470,7 +470,6 @@ def send_user_community_create_email_notification(request, community_proposal):
 
     context = {
         "species_community_proposal": community_proposal,
-        # 'submitter': species_proposal.submitter.get_full_name(),
         "submitter": EmailUser.objects.get(
             id=community_proposal.submitter
         ).get_full_name(),
@@ -538,7 +537,6 @@ def _log_species_email(
     else:
         text = smart_text(email_message)
         subject = ""
-        # to = cs_proposal.submitter.email
         to = EmailUser.objects.get(id=species_proposal.submitter).email
         fromm = smart_text(sender) if sender else SYSTEM_NAME
         all_ccs = ""
@@ -565,7 +563,6 @@ def _log_species_email(
         path_to_file = "{}/species/{}/communications/{}".format(
             settings.MEDIA_APP_DIR, species_proposal.id, filename
         )
-        # path = default_storage.save(path_to_file, ContentFile(file_bytes))
         private_storage.save(path_to_file, ContentFile(file_bytes))
         email_entry.documents.get_or_create(_file=path_to_file, name=filename)
 
@@ -604,7 +601,6 @@ def _log_community_email(
     else:
         text = smart_text(email_message)
         subject = ""
-        # to = cs_proposal.submitter.email
         to = EmailUser.objects.get(id=community_proposal.submitter).email
         fromm = smart_text(sender) if sender else SYSTEM_NAME
         all_ccs = ""
@@ -631,7 +627,6 @@ def _log_community_email(
         path_to_file = "{}/community/{}/communications/{}".format(
             settings.MEDIA_APP_DIR, community_proposal.id, filename
         )
-        # path = default_storage.save(path_to_file, ContentFile(file_bytes))
         private_storage.save(path_to_file, ContentFile(file_bytes))
         email_entry.documents.get_or_create(_file=path_to_file, name=filename)
 
