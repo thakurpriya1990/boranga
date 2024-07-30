@@ -41,7 +41,7 @@ class IsOccurrenceReportReferee(BasePermission):
                 .exists()
             ):
                 return True
-            # TODO edge case, consider not using POST for process_shapefile_document if possible
+            # NOTE replace/remove when process_shapefile_document is reworked
             elif (
                 hasattr(view, "action") and view.action == "process_shapefile_document"
             ):

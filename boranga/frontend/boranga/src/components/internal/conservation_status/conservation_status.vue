@@ -552,7 +552,7 @@ export default {
                 && this.conservation_status_obj.assessor_mode.assessor_can_assess;
         },
         canAction: function () {
-            // TODO: Completely redo the permissions for actions on this page
+            // NOTE: Completely redo the permissions for actions on this page
             // It was a mess before and now it's even worse =D
             if (this.isFinalised) {
                 return this.conservation_status_obj

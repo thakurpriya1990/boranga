@@ -3242,7 +3242,7 @@ class ListOCCMinimalSerializer(serializers.ModelSerializer):
         request = self.context["request"]
 
         if request.user.is_authenticated:
-            # TODO: Don't have these url names yet
+            # NOTE: review if needed
             if is_internal(request):
                 return f"{obj.id}"
                 # return reverse(
@@ -3251,10 +3251,6 @@ class ListOCCMinimalSerializer(serializers.ModelSerializer):
                 # )
             else:
                 return None
-                # return reverse(
-                #     "external-occurrence-detail",
-                #     kwargs={"occurrence_pk": obj.id},
-                # )
 
         return None
 
