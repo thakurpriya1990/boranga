@@ -568,8 +568,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
             OccurrenceReport.PROCESSING_STATUS_APPROVED,
         ]:
-            # TODO: current requirment task allows assessors to unlock, is this too permissive?
-            # Good question
             return (
                 is_occurrence_assessor(request)
                 or is_occurrence_approver(request)
@@ -1712,6 +1710,7 @@ class LocationAccuracy(models.Model):
         return str(self.name)
 
 
+# NOTE: this and OCCLocation have a number of unused fields that should be removed
 class OCRLocation(models.Model):
     """
     Location data  for occurrence report
@@ -1729,7 +1728,7 @@ class OCRLocation(models.Model):
     boundary_description = models.TextField(null=True, blank=True)
     new_occurrence = models.BooleanField(
         null=True, blank=True
-    )  # TODO what is this for? is it needed?
+    )  
     boundary = models.IntegerField(null=True, blank=True, default=0)
     mapped_boundary = models.BooleanField(null=True, blank=True)
     buffer_radius = models.IntegerField(null=True, blank=True, default=0)
@@ -4074,8 +4073,6 @@ class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
         related_name="occ_geometry",
     )
     locked = models.BooleanField(default=False)
-    # TODO: possibly remove buffer radius from location models
-    # when we go with the radius being a property of the geometry
     buffer_radius = models.FloatField(null=True, blank=True, default=0)
 
     color = ColorField(default="#3333FF")  # Light blue
@@ -4796,15 +4793,15 @@ class OccurrenceTenure(RevisionedMixin):
 
     def save(self, *args, **kwargs):
 
-        # force_insert = kwargs.pop("force_insert", False)
-        # if force_insert:
-        #    super().save(no_revision=True, force_insert=force_insert) #TODO enable when we have history
-        #    self.save(*args, **kwargs)
-        # else:
-        override_datetime_updated = kwargs.pop("override_datetime_updated", False)
-        if not override_datetime_updated:
-            self.datetime_updated = datetime.now()
-        super().save(*args, **kwargs)
+        force_insert = kwargs.pop("force_insert", False)
+        if force_insert:
+           super().save(no_revision=True, force_insert=force_insert)
+           self.save(*args, **kwargs)
+        else:
+            override_datetime_updated = kwargs.pop("override_datetime_updated", False)
+            if not override_datetime_updated:
+                self.datetime_updated = datetime.now()
+            super().save(*args, **kwargs)
 
     class Meta:
         app_label = "boranga"

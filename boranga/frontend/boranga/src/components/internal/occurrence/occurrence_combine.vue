@@ -481,7 +481,7 @@
                     vm.toggleKeyContacts();
                     vm.toggleTenures();
                 }, 200);
-                // set to 200 due to the tab fade (TODO: consider better handling of this)
+                // set to 200 due to the tab fade (NOTE: consider better handling of this)
                 // Note from @oak: Changing the keys means rebuilding all the components every time a tab is clicked.
                 // search codebase for "addEventListener('shown.bs.tab'" and try that method. Seems like it works very
                 // well with datatables.

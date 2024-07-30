@@ -2156,7 +2156,6 @@ class OccurrenceReportViewSet(
     def validate_map_files(self, request, *args, **kwargs):
         instance = self.get_object()
         validate_map_files(request, instance, "occurrence_report")
-        # TODO: determine what this actually changes
         if instance.processing_status == OccurrenceReport.PROCESSING_STATUS_UNLOCKED:
             self.unlocked_back_to_assessor()
             instance.save(no_revision=True)
@@ -3053,10 +3052,7 @@ class OCRConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModel
 
 class GetOCCProfileDict(views.APIView):
     def get(self, request, format=None):
-        group_type = request.GET.get("group_type", "")
-        logger.debug(
-            "group_type: %s" % group_type
-        )  # TODO: Unused variable here. Use or remove.
+
         wild_status_list = list(WildStatus.objects.all().values("id", "name"))
         occurrence_source_list = list(Occurrence.OCCURRENCE_SOURCE_CHOICES)
 
@@ -3357,7 +3353,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         detail=False,
     )
     def combine_occurrence_name_lookup(self, request, *args, **kwargs):
-        if is_internal(self.request):  # TODO group auth
+        if is_internal(self.request):  
             main_occurrence_id = request.GET.get("occurrence_id", None)
 
             if main_occurrence_id:
@@ -4672,7 +4668,7 @@ class OccurrenceViewSet(
             for i in site_geometry_data["features"]:
                 try:
                     update_site = occ_sites.get(
-                        site_number=i["properties"]["site_number"]
+                        id=i["id"]
                     )
                     point_data = "POINT({} {})".format(
                         i["geometry"]["coordinates"][0], i["geometry"]["coordinates"][1]
@@ -4692,7 +4688,7 @@ class OccurrenceViewSet(
 
                     update_site.geometry = geom_4326
                     update_site.original_geometry_ewkb = geom_original
-                    update_site.save()  # TODO add version_user when history implemented
+                    update_site.save(version_user=request.user) 
                 except Exception as e:
                     print(e)
 
@@ -4795,7 +4791,7 @@ class OccurrenceViewSet(
             for i in site_geometry_data["features"]:
                 try:
                     update_site = occ_sites.get(
-                        site_number=i["properties"]["site_number"]
+                        id=i["id"]
                     )
                     point_data = "POINT({} {})".format(
                         i["geometry"]["coordinates"][0], i["geometry"]["coordinates"][1]
@@ -4815,7 +4811,7 @@ class OccurrenceViewSet(
 
                     update_site.geometry = geom_4326
                     update_site.original_geometry_ewkb = geom_original
-                    update_site.save()  # TODO add version_user when history implemented
+                    update_site.save(version_user=request.user)  
                 except Exception as e:
                     print(e)
 

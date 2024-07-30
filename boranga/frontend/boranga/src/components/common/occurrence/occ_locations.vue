@@ -358,7 +358,6 @@ export default {
             return api_endpoints.occurrence + 'list_for_map/';
         },
         siteApiUrl: function () {
-            // TODO: Update to use the correct endpoint
             return '/api/occurrence_sites/list_for_map/';
         },
         ocrPropertyDisplayMap: function () {

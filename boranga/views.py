@@ -378,8 +378,7 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
             document_id, request.path, referee_allowed_paths
         )
 
-    if is_contributor(request):
-        # TODO: Would be nice if the document id was included in the upload path to simplify this query
+    if is_contributor(request):        
         contributor_allowed_paths = ["documents", "amendment_request_documents"]
         file_name = get_file_name_from_path(request.path)
         return (
@@ -426,39 +425,38 @@ def get_file_name_from_path(file_path):
 
 def is_authorised_to_access_document(request):
     # occurrence reports
-    or_document_id = get_file_path_id("occurrence_report", request.path)
-    if or_document_id:
+    document_or_id = get_file_path_id("occurrence_report", request.path)
+    if document_or_id:
         return is_authorised_to_access_occurrence_report_document(
-            request, or_document_id
+            request, document_or_id
         )
 
     # occurrence
-    o_document_id = get_file_path_id("occurrence", request.path)
-    if o_document_id:
-        return is_authorised_to_access_occurrence_document(request, o_document_id)
+    document_o_id = get_file_path_id("occurrence", request.path)
+    if document_o_id:
+        return is_authorised_to_access_occurrence_document(request, document_o_id)
 
     # conservation status
-    # TODO: This 'document id' is actually the conservation status id. Consider renaming these variables
-    cs_document_id = get_file_path_id("conservation_status", request.path)
-    if cs_document_id:
+    document_cs_id = get_file_path_id("conservation_status", request.path)
+    if document_cs_id:
         return is_authorised_to_access_conservation_status_document(
-            request, cs_document_id
+            request, document_cs_id
         )
 
     # meeting
-    m_document_id = get_file_path_id("meeting", request.path)
-    if m_document_id:
-        return is_authorised_to_access_meeting_document(request, m_document_id)
+    document_m_id = get_file_path_id("meeting", request.path)
+    if document_m_id:
+        return is_authorised_to_access_meeting_document(request, document_m_id)
 
     # species
-    s_document_id = get_file_path_id("species", request.path)
-    if s_document_id:
-        return is_authorised_to_access_species_document(request, s_document_id)
+    document_s_id = get_file_path_id("species", request.path)
+    if document_s_id:
+        return is_authorised_to_access_species_document(request, document_s_id)
 
     # community
-    c_document_id = get_file_path_id("community", request.path)
-    if c_document_id:
-        return is_authorised_to_access_community_document(request, c_document_id)
+    document_c_id = get_file_path_id("community", request.path)
+    if document_c_id:
+        return is_authorised_to_access_community_document(request, document_c_id)
 
     return False
 
