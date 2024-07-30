@@ -1444,19 +1444,6 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             if serializer.is_valid():
                 serializer.save()
 
-        # TODO @Ash - move this to dedicated save and replace with setting to private
-        if request_data.get("publishing_status"):
-            publishing_status_instance, created = (
-                SpeciesPublishingStatus.objects.get_or_create(species=instance)
-            )
-            serializer = SaveSpeciesPublishingStatusSerializer(
-                publishing_status_instance,
-                data=request_data.get("publishing_status"),
-            )
-            serializer.is_valid(raise_exception=True)
-            if serializer.is_valid():
-                serializer.save()
-
         serializer = SaveSpeciesSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
