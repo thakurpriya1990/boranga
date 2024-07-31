@@ -148,13 +148,28 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Coordinate Source:</label>
                 <div class="col-sm-9">
-                    <select v-model="occurrence_report_obj.location
-                        .coordinate_source_id
-                        " :disabled="isReadOnly" class="form-select">
-                        <option v-for="option in coordinate_source_list" :key="option.id" :value="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                    <template v-if="!isReadOnly">
+                        <template v-if="coordinate_source_list && coordinate_source_list.length > 0 && occurrence_report_obj.location
+                            .coordinate_source_id && !coordinate_source_list.map((d) => d.id).includes(occurrence_report_obj.location
+                                .coordinate_source_id)">
+                            <input type="text" v-if="occurrence_report_obj.location.coordinate_source"
+                                class="form-control mb-3"
+                                :value="occurrence_report_obj.location.coordinate_source + ' (Now Archived)'" disabled />
+                            <div class="mb-3 text-muted">
+                                Change coordinate source to:
+                            </div>
+                        </template>
+                        <select class="form-select"
+                            v-model="occurrence_report_obj.location.coordinate_source_id">
+                            <option v-for="option in coordinate_source_list" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="siteObj.identification.permit_type" />
+                    </template>
                 </div>
             </div>
 

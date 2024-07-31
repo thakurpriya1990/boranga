@@ -679,6 +679,9 @@ class OCRLocationSerializer(serializers.ModelSerializer):
     # geojson_polygon = serializers.SerializerMethodField()
     has_boundary = serializers.SerializerMethodField()
     has_points = serializers.SerializerMethodField()
+    coordinate_source = serializers.CharField(
+        source="coordinate_source.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCRLocation
@@ -694,6 +697,7 @@ class OCRLocationSerializer(serializers.ModelSerializer):
             "buffer_radius",
             "datum_id",
             "coordinate_source_id",
+            "coordinate_source",
             "location_accuracy_id",
             "region_id",
             "district_id",
@@ -3031,6 +3035,9 @@ class OCCLocationSerializer(serializers.ModelSerializer):
     has_boundary = serializers.SerializerMethodField()
     has_points = serializers.SerializerMethodField()
     copied_ocr = serializers.SerializerMethodField()
+    coordinate_source = serializers.CharField(
+        source="coordinate_source.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCCLocation
@@ -3045,6 +3052,7 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             "buffer_radius",
             "datum_id",
             "coordinate_source_id",
+            "coordinate_source",
             "location_accuracy_id",
             "region_id",
             "district_id",

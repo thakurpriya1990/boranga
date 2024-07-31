@@ -3,7 +3,8 @@
         <FormSection :form-collapse="false" label="Location" Index="occurrence_location">
             <div class="row mb-3">
                 <div class="col">
-                    <span class="text-danger">*</span> <span class="text-muted">You must indicate the location for your occurrence</span>
+                    <span class="text-danger">*</span> <span class="text-muted">You must indicate the location for your
+                        occurrence</span>
                 </div>
             </div>
             <div class="row mb-3">
@@ -87,11 +88,8 @@
                                 // color: '#FF0000',
                             },
                         },
-                    ]"
-                    @features-loaded="mapFeaturesLoaded"
-                    @crs-select-search="searchForCRS"
-                    @toggle-show-hide="toggleShowOnMapLayer"
-                ></MapComponent>
+                    ]" @features-loaded="mapFeaturesLoaded" @crs-select-search="searchForCRS"
+                    @toggle-show-hide="toggleShowOnMapLayer"></MapComponent>
             </div>
             <!-- @refreshFromResponse="refreshFromResponse" -->
             <!-- @validate-feature="validateFeature.bind(this)()" -->
@@ -154,13 +152,28 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Coordinate Source:</label>
                 <div class="col-sm-9">
-                    <select v-model="occurrence_obj.location
-                        .coordinate_source_id
-                        " :disabled="isReadOnly" class="form-select">
-                        <option v-for="option in coordinate_source_list" :key="option.id" :value="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                    <template v-if="!isReadOnly">
+                        <template v-if="coordinate_source_list && coordinate_source_list.length > 0 && occurrence_obj.location
+                            .coordinate_source_id && !coordinate_source_list.map((d) => d.id).includes(occurrence_obj.location
+                                .coordinate_source_id)">
+                            <input type="text" v-if="occurrence_obj.location.coordinate_source"
+                                class="form-control mb-3"
+                                :value="occurrence_obj.location.coordinate_source + ' (Now Archived)'" disabled />
+                            <div class="mb-3 text-muted">
+                                Change coordinate source to:
+                            </div>
+                        </template>
+                        <select class="form-select"
+                            v-model="occurrence_obj.location.coordinate_source_id">
+                            <option v-for="option in coordinate_source_list" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="siteObj.identification.permit_type" />
+                    </template>
                 </div>
             </div>
 
@@ -198,7 +211,7 @@
             </div>-->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label fw-bold">Location Accuracy: <span
-                    class="text-danger">*</span></label>
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <select v-model="occurrence_obj.location.location_accuracy_id
                         " :disabled="isReadOnly" class="form-select">
@@ -238,21 +251,17 @@
                 <div>
                     <OccurrenceTenureDatatable v-if="occurrence_obj" ref="occurrence_tenure_datatable"
                         :key="datatableOCCTenureKey" :occurrence-id="occurrence_obj.id"
-                        :href-container-id="getMapContainerId"
-                        @highlight-on-map="highlightPointOnMap"
-                        @edit-tenure-details="editTenureDetails"
-                    >
+                        :href-container-id="getMapContainerId" @highlight-on-map="highlightPointOnMap"
+                        @edit-tenure-details="editTenureDetails">
                     </OccurrenceTenureDatatable>
                 </div>
             </FormSection>
             <RelatedReports v-if="occurrence_obj" ref="related_reports_datatable" :key="datatableRelatedOCRKey"
                 :is-read-only="isReadOnly" :occurrence_obj="occurrence_obj" :section_type="'location'"
                 :href-container-id="getMapContainerId" :target-map-layer-name-for-copy="occurrenceLayerName"
-                :target-map-layer-name-for-show-hide="queryLayerName"
-                @copyUpdate="copyUpdate" @highlight-on-map="highlightIdOnMapLayer"
-                @copy-to-map-layer="copyToMapLayer"
-                @toggle-show-on-map="toggleShowOnMapLayer"
-                />
+                :target-map-layer-name-for-show-hide="queryLayerName" @copyUpdate="copyUpdate"
+                @highlight-on-map="highlightIdOnMapLayer" @copy-to-map-layer="copyToMapLayer"
+                @toggle-show-on-map="toggleShowOnMapLayer" />
         </FormSection>
     </div>
 </template>
@@ -618,7 +627,7 @@ export default {
         refreshDatatableRelatedOCR: function () {
             this.uuid_datatable_ocr = uuid();
         },
-        updatedSites: function() {
+        updatedSites: function () {
             this.incrementComponentMapKey()
         },
         searchForCRS: function (search, loading) {
@@ -769,8 +778,7 @@ export default {
             };
 
             console.log(
-                `Updating show on map for ${
-                    feature.getProperties().label
+                `Updating show on map for ${feature.getProperties().label
                 }: ${showOnMap}.`
             );
             return fetch(apiEndpoint, payload)

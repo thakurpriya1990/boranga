@@ -108,7 +108,7 @@
                                 Change permit type to:
                             </div>
                         </template>
-                        <select :disabled="isReadOnly" class="form-select"
+                        <select class="form-select"
                             v-model="occurrence_report_obj.identification.permit_type_id">
                             <option v-for="option in permit_type_list" :value="option.id" v-bind:key="option.id">
                                 {{ option.name }}

@@ -918,7 +918,7 @@ class OccurrenceReportViewSet(
             datum_list = search_datums("", codes=epsg_codes)
 
         coordinate_source_list = []
-        values = CoordinateSource.objects.all()
+        values = CoordinateSource.objects.active()
         if values:
             for val in values:
                 coordinate_source_list.append(
@@ -4499,7 +4499,7 @@ class OccurrenceViewSet(
             datum_list = search_datums("", codes=epsg_codes)
 
         coordinate_source_list = []
-        values = CoordinateSource.objects.all()
+        values = CoordinateSource.objects.active()
         if values:
             for val in values:
                 coordinate_source_list.append(
