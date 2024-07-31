@@ -30,6 +30,7 @@ from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 from boranga import settings
 from boranga.components.conservation_status.serializers import SendReferralSerializer
 from boranga.components.main.api import search_datums
+from boranga.components.main.permissions import CommsLogPermission
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import validate_threat_request
 from boranga.components.occurrence.email import send_external_referee_invite_email
@@ -2060,7 +2061,7 @@ class OccurrenceReportViewSet(
             "POST",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission],
+        permission_classes=[CommsLogPermission],
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
@@ -4258,6 +4259,7 @@ class OccurrenceViewSet(
             "POST",
         ],
         detail=True,
+        permission_classes=[CommsLogPermission],
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic

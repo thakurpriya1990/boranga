@@ -20,6 +20,7 @@ from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 
 from boranga import helpers
 from boranga.components.conservation_status.models import ConservationStatus
+from boranga.components.main.permissions import CommsLogPermission
 from boranga.components.meetings.models import (
     AgendaItem,
     Committee,
@@ -499,6 +500,7 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             "POST",
         ],
         detail=True,
+        permission_classes=[CommsLogPermission],
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic

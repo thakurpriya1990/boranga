@@ -73,6 +73,7 @@ from boranga.components.conservation_status.serializers import (
     SendReferralSerializer,
 )
 from boranga.components.conservation_status.utils import cs_proposal_submit
+from boranga.components.main.permissions import CommsLogPermission
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.species_and_communities.models import (
     ClassificationSystem,
@@ -1723,7 +1724,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "POST",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission],
+        permission_classes=[CommsLogPermission],
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic

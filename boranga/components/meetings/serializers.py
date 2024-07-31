@@ -15,7 +15,14 @@ from boranga.components.meetings.models import (
     MeetingUserAction,
     Minutes,
 )
-from boranga.helpers import is_conservation_status_approver
+from boranga.helpers import (
+    is_conservation_status_approver,
+    is_conservation_status_assessor,
+    is_internal,
+    is_species_communities_approver,
+    is_occurrence_assessor,
+    is_occurrence_approver,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger(__name__)
@@ -141,6 +148,7 @@ class MeetingSerializer(serializers.ModelSerializer):
     can_user_schedule = serializers.SerializerMethodField()
     can_user_complete = serializers.SerializerMethodField()
     can_user_reinstate = serializers.SerializerMethodField()
+    can_add_log = serializers.SerializerMethodField()
     location = serializers.CharField(
         source="location.room_name", read_only=True, allow_null=True
     )
@@ -175,6 +183,7 @@ class MeetingSerializer(serializers.ModelSerializer):
             "can_user_schedule",
             "can_user_complete",
             "can_user_reinstate",
+            "can_add_log",
         )
 
     def get_processing_status_display(self, obj):
@@ -202,6 +211,14 @@ class MeetingSerializer(serializers.ModelSerializer):
     def get_user_edit_mode(self, obj):
         request = self.context["request"]
         return obj.has_user_edit_mode(request)
+    
+    def get_can_add_log(self, obj):
+        request = self.context["request"]
+        return (is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request))
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]

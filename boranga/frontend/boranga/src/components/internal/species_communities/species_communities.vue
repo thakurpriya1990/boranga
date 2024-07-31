@@ -76,7 +76,7 @@
                 </template>
 
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                    :disable_add_entry="false" class="mb-3" />
+                    :disable_add_entry="!species_community.can_add_log" class="mb-3" />
 
                 <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name" :lodgement_date="species_community.lodgement_date"
@@ -191,7 +191,7 @@
                                                     @click.prevent="returnToDashboard">
                                                         Return to Dashboard</button>
                                                 </div>
-                                                <div v-if="species_community.can_user_edit"class="col-md-6 text-end">
+                                                <div v-if="species_community.can_user_edit" class="col-md-6 text-end">
                                                     <button v-if="savingSpeciesCommunity"
                                                         class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
                                                         disabled>Save and Continue&nbsp;

@@ -106,7 +106,7 @@ export default {
                     } else if (!vm.isReadOnly) {
                         links += `<a href='#' data-reinstate-observer_det='${full.id}'>Reinstate</a><br>`;
                     }
-                    if(full.can_action){
+                    if(full.can_action && !vm.is_external){
                         links += `<a href='#' data-history-observer='${full.id}'>History</a><br>`;
                     }
                     return links;

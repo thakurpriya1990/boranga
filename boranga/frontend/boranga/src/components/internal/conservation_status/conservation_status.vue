@@ -5,7 +5,7 @@
                 conservation_status_obj.conservation_status_number }}</h3>
             <div class="col-md-3">
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                    :disable_add_entry="false" />
+                    :disable_add_entry="!conservation_status_obj.can_add_log" />
 
                 <Submission :submitter_first_name="submitter_first_name" :submitter_last_name="submitter_last_name"
                     :lodgement_date="conservation_status_obj.lodgement_date"
@@ -33,9 +33,9 @@
                                                     :value="member.id">{{ member.first_name }} {{ member.last_name }}
                                                 </option>
                                             </select>
-                                            <a v-if="conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id"
-                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
-                                                to me</a>
+                                            <a v-if="conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id
+                                            && conservation_status_obj.assessor_mode.assessor_can_assess"
+                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign to me</a>
                                         </template>
                                         <template
                                             v-else-if="['With Assessor', 'With Referral'].includes(conservation_status_obj.processing_status)">

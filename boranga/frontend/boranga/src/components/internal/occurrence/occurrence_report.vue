@@ -51,7 +51,7 @@
             <div class="col-md-3">
 
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                    :disable_add_entry="false" class="mb-3" />
+                    :disable_add_entry="!occurrence_report.can_add_log" class="mb-3" />
 
                 <Submission :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name" :lodgement_date="occurrence_report.lodgement_date"
@@ -74,9 +74,8 @@
                                     :selected="member.id == occurrence_report.assigned_approver">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
-                            <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
-                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
-                                me</a>
+                            <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id && occurrence_report.assessor_mode.assessor_can_assess"
+                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to me</a>
                         </template>
                         <template v-else>
                             <select ref="assigned_officer" :disabled="!occurrence_report.can_user_assess"
@@ -85,9 +84,8 @@
                                     :selected="member.id == occurrence_report.current_assessor.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
-                            <a v-if="(with_assessor || with_referral || unlocked) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
-                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
-                                me</a>
+                            <a v-if="(with_assessor || with_referral || unlocked) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id && occurrence_report.assessor_mode.assessor_can_assess"
+                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to me</a>
                         </template>
                     </div>
                     <div v-if="display_referral_actions" class="card-body border-top">
