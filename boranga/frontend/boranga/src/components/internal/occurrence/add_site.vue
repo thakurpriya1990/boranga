@@ -39,7 +39,7 @@
                                 <div class="col-sm-9">
                                     <template v-if="!isReadOnly">
                                         <template
-                                            v-if="datum_list && datum_list.length > 0 && !datum_list.map((d) => d.id).includes(siteObj.datum)">
+                                            v-if="datum_list && datum_list.length > 0 && siteObj.datum && !datum_list.map((d) => d.id).includes(siteObj.datum)">
                                             <input type="text" v-if="siteObj.datum_name"
                                                 class="form-control mb-3"
                                                 :value="siteObj.datum_name + ' (Now Archived)'"
@@ -48,7 +48,7 @@
                                                 Change datum to:
                                             </div>
                                         </template>
-                                        <select :disabled="isReadOnly" class="form-select" v-model="siteObj.datum">
+                                        <select class="form-select" v-model="siteObj.datum">
                                             <option v-for="datum in datum_list" :value="datum.srid" v-bind:key="datum.srid">
                                                 {{ datum.name }}
                                             </option>
