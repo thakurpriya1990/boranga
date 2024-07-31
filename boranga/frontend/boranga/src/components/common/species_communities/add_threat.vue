@@ -37,6 +37,14 @@
                                         <label class="control-label pull-left">Threat Agent</label>
                                     </div>
                                     <div class="col-sm-9">
+                                        <template
+                                            v-if="threat_agent_list && threat_agent_list.length > 0 && threatObj.threat_agent_id && !threat_agent_list.map((d) => d.id).includes(threatObj.threat_agent_id)">
+                                            <input type="text" v-if="threatObj.threat_agent" class="form-control mb-3"
+                                                :value="threatObj.threat_agent + ' (Now Archived)'" disabled />
+                                            <div class="mb-3 text-muted">
+                                                Change threat agent to:
+                                            </div>
+                                        </template>
                                         <select :disabled="isReadOnly" class="form-select"
                                             v-model="threatObj.threat_agent_id">
                                             <option v-for="agent in threat_agent_list" :value="agent.id"

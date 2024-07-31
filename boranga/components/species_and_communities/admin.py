@@ -40,6 +40,10 @@ class ThreatCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["name"]
 
 
+class ThreatAgentAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(GroupType)
 admin.site.register(Region, DeleteProtectedModelAdmin)
@@ -52,7 +56,7 @@ admin.site.register(PostFireHabitatInteraction, DeleteProtectedModelAdmin)
 admin.site.register(CurrentImpact, DeleteProtectedModelAdmin)
 admin.site.register(PotentialImpact, DeleteProtectedModelAdmin)
 admin.site.register(PotentialThreatOnset, DeleteProtectedModelAdmin)
-admin.site.register(ThreatAgent, DeleteProtectedModelAdmin)
+admin.site.register(ThreatAgent, ThreatAgentAdmin)
 
 
 @admin.register(Kingdom)

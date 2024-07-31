@@ -2710,7 +2710,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                     }
                 )
         threat_agent_lists = []
-        threat_agents = ThreatAgent.objects.all()
+        threat_agents = ThreatAgent.objects.active()
         if threat_agents:
             for choice in threat_agents:
                 threat_agent_lists.append(
