@@ -1032,6 +1032,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     submitter_information = SubmitterInformationSerializer()
     number_of_observers = serializers.IntegerField(read_only=True)
     has_main_observer = serializers.BooleanField(read_only=True)
+    is_submitter = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -1080,6 +1081,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "submitter_information",
             "number_of_observers",
             "has_main_observer",
+            "is_submitter",
         )
 
     def get_readonly(self, obj):
@@ -1169,6 +1171,10 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_model_name(self, obj):
         return "occurrencereport"
+
+    def get_is_submitter(self, obj):
+        request = self.context["request"]
+        return request.user.id == obj.submitter
 
 
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
@@ -1362,6 +1368,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "external_referral_invites",
             "number_of_observers",
             "has_main_observer",
+            "is_submitter",
         )
 
     def get_readonly(self, obj):
