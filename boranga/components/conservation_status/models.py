@@ -107,7 +107,9 @@ class AbstractConservationList(ArchivableModel):
 
     @classmethod
     def get_lists_dict(
-        cls: models.base.ModelBase, group_type: str | int | None
+        cls: models.base.ModelBase,
+        group_type: str | int | None,
+        active_only: bool = True,
     ) -> list:
         try:
             if group_type and isinstance(group_type, int):
@@ -118,7 +120,13 @@ class AbstractConservationList(ArchivableModel):
             logger.warning(f"GroupType {group_type} does not exist")
             return []
 
-        lists = cls.objects.values("id", "code", "label")
+        lists = cls.objects.all()
+
+        if active_only:
+            lists = cls.objects.active()
+
+        lists = lists.values("id", "code", "label")
+
         if group_type and group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
             lists = lists.filter(applies_to_communities=True)
         elif group_type and group_type.name in [

@@ -13,7 +13,7 @@ class AbstractListAdmin(DeleteProtectedModelAdmin):
     list_display = ["code", "label"]
 
 
-class WAPriorityListAdmin(AbstractListAdmin):
+class WAPriorityListAdmin(ArchivableModelAdminMixin, AbstractListAdmin):
     pass
 
 
@@ -21,7 +21,7 @@ class WAPriorityCategoryAdmin(AbstractListAdmin):
     filter_horizontal = ("wa_priority_lists",)
 
 
-class WALegislativeListAdmin(AbstractListAdmin):
+class WALegislativeListAdmin(ArchivableModelAdminMixin, AbstractListAdmin):
     pass
 
 
@@ -29,7 +29,7 @@ class WALegislativeCategoryAdmin(AbstractListAdmin):
     filter_horizontal = ("wa_legislative_lists",)
 
 
-class CommonwealthConservationListAdmin(AbstractListAdmin):
+class CommonwealthConservationListAdmin(ArchivableModelAdminMixin, AbstractListAdmin):
     pass
 
 
