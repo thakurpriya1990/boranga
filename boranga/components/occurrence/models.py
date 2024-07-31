@@ -1666,7 +1666,7 @@ class Datum(ArchivableModel):
         return str(self.srid)
 
 
-class CoordinateSource(models.Model):
+class CoordinateSource(ArchivableModel):
     """
     # Admin List
 
