@@ -170,14 +170,6 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
         request = self.context["request"]
         return obj.can_user_action and is_species_communities_approver(request)
 
-    def get_can_add_log(self, obj):
-        request = self.context["request"]
-        return (is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
-                or is_species_communities_approver(request)
-                or is_occurrence_assessor(request)
-                or is_occurrence_approver(request))
-
     def get_can_user_edit(self, obj):
         request = self.context["request"]
         if not is_species_communities_approver(request):
@@ -1311,6 +1303,14 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             return False
 
         return not (obj.can_user_edit and is_species_communities_approver(request))
+
+    def get_can_add_log(self, obj):
+        request = self.context["request"]
+        return (is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request))
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]

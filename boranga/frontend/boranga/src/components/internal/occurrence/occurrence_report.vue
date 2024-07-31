@@ -74,9 +74,8 @@
                                     :selected="member.id == occurrence_report.assigned_approver">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
-                            <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id"
-                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
-                                me</a>
+                            <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id && occurrence_report.assessor_mode.assessor_can_assess"
+                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to me</a>
                         </template>
                         <template v-else>
                             <select ref="assigned_officer" :disabled="!occurrence_report.can_user_assess"
@@ -85,9 +84,8 @@
                                     :selected="member.id == occurrence_report.current_assessor.id">
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
-                            <a v-if="(with_assessor || with_referral || unlocked) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id"
-                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
-                                me</a>
+                            <a v-if="(with_assessor || with_referral || unlocked) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id && occurrence_report.assessor_mode.assessor_can_assess"
+                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to me</a>
                         </template>
                     </div>
                     <div v-if="display_referral_actions" class="card-body border-top">
