@@ -521,6 +521,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
     group_type_id = serializers.SerializerMethodField(read_only=True)
+    is_submitter = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -566,6 +567,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "assessor_data",
             "approval_level",
             "submitter_information",
+            "is_submitter",
         )
 
     def get_readonly(self, obj):
@@ -598,6 +600,10 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_customer_status(self, obj):
         return obj.get_customer_status_display()
+
+    def get_is_submitter(self, obj):
+        request = self.context["request"]
+        return obj.submitter == request.user.id
 
 
 class ConservationStatusSerializer(BaseConservationStatusSerializer):
@@ -798,6 +804,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "submitter_information",
             "conservation_status_under_review",
             "external_referral_invites",
+            "is_submitter",
         )
 
     def get_submitter(self, obj):
