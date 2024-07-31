@@ -871,24 +871,47 @@ export default {
             // Validate the feature
             console.log('Validating feature:', feature);
             if (this.plausibilityGeometryFeatures) {
-                let plausibilityFeatures;
-                const featuresIntersects =
-                    this.plausibilityGeometryFeatures.every((f) => {
-                        plausibilityFeatures = intersects(feature, f);
-                        if (plausibilityFeatures.length > 0) {
-                            return true;
-                        }
-                    });
-                console.log('Features intersects', featuresIntersects);
-                if (featuresIntersects) {
-                    // Need to also return the hole
-                    const plausibilityFeature = plausibilityFeatures[0];
-                    const area = intersectedArea(feature, plausibilityFeature);
-                }
+                this.$refs.component_map.setLoadingMap(true);
+                this.plausibilityCheckFeature(feature).then((area) => {
+                    if (area > 0) {
+                        console.log('Geometry intersection area:', area);
+                        this.$refs.component_map.finishDrawing();
+                    } else {
+                        console.log(
+                            'No intersection with plausibility geometry.'
+                        );
+                        this.$refs.component_map.finishDrawing();
+                    }
+                });
             } else {
                 console.log('No plausibility geometry features found.');
                 this.$refs.component_map.finishDrawing();
             }
+        },
+        plausibilityCheckFeature: async function (feature) {
+            let plausibilityFeatures;
+            const featuresIntersects = this.plausibilityGeometryFeatures.every(
+                (f) => {
+                    plausibilityFeatures = intersects(feature, f);
+                    if (plausibilityFeatures.length > 0) {
+                        return true;
+                    }
+                }
+            );
+            console.log('Features intersects', featuresIntersects);
+
+            let area = 0;
+            if (featuresIntersects) {
+                area = plausibilityFeatures.reduce(
+                    (accumulator, plausibilityFeature) =>
+                        accumulator +
+                        intersectedArea(feature, plausibilityFeature),
+                    0
+                );
+                console.log('Total intersected area', area);
+            }
+
+            return area;
         },
     },
 };

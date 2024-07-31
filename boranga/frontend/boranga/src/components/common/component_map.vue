@@ -1950,8 +1950,6 @@ export default {
         'toggle-show-hide',
     ],
     data() {
-        // eslint-disable-next-line no-unused-vars
-        let vm = this;
         return {
             elem_id: uuid(),
             map_container_id: uuid(),
@@ -2438,6 +2436,7 @@ export default {
     },
     methods: {
         setLoadingMap(loading = false) {
+            console.log('set loading-map', loading);
             this.loadingMap = loading;
         },
         /**
@@ -3088,13 +3087,13 @@ export default {
                                 color: vm.defaultColor,
                                 geometry_source: 'validation',
                             });
-                            vm.$emit('validate-feature', feature);
+                            vm.emitValidateFeature(feature);
                         } else {
                             console.log('Skipping feature validation');
                             vm.finishDrawing();
                         }
                     }
-                    return true;
+                    return false;
                 },
             });
 
@@ -4394,6 +4393,9 @@ export default {
             console.log('drawend', feature.values_.geometry.flatCoordinates);
 
             vm.setFeaturePropertiesFromContext(feature);
+            if (vm.isPolygonLikeFeature(feature)) {
+                feature.set('area_sqm', vm.featureArea(feature));
+            }
             console.log('newFeatureId = ' + vm.newFeatureId);
             vm.lastPoint = feature;
             vm.sketchCoordinates = [[]];
@@ -4603,13 +4605,18 @@ export default {
                     vm.owsQuery[layerStr].propertyName || 'wkb_geometry',
             };
         },
+        emitValidateFeature: function (feature) {
+            console.log('Emitting validate feature', feature);
+            this.$emit('validate-feature', feature);
+        },
         finishDrawing: function () {
-            let vm = this;
-            vm.queryingGeoserver = false;
-            vm.errorMessage = null;
-            vm.drawPolygonsForModel.finishDrawing();
-            if (vm.mode == 'draw' && vm.selectedFeatureIds.length == 0) {
-                vm.set_mode('layer');
+            this.queryingGeoserver = false;
+            this.errorMessage = null;
+            // eslint-disable-next-line no-unused-vars
+            const feature = this.drawPolygonsForModel.finishDrawing();
+            this.setLoadingMap(false);
+            if (this.mode == 'draw' && this.selectedFeatureIds.length == 0) {
+                this.set_mode('layer');
             }
         },
         /**
