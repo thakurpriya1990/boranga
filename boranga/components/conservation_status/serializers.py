@@ -24,8 +24,8 @@ from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_contributor,
-    is_new_external_contributor,
     is_internal,
+    is_new_external_contributor,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 
@@ -738,6 +738,9 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         read_only=True, allow_null=True
     )
     external_referral_invites = CSExternalRefereeInviteSerializer(many=True)
+    change_code = serializers.CharField(
+        source="change_code.code", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = ConservationStatus
@@ -790,6 +793,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "internal_application",
             "is_new_contributor",
             "change_code_id",
+            "change_code",
             "current_conservation_status",
             "submitter_information",
             "conservation_status_under_review",

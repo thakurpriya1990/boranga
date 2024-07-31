@@ -1,6 +1,6 @@
 from django.contrib.gis import admin
 
-from boranga.admin import DeleteProtectedModelAdmin
+from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
 from boranga.components.conservation_status import models
 
 
@@ -33,7 +33,7 @@ class CommonwealthConservationListAdmin(AbstractListAdmin):
     pass
 
 
-class ConservationChangeCodeAdmin(DeleteProtectedModelAdmin):
+class ConservationChangeCodeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["code", "label"]
 
 

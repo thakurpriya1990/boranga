@@ -170,6 +170,7 @@ class GetCSProfileDict(views.APIView):
                 group_type
             ),
             "change_codes": ConservationChangeCode.get_filter_list(),
+            "active_change_codes": ConservationChangeCode.get_active_filter_list(),
             "submitter_categories": SubmitterCategory.get_filter_list(),
         }
         res_json = json.dumps(res_json)

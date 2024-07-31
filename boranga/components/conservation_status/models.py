@@ -302,6 +302,10 @@ class ConservationChangeCode(ArchivableModel):
     def get_filter_list(cls):
         return list(cls.objects.values("id", "code"))
 
+    @classmethod
+    def get_active_filter_list(cls):
+        return list(cls.objects.active().values("id", "code"))
+
 
 class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     """

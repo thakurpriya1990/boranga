@@ -20,6 +20,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="change-type">Change Type:</label>
+
                         <select id="change-type" class="form-select" v-model="filterCSCommunityChangeCode">
                             <option value="all">All</option>
                             <option v-for="change_code in change_codes" :value="change_code.id">{{ change_code.code }}
