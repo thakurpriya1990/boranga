@@ -2810,7 +2810,7 @@ class SampleDestination(models.Model):
         return str(self.name)
 
 
-class PermitType(models.Model):
+class PermitType(ArchivableModel):
     """
     # Admin List
 
