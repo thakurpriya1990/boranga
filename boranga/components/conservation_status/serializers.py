@@ -26,6 +26,9 @@ from boranga.helpers import (
     is_contributor,
     is_new_external_contributor,
     is_internal,
+    is_species_communities_approver,
+    is_occurrence_assessor,
+    is_occurrence_approver,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 
@@ -738,6 +741,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         read_only=True, allow_null=True
     )
     external_referral_invites = CSExternalRefereeInviteSerializer(many=True)
+    can_add_log = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -794,6 +798,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "submitter_information",
             "conservation_status_under_review",
             "external_referral_invites",
+            "can_add_log",
         )
 
     def get_submitter(self, obj):
@@ -821,6 +826,14 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "name": self.context["request"].user.get_full_name(),
             "email": self.context["request"].user.email,
         }
+    
+    def get_can_add_log(self, obj):
+        request = self.context["request"]
+        return (is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request))
 
     def get_assessor_mode(self, obj):
         request = self.context["request"]
@@ -830,7 +843,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "has_unlocked_mode": obj.has_unlocked_mode(request),
             "assessor_can_assess": obj.can_assess(request),
             "assessor_level": "assessor",
-            "assessor_box_view": obj.assessor_comments_view(request),
+            "assessor_box_view": obj.assessor_comments_view(request),      
         }
 
     def get_internal_user_edit(self, obj):
@@ -881,6 +894,7 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
     allowed_assessors = EmailUserSerializer(many=True)
     assessor_mode = serializers.SerializerMethodField()
     conservationstatusdeclineddetails = ConservationStatusDeclinedDetailsSerializer()
+    can_add_log = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatus
@@ -911,6 +925,7 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
             "assessor_data",
             "proposed_decline_status",
             "conservationstatusdeclineddetails",
+            "can_add_log",
         )
 
     def get_submitter(self, obj):
@@ -929,6 +944,14 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
             "name": self.context["request"].user.get_full_name(),
             "email": self.context["request"].user.email,
         }
+
+    def get_can_add_log(self, obj):
+        request = self.context["request"]
+        return (is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request))
 
     def get_assessor_mode(self, obj):
         request = self.context["request"]
@@ -1036,6 +1059,7 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
     conservationstatusdeclineddetails = ConservationStatusDeclinedDetailsSerializer(
         many=True
     )
+    can_add_log = serializers.SerializerMethodField()
 
     class Meta:
         model = ConservationStatus
@@ -1066,6 +1090,7 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
             "assessor_data",
             "proposed_decline_status",
             "conservationstatusdeclineddetails",
+            "can_add_log",
         )
 
     def get_submitter(self, obj):
@@ -1084,6 +1109,14 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
             "name": self.context["request"].user.get_full_name(),
             "email": self.context["request"].user.email,
         }
+    
+    def get_can_add_log(self, obj):
+        request = self.context["request"]
+        return (is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request))
 
     def get_assessor_mode(self, obj):
         request = self.context["request"]

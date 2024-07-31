@@ -51,7 +51,7 @@
             <div class="col-md-3">
 
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                    :disable_add_entry="false" class="mb-3" />
+                    :disable_add_entry="!occurrence_report.can_add_log" class="mb-3" />
 
                 <Submission :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name" :lodgement_date="occurrence_report.lodgement_date"

@@ -32,7 +32,16 @@ from boranga.components.species_and_communities.models import (
     SpeciesUserAction,
     Taxonomy,
 )
-from boranga.helpers import is_internal, is_species_communities_approver
+
+from boranga.helpers import (
+    is_conservation_status_approver,
+    is_conservation_status_assessor,
+    is_internal,
+    is_species_communities_approver,
+    is_occurrence_assessor,
+    is_occurrence_approver,
+)
+
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
@@ -160,6 +169,14 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
         # Check if currently logged in user has access to process the Species
         request = self.context["request"]
         return obj.can_user_action and is_species_communities_approver(request)
+
+    def get_can_add_log(self, obj):
+        request = self.context["request"]
+        return (is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request))
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
@@ -812,6 +829,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
     user_edit_mode = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField()
     can_user_reopen = serializers.SerializerMethodField()
+    can_add_log = serializers.SerializerMethodField()
 
     class Meta:
         model = Species
@@ -846,6 +864,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "occurrence_count",
             "area_of_occupancy_km2",
             "area_occurrence_convex_hull_km2",
+            "can_add_log",
         )
 
     def get_submitter(self, obj):
@@ -860,6 +879,14 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
         if request.user.is_superuser:
             return False
         return not (obj.can_user_edit and is_species_communities_approver(request))
+
+    def get_can_add_log(self, obj):
+        request = self.context["request"]
+        return (is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request))
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
@@ -1235,6 +1262,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
     current_assessor = serializers.SerializerMethodField()
     user_edit_mode = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField()
+    can_add_log = serializers.SerializerMethodField()
 
     class Meta:
         model = Community
@@ -1267,6 +1295,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "occurrence_count",
             "area_of_occupancy_km2",
             "area_occurrence_convex_hull_km2",
+            "can_add_log",
         )
 
     def get_submitter(self, obj):
