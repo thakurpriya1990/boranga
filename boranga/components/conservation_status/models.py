@@ -140,7 +140,7 @@ class AbstractConservationList(ArchivableModel):
         return f"{self.code} - {self.label}"
 
 
-class AbstractConservationCategory(models.Model):
+class AbstractConservationCategory(ArchivableModel):
     code = models.CharField(max_length=64)
     label = models.CharField(max_length=512)
 
