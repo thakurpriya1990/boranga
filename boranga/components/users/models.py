@@ -6,7 +6,12 @@ from django.db import models
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup, SystemGroupPermission
 
-from boranga.components.main.models import CommunicationsLogEntry, Document, UserAction
+from boranga.components.main.models import (
+    ArchivableModel,
+    CommunicationsLogEntry,
+    Document,
+    UserAction,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 
 private_storage = FileSystemStorage(
@@ -17,7 +22,7 @@ private_storage = FileSystemStorage(
 logger = logging.getLogger(__name__)
 
 
-class SubmitterCategory(models.Model):
+class SubmitterCategory(ArchivableModel):
     name = models.CharField(max_length=100)
     USER_TYPE_CHOICE_EXTERNAL = "external"
     USER_TYPE_CHOICE_INTERNAL = "internal"
