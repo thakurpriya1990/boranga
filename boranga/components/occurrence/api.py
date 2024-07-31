@@ -103,6 +103,7 @@ from boranga.components.occurrence.models import (
     SoilType,
     WildStatus,
 )
+from boranga.components.main.permissions import CommsLogPermission
 from boranga.components.occurrence.permissions import (
     ExternalOccurrenceReportObjectPermission,
     ExternalOccurrenceReportPermission,
@@ -2059,7 +2060,7 @@ class OccurrenceReportViewSet(
             "POST",
         ],
         detail=True,
-        permission_classes=[OccurrenceReportPermission],
+        permission_classes=[CommsLogPermission]
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
@@ -4259,6 +4260,7 @@ class OccurrenceViewSet(
             "POST",
         ],
         detail=True,
+        permission_classes=[CommsLogPermission]
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic

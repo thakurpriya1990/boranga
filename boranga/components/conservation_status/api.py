@@ -41,6 +41,7 @@ from boranga.components.conservation_status.models import (
     WAPriorityCategory,
     WAPriorityList,
 )
+from boranga.components.main.permissions import CommsLogPermission
 from boranga.components.conservation_status.permissions import (
     ConservationStatusAmendmentRequestPermission,
     ConservationStatusDocumentPermission,
@@ -1707,7 +1708,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "POST",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[CommsLogPermission]
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic

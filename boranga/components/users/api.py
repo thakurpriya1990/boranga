@@ -30,6 +30,7 @@ from boranga.components.users.serializers import (
     SubmitterInformationSerializer,
     UserSerializer,
 )
+from boranga.components.main.permissions import CommsLogPermission
 from boranga.helpers import is_internal, is_internal_contributor
 from boranga.permissions import IsApprover, IsAssessor, IsInternal
 
@@ -330,6 +331,7 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             "POST",
         ],
         detail=True,
+        permission_classes=[CommsLogPermission]
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic

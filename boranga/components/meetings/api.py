@@ -28,6 +28,7 @@ from boranga.components.meetings.models import (
     MeetingUserAction,
     Minutes,
 )
+from boranga.components.main.permissions import CommsLogPermission
 from boranga.components.meetings.permissions import MeetingPermission
 from boranga.components.meetings.serializers import (
     AgendaItemSerializer,
@@ -499,6 +500,7 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             "POST",
         ],
         detail=True,
+        permission_classes=[CommsLogPermission]
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic

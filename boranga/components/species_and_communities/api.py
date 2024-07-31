@@ -33,6 +33,7 @@ from boranga.components.conservation_status.models import (
     WAPriorityCategory,
     WAPriorityList,
 )
+from boranga.components.main.permissions import CommsLogPermission
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.main.utils import validate_threat_request
 from boranga.components.occurrence.api import OCCConservationThreatFilterBackend
@@ -1763,6 +1764,7 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             "POST",
         ],
         detail=True,
+        permission_classes=[CommsLogPermission]
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
@@ -2213,6 +2215,7 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             "POST",
         ],
         detail=True,
+        permission_classes=[CommsLogPermission]
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
