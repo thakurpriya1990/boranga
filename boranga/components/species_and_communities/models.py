@@ -2110,7 +2110,7 @@ class PotentialThreatOnset(models.Model):
         return str(self.name)
 
 
-class ThreatAgent(models.Model):
+class ThreatAgent(ArchivableModel):
     """
     Used by:
     - ConservationThreat
