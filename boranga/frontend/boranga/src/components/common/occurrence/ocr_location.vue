@@ -168,7 +168,7 @@
                     </template>
                     <template v-else>
                         <input class="form-control" type="text" :disabled="isReadOnly"
-                            v-model="siteObj.identification.permit_type" />
+                            v-model="occurrence_report_obj.location.coordinate_source_id" />
                     </template>
                 </div>
             </div>

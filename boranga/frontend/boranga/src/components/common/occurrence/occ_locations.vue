@@ -172,7 +172,7 @@
                     </template>
                     <template v-else>
                         <input class="form-control" type="text" :disabled="isReadOnly"
-                            v-model="siteObj.identification.permit_type" />
+                            v-model="occurrence_obj.location.coordinate_source" />
                     </template>
                 </div>
             </div>
