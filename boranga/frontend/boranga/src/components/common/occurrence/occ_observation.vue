@@ -128,7 +128,7 @@
                     </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="siteObj.identification.permit_type" />
+                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="occurrence_obj.identification.permit_type" />
                     </template>
                 </div>
             </div>
