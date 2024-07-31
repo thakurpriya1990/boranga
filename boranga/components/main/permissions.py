@@ -24,8 +24,8 @@ class CommsLogPermission(BasePermission):
 
         if request.user.is_superuser:
             return True
-        
-        if hasattr(view, "action") and view.action == "create":
+
+        if hasattr(view, "action") and view.action == "add_comms_log":
             return (
                 is_conservation_status_assessor(request)
                 or is_conservation_status_approver(request)
