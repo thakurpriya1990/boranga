@@ -872,7 +872,7 @@ export default {
             console.log('Validating feature:', feature);
             if (this.plausibilityGeometryFeatures) {
                 this.$refs.component_map.setLoadingMap(true);
-                this.plausibilityCheckFeature(feature).then((area) => {
+                this.plausibilityCheckFeature(feature).then(async (area) => {
                     if (area > 0) {
                         console.log('Geometry intersection area:', area);
                         this.$refs.component_map.finishDrawing();
