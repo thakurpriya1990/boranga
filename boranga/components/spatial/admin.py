@@ -201,8 +201,9 @@ class PlausibilityGeometryForm(forms.ModelForm):
         fields = "__all__"
         help_texts = {
             "active": "Whether this plausibility check geometry is active",
-            "warning_value": "Area [m²] value at which to issue a warning before finishing a geometry",
-            "error_value": "Area [m²] value at which to reject the geometry and don't finish it",
+            "average_area": "Average area [m²] of a tenure area in this geometry",
+            "warning_value": "Number of potential tenure areas at which to issue a warning before finishing a geometry",
+            "error_value": "Number of potential tenure areas at which to reject the geometry and don't finish it",
             "geometry": "The geometry for this plausibility check",
         }
 
@@ -216,6 +217,7 @@ class PlausibilityGeometryAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "active",
+                    "average_area",
                     "warning_value",
                     "error_value",
                     "geometry",

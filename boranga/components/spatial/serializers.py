@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from boranga import settings
 from boranga.components.spatial.models import GeoserverUrl, PlausibilityGeometry, Proxy, TileLayer
 
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
@@ -36,6 +35,7 @@ class PlausibilityGeometrySerializer(GeoFeatureModelSerializer):
         fields = [
             "id",
             "geometry",
+            "average_area",
             "warning_value",
             "error_value",
         ]

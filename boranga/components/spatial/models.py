@@ -134,6 +134,7 @@ class PlausibilityGeometry(models.Model):
     geometry = gis_models.GeometryField(blank=True, null=True)
     warning_value = models.FloatField(blank=True, null=True)
     error_value = models.FloatField(blank=True, null=True)
+    average_area = models.FloatField(blank=True, null=True)
     active = models.BooleanField(default=True)
 
     class Meta:
