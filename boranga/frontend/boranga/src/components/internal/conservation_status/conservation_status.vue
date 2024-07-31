@@ -33,9 +33,8 @@
                                                     :value="member.id">{{ member.first_name }} {{ member.last_name }}
                                                 </option>
                                             </select>
-                                            <a v-if="conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id
-                                            && conservation_status_obj.assessor_mode.assessor_can_assess"
-                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign to me</a>
+                                            <a v-if="conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
+                                                to me</a>
                                         </template>
                                         <template
                                             v-else-if="['With Assessor', 'With Referral'].includes(conservation_status_obj.processing_status)">
