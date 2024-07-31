@@ -36,6 +36,8 @@ class PlausibilityGeometrySerializer(GeoFeatureModelSerializer):
         fields = [
             "id",
             "geometry",
+            "warning_value",
+            "error_value",
         ]
         read_only_fields = ("id",)
 

@@ -199,19 +199,25 @@ class PlausibilityGeometryForm(forms.ModelForm):
     class Meta:
         model = PlausibilityGeometry
         fields = "__all__"
+        help_texts = {
+            "active": "Whether this plausibility check geometry is active",
+            "warning_value": "Area [m²] value at which to issue a warning before finishing a geometry",
+            "error_value": "Area [m²] value at which to reject the geometry and don't finish it",
+            "geometry": "The geometry for this plausibility check",
+        }
 
 @admin.register(PlausibilityGeometry)
 class PlausibilityGeometryAdmin(admin.ModelAdmin):
     list_display = ("geometry",)
-    # search_fields = ("name",)
-    # ordering = ("name",)
     form = PlausibilityGeometryForm
     fieldsets = (
         (
             None,
             {
                 "fields": (
-                    # "name",
+                    "active",
+                    "warning_value",
+                    "error_value",
                     "geometry",
                 )
             },
