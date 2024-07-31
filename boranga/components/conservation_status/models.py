@@ -94,7 +94,7 @@ def update_conservation_status_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/conservation_status/{instance.conservation_status.id}/documents/{filename}"
 
 
-class AbstractConservationList(models.Model):
+class AbstractConservationList(ArchivableModel):
     code = models.CharField(max_length=64)
     label = models.CharField(max_length=512)
     applies_to_species = models.BooleanField(default=False)
