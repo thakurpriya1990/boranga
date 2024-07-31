@@ -24,6 +24,7 @@ from boranga.components.conservation_status.email import (
     send_proposal_approver_sendback_email_notification,
 )
 from boranga.components.main.models import (
+    ArchivableModel,
     CommunicationsLogEntry,
     Document,
     RevisionedMixin,
@@ -278,7 +279,7 @@ class CommonwealthConservationList(AbstractConservationList):
         verbose_name = "Commonwealth Conservation List"
 
 
-class ConservationChangeCode(models.Model):
+class ConservationChangeCode(ArchivableModel):
     """
     When the conservation status of a species/community is changed, it can be for a number of reasons.
     These reasons are represented by change codes.
