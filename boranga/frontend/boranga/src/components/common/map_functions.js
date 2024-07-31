@@ -8,7 +8,9 @@ import { Style, Fill, Stroke } from 'ol/style';
 import { utils } from '@/utils/hooks';
 import { booleanIntersects } from '@turf/boolean-intersects';
 import { booleanWithin } from '@turf/boolean-within';
-import { polygon, multiPolygon } from '@turf/helpers';
+import { polygon, multiPolygon, featureCollection } from '@turf/helpers';
+import { area } from '@turf/area';
+import { intersect } from '@turf/intersect';
 
 // Tile server url
 // var urlKmi = `${env['gis_server_url']}/geoserver/public/wms/?SERVICE=WMS&VERSION=1.0.0&REQUEST=GetCapabilities`;
@@ -376,13 +378,48 @@ export function intersects(feature1, feature2) {
     }
 }
 
+/**
+ * Determines the area of the intersection between two features.
+ * The feature that likely contains the holes should be the second argument.
+ * @param {Object} feature1 A feature to intersect
+ * @param {Object} feature2 A feature to intersect
+ */
 export function intersectedArea(feature1, feature2) {
-    let area = 0;
+    const coords1 = feature1.getGeometry().getCoordinates();
+    const coords2 = feature2.getGeometry().getCoordinates();
+    const outer = coords2[0];
+    const inner = coords2.slice(1, coords2.length);
 
-    const coords = feature2.getGeometry().getCoordinates();
-    const outer = coords[0];
-    const inner = coords.slice(1, coords.length);
-    console.log('Features intersected', feature2);
+    featureCollection([polygon([outer]), polygon(coords1)]);
+    const outerIntersection = intersect(
+        featureCollection([polygon([outer]), polygon(coords1)])
+    );
+    const innerIntersections = [];
+
+    const outerIntersectionArea = area(outerIntersection);
+
+    if (inner.length > 0) {
+        inner.forEach((hole) => {
+            innerIntersections.push(
+                intersect(
+                    featureCollection([polygon([hole]), polygon(coords1)])
+                )
+            );
+        });
+    }
+
+    // Calculate the area of the intersection
+    const innerIntersectionArea = innerIntersections.reduce(
+        (accumulator, feature) => accumulator + area(feature),
+        0
+    );
+
+    const intersectionArea = outerIntersectionArea - innerIntersectionArea;
+    console.log(
+        `Feature Area: ${outerIntersectionArea}, Intersection Area: ${intersectionArea}`
+    );
+
+    return intersectionArea;
 }
 
 export let owsQuery = {
