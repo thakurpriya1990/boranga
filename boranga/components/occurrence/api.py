@@ -5866,7 +5866,7 @@ class OccurrenceTenureViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin
     )
     def occurrence_tenure_list_of_values(self, request, *args, **kwargs):
         purposes = list(
-            OccurrenceTenurePurpose.objects.all().values("id", "code", "label")
+            OccurrenceTenurePurpose.objects.active().values("id", "code", "label")
         )
         vestings = list(
             OccurrenceTenureVesting.objects.all().values("id", "code", "label")

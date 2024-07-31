@@ -346,7 +346,9 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
 
 
 @admin.register(OccurrenceTenurePurpose)
-class OccurrenceTenurePurposeAdmin(DeleteProtectedModelAdmin):
+class OccurrenceTenurePurposeAdmin(
+    ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     pass
 
 
