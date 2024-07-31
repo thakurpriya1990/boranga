@@ -6,7 +6,7 @@
             <div class="col-md-3">
 
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                    :disable_add_entry="false" />
+                    :disable_add_entry="!meeting_obj.can_add_log" />
 
                 <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name" :lodgement_date="meeting_obj.lodgement_date"

@@ -168,15 +168,16 @@ export default {
                         data: "id",
                         mRender: function (data, type, full) {
                             let links = '';
-                            if (full.visible) {
-                                links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
-                                links += `<a href='#' data-discard-document='${full.id}'>Discard</a><br>`;
-                                links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
+                            if (vm.meeting_obj.can_user_edit) {
+                                if (full.visible) {
+                                    links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
+                                    links += `<a href='#' data-discard-document='${full.id}'>Discard</a><br>`;
+                                }
+                                else {
+                                    links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
+                                }
                             }
-                            else {
-                                links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
-                                links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
-                            }
+                            links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
                             return links;
                         }
                     },

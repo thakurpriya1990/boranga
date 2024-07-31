@@ -65,12 +65,16 @@ from boranga.components.species_and_communities.models import (
     GroupType,
 )
 from boranga.components.users.serializers import SubmitterInformationSerializer
+
 from boranga.helpers import (
+    is_conservation_status_approver,
+    is_conservation_status_assessor,
     is_contributor,
-    is_internal,
     is_new_external_contributor,
-    is_occurrence_approver,
+    is_internal,
+    is_species_communities_approver,
     is_occurrence_assessor,
+    is_occurrence_approver,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 
@@ -112,6 +116,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
         required=False,
     )
     combined_occurrence_id = serializers.SerializerMethodField()
+    can_add_log = serializers.SerializerMethodField()
 
     class Meta:
         model = Occurrence
@@ -123,6 +128,14 @@ class OccurrenceSerializer(serializers.ModelSerializer):
 
     def get_processing_status(self, obj):
         return obj.get_processing_status_display()
+
+    def get_can_add_log(self, obj):
+        request = self.context["request"]
+        return (is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request))
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
@@ -1267,6 +1280,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     can_user_approve = serializers.SerializerMethodField()
     can_user_assess = serializers.SerializerMethodField()
     can_user_action = serializers.SerializerMethodField()
+    can_add_log = serializers.SerializerMethodField()
     current_assessor = serializers.SerializerMethodField(read_only=True)
     approval_details = OccurrenceReportApprovalDetailsSerializer(
         read_only=True, allow_null=True
@@ -1317,6 +1331,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "can_user_assess",
             "can_user_approve",
             "can_user_action",
+            "can_add_log",
             "reference",
             "applicant_details",
             "allowed_assessors",
@@ -1408,6 +1423,14 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             or self.get_can_user_approve(obj)
             or self.get_can_user_change_lock(obj)
         )
+    
+    def get_can_add_log(self, obj):
+        request = self.context["request"]
+        return (is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request))
 
     def get_current_assessor(self, obj):
         user = self.context["request"].user

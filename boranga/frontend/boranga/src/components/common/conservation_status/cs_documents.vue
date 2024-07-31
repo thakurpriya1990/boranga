@@ -200,7 +200,9 @@ export default {
                                 else {
                                     links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
                                 }
-                                links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
+                                if (vm.is_internal) {
+                                    links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
+                                }
                             }
                             return links;
                         }

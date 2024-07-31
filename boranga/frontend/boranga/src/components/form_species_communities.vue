@@ -95,7 +95,6 @@ export default {
             type: Boolean,
             default: false
         },
-        // this prop is only send from split species form to make the original species readonly
         is_readonly: {
             type: Boolean,
             default: false
