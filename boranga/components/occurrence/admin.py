@@ -355,7 +355,7 @@ class OccurrenceTenureVestingAdmin(admin.ModelAdmin):
     pass
 
 
-class PermitTypeAdmin(DeleteProtectedModelAdmin):
+class PermitTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ("group_type", "name")
     list_filter = ("group_type",)
 

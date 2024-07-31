@@ -1332,7 +1332,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         permit_type_list = []
-        values = PermitType.objects.filter(group_type__name=group_type)
+        values = PermitType.objects.active().filter(group_type__name=group_type)
         if values:
             for val in values:
                 permit_type_list.append(
@@ -5233,7 +5233,7 @@ class OccurrenceViewSet(
                     }
                 )
         permit_type_list = []
-        values = PermitType.objects.filter(group_type__name=group_type)
+        values = PermitType.objects.active().filter(group_type__name=group_type)
         if values:
             for val in values:
                 permit_type_list.append(

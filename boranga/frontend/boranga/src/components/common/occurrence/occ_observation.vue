@@ -111,12 +111,25 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Permit Type:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select"
+                    <template v-if="!isReadOnly">
+                        <template
+                            v-if="permit_type_list && permit_type_list.length > 0 && occurrence_obj.identification.permit_type_id && !permit_type_list.map((d) => d.id).includes(occurrence_obj.identification.permit_type_id)">
+                            <input type="text" v-if="occurrence_obj.identification.permit_type" class="form-control mb-3"
+                                :value="occurrence_obj.identification.permit_type + ' (Now Archived)'" disabled />
+                            <div class="mb-3 text-muted">
+                                Change permit type to:
+                            </div>
+                        </template>
+                        <select :disabled="isReadOnly" class="form-select"
                         v-model="occurrence_obj.identification.permit_type_id">
                         <option v-for="option in permit_type_list" :value="option.id" v-bind:key="option.id">
                             {{ option.name }}
                         </option>
                     </select>
+                    </template>
+                    <template v-else>
+                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="siteObj.identification.permit_type" />
+                    </template>
                 </div>
             </div>
             <div class="row mb-3">

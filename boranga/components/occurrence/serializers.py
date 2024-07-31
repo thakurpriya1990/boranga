@@ -651,6 +651,9 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
 
 
 class OCRIdentificationSerializer(serializers.ModelSerializer):
+    permit_type = serializers.CharField(
+        source="permit_type.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCRIdentification
@@ -662,6 +665,7 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
             "sample_type_id",
             "sample_destination_id",
             "permit_type_id",
+            "permit_type",
             "permit_id",
             "collector_number",
             "barcode_number",
@@ -2722,7 +2726,9 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
 
 
 class OCCIdentificationSerializer(serializers.ModelSerializer):
-
+    permit_type = serializers.CharField(
+        source="permit_type.name", read_only=True, allow_null=True
+    )
     copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
@@ -2736,6 +2742,7 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
             "sample_type_id",
             "sample_destination_id",
             "permit_type_id",
+            "permit_type",
             "permit_id",
             "collector_number",
             "barcode_number",
