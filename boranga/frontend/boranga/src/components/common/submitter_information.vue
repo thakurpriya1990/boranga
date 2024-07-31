@@ -7,13 +7,26 @@
                         <label for="submitter_category" class="col-sm-2 col-form-label fw-bold">Category <span
                                 class="text-danger">*</span></label>
                         <div class="col-sm-6">
-                            <select class="form-select" id="submitter_category" ref="submitter_category"
-                                v-model="submitter_information.submitter_category" required>
-                                <option :value="null" disabled>Please select a submitter category</option>
-                                <option v-for="submitter_category in submitter_categories"
-                                    :value="submitter_category.id">{{
-                                        submitter_category.name }}</option>
-                            </select>
+                            <template v-if="!disabled">
+                                <template
+                                    v-if="submitter_categories && submitter_categories.length > 0 && submitter_information.submitter_category && !submitter_categories.map((d) => d.id).includes(submitter_information.submitter_category)">
+                                    <input type="text" v-if="submitter_information.submitter_category_name" class="form-control mb-3"
+                                        :value="submitter_information.submitter_category_name + ' (Now Archived)'" disabled />
+                                    <div class="mb-3 text-muted">
+                                        Change submitter category to:
+                                    </div>
+                                </template>
+                                <select class="form-select" id="submitter_category" ref="submitter_category" v-model="submitter_information.submitter_category">
+                                    <option :value="null" disabled>Please select a submitter category</option>
+                                    <option v-for="submitter_category in submitter_categories" :value="submitter_category.id" v-bind:key="submitter_category.id">
+                                        {{ submitter_category.name }}
+                                    </option>
+                                </select>
+                            </template>
+                            <template v-else>
+                                <input class="form-control" type="text" :disabled="disabled"
+                                    v-model="submitter_information.submitter_category_name" />
+                            </template>
                         </div>
                     </div>
                     <div class="row mb-3">

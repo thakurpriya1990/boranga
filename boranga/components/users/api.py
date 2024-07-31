@@ -82,7 +82,7 @@ class GetSubmitterCategories(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        qs = SubmitterCategory.objects.all()
+        qs = SubmitterCategory.objects.active()
         if is_internal(request) or is_internal_contributor(request):
             qs = qs.filter(visible_to=SubmitterCategory.USER_TYPE_CHOICE_INTERNAL)
         else:
