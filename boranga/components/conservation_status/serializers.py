@@ -522,6 +522,21 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField(read_only=True)
     group_type_id = serializers.SerializerMethodField(read_only=True)
     is_submitter = serializers.SerializerMethodField(read_only=True)
+    wa_legislative_list = serializers.CharField(
+        source="wa_legislative_list.code", read_only=True, allow_null=True
+    )
+    wa_legislative_category = serializers.CharField(
+        source="wa_legislative_category.code", read_only=True, allow_null=True
+    )
+    wa_priority_list = serializers.CharField(
+        source="wa_priority_list.code", read_only=True, allow_null=True
+    )
+    wa_priority_category = serializers.CharField(
+        source="wa_priority_category.code", read_only=True, allow_null=True
+    )
+    commonwealth_conservation_list = serializers.CharField(
+        source="commonwealth_conservation_list.code", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = ConservationStatus
@@ -534,10 +549,15 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "community_id",
             "conservation_status_number",
             "wa_legislative_list_id",
+            "wa_legislative_list",
             "wa_legislative_category_id",
+            "wa_legislative_category",
             "wa_priority_list_id",
+            "wa_priority_list",
             "wa_priority_category_id",
+            "wa_priority_category",
             "commonwealth_conservation_list_id",
+            "commonwealth_conservation_list",
             "international_conservation",
             "conservation_criteria",
             "recommended_wa_legislative_list_id",
