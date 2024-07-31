@@ -1646,7 +1646,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         # Create a log entry for the user
         request.user.log_user_action(
             ConservationStatusUserAction.ACTION_PROPOSE_DELIST_PROPOSAL.format(
-                self.conservation_status_number,
+                self.conservation_status_number, reason
             ),
             request,
         )
