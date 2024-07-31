@@ -14,22 +14,28 @@
                                         <label class="control-label pull-left">Category</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <template
-                                            v-if="threat_category_list && threat_category_list.length > 0 && threatObj.threat_category_id && !threat_category_list.map((d) => d.id).includes(threatObj.threat_category_id)">
-                                            <input type="text" v-if="threatObj.threat_category"
-                                                class="form-control mb-3"
-                                                :value="threatObj.threat_category + ' (Now Archived)'" disabled />
-                                            <div class="mb-3 text-muted">
-                                                Change threat category to:
-                                            </div>
+                                        <template v-if="!isReadOnly">
+                                            <template
+                                                v-if="threat_category_list && threat_category_list.length > 0 && threatObj.threat_category_id && !threat_category_list.map((d) => d.id).includes(threatObj.threat_category_id)">
+                                                <input type="text" v-if="threatObj.threat_category"
+                                                    class="form-control mb-3"
+                                                    :value="threatObj.threat_category + ' (Now Archived)'" disabled />
+                                                <div class="mb-3 text-muted">
+                                                    Change threat category to:
+                                                </div>
+                                            </template>
+                                            <select class="form-select"
+                                                v-model="threatObj.threat_category_id">
+                                                <option v-for="category in threat_category_list" :value="category.id"
+                                                    v-bind:key="category.id">
+                                                    {{ category.name }}
+                                                </option>
+                                            </select>
                                         </template>
-                                        <select :disabled="isReadOnly" class="form-select"
-                                            v-model="threatObj.threat_category_id">
-                                            <option v-for="category in threat_category_list" :value="category.id"
-                                                v-bind:key="category.id">
-                                                {{ category.name }}
-                                            </option>
-                                        </select>
+                                        <template v-else>
+                                            <input type="text" class="form-control" readonly
+                                                v-model="threatObj.threat_category" />
+                                        </template>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -37,21 +43,28 @@
                                         <label class="control-label pull-left">Threat Agent</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <template
-                                            v-if="threat_agent_list && threat_agent_list.length > 0 && threatObj.threat_agent_id && !threat_agent_list.map((d) => d.id).includes(threatObj.threat_agent_id)">
-                                            <input type="text" v-if="threatObj.threat_agent" class="form-control mb-3"
-                                                :value="threatObj.threat_agent + ' (Now Archived)'" disabled />
-                                            <div class="mb-3 text-muted">
-                                                Change threat agent to:
-                                            </div>
+                                        <template v-if="!isReadOnly">
+                                            <template
+                                                v-if="threat_agent_list && threat_agent_list.length > 0 && threatObj.threat_agent_id && !threat_agent_list.map((d) => d.id).includes(threatObj.threat_agent_id)">
+                                                <input type="text" v-if="threatObj.threat_agent"
+                                                    class="form-control mb-3"
+                                                    :value="threatObj.threat_agent + ' (Now Archived)'" disabled />
+                                                <div class="mb-3 text-muted">
+                                                    Change threat agent to:
+                                                </div>
+                                            </template>
+                                            <select class="form-select"
+                                                v-model="threatObj.threat_agent_id">
+                                                <option v-for="agent in threat_agent_list" :value="agent.id"
+                                                    v-bind:key="agent.id">
+                                                    {{ agent.name }}
+                                                </option>
+                                            </select>
                                         </template>
-                                        <select :disabled="isReadOnly" class="form-select"
-                                            v-model="threatObj.threat_agent_id">
-                                            <option v-for="agent in threat_agent_list" :value="agent.id"
-                                                v-bind:key="agent.id">
-                                                {{ agent.name }}
-                                            </option>
-                                        </select>
+                                        <template v-else>
+                                            <input type="text" class="form-control" readonly
+                                                v-model="threatObj.threat_agent" />
+                                        </template>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
