@@ -716,6 +716,6 @@ class CommitteeViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def committee_members(self, request, *args, **kwargs):
         instance = self.get_object()
-        qs = instance.committeemembers_set.all()
+        qs = instance.committeemembers_set.order_by("archived")
         serializer = CommitteeMembersSerializer(qs, many=True)
         return Response(serializer.data)
