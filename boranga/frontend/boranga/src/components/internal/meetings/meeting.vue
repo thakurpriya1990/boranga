@@ -25,7 +25,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div  class="card-body border-top">
+                        <div class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12">
                                     <div class="col-sm-12 top-buffer-s">
@@ -34,7 +34,7 @@
                                                 <strong>Action</strong><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="userCanSchedule" >
+                                        <div class="row" v-if="userCanSchedule">
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="scheduleMeeting()">Schedule</button><br />
@@ -45,13 +45,13 @@
                                                     @click.prevent="discardMeeting()">Discard</button><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="userCanComplete" >
+                                        <div class="row" v-if="userCanComplete">
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="completeMeeting()">Complete</button><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="userCanReinstate" >
+                                        <div class="row" v-if="userCanReinstate">
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="reinstateMeeting()">Reinstate</button><br />
@@ -87,15 +87,17 @@
                                             <div class="container">
                                                 <div class="col-md-6" style="margin-top:5px">
                                                     <div class="col-md-6">
-                                                    <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
-                                                    @click.prevent="returnToDashboard">
-                                                        Return to Dashboard</button>
-                                                </div>
+                                                        <button class="btn btn-primary me-2 pull-left"
+                                                            style="margin-top:5px;" @click.prevent="returnToDashboard">
+                                                            Return to Dashboard</button>
+                                                    </div>
                                                 </div>
                                                 <div v-if="meeting_obj.can_user_edit" class="col-md-6 text-end">
                                                     <button v-if="savingMeeting" class="btn btn-primary me-2 pull-right"
-                                                        style="margin-top:5px;" disabled>Save and Continue&nbsp;
-                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                        style="margin-top:5px;" disabled>Save and Continue <span
+                                                            class="spinner-border spinner-border-sm" role="status"
+                                                            aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary me-2 pull-right"
                                                         style="margin-top:5px;" @click.prevent="save()"
                                                         :disabled="saveExitMeeting || submitMeeting">Save and
@@ -103,8 +105,10 @@
 
                                                     <button v-if="saveExitMeeting"
                                                         class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
-                                                        disabled>Save and Exit&nbsp;
-                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                        disabled>Save and Exit <span
+                                                            class="spinner-border spinner-border-sm" role="status"
+                                                            aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary me-2 pull-right"
                                                         style="margin-top:5px;" @click.prevent="save_exit()"
                                                         :disabled="savingMeeting || submitMeeting">Save and
@@ -112,8 +116,10 @@
                                                 </div>
                                                 <div v-else-if="userCanEdit" class="col-md-6 text-end">
                                                     <button v-if="savingMeeting" class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" disabled>Save Changes&nbsp;
-                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                        style="margin-top:5px;" disabled>Save Changes <span
+                                                            class="spinner-border spinner-border-sm" role="status"
+                                                            aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary pull-right"
                                                         style="margin-top:5px;" @click.prevent="save_exit()">Save
                                                         Changes</button>
@@ -366,7 +372,7 @@ export default {
                     blank_fields.push('Please select at least two committee members who will be attending');
                 }
             }
-            if(vm.$refs.cs_queue.$refs.cs_queue_datatable.vmDataTable.rows().count()==0){
+            if (vm.$refs.cs_queue.$refs.cs_queue_datatable.vmDataTable.rows().count() == 0) {
                 blank_fields.push(' Please add at least one Agenda record')
             }
             if (vm.meeting_obj.location_id == null || vm.meeting_obj.location_id == '') {
@@ -381,7 +387,7 @@ export default {
             //to count if records exists in the minutes table
             vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count()
         },
-        isFutureMeeting: function (){
+        isFutureMeeting: function () {
             let vm = this;
             const meeting_date = new Date(vm.meeting_obj.end_date);
             const now = new Date();
@@ -393,10 +399,10 @@ export default {
             let blank_fields = []
 
 
-            if(vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count()==0){
+            if (vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count() == 0) {
                 blank_fields.push(' Please add at least one Minutes record')
             }
-            if(vm.isFutureMeeting()){
+            if (vm.isFutureMeeting()) {
                 blank_fields.push('You cannot Complete the meeting before the End Date/Time')
             }
             if (blank_fields.length == 0) {
@@ -543,38 +549,38 @@ export default {
         },
         discardMeeting: function () {
             let vm = this;
-            if(vm.userCanSchedule){
+            if (vm.userCanSchedule) {
                 swal.fire({
-                title: "Discard Meeting",
-                text: "Are you sure you want to discard this meeting?",
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonText: 'Discard Meeting',
-                customClass: {
-                    confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary'
-                },
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_meeting(vm.meeting_obj.id))
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Discarded',
-                                text: 'Your meeting has been discarded',
-                                icon: 'success',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },
+                    title: "Discard Meeting",
+                    text: "Are you sure you want to discard this meeting?",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: 'Discard Meeting',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary'
+                    },
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        vm.$http.patch(api_endpoints.discard_meeting(vm.meeting_obj.id))
+                            .then((response) => {
+                                swal.fire({
+                                    title: 'Discarded',
+                                    text: 'Your meeting has been discarded',
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                vm.meeting_obj = response.body;
+                            }, (error) => {
+                                console.log(error);
                             });
-                            vm.meeting_obj = response.body;
-                        }, (error) => {
-                            console.log(error);
-                        });
-                }
-            });
+                    }
+                });
             }
-            else{
+            else {
                 swal.fire({
                     title: "You do not have access to discard this meeting",
                     text: "",
@@ -588,38 +594,38 @@ export default {
         },
         reinstateMeeting: function () {
             let vm = this;
-            if(vm.userCanReinstate){
-            swal.fire({
-                title: "Reinstate Meeting",
-                text: "Are you sure you want to reinstate this meeting?",
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonText: 'Reinstate Meeting',
-                customClass: {
-                    confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary'
-                },
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.reinstate_meeting(vm.meeting_obj.id))
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Reinstated',
-                                text: 'Your meeting has been reinstated',
-                                icon: 'success',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },
+            if (vm.userCanReinstate) {
+                swal.fire({
+                    title: "Reinstate Meeting",
+                    text: "Are you sure you want to reinstate this meeting?",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: 'Reinstate Meeting',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary'
+                    },
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        vm.$http.patch(api_endpoints.reinstate_meeting(vm.meeting_obj.id))
+                            .then((response) => {
+                                swal.fire({
+                                    title: 'Reinstated',
+                                    text: 'Your meeting has been reinstated',
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                vm.meeting_obj = response.body;
+                            }, (error) => {
+                                console.log(error);
                             });
-                            vm.meeting_obj = response.body;
-                        }, (error) => {
-                            console.log(error);
-                        });
-                }
-            });
+                    }
+                });
             }
-            else{
+            else {
                 swal.fire({
                     title: "You do not have access to reinstate this meeting",
                     text: "",
@@ -699,11 +705,11 @@ export default {
         if (!this.meeting_obj) {
             Vue.http.get(`/api/meeting/${vm.$route.params.meeting_id}/internal_meeting.json`).then(res => {
                 vm.meeting_obj = res.body;
-                if(vm.meeting_obj.start_date==null){
-                    vm.meeting_obj.start_date=vm.$refs.meeting.start_date;
+                if (vm.meeting_obj.start_date == null) {
+                    vm.meeting_obj.start_date = vm.$refs.meeting.start_date;
                 }
-                if(vm.meeting_obj.end_date==null){
-                    vm.meeting_obj.end_date=vm.$refs.meeting.end_date;
+                if (vm.meeting_obj.end_date == null) {
+                    vm.meeting_obj.end_date = vm.$refs.meeting.end_date;
                 }
             },
                 err => {

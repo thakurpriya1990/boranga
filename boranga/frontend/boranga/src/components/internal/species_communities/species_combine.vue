@@ -59,7 +59,8 @@
             <div slot="footer">
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
                 <button v-if="submitSpeciesCombine" class="btn btn-primary pull-right" style="margin-top:5px;"
-                    disabled>Submit&nbsp;<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                    disabled>Submit <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="visually-hidden">Loading...</span></button>
                 <button v-else class="btn btn-primary" @click.prevent="ok()" :disabled="submitSpeciesCombine">Combine
                     Species</button>
             </div>

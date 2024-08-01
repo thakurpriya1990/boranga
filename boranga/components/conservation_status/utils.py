@@ -6,8 +6,8 @@ from django.db import transaction
 from django.utils import timezone
 
 from boranga.components.conservation_status.email import (
-    send_external_submit_email_notification,
     send_submit_email_notification,
+    send_submitter_submit_email_notification,
 )
 from boranga.components.conservation_status.models import (
     ConservationStatus,
@@ -44,7 +44,7 @@ def cs_proposal_submit(cs_proposal, request):
     )
 
     ret1 = send_submit_email_notification(request, cs_proposal)
-    ret2 = send_external_submit_email_notification(request, cs_proposal)
+    ret2 = send_submitter_submit_email_notification(request, cs_proposal)
 
     if (settings.WORKING_FROM_HOME and settings.DEBUG) or ret1 and ret2:
         cs_proposal.processing_status = (

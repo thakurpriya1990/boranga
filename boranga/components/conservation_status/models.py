@@ -1311,7 +1311,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         )
 
         send_conservation_status_decline_email_notification(
-            self, request, conservation_status_decline
+            self, conservation_status_decline
         )
 
     @transaction.atomic
@@ -1515,7 +1515,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             )
 
         # send Proposal approval email with attachment
-        send_conservation_status_approval_email_notification(self, request)
+        send_conservation_status_approval_email_notification(self)
 
         self.save()
         self.documents.all().update(can_delete=False)

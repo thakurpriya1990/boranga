@@ -65,22 +65,25 @@
                                         class="col-md-6 text-end" style="margin-top:5px">
                                         <button v-if="savingOCRProposal" type="button" class="btn btn-primary me-2"
                                             disabled>Save
-                                            and Continue&nbsp;
-                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            and Continue <span class="spinner-border spinner-border-sm" role="status"
+                                                aria-hidden="true"></span>
+                                            <span class="visually-hidden">Loading...</span></button>
                                         <input v-else type="button" @click.prevent="save" class="btn btn-primary me-2"
                                             value="Save and Continue" :disabled="saveExitOCRProposal || submitting" />
 
                                         <button v-if="saveExitOCRProposal" type="button" class="btn btn-primary me-2"
                                             disabled>Save
-                                            and Exit&nbsp;
-                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            and Exit <span class="spinner-border spinner-border-sm" role="status"
+                                                aria-hidden="true"></span>
+                                            <span class="visually-hidden">Loading...</span></button>
                                         <input v-else type="button" @click.prevent="save_exit"
                                             class="btn btn-primary me-2" value="Save and Exit"
                                             :disabled="savingOCRProposal || submitting" />
 
                                         <button v-if="submitting" type="button" class="btn btn-primary" disabled>{{
-                                            submit_text() }}&nbsp;
-                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            submit_text() }} <span class="spinner-border spinner-border-sm"
+                                                role="status" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Loading...</span></button>
                                         <input v-else type="button" @click.prevent="submit" class="btn btn-primary"
                                             :value="submit_text()"
                                             :disabled="saveExitOCRProposal || savingOCRProposal" />
@@ -488,10 +491,10 @@ export default {
                     blank_fields.push(' Please enter the location description')
                 }
                 let ocr_geometry = vm.occurrence_report_obj.ocr_geometry;
-                if(typeof ocr_geometry == 'string'){
+                if (typeof ocr_geometry == 'string') {
                     ocr_geometry = JSON.parse(ocr_geometry)
                 }
-                if(!Array.isArray(ocr_geometry.features) || ocr_geometry.features.length == 0){
+                if (!Array.isArray(ocr_geometry.features) || ocr_geometry.features.length == 0) {
                     blank_fields.push(' Please add at least one location on the map')
 
                 }

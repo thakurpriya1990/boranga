@@ -69,7 +69,9 @@ GROUP_NAME_CHOICES = [
 ]
 
 INTERNAL_GROUPS = [
-    g for g in GROUP_NAME_CHOICES if g != GROUP_NAME_EXTERNAL_CONTRIBUTOR and g != GROUP_NAME_INTERNAL_CONTRIBUTOR
+    g
+    for g in GROUP_NAME_CHOICES
+    if g != GROUP_NAME_EXTERNAL_CONTRIBUTOR and g != GROUP_NAME_INTERNAL_CONTRIBUTOR
 ]
 
 if env("CONSOLE_EMAIL_BACKEND", False):
@@ -123,7 +125,6 @@ INSTALLED_APPS += [
 
 ADD_REVERSION_ADMIN = True
 
-# maximum number of days allowed for a booking
 WSGI_APPLICATION = "boranga.wsgi.application"
 
 if DEBUG:
@@ -144,8 +145,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
-    'PAGE_SIZE': 100,
+    "DEFAULT_PAGINATION_CLASS": "rest_framework_datatables.pagination.DatatablesPageNumberPagination",
+    "PAGE_SIZE": 100,
 }
 
 MIDDLEWARE_CLASSES += [
@@ -216,24 +217,10 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "no-reply@" + SITE_DOMAIN).lower(
 MEDIA_APP_DIR = env("MEDIA_APP_DIR", "boranga")
 CRON_RUN_AT_TIMES = env("CRON_RUN_AT_TIMES", "04:05")
 CRON_EMAIL = env("CRON_EMAIL", "cron@" + SITE_DOMAIN).lower()
-# for ORACLE Job Notification - override settings_base.py
 EMAIL_FROM = DEFAULT_FROM_EMAIL
-OTHER_PAYMENT_ALLOWED = env("OTHER_PAYMENT_ALLOWED", False)  # Cash/Cheque
-
-OSCAR_BASKET_COOKIE_OPEN = "boranga_basket"
-PAYMENT_SYSTEM_ID = env("PAYMENT_SYSTEM_ID", "S677")
-PAYMENT_SYSTEM_PREFIX = env(
-    "PAYMENT_SYSTEM_PREFIX", PAYMENT_SYSTEM_ID.replace("S", "0")
-)  # '0557'
-os.environ["LEDGER_PRODUCT_CUSTOM_FIELDS"] = (
-    "('ledger_description','quantity','price_incl_tax','price_excl_tax','oracle_code')"
-)
 CRON_NOTIFICATION_EMAIL = ""
 if NOTIFICATION_EMAIL:
     CRON_NOTIFICATION_EMAIL = env("CRON_NOTIFICATION_EMAIL", NOTIFICATION_EMAIL).lower()
-
-if not VALID_SYSTEMS:
-    VALID_SYSTEMS = [PAYMENT_SYSTEM_ID]
 
 CRON_CLASSES = [
     "appmonitor_client.cron.CronJobAppMonitorClient",
@@ -255,18 +242,6 @@ CKEDITOR_CONFIGS = {
 }
 
 # Additional logging for boranga
-LOGGING["handlers"]["payment_checkout"] = {
-    "level": "INFO",
-    "class": "logging.handlers.RotatingFileHandler",
-    "filename": os.path.join(BASE_DIR, "logs", "boranga_payment_checkout.log"),
-    "formatter": "verbose",
-    "maxBytes": 5242880,
-}
-LOGGING["loggers"]["payment_checkout"] = {
-    "handlers": ["payment_checkout"],
-    "level": "INFO",
-}
-
 LOGGING["loggers"]["boranga"] = {"handlers": ["file"], "level": "INFO"}
 if DEBUG:
     LOGGING["loggers"]["boranga"] = {

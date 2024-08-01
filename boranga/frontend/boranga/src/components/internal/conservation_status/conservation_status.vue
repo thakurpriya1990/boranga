@@ -71,8 +71,8 @@
                                         <template v-else>
                                             <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled
                                                 class="actionBtn text-primary float-end">
-                                                Sending Referral&nbsp;
-                                                <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                                Sending Referral <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Loading...</span>
                                             </span>
                                         </template>
                                     </div>
@@ -369,8 +369,8 @@
                                                 <div v-if="conservation_status_obj.internal_user_edit"
                                                     class="col-md-6 text-end">
                                                     <button v-if="savingConservationStatus" class="btn btn-primary me-2"
-                                                        style="margin-top:5px;" disabled>Save and Continue&nbsp;
-                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                        style="margin-top:5px;" disabled>Save and Continue <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
                                                         @click.prevent="save()"
                                                         :disabled="saveExitConservationStatus || submitConservationStatus">Save
@@ -378,24 +378,24 @@
 
                                                     <button v-if="saveExitConservationStatus"
                                                         class="btn btn-primary me-2" style="margin-top:5px;"
-                                                        disabled>Save and Exit&nbsp;
-                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                        disabled>Save and Exit <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
                                                         @click.prevent="save_exit()"
                                                         :disabled="savingConservationStatus || submitConservationStatus">Save
                                                         and Exit</button>
 
                                                     <button v-if="submitConservationStatus" class="btn btn-primary"
-                                                        style="margin-top:5px;" disabled>Submit&nbsp;
-                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                        style="margin-top:5px;" disabled>Submit <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary" style="margin-top:5px;"
                                                         @click.prevent="submit()"
                                                         :disbaled="saveExitConservationStatus || savingConservationStatus">Submit</button>
                                                 </div>
                                                 <div v-else-if="hasAssessorMode" class="col-md-6 text-end">
                                                     <button v-if="savingConservationStatus" class="btn btn-primary"
-                                                        style="margin-top:5px;" disabled>Save Changes&nbsp;
-                                                        <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                                        style="margin-top:5px;" disabled>Save Changes <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary" style="margin-top:5px;"
                                                         @click.prevent="save()">Save
                                                         Changes</button>

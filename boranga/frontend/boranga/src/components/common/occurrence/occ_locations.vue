@@ -235,7 +235,8 @@
                         Update
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        <i class="fa fa-spin fa-spinner"></i>&nbsp;Updating
+                        Updating <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="visually-hidden">Loading...</span>
                     </button>
                 </div>
             </div>
