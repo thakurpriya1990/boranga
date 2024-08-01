@@ -870,7 +870,7 @@ export default {
         validateFeature: function (feature) {
             // Validate the feature
             console.log('Validating feature:', feature);
-            if (this.plausibilityGeometryFeatures) {
+            if (this.plausibilityGeometryFeatures.length > 0) {
                 this.$refs.component_map.setLoadingMap(true);
                 this.plausibilityCheckFeature(feature).then(async (areas) => {
                     let warning = false;
