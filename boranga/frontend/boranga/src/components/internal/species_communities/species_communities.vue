@@ -27,14 +27,14 @@
                                             <div class="align-self-center text-muted">No Image Uploaded</div>
                                         </div>
                                     </div>
-                                    <div v-if="hasUserEditMode" class="row border-top pt-3 mb-2">
+                                    <div v-if="hasUserEditMode && species_community.processing_status != 'Discarded'" class="row border-top pt-3 mb-2">
                                         <div class="col">
                                             <div class="d-flex justify-content-center">
                                                 <div class="text-muted">Image Actions</div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div v-if="hasUserEditMode" class="row">
+                                    <div v-if="hasUserEditMode && species_community.processing_status != 'Discarded'" class="row">
                                         <div class="col">
                                             <div class="d-flex align-items-center flex-column">
                                                 <label v-if="!speciesCommunitiesImage" for="image-upload" role="button"
@@ -105,7 +105,7 @@
                                                 <strong>Action</strong><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="!isCommunity">
+                                        <div class="row" v-if="!isCommunity && isActive">
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="splitSpecies()">Split</button><br />
@@ -179,7 +179,7 @@
                                         :species_community="species_community"
                                         :species_community_original="species_community_original"
                                         id="speciesCommunityStart" :is_internal="true"
-                                        :is_readonly="species_community.readonly">
+                                        :is_readonly="species_community.readonly || species_community.processing_status == 'Discarded'">
                                     </ProposalSpeciesCommunities>
                                     <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
                                     <input type='hidden' name="species_community_id" :value="1" />
@@ -191,7 +191,7 @@
                                                         style="margin-top:5px;" @click.prevent="returnToDashboard">
                                                         Return to Dashboard</button>
                                                 </div>
-                                                <div v-if="species_community.can_user_edit" class="col-md-6 text-end">
+                                                <div v-if="species_community.can_user_edit && species_community.processing_status != 'Discarded'" class="col-md-6 text-end">
                                                     <button v-if="savingSpeciesCommunity"
                                                         class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
                                                         disabled>Save and Continue <span class="spinner-border spinner-border-sm" role="status"
@@ -221,7 +221,7 @@
                                                         style="margin-top:5px;" @click.prevent="submit()"
                                                         :disabled="saveExitSpeciesCommunity || savingSpeciesCommunity">Submit</button>
                                                 </div>
-                                                <div v-else-if="hasUserEditMode" class="col-md-6 text-end">
+                                                <div v-else-if="hasUserEditMode && species_community.processing_status != 'Discarded'" class="col-md-6 text-end">
                                                     <button v-if="savingSpeciesCommunity"
                                                         class="btn btn-primary pull-right" style="margin-top:5px;"
                                                         disabled>Save Changes <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -362,13 +362,7 @@ export default {
             return true
         },
         hasUserEditMode: function () {
-            // Need to check for approved status as to show 'Save changes' button only when edit and not while view
-            if (this.$route.query.action == 'edit') {
-                return this.species_community && this.species_community.user_edit_mode ? true : false;
-            }
-            else {
-                return false;
-            }
+            return this.species_community && this.species_community.user_edit_mode ? true : false;
         },
         canReopen: function () {
             return (this.species_community && this.species_community.can_user_reopen) ? true : false;
