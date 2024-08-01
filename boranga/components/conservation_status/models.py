@@ -174,7 +174,9 @@ class WAPriorityCategory(AbstractConservationCategory):
 
     @classmethod
     def get_categories_dict(
-        cls: models.base.ModelBase, group_type: str | int | None
+        cls: models.base.ModelBase,
+        group_type: str | int | None,
+        active_only: bool = True,
     ) -> list:
         try:
             if group_type and isinstance(group_type, int):
@@ -185,7 +187,13 @@ class WAPriorityCategory(AbstractConservationCategory):
             logger.warning(f"GroupType {group_type} does not exist")
             return []
         wa_priority_categories = []
-        wa_priority_categories_qs = WAPriorityCategory.objects.only(
+
+        wa_priority_categories_qs = cls.objects.all()
+
+        if active_only:
+            wa_priority_categories_qs = cls.objects.active()
+
+        wa_priority_categories_qs = wa_priority_categories_qs.only(
             "id", "code", "label"
         )
         if group_type and group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
@@ -237,7 +245,9 @@ class WALegislativeCategory(AbstractConservationCategory):
 
     @classmethod
     def get_categories_dict(
-        cls: models.base.ModelBase, group_type: str | int | None
+        cls: models.base.ModelBase,
+        group_type: str | int | None,
+        active_only: bool = True,
     ) -> list:
         try:
             if group_type and isinstance(group_type, int):
@@ -248,7 +258,13 @@ class WALegislativeCategory(AbstractConservationCategory):
             logger.warning(f"GroupType {group_type} does not exist")
             return []
         wa_legislative_categories = []
-        wa_legislative_categories_qs = WALegislativeCategory.objects.only(
+
+        wa_legislative_categories_qs = cls.objects.all()
+
+        if active_only:
+            wa_legislative_categories_qs = cls.objects.active()
+
+        wa_legislative_categories_qs = wa_legislative_categories_qs.only(
             "id", "code", "label"
         )
         if group_type and group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
