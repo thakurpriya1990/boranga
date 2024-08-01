@@ -5,10 +5,6 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
-from boranga.components.conservation_status.models import (
-    ConservationStatus,
-    ConservationStatusUserAction,
-)
 from boranga.components.species_and_communities.email import (
     send_community_create_email_notification,
     send_species_create_email_notification,
@@ -106,77 +102,24 @@ def community_form_submit(community_instance, request):
 
 @transaction.atomic
 def combine_species_original_submit(species_instance, request):
-    if species_instance.processing_status == "active":
-        species_instance.processing_status = "historical"
-        species_instance.save()
-
-        # change current active conservation status of the original species to inactive
-        try:
-            if species_instance.processing_status == "historical":
-                species_cons_status = ConservationStatus.objects.get(
-                    species=species_instance, processing_status="approved"
-                )
-                if species_cons_status:
-                    species_cons_status.customer_status = "closed"
-                    species_cons_status.processing_status = "closed"
-                    species_cons_status.save()
-                    # add the log_user_action
-                    species_cons_status.log_user_action(
-                        ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
-                            species_cons_status.conservation_status_number
-                        ),
-                        request,
-                    )
-                    request.user.log_user_action(
-                        ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
-                            species_cons_status.conservation_status_number
-                        ),
-                        request,
-                    )
-        except ConservationStatus.DoesNotExist:
-            pass
-
-        return species_instance
-
-    else:
+    if species_instance.processing_status != Species.PROCESSING_STATUS_ACTIVE:
         raise ValidationError("You can't submit this species at this moment")
+
+    species_instance.processing_status = Species.PROCESSING_STATUS_HISTORICAL
+    species_instance.save(version_user=request.user)
+
+    return species_instance
 
 
 @transaction.atomic
 def rename_species_original_submit(species_instance, new_species, request):
-    if species_instance.processing_status == "active":
-        species_instance.processing_status = "historical"
-        species_instance.save(version_user=request.user)
-        #  send the rename species email notification
-        send_species_rename_email_notification(request, species_instance, new_species)
-
-        # change current active conservation status of the original species to inactive
-        try:
-            if species_instance.processing_status == "historical":
-                species_cons_status = ConservationStatus.objects.get(
-                    species=species_instance, processing_status="approved"
-                )
-                if species_cons_status:
-                    species_cons_status.customer_status = "closed"
-                    species_cons_status.processing_status = "closed"
-                    species_cons_status.save(version_user=request.user)
-                    # add the log_user_action
-                    species_cons_status.log_user_action(
-                        ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
-                            species_cons_status.conservation_status_number
-                        ),
-                        request,
-                    )
-                    request.user.log_user_action(
-                        ConservationStatusUserAction.ACTION_CLOSE_CONSERVATIONSTATUS.format(
-                            species_cons_status.conservation_status_number
-                        ),
-                        request,
-                    )
-        except ConservationStatus.DoesNotExist:
-            pass
-
-        return species_instance
-
-    else:
+    if species_instance.processing_status != Species.PROCESSING_STATUS_ACTIVE:
         raise ValidationError("You can't submit this species at this moment")
+
+    species_instance.processing_status = Species.PROCESSING_STATUS_HISTORICAL
+    species_instance.save(version_user=request.user)
+
+    # send the rename species email notification
+    send_species_rename_email_notification(request, species_instance, new_species)
+
+    return species_instance
