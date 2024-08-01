@@ -159,16 +159,20 @@ class GetCSProfileDict(views.APIView):
         group_type = request.GET.get("group_type", "")
 
         res_json = {
-            "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
-            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
-                group_type
+            "wa_priority_lists": WAPriorityList.get_lists_dict(
+                group_type, active_only=True
             ),
-            "wa_legislative_lists": WALegislativeList.get_lists_dict(group_type),
+            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
+                group_type, active_only=True
+            ),
+            "wa_legislative_lists": WALegislativeList.get_lists_dict(
+                group_type, active_only=True
+            ),
             "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
-                group_type
+                group_type, active_only=True
             ),
             "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
-                group_type
+                group_type, active_only=True
             ),
             "change_codes": ConservationChangeCode.get_filter_list(),
             "active_change_codes": ConservationChangeCode.get_active_filter_list(),
