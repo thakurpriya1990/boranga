@@ -60,21 +60,21 @@
                                     </div>
                                     <div class="col-md-6 text-end" style="margin-top:5px">
                                         <button v-if="savingCSProposal" type="button" class="btn btn-primary me-2"
-                                            disabled>Save and Continue&nbsp;
-                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            disabled>Save and Continue <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Loading...</span></button>
                                         <input v-else type="button" @click.prevent="save" class="btn btn-primary me-2"
                                             value="Save and Continue" :disabled="saveExitCSProposal || paySubmitting" />
 
                                         <button v-if="saveExitCSProposal" type="button" class="btn btn-primary me-2"
-                                            disabled>Save and Exit&nbsp;
-                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            disabled>Save and Exit <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Loading...</span></button>
                                         <input v-else type="button" @click.prevent="save_exit"
                                             class="btn btn-primary me-2" value="Save and Exit"
                                             :disabled="savingCSProposal || paySubmitting" />
 
                                         <button v-if="paySubmitting" type="button" class="btn btn-primary"
-                                            disabled>Submit&nbsp;
-                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            disabled>Submit <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Loading...</span></button>
                                         <input v-else type="button" @click.prevent="submit" class="btn btn-primary"
                                             :value="'Submit'" :disabled="saveExitCSProposal || savingCSProposal" />
                                         <input id="save_and_continue_btn" type="hidden" @click.prevent="save_wo_confirm"

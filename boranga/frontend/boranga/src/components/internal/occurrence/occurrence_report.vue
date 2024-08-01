@@ -11,10 +11,10 @@
                                 :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${occurrence_report.group_type}&action=view`"
                                 target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
                     </template>
-                    <template v-else>
+<template v-else>
                         NOT SET
                     </template>
-                </h4> -->
+</h4> -->
                 <h4 class="text-muted mb-3">
                     <template v-if="occurrence_report.occurrence">Occurrence:
                         {{ occurrence_report.occurrence.occurrence_number }} <small><a
@@ -26,9 +26,9 @@
                     </template>
                     <template v-if="isCommunity">
                         <template v-if="occurrence_report.community_id">
-                          Community: {{ occurrence_report.community_number }} <small><a
-                                :href="`/internal/species_communities/${occurrence_report.community_id}?group_type_name=${occurrence_report.group_type}&action=view`"
-                                target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
+                            Community: {{ occurrence_report.community_number }} <small><a
+                                    :href="`/internal/species_communities/${occurrence_report.community_id}?group_type_name=${occurrence_report.group_type}&action=view`"
+                                    target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
                         </template>
                         <template v-else>
                             Community: NOT SET
@@ -36,9 +36,9 @@
                     </template>
                     <template v-else>
                         <template v-if="occurrence_report.species_id">
-                          Species: {{ occurrence_report.species_number }} <small><a
-                                :href="`/internal/species_communities/${occurrence_report.species_id}?group_type_name=${occurrence_report.group_type}&action=view`"
-                                target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
+                            Species: {{ occurrence_report.species_number }} <small><a
+                                    :href="`/internal/species_communities/${occurrence_report.species_id}?group_type_name=${occurrence_report.group_type}&action=view`"
+                                    target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
                         </template>
                         <template v-else>
                             Species: NOT SET
@@ -53,8 +53,8 @@
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
                     :disable_add_entry="false" class="mb-3" />
 
-                <Submission :submitter_first_name="submitter_first_name"
-                    :submitter_last_name="submitter_last_name" :lodgement_date="occurrence_report.lodgement_date"
+                <Submission :submitter_first_name="submitter_first_name" :submitter_last_name="submitter_last_name"
+                    :lodgement_date="occurrence_report.lodgement_date"
                     :is_new_contributor="occurrence_report.is_new_contributor" class="mb-3" />
 
                 <div class="card card-default sticky-top">
@@ -108,7 +108,9 @@
                                 <span v-if="canAction" @click.prevent="sendReferral()" disabled
                                     class="actionBtn text-primary float-end">
                                     Sending Referral&nbsp;
-                                    <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                    <span class="spinner-border spinner-border-sm" role="status"
+                                        aria-hidden="true"></span>
+                                    <span class="visually-hidden">Loading...</span>
                                 </span>
                             </template>
                         </div>
@@ -140,8 +142,7 @@
                                                         remindExternalReferee(
                                                             external_referee_invite
                                                         )
-                                                        "><i class="fa fa-bell text-warning"
-                                                    aria-hidden="true"></i>
+                                                        "><i class="fa fa-bell text-warning" aria-hidden="true"></i>
                                             </a>
                                             <a role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
                                                 :data-bs-content="'Retract the external referee invite sent to ' +
@@ -276,12 +277,14 @@
                                 <div class="container">
                                     <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
                                         @click.prevent="returnToDashboard">
-                                            Return to Dashboard</button>
+                                        Return to Dashboard</button>
                                     <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit"
-                                    class="col-md-6 text-end">
+                                        class="col-md-6 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
                                             style="margin-top:5px;" disabled>Save and Continue&nbsp;
-                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            <span class="spinner-border spinner-border-sm" role="status"
+                                                aria-hidden="true"></span>
+                                            <span class="visually-hidden">Loading...</span></button>
                                         <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
                                             @click.prevent="save()"
                                             :disabled="saveExitOccurrenceReport || submitOccurrenceReport">Save
@@ -289,7 +292,9 @@
 
                                         <button v-if="saveExitOccurrenceReport" class="btn btn-primary me-2"
                                             style="margin-top:5px;" disabled>Save and Exit&nbsp;
-                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            <span class="spinner-border spinner-border-sm" role="status"
+                                                aria-hidden="true"></span>
+                                            <span class="visually-hidden">Loading...</span></button>
                                         <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
                                             @click.prevent="save_exit()"
                                             :disabled="savingOccurrenceReport || submitOccurrenceReport">Save
@@ -297,13 +302,15 @@
 
                                         <button v-if="submitOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Submit&nbsp;
-                                            <i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                                            <span class="spinner-border spinner-border-sm" role="status"
+                                                aria-hidden="true"></span>
+                                            <span class="visually-hidden">Loading...</span></button>
                                         <button v-else class="btn btn-primary" style="margin-top:5px;"
                                             @click.prevent="submit()"
                                             :disabled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
                                     </div>
                                     <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)"
-                                    class="col-md-6 text-end">
+                                        class="col-md-6 text-end">
                                         <button v-if="savingOccurrenceReport" class="btn btn-primary"
                                             style="margin-top:5px;" disabled>Save Changes <span
                                                 class="spinner-border spinner-border-sm" role="status"
@@ -784,10 +791,10 @@ export default {
                     blank_fields.push(' Please enter the location description')
                 }
                 let ocr_geometry = vm.occurrence_report.ocr_geometry;
-                if(typeof ocr_geometry == 'string'){
+                if (typeof ocr_geometry == 'string') {
                     ocr_geometry = JSON.parse(ocr_geometry)
                 }
-                if(!Array.isArray(ocr_geometry.features) || ocr_geometry.features.length == 0){
+                if (!Array.isArray(ocr_geometry.features) || ocr_geometry.features.length == 0) {
                     blank_fields.push(' Please add at least one location on the map')
                 }
             }

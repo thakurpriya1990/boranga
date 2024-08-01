@@ -33,8 +33,9 @@
                     <button v-if="!updatingObservationDetails" :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateObservationDetails()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary"><i
-                            class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                    <button v-else disabled class="float-end btn btn-primary">Updating <span
+                        class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="visually-hidden">Loading...</span></button>
                 </div>
             </div>
         </FormSection>
@@ -143,8 +144,9 @@
                     <button v-if="!updatingIdentificationDetails" :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateIdentificationDetails()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary"><i
-                            class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                    <button v-else disabled class="float-end btn btn-primary">Updating <span
+                        class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="visually-hidden">Loading...</span></button>
                 </div>
             </div>
         </FormSection>

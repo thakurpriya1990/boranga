@@ -4,7 +4,8 @@
         <FormSection :form-collapse="false" label="Location" Index="occurrence_report_location">
             <div class="row mb-3">
                 <div class="col">
-                    <span class="text-danger">*</span> <span class="text-muted">You must indicate the location for your occurrence report</span>
+                    <span class="text-danger">*</span> <span class="text-muted">You must indicate the location for your
+                        occurrence report</span>
                 </div>
             </div>
             <div class="row mb-3">
@@ -61,7 +62,8 @@
 
             <!-- -------------------------------- -->
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label fw-bold">Location Description: <span class="text-danger">*</span></label>
+                <label for="" class="col-sm-3 control-label fw-bold">Location Description: <span
+                        class="text-danger">*</span></label>
                 <div class="col-sm-9">
                     <textarea id="loc_description" v-model="occurrence_report_obj.location.location_description
                         " :disabled="isReadOnly" class="form-control" rows="2" placeholder="" />
@@ -210,7 +212,8 @@
                         Update
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        <i class="fa fa-spin fa-spinner"></i>&nbsp;Updating
+                        Updating <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="visually-hidden">Loading...</span>
                     </button>
                 </div>
             </div>

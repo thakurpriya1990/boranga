@@ -105,8 +105,9 @@
                     <button v-if="!updatingHabitatCompositionDetails" :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateHabitatCompositionDetails()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary"><i
-                            class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                    <button v-else disabled class="float-end btn btn-primary">Updating <span
+                            class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="visually-hidden">Loading...</span></button>
                 </div>
             </div>
 
@@ -174,8 +175,7 @@
                 <label for="" class="col-sm-3 control-label">Count Date: </label>
                 <div class="col-sm-9">
                     <input v-model="occurrence_obj.habitat_condition.count_date
-                        " :disabled="true" type="datetime-local" class="form-control" name="count_date"
-                         />
+                        " :disabled="true" type="datetime-local" class="form-control" name="count_date" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -189,8 +189,8 @@
                     <button v-if="!updatingHabitatConditionDetails" :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateHabitatConditionDetails()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary"><i
-                            class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                    <button v-else disabled class="float-end btn btn-primary">Updating <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="visually-hidden">Loading...</span></button>
                 </div>
             </div>
             <RelatedReports :isReadOnly="isReadOnly" :occurrence_obj=occurrence_obj :section_type="'habitat_condition'"
@@ -241,8 +241,8 @@
                     <button v-if="!updatingVegetationStructure" :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateVegetationStructure()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary"><i
-                            class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                    <button v-else disabled class="float-end btn btn-primary">Updating <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="visually-hidden">Loading...</span></button>
                 </div>
             </div>
             <RelatedReports :isReadOnly="isReadOnly" :occurrence_obj=occurrence_obj
@@ -289,8 +289,7 @@
                     <button v-if="!updatingFireHistoryDetails" :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateFireHistoryDetails()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary"><i
-                            class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                    <button v-else disabled class="float-end btn btn-primary">Updating</button>
                 </div>
             </div>
             <RelatedReports :isReadOnly="isReadOnly" :occurrence_obj=occurrence_obj :section_type="'fire_history'"
@@ -321,8 +320,8 @@
                     <button v-if="!updatingAssociatedSpeciesDetails" :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateAssociatedSpeciesDetails()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary"><i
-                            class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                    <button v-else disabled class="float-end btn btn-primary">Updating <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="visually-hidden">Loading...</span></button>
                 </div>
             </div>
 
