@@ -65,16 +65,15 @@ from boranga.components.species_and_communities.models import (
     GroupType,
 )
 from boranga.components.users.serializers import SubmitterInformationSerializer
-
 from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_contributor,
-    is_new_external_contributor,
     is_internal,
-    is_species_communities_approver,
-    is_occurrence_assessor,
+    is_new_external_contributor,
     is_occurrence_approver,
+    is_occurrence_assessor,
+    is_species_communities_approver,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 
@@ -116,6 +115,7 @@ class OccurrenceSerializer(serializers.ModelSerializer):
         required=False,
     )
     combined_occurrence_id = serializers.SerializerMethodField()
+    wild_status_name = serializers.CharField(source="wild_status.name", allow_null=True)
     can_add_log = serializers.SerializerMethodField()
 
     class Meta:
@@ -131,11 +131,13 @@ class OccurrenceSerializer(serializers.ModelSerializer):
 
     def get_can_add_log(self, obj):
         request = self.context["request"]
-        return (is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
-                or is_species_communities_approver(request)
-                or is_occurrence_assessor(request)
-                or is_occurrence_approver(request))
+        return (
+            is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+        )
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
@@ -663,6 +665,9 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
 
 
 class OCRIdentificationSerializer(serializers.ModelSerializer):
+    permit_type = serializers.CharField(
+        source="permit_type.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCRIdentification
@@ -674,6 +679,7 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
             "sample_type_id",
             "sample_destination_id",
             "permit_type_id",
+            "permit_type",
             "permit_id",
             "collector_number",
             "barcode_number",
@@ -687,6 +693,9 @@ class OCRLocationSerializer(serializers.ModelSerializer):
     # geojson_polygon = serializers.SerializerMethodField()
     has_boundary = serializers.SerializerMethodField()
     has_points = serializers.SerializerMethodField()
+    coordinate_source = serializers.CharField(
+        source="coordinate_source.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCRLocation
@@ -702,6 +711,7 @@ class OCRLocationSerializer(serializers.ModelSerializer):
             "buffer_radius",
             "datum_id",
             "coordinate_source_id",
+            "coordinate_source",
             "location_accuracy_id",
             "region_id",
             "district_id",
@@ -1036,6 +1046,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     submitter_information = SubmitterInformationSerializer()
     number_of_observers = serializers.IntegerField(read_only=True)
     has_main_observer = serializers.BooleanField(read_only=True)
+    is_submitter = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -1084,6 +1095,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "submitter_information",
             "number_of_observers",
             "has_main_observer",
+            "is_submitter",
         )
 
     def get_readonly(self, obj):
@@ -1173,6 +1185,10 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
 
     def get_model_name(self, obj):
         return "occurrencereport"
+
+    def get_is_submitter(self, obj):
+        request = self.context["request"]
+        return request.user.id == obj.submitter
 
 
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
@@ -1368,6 +1384,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "external_referral_invites",
             "number_of_observers",
             "has_main_observer",
+            "is_submitter",
         )
 
     def get_readonly(self, obj):
@@ -1423,14 +1440,16 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             or self.get_can_user_approve(obj)
             or self.get_can_user_change_lock(obj)
         )
-    
+
     def get_can_add_log(self, obj):
         request = self.context["request"]
-        return (is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
-                or is_species_communities_approver(request)
-                or is_occurrence_assessor(request)
-                or is_occurrence_approver(request))
+        return (
+            is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+        )
 
     def get_current_assessor(self, obj):
         user = self.context["request"].user
@@ -1891,8 +1910,14 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             or is_occurrence_approver(request)
             or (
                 is_contributor(request)
-                and ((hasattr(obj,"occurrence_report") and obj.occurrence_report.submitter == request.user.id) or 
-                    "occurrence_report" in obj and obj["occurrence_report"].submitter == request.user.id)
+                and (
+                    (
+                        hasattr(obj, "occurrence_report")
+                        and obj.occurrence_report.submitter == request.user.id
+                    )
+                    or "occurrence_report" in obj
+                    and obj["occurrence_report"].submitter == request.user.id
+                )
             )
         )
 
@@ -2738,7 +2763,9 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
 
 
 class OCCIdentificationSerializer(serializers.ModelSerializer):
-
+    permit_type = serializers.CharField(
+        source="permit_type.name", read_only=True, allow_null=True
+    )
     copied_ocr = serializers.SerializerMethodField()
 
     class Meta:
@@ -2752,6 +2779,7 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
             "sample_type_id",
             "sample_destination_id",
             "permit_type_id",
+            "permit_type",
             "permit_id",
             "collector_number",
             "barcode_number",
@@ -3040,6 +3068,9 @@ class OCCLocationSerializer(serializers.ModelSerializer):
     has_boundary = serializers.SerializerMethodField()
     has_points = serializers.SerializerMethodField()
     copied_ocr = serializers.SerializerMethodField()
+    coordinate_source = serializers.CharField(
+        source="coordinate_source.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCCLocation
@@ -3054,6 +3085,7 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             "buffer_radius",
             "datum_id",
             "coordinate_source_id",
+            "coordinate_source",
             "location_accuracy_id",
             "region_id",
             "district_id",
@@ -3557,8 +3589,9 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
     def get_datum_name(self, obj):
         datum = self.get_datum(obj)
         try:
-            return Datum.objects.get(srid=datum).name
+            return Datum.objects.all().get(srid=datum).name
         except Datum.DoesNotExist:
+            logger.warning(f"Could not find Datum with srid {datum}")
             return datum
 
 

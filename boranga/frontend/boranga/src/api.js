@@ -281,6 +281,10 @@ module.exports = {
       return `/api/occurrence/${id}/section_values/?section=${model}`;
     },
 
+    committee_members: function (committee_id) {
+        return `/api/committee/${committee_id}/committee_members/`;
+    },
+
     group_type_community: group_type_community,
     group_type_fauna: group_type_fauna,
     group_type_flora: group_type_flora,

@@ -1,6 +1,6 @@
 from django.contrib.gis import admin
 
-from boranga.admin import DeleteProtectedModelAdmin
+from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
 from boranga.components.species_and_communities.models import (
     ClassificationSystem,
     CurrentImpact,
@@ -27,24 +27,36 @@ from boranga.components.species_and_communities.models import (
 )
 
 
+class DocumentCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["document_category_name"]
+
+
 @admin.register(DocumentSubCategory)
-class DocumentSubCategoryAdmin(DeleteProtectedModelAdmin):
+class DocumentSubCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["document_sub_category_name", "document_category"]
+
+
+class ThreatCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class ThreatAgentAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
 
 
 # Each of the following models will be available to Django Admin.
 admin.site.register(GroupType)
 admin.site.register(Region, DeleteProtectedModelAdmin)
 admin.site.register(District, DeleteProtectedModelAdmin)
-admin.site.register(DocumentCategory, DeleteProtectedModelAdmin)
-admin.site.register(ThreatCategory, DeleteProtectedModelAdmin)
+admin.site.register(DocumentCategory, DocumentCategoryAdmin)
+admin.site.register(ThreatCategory, ThreatCategoryAdmin)
 admin.site.register(FloraRecruitmentType, DeleteProtectedModelAdmin)
 admin.site.register(RootMorphology, DeleteProtectedModelAdmin)
 admin.site.register(PostFireHabitatInteraction, DeleteProtectedModelAdmin)
 admin.site.register(CurrentImpact, DeleteProtectedModelAdmin)
 admin.site.register(PotentialImpact, DeleteProtectedModelAdmin)
 admin.site.register(PotentialThreatOnset, DeleteProtectedModelAdmin)
-admin.site.register(ThreatAgent, DeleteProtectedModelAdmin)
+admin.site.register(ThreatAgent, ThreatAgentAdmin)
 
 
 @admin.register(Kingdom)

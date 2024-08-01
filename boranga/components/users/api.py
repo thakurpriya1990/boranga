@@ -18,6 +18,7 @@ from rest_framework.response import Response
 
 from boranga.components.conservation_status.models import ConservationStatusReferral
 from boranga.components.main.models import UserSystemSettings
+from boranga.components.main.permissions import CommsLogPermission
 from boranga.components.main.utils import retrieve_department_users
 from boranga.components.occurrence.models import OccurrenceReportReferral
 from boranga.components.species_and_communities.models import GroupType
@@ -30,7 +31,6 @@ from boranga.components.users.serializers import (
     SubmitterInformationSerializer,
     UserSerializer,
 )
-from boranga.components.main.permissions import CommsLogPermission
 from boranga.helpers import is_internal, is_internal_contributor
 from boranga.permissions import IsApprover, IsAssessor, IsInternal
 
@@ -83,7 +83,7 @@ class GetSubmitterCategories(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        qs = SubmitterCategory.objects.all()
+        qs = SubmitterCategory.objects.active()
         if not request.user.is_superuser:
             if is_internal(request) or is_internal_contributor(request):
                 qs = qs.filter(visible_to=SubmitterCategory.USER_TYPE_CHOICE_INTERNAL)
@@ -331,7 +331,7 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             "POST",
         ],
         detail=True,
-        permission_classes=[CommsLogPermission]
+        permission_classes=[CommsLogPermission],
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic

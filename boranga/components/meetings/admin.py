@@ -15,11 +15,11 @@ class CommitteeMembersInline(admin.TabularInline):
     # raw_id_fields = ('email',)
 
 
-class CommitteeMembersAdmin(DeleteProtectedModelAdmin):
+class CommitteeMembersAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["email", "id", "first_name", "last_name", "committee"]
 
 
-class CommitteeAdmin(DeleteProtectedModelAdmin):
+class CommitteeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["name", "id"]
     inlines = [CommitteeMembersInline]
 

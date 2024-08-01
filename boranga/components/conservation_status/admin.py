@@ -1,6 +1,6 @@
 from django.contrib.gis import admin
 
-from boranga.admin import DeleteProtectedModelAdmin
+from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
 from boranga.components.conservation_status import models
 
 
@@ -10,30 +10,34 @@ class ProposalAmendmentReasonAdmin(DeleteProtectedModelAdmin):
 
 
 class AbstractListAdmin(DeleteProtectedModelAdmin):
+    list_display = ["code", "label", "applies_to_species", "applies_to_communities"]
+
+
+class AbstractCategoryAdmin(DeleteProtectedModelAdmin):
     list_display = ["code", "label"]
 
 
-class WAPriorityListAdmin(AbstractListAdmin):
+class WAPriorityListAdmin(ArchivableModelAdminMixin, AbstractListAdmin):
     pass
 
 
-class WAPriorityCategoryAdmin(AbstractListAdmin):
+class WAPriorityCategoryAdmin(ArchivableModelAdminMixin, AbstractCategoryAdmin):
     filter_horizontal = ("wa_priority_lists",)
 
 
-class WALegislativeListAdmin(AbstractListAdmin):
+class WALegislativeListAdmin(ArchivableModelAdminMixin, AbstractListAdmin):
     pass
 
 
-class WALegislativeCategoryAdmin(AbstractListAdmin):
+class WALegislativeCategoryAdmin(ArchivableModelAdminMixin, AbstractCategoryAdmin):
     filter_horizontal = ("wa_legislative_lists",)
 
 
-class CommonwealthConservationListAdmin(AbstractListAdmin):
+class CommonwealthConservationListAdmin(ArchivableModelAdminMixin, AbstractListAdmin):
     pass
 
 
-class ConservationChangeCodeAdmin(DeleteProtectedModelAdmin):
+class ConservationChangeCodeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["code", "label"]
 
 

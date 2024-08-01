@@ -41,14 +41,13 @@ from boranga.components.conservation_status.models import (
     WAPriorityCategory,
     WAPriorityList,
 )
-from boranga.components.main.permissions import CommsLogPermission
 from boranga.components.conservation_status.permissions import (
     ConservationStatusAmendmentRequestPermission,
     ConservationStatusDocumentPermission,
+    ConservationStatusExternalRefereeInvitePermission,
     ConservationStatusPermission,
     ConservationStatusReferralPermission,
     ExternalConservationStatusPermission,
-    ConservationStatusExternalRefereeInvitePermission,
 )
 from boranga.components.conservation_status.serializers import (
     ConservationStatusAmendmentRequestDisplaySerializer,
@@ -74,6 +73,7 @@ from boranga.components.conservation_status.serializers import (
     SendReferralSerializer,
 )
 from boranga.components.conservation_status.utils import cs_proposal_submit
+from boranga.components.main.permissions import CommsLogPermission
 from boranga.components.main.related_item import RelatedItemsSerializer
 from boranga.components.species_and_communities.models import (
     ClassificationSystem,
@@ -90,7 +90,6 @@ from boranga.helpers import (
     is_conservation_status_referee,
     is_contributor,
     is_internal,
-    is_internal_contributor,
     is_occurrence_approver,
     is_occurrence_assessor,
     is_readonly_user,
@@ -101,7 +100,9 @@ logger = logging.getLogger(__name__)
 
 
 class GetSpeciesDisplay(views.APIView):
-    permission_classes = [ConservationStatusPermission|ExternalConservationStatusPermission]
+    permission_classes = [
+        ConservationStatusPermission | ExternalConservationStatusPermission
+    ]
 
     def get(self, request, format=None):
         res_json = {}
@@ -128,7 +129,9 @@ class GetSpeciesDisplay(views.APIView):
 
 
 class GetCommunityDisplay(views.APIView):
-    permission_classes = [ConservationStatusPermission|ExternalConservationStatusPermission]
+    permission_classes = [
+        ConservationStatusPermission | ExternalConservationStatusPermission
+    ]
 
     def get(self, request, format=None):
         res_json = {}
@@ -148,24 +151,31 @@ class GetCommunityDisplay(views.APIView):
 
 
 class GetCSProfileDict(views.APIView):
-    permission_classes = [ConservationStatusPermission|ExternalConservationStatusPermission]
+    permission_classes = [
+        ConservationStatusPermission | ExternalConservationStatusPermission
+    ]
 
     def get(self, request, format=None):
         group_type = request.GET.get("group_type", "")
 
         res_json = {
-            "wa_priority_lists": WAPriorityList.get_lists_dict(group_type),
-            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
-                group_type
+            "wa_priority_lists": WAPriorityList.get_lists_dict(
+                group_type, active_only=True
             ),
-            "wa_legislative_lists": WALegislativeList.get_lists_dict(group_type),
+            "wa_priority_categories": WAPriorityCategory.get_categories_dict(
+                group_type, active_only=True
+            ),
+            "wa_legislative_lists": WALegislativeList.get_lists_dict(
+                group_type, active_only=True
+            ),
             "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
-                group_type
+                group_type, active_only=True
             ),
             "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
-                group_type
+                group_type, active_only=True
             ),
             "change_codes": ConservationChangeCode.get_filter_list(),
+            "active_change_codes": ConservationChangeCode.get_active_filter_list(),
             "submitter_categories": SubmitterCategory.get_filter_list(),
         }
         res_json = json.dumps(res_json)
@@ -471,10 +481,12 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     )
     serializer_class = ListSpeciesConservationStatusSerializer
     page_size = 10
-    permission_classes = [ConservationStatusPermission|ExternalConservationStatusPermission]
+    permission_classes = [
+        ConservationStatusPermission | ExternalConservationStatusPermission
+    ]
 
     def get_queryset(self):
-        qs = self.queryset
+        qs = super().get_queryset()
         if (
             is_readonly_user(self.request)
             or is_conservation_status_assessor(self.request)
@@ -485,8 +497,13 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             or self.request.user.is_superuser
         ):
             return qs
-        if is_conservation_status_referee(self.request) and is_contributor(self.request):
-            return qs.filter(Q(submitter=self.request.user.id)|Q(referrals__referral=self.request.user.id))
+        if is_conservation_status_referee(self.request) and is_contributor(
+            self.request
+        ):
+            return qs.filter(
+                Q(submitter=self.request.user.id)
+                | Q(referrals__referral=self.request.user.id)
+            )
         elif is_conservation_status_referee(self.request):
             qs = qs.filter(referrals__referral=self.request.user.id)
         elif is_contributor(self.request):
@@ -499,13 +516,12 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "POST",
         ],
         detail=False,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def species_cs_internal(self, request, *args, **kwargs):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListSpeciesConservationStatusSerializer(
             result_page, context={"request": request}, many=True
@@ -517,7 +533,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "POST",
         ],
         detail=False,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def agenda_cs_internal(self, request, *args, **kwargs):
         qs = self.get_queryset()
@@ -526,7 +542,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         )
         qs = self.filter_queryset(qs)
 
-        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListSpeciesConservationStatusSerializer(
             result_page, context={"request": request}, many=True
@@ -538,7 +553,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "POST",
         ],
         detail=False,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def species_cs_internal_export(self, request, *args, **kwargs):
         qs = self.get_queryset()
@@ -659,7 +674,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         ).filter(referral=request.user.id)
         qs = self.filter_queryset(qs)
 
-        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = DTConservationStatusReferralSerializer(
             result_page, context={"request": request}, many=True
@@ -672,7 +686,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "POST",
         ],
         detail=False,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def species_cs_referrals_internal_export(self, request, *args, **kwargs):
 
@@ -1055,10 +1069,12 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
     )
     serializer_class = ListCommunityConservationStatusSerializer
     page_size = 10
-    permission_classes = [ConservationStatusPermission|ExternalConservationStatusPermission]
+    permission_classes = [
+        ConservationStatusPermission | ExternalConservationStatusPermission
+    ]
 
     def get_queryset(self):
-        qs = self.queryset
+        qs = super().get_queryset()
         if (
             is_readonly_user(self.request)
             or is_conservation_status_assessor(self.request)
@@ -1069,9 +1085,14 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             or self.request.user.is_superuser
         ):
             return qs
-        
-        if is_conservation_status_referee(self.request) and is_contributor(self.request):
-            return qs.filter(Q(submitter=self.request.user.id)|Q(referrals__referral=self.request.user.id))
+
+        if is_conservation_status_referee(self.request) and is_contributor(
+            self.request
+        ):
+            return qs.filter(
+                Q(submitter=self.request.user.id)
+                | Q(referrals__referral=self.request.user.id)
+            )
         elif is_conservation_status_referee(self.request):
             qs = qs.filter(referrals__referral=self.request.user.id)
         elif is_contributor(self.request):
@@ -1081,13 +1102,12 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
     @list_route(
         methods=["POST", "GET"],
         detail=False,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def community_cs_internal(self, request, *args, **kwargs):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunityConservationStatusSerializer(
             result_page, context={"request": request}, many=True
@@ -1097,7 +1117,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
     @list_route(
         methods=["POST", "GET"],
         detail=False,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def agenda_cs_internal(self, request, *args, **kwargs):
         qs = self.get_queryset()
@@ -1106,7 +1126,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
         )
         qs = self.filter_queryset(qs)
 
-        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunityConservationStatusSerializer(
             result_page, context={"request": request}, many=True
@@ -1118,7 +1137,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             "POST",
         ],
         detail=False,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def community_cs_internal_export(self, request, *args, **kwargs):
 
@@ -1238,7 +1257,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
 
         qs = self.filter_queryset(qs)
 
-        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = DTConservationStatusReferralSerializer(
             result_page, context={"request": request}, many=True
@@ -1419,7 +1437,7 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [ConservationStatusPermission]
 
     def get_queryset(self):
-        qs = self.queryset
+        qs = super().get_queryset()
         if (
             is_readonly_user(self.request)
             or is_conservation_status_assessor(self.request)
@@ -1439,14 +1457,15 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "GET",
         ],
         detail=False,
-        permission_classes=[ConservationStatusPermission|ExternalConservationStatusPermission],
+        permission_classes=[
+            ConservationStatusPermission | ExternalConservationStatusPermission
+        ],
     )
     def conservation_status_external(self, request, *args, **kwargs):
         qs = self.get_queryset()
         qs = qs.filter(internal_application=False)
         qs = self.filter_queryset(qs)
 
-        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListConservationStatusSerializer(
             result_page, context={"request": request}, many=True
@@ -1467,7 +1486,6 @@ class ConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         ).filter(referral=request.user.id)
         qs = self.filter_queryset(qs)
 
-        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = DTConservationStatusReferralSerializer(
             result_page, context={"request": request}, many=True
@@ -1480,10 +1498,12 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     queryset = ConservationStatus.objects.all()
     serializer_class = ConservationStatusSerializer
     lookup_field = "id"
-    permission_classes = [ConservationStatusPermission|ExternalConservationStatusPermission]
+    permission_classes = [
+        ConservationStatusPermission | ExternalConservationStatusPermission
+    ]
 
     def get_queryset(self):
-        qs = self.queryset
+        qs = super().get_queryset()
         if (
             is_readonly_user(self.request)
             or is_conservation_status_assessor(self.request)
@@ -1515,7 +1535,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "GET",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def internal_conservation_status(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1682,7 +1702,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "GET",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def action_log(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1695,7 +1715,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "GET",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def comms_log(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1708,7 +1728,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "POST",
         ],
         detail=True,
-        permission_classes=[CommsLogPermission]
+        permission_classes=[CommsLogPermission],
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
@@ -1726,7 +1746,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             document = comms.documents.create()
             document.check_file(request.FILES[f])
             document.name = str(request.FILES[f])
-            document._file = request.FILES[f]          
+            document._file = request.FILES[f]
             document.save()
 
         return Response(serializer.data)
@@ -1749,7 +1769,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "GET",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def assign_request_user(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1763,7 +1783,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "POST",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def assign_to(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1787,7 +1807,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "GET",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def unassign(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1796,7 +1816,9 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
 
-    @detail_route(methods=["post"], detail=True, permission_classes=[ConservationStatusPermission])
+    @detail_route(
+        methods=["post"], detail=True, permission_classes=[ConservationStatusPermission]
+    )
     def assesor_send_referral(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = SendReferralSerializer(
@@ -1817,7 +1839,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "POST",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def proposed_decline(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1833,7 +1855,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "POST",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def final_decline(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1849,7 +1871,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "POST",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def proposed_approval(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1865,7 +1887,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "POST",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def final_approval(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1883,7 +1905,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "POST",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def switch_status(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1916,7 +1938,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "POST",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def proposed_ready_for_agenda(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1990,21 +2012,31 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    @detail_route(methods=["patch"], detail=True, permission_classes=[ConservationStatusPermission])
+    @detail_route(
+        methods=["patch"],
+        detail=True,
+        permission_classes=[ConservationStatusPermission],
+    )
     def propose_delist(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.propose_delist(request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    @detail_route(methods=["patch"], detail=True, permission_classes=[ConservationStatusPermission])
+    @detail_route(
+        methods=["patch"],
+        detail=True,
+        permission_classes=[ConservationStatusPermission],
+    )
     def delist(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.delist(request)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    @detail_route(methods=["get"], detail=True, permission_classes=[ConservationStatusPermission])
+    @detail_route(
+        methods=["get"], detail=True, permission_classes=[ConservationStatusPermission]
+    )
     def get_related_items(self, request, *args, **kwargs):
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
@@ -2017,7 +2049,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "PATCH",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def unlock_conservation_status(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -2035,7 +2067,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             "PATCH",
         ],
         detail=True,
-        permission_classes=[ConservationStatusPermission]
+        permission_classes=[ConservationStatusPermission],
     )
     def lock_conservation_status(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -2048,7 +2080,9 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
 
-    @detail_route(methods=["post"], detail=True, permission_classes=[ConservationStatusPermission])
+    @detail_route(
+        methods=["post"], detail=True, permission_classes=[ConservationStatusPermission]
+    )
     def external_referee_invite(self, request, *args, **kwargs):
         instance = self.get_object()
         request.data["conservation_status_id"] = instance.id
@@ -2083,7 +2117,7 @@ class ConservationStatusReferralViewSet(
     permission_classes = [ConservationStatusReferralPermission]
 
     def get_queryset(self):
-        qs = self.queryset
+        qs = super().get_queryset()
         if (
             is_readonly_user(self.request)
             or is_conservation_status_assessor(self.request)
@@ -2441,7 +2475,7 @@ class ConservationStatusAmendmentRequestViewSet(
     permission_classes = [ConservationStatusAmendmentRequestPermission]
 
     def get_queryset(self):
-        qs = self.queryset
+        qs = super().get_queryset()
         if (
             is_readonly_user(self.request)
             or is_conservation_status_assessor(self.request)
@@ -2493,7 +2527,8 @@ class ConservationStatusDocumentViewSet(
     permission_classes = [ConservationStatusDocumentPermission]
 
     def get_queryset(self):
-        qs = self.queryset
+        qs = super().get_queryset()
+
         if (
             is_readonly_user(self.request)
             or is_conservation_status_assessor(self.request)
@@ -2601,13 +2636,15 @@ class AmendmentRequestReasonChoicesView(views.APIView):
         return Response(choices_list)
 
 
-class CSExternalRefereeInviteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+class CSExternalRefereeInviteViewSet(
+    viewsets.GenericViewSet, mixins.RetrieveModelMixin
+):
     queryset = CSExternalRefereeInvite.objects.filter(archived=False)
     serializer_class = CSExternalRefereeInviteSerializer
     permission_classes = [ConservationStatusExternalRefereeInvitePermission]
 
     def get_queryset(self):
-        qs = self.queryset
+        qs = super().get_queryset()
         if not is_internal(self.request) or self.request.user.is_superuser:
             qs = CSExternalRefereeInvite.objects.none()
         return qs

@@ -1,7 +1,7 @@
 import nested_admin
 from django.contrib.gis import admin, forms
 
-from boranga.admin import DeleteProtectedModelAdmin
+from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
 from boranga.components.occurrence.models import (
     AnimalHealth,
     BufferGeometry,
@@ -346,7 +346,9 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
 
 
 @admin.register(OccurrenceTenurePurpose)
-class OccurrenceTenurePurposeAdmin(DeleteProtectedModelAdmin):
+class OccurrenceTenurePurposeAdmin(
+    ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     pass
 
 
@@ -355,7 +357,7 @@ class OccurrenceTenureVestingAdmin(admin.ModelAdmin):
     pass
 
 
-class PermitTypeAdmin(DeleteProtectedModelAdmin):
+class PermitTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ("group_type", "name")
     list_filter = ("group_type",)
 
@@ -363,6 +365,19 @@ class PermitTypeAdmin(DeleteProtectedModelAdmin):
 class SampleTypeAdmin(DeleteProtectedModelAdmin):
     list_display = ("group_type", "name")
     list_filter = ("group_type",)
+
+
+class DatumAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ("srid", "name")
+    search_fields = ("srid", "name")
+
+
+class WildStatusAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class CoordinateSourceAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
 
 
 # Each of the following models will be available to Django Admin.
@@ -388,8 +403,8 @@ admin.site.register(IdentificationCertainty, DeleteProtectedModelAdmin)
 admin.site.register(SampleType, SampleTypeAdmin)
 admin.site.register(SampleDestination, DeleteProtectedModelAdmin)
 admin.site.register(PermitType, PermitTypeAdmin)
-admin.site.register(Datum, DeleteProtectedModelAdmin)
-admin.site.register(CoordinateSource, DeleteProtectedModelAdmin)
+admin.site.register(Datum, DatumAdmin)
+admin.site.register(CoordinateSource, CoordinateSourceAdmin)
 admin.site.register(LocationAccuracy, DeleteProtectedModelAdmin)
-admin.site.register(WildStatus, DeleteProtectedModelAdmin)
+admin.site.register(WildStatus, WildStatusAdmin)
 admin.site.register(OccurrenceSite)

@@ -274,11 +274,8 @@ class UserSystemSettings(models.Model):
 
 
 class ArchivableManager(models.Manager):
-    def get_queryset(self):
+    def active(self):
         return super().get_queryset().filter(archived=False)
-
-    def all_with_archived(self):
-        return super().get_queryset()
 
     def archived(self):
         return super().get_queryset().filter(archived=True)

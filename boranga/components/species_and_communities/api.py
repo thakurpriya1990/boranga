@@ -414,6 +414,7 @@ class GetSpeciesFilterDict(views.APIView):
                 group_type
             ),
             "change_codes": ConservationChangeCode.get_filter_list(),
+            "active_change_codes": ConservationChangeCode.get_active_filter_list(),
             "submitter_categories": SubmitterCategory.get_filter_list(),
         }
         res_json = json.dumps(res_json)
@@ -438,6 +439,7 @@ class GetCommunityFilterDict(views.APIView):
                 group_type
             ),
             "change_codes": ConservationChangeCode.get_filter_list(),
+            "active_change_codes": ConservationChangeCode.get_active_filter_list(),
             "submitter_categories": SubmitterCategory.get_filter_list(),
         }
         res_json = json.dumps(res_json)
@@ -481,7 +483,7 @@ class GetDocumentCategoriesDict(views.APIView):
 
     def get(self, request, format=None):
         document_category_list = []
-        categories = DocumentCategory.objects.all()
+        categories = DocumentCategory.objects.active()
         if categories:
             for option in categories:
                 document_category_list.append(
@@ -491,7 +493,7 @@ class GetDocumentCategoriesDict(views.APIView):
                     }
                 )
         document_sub_category_list = []
-        sub_categories = DocumentSubCategory.objects.all()
+        sub_categories = DocumentSubCategory.objects.active()
         if sub_categories:
             for option in sub_categories:
                 document_sub_category_list.append(
@@ -966,7 +968,6 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.get_queryset()
         qs = self.filter_queryset(qs)
 
-        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunitiesSerializer(
             result_page, context={"request": request}, many=True
@@ -987,7 +988,6 @@ class CommunitiesPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         )
         qs = self.filter_queryset(qs)
 
-        
         result_page = self.paginator.paginate_queryset(qs, request)
         serializer = ListCommunitiesSerializer(
             result_page, context={"request": request}, many=True
@@ -1764,7 +1764,7 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             "POST",
         ],
         detail=True,
-        permission_classes=[CommsLogPermission]
+        permission_classes=[CommsLogPermission],
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
@@ -2215,7 +2215,7 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             "POST",
         ],
         detail=True,
-        permission_classes=[CommsLogPermission]
+        permission_classes=[CommsLogPermission],
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
@@ -2613,7 +2613,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if not(is_internal(self.request) or self.request.user.is_superuser):
+        if not (is_internal(self.request) or self.request.user.is_superuser):
             qs = (
                 qs.filter(visible=True)
                 .filter(
@@ -2663,6 +2663,16 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def threat_list_of_values(self, request, *args, **kwargs):
         """Used by the internal threat form"""
+        active_threat_category_lists = []
+        threat_categories = ThreatCategory.objects.active()
+        if threat_categories:
+            for choice in threat_categories:
+                active_threat_category_lists.append(
+                    {
+                        "id": choice.id,
+                        "name": choice.name,
+                    }
+                )
         threat_category_lists = []
         threat_categories = ThreatCategory.objects.all()
         if threat_categories:
@@ -2705,7 +2715,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                     }
                 )
         threat_agent_lists = []
-        threat_agents = ThreatAgent.objects.all()
+        threat_agents = ThreatAgent.objects.active()
         if threat_agents:
             for choice in threat_agents:
                 threat_agent_lists.append(
@@ -2715,6 +2725,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                     }
                 )
         res_json = {
+            "active_threat_category_lists": active_threat_category_lists,
             "threat_category_lists": threat_category_lists,
             "current_impact_lists": current_impact_lists,
             "potential_impact_lists": potential_impact_lists,

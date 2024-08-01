@@ -18,10 +18,9 @@ from boranga.components.meetings.models import (
 from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
-    is_internal,
-    is_species_communities_approver,
-    is_occurrence_assessor,
     is_occurrence_approver,
+    is_occurrence_assessor,
+    is_species_communities_approver,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 
@@ -211,14 +210,16 @@ class MeetingSerializer(serializers.ModelSerializer):
     def get_user_edit_mode(self, obj):
         request = self.context["request"]
         return obj.has_user_edit_mode(request)
-    
+
     def get_can_add_log(self, obj):
         request = self.context["request"]
-        return (is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
-                or is_species_communities_approver(request)
-                or is_occurrence_assessor(request)
-                or is_occurrence_approver(request))
+        return (
+            is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+        )
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
@@ -397,12 +398,7 @@ class CommitteeMembersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CommitteeMembers
-        fields = (
-            "id",
-            "first_name",
-            "last_name",
-            "email",
-        )
+        fields = ("id", "first_name", "last_name", "email", "archived")
         read_only_fields = ("id", "email")
 
 

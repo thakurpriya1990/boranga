@@ -24,6 +24,7 @@ from boranga.components.conservation_status.email import (
     send_proposal_approver_sendback_email_notification,
 )
 from boranga.components.main.models import (
+    ArchivableModel,
     CommunicationsLogEntry,
     Document,
     RevisionedMixin,
@@ -93,7 +94,7 @@ def update_conservation_status_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/conservation_status/{instance.conservation_status.id}/documents/{filename}"
 
 
-class AbstractConservationList(models.Model):
+class AbstractConservationList(ArchivableModel):
     code = models.CharField(max_length=64)
     label = models.CharField(max_length=512)
     applies_to_species = models.BooleanField(default=False)
@@ -106,7 +107,9 @@ class AbstractConservationList(models.Model):
 
     @classmethod
     def get_lists_dict(
-        cls: models.base.ModelBase, group_type: str | int | None
+        cls: models.base.ModelBase,
+        group_type: str | int | None,
+        active_only: bool = False,
     ) -> list:
         try:
             if group_type and isinstance(group_type, int):
@@ -117,7 +120,13 @@ class AbstractConservationList(models.Model):
             logger.warning(f"GroupType {group_type} does not exist")
             return []
 
-        lists = cls.objects.values("id", "code", "label")
+        lists = cls.objects.all()
+
+        if active_only:
+            lists = cls.objects.active()
+
+        lists = lists.values("id", "code", "label")
+
         if group_type and group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
             lists = lists.filter(applies_to_communities=True)
         elif group_type and group_type.name in [
@@ -131,7 +140,7 @@ class AbstractConservationList(models.Model):
         return f"{self.code} - {self.label}"
 
 
-class AbstractConservationCategory(models.Model):
+class AbstractConservationCategory(ArchivableModel):
     code = models.CharField(max_length=64)
     label = models.CharField(max_length=512)
 
@@ -165,7 +174,9 @@ class WAPriorityCategory(AbstractConservationCategory):
 
     @classmethod
     def get_categories_dict(
-        cls: models.base.ModelBase, group_type: str | int | None
+        cls: models.base.ModelBase,
+        group_type: str | int | None,
+        active_only: bool = False,
     ) -> list:
         try:
             if group_type and isinstance(group_type, int):
@@ -176,7 +187,13 @@ class WAPriorityCategory(AbstractConservationCategory):
             logger.warning(f"GroupType {group_type} does not exist")
             return []
         wa_priority_categories = []
-        wa_priority_categories_qs = WAPriorityCategory.objects.only(
+
+        wa_priority_categories_qs = cls.objects.all()
+
+        if active_only:
+            wa_priority_categories_qs = cls.objects.active()
+
+        wa_priority_categories_qs = wa_priority_categories_qs.only(
             "id", "code", "label"
         )
         if group_type and group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
@@ -228,7 +245,9 @@ class WALegislativeCategory(AbstractConservationCategory):
 
     @classmethod
     def get_categories_dict(
-        cls: models.base.ModelBase, group_type: str | int | None
+        cls: models.base.ModelBase,
+        group_type: str | int | None,
+        active_only: bool = False,
     ) -> list:
         try:
             if group_type and isinstance(group_type, int):
@@ -239,7 +258,13 @@ class WALegislativeCategory(AbstractConservationCategory):
             logger.warning(f"GroupType {group_type} does not exist")
             return []
         wa_legislative_categories = []
-        wa_legislative_categories_qs = WALegislativeCategory.objects.only(
+
+        wa_legislative_categories_qs = cls.objects.all()
+
+        if active_only:
+            wa_legislative_categories_qs = cls.objects.active()
+
+        wa_legislative_categories_qs = wa_legislative_categories_qs.only(
             "id", "code", "label"
         )
         if group_type and group_type.name == GroupType.GROUP_TYPE_COMMUNITY:
@@ -278,7 +303,7 @@ class CommonwealthConservationList(AbstractConservationList):
         verbose_name = "Commonwealth Conservation List"
 
 
-class ConservationChangeCode(models.Model):
+class ConservationChangeCode(ArchivableModel):
     """
     When the conservation status of a species/community is changed, it can be for a number of reasons.
     These reasons are represented by change codes.
@@ -300,6 +325,10 @@ class ConservationChangeCode(models.Model):
     @classmethod
     def get_filter_list(cls):
         return list(cls.objects.values("id", "code"))
+
+    @classmethod
+    def get_active_filter_list(cls):
+        return list(cls.objects.active().values("id", "code"))
 
 
 class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):

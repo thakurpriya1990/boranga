@@ -37,11 +37,27 @@
                                     <label class="control-label pull-left">Datum</label>
                                 </div>
                                 <div class="col-sm-9">
-                                    <select :disabled="isReadOnly" class="form-select" v-model="siteObj.datum">
-                                        <option v-for="datum in datum_list" :value="datum.srid" v-bind:key="datum.srid">
-                                            {{ datum.name }}
-                                        </option>
-                                    </select>
+                                    <template v-if="!isReadOnly">
+                                        <template
+                                            v-if="datum_list && datum_list.length > 0 && siteObj.datum && !datum_list.map((d) => d.id).includes(siteObj.datum)">
+                                            <input type="text" v-if="siteObj.datum_name"
+                                                class="form-control mb-3"
+                                                :value="siteObj.datum_name + ' (Now Archived)'"
+                                                disabled />
+                                            <div class="mb-3 text-muted">
+                                                Change datum to:
+                                            </div>
+                                        </template>
+                                        <select class="form-select" v-model="siteObj.datum">
+                                            <option v-for="datum in datum_list" :value="datum.srid" v-bind:key="datum.srid">
+                                                {{ datum.name }}
+                                            </option>
+                                        </select>
+                                    </template>
+                                    <template v-else>
+                                        <input class="form-control" type="text" :disabled="isReadOnly"
+                                            v-model="siteObj.datum_name" />
+                                    </template>
                                 </div>
                             </div>
                             <div class="row mb-3">

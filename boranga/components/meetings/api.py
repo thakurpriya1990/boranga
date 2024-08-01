@@ -20,6 +20,7 @@ from rest_framework_datatables.pagination import DatatablesPageNumberPagination
 
 from boranga import helpers
 from boranga.components.conservation_status.models import ConservationStatus
+from boranga.components.main.permissions import CommsLogPermission
 from boranga.components.meetings.models import (
     AgendaItem,
     Committee,
@@ -28,7 +29,6 @@ from boranga.components.meetings.models import (
     MeetingUserAction,
     Minutes,
 )
-from boranga.components.main.permissions import CommsLogPermission
 from boranga.components.meetings.permissions import MeetingPermission
 from boranga.components.meetings.serializers import (
     AgendaItemSerializer,
@@ -256,9 +256,9 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if serializer.is_valid():
             saved_instance = serializer.save()
             # add the committee selected members to the meeting
-            if "sel_committee_members_arr" in request_data:
+            if "selected_committee_members" in request_data:
                 saved_instance.selected_committee_members.set(
-                    request_data.get("sel_committee_members_arr")
+                    request_data.get("selected_committee_members")
                 )
 
             instance.log_user_action(
@@ -500,7 +500,7 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             "POST",
         ],
         detail=True,
-        permission_classes=[CommsLogPermission]
+        permission_classes=[CommsLogPermission],
     )
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
@@ -543,7 +543,7 @@ class GetMeetingDict(views.APIView):
 
     def get(self, request, format=None):
         location_list = []
-        locations = MeetingRoom.objects.all()
+        locations = MeetingRoom.objects.active()
         if locations:
             for option in locations:
                 location_list.append(
@@ -561,7 +561,7 @@ class GetMeetingDict(views.APIView):
         for choice in status_choices:
             status_list.append({"id": choice[0], "display_name": choice[1]})
         committee_list = []
-        committees = Committee.objects.all()
+        committees = Committee.objects.active()
         for option in committees:
             committee_list.append({"id": option.id, "name": option.name})
         res_json = {
@@ -716,6 +716,6 @@ class CommitteeViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def committee_members(self, request, *args, **kwargs):
         instance = self.get_object()
-        qs = instance.committeemembers_set.all()
+        qs = instance.committeemembers_set.order_by("archived")
         serializer = CommitteeMembersSerializer(qs, many=True)
         return Response(serializer.data)

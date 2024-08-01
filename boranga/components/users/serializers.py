@@ -249,6 +249,10 @@ class SubmitterCategorySerializer(serializers.ModelSerializer):
 
 
 class SubmitterInformationSerializer(serializers.ModelSerializer):
+    submitter_category_name = serializers.CharField(
+        source="submitter_category.name", read_only=True, allow_null=True
+    )
+
     class Meta:
         model = SubmitterInformation
         fields = "__all__"

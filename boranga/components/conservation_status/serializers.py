@@ -24,11 +24,11 @@ from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_contributor,
-    is_new_external_contributor,
     is_internal,
-    is_species_communities_approver,
-    is_occurrence_assessor,
+    is_new_external_contributor,
     is_occurrence_approver,
+    is_occurrence_assessor,
+    is_species_communities_approver,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 
@@ -524,6 +524,22 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
     group_type_id = serializers.SerializerMethodField(read_only=True)
+    is_submitter = serializers.SerializerMethodField(read_only=True)
+    wa_legislative_list = serializers.CharField(
+        source="wa_legislative_list.code", read_only=True, allow_null=True
+    )
+    wa_legislative_category = serializers.CharField(
+        source="wa_legislative_category.code", read_only=True, allow_null=True
+    )
+    wa_priority_list = serializers.CharField(
+        source="wa_priority_list.code", read_only=True, allow_null=True
+    )
+    wa_priority_category = serializers.CharField(
+        source="wa_priority_category.code", read_only=True, allow_null=True
+    )
+    commonwealth_conservation_list = serializers.CharField(
+        source="commonwealth_conservation_list.code", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = ConservationStatus
@@ -536,10 +552,15 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "community_id",
             "conservation_status_number",
             "wa_legislative_list_id",
+            "wa_legislative_list",
             "wa_legislative_category_id",
+            "wa_legislative_category",
             "wa_priority_list_id",
+            "wa_priority_list",
             "wa_priority_category_id",
+            "wa_priority_category",
             "commonwealth_conservation_list_id",
+            "commonwealth_conservation_list",
             "international_conservation",
             "conservation_criteria",
             "recommended_wa_legislative_list_id",
@@ -569,6 +590,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "assessor_data",
             "approval_level",
             "submitter_information",
+            "is_submitter",
         )
 
     def get_readonly(self, obj):
@@ -601,6 +623,10 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
 
     def get_customer_status(self, obj):
         return obj.get_customer_status_display()
+
+    def get_is_submitter(self, obj):
+        request = self.context["request"]
+        return obj.submitter == request.user.id
 
 
 class ConservationStatusSerializer(BaseConservationStatusSerializer):
@@ -741,6 +767,9 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         read_only=True, allow_null=True
     )
     external_referral_invites = CSExternalRefereeInviteSerializer(many=True)
+    change_code = serializers.CharField(
+        source="change_code.code", read_only=True, allow_null=True
+    )
     can_add_log = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -794,10 +823,12 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "internal_application",
             "is_new_contributor",
             "change_code_id",
+            "change_code",
             "current_conservation_status",
             "submitter_information",
             "conservation_status_under_review",
             "external_referral_invites",
+            "is_submitter",
             "can_add_log",
         )
 
@@ -826,14 +857,16 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "name": self.context["request"].user.get_full_name(),
             "email": self.context["request"].user.email,
         }
-    
+
     def get_can_add_log(self, obj):
         request = self.context["request"]
-        return (is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
-                or is_species_communities_approver(request)
-                or is_occurrence_assessor(request)
-                or is_occurrence_approver(request))
+        return (
+            is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+        )
 
     def get_assessor_mode(self, obj):
         request = self.context["request"]
@@ -843,7 +876,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "has_unlocked_mode": obj.has_unlocked_mode(request),
             "assessor_can_assess": obj.can_assess(request),
             "assessor_level": "assessor",
-            "assessor_box_view": obj.assessor_comments_view(request),      
+            "assessor_box_view": obj.assessor_comments_view(request),
         }
 
     def get_internal_user_edit(self, obj):
@@ -947,11 +980,13 @@ class InternalSpeciesConservationStatusSerializer(BaseConservationStatusSerializ
 
     def get_can_add_log(self, obj):
         request = self.context["request"]
-        return (is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
-                or is_species_communities_approver(request)
-                or is_occurrence_assessor(request)
-                or is_occurrence_approver(request))
+        return (
+            is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+        )
 
     def get_assessor_mode(self, obj):
         request = self.context["request"]
@@ -1109,14 +1144,16 @@ class InternalCommunityConservationStatusSerializer(BaseConservationStatusSerial
             "name": self.context["request"].user.get_full_name(),
             "email": self.context["request"].user.email,
         }
-    
+
     def get_can_add_log(self, obj):
         request = self.context["request"]
-        return (is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
-                or is_species_communities_approver(request)
-                or is_occurrence_assessor(request)
-                or is_occurrence_approver(request))
+        return (
+            is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+        )
 
     def get_assessor_mode(self, obj):
         request = self.context["request"]

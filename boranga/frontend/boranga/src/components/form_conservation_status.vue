@@ -41,7 +41,7 @@
                         :key="reloadcount + 'submitter_information'" ref="submitter_information"
                         id="submitter_information" :show_submitter_contact_details="show_submitter_contact_details"
                         :submitter_information="conservation_status_obj.submitter_information"
-                        :disabled="!conservation_status_obj.can_user_edit || referral" />
+                        :disabled="!(conservation_status_obj.can_user_edit && conservation_status_obj.is_submitter) || referral" />
                 </div>
                 <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
                     <CSDocuments :key="reloadcount" ref="cs_documents" id="csDocuments" :is_internal="is_internal"
