@@ -561,7 +561,7 @@ class GetMeetingDict(views.APIView):
         for choice in status_choices:
             status_list.append({"id": choice[0], "display_name": choice[1]})
         committee_list = []
-        committees = Committee.objects.all()
+        committees = Committee.objects.active()
         for option in committees:
             committee_list.append({"id": option.id, "name": option.name})
         res_json = {

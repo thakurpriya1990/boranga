@@ -67,14 +67,25 @@
                     <label for="" class="col-sm-4 control-label fw-bold">Committee: <span
                             class="text-danger">*</span></label>
                     <div class="col-sm-8">
-                        <select v-if="!isReadOnly" class="form-select"
-                            v-model="meeting_obj.committee_id" @change="renderMembersTable()">
-                            <option v-for="option in committee_list" :value="option.id" :key="option.id">
-                                {{ option.name }}
-                            </option>
-                        </select>
-                        <input v-else type="text" readonly class="form-control" id="committee" placeholder=""
-                            v-model="meeting_obj.committee" />
+                        <template v-if="!isReadOnly">
+                            <template
+                                v-if="committee_list && committee_list.length > 0 && meeting_obj.committee_id && !committee_list.map((d) => d.id).includes(meeting_obj.committee_id)">
+                                <input type="text" v-if="meeting_obj.committee" class="form-control mb-3"
+                                    :value="meeting_obj.committee + ' (Now Archived)'" disabled />
+                                <div class="mb-3 text-muted">
+                                    Change committee to:
+                                </div>
+                            </template>
+                            <select class="form-select" v-model="meeting_obj.committee_id">
+                                <option v-for="committee in committee_list" :value="committee.id" :key="committee.id">
+                                    {{ committee.name }}
+                                </option>
+                            </select>
+                        </template>
+                        <template v-else>
+                            <input class="form-control" type="text" :disabled="isReadOnly"
+                                v-model="meeting_obj.committee" />
+                        </template>
                     </div>
                 </div>
                 <div class="row mb-3">

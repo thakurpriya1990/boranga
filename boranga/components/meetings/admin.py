@@ -19,7 +19,7 @@ class CommitteeMembersAdmin(DeleteProtectedModelAdmin):
     list_display = ["email", "id", "first_name", "last_name", "committee"]
 
 
-class CommitteeAdmin(DeleteProtectedModelAdmin):
+class CommitteeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["name", "id"]
     inlines = [CommitteeMembersInline]
 
