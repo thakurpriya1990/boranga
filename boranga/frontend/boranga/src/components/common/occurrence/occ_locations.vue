@@ -899,7 +899,7 @@ export default {
                             console.warn(
                                 `Feature potentially intersects with up ${Math.ceil(
                                     entities
-                                )} entities with an error value threshold of ${
+                                )} entities with a warning value threshold of ${
                                     entry.warning_value
                                 } entities`
                             );
@@ -917,7 +917,7 @@ export default {
                         swal.fire({
                             title: warning ? 'Warning' : 'Error',
                             text: warning
-                                ? 'The feature potentially intersects with many tenure areas. Do you want to continue?'
+                                ? 'The feature potentially intersects with too many tenure areas. Do you want to continue?'
                                 : 'The feature intersects with too many tenure areas. Please adjust the feature.',
                             icon: warning ? 'warning' : 'error',
                             showCancelButton: true,
