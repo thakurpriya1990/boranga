@@ -97,10 +97,15 @@ class ExternalConservationStatusPermission(BasePermission):
         if request.user.is_superuser:
             return True
         
-        if hasattr(view, "action") and view.action == "create":
-            return is_contributor(request)
-
-        return is_contributor(request)
+        return (
+                is_contributor(request) 
+                or is_readonly_user(request)
+                or is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request)
+            )
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -109,11 +114,27 @@ class ExternalConservationStatusPermission(BasePermission):
         if (hasattr(view, "action") and view.action == "reinstate" 
             and obj.submitter == request.user.id and 
             obj.processing_status == ConservationStatus.PROCESSING_STATUS_DISCARDED):
-            return is_contributor(request)
+            return (
+                is_contributor(request) 
+                or is_readonly_user(request)
+                or is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request)
+            )
 
         if (obj.submitter == request.user.id and 
             obj.processing_status == ConservationStatus.PROCESSING_STATUS_DRAFT):
-            return is_contributor(request)
+            return (
+                is_contributor(request) 
+                or is_readonly_user(request)
+                or is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request)
+            )
 
 
 class ConservationStatusReferralPermission(BasePermission):
@@ -216,8 +237,18 @@ class ConservationStatusDocumentPermission(BasePermission):
             except ConservationStatus.DoesNotExist:
                 return False
 
-            return conservation_status.submitter == request.user.id and is_contributor(
-                request
+            return (conservation_status.submitter == request.user.id 
+                and (
+                    is_readonly_user(request)
+                    or is_conservation_status_assessor(request)
+                    or is_conservation_status_approver(request)
+                    or is_species_communities_approver(request)
+                    or is_occurrence_assessor(request)
+                    or is_occurrence_approver(request)
+                    or is_contributor(request)
+                    or is_conservation_status_referee(request)
+                )
+                and conservation_status.processing_status == ConservationStatus.PROCESSING_STATUS_DRAFT
             )
 
         return (
@@ -235,10 +266,17 @@ class ConservationStatusDocumentPermission(BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        if obj.conservation_status.submitter == request.user.id:
+        if (obj.conservation_status.submitter == request.user.id 
+            and obj.conservation_status.processing_status == ConservationStatus.PROCESSING_STATUS_DRAFT):
             if view.action in ["update", "discard", "reinstate"]:
-                return is_internal_contributor(request) or is_external_contributor(
-                    request
+                return (
+                    is_readonly_user(request)
+                    or is_conservation_status_assessor(request)
+                    or is_conservation_status_approver(request)
+                    or is_species_communities_approver(request)
+                    or is_occurrence_assessor(request)
+                    or is_occurrence_approver(request)
+                    or is_contributor(request)
                 )
 
         return is_conservation_status_assessor(request)

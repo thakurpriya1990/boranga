@@ -219,7 +219,15 @@ class ExternalOccurrenceReportPermission(BasePermission):
         if request.user.is_superuser:
             return True
 
-        return is_contributor(request)
+        return (
+                is_contributor(request) 
+                or is_readonly_user(request)
+                or is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request)
+            )
 
     def has_object_permission(self, request, view, obj):
         if (
@@ -232,8 +240,15 @@ class ExternalOccurrenceReportPermission(BasePermission):
             obj.can_user_edit
             or (hasattr(view, "action") and view.action == "process_shapefile_document")
         ):
-            return is_contributor(request)
-
+            return (
+                is_contributor(request) 
+                or is_readonly_user(request)
+                or is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request)
+            )
         return False
 
 
@@ -366,7 +381,15 @@ class ExternalOccurrenceReportObjectPermission(BasePermission):
         if request.user.is_superuser:
             return True
 
-        return is_contributor(request)
+        return (
+                is_contributor(request) 
+                or is_readonly_user(request)
+                or is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request)
+            )
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -379,7 +402,15 @@ class ExternalOccurrenceReportObjectPermission(BasePermission):
             and occurrence_report.submitter == request.user.id
             and occurrence_report.can_user_edit
         ):
-            return is_contributor(request)
+            return (
+                is_contributor(request) 
+                or is_readonly_user(request)
+                or is_conservation_status_assessor(request)
+                or is_conservation_status_approver(request)
+                or is_species_communities_approver(request)
+                or is_occurrence_assessor(request)
+                or is_occurrence_approver(request)
+            )
 
         return False
 

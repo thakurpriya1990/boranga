@@ -649,6 +649,30 @@ class Species(RevisionedMixin):
             return False
 
         return is_species_communities_approver(request) or request.user.is_superuser
+    
+    def can_user_save(self, request):
+        user_closed_state = [
+            Species.PROCESSING_STATUS_HISTORICAL,
+            Species.PROCESSING_STATUS_DISCARDED,
+        ]
+
+        if self.processing_status in user_closed_state:
+           return False
+
+        return is_species_communities_approver(request) or request.user.is_superuser
+    
+    def can_user_submit(self, request):
+        user_submissable_state = [
+            Species.PROCESSING_STATUS_DRAFT
+        ]
+
+        if not self.can_user_save(request):
+            return False
+
+        if not self.processing_status in user_submissable_state:
+            return False
+
+        return is_species_communities_approver(request) or request.user.is_superuser
 
     def has_user_edit_mode(self, request):
         officer_view_state = ["draft", "historical"]
@@ -1291,6 +1315,30 @@ class Community(RevisionedMixin):
             return False
         else:
             return True
+        
+    def can_user_save(self, request):
+        user_closed_state = [
+            Species.PROCESSING_STATUS_HISTORICAL,
+            Species.PROCESSING_STATUS_DISCARDED,
+        ]
+
+        if self.processing_status in user_closed_state:
+           return False
+
+        return is_species_communities_approver(request) or request.user.is_superuser
+    
+    def can_user_submit(self, request):
+        user_submissable_state = [
+            Species.PROCESSING_STATUS_DRAFT
+        ]
+
+        if not self.can_user_save(request):
+            return False
+
+        if not self.processing_status in user_submissable_state:
+            return False
+
+        return is_species_communities_approver(request) or request.user.is_superuser
 
     @property
     def is_deletable(self):
