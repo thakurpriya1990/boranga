@@ -150,14 +150,14 @@ module.exports = {
             separator: ' '
         }),
         result = '<span>' + truncated + '</span>',
-        popTemplate = _.template('<a href="#" ' +
+        popTemplate = _.template('<a class="mx-0 ps-1 pe-0" href="javascript://" ' +
             'role="button" ' +
             'data-bs-toggle="popover" ' +
             'data-bs-trigger="'+trigger+'" ' +
             'data-bs-placement="top"' +
             'data-bs-html="true" ' +
             'data-bs-content="<%= text %>" ' +
-            '>more</a>');
+            '><small>hover for more</small></a>');
 
         if (_.endsWith(truncated, ellipsis)) {
             return {"text":result, "link":popTemplate({
