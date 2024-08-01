@@ -1295,11 +1295,16 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         return Response(data)
 
+
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
     def species_save(self, request, *args, **kwargs):
         instance = self.get_object()
+
+        if not instance.can_user_save(request):
+            raise serializers.ValidationError("Cannot save species record in current state")
+
         request_data = request.data
         if request_data["submitter"]:
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
@@ -1467,6 +1472,8 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def submit(self, request, *args, **kwargs):
         instance = self.get_object()
         # instance.submit(request,self)
+        if not instance.can_user_submit(request):
+            raise serializers.ValidationError("Cannot submit a species record with current status")
         species_form_submit(instance, request)
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
@@ -1986,6 +1993,10 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @transaction.atomic
     def community_save(self, request, *args, **kwargs):
         instance = self.get_object()
+
+        if not instance.can_user_save(request):
+            raise serializers.ValidationError("Cannot save community record in current state")
+        
         request_data = request.data
         if request_data["submitter"]:
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
@@ -2097,6 +2108,8 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def submit(self, request, *args, **kwargs):
         instance = self.get_object()
         # instance.submit(request,self)
+        if not instance.can_user_submit(request):
+            raise serializers.ValidationError("Cannot submit community record in current state")
         community_form_submit(instance, request)
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)

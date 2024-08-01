@@ -870,7 +870,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
         request = self.context["request"]
         if request.user.is_superuser:
             return False
-        return not (obj.can_user_edit and is_species_communities_approver(request))
+        return not ((obj.can_user_edit and is_species_communities_approver(request)) or obj.has_user_edit_mode)
 
     def get_can_add_log(self, obj):
         request = self.context["request"]
@@ -1301,8 +1301,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
         request = self.context["request"]
         if request.user.is_superuser:
             return False
-
-        return not (obj.can_user_edit and is_species_communities_approver(request))
+        return not ((obj.can_user_edit and is_species_communities_approver(request)) or obj.has_user_edit_mode)
 
     def get_can_add_log(self, obj):
         request = self.context["request"]
