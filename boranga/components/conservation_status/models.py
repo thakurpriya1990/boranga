@@ -109,7 +109,7 @@ class AbstractConservationList(ArchivableModel):
     def get_lists_dict(
         cls: models.base.ModelBase,
         group_type: str | int | None,
-        active_only: bool = True,
+        active_only: bool = False,
     ) -> list:
         try:
             if group_type and isinstance(group_type, int):
@@ -176,7 +176,7 @@ class WAPriorityCategory(AbstractConservationCategory):
     def get_categories_dict(
         cls: models.base.ModelBase,
         group_type: str | int | None,
-        active_only: bool = True,
+        active_only: bool = False,
     ) -> list:
         try:
             if group_type and isinstance(group_type, int):
@@ -247,7 +247,7 @@ class WALegislativeCategory(AbstractConservationCategory):
     def get_categories_dict(
         cls: models.base.ModelBase,
         group_type: str | int | None,
-        active_only: bool = True,
+        active_only: bool = False,
     ) -> list:
         try:
             if group_type and isinstance(group_type, int):
