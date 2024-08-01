@@ -256,9 +256,9 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if serializer.is_valid():
             saved_instance = serializer.save()
             # add the committee selected members to the meeting
-            if "sel_committee_members_arr" in request_data:
+            if "selected_committee_members" in request_data:
                 saved_instance.selected_committee_members.set(
-                    request_data.get("sel_committee_members_arr")
+                    request_data.get("selected_committee_members")
                 )
 
             instance.log_user_action(

@@ -361,9 +361,9 @@ export default {
                 blank_fields.push('Please select End Date that is later than Start Date');
             }
             if (vm.$refs.meeting.isCommitteeMeeting){
-                if(vm.meeting_obj.sel_committee_members_arr  == null || vm.meeting_obj.sel_committee_members_arr  == '' || vm.meeting_obj.sel_committee_members_arr.length==0  ) {
+                if(vm.meeting_obj.selected_committee_members  == null || vm.meeting_obj.selected_committee_members  == '' || vm.meeting_obj.selected_committee_members.length<2  ) {
                     //  to also check the start and end date of meeting validation befor saving
-                    blank_fields.push('Please add Committe members');
+                    blank_fields.push('Please select at least two committee members who will be attending');
                 }
             }
             if(vm.$refs.cs_queue.$refs.cs_queue_datatable.vmDataTable.rows().count()==0){
@@ -721,7 +721,7 @@ export default {
         Vue.http.get(`/api/meeting/${to.params.meeting_id}/internal_meeting.json`).then(res => {
             next(vm => {
                 vm.meeting_obj = res.body;
-                vm.meeting_obj.sel_committee_members_arr = [];
+                vm.meeting_obj.selected_committee_members = [];
             });
         },
             err => {
