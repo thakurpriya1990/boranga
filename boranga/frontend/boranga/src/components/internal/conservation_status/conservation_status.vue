@@ -27,13 +27,14 @@
                                     <div class="form-group">
                                         <template
                                             v-if="['Ready For Agenda', 'With Approver', 'Unlocked', 'Approved', 'Closed', 'DeListed'].includes(conservation_status_obj.processing_status)">
-                                            <select ref="assigned_officer" :disabled="!canAction" class="form-control"
+                                            <select ref="assigned_officer" :disabled="!canAction || canLock" class="form-control"
                                                 v-model="conservation_status_obj.assigned_approver">
                                                 <option v-for="member in conservation_status_obj.allowed_assessors"
                                                     :value="member.id">{{ member.first_name }} {{ member.last_name }}
                                                 </option>
                                             </select>
-                                            <a v-if="conservation_status_obj.assigned_approver != conservation_status_obj.current_assessor.id" @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
+                                            <a v-if="conservation_status_obj.can_user_assign_to_self"
+                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
                                                 to me</a>
                                         </template>
                                         <template
@@ -71,7 +72,8 @@
                                         <template v-else>
                                             <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled
                                                 class="actionBtn text-primary float-end">
-                                                Sending Referral <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                Sending Referral <span class="spinner-border spinner-border-sm"
+                                                    role="status" aria-hidden="true"></span>
                                                 <span class="visually-hidden">Loading...</span>
                                             </span>
                                         </template>
@@ -369,7 +371,9 @@
                                                 <div v-if="conservation_status_obj.internal_user_edit"
                                                     class="col-md-6 text-end">
                                                     <button v-if="savingConservationStatus" class="btn btn-primary me-2"
-                                                        style="margin-top:5px;" disabled>Save and Continue <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                        style="margin-top:5px;" disabled>Save and Continue <span
+                                                            class="spinner-border spinner-border-sm" role="status"
+                                                            aria-hidden="true"></span>
                                                         <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
                                                         @click.prevent="save()"
@@ -378,7 +382,9 @@
 
                                                     <button v-if="saveExitConservationStatus"
                                                         class="btn btn-primary me-2" style="margin-top:5px;"
-                                                        disabled>Save and Exit <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                        disabled>Save and Exit <span
+                                                            class="spinner-border spinner-border-sm" role="status"
+                                                            aria-hidden="true"></span>
                                                         <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
                                                         @click.prevent="save_exit()"
@@ -386,7 +392,9 @@
                                                         and Exit</button>
 
                                                     <button v-if="submitConservationStatus" class="btn btn-primary"
-                                                        style="margin-top:5px;" disabled>Submit <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                        style="margin-top:5px;" disabled>Submit <span
+                                                            class="spinner-border spinner-border-sm" role="status"
+                                                            aria-hidden="true"></span>
                                                         <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary" style="margin-top:5px;"
                                                         @click.prevent="submit()"
@@ -394,7 +402,9 @@
                                                 </div>
                                                 <div v-else-if="hasAssessorMode" class="col-md-6 text-end">
                                                     <button v-if="savingConservationStatus" class="btn btn-primary"
-                                                        style="margin-top:5px;" disabled>Save Changes <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                        style="margin-top:5px;" disabled>Save Changes <span
+                                                            class="spinner-border spinner-border-sm" role="status"
+                                                            aria-hidden="true"></span>
                                                         <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary" style="margin-top:5px;"
                                                         @click.prevent="save()">Save
