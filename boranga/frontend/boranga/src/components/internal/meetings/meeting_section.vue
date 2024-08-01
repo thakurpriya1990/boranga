@@ -60,8 +60,7 @@
                                     Change committee to:
                                 </div>
                             </template>
-                            <select class="form-select" v-model="meeting_obj.committee_id"
-                                @change="committeeChanged">
+                            <select class="form-select" v-model="meeting_obj.committee_id" @change="committeeChanged">
                                 <option v-for="committee in committee_list" :value="committee.id" :key="committee.id">
                                     {{ committee.name }}
                                 </option>
@@ -78,7 +77,7 @@
                             class="text-danger">*</span></label>
                     <div class="col-sm-8">
                         <template v-if="committee_members.length > 0">
-                            <div class="border-bottom pb-2 mb-2">
+                            <div v-if="!isReadOnly" class="border-bottom pb-2 mb-2">
                                 <input id="all-members-attending" class="form-check-input me-2"
                                     v-model="all_members_attending" type="checkbox" :value="true"
                                     @click="toggleAllMembersAttending" />
@@ -90,7 +89,7 @@
                             </div>
                             <div v-for="committee_member in committee_members" class="fs-6 mb-2">
                                 <input :id="'member-' + committee_member.id" class="form-check-input me-2"
-                                    type="checkbox" :value="committee_member.id"
+                                    type="checkbox" :value="committee_member.id" :disabled="isReadOnly || committee_member.archived"
                                     v-model="meeting_obj.selected_committee_members"
                                     @change="updateAllMembersAttending" />
                                 <label class="form-check-label"
@@ -100,7 +99,13 @@
                                     {{
                                         committee_member.first_name
                                     }} {{
-                                        committee_member.last_name }}</label>
+                                        committee_member.last_name }} <template v-if="committee_member.archived"> (Now
+                                        Archived)</template></label>
+                                <template
+                                    v-if="!isReadOnly && committee_member.archived && meeting_obj.selected_committee_members.includes(committee_member.id)"><a
+                                        class="ps-2" role="button"
+                                        @click.prevent="removeArchivedCommitteeMember(committee_member.id)">Remove from
+                                        meeting</a></template>
                             </div>
                         </template>
                         <template v-else>
@@ -217,6 +222,9 @@ export default {
         isReadOnly: function () {
             return !this.userCanEdit;
         },
+        activeMembers: function () {
+            return this.committee_members.filter(member => !member.archived);
+        }
     },
     watch: {
         start_date: function (newVal) {
@@ -280,7 +288,7 @@ export default {
             if (vm.meeting_obj.committee_id) {
                 vm.$http.get(api_endpoints.committee_members(vm.meeting_obj.committee_id)).then((response) => {
                     vm.committee_members = response.body;
-                    if (vm.meeting_obj.selected_committee_members.length === vm.committee_members.length) {
+                    if (vm.meeting_obj.selected_committee_members.length === vm.activeMembers.length) {
                         vm.all_members_attending = true;
                     }
                 }, (error) => {
@@ -290,16 +298,16 @@ export default {
         },
         toggleAllMembersAttending: function () {
             let vm = this;
-            if (vm.meeting_obj.selected_committee_members.length === vm.committee_members.length) {
+            if (vm.meeting_obj.selected_committee_members.length === vm.activeMembers.length) {
                 vm.meeting_obj.selected_committee_members = [];
             }
             else {
-                vm.meeting_obj.selected_committee_members = vm.committee_members.map((d) => d.id);
+                vm.meeting_obj.selected_committee_members = vm.activeMembers.map(member => member.id);
             }
         },
         updateAllMembersAttending: function () {
             let vm = this;
-            if (vm.meeting_obj.selected_committee_members.length === vm.committee_members.length) {
+            if (vm.meeting_obj.selected_committee_members.length === vm.activeMembers.length) {
                 vm.all_members_attending = true;
             }
             else {
@@ -312,6 +320,10 @@ export default {
             vm.all_members_attending = false;
             vm.fetchCommitteeMembers();
         },
+        removeArchivedCommitteeMember: function (member_id) {
+            this.meeting_obj.selected_committee_members.splice(this.meeting_obj.selected_committee_members.indexOf(member_id), 1);
+            this.updateAllMembersAttending();
+        }
     },
     created: async function () {
         let vm = this;
