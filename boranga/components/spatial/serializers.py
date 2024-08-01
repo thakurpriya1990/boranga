@@ -34,6 +34,7 @@ class PlausibilityGeometrySerializer(GeoFeatureModelSerializer):
         geo_field = "geometry"
         fields = [
             "id",
+            "check_for_geometry",
             "geometry",
             "average_area",
             "warning_value",

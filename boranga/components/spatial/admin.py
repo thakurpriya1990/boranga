@@ -204,6 +204,7 @@ class PlausibilityGeometryForm(forms.ModelForm):
             "average_area": "Average area [m²] of a tenure area in this geometry",
             "warning_value": "Number of potential tenure areas at which to issue a warning before finishing a geometry",
             "error_value": "Number of potential tenure areas at which to reject the geometry and don't finish it",
+            "check_for_geometry": "The geometry model this plausibility check applies to",
             "geometry": "The geometry for this plausibility check",
         }
 
@@ -220,6 +221,7 @@ class PlausibilityGeometryAdmin(admin.ModelAdmin):
                     "average_area",
                     "warning_value",
                     "error_value",
+                    "check_for_geometry",
                     "geometry",
                 )
             },
