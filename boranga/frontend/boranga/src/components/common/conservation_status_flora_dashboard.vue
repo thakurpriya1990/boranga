@@ -391,7 +391,7 @@ export default {
             //filterCSFloraApplicationStatus: sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) ?
             //    sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) : 'approved',
             filterCSFloraApplicationStatus: sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) : (this.is_for_agenda? 'ready_for_agenda' : 'approved'),
+                sessionStorage.getItem(this.filterCSFloraApplicationStatus_cache) : (this.is_for_agenda ? 'ready_for_agenda' : 'approved'),
 
             filterCSFloraAssessor: sessionStorage.getItem(this.filterCSFloraAssessor_cache) ?
                 sessionStorage.getItem(this.filterCSFloraAssessor_cache) : 'all',
@@ -896,7 +896,7 @@ export default {
                                         >History</a><br>`;
                             }
                             else {
-                                if(full.processing_status==constants.PROPOSAL_STATUS.DISCARDED.TEXT){
+                                if (full.processing_status == constants.PROPOSAL_STATUS.DISCARDED.TEXT) {
                                     links += `<a href='#' data-reinstate-conservation-status-species='${full.id}'>Reinstate</a><br/>`;
                                 }
                                 links += `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
@@ -1325,23 +1325,38 @@ export default {
             })
         },
         createFloraConservationStatus: async function () {
-            let newFloraCSId = null
-            try {
-                const createUrl = api_endpoints.conservation_status + "/";
-                let payload = new Object();
-                payload.application_type_id = this.group_type_id
-                payload.internal_application = true
-                let savedFloraCS = await Vue.http.post(createUrl, payload);
-                if (savedFloraCS) {
-                    newFloraCSId = savedFloraCS.body.id;
+            swal.fire({
+                title: `Propose New Flora Conservation Status`,
+                text: "Are you sure you want to propose a new flora conservation status?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Propose New Conservation Status',
+                reverseButtons: true,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let newFloraCSId = null
+                    try {
+                        const createUrl = api_endpoints.conservation_status + "/";
+                        let payload = new Object();
+                        payload.application_type_id = this.group_type_id
+                        payload.internal_application = true
+                        let savedFloraCS = await Vue.http.post(createUrl, payload);
+                        if (savedFloraCS) {
+                            newFloraCSId = savedFloraCS.body.id;
+                        }
+                    }
+                    catch (err) {
+                        console.log(err);
+                    }
+                    this.$router.push({
+                        name: 'internal-conservation_status',
+                        params: { conservation_status_id: newFloraCSId },
+                    });
                 }
-            }
-            catch (err) {
-                console.log(err);
-            }
-            this.$router.push({
-                name: 'internal-conservation_status',
-                params: { conservation_status_id: newFloraCSId },
             });
         },
         discardCSProposal: function (conservation_status_id) {
@@ -1685,7 +1700,7 @@ export default {
     },
     mounted: function () {
         let vm = this;
-        if(vm.profile && vm.profile.groups && vm.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS)){
+        if (vm.profile && vm.profile.groups && vm.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS)) {
             vm.internal_status.push({ value: 'discarded_by_me', name: 'Discarded By Me' },);
         }
         vm.fetchFilterLists();

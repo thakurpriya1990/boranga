@@ -46,8 +46,9 @@
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="cs_proposal_type">
                     <li v-for="group in group_types">
-                        <a class="dropdown-item" role="button" @click.prevent="createConservationStatus(group.id)">{{
-                            group.display }}
+                        <a class="dropdown-item" role="button"
+                            @click.prevent="createConservationStatus(group.id, group.display)">{{
+                                group.display }}
                         </a>
                     </li>
                 </ul>
@@ -480,23 +481,37 @@ export default {
                 console.log(error);
             });
         },
-        createConservationStatus: async function (group_type) {
-            let newCSId = null
-            try {
-                const createUrl = api_endpoints.conservation_status + "/";
-                let payload = new Object();
-                payload.application_type_id = group_type
-                let savedCS = await Vue.http.post(createUrl, payload);
-                if (savedCS) {
-                    newCSId = savedCS.body.id;
+        createConservationStatus: async function (group_type, group_type_name) {
+            swal.fire({
+                title: `Propose New ${group_type_name} Conservation Status`,
+                text: `Are you sure you want to propose a new ${group_type_name} Conservation Status?`,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: `Propose ${group_type_name} Conservation Status`,
+                reverseButtons: true,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let newCSId = null
+                    try {
+                        const createUrl = api_endpoints.conservation_status + "/";
+                        let payload = new Object();
+                        payload.application_type_id = group_type
+                        let savedCS = await Vue.http.post(createUrl, payload);
+                        if (savedCS) {
+                            newCSId = savedCS.body.id;
+                        }
+                    }
+                    catch (err) {
+                        console.log(err);
+                    }
+                    this.$router.push({
+                        name: 'draft_cs_proposal',
+                        params: { conservation_status_id: newCSId },
+                    });
                 }
-            }
-            catch (err) {
-                console.log(err);
-            }
-            this.$router.push({
-                name: 'draft_cs_proposal',
-                params: { conservation_status_id: newCSId },
             });
         },
         discardCSProposal: function (conservation_status_id) {
