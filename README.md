@@ -9,10 +9,10 @@
  virtualenv venv
  . venv/bin/activate
 
- pip install -r requirements.txt 
+ pip install -r requirements.txt
 ```
 test
-     
+
 ## Create a DB
 ```
  docker@docker:/var/www/pipsim$ sudo -u postgres psql
@@ -32,49 +32,49 @@ test
 
  # Check Connection to new DB
  /var/www/boranga$ psql -U test -W -h localhost -d boranga_dev -p 5432
- Password: 
+ Password:
 
  psql (12.9 (Ubuntu 12.9-0ubuntu0.20.04.1))
  SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, bits: 256, compression: off)
  Type "help" for help.
 
- boranga_dev=# 
- 
+ boranga_dev=#
+
  If importing database from a copy you will need to rename django_admin_log user to user_id
- 
+
  ALTER TABLE django_admin_log RENAME COLUMN "user" TO user_id;
- 
+
 ```
 
 ## Add in .env
 ```
  DATABASE_URL="postgis://test:my_passwd@localhost:5432/boranga_dev"
- 
+
  ./apply_initial_migrations.sh
- 
+
  # If a user exists in the Ledger DB Server, test to see if you can connect to it (Assumes Ledger server is running - see below)
  EmailUserRO.objects.get(email='firstname.lastname@dbca.wa.gov.au')
- 
+
  # Build NPM
  cd /var/www/boranga/boranga/frontend/boranga
  npm install
  npm run build
- 
+
  cd /var/www/boranga/boranga
  ./manage.py collectstatic --noinput
  ./manage.py runserver 0.0.0.0:8000
- 
+
  # GO TO:
      http://localhost:8000/ledger/admin/
      1. Create 'Boranga Admin' Group
 ```
 
 ## .env file for Boranga Application
-NOTE: 
+NOTE:
     1. LEDGER_API_KEY can be retrived from the LEDGER Server Admin (under group API)
     2. In Boranga Admin, must create SYSTEM GROUP 'Boranga Admin'
 
-```  
+```
 DEBUG=True
 DATABASE_URL="postgis://test:my_passwd@localhost:5432/boranga_dev"
 LEDGER_DATABASE_URL='postgis://test:my_passwd@localhost:5432/boranga_dev'
@@ -124,7 +124,7 @@ u.save()
 
 # go to http://localhost:8000/admin
 # Login with the above credentials (email: firstname.lastname@dbca.wa.gov.au, pw: my_password)
-# From th Admin view 
+# From th Admin view
 #     1. create group 'Boranga Admin' (in Group section)
 #     2. in API sections
          a. click Add API
@@ -137,12 +137,11 @@ u.save()
 ```
 
 ### .env file for Ledger Server
-```                                                                                                                                                               
+```
 DEBUG=True
 ALLOWED_HOSTS=['*']
 SECRET_KEY='my_secret_key'
 DATABASE_URL='postgis://test:my_passwd@localhost:5432/db_name'
-ORACLE_FINANCE_DB='postgis://test:my_passwd@localhost:5432/db_name'
 EMAIL_HOST='my_smtp_server'
 BPOINT_USERNAME='bpoint_username'
 BPOINT_PASSWORD='bpoint_password'
