@@ -2,10 +2,12 @@ import json
 import geojson
 from shapely import from_geojson
 from django.contrib.gis.geos import GEOSGeometry
+from django.core.cache import cache
 import re
 
 from django.contrib.gis import admin, forms
 
+from boranga import settings
 from .models import GeoserverUrl, PlausibilityGeometry, Proxy, TileLayer
 
 
@@ -250,6 +252,17 @@ class PlausibilityGeometryForm(forms.ModelForm):
         instance.geometry = self.cleaned_data["geometry"]
         if commit:
             instance.save()
+
+        cache_key_old = settings.CACHE_KEY_PLAUSIBILITY_GEOMETRY.format(
+            **{"geometry_model": self.initial["check_for_geometry"]}
+        )
+        cache_key = settings.CACHE_KEY_PLAUSIBILITY_GEOMETRY.format(
+            **{"geometry_model": instance.check_for_geometry}
+        )
+        cache.delete(cache_key)
+        if cache_key_old != cache_key:
+            cache.delete(cache_key_old)
+
         return instance
 
 

@@ -5503,9 +5503,17 @@ class OccurrenceViewSet(
         url_path="plausibility-geometry",
     )
     def plausibility_geometry(self, request, *args, **kwargs):
-        qs = PlausibilityGeometry.objects.filter(
-            active=True, check_for_geometry=PlausibilityGeometry.OCCURRENCE_GEOMETRY
+
+        cache_key = settings.CACHE_KEY_PLAUSIBILITY_GEOMETRY.format(
+            **{"geometry_model": PlausibilityGeometry.OCCURRENCE_GEOMETRY}
         )
+        qs = cache.get(cache_key)
+        if qs is None:
+            qs = PlausibilityGeometry.objects.filter(
+                active=True, check_for_geometry=PlausibilityGeometry.OCCURRENCE_GEOMETRY
+            )
+            cache.set(cache_key, qs, settings.CACHE_TIMEOUT_24_HOURS)
+
         serializer = PlausibilityGeometrySerializer(
             qs, many=True, context={"request": request}
         )
