@@ -1326,7 +1326,7 @@
                         @mouseenter="showToastCloseButton = true"
                         @mouseleave="showToastCloseButton = false"
                     >
-                        <template v-if="selectedModel">
+                        <template v-if="selectedModel && mode === 'layer'">
                             <div class="toast-header">
                                 <img src="" class="rounded me-2" alt="" />
                                 <strong class="me-auto">
