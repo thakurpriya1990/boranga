@@ -160,59 +160,125 @@
                         <label for="proposed_wa_legislative_list" class="col-sm-4 col-form-label fw-bold">WA Legislative
                             List <span class="text-warning">*</span></label>
                         <div class="col-sm-8">
-                            <select :disabled="isReadOnly" class="form-select"
-                                v-model="conservation_status_obj.wa_legislative_list_id"
-                                id="proposed_wa_legislative_list" @change="filterWALegislativeCategories($event)">
-                                <option :value="null" disabled>Select the appropriate WA Legislative List</option>
-                                <option v-for="option in wa_legislative_lists" :value="option.id"
-                                    v-bind:key="option.id">
-                                    {{ option.code }} - {{ option.label }}
-                                </option>
-                            </select>
+                            <template v-if="!isReadOnly">
+                                <template
+                                    v-if="wa_legislative_lists && wa_legislative_lists.length > 0 && conservation_status_obj.wa_legislative_list_id && !wa_legislative_lists.map((d) => d.id).includes(conservation_status_obj.wa_legislative_list_id)">
+                                    <input type="text" v-if="conservation_status_obj.wa_legislative_list"
+                                        class="form-control mb-3"
+                                        :value="conservation_status_obj.wa_legislative_list + ' (Now Archived)'"
+                                        disabled />
+                                    <div class="mb-3 text-muted">
+                                        Change wa legislative list to:
+                                    </div>
+                                </template>
+                                <select :disabled="isReadOnly" class="form-select"
+                                    v-model="conservation_status_obj.wa_legislative_list_id"
+                                    id="proposed_wa_legislative_list" @change="filterWALegislativeCategories($event)">
+                                    <option :value="null" disabled>Select the appropriate WA Legislative List</option>
+                                    <option v-for="option in wa_legislative_lists" :value="option.id"
+                                        v-bind:key="option.id">
+                                        {{ option.code }} - {{ option.label }}
+                                    </option>
+                                </select>
+                            </template>
+                            <template v-else>
+                                <input class="form-control" type="text" :disabled="isReadOnly"
+                                    v-model="conservation_status_obj.wa_legislative_list" />
+                            </template>
                         </div>
                     </div>
                     <div v-if="conservation_status_obj.wa_legislative_list_id" class="row mb-3">
                         <label for="proposed_wa_legislative_category" class="col-sm-4 col-form-label">WA Legislative
                             Category:</label>
                         <div class="col-sm-8">
-                            <select :disabled="isReadOnly" class="form-select"
-                                v-model="conservation_status_obj.wa_legislative_category_id"
-                                id="proposed_wa_legislative_category">
-                                <option :value="null" disabled>Select the appropriate WA Legislative Category</option>
-                                <option v-for="option in filtered_wa_legislative_categories" :value="option.id"
-                                    v-bind:key="option.id">
-                                    {{ option.code }} - {{ option.label }}
-                                </option>
-                            </select>
+                            <template v-if="!isReadOnly">
+                                <template
+                                    v-if="wa_legislative_categories && wa_legislative_categories.length > 0 && conservation_status_obj.wa_legislative_category_id && !wa_legislative_categories.map((d) => d.id).includes(conservation_status_obj.wa_legislative_category_id)">
+                                    <input type="text" v-if="conservation_status_obj.wa_legislative_category"
+                                        class="form-control mb-3"
+                                        :value="conservation_status_obj.wa_legislative_category + ' (Now Archived)'"
+                                        disabled />
+                                    <div class="mb-3 text-muted">
+                                        Change wa legislative category to:
+                                    </div>
+                                </template>
+                                <select :disabled="isReadOnly" class="form-select"
+                                    v-model="conservation_status_obj.wa_legislative_category_id"
+                                    id="proposed_wa_legislative_category">
+                                    <option :value="null" disabled>Select the appropriate WA Legislative Category
+                                    </option>
+                                    <option v-for="option in wa_legislative_categories" :value="option.id"
+                                        v-bind:key="option.id">
+                                        {{ option.code }} - {{ option.label }}
+                                    </option>
+                                </select>
+                            </template>
+                            <template v-else>
+                                <input class="form-control" type="text" :disabled="isReadOnly"
+                                    v-model="conservation_status_obj.wa_legislative_category" />
+                            </template>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <label for="proposed_wa_priority_list" class="col-sm-4 col-form-label fw-bold">WA Priority
                             List <span class="text-warning">*</span></label>
                         <div class="col-sm-8">
-                            <select :disabled="isReadOnly" class="form-select"
-                                v-model="conservation_status_obj.wa_priority_list_id" id="proposed_wa_priority_list"
-                                @change="filterWAPriorityCategories($event)">
-                                <option :value="null" disabled>Select the appropriate WA Priority List</option>
-                                <option v-for="option in wa_priority_lists" :value="option.id" v-bind:key="option.id">
-                                    {{ option.code }} - {{ option.label }}
-                                </option>
-                            </select>
+                            <template v-if="!isReadOnly">
+                                <template
+                                    v-if="wa_priority_lists && wa_priority_lists.length > 0 && conservation_status_obj.wa_priority_list_id && !wa_priority_lists.map((d) => d.id).includes(conservation_status_obj.wa_priority_list_id)">
+                                    <input type="text" v-if="conservation_status_obj.wa_priority_list"
+                                        class="form-control mb-3"
+                                        :value="conservation_status_obj.wa_priority_list + ' (Now Archived)'"
+                                        disabled />
+                                    <div class="mb-3 text-muted">
+                                        Change wa priority list to:
+                                    </div>
+                                </template>
+                                <select :disabled="isReadOnly" class="form-select"
+                                    v-model="conservation_status_obj.wa_priority_list_id" id="proposed_wa_priority_list"
+                                    @change="filterWAPriorityCategories($event)">
+                                    <option :value="null" disabled>Select the appropriate WA Priority List</option>
+                                    <option v-for="option in wa_priority_lists" :value="option.id"
+                                        v-bind:key="option.id">
+                                        {{ option.code }} - {{ option.label }}
+                                    </option>
+                                </select>
+                            </template>
+                            <template v-else>
+                                <input class="form-control" type="text" :disabled="isReadOnly"
+                                    v-model="conservation_status_obj.wa_priority_list" />
+                            </template>
                         </div>
                     </div>
                     <div v-if="conservation_status_obj.wa_priority_list_id" class="row mb-3">
                         <label for="proposed_wa_priority_category" class="col-sm-4 col-form-label">WA Priority
                             Category:</label>
                         <div class="col-sm-8">
-                            <select :disabled="isReadOnly" class="form-select"
-                                v-model="conservation_status_obj.wa_priority_category_id"
-                                id="proposed_wa_priority_category">
-                                <option :value="null" disabled>Select the appropriate WA Priority Category</option>
-                                <option v-for="option in filtered_wa_priority_categories" :value="option.id"
-                                    v-bind:key="option.id">
-                                    {{ option.code }} - {{ option.label }}
-                                </option>
-                            </select>
+                            <template v-if="!isReadOnly">
+                                <template
+                                    v-if="wa_priority_categories && wa_priority_categories.length > 0 && conservation_status_obj.wa_priority_category_id && !wa_priority_categories.map((d) => d.id).includes(conservation_status_obj.wa_priority_category_id)">
+                                    <input type="text" v-if="conservation_status_obj.wa_priority_category"
+                                        class="form-control mb-3"
+                                        :value="conservation_status_obj.wa_priority_category + ' (Now Archived)'"
+                                        disabled />
+                                    <div class="mb-3 text-muted">
+                                        Change wa priority category to:
+                                    </div>
+                                </template>
+                                <select :disabled="isReadOnly" class="form-select"
+                                    v-model="conservation_status_obj.wa_priority_category_id"
+                                    id="proposed_wa_priority_category">
+                                    <option :value="null" disabled>Select the appropriate WA Priority Category</option>
+                                    <option v-for="option in wa_priority_categories" :value="option.id"
+                                        v-bind:key="option.id">
+                                        {{ option.code }} - {{ option.label }}
+                                    </option>
+                                </select>
+                            </template>
+                            <template v-else>
+                                <input class="form-control" type="text" :disabled="isReadOnly"
+                                    v-model="conservation_status_obj.wa_priority_category" />
+                            </template>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -221,16 +287,32 @@
                             Conservation
                             List:</label>
                         <div class="col-sm-8">
-                            <select :disabled="isReadOnly" class="form-select"
-                                v-model="conservation_status_obj.commonwealth_conservation_list_id"
-                                id="proposed_commonwealth_conservation_list">
-                                <option :value="null" disabled>Select a Commonwealth Conservation List if Applicable
-                                </option>
-                                <option v-for="option in commonwealth_conservation_lists" :value="option.id"
-                                    v-bind:key="option.id">
-                                    {{ option.code }} - {{ option.label }}
-                                </option>
-                            </select>
+                            <template v-if="!isReadOnly">
+                                <template
+                                    v-if="commonwealth_conservation_lists && commonwealth_conservation_lists.length > 0 && conservation_status_obj.commonwealth_conservation_list_id && !commonwealth_conservation_lists.map((d) => d.id).includes(conservation_status_obj.commonwealth_conservation_list_id)">
+                                    <input type="text" v-if="conservation_status_obj.commonwealth_conservation_list"
+                                        class="form-control mb-3"
+                                        :value="conservation_status_obj.commonwealth_conservation_list + ' (Now Archived)'"
+                                        disabled />
+                                    <div class="mb-3 text-muted">
+                                        Change commonwealth conservation list to:
+                                    </div>
+                                </template>
+                                <select :disabled="isReadOnly" class="form-select"
+                                    v-model="conservation_status_obj.commonwealth_conservation_list_id"
+                                    id="proposed_commonwealth_conservation_list">
+                                    <option :value="null" disabled>Select the appropriate Commonwealth Conservation List
+                                    </option>
+                                    <option v-for="option in commonwealth_conservation_lists" :value="option.id"
+                                        v-bind:key="option.id">
+                                        {{ option.code }} - {{ option.label }}
+                                    </option>
+                                </select>
+                            </template>
+                            <template v-else>
+                                <input class="form-control" type="text" :disabled="isReadOnly"
+                                    v-model="conservation_status_obj.commonwealth_conservation_list" />
+                            </template>
                         </div>
                     </div>
                     <div class="row mb-3">
