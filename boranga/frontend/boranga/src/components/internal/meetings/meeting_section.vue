@@ -73,7 +73,7 @@
                     </div>
                 </div>
                 <div v-if="meeting_obj.committee_id && committee_members" class="row mb-3">
-                    <label for="" class="col-sm-4 control-label fw-bold">Members Attending: <span
+                    <label for="" class="col-sm-4 control-label fw-bold">Members {{ meeting_obj.processing_status=="completed" ? 'Who Attended' : "Attending" }}: <span
                             class="text-danger">*</span></label>
                     <div class="col-sm-8">
                         <template v-if="committee_members.length > 0">
