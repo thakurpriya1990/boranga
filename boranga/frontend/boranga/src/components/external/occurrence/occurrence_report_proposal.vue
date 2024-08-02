@@ -253,7 +253,7 @@ export default {
         save_exit: async function () {
             let vm = this;
             // this.submitting = true;
-            var missing_data = vm.can_submit("");
+            var missing_data = await vm.can_submit("");
             if (missing_data != true) {
                 swal.fire({
                     title: "Please fix following errors before saving",
