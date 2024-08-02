@@ -132,7 +132,7 @@ export default {
                             term: params.term,
                             type: 'public',
                             group_type_id: vm.$parent.species_community.group_type_id,
-                            combine_species: true,
+                            has_species: true,
                         }
                         return query;
                     },
