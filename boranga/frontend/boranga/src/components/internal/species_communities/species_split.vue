@@ -1,36 +1,39 @@
 <template lang="html">
     <div id="splitSpecies">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large id="myModal">
+        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" extraLarge id="myModal">
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="splitSpeciesForm">
                         <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div>
                             <div class="col-md-12">
-                                <ul v-if="is_internal" class="nav nav-pills mb-3" id="split-pills-tab" role="tablist">
+                                <ul v-if="is_internal" class="nav nav-pills" id="split-pills-tab" role="tablist">
                                     <li class="nav-item">
                                         <a class="nav-link" id="pills-original-tab" data-bs-toggle="pill"
                                             :href="'#' + originalBody" role="tab" :aria-controls="originalBody"
                                             aria-selected="true">
                                             Original {{
-                                                this.species_community_original ? this.species_community_original.species_number:''
+                                                this.species_community_original ?
+                                                    this.species_community_original.species_number : ''
                                             }}
                                         </a>
                                     </li>
-
                                     <li class="nav-item" v-for="(species, index) in new_species_list"
                                         :key="'li' + species.id">
                                         <a class="nav-link" :id="'pills-species-' + index + '-tab'"
                                             data-bs-toggle="pill" :href="'#species-body-' + index" role="tab"
                                             :aria-controls="'species-body-' + index" aria-selected="false">
-                                            {{ species.species_number }}
-                                        </a><span :id=index>x</span>
+                                            {{ species.species_number }} <span class="ms-2" :id=index><i
+                                                    class="bi bi-trash3-fill"></i></span>
+                                        </a>
                                     </li>
-                                    <li>
-                                        <a href="#" id="btnAdd"><i class="icon-plus-sign-alt"></i>Add</a>
+                                    <li class="nav-item">
+                                        <a href="#" role="button" class="nav-link" id="btnAdd"
+                                            @click.prevent="addSpecies"><i class="bi bi-window-plus"></i> Add Another
+                                            Species</a>
                                     </li>
                                 </ul>
-                                <div class="tab-content" id="split-pills-tabContent">
+                                <div class="tab-content border p-3" id="split-pills-tabContent">
                                     <!-- the fade show active was creating the problem of rendering two thing on tab -->
                                     <div class="tab-pane" :id="originalBody" role="tabpanel"
                                         aria-labelledby="pills-original-tab">
@@ -60,7 +63,8 @@
             <div slot="footer">
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
                 <button v-if="submitSpeciesSplit" class="btn btn-primary pull-right" style="margin-top:5px;"
-                    disabled>Submit <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    disabled>Submit <span class="spinner-border spinner-border-sm" role="status"
+                        aria-hidden="true"></span>
                     <span class="visually-hidden">Loading...</span></button>
                 <button v-else class="btn btn-primary" @click.prevent="ok()"
                     :disabled="submitSpeciesSplit">Submit</button>
@@ -165,7 +169,8 @@ export default {
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                });
+                    },
+                });
                 vm.submitSpeciesSplit = false;
                 vm.saveError = true;
                 return false;
@@ -182,10 +187,10 @@ export default {
                 if (vm.new_species_list[index].distribution.distribution == null || vm.new_species_list[index].distribution.distribution == '') {
                     blank_fields.push('Distribution is missing')
                 }
-                if (vm.new_species_list[index].regions == null || vm.new_species_list[index].regions == '' || vm.new_species_list[index].regions.length==0) {
+                if (vm.new_species_list[index].regions == null || vm.new_species_list[index].regions == '' || vm.new_species_list[index].regions.length == 0) {
                     blank_fields.push('Region is missing')
                 }
-                if (vm.new_species_list[index].districts == null || vm.new_species_list[index].districts == ''|| vm.new_species_list[index].districts.length == 0) {
+                if (vm.new_species_list[index].districts == null || vm.new_species_list[index].districts == '' || vm.new_species_list[index].districts.length == 0) {
                     blank_fields.push('District is missing')
                 }
             }
@@ -207,17 +212,18 @@ export default {
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                })
+                    },
+                })
                 return false;
             }
 
             vm.submitSpeciesSplit = true;
             swal.fire({
-                title: "Submit",
-                text: "Are you sure you want to submit this Species Spit?",
+                title: "Split Species",
+                text: "Are you sure you want to split this species?",
                 icon: "question",
                 showCancelButton: true,
-                confirmButtonText: "submit",
+                confirmButtonText: "Split Species",
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary',
@@ -247,8 +253,9 @@ export default {
                                     text: helpers.apiVueResourceError(err),
                                     icon: 'error',
                                     customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },                                });
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
                                 vm.saveError = true;
                             });
                         }
@@ -277,11 +284,13 @@ export default {
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                });
+                    },
+                });
             });
         },
         removeSpecies: function (species_id) {
             let vm = this;
+
             try {
                 // In this case we are allowing a http DELETE call to remove the species
                 vm.$http.delete(api_endpoints.remove_species_proposal(species_id));
@@ -293,46 +302,75 @@ export default {
                 }
             }
         },
+        addSpecies: function () {
+            let vm = this;
+            swal.fire({
+                title: 'Add Another Species',
+                text: "Are you sure you want to add another species to the split?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Add Another Species',
+                reverseButtons: true,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let newSpeciesId = null
+                    try {
+                        const createUrl = api_endpoints.species + "/";
+                        let payload = new Object();
+                        payload.group_type_id = vm.species_community_original.group_type_id;
+                        payload.parent_species_id = vm.species_community_original.id;
+                        Vue.http.post(createUrl, payload).then(resp => {
+                            newSpeciesId = resp.body.id;
+                            Vue.http.get(`/api/species/${newSpeciesId}/internal_species.json`).then(res => {
+                                let species_obj = res.body.species_obj;
+                                //---documents array added to store the select document ids in from the child component
+                                species_obj.documents = []
+                                //---threats array added to store the select threat ids in from the child component
+                                species_obj.threats = []
+                                vm.new_species_list.push(species_obj); //--temp species_obj
+                            },
+                                err => {
+                                    console.log(err);
+                                });
+                        }, (error) => {
+                            console.log(error);
+                        });
+                    }
+                    catch (err) {
+                        console.log(err);
+                        if (this.is_internal) {
+                            return err;
+                        }
+                    }
+                }
+            });
+        },
         eventListeners: function () {
             let vm = this;
             $(".nav-pills").on("click", "span", function () {
                 let species_obj = vm.new_species_list[$(this).attr('id')];
-                vm.removeSpecies(species_obj.id);
-                vm.new_species_list.splice($(this).attr('id'), 1);
-            });
-
-            $('#btnAdd').click(function (e) {
-                let newSpeciesId = null
-                try {
-                    const createUrl = api_endpoints.species + "/";
-                    let payload = new Object();
-                    payload.group_type_id = vm.species_community_original.group_type_id;
-                    payload.parent_species_id = vm.species_community_original.id;
-                    Vue.http.post(createUrl, payload).then(resp => {
-                        newSpeciesId = resp.body.id;
-                        Vue.http.get(`/api/species/${newSpeciesId}/internal_species.json`).then(res => {
-                            let species_obj = res.body.species_obj;
-                            //---documents array added to store the select document ids in from the child component
-                            species_obj.documents = []
-                            //---threats array added to store the select threat ids in from the child component
-                            species_obj.threats = []
-                            vm.new_species_list.push(species_obj); //--temp species_obj
-                        },
-                            err => {
-                                console.log(err);
-                            });
-                    }, (error) => {
-                        console.log(error);
-                    });
-                }
-                catch (err) {
-                    console.log(err);
-                    if (this.is_internal) {
-                        return err;
+                swal.fire({
+                    title: 'Remove Species',
+                    text: `Are you sure you want to remove species ${species_obj.species_number} from the split?`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: 'Remove Species',
+                    reverseButtons: true,
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                        cancelButton: 'btn btn-secondary',
+                    },
+                }).then(async (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        vm.removeSpecies(species_obj.id);
+                        vm.new_species_list.splice($(this).attr('id'), 1);
                     }
-                }
+                });
             });
-
         },
     },
     mounted: function () {
@@ -351,77 +389,9 @@ export default {
 }
 </script>
 
-<style lang="css" scoped>
-.section {
-    text-transform: capitalize;
-}
-
-.list-group {
-    margin-bottom: 0;
-}
-
-.fixed-top {
-    position: fixed;
-    top: 56px;
-}
-
-.nav-item {
-    margin-bottom: 2px;
-}
-
-.nav-item>li>a {
-    background-color: yellow !important;
-    color: #fff;
-}
-
-.nav-item>li.active>a,
-.nav-item>li.active>a:hover,
-.nav-item>li.active>a:focus {
-    color: white;
-    background-color: blue;
-    border: 1px solid #888888;
-}
-
-.admin>div {
-    display: inline-block;
-    vertical-align: top;
-    margin-right: 1em;
-}
-
-.nav-pills .nav-link {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 0.5em;
-    border-top-right-radius: 0.5em;
-    margin-right: 0.25em;
-}
-
-.nav-pills .nav-link {
-    background: lightgray;
-}
-
-.nav-pills .nav-link.active {
-    background: gray;
-}
-
-.nav-pills>li {
-    position: relative;
-}
-
-.nav-pills>li>a {
-    display: inline-block;
-}
-
-.nav-pills>li>span {
-    display: none;
+<style scoped>
+.bi.bi-trash3-fill:hover {
     cursor: pointer;
-    position: absolute;
-    right: 6px;
-    top: 8px;
     color: red;
-}
-
-.nav-pills>li:hover>span {
-    display: inline-block;
 }
 </style>
