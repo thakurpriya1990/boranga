@@ -869,8 +869,8 @@ export default {
         },
         validateFeature: function (feature) {
             // Validate the feature
-            console.log('Validating feature:', feature);
             if (this.plausibilityGeometryFeatures.length > 0) {
+                console.log('Validating feature:', feature);
                 this.$refs.component_map.setLoadingMap(true);
                 this.plausibilityCheckFeature(feature).then(async (areas) => {
                     let warning = false;
@@ -940,7 +940,9 @@ export default {
                     }
                 });
             } else {
-                console.log('No plausibility geometry features found.');
+                console.log(
+                    'No plausibility geometry features found for validation.'
+                );
                 this.$refs.component_map.finishDrawing();
             }
         },

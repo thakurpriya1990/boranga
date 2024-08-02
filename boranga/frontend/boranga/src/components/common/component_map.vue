@@ -1633,7 +1633,6 @@ import {
     fetchTileLayers,
     fetchProposals,
     set_mode,
-    // validateFeature,
     layerAtEventPixel,
     queryLayerAtPoint,
 } from '@/components/common/map_functions.js';
@@ -3860,8 +3859,7 @@ export default {
                                     feature
                                         .getGeometry()
                                         .setCoordinates([coord]);
-                                    //commented validateFeature by Priya
-                                    //validateFeature(feature, vm);
+                                    vm.emitValidateFeature(feature);
                                 }
                             }
                         }
@@ -3899,8 +3897,7 @@ export default {
                 const feature = evt.features[0];
                 const coordinates = feature.getGeometry().getCoordinates();
                 vm.userCoordinates(feature, coordinates);
-                //commented validateFeature by Priya
-                //validateFeature(feature, vm);
+                vm.emitValidateFeature(feature);
             });
 
             return modify;
@@ -3916,8 +3913,7 @@ export default {
             const transformEndCallback = function (evt) {
                 // eslint-disable-next-line no-unused-vars
                 evt.features.forEach((feature) => {
-                    //commented validateFeature by Priya
-                    // validateFeature(feature, vm);
+                    vm.emitValidateFeature(feature);
                     const coordinates = feature.getGeometry().getCoordinates();
                     vm.userCoordinates(feature, coordinates);
                 });
