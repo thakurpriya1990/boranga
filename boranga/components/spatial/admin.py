@@ -238,8 +238,6 @@ class PlausibilityGeometryForm(forms.ModelForm):
 
             self.data = self.data.copy()
             geo_json = geojson.loads(geosgeom.json)
-            if "geometries" in geo_json:
-                geo_json = geo_json.get("geometries")[0]
             self.data["geometry"] = json.dumps(geo_json)
 
         cleaned_data = super().clean()
