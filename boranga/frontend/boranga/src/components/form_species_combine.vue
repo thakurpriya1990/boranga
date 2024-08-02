@@ -2,40 +2,40 @@
     <div>
         <div class="col-md-12">
 
-            <ul v-if="is_internal" class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+            <ul v-if="is_internal" class="nav nav-pills" id="pills-tab" role="tablist">
               <li class="nav-item">
-                <a 
-                    class="nav-link active" 
-                    id="pills-profile-tab" 
-                    data-bs-toggle="pill" 
-                    :href="'#' + profileBody" 
-                    role="tab" 
-                    :aria-controls="profileBody" 
+                <a
+                    class="nav-link active"
+                    id="pills-profile-tab"
+                    data-bs-toggle="pill"
+                    :href="'#' + profileBody"
+                    role="tab"
+                    :aria-controls="profileBody"
                     aria-selected="true">
                   Profile
                 </a>
               </li>
               <li class="nav-item">
-                <a 
-                    class="nav-link" 
-                    id="pills-documents-tab" 
-                    data-bs-toggle="pill" 
-                    :href="'#' + documentBody" 
-                    role="tab" 
-                    aria-controls="pills-documents" 
+                <a
+                    class="nav-link"
+                    id="pills-documents-tab"
+                    data-bs-toggle="pill"
+                    :href="'#' + documentBody"
+                    role="tab"
+                    aria-controls="pills-documents"
                     :aria-selected="documentBody"
                     @click="tabClicked()">
                   Documents
                 </a>
               </li>
               <li class="nav-item">
-                <a 
-                    class="nav-link" 
-                    id="pills-threats-tab" 
-                    data-bs-toggle="pill" 
-                    :href="'#' + threatBody " 
-                    role="tab" 
-                    :aria-controls="threatBody" 
+                <a
+                    class="nav-link"
+                    id="pills-threats-tab"
+                    data-bs-toggle="pill"
+                    :href="'#' + threatBody "
+                    role="tab"
+                    :aria-controls="threatBody"
                     aria-selected="false"
                     @click="tabClicked()">
                   Threats
@@ -45,8 +45,8 @@
             <div class="tab-content" id="pills-tabContent">
               <div class="tab-pane fade show active" :id="profileBody" role="tabpanel" aria-labelledby="pills-profile-tab">
                 <SpeciesProfile
-                    ref="species_information" 
-                    id="speciesInformation" 
+                    ref="species_information"
+                    id="speciesInformation"
                     :is_internal="is_internal"
                     :species_community="species_community"
                     :original_species_combine_list="original_species_combine_list">
@@ -54,10 +54,10 @@
               </div>
               <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
                 <div v-for="species in original_species_combine_list">
-                    <SpeciesDocuments 
+                    <SpeciesDocuments
                         :key="reloadcount"
-                        ref="species_documents" 
-                        id="speciesDocuments" 
+                        ref="species_documents"
+                        id="speciesDocuments"
                         :is_internal="is_internal"
                         :species_community="species_community"
                         :species_original="species">
@@ -68,8 +68,8 @@
                 <div v-for="species in original_species_combine_list">
                     <SpeciesThreats
                         :key="reloadcount"
-                        ref="species_threats" 
-                        id="speciesThreats" 
+                        ref="species_threats"
+                        id="speciesThreats"
                         :is_internal="is_internal"
                         :species_community="species_community"
                         :species_original="species">
@@ -85,7 +85,7 @@
     import SpeciesProfile from '@/components/common/species_communities/species_combine/species_combine_profile.vue'
     import SpeciesDocuments from '@/components/common/species_communities/species_combine/species_combine_documents.vue'
     import SpeciesThreats from '@/components/common/species_communities/species_combine/species_combine_threats.vue'
-    
+
     export default {
         props:{
             original_species_combine_list:{
@@ -143,7 +143,7 @@
             vm.form = document.forms.new_species;
             vm.eventListener();
         }
- 
+
     }
 </script>
 
@@ -193,4 +193,3 @@
         background: gray;
     }
 </style>
-
