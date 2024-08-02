@@ -2,13 +2,13 @@
     <div id="species_split_threats">
         <FormSection :formCollapse="false" label="Threats" :Index="threatBody">
             <form class="form-horizontal" action="index.html" method="post">
-                <div class="col-sm-12">
+                <div class="col-sm-12 form-check form-check-inline">
                     <input class="form-check-input" type="radio" :id="'threat_select_all'+species_community.id" name="threatSelect" value="selectAll" @click="selectThreatOption($event)"/>
-                    <label>Copy all threats to Species {{species_community.species_number}}</label>
+                    <label class="form-check-label">Copy all threats to Species {{species_community.species_number}}</label>
                 </div>
-                <div class="col-sm-12">
+                <div class="col-sm-12 form-check form-check-inline mb-3">
                     <input class="form-check-input" type="radio" :id="'threat_select_individual'+species_community.id" name="threatSelect" value="individual" @click="selectThreatOption($event)"/>
-                    <label>Decide per threat</label>
+                    <label class="form-check-label">Decide per threat</label>
                 </div>
                 <div>
                     <datatable ref="threats_datatable" :id="panelBody" :dtOptions="threats_options"

@@ -111,8 +111,9 @@
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
                 <template v-if="site_action != 'view'">
                     <template v-if="site_id">
-                        <button type="button" v-if="updatingSite" disabled class="btn btn-primary" @click="ok"><i
-                                class="fa fa-spinnner fa-spin"></i> Updating</button>
+                        <button type="button" v-if="updatingSite" disabled class="btn btn-primary" @click="ok">Updating
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="visually-hidden">Loading...</span></button>
                         <button type="button" v-else class="btn btn-primary" @click="ok">Update</button>
                     </template>
                     <template v-else>

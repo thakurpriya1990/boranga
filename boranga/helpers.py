@@ -188,6 +188,18 @@ def belongs_to_groups(request, group_names: list) -> bool:
     return False
 
 
+def belongs_to_groups_by_user_id(user_id: int, group_names: list) -> bool:
+    superuser_ids = superuser_ids_list()
+    if superuser_ids and user_id in superuser_ids:
+        return True
+
+    for group_name in group_names:
+        if belongs_to_by_user_id(user_id, group_name):
+            return True
+
+    return False
+
+
 def member_ids(group_name):
     # Centralised member_ids method that includes all superusers (not totally sure we want this yet)
     system_group = SystemGroup.objects.filter(name=group_name).first()
@@ -256,6 +268,8 @@ def is_new_external_contributor(user_id):
         processing_status__in=[
             ConservationStatus.PROCESSING_STATUS_APPROVED,
             ConservationStatus.PROCESSING_STATUS_DECLINED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
+            ConservationStatus.PROCESSING_STATUS_CLOSED,
         ],
     ).exists()
     finalised_ocr = OccurrenceReport.objects.filter(
@@ -269,15 +283,19 @@ def is_new_external_contributor(user_id):
     return not finalised_cs and not finalised_ocr
 
 
-def is_conservation_status_referee(request, cs_proposal=None):
+def is_conservation_status_referee(request, conservation_status=None):
     if not request.user.is_authenticated:
         return False
 
     if request.user.is_superuser:
         return True
 
-    cache_key = settings.CACHE_KEY_USER_BELONGS_TO_GROUP.format(
-        **{"user_id": request.user.id, "group_name": "conservation_status_referees"}
+    cache_key = settings.CACHE_KEY_USER_IS_REFEREE.format(
+        **{
+            "user_id": request.user.id,
+            "model": "conservation_status",
+            "pk": conservation_status,  # If None, that cache key will be used as a general check
+        }
     )
     belongs_to = cache.get(cache_key)
     if belongs_to is None:
@@ -286,8 +304,8 @@ def is_conservation_status_referee(request, cs_proposal=None):
         )
 
         qs = ConservationStatusReferral.objects.filter(referral=request.user.id)
-        if cs_proposal:
-            qs = qs.filter(conservation_status=cs_proposal)
+        if conservation_status:
+            qs = qs.filter(conservation_status=conservation_status)
 
         belongs_to = qs.exists()
         cache.set(cache_key, belongs_to, settings.CACHE_TIMEOUT_5_SECONDS)
@@ -301,8 +319,12 @@ def is_occurrence_report_referee(request, occurrence_report=None):
     if request.user.is_superuser:
         return True
 
-    cache_key = settings.CACHE_KEY_USER_BELONGS_TO_GROUP.format(
-        **{"user_id": request.user.id, "group_name": "occurrence_report_referees"}
+    cache_key = settings.CACHE_KEY_USER_IS_REFEREE.format(
+        **{
+            "user_id": request.user.id,
+            "model": "occurrence_report",
+            "pk": occurrence_report,  # If None, that cache key will be used as a general check
+        }
     )
     belongs_to = cache.get(cache_key)
     if belongs_to is None:
@@ -359,6 +381,10 @@ def is_internal(request):
     return is_departmentUser(request) and (
         belongs_to_groups(request, settings.INTERNAL_GROUPS)
     )
+
+
+def is_internal_by_user_id(user_id):
+    return belongs_to_groups_by_user_id(user_id, settings.INTERNAL_GROUPS)
 
 
 def get_all_officers():

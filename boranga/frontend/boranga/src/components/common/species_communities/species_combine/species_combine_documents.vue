@@ -2,13 +2,13 @@
     <div id="species_combine_documents">
         <FormSection :formCollapse="false" label="Documents" :Index="documentBody">
             <form class="form-horizontal" action="index.html" method="post">
-                <div class="col-sm-12">
+                <div class="col-sm-12 form-check form-check-inline">
                     <input class="form-check-input" type="radio" :id="'doc_select_all'+species_original.id" name="documentSelect" value="selectAll" @click="selectDocumentOption($event)"/>
-                    <label>Copy all documents from Species {{species_original.species_number}}</label>
+                    <label class="form-check-label">Copy all documents from Species {{species_original.species_number}}</label>
                 </div>
-                <div class="col-sm-12">
+                <div class="col-sm-12 form-check form-check-inline mb-3">
                     <input class="form-check-input" type="radio" :id="'doc_select_individual'+species_original.id" name="documentSelect" value="individual" @click="selectDocumentOption($event)"/>
-                    <label>Decide per document</label>
+                    <label class="form-check-label">Decide per document</label>
                 </div>
                 <div>
                     <datatable ref="documents_datatable" :id="panelBody" :dtOptions="documents_options"

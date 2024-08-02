@@ -771,6 +771,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
         source="change_code.code", read_only=True, allow_null=True
     )
     can_add_log = serializers.SerializerMethodField(read_only=True)
+    can_user_assign_to_self = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -830,6 +831,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "external_referral_invites",
             "is_submitter",
             "can_add_log",
+            "can_user_assign_to_self",
         )
 
     def get_submitter(self, obj):
@@ -867,6 +869,10 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
         )
+
+    def get_can_user_assign_to_self(self, obj):
+        request = self.context["request"]
+        return obj.can_user_assign_to_self(request)
 
     def get_assessor_mode(self, obj):
         request = self.context["request"]

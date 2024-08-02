@@ -406,7 +406,7 @@
                         v-model="species_community.publishing_status.conservation_status_public">
                 </div>
             </div>
-            <div class="row mb-3">
+            <!-- <div class="row mb-3">
                 <label for="conservation_attributes_publishing" class="col-sm-3 control-label">Conservation Attributes:
                 </label>
                 <div class="col-sm-9">
@@ -419,7 +419,7 @@
                         class="form-check-input" id="conservation_attributes_publishing"
                         v-model="species_community.publishing_status.conservation_attributes_public">
                 </div>
-            </div>
+            </div> -->
             <div class="row mb-3">
                 <label for="threats_publishing" class="col-sm-3 control-label">Threats: </label>
                 <div class="col-sm-9">
@@ -438,8 +438,9 @@
                     <button v-if="!updatingPublishing" :disabled="isReadOnly || !isPublic || !isActive"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updatePublishingDetails()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary"><i
-                            class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                    <button v-else disabled class="float-end btn btn-primary">Updating <span
+                        class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="visually-hidden">Loading...</span></button>
                 </div>
             </div>
         </FormSection>

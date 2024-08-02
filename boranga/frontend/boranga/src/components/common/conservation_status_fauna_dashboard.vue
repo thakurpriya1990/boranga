@@ -399,7 +399,7 @@ export default {
             //filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
             //    sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : 'approved',
             filterCSFaunaApplicationStatus: sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : (this.is_for_agenda? 'ready_for_agenda' : 'approved'),
+                sessionStorage.getItem(this.filterCSFaunaApplicationStatus_cache) : (this.is_for_agenda ? 'ready_for_agenda' : 'approved'),
 
             filterCSFromFaunaEffectiveFromDate: sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) ?
                 sessionStorage.getItem(this.filterCSFromFaunaEffectiveFromDate_cache) : '',
@@ -907,7 +907,7 @@ export default {
                                         data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
                             }
                             else {
-                                if(full.processing_status==constants.PROPOSAL_STATUS.DISCARDED.TEXT){
+                                if (full.processing_status == constants.PROPOSAL_STATUS.DISCARDED.TEXT) {
                                     links += `<a href='#' data-reinstate-conservation-status-species='${full.id}'>Reinstate</a><br/>`;
                                 }
                                 links += `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
@@ -1336,23 +1336,38 @@ export default {
             })
         },
         createFaunaConservationStatus: async function () {
-            let newFaunaCSId = null
-            try {
-                const createUrl = api_endpoints.conservation_status + "/";
-                let payload = new Object();
-                payload.application_type_id = this.group_type_id
-                payload.internal_application = true
-                let savedFaunaCS = await Vue.http.post(createUrl, payload);
-                if (savedFaunaCS) {
-                    newFaunaCSId = savedFaunaCS.body.id;
+            swal.fire({
+                title: `Propose New Fauna Conservation Status`,
+                text: "Are you sure you want to propose a new fauna conservation status?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Propose New Conservation Status',
+                reverseButtons: true,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let newFaunaCSId = null
+                    try {
+                        const createUrl = api_endpoints.conservation_status + "/";
+                        let payload = new Object();
+                        payload.application_type_id = this.group_type_id
+                        payload.internal_application = true
+                        let savedFaunaCS = await Vue.http.post(createUrl, payload);
+                        if (savedFaunaCS) {
+                            newFaunaCSId = savedFaunaCS.body.id;
+                        }
+                    }
+                    catch (err) {
+                        console.log(err);
+                    }
+                    this.$router.push({
+                        name: 'internal-conservation_status',
+                        params: { conservation_status_id: newFaunaCSId },
+                    });
                 }
-            }
-            catch (err) {
-                console.log(err);
-            }
-            this.$router.push({
-                name: 'internal-conservation_status',
-                params: { conservation_status_id: newFaunaCSId },
             });
         },
         discardCSProposal: function (conservation_status_id) {
@@ -1697,7 +1712,7 @@ export default {
     },
     mounted: function () {
         let vm = this;
-        if(vm.profile && vm.profile.groups && vm.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS)){
+        if (vm.profile && vm.profile.groups && vm.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS)) {
             vm.internal_status.push({ value: 'discarded_by_me', name: 'Discarded By Me' },);
         }
         vm.fetchFilterLists();

@@ -8,10 +8,11 @@ from django.utils.encoding import smart_text
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from boranga.components.emails.emails import TemplateEmailBase
+from boranga.components.users.email import _log_user_email
 from boranga.helpers import (
     convert_external_url_to_internal_url,
     convert_internal_url_to_external_url,
-    email_in_dbca_domain,
+    is_internal_by_user_id,
 )
 
 logger = logging.getLogger(__name__)
@@ -114,6 +115,8 @@ class ApproverBackToAssessorSendNotificationEmail(TemplateEmailBase):
 
 
 def send_submit_email_notification(request, occurrence_report):
+    """Recipient: Always internal users"""
+
     email = SubmitSendNotificationEmail()
     url = request.build_absolute_uri(
         reverse(
@@ -135,16 +138,27 @@ def send_submit_email_notification(request, occurrence_report):
     return msg
 
 
-def send_external_submit_email_notification(request, occurrence_report):
+def send_submitter_submit_email_notification(request, occurrence_report):
+    """Recipient: Maybe internal or external user"""
+
     email = ExternalSubmitSendNotificationEmail()
+
+    to_user = EmailUser.objects.get(id=occurrence_report.submitter)
+
+    url_name_prefix = "internal"
+
+    if not is_internal_by_user_id(to_user.id):
+        url_name_prefix = "external"
+
     url = request.build_absolute_uri(
         reverse(
-            "external-occurrence-report-detail",
+            f"{url_name_prefix}-occurrence-report-detail",
             kwargs={"occurrence_report_pk": occurrence_report.id},
         )
     )
 
-    url = convert_internal_url_to_external_url(url)
+    if not is_internal_by_user_id(to_user.id):
+        url = convert_internal_url_to_external_url(url)
 
     context = {
         "occurrence_report": occurrence_report,
@@ -164,112 +178,16 @@ def send_external_submit_email_notification(request, occurrence_report):
 
     _log_occurrence_report_email(msg, occurrence_report, sender=sender)
 
-    # if proposal.org_applicant:
-    #     _log_org_email(msg, occurrence_report.org_applicant, occurrence_report.submitter, sender=sender)
-    # else:
-    #     _log_user_email(msg, occurrence_report.submitter, occurrence_report.submitter, sender=sender)
-    # _log_user_email(msg, occurrence_report.submitter, occurrence_report.submitter, sender=sender)
+    _log_user_email(msg, to_user, to_user, sender=sender)
 
     return msg
-
-
-# send email when Occurrence Report is 'proposed to decline' by assessor.
-def send_approver_decline_email_notification(reason, request, occurrence_report):
-    email = ApproverDeclineSendNotificationEmail()
-    url = request.build_absolute_uri(
-        reverse(
-            "internal-occurrence-report-detail",
-            kwargs={"occurrence_report_pk": occurrence_report.id},
-        )
-    )
-    context = {"occurrence_report": occurrence_report, "reason": reason, "url": url}
-
-    msg = email.send(occurrence_report.approver_recipients, context=context)
-
-    sender = get_sender_user()
-
-    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
-
-
-def send_decline_email_notification(reason, request, occurrence_report):
-    email = DeclineSendNotificationEmail()
-
-    context = {"occurrence_report": occurrence_report, "reason": reason}
-
-    submitter = EmailUser.objects.get(id=occurrence_report.submitter)
-
-    msg = email.send(submitter.email, context=context)
-
-    sender = get_sender_user()
-
-    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
-
-
-def send_approve_email_notification(request, occurrence_report):
-    email = ApproveSendNotificationEmail()
-
-    context = {"occurrence_report": occurrence_report}
-
-    submitter = EmailUser.objects.get(id=occurrence_report.submitter)
-
-    msg = email.send(submitter.email, context=context)
-
-    sender = get_sender_user()
-
-    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
-
-
-# send email when Occurrence Report is 'proposed to approve' by assessor.
-def send_approver_approve_email_notification(request, occurrence_report):
-    email = ApproverApproveSendNotificationEmail()
-    url = request.build_absolute_uri(
-        reverse(
-            "internal-occurrence-report-detail",
-            kwargs={"occurrence_report_pk": occurrence_report.id},
-        )
-    )
-    approval_details = occurrence_report.approval_details
-
-    context = {
-        "occurrence_report": occurrence_report,
-        "approval_details": approval_details,
-        "url": url,
-    }
-
-    msg = email.send(occurrence_report.approver_recipients, context=context)
-
-    sender = get_sender_user()
-
-    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
-
-
-def send_approver_back_to_assessor_email_notification(
-    request, occurrence_report, reason
-):
-    email = ApproverBackToAssessorSendNotificationEmail()
-    url = request.build_absolute_uri(
-        reverse(
-            "internal-occurrence-report-detail",
-            kwargs={"occurrence_report_pk": occurrence_report.id},
-        )
-    )
-
-    context = {
-        "occurrence_report": occurrence_report,
-        "reason": reason,
-        "url": url,
-    }
-
-    msg = email.send(occurrence_report.assessor_recipients, context=context)
-
-    sender = get_sender_user()
-
-    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
 
 
 def send_external_referee_invite_email(
     occurrence_report, request, external_referee_invite, reminder=False
 ):
+    """Recipient: Always an external user"""
+
     subject = (
         f"Referral Request for DBCA's Boranga System "
         f"Occurrence Report: {occurrence_report.occurrence_report_number}"
@@ -302,6 +220,300 @@ def send_external_referee_invite_email(
 
     external_referee_invite.datetime_sent = timezone.now()
     external_referee_invite.save()
+
+    return msg
+
+
+def send_occurrence_report_referral_email_notification(
+    referral, request, reminder=False
+):
+    """Recipient: May be internal or external user"""
+
+    email = OccurrenceReportReferralSendNotificationEmail()
+
+    to_user = EmailUser.objects.get(id=referral.referral)
+
+    url_name_prefix = "internal"
+
+    if not is_internal_by_user_id(to_user.id):
+        url_name_prefix = "external"
+
+    url = request.build_absolute_uri(
+        reverse(
+            f"{url_name_prefix}-occurrence-report-referral-detail",
+            kwargs={
+                "occurrence_report_pk": referral.occurrence_report.id,
+                "referral_pk": referral.id,
+            },
+        )
+    )
+
+    if not is_internal_by_user_id(to_user.id):
+        url = convert_internal_url_to_external_url(url)
+
+    context = {
+        "occurrence_report": referral.occurrence_report,
+        "url": url,
+        "reminder": reminder,
+        "comments": referral.text,
+    }
+
+    msg = email.send(to_user.email, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_referral_email(msg, referral, sender=sender)
+
+    _log_user_email(msg, to_user, to_user, sender=sender)
+
+    return msg
+
+
+def send_occurrence_report_referral_recall_email_notification(referral, request):
+    """Recipient: May be internal or external user"""
+
+    email = OccurrenceReportReferralRecallNotificationEmail()
+
+    to_user = EmailUser.objects.get(id=referral.referral)
+
+    url_name_prefix = "internal"
+
+    if not is_internal_by_user_id(to_user.id):
+        url_name_prefix = "external"
+
+    url = request.build_absolute_uri(
+        reverse(
+            f"{url_name_prefix}-occurrence-report-referral-detail",
+            kwargs={
+                "occurrence_report_pk": referral.occurrence_report.id,
+                "referral_pk": referral.id,
+            },
+        )
+    )
+
+    if not is_internal_by_user_id(to_user.id):
+        url = convert_internal_url_to_external_url(url)
+
+    context = {
+        "occurrence_report": referral.occurrence_report,
+        "url": url,
+    }
+
+    msg = email.send(to_user.email, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_referral_email(msg, referral, sender=sender)
+
+    _log_user_email(msg, to_user, to_user, sender=sender)
+
+    return msg
+
+
+def send_occurrence_report_referral_complete_email_notification(referral, request):
+    """Recipient: Always an internal user"""
+
+    email = OccurrenceReportReferralCompleteNotificationEmail()
+    url = request.build_absolute_uri(
+        reverse(
+            "internal-occurrence-report-detail",
+            kwargs={"occurrence_report_pk": referral.occurrence_report.id},
+        )
+    )
+
+    email_address = EmailUser.objects.get(id=referral.sent_by).email
+
+    context = {
+        "occurrence_report": referral.occurrence_report,
+        "url": url,
+        "referral_comments": referral.referral_comment,
+    }
+
+    msg = email.send(email_address, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_referral_email(msg, referral, sender=sender)
+
+    return msg
+
+
+def send_occurrence_report_amendment_email_notification(
+    amendment_request, request, occurrence_report
+):
+    """Recipient: May be internal or external user"""
+
+    email = OccurrenceReportAmendmentRequestSendNotificationEmail()
+    reason = amendment_request.reason.reason
+
+    to_user = EmailUser.objects.get(id=occurrence_report.submitter)
+
+    url_name_prefix = "internal"
+
+    if not is_internal_by_user_id(to_user.id):
+        url_name_prefix = "external"
+
+    url = request.build_absolute_uri(
+        reverse(
+            f"{url_name_prefix}-occurrence-report-detail",
+            kwargs={"occurrence_report_pk": occurrence_report.id},
+        )
+    )
+
+    if not is_internal_by_user_id(to_user.id):
+        url = convert_internal_url_to_external_url(url)
+
+    attachments = []
+    if amendment_request.amendment_request_documents:
+        for doc in amendment_request.amendment_request_documents.all():
+            # file_name = doc._file.name
+            file_name = doc.name
+            attachment = (file_name, doc._file.file.read())
+            attachments.append(attachment)
+
+    context = {
+        "occurrence_report": occurrence_report,
+        "reason": reason,
+        "amendment_request_text": amendment_request.text,
+        "url": url,
+    }
+
+    msg = email.send(
+        to_user.email,
+        cc=[],
+        context=context,
+        attachments=attachments,
+    )
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
+    _log_user_email(msg, to_user, to_user, sender=sender)
+
+    return msg
+
+
+# send email when Occurrence Report is 'proposed to decline' by assessor.
+def send_approver_decline_email_notification(reason, request, occurrence_report):
+    """Recipient: Always internal users"""
+
+    email = ApproverDeclineSendNotificationEmail()
+    url = request.build_absolute_uri(
+        reverse(
+            "internal-occurrence-report-detail",
+            kwargs={"occurrence_report_pk": occurrence_report.id},
+        )
+    )
+    context = {"occurrence_report": occurrence_report, "reason": reason, "url": url}
+
+    msg = email.send(occurrence_report.approver_recipients, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
+    return msg
+
+
+def send_decline_email_notification(reason, occurrence_report):
+    """Recipient: May be internal or external user Note: Currently does not include a url
+    If a url is added in future it must be able to handle both internal and external users
+    """
+
+    email = DeclineSendNotificationEmail()
+
+    context = {"occurrence_report": occurrence_report, "reason": reason}
+
+    to_user = EmailUser.objects.get(id=occurrence_report.submitter)
+
+    msg = email.send(to_user.email, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
+    _log_user_email(msg, to_user, to_user, sender=sender)
+
+    return msg
+
+
+def send_approve_email_notification(occurrence_report):
+    """Recipient: May be internal or external user Note: Currently does not include a url
+    If a url is added in future it must be able to handle both internal and external users
+    """
+
+    email = ApproveSendNotificationEmail()
+
+    context = {"occurrence_report": occurrence_report}
+
+    to_user = EmailUser.objects.get(id=occurrence_report.submitter)
+
+    msg = email.send(to_user.email, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
+    _log_user_email(msg, to_user, to_user, sender=sender)
+
+    return msg
+
+
+# send email when Occurrence Report is 'proposed to approve' by assessor.
+def send_approver_approve_email_notification(request, occurrence_report):
+    """Recipient: Always internal users"""
+
+    email = ApproverApproveSendNotificationEmail()
+    url = request.build_absolute_uri(
+        reverse(
+            "internal-occurrence-report-detail",
+            kwargs={"occurrence_report_pk": occurrence_report.id},
+        )
+    )
+    approval_details = occurrence_report.approval_details
+
+    context = {
+        "occurrence_report": occurrence_report,
+        "approval_details": approval_details,
+        "url": url,
+    }
+
+    msg = email.send(occurrence_report.approver_recipients, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
+    return msg
+
+
+def send_approver_back_to_assessor_email_notification(
+    request, occurrence_report, reason
+):
+    """Recipient: Always internal users"""
+
+    email = ApproverBackToAssessorSendNotificationEmail()
+    url = request.build_absolute_uri(
+        reverse(
+            "internal-occurrence-report-detail",
+            kwargs={"occurrence_report_pk": occurrence_report.id},
+        )
+    )
+
+    context = {
+        "occurrence_report": occurrence_report,
+        "reason": reason,
+        "url": url,
+    }
+
+    msg = email.send(occurrence_report.assessor_recipients, context=context)
+
+    sender = get_sender_user()
+
+    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
+
+    return msg
 
 
 def _log_occurrence_report_email(email_message, occurrence_report, sender=None):
@@ -356,151 +568,6 @@ def _log_occurrence_report_email(email_message, occurrence_report, sender=None):
     email_entry = OccurrenceReportLogEntry.objects.create(**kwargs)
 
     return email_entry
-
-
-def send_occurrence_report_referral_email_notification(
-    referral, request, reminder=False
-):
-    email = OccurrenceReportReferralSendNotificationEmail()
-
-    to_user = EmailUser.objects.get(id=referral.referral)
-
-    url_name_prefix = "internal"
-
-    if not email_in_dbca_domain(to_user.email):
-        url_name_prefix = "external"
-
-    url = request.build_absolute_uri(
-        reverse(
-            f"{url_name_prefix}-occurrence-report-referral-detail",
-            kwargs={
-                "occurrence_report_pk": referral.occurrence_report.id,
-                "referral_pk": referral.id,
-            },
-        )
-    )
-
-    if not email_in_dbca_domain(to_user.email):
-        url = convert_internal_url_to_external_url(url)
-
-    context = {
-        "occurrence_report": referral.occurrence_report,
-        "url": url,
-        "reminder": reminder,
-        "comments": referral.text,
-    }
-
-    msg = email.send(to_user.email, context=context)
-
-    sender = get_sender_user()
-
-    _log_occurrence_report_referral_email(msg, referral, sender=sender)
-    # if referral.occurrence_report.applicant:
-    #     _log_org_email(msg, referral.occurrence_report.applicant, referral.referral, sender=sender)
-
-
-def send_occurrence_report_referral_recall_email_notification(referral, request):
-    email = OccurrenceReportReferralRecallNotificationEmail()
-
-    to_user = EmailUser.objects.get(id=referral.referral)
-
-    url_name_prefix = "internal"
-
-    if not email_in_dbca_domain(to_user.email):
-        url_name_prefix = "external"
-
-    url = request.build_absolute_uri(
-        reverse(
-            f"{url_name_prefix}-occurrence-report-referral-detail",
-            kwargs={
-                "occurrence_report_pk": referral.occurrence_report.id,
-                "referral_pk": referral.id,
-            },
-        )
-    )
-
-    if not email_in_dbca_domain(to_user.email):
-        url = convert_internal_url_to_external_url(url)
-
-    context = {
-        "occurrence_report": referral.occurrence_report,
-        "url": url,
-    }
-
-    msg = email.send(to_user.email, context=context)
-
-    sender = get_sender_user()
-    _log_occurrence_report_referral_email(msg, referral, sender=sender)
-    # if referral.proposal.applicant:
-    #     _log_org_email(msg, referral.proposal.applicant, referral.referral, sender=sender)
-
-
-def send_occurrence_report_referral_complete_email_notification(referral, request):
-    email = OccurrenceReportReferralCompleteNotificationEmail()
-    url = request.build_absolute_uri(
-        reverse(
-            "internal-occurrence-report-detail",
-            kwargs={"occurrence_report_pk": referral.occurrence_report.id},
-        )
-    )
-
-    email_address = EmailUser.objects.get(id=referral.sent_by).email
-
-    context = {
-        "occurrence_report": referral.occurrence_report,
-        "url": url,
-        "referral_comments": referral.referral_comment,
-    }
-
-    msg = email.send(email_address, context=context)
-
-    sender = get_sender_user()
-    _log_occurrence_report_referral_email(msg, referral, sender=sender)
-    # if referral.proposal.applicant:
-    #     _log_org_email(msg, referral.proposal.applicant, referral.referral, sender=sender)
-
-
-def send_occurrence_report_amendment_email_notification(
-    amendment_request, request, occurrence_report
-):
-    email = OccurrenceReportAmendmentRequestSendNotificationEmail()
-    reason = amendment_request.reason.reason
-    url = request.build_absolute_uri(
-        reverse(
-            "external-occurrence-report-detail",
-            kwargs={"occurrence_report_pk": occurrence_report.id},
-        )
-    )
-
-    url = convert_internal_url_to_external_url(url)
-
-    attachments = []
-    if amendment_request.amendment_request_documents:
-        for doc in amendment_request.amendment_request_documents.all():
-            # file_name = doc._file.name
-            file_name = doc.name
-            attachment = (file_name, doc._file.file.read())
-            attachments.append(attachment)
-
-    context = {
-        "occurrence_report": occurrence_report,
-        "reason": reason,
-        "amendment_request_text": amendment_request.text,
-        "url": url,
-    }
-
-    msg = email.send(
-        EmailUser.objects.get(id=occurrence_report.submitter).email,
-        cc=[],
-        context=context,
-        attachments=attachments,
-    )
-
-    sender = get_sender_user()
-
-    _log_occurrence_report_email(msg, occurrence_report, sender=sender)
-    # if occurrence_report.applicant:
-    #     _log_org_email(msg, occurrence_report.applicant, occurrence_report.submitter, sender=sender)
 
 
 def _log_occurrence_report_referral_email(email_message, referral, sender=None):

@@ -141,7 +141,8 @@
                     <label for="" class="col-sm-4 col-form-label">Extent of Occurrences: <i
                             v-if="species_community.distribution.eoo_auto" class="bi bi-info-circle-fill text-primary"
                             data-bs-toggle="popover" data-bs-trigger="hover focus"
-                            data-bs-content="Calculated by creating a 'convex hull' from all occurrence geometries for this species." data-bs-placement="top"></i></label>
+                            data-bs-content="Calculated by creating a 'convex hull' from all occurrence geometries for this species."
+                            data-bs-placement="top"></i></label>
                     <div class="col-sm-4">
                         <div class="input-group">
                             <input v-if="species_community.distribution.eoo_auto" :disabled="isEOOReadOnly"
@@ -183,7 +184,8 @@
                             v-if="species_community.distribution.aoo_actual_auto"
                             class="bi bi-info-circle-fill text-primary" data-bs-toggle="popover"
                             data-bs-trigger="hover focus"
-                            data-bs-content="Calculated by combining the total land area of all occurrence geometries for this species." data-bs-placement="top"></i></label>
+                            data-bs-content="Calculated by combining the total land area of all occurrence geometries for this species."
+                            data-bs-placement="top"></i></label>
                     <div class="col-sm-4">
                         <div class="input-group">
                             <input v-if="species_community.distribution.aoo_actual_auto" :disabled="isAOOActualReadOnly"
@@ -723,7 +725,7 @@
                     </div>
                 </div>
             </div>
-            <div class="row mb-3">
+            <!-- <div class="row mb-3">
                 <label for="conservation_attributes_publishing" class="col-sm-3 col-form-label">Conservation Attributes:
                 </label>
                 <div class="col-sm-9">
@@ -740,7 +742,7 @@
                             v-model="species_community.publishing_status.conservation_attributes_public">
                     </div>
                 </div>
-            </div>
+            </div> -->
             <div class="row mb-3">
                 <label for="threats_publishing" class="col-sm-3 col-form-label">Threats: </label>
                 <div class="col-sm-9">
@@ -763,8 +765,9 @@
                     <button v-if="!updatingPublishing" :disabled="isReadOnly || !isPublic || !isActive"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updatePublishingDetails()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary"><i
-                            class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                    <button v-else disabled class="float-end btn btn-primary">Updating <span
+                            class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="visually-hidden">Loading...</span></button>
                 </div>
             </div>
         </FormSection>

@@ -1,13 +1,13 @@
 <template lang="html">
     <div id="combineSpecies">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large id="myModal">
+        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" extraLarge id="myModal">
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="combineSpeciesForm">
                         <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div>
                             <div class="col-md-12">
-                                <ul v-if="is_internal" class="nav nav-pills mb-3" id="combine-pills-tab" role="tablist">
+                                <ul v-if="is_internal" class="nav nav-pills" id="combine-pills-tab" role="tablist">
                                     <li class="nav-item">
                                         <a class="nav-link" id="pills-new-species-tab" data-bs-toggle="pill"
                                             :href="'#' + newSpeciesBody" role="tab" :aria-controls="newSpeciesBody"
@@ -21,17 +21,19 @@
                                         <a class="nav-link" :id="'pills-species-' + index + '-tab'"
                                             data-bs-toggle="pill" :href="'#species-body-' + index" role="tab"
                                             :aria-controls="'species-body-' + index" aria-selected="false">
-                                            {{ species.species_number }}
+                                            {{ species.species_number }} <span v-if="index > 0" class="ms-2"
+                                                @click="removeCombineSpecies(species)" :id=index><i
+                                                    class="bi bi-trash3-fill"></i></span>
                                             <!-- can delete the original species except the current original species , so check index>0 -->
-                                        </a><span v-show="index > 0" :id="'removeCombineSpecies' + species"
-                                            @click="removeCombineSpecies(species)">x</span>
+                                        </a>
                                     </li>
-                                    <li>
-                                        <a href="#" id="combineSpeciesBtnAdd" @click="addSpeciesToCombine()"><i
-                                                class="icon-plus-sign-alt"></i>Add</a>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#" id="combineSpeciesBtnAdd"
+                                            @click.prevent="addSpeciesToCombine()"><i class="bi bi-window-plus"></i> Add
+                                            Another Species</a>
                                     </li>
                                 </ul>
-                                <div class="tab-content" id="combine-pills-tabContent">
+                                <div class="tab-content border p-3" id="combine-pills-tabContent">
                                     <div class="tab-pane" :id="newSpeciesBody" role="tabpanel"
                                         aria-labelledby="pills-new-species-tab">
                                         <SpeciesCombineForm v-if="new_combine_species != null"
@@ -44,9 +46,8 @@
                                         :key="'div' + species.id" class="tab-pane fade" :id="'species-body-' + index"
                                         role="tabpanel" :aria-labelledby="'pills-species' + index + '-tab'">
                                         <SpeciesCommunitiesComponent :ref="'species_communities_species' + index"
-                                            :species_community_original="species"
-                                            :species_community.sync="species" :id="'species-' + index"
-                                            :is_internal="true" :is_readonly="true">
+                                            :species_community_original="species" :species_community.sync="species"
+                                            :id="'species-' + index" :is_internal="true" :is_readonly="true">
                                         </SpeciesCommunitiesComponent>
                                     </div>
                                 </div>
@@ -59,7 +60,9 @@
             <div slot="footer">
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
                 <button v-if="submitSpeciesCombine" class="btn btn-primary pull-right" style="margin-top:5px;"
-                    disabled>Submit&nbsp;<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
+                    disabled>Submit <span class="spinner-border spinner-border-sm" role="status"
+                        aria-hidden="true"></span>
+                    <span class="visually-hidden">Loading...</span></button>
                 <button v-else class="btn btn-primary" @click.prevent="ok()" :disabled="submitSpeciesCombine">Combine
                     Species</button>
             </div>
@@ -174,16 +177,16 @@ export default {
             let vm = this;
             let blank_fields = []
             if (vm.new_combine_species.taxonomy_id == null || vm.new_combine_species.taxonomy_id == '') {
-                blank_fields.push('Species ' + vm.new_combine_species.species_number + ' Scientific Name is missing')
+                blank_fields.push(' Species ' + vm.new_combine_species.species_number + ' Scientific Name is missing')
             }
             if (vm.new_combine_species.distribution.distribution == null || vm.new_combine_species.distribution.distribution == '') {
-                blank_fields.push('Distribution is missing')
+                blank_fields.push(' Distribution is missing')
             }
-            if (vm.new_combine_species.regions == null || vm.new_combine_species.regions == '' || vm.new_combine_species.regions.length==0) {
-                blank_fields.push('Region is missing')
+            if (vm.new_combine_species.regions == null || vm.new_combine_species.regions == '' || vm.new_combine_species.regions.length == 0) {
+                blank_fields.push(' Region is missing')
             }
-            if (vm.new_combine_species.districts == null || vm.new_combine_species.districts == '' || vm.new_combine_species.districts.length==0) {
-                blank_fields.push('District is missing')
+            if (vm.new_combine_species.districts == null || vm.new_combine_species.districts == '' || vm.new_combine_species.districts.length == 0) {
+                blank_fields.push(' District is missing')
             }
             if (blank_fields.length == 0) {
                 return true;
@@ -209,11 +212,11 @@ export default {
 
             vm.submitSpeciesCombine = true;
             swal.fire({
-                title: "Submit",
-                text: "Are you sure you want to submit this Species Combine?",
+                title: "Combine Species",
+                text: "Are you sure you want to combine those species?",
                 icon: "question",
                 showCancelButton: true,
-                confirmButtonText: "submit",
+                confirmButtonText: "Combine Species",
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary',
@@ -269,10 +272,23 @@ export default {
         },
         removeCombineSpecies: function (species) {
             let vm = this;
-            //-- get the index of the tab species
-            let species_index = vm.original_species_combine_list.indexOf(species);
-            //--- the species from the array of that index
-            vm.original_species_combine_list.splice(species_index, 1);
+            swal.fire({
+                title: "Remove Species",
+                text: `Are you sure you want to remove species ${species.species_number} from this combine?`,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Remove Species",
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let species_index = vm.original_species_combine_list.indexOf(species);
+                    vm.original_species_combine_list.splice(species_index, 1);
+                }
+            });
         },
         addSpeciesToCombine: function () {
             this.$refs.addCombineSpecies.isModalOpen = true;
@@ -306,77 +322,9 @@ export default {
 }
 </script>
 
-<style lang="css" scoped>
-.section {
-    text-transform: capitalize;
-}
-
-.list-group {
-    margin-bottom: 0;
-}
-
-.fixed-top {
-    position: fixed;
-    top: 56px;
-}
-
-.nav-item {
-    margin-bottom: 2px;
-}
-
-.nav-item>li>a {
-    background-color: yellow !important;
-    color: #fff;
-}
-
-.nav-item>li.active>a,
-.nav-item>li.active>a:hover,
-.nav-item>li.active>a:focus {
-    color: white;
-    background-color: blue;
-    border: 1px solid #888888;
-}
-
-.admin>div {
-    display: inline-block;
-    vertical-align: top;
-    margin-right: 1em;
-}
-
-.nav-pills .nav-link {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 0.5em;
-    border-top-right-radius: 0.5em;
-    margin-right: 0.25em;
-}
-
-.nav-pills .nav-link {
-    background: lightgray;
-}
-
-.nav-pills .nav-link.active {
-    background: gray;
-}
-
-.nav-pills>li {
-    position: relative;
-}
-
-.nav-pills>li>a {
-    display: inline-block;
-}
-
-.nav-pills>li>span {
-    display: none;
+<style scoped>
+.bi.bi-trash3-fill:hover {
     cursor: pointer;
-    position: absolute;
-    right: 6px;
-    top: 8px;
     color: red;
-}
-
-.nav-pills>li:hover>span {
-    display: inline-block;
 }
 </style>

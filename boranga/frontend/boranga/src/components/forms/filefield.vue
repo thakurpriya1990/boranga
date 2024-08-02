@@ -56,7 +56,9 @@
                 </ul>
             </div>
         </div>
-        <span v-if="show_spinner"><i class='fa fa-2x fa-spinner fa-spin'></i></span>
+        <span v-if="show_spinner"><span class="spinner-border spinner-border-sm" role="status"
+                aria-hidden="true"></span>
+            <span class="visually-hidden">Loading...</span></span>
     </div>
 </template>
 

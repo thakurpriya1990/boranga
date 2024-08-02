@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="renameSpecies">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large id="myModal">
+        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" extraLarge id="myModal">
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="renameSpeciesForm">
@@ -21,9 +21,11 @@
             <div slot="footer">
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
                 <button v-if="submitSpeciesRename" class="btn btn-primary pull-right" style="margin-top:5px;"
-                    disabled>Submit&nbsp;<i class="fa fa-circle-o-notch fa-spin fa-fw"></i></button>
-                <button v-else class="btn btn-primary" @click.prevent="ok()"
-                    :disabled="submitSpeciesRename">Rename Species</button>
+                    disabled>Submit <span class="spinner-border spinner-border-sm" role="status"
+                        aria-hidden="true"></span>
+                    <span class="visually-hidden">Loading...</span></button>
+                <button v-else class="btn btn-primary" @click.prevent="ok()" :disabled="submitSpeciesRename">Rename
+                    Species</button>
             </div>
         </modal>
     </div>
@@ -122,7 +124,8 @@ export default {
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                });
+                    },
+                });
                 vm.submitSpeciesRename = false;
                 vm.saveError = true;
                 return false;
@@ -131,6 +134,18 @@ export default {
         },
         sendData: async function () {
             let vm = this;
+            if(!vm.new_rename_species.taxonomy_id){
+                swal.fire({
+                    title: "Please fix following errors",
+                    text: "Please select a species by searching for the scientific name",
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                })
+                return false;
+            }
+
             if (vm.new_rename_species.taxonomy_id && vm.new_rename_species.taxonomy_id == vm.species_community_original.taxonomy_id) {
                 swal.fire({
                     title: "Please fix following errors",
@@ -138,16 +153,17 @@ export default {
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                    },                })
+                    },
+                })
             }
             else {
                 vm.submitSpeciesRename = true;
                 swal.fire({
-                    title: "Submit",
-                    text: "Are you sure you want to submit this Species Rename?",
+                    title: "Rename Species",
+                    text: "Are you sure you want to rename this species?",
                     icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: "submit",
+                    confirmButtonText: "Rename Species",
                     customClass: {
                         confirmButton: 'btn btn-primary',
                         cancelButton: 'btn btn-secondary',
@@ -176,13 +192,14 @@ export default {
                                     text: helpers.apiVueResourceError(err),
                                     icon: 'error',
                                     customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },                                });
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
                                 vm.saveError = true;
                             });
                         }
                     }
-
+                    vm.submitSpeciesRename = false;
                 }, (error) => {
                     vm.submitSpeciesRename = false;
                 });

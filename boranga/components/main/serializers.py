@@ -37,15 +37,6 @@ class GlobalSettingsSerializer(serializers.ModelSerializer):
         fields = ("key", "value")
 
 
-class BookingSettlementReportSerializer(serializers.Serializer):
-    date = serializers.DateTimeField(input_formats=["%d/%m/%Y"])
-
-
-class OracleSerializer(serializers.Serializer):
-    date = serializers.DateField(input_formats=["%d/%m/%Y", "%Y-%m-%d"])
-    override = serializers.BooleanField(default=False)
-
-
 class EmailUserROSerializerForReferral(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     telephone = serializers.CharField(source="phone_number")

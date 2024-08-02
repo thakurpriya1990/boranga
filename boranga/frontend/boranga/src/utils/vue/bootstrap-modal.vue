@@ -54,6 +54,10 @@ export default {
             type: Boolean,
             default: false
         },
+        extraLarge: {
+            type: Boolean,
+            default: false
+        },
         full: {
             type: Boolean,
             default: false
@@ -103,6 +107,7 @@ export default {
     computed: {
         modalClass() {
             return {
+                'modal-xl': this.extraLarge,
                 'modal-lg': this.large,
                 'modal-sm': this.small,
                 'modal-full': this.full

@@ -23,7 +23,7 @@
                     <div class="col form-control-plaintext"><a :href="document._file" target="_blank">{{ document.name
                             }}</a></div>
                 </div>
-                <div class="row pb-3" :class="is_internal ? 'mb-3 border-bottom' : ''">
+                <div class="row pb-2" :class="is_internal ? 'mb-2 border-bottom' : ''">
                     <label for="" class="col-sm-3 col-form-label fw-bold">Date Uploaded</label>
                     <div class="col form-control-plaintext">{{ new Date(document.uploaded_date).toLocaleDateString() }}
                         at {{ new Date(document.uploaded_date).toLocaleTimeString() }}</div>

@@ -96,11 +96,11 @@
             <label for="" class="col-lg-3 control-label fs-5 fw-bold">Animal Count :</label>
             <div class="row mb-3">
                 <div class="col-sm-2">
-                <label class="form-check-label fw-bold" for="not-counted">Not Counted</label>
+                    <label class="form-check-label fw-bold" for="not-counted">Not Counted</label>
                 </div>
                 <div class="col-sm-2">
-                    <input type="checkbox" id="not-counted"
-                        v-model="animal_observation.counted" true-value="false" false-value="true" @change="checkboxChanged">
+                    <input type="checkbox" id="not-counted" v-model="animal_observation.counted" true-value="false"
+                        false-value="true" @change="checkboxChanged">
                 </div>
             </div>
             <div class="row mb-3">
@@ -290,8 +290,9 @@
                     <button v-if="!updatingAnimalOnservationDetails" :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateAnimalObservationDetails()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary"><i
-                            class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                    <button v-else disabled class="float-end btn btn-primary">Updating <span
+                            class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="visually-hidden">Loading...</span></button>
                 </div>
             </div>
         </form>
@@ -474,35 +475,35 @@ export default {
         const res = await Vue.http.get(`/api/occurrence/animal_observation_list_of_values.json`);
         vm.listOfAnimalValuesDict = res.body;
         vm.primary_detection_method_list = vm.listOfAnimalValuesDict.primary_detection_method_list;
-            vm.primary_detection_method_list.splice(0, 0,
-                {
-                    id: '',
-                    name: '',
-                });
-            vm.secondary_sign_list = vm.listOfAnimalValuesDict.secondary_sign_list;
-            vm.secondary_sign_list.splice(0, 0,
-                {
-                    id: '',
-                    name: '',
-                });
-            vm.reprod_state_list = vm.listOfAnimalValuesDict.reprod_state_list;
-            vm.reprod_state_list.splice(0, 0,
-                {
-                    id: '',
-                    name: '',
-                });
-            vm.death_reason_list = vm.listOfAnimalValuesDict.death_reason_list;
-            vm.death_reason_list.splice(0, 0,
-                {
-                    id: null,
-                    name: null,
-                });
-            vm.animal_health_list = vm.listOfAnimalValuesDict.animal_health_list;
-            vm.animal_health_list.splice(0, 0,
-                {
-                    id: null,
-                    name: null,
-                });
+        vm.primary_detection_method_list.splice(0, 0,
+            {
+                id: '',
+                name: '',
+            });
+        vm.secondary_sign_list = vm.listOfAnimalValuesDict.secondary_sign_list;
+        vm.secondary_sign_list.splice(0, 0,
+            {
+                id: '',
+                name: '',
+            });
+        vm.reprod_state_list = vm.listOfAnimalValuesDict.reprod_state_list;
+        vm.reprod_state_list.splice(0, 0,
+            {
+                id: '',
+                name: '',
+            });
+        vm.death_reason_list = vm.listOfAnimalValuesDict.death_reason_list;
+        vm.death_reason_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+        vm.animal_health_list = vm.listOfAnimalValuesDict.animal_health_list;
+        vm.animal_health_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
     },
     mounted: function () {
         let vm = this;

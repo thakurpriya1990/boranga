@@ -939,6 +939,29 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
         return self.processing_status in status_without_assessor
 
+    def can_user_assign_to_self(self, request):
+        if self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
+        ]:
+            return (
+                self.assigned_officer != request.user.id
+                and is_conservation_status_assessor(request)
+            )
+
+        if self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_CLOSED,
+            ConservationStatus.PROCESSING_STATUS_DECLINED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
+        ]:
+            return (
+                self.assigned_approver != request.user.id
+                and is_conservation_status_approver(request)
+            )
+
     def has_assessor_mode(self, request):
         status_without_assessor = [
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
@@ -1311,7 +1334,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         )
 
         send_conservation_status_decline_email_notification(
-            self, request, conservation_status_decline
+            self, conservation_status_decline
         )
 
     @transaction.atomic
@@ -1515,7 +1538,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             )
 
         # send Proposal approval email with attachment
-        send_conservation_status_approval_email_notification(self, request)
+        send_conservation_status_approval_email_notification(self)
 
         self.save()
         self.documents.all().update(can_delete=False)

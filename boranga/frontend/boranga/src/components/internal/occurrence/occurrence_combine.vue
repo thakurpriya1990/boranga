@@ -3,7 +3,7 @@
         <modal
             transition="modal fade"
             :title="'Combine Occurrences'"
-            :large="true"
+            :extraLarge="true"
             :full="true"
             @ok="ok()"
             cancel-text="Close"

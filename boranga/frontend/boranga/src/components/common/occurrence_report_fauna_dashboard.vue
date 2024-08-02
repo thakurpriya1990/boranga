@@ -629,6 +629,7 @@ export default {
                 reverseButtons: true,
                 customClass: {
                     confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
                 },
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {

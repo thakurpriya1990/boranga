@@ -35,12 +35,11 @@
             </div>
         </div>
         <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Plan Count Date: </label>
-                <div class="col-sm-9">
-                    <input v-model="plant_count.count_date
-                        " :disabled="true" type="datetime-local" class="form-control" name="plant_count_date"
-                         />
-                </div>
+            <label for="" class="col-sm-3 control-label">Plant Count Date: </label>
+            <div class="col-sm-9">
+                <input v-model="plant_count.count_date
+                    " :disabled="true" type="datetime-local" class="form-control" name="plant_count_date" />
+            </div>
         </div>
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Estimated Population Area(m<sup>2</sup>) :</label>
@@ -67,8 +66,8 @@
                 <label class="form-check-label fw-bold" for="not-counted">Not Counted</label>
             </div>
             <div class="col-sm-2">
-                <input type="checkbox" id="not-counted"
-                    v-model="plant_count.counted" true-value="false" false-value="true" @change="checkboxChanged">
+                <input type="checkbox" id="not-counted" v-model="plant_count.counted" true-value="false"
+                    false-value="true" @change="checkboxChanged">
             </div>
         </div>
         <div class="row mb-3">
@@ -93,20 +92,20 @@
                 Alive
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="alive_mature"
-                    placeholder="" min="0" v-model="plant_count.detailed_alive_mature" />
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count"
+                    id="alive_mature" placeholder="" min="0" v-model="plant_count.detailed_alive_mature" />
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="plant_alive_juvenile"
-                    placeholder="" min="0" v-model="plant_count.detailed_alive_juvenile" />
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count"
+                    id="plant_alive_juvenile" placeholder="" min="0" v-model="plant_count.detailed_alive_juvenile" />
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="alive_seedling"
-                    placeholder="" min="0" v-model="plant_count.detailed_alive_seedling" />
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count"
+                    id="alive_seedling" placeholder="" min="0" v-model="plant_count.detailed_alive_seedling" />
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="alive_unknown"
-                    placeholder="" min="0" v-model="plant_count.detailed_alive_unknown" />
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count"
+                    id="alive_unknown" placeholder="" min="0" v-model="plant_count.detailed_alive_unknown" />
             </div>
         </div>
         <div class="row mb-3">
@@ -114,20 +113,20 @@
                 Dead
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="dead_mature"
-                    placeholder="" min="0" v-model="plant_count.detailed_dead_mature" />
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count"
+                    id="dead_mature" placeholder="" min="0" v-model="plant_count.detailed_dead_mature" />
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="plant_dead_juvenile"
-                    placeholder="" min="0" v-model="plant_count.detailed_dead_juvenile" />
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count"
+                    id="plant_dead_juvenile" placeholder="" min="0" v-model="plant_count.detailed_dead_juvenile" />
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="dead_seedling"
-                    placeholder="" min="0" v-model="plant_count.detailed_dead_seedling" />
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count"
+                    id="dead_seedling" placeholder="" min="0" v-model="plant_count.detailed_dead_seedling" />
             </div>
             <div class="col-sm-2">
-                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count" id="dead_unknown"
-                    placeholder="" min="0" v-model="plant_count.detailed_dead_unknown" />
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control plant_count"
+                    id="dead_unknown" placeholder="" min="0" v-model="plant_count.detailed_dead_unknown" />
             </div>
         </div>
 
@@ -135,15 +134,15 @@
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Number alive :</label>
             <div class="col-sm-6">
-                <input :disabled="isReadOnly || not_counted" type="number" class="form-control ocr_number" id="simple_alive"
-                    placeholder="" min="0" v-model="plant_count.simple_alive" />
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control ocr_number"
+                    id="simple_alive" placeholder="" min="0" v-model="plant_count.simple_alive" />
             </div>
         </div>
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Number dead :</label>
             <div class="col-sm-6">
-                <input :disabled="isReadOnly || not_counted" type="number" class="form-control ocr_number" id="simple_dead"
-                    placeholder="" min="0" v-model="plant_count.simple_dead" />
+                <input :disabled="isReadOnly || not_counted" type="number" class="form-control ocr_number"
+                    id="simple_dead" placeholder="" min="0" v-model="plant_count.simple_dead" />
             </div>
         </div>
 
@@ -341,8 +340,9 @@
                 <!-- <button v-if="!updatingHabitatCompositionDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
                 <button v-if="!updatingPlantCountDetails" :disabled="isReadOnly"
                     class="btn btn-primary btn-sm float-end" @click.prevent="updatePlantCountDetails()">Update</button>
-                <button v-else disabled class="float-end btn btn-primary"><i
-                        class="fa fa-spin fa-spinner"></i>&nbsp;Updating</button>
+                <button v-else disabled class="float-end btn btn-primary">Updating <span
+                        class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="visually-hidden">Loading...</span></button>
             </div>
         </div>
         <!-- </FormSection> -->
@@ -394,7 +394,7 @@ export default {
         let vm = this;
         return {
             //----list of values dictionary
-            listOfPlantValuesDict:{},
+            listOfPlantValuesDict: {},
             plant_count_method_list: [],
             plant_count_accuracy_list: [],
             plant_condition_list: [],
@@ -459,36 +459,36 @@ export default {
         const res = await Vue.http.get(`/api/occurrence/plant_count_list_of_values.json`);
         vm.listOfPlantValuesDict = res.body;
         vm.plant_count_method_list = vm.listOfPlantValuesDict.plant_count_method_list;
-           vm.plant_count_method_list.splice(0, 0,
-                {
-                    id: null,
-                    name: null,
-                });
-           vm.plant_count_accuracy_list = vm.listOfPlantValuesDict.plant_count_accuracy_list;
-           vm.plant_count_accuracy_list.splice(0, 0,
-                {
-                    id: null,
-                    name: null,
-                });
-           vm.plant_condition_list = vm.listOfPlantValuesDict.plant_condition_list;
-           vm.plant_condition_list.splice(0, 0,
-                {
-                    id: null,
-                    name: null,
-                });
-            vm.counted_subject_list = vm.listOfPlantValuesDict.counted_subject_list;
-            vm.counted_subject_list.splice(0, 0,
-                {
-                    id: null,
-                    name: null,
-                });
+        vm.plant_count_method_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+        vm.plant_count_accuracy_list = vm.listOfPlantValuesDict.plant_count_accuracy_list;
+        vm.plant_count_accuracy_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+        vm.plant_condition_list = vm.listOfPlantValuesDict.plant_condition_list;
+        vm.plant_condition_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+        vm.counted_subject_list = vm.listOfPlantValuesDict.counted_subject_list;
+        vm.counted_subject_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
 
     },
     mounted: function () {
         let vm = this;
         //this.$emit('component-mounted');
         vm.not_counted = !vm.plant_count.counted;
-        
+
     },
 }
 </script>
