@@ -1479,15 +1479,10 @@ export default {
                             term: params.term,
                             type: 'public',
                             group_type_id: vm.species_community.group_type_id,
-                            taxon_details: true,
-                            species_id: vm.species_community.id, // to filter species  current/non_current
+                            species_profile: true, // This parameter makes sure the query only returns records that don't yet have a species profile
                         }
                         return query;
                     },
-                    // results: function (data, page) { // parse the results into the format expected by Select2.
-                    //     // since we are using custom formatting functions we do not need to alter remote JSON data
-                    //     return {results: data};
-                    // },
                 },
             }).
                 on("select2:select", function (e) {
