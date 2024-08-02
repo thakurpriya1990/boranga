@@ -410,7 +410,7 @@ def send_species_rename_email_notification(request, species_proposal, new_specie
         "occurrences_url": occurrences_url,
     }
 
-    all_ccs = []
+    all_ccs = list(set(all_ccs))
 
     submitter_email = EmailUser.objects.get(id=species_proposal.submitter).email
 
