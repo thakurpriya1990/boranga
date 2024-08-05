@@ -489,6 +489,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     conservation_status_number = models.CharField(max_length=9, blank=True, default="")
 
+    # Field to use when importing data from the legacy system
+    migrated_from_id = models.CharField(max_length=50, blank=True, default="")
+
     # Conservation Lists and Categories
     wa_priority_list = models.ForeignKey(
         WAPriorityList,
