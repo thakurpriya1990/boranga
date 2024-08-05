@@ -996,7 +996,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         soil_condition_list = []
-        conditions = SoilCondition.objects.all()
+        conditions = SoilCondition.objects.active()
         if conditions:
             for val in conditions:
                 soil_condition_list.append(
@@ -5046,7 +5046,7 @@ class OccurrenceViewSet(
                     }
                 )
         soil_condition_list = []
-        conditions = SoilCondition.objects.all()
+        conditions = SoilCondition.objects.active()
         if conditions:
             for val in conditions:
                 soil_condition_list.append(
