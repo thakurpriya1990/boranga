@@ -2111,7 +2111,7 @@ class Drainage(models.Model):
         return str(self.name)
 
 
-class SoilCondition(models.Model):
+class SoilCondition(ArchivableModel):
     """
     # Admin List
 
