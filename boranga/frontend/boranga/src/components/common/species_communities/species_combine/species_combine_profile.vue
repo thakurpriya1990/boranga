@@ -1331,6 +1331,7 @@ export default {
             required: true
         },
     },
+    emits: ['species_selected'],
     data: function () {
         let vm = this;
         return {
@@ -1518,8 +1519,7 @@ export default {
                     vm.genus = e.params.data.genera_name;
                     vm.name_authority = e.params.data.name_authority;
                     vm.name_comments = e.params.data.name_comments;
-                    // vm.filterFloraScientificName = data;
-                    // sessionStorage.setItem("filterFloraScientificNameText", e.params.data.text);
+                    vm.$emit('species_selected', vm.species_display);
                 }).
                 on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
