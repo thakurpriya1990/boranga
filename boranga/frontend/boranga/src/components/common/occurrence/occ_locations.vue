@@ -888,11 +888,13 @@ export default {
                             entities >= entry.error_value
                         ) {
                             console.error(
-                                `Feature potentially intersects with up ${Math.ceil(
+                                `Feature potentially intersects with up to ${Math.ceil(
                                     entities
                                 )} entities with an error value threshold of ${
                                     entry.error_value
-                                } entities`
+                                } entities with an average area of ${
+                                    entry.average_area
+                                } m²`
                             );
                             error = true;
                             break;
@@ -901,18 +903,22 @@ export default {
                             entities >= entry.warning_value
                         ) {
                             console.warn(
-                                `Feature potentially intersects with up ${Math.ceil(
+                                `Feature potentially intersects with up to ${Math.ceil(
                                     entities
                                 )} entities with a warning value threshold of ${
                                     entry.warning_value
-                                } entities`
+                                } entities with an average area of ${
+                                    entry.average_area
+                                } m²`
                             );
                             warning = true;
                         } else {
                             console.log(
                                 `Feature potentially intersects with up ${Math.ceil(
                                     entities
-                                )} entities.`
+                                )} entities with an average area of ${
+                                    entry.average_area
+                                } m²`
                             );
                         }
                     }
