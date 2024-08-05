@@ -162,4 +162,4 @@ class PlausibilityGeometry(models.Model):
         verbose_name_plural = "Plausibility Geometries"
 
     def __str__(self):
-        return f"{self.check_for_geometry} {self.__class__.__name__} {self.id}"
+        return f"{self.check_for_geometry} {self.__class__.__name__} {self.id} - {self.average_area}m²"
