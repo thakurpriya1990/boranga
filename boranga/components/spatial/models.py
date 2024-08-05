@@ -128,6 +128,7 @@ class Proxy(models.Model):
         cache.delete(cache_key)
         super().save(*args, **kwargs)
 
+
 class PlausibilityGeometry(models.Model):
     OCCURRENCE_GEOMETRY = "OccurrenceGeometry"
     OCCURRENCE_REPORT_GEOMETRY = "OccurrenceReportGeometry"
@@ -146,6 +147,12 @@ class PlausibilityGeometry(models.Model):
     warning_value = models.FloatField(blank=True, null=True)
     error_value = models.FloatField(blank=True, null=True)
     average_area = models.FloatField(blank=True, null=True)
+    ratio_effective_area = models.FloatField(
+        blank=False,
+        null=False,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        default=1.0,
+    )
     active = models.BooleanField(default=True)
 
     class Meta:

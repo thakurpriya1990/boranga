@@ -878,7 +878,11 @@ export default {
 
                     // eslint-disable-next-line no-unused-vars
                     for (let [key, entry] of Object.entries(areas)) {
-                        const entities = entry.area / entry.average_area;
+                        const ratio_effective_area =
+                            entry.ratio_effective_area || 1.0;
+                        const entities =
+                            (entry.area * ratio_effective_area) /
+                            entry.average_area;
                         if (
                             entry.error_value &&
                             entities >= entry.error_value
@@ -966,6 +970,10 @@ export default {
                             pf.set('average_area', props.average_area);
                             pf.set('warning_value', props.warning_value);
                             pf.set('error_value', props.error_value);
+                            pf.set(
+                                'ratio_effective_area',
+                                props.ratio_effective_area
+                            );
                         });
                         if (!plausibilityFeatures[f.ol_uid]) {
                             plausibilityFeatures[f.ol_uid] = [];
@@ -987,6 +995,7 @@ export default {
                         average_area: props.average_area,
                         warning_value: props.warning_value,
                         error_value: props.error_value,
+                        ratio_effective_area: props.ratio_effective_area,
                     };
                     areas[key]['area'] = value.reduce(
                         (accumulator, plausibilityFeature) =>

@@ -1,6 +1,7 @@
 import json
 import geojson
 from shapely import from_geojson
+from shapely.geometry import Polygon, MultiPolygon
 from django.contrib.gis.geos import GEOSGeometry
 from django.core.cache import cache
 import re
@@ -187,6 +188,7 @@ class ProxyAdmin(admin.ModelAdmin):
         ),
     )
 
+
 class GeometryField(forms.GeometryField):
     widget = forms.OSMWidget(
         attrs={
@@ -200,6 +202,7 @@ class GeometryField(forms.GeometryField):
         }
     )
 
+
 class PlausibilityGeometryForm(forms.ModelForm):
     geometry = GeometryField()
 
@@ -209,6 +212,7 @@ class PlausibilityGeometryForm(forms.ModelForm):
         help_texts = {
             "active": "Whether this plausibility check geometry is active",
             "average_area": "Average area [m²] of a tenure area in this geometry",
+            "ratio_effective_area": "Ratio of effective tenure area to total area of drawn polygon, i.e. total area minus roads, ...",
             "warning_value": "Number of potential tenure areas at which to issue a warning before finishing a geometry",
             "error_value": "Number of potential tenure areas at which to reject the geometry and don't finish it",
             "check_for_geometry": "The geometry model this plausibility check applies to",
@@ -237,6 +241,18 @@ class PlausibilityGeometryForm(forms.ModelForm):
             geosgeom.transform(3857)
 
             self.data = self.data.copy()
+
+            if geosgeom.geom_type in ["GeometryCollection"]:
+                # Handling GeometryCollections is painful, so we just extract the polygons into a MultiPolygon
+                geo_json = json.loads(geosgeom.geojson)
+                polygons = [
+                    Polygon(p["coordinates"][0])
+                    for p in geo_json["geometries"]
+                    if p["type"] in ["Polygon"]
+                ]
+                multi_polygon = MultiPolygon(polygons)
+                geosgeom = GEOSGeometry(multi_polygon.wkt)
+
             geo_json = geojson.loads(geosgeom.json)
             self.data["geometry"] = json.dumps(geo_json)
 
@@ -274,9 +290,14 @@ class PlausibilityGeometryAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "active",
-                    "average_area",
-                    "warning_value",
-                    "error_value",
+                    (
+                        "average_area",
+                        "ratio_effective_area",
+                    ),
+                    (
+                        "warning_value",
+                        "error_value",
+                    ),
                     "check_for_geometry",
                     "geometry",
                 )

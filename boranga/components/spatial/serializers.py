@@ -37,6 +37,7 @@ class PlausibilityGeometrySerializer(GeoFeatureModelSerializer):
             "check_for_geometry",
             "geometry",
             "average_area",
+            "ratio_effective_area",
             "warning_value",
             "error_value",
         ]
