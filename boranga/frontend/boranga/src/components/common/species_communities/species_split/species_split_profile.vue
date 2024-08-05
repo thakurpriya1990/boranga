@@ -1489,6 +1489,7 @@ export default {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.species_community.taxonomy_id = data
+                    vm.species_community.taxonomy_details = e.params.data;
                     vm.species_display = e.params.data.scientific_name;
                     vm.common_name = e.params.data.common_name;
                     vm.taxon_name_id = e.params.data.taxon_name_id;
@@ -1498,8 +1499,6 @@ export default {
                     vm.genus = e.params.data.genera_name;
                     vm.name_authority = e.params.data.name_authority;
                     vm.name_comments = e.params.data.name_comments;
-                    // vm.filterFloraScientificName = data;
-                    // sessionStorage.setItem("filterFloraScientificNameText", e.params.data.text);
                 }).
                 on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
