@@ -267,14 +267,17 @@ class PlausibilityGeometryForm(forms.ModelForm):
         if commit:
             instance.save()
 
-        cache_key_old = settings.CACHE_KEY_PLAUSIBILITY_GEOMETRY.format(
-            **{"geometry_model": self.initial["check_for_geometry"]}
-        )
+        cache_key_old = None
+        check_for_geometry_old = self.initial.get("check_for_geometry", None)
+        if check_for_geometry_old:
+            cache_key_old = settings.CACHE_KEY_PLAUSIBILITY_GEOMETRY.format(
+                **{"geometry_model": self.initial.get("check_for_geometry", None)}
+            )
         cache_key = settings.CACHE_KEY_PLAUSIBILITY_GEOMETRY.format(
             **{"geometry_model": instance.check_for_geometry}
         )
         cache.delete(cache_key)
-        if cache_key_old != cache_key:
+        if cache_key_old and cache_key_old != cache_key:
             cache.delete(cache_key_old)
 
         return instance
