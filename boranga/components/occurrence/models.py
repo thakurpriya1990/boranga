@@ -2048,7 +2048,7 @@ class RockType(models.Model):
         return str(self.name)
 
 
-class SoilType(models.Model):
+class SoilType(ArchivableModel):
     """
     # Admin List
 
