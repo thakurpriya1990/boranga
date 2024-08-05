@@ -3101,6 +3101,10 @@ class Occurrence(RevisionedMixin):
 
     objects = OccurrenceManager()
     occurrence_number = models.CharField(max_length=9, blank=True, default="")
+
+    # Field to use when importing data from the legacy system
+    migrated_from_id = models.CharField(max_length=50, blank=True, default="")
+
     occurrence_name = models.CharField(
         max_length=250, blank=True, null=True, unique=True
     )
