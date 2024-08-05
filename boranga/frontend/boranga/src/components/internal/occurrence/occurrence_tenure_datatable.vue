@@ -159,7 +159,7 @@ export default {
                 'Purpose',
                 'Signif. to OCC',
                 'Comments',
-                "Owner's Name",
+                "Owner/Manager",
                 // 'Owner Count',
                 'Updated',
                 'Action',

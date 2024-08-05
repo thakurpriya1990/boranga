@@ -31,7 +31,7 @@
                             </div>
                             <div class="row mb-3">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left">Owner's Name</label>
+                                    <label class="control-label pull-left">Owner/Manager</label>
                                 </div>
                                 <div class="col-sm-9">
                                     <input id="owner_name" v-model="tenureObj.owner_name" :disabled="isReadOnly ||
