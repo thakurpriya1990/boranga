@@ -3389,7 +3389,10 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
 
     def get_vesting(self, obj):
         if obj.vesting:
-            return obj.vesting.code
+            if obj.vesting.code:
+                return obj.vesting.code
+            else:
+                return "No Code Entered"
         return None
 
     def get_featureid(self, obj):
@@ -3397,7 +3400,10 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
 
     def get_purpose(self, obj):
         if obj.purpose:
-            return obj.purpose.code
+            if obj.purpose.code:
+                return obj.purpose.code
+            else:
+                return "No Code Entered"
         return None
 
 
