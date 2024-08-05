@@ -471,10 +471,10 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
-
     land_form = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
+    soil_type = serializers.CharField(source="soil_type.name", allow_null=True)
 
     class Meta:
         model = OCRHabitatComposition
@@ -485,6 +485,7 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
             "rock_type_id",
             "loose_rock_percent",
             "soil_type_id",
+            "soil_type",
             "soil_colour_id",
             "soil_condition_id",
             "drainage_id",
@@ -2487,6 +2488,7 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
         choices=[], allow_null=True, allow_blank=True, required=False
     )
     copied_ocr = serializers.SerializerMethodField()
+    soil_type = serializers.CharField(source="soil_type.name", allow_null=True)
 
     class Meta:
         model = OCCHabitatComposition
@@ -2498,6 +2500,7 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
             "rock_type_id",
             "loose_rock_percent",
             "soil_type_id",
+            "soil_type",
             "soil_colour_id",
             "soil_condition_id",
             "drainage_id",

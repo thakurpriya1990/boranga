@@ -976,7 +976,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         soil_type_list = []
-        types = SoilType.objects.all()
+        types = SoilType.objects.active()
         if types:
             for val in types:
                 soil_type_list.append(
@@ -5026,7 +5026,7 @@ class OccurrenceViewSet(
                     }
                 )
         soil_type_list = []
-        types = SoilType.objects.all()
+        types = SoilType.objects.active()
         if types:
             for val in types:
                 soil_type_list.append(

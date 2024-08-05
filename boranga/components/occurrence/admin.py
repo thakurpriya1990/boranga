@@ -380,10 +380,14 @@ class CoordinateSourceAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin
     list_display = ["name"]
 
 
+class SoilTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, DeleteProtectedModelAdmin)
 admin.site.register(RockType, DeleteProtectedModelAdmin)
-admin.site.register(SoilType, DeleteProtectedModelAdmin)
+admin.site.register(SoilType, SoilTypeAdmin)
 admin.site.register(SiteType, DeleteProtectedModelAdmin)
 admin.site.register(SoilColour, DeleteProtectedModelAdmin)
 admin.site.register(SoilCondition, DeleteProtectedModelAdmin)
