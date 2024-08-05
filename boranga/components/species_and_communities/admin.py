@@ -7,15 +7,12 @@ from boranga.components.species_and_communities.models import (
     District,
     DocumentCategory,
     DocumentSubCategory,
-    FloraRecruitmentType,
     GroupType,
     InformalGroup,
     Kingdom,
-    PostFireHabitatInteraction,
     PotentialImpact,
     PotentialThreatOnset,
     Region,
-    RootMorphology,
     SystemEmail,
     SystemEmailGroup,
     Taxonomy,
@@ -50,9 +47,12 @@ admin.site.register(Region, DeleteProtectedModelAdmin)
 admin.site.register(District, DeleteProtectedModelAdmin)
 admin.site.register(DocumentCategory, DocumentCategoryAdmin)
 admin.site.register(ThreatCategory, ThreatCategoryAdmin)
-admin.site.register(FloraRecruitmentType, DeleteProtectedModelAdmin)
-admin.site.register(RootMorphology, DeleteProtectedModelAdmin)
-admin.site.register(PostFireHabitatInteraction, DeleteProtectedModelAdmin)
+
+# NOTE: The following 3 admins are hidden for now as conservation attributes are not shown on the front end
+# admin.site.register(FloraRecruitmentType, DeleteProtectedModelAdmin)
+# admin.site.register(RootMorphology, DeleteProtectedModelAdmin)
+# admin.site.register(PostFireHabitatInteraction, DeleteProtectedModelAdmin)
+
 admin.site.register(CurrentImpact, DeleteProtectedModelAdmin)
 admin.site.register(PotentialImpact, DeleteProtectedModelAdmin)
 admin.site.register(PotentialThreatOnset, DeleteProtectedModelAdmin)
