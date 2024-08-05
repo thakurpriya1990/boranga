@@ -46,8 +46,7 @@
                                         <SpeciesCombineForm v-if="new_combine_species && new_combine_species.id"
                                             ref="species_communities_new" :species_community.sync="new_combine_species"
                                             :original_species_combine_list="original_species_combine_list"
-                                            id="new_combine_species" :is_internal="true"
-                                            @species_selected="species_selected">
+                                            id="new_combine_species" :is_internal="true">
                                         </SpeciesCombineForm>
                                     </div>
                                     <div v-for="(species, index) in original_species_combine_list"
@@ -64,14 +63,17 @@
                                         <p class="border-bottom mb-3 pb-3">Add in some help text for users here</p>
 
                                         <p>
-                                            You are about the combine the following species:
+                                            You are about to combine the following species:
                                         </p>
+
                                         <div class="mb-3">
-                                            <span v-for="(species, index) in original_species_combine_list"
-                                                :key="species.id"
+                                            <li v-for="(species, index) in original_species_combine_list"
+                                            :key="species.id" class="text-secondary mb-3">
+                                            <span
                                                 class="badge bg-light text-primary text-capitalize border p-2 fs-6 me-2">{{
                                                     species.species_number }} - {{ species.taxonomy_details.scientific_name
                                                 }}</span>
+                                                </li>
                                         </div>
 
                                         <p>
@@ -81,8 +83,8 @@
                                         <div class="border-bottom mb-3 pb-3">
                                             <span class="badge bg-light text-primary text-capitalize border p-2 fs-6">{{
                                                 new_combine_species.species_number }} <template
-                                                    v-if="new_combine_species_display">- {{
-                                                        new_combine_species_display }}</template></span>
+                                                    v-if="new_combine_species.taxonomy_details && new_combine_species.taxonomy_details.scientific_name">- {{
+                                                        new_combine_species.taxonomy_details.scientific_name }}</template></span>
                                         </div>
 
                                         <button class="button btn btn-primary" @click.prevent="ok()"
@@ -346,9 +348,6 @@ export default {
         },
         addSpeciesToCombine: function () {
             this.$refs.addCombineSpecies.isModalOpen = true;
-        },
-        species_selected: function (species_display) {
-            this.new_combine_species_display = species_display;
         },
     },
     mounted: function () {

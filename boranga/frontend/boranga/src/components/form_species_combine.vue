@@ -49,8 +49,7 @@
                     id="speciesInformation"
                     :is_internal="is_internal"
                     :species_community="species_community"
-                    :original_species_combine_list="original_species_combine_list"
-                    @species_selected="species_selected" >
+                    :original_species_combine_list="original_species_combine_list">
                 </SpeciesProfile>
               </div>
               <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
@@ -106,7 +105,6 @@
               default: false
             },
         },
-        emits: ['species_selected'],
         data:function () {
             let vm = this;
             return{
@@ -137,9 +135,6 @@
             },
             eventListener: function(){
               let vm=this;
-            },
-            species_selected: function(species_display){
-                this.$emit('species_selected', species_display);
             },
         },
         mounted: function() {
