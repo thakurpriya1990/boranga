@@ -285,7 +285,14 @@ class PlausibilityGeometryForm(forms.ModelForm):
 
 @admin.register(PlausibilityGeometry)
 class PlausibilityGeometryAdmin(admin.ModelAdmin):
-    list_display = ("geometry",)
+    list_display = (
+        "id",
+        "check_for_geometry",
+        "average_area",
+        "warning_value",
+        "error_value",
+        "active",
+    )
     form = PlausibilityGeometryForm
     fieldsets = (
         (
