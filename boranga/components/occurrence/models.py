@@ -252,6 +252,9 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     occurrence_report_number = models.CharField(max_length=9, blank=True, default="")
 
+    # Field to use when importing data from the legacy system
+    migrated_from_id = models.CharField(max_length=50, blank=True, default="")
+
     observation_date = models.DateTimeField(null=True, blank=True)
     reported_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     submitter_information = models.OneToOneField(
