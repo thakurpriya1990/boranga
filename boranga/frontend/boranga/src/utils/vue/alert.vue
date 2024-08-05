@@ -5,6 +5,7 @@
       'alert':      true,
       'alert-success':(type == 'success'),
       'alert-warning':(type == 'warning'),
+      'alert-primary': (type == 'primary'),
       'alert-info': (type == 'info'),
       'alert-danger':   (type == 'danger'),
       'top':            (placement === 'top'),
