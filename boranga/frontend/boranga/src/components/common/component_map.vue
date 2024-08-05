@@ -4498,6 +4498,10 @@ export default {
                 }
             } else if (type === 'LineString') {
                 alert('LineString not yet supported');
+            } else if (type === 'GeometryCollection') {
+                alert(
+                    'GeometryCollection not yet supported. Consider using MultiPolygon or similar.'
+                );
             } else {
                 console.error(`Unsupported geometry type ${type}`);
             }
