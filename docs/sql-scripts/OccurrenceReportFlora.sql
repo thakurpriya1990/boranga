@@ -77,7 +77,10 @@ geom AS (
         END AS geometry,
         ST_GeometryType(geometry) AS geometry_type,
         occurrence_report_id,
-        'occurrence report geometry' AS data_type
+        'occurrence report geometry' AS data_type,
+        ROUND(
+            ST_Area(ST_Transform(geometry, 4326) :: geography)
+        ) AS area_sqm
     FROM
         boranga_occurrencereportgeometry
 ),
@@ -138,6 +141,7 @@ SELECT
     gt.name AS group_type,
     geom.geometry AS geometry,
     geom.geometry_type AS geom_type,
+    geom.area_sqm AS g_area_sqm,
     geom.data_type AS g_data_type,
     species.species_number AS species_id,
     species.scientific_name AS scien_name,
