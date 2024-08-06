@@ -1275,7 +1275,6 @@ class OccurrenceReportProposalReferralSerializer(serializers.ModelSerializer):
     def get_referral(self, obj):
         referral_email_user = retrieve_email_user(obj.referral)
         # Use a serializer that removes the email address (for privacy)
-        # TODO: In the process of being confirmed with business
         serializer = LimitedEmailUserSerializer(referral_email_user)
         return serializer.data
 
