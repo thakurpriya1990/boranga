@@ -227,7 +227,6 @@ class Meeting(models.Model):
 
     @transaction.atomic
     def reinstate(self, request):
-        logger.debug(self.processing_status)
         if not self.processing_status == Meeting.PROCESSING_STATUS_DISCARDED:
             raise ValidationError(
                 "You cannot reinstate a meeting that has not been discarded"
