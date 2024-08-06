@@ -352,7 +352,7 @@ CACHE_TIMEOUT_2_HOURS = 60 * 60 * 2
 CACHE_TIMEOUT_24_HOURS = 60 * 60 * 24
 CACHE_TIMEOUT_NEVER = None
 
-CACHE_KEY_EPSG_CODES = "epsg-codes-{auth_name}-{pj_type}-{codes}"
+CACHE_KEY_EPSG_CODES = "epsg-codes-{auth_name}-{pj_type}"
 CACHE_KEY_PROXY_LAYER_DATA = "proxy-layer-data-{app_label}-{model_name}"
 CACHE_KEY_PROXY_NODE_DATA = "proxy-node-data-{request_path}"
 CACHE_KEY_MAP_OCCURRENCES = "map-occurrences"

@@ -373,7 +373,7 @@ def save_geometry(
             }
 
             intersect_data = {}
-            # TODO: Hardcoded. Possibly pass in via fn parameter whether to intersect and with what
+            # Note: Hardcoded. Possibly pass in via fn parameter whether to intersect and with what
             if instance_fk_field_name == "occurrence":
                 try:
                     intersect_layer = TileLayer.objects.get(

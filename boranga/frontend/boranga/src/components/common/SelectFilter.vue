@@ -139,7 +139,6 @@ export default {
         },
     },
     mounted: function () {
-        // TODO: Get from session storage
         // Purpose needs to use this function to map the key-value pairs to value-text pairs
         this.selectedFilterItem = this.getSelectedFilterItemByKey(
             this.preSelectedFilterItem
