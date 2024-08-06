@@ -94,6 +94,7 @@ from boranga.components.species_and_communities.serializers import (
     ListCommunitiesSerializer,
     ListSpeciesSerializer,
     RegionSerializer,
+    RenameCommunitySerializer,
     SaveCommunityConservationAttributesSerializer,
     SaveCommunityDistributionSerializer,
     SaveCommunityDocumentSerializer,
@@ -1295,7 +1296,6 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         return Response(data)
 
-
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
     @transaction.atomic
@@ -1303,7 +1303,9 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
 
         if not instance.can_user_save(request):
-            raise serializers.ValidationError("Cannot save species record in current state")
+            raise serializers.ValidationError(
+                "Cannot save species record in current state"
+            )
 
         request_data = request.data
         if request_data["submitter"]:
@@ -1473,7 +1475,9 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         # instance.submit(request,self)
         if not instance.can_user_submit(request):
-            raise serializers.ValidationError("Cannot submit a species record with current status")
+            raise serializers.ValidationError(
+                "Cannot submit a species record with current status"
+            )
         species_form_submit(instance, request)
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
@@ -1827,7 +1831,9 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
 
         if not instance.can_user_save(request):
-            raise serializers.ValidationError("Cannot update species record in current state")
+            raise serializers.ValidationError(
+                "Cannot update species record in current state"
+            )
 
         speciesCommunitiesImageFile = request.data.get("speciesCommunitiesImage", None)
         if not speciesCommunitiesImageFile:
@@ -1867,7 +1873,9 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def reinstate_image(self, request, *args, **kwargs):
         instance = self.get_object()
         if not instance.can_user_save(request):
-            raise serializers.ValidationError("Cannot update species record in current state")
+            raise serializers.ValidationError(
+                "Cannot update species record in current state"
+            )
         pk = request.data.get("pk", None)
         if not pk:
             raise serializers.ValidationError("No pk provided")
@@ -1891,7 +1899,9 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def delete_image(self, request, *args, **kwargs):
         instance = self.get_object()
         if not instance.can_user_save(request):
-            raise serializers.ValidationError("Cannot update species record in current state")
+            raise serializers.ValidationError(
+                "Cannot update species record in current state"
+            )
         # instance.upload_image(request)
         with transaction.atomic():
             instance.image_doc = None
@@ -2003,8 +2013,10 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
 
         if not instance.can_user_save(request):
-            raise serializers.ValidationError("Cannot save community record in current state")
-        
+            raise serializers.ValidationError(
+                "Cannot save community record in current state"
+            )
+
         request_data = request.data
         if request_data["submitter"]:
             request.data["submitter"] = "{}".format(request_data["submitter"].get("id"))
@@ -2117,7 +2129,9 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         # instance.submit(request,self)
         if not instance.can_user_submit(request):
-            raise serializers.ValidationError("Cannot submit community record in current state")
+            raise serializers.ValidationError(
+                "Cannot submit community record in current state"
+            )
         community_form_submit(instance, request)
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
@@ -2283,7 +2297,9 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def upload_image(self, request, *args, **kwargs):
         instance = self.get_object()
         if not instance.can_user_save(request):
-            raise serializers.ValidationError("Cannot update community record in current state")
+            raise serializers.ValidationError(
+                "Cannot update community record in current state"
+            )
         speciesCommunitiesImageFile = request.data.get("speciesCommunitiesImage", None)
         if not speciesCommunitiesImageFile:
             raise serializers.ValidationError("No file provided")
@@ -2322,7 +2338,9 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def reinstate_image(self, request, *args, **kwargs):
         instance = self.get_object()
         if not instance.can_user_save(request):
-            raise serializers.ValidationError("Cannot update community record in current state")
+            raise serializers.ValidationError(
+                "Cannot update community record in current state"
+            )
         pk = request.data.get("pk", None)
         if not pk:
             raise serializers.ValidationError("No pk provided")
@@ -2346,7 +2364,9 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def delete_image(self, request, *args, **kwargs):
         instance = self.get_object()
         if not instance.can_user_save(request):
-            raise serializers.ValidationError("Cannot update community record in current state")
+            raise serializers.ValidationError(
+                "Cannot update community record in current state"
+            )
         # import ipdb; ipdb.set_trace()
         # instance.upload_image(request)
         with transaction.atomic():
@@ -2365,6 +2385,72 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         )
         return Response(serializer.data)
 
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+    )
+    @transaction.atomic
+    def rename(self, request, *args, **kwargs):
+        instance = self.get_object()
+        rename_community_serializer = RenameCommunitySerializer(
+            data=request.data, context={"request": request}
+        )
+        rename_community_serializer.is_valid(raise_exception=True)
+        new_community = instance.copy_for_rename(request)
+
+        # Apply the taxonomy details to the new community
+        community_taxonomy, created = CommunityTaxonomy.objects.get_or_create(
+            community=new_community
+        )
+        if created:
+            logger.info(f"Created new taxonomy instance for community {new_community}")
+        serializer = SaveCommunityTaxonomySerializer(
+            community_taxonomy, data=rename_community_serializer.data
+        )
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        serializer = InternalCommunitySerializer(
+            new_community, context={"request": request}
+        )
+
+        # Log action against original community
+        instance.log_user_action(
+            CommunityUserAction.ACTION_RENAME_COMMUNITY.format(
+                instance.community_number, new_community.community_number
+            ),
+            request,
+        )
+
+        # Create a log entry for original community against the user
+        request.user.log_user_action(
+            CommunityUserAction.ACTION_RENAME_COMMUNITY.format(
+                instance.community_number, new_community.community_number
+            ),
+            request,
+        )
+
+        # Log community action for the new communtiy
+        new_community.log_user_action(
+            CommunityUserAction.ACTION_CREATED_FROM_RENAME_COMMUNITY.format(
+                new_community.community_number, instance.community_number
+            ),
+            request,
+        )
+
+        # Create a log entry for new community against the user
+        request.user.log_user_action(
+            CommunityUserAction.ACTION_CREATED_FROM_RENAME_COMMUNITY.format(
+                new_community.community_number, instance.community_number
+            ),
+            request,
+        )
+
+        return Response(serializer.data)
+
 
 class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = SpeciesDocument.objects.select_related(
@@ -2375,8 +2461,10 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
 
     def can_update_species(self, request, instance):
         if not instance.species or not instance.species.can_user_save(request):
-            raise serializers.ValidationError("Cannot update species record with document change")
-        
+            raise serializers.ValidationError(
+                "Cannot update species record with document change"
+            )
+
     def can_create_document(self, request):
         request_data = request.data.get("data")
         if not request_data:
@@ -2395,10 +2483,8 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
             species_id = int(data["species"])
             species = Species.objects.get(id=species_id)
         except Species.DoesNotExist:
-            raise serializers.ValidationError(
-                f"No species found with id: {species_id}"
-            )
-        
+            raise serializers.ValidationError(f"No species found with id: {species_id}")
+
         if not species.can_user_save(request):
             raise serializers.ValidationError("Cannot add document to species record")
 
@@ -2410,7 +2496,7 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.can_update_species(request,instance)
+        self.can_update_species(request, instance)
 
         instance.visible = False
         instance.save(version_user=request.user)
@@ -2437,7 +2523,7 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.can_update_species(request,instance)
+        self.can_update_species(request, instance)
         instance.visible = True
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
@@ -2458,7 +2544,7 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.can_update_species(request,instance)
+        self.can_update_species(request, instance)
         serializer = SaveSpeciesDocumentSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
@@ -2514,8 +2600,10 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
 
     def can_update_community(self, request, instance):
         if not instance.community or not instance.community.can_user_save(request):
-            raise serializers.ValidationError("Cannot update community record with document change")
-        
+            raise serializers.ValidationError(
+                "Cannot update community record with document change"
+            )
+
     def can_create_document(self, request):
         request_data = request.data.get("data")
         if not request_data:
@@ -2537,7 +2625,7 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
             raise serializers.ValidationError(
                 f"No community found with id: {community_id}"
             )
-        
+
         if not community.can_user_save(request):
             raise serializers.ValidationError("Cannot add document to community record")
 
@@ -2549,7 +2637,7 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.can_update_community(request,instance)
+        self.can_update_community(request, instance)
         instance.visible = False
         instance.save(version_user=request.user)
         instance.community.log_user_action(
@@ -2575,7 +2663,7 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.can_update_community(request,instance)
+        self.can_update_community(request, instance)
         instance.visible = True
         instance.save(version_user=request.user)
         instance.community.log_user_action(
@@ -2596,7 +2684,7 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.can_update_community(request,instance)
+        self.can_update_community(request, instance)
         serializer = SaveCommunityDocumentSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
@@ -2731,13 +2819,19 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     def can_update_threat(self, request, instance):
         if instance.species:
             if not instance.species.can_user_save(request):
-                raise serializers.ValidationError("Cannot update species record with threat change")
+                raise serializers.ValidationError(
+                    "Cannot update species record with threat change"
+                )
         elif instance.community:
             if not instance.community.can_user_save(request):
-                raise serializers.ValidationError("Cannot update community record with threat change")
+                raise serializers.ValidationError(
+                    "Cannot update community record with threat change"
+                )
         else:
-            raise serializers.ValidationError("No valid species/community associated with threat")
-        
+            raise serializers.ValidationError(
+                "No valid species/community associated with threat"
+            )
+
     def can_create_threat(self, request):
         request_data = request.data.get("data")
         if not request_data:
@@ -2760,10 +2854,10 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 raise serializers.ValidationError(
                     f"No species found with id: {species_id}"
                 )
-        
+
             if not species.can_user_save(request):
                 raise serializers.ValidationError("Cannot add threat to species record")
-            
+
         if "community" in data:
             try:
                 community_id = int(data["community"])
@@ -2772,10 +2866,11 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 raise serializers.ValidationError(
                     f"No community found with id: {community_id}"
                 )
-        
-            if not community.can_user_save(request):
-                raise serializers.ValidationError("Cannot add threat to community record")
 
+            if not community.can_user_save(request):
+                raise serializers.ValidationError(
+                    "Cannot add threat to community record"
+                )
 
     def update_publishing_status(self):
 
@@ -2890,7 +2985,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.can_update_threat(request,instance)
+        self.can_update_threat(request, instance)
         instance.visible = False
         instance.save(version_user=request.user)
         if instance.species:
@@ -2933,7 +3028,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.can_update_threat(request,instance)
+        self.can_update_threat(request, instance)
         instance.visible = True
         instance.save(version_user=request.user)
         if instance.species:
@@ -2971,7 +3066,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.can_update_threat(request,instance)
+        self.can_update_threat(request, instance)
         serializer = SaveConservationThreatSerializer(
             instance, data=json.loads(request.data.get("data"))
         )
