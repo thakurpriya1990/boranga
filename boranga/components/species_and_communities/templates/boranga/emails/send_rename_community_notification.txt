@@ -1,0 +1,16 @@
+{%  extends 'boranga/emails/base_email.txt' %}
+
+{%  block content %}
+        Community {{ community_proposal.community_number }} has been renamed. You can review the historical and new Community Profiles at:
+        Historical: {{community_url}} {{ community_proposal.community_number }} - {{ community_proposal.taxonomy.community_name }}
+        New: {{new_community_url}} {{ new_community.community_number }} - {{ new_community.taxonomy.community_name }}
+        {% if conservation_status_url %}
+            Please action for related Conservation Status here {{conservation_status_url}}
+        {% endif %}
+        {% if occurrences_url %}
+            To action related Occurrences:
+            {% for occ in occurrences_url %}
+                {{ occ.occurrence_number }}
+            {% endfor %}
+        {% endif %}
+{%  endblock %}
