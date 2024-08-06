@@ -489,6 +489,103 @@ def send_user_community_create_email_notification(request, community_proposal):
     return msg
 
 
+def send_community_rename_email_notification(
+    request, community_proposal, new_community
+):
+    email = RenameSpeciesSendNotificationEmail()
+
+    url = request.build_absolute_uri(
+        reverse("internal-conservation-status-dashboard", kwargs={})
+    )
+    community_url = request.build_absolute_uri(
+        reverse(
+            "internal-community-detail",
+            kwargs={"community_proposal_pk": community_proposal.id},
+        )
+    )
+    community_url = convert_external_url_to_internal_url(community_url)
+
+    new_community_url = request.build_absolute_uri(
+        reverse(
+            "internal-community-detail",
+            kwargs={"community_proposal_pk": new_community.id},
+        )
+    )
+    new_community_url = convert_external_url_to_internal_url(new_community_url)
+
+    notification_emails = SystemEmailGroup.emails_by_group_and_area(
+        group_type=community_proposal.group_type,
+    )
+
+    all_ccs = notification_emails
+
+    conservation_status_url = []
+    conservation_status_list = community_proposal.conservation_status.filter(
+        processing_status="approved"
+    )
+    if conservation_status_list:
+        conservation_status_url = request.build_absolute_uri(
+            reverse(
+                "internal-conservation-status-detail",
+                kwargs={"cs_proposal_pk": conservation_status_list[0].id},
+            )
+        )
+        cs_notification_emails = SystemEmailGroup.emails_by_group_and_area(
+            group_type=community_proposal.group_type,
+            area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
+        )
+        all_ccs.extend(cs_notification_emails)
+
+    occurrences_url = []
+    occurrences = community_proposal.occurrences.filter(processing_status="active")
+    if occurrences:
+        for occ in occurrences:
+            occurrences_url.append(
+                {
+                    "occurrence_url": request.build_absolute_uri(
+                        reverse(
+                            "internal-occurrence-detail",
+                            kwargs={"occurrence_pk": occ.id},
+                        )
+                    ),
+                    "occurrence_number": occ.occurrence_number,
+                }
+            )
+
+        occ_notification_emails = SystemEmailGroup.emails_by_group_and_area(
+            group_type=community_proposal.group_type,
+            area=SystemEmailGroup.AREA_OCCURRENCE,
+        )
+        all_ccs.extend(occ_notification_emails)
+
+    context = {
+        "community_proposal": community_proposal,
+        "url": url,
+        "community_url": community_url,
+        "new_community_url": new_community_url,
+        "new_community": new_community,
+        "conservation_status_url": conservation_status_url,
+        "occurrences_url": occurrences_url,
+    }
+
+    all_ccs = list(set(all_ccs))
+
+    submitter_email = EmailUser.objects.get(id=community_proposal.submitter).email
+
+    to = request.user.email if request else submitter_email
+
+    msg = email.send(
+        to,
+        cc=all_ccs,
+        context=context,
+    )
+    sender = request.user if request else settings.DEFAULT_FROM_EMAIL
+
+    _log_community_email(msg, community_proposal, sender=sender)
+
+    return msg
+
+
 def send_nomos_script_failed(errors):
     """Internal failed notification email for NOMOS script"""
     email = NomosScriptFailedEmail()

@@ -40,6 +40,7 @@ from boranga.components.occurrence.api import OCCConservationThreatFilterBackend
 from boranga.components.occurrence.models import OCCConservationThreat, Occurrence
 from boranga.components.occurrence.serializers import OCCConservationThreatSerializer
 from boranga.components.species_and_communities.email import (
+    send_community_rename_email_notification,
     send_species_combine_email_notification,
     send_species_split_email_notification,
 )
@@ -2448,6 +2449,8 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             ),
             request,
         )
+
+        send_community_rename_email_notification(request, instance, new_community)
 
         return Response(serializer.data)
 
