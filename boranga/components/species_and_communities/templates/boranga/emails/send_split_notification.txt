@@ -8,9 +8,11 @@
             New Species {{ forloop.counter }}: {{ new_species.species_number }} - {{ new_species.taxonomy.scientific_name }}
         {% endfor %}
 
-        You can view the Conservation Status for the historical species by visiting the following url:
+        {% if conservation_status_url %}
+            You can view the Conservation Status for the historical species by visiting the following url:
 
-        {{conservation_status_url}}
+            {{conservation_status_url}}
+        {% endif %}
 
         {% if occurrences_url %}
             To action related Occurrences:
