@@ -27,14 +27,16 @@
                                             <div class="align-self-center text-muted">No Image Uploaded</div>
                                         </div>
                                     </div>
-                                    <div v-if="hasUserEditMode && species_community.processing_status != 'Discarded'" class="row border-top pt-3 mb-2">
+                                    <div v-if="hasUserEditMode && species_community.processing_status != 'Discarded'"
+                                        class="row border-top pt-3 mb-2">
                                         <div class="col">
                                             <div class="d-flex justify-content-center">
                                                 <div class="text-muted">Image Actions</div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div v-if="hasUserEditMode && species_community.processing_status != 'Discarded'" class="row">
+                                    <div v-if="hasUserEditMode && species_community.processing_status != 'Discarded'"
+                                        class="row">
                                         <div class="col">
                                             <div class="d-flex align-items-center flex-column">
                                                 <label v-if="!speciesCommunitiesImage" for="image-upload" role="button"
@@ -105,19 +107,27 @@
                                                 <strong>Action</strong><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="!isCommunity && isActive">
-                                            <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="splitSpecies()">Split</button><br />
-                                            </div>
-                                            <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="combineSpecies()">Combine</button><br />
-                                            </div>
-                                            <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="renameSpecies()">Rename</button><br />
-                                            </div>
+                                        <div class="row" v-if="isActive">
+                                            <template v-if="!isCommunity">
+                                                <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                        @click.prevent="splitSpecies()">Split</button><br />
+                                                </div>
+                                                <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                        @click.prevent="combineSpecies()">Combine</button><br />
+                                                </div>
+                                                <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                        @click.prevent="renameSpecies()">Rename</button><br />
+                                                </div>
+                                            </template>
+                                            <template v-else>
+                                                <div class="col-sm-12">
+                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                        @click.prevent="renameCommunity()">Rename</button><br />
+                                                </div>
+                                            </template>
                                         </div>
                                         <div class="row" v-if="isActive">
                                             <div class="col-sm-12" v-if="!isPublic">
@@ -191,10 +201,12 @@
                                                         style="margin-top:5px;" @click.prevent="returnToDashboard">
                                                         Return to Dashboard</button>
                                                 </div>
-                                                <div v-if="species_community.can_user_edit && species_community.processing_status != 'Discarded'" class="col-md-6 text-end">
+                                                <div v-if="species_community.can_user_edit && species_community.processing_status != 'Discarded'"
+                                                    class="col-md-6 text-end">
                                                     <button v-if="savingSpeciesCommunity"
                                                         class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
-                                                        disabled>Save and Continue <span class="spinner-border spinner-border-sm" role="status"
+                                                        disabled>Save and Continue <span
+                                                            class="spinner-border spinner-border-sm" role="status"
                                                             aria-hidden="true"></span>
                                                         <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary me-2 ull-right"
@@ -204,7 +216,8 @@
 
                                                     <button v-if="saveExitSpeciesCommunity"
                                                         class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
-                                                        disabled>Save and Exit <span class="spinner-border spinner-border-sm" role="status"
+                                                        disabled>Save and Exit <span
+                                                            class="spinner-border spinner-border-sm" role="status"
                                                             aria-hidden="true"></span>
                                                         <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary me-2 pull-right"
@@ -214,17 +227,20 @@
 
                                                     <button v-if="submitSpeciesCommunity"
                                                         class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                        disabled>Submit <span class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
+                                                        disabled>Submit <span class="spinner-border spinner-border-sm"
+                                                            role="status" aria-hidden="true"></span>
                                                         <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary pull-right"
                                                         style="margin-top:5px;" @click.prevent="submit()"
                                                         :disabled="saveExitSpeciesCommunity || savingSpeciesCommunity">Submit</button>
                                                 </div>
-                                                <div v-else-if="hasUserEditMode && species_community.processing_status != 'Discarded'" class="col-md-6 text-end">
+                                                <div v-else-if="hasUserEditMode && species_community.processing_status != 'Discarded'"
+                                                    class="col-md-6 text-end">
                                                     <button v-if="savingSpeciesCommunity"
                                                         class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                        disabled>Save Changes <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                        disabled>Save Changes <span
+                                                            class="spinner-border spinner-border-sm" role="status"
+                                                            aria-hidden="true"></span>
                                                         <span class="visually-hidden">Loading...</span></button>
                                                     <button v-else class="btn btn-primary pull-right"
                                                         style="margin-top:5px;" @click.prevent="save()">Save
@@ -240,12 +256,16 @@
                 </div>
             </div>
         </div>
-        <SpeciesSplit ref="species_split" :species_community="species_community" :is_internal="true"
+
+        <SpeciesSplit v-if="species_community && !isCommunity" ref="species_split" :species_community="species_community" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
-        <SpeciesCombine ref="species_combine" :species_community="species_community" :is_internal="true"
+        <SpeciesCombine v-if="species_community && !isCommunity" ref="species_combine" :species_community="species_community" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
-        <SpeciesRename ref="species_rename" :species_community_original="species_community" :is_internal="true"
+        <SpeciesRename v-if="species_community && !isCommunity" ref="species_rename" :species_community_original="species_community" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
+        <CommunityRename v-if="species_community && isCommunity" ref="community_rename" :species_community_original="species_community" :is_internal="true"
+            @refreshFromResponse="refreshFromResponse" />
+
         <MakePublic ref="make_public" :species_community="species_community"
             :species_community_original="species_community_original" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
@@ -261,6 +281,7 @@ import Submission from '@common-utils/submission.vue'
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
 import SpeciesSplit from './species_split.vue'
 import SpeciesCombine from './species_combine.vue'
+import CommunityRename from './community_rename.vue'
 import SpeciesRename from './species_rename.vue'
 import MakePublic from './make_public.vue'
 import ReinstateImage from '@common-utils/reinstate_image.vue'
@@ -273,7 +294,6 @@ import {
 export default {
     name: 'InternalSpeciesCommunity',
     data: function () {
-        let vm = this;
         return {
             "species_community": null,
             "species_community_original": null,
@@ -297,6 +317,7 @@ export default {
         SpeciesSplit,
         SpeciesCombine,
         SpeciesRename,
+        CommunityRename,
         MakePublic,
         ReinstateImage,
     },
@@ -304,8 +325,6 @@ export default {
         formatDate: function (data) {
             return data ? moment(data).format('DD/MM/YYYY HH:mm:ss') : '';
         }
-    },
-    watch: {
     },
     computed: {
         csrf_token: function () {
@@ -852,6 +871,8 @@ export default {
                     }
                 }
             }, (error) => {
+                console.log(error);
+            }).finally(() => {
                 vm.submitSpeciesCommunity = false;
             });
         },
@@ -981,14 +1002,8 @@ export default {
             }
             this.$refs.species_combine.isModalOpen = true;
         },
-        renameSpecies: async function () {
-            let rename_species_obj = null;
-            let newRenameSpecies = await Vue.http.get(`/api/species/${this.species_community.id}/rename_deep_copy.json`)
-            if (newRenameSpecies) {
-                rename_species_obj = newRenameSpecies.body.species_obj;
-                this.$refs.species_rename.new_rename_species = rename_species_obj;
-                this.$refs.species_rename.isModalOpen = true;
-            }
+        renameCommunity: async function () {
+            this.$refs.community_rename.isModalOpen = true;
         },
         makePublic: async function () {
             this.$refs.make_public.isModalOpen = true;

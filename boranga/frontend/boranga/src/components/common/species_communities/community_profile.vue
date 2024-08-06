@@ -473,6 +473,10 @@ export default {
             type: Boolean,
             default: false
         },
+        is_readonly: {
+            type: Boolean,
+            default: false
+        },
     },
     data: function () {
         let vm = this;
@@ -509,6 +513,9 @@ export default {
             return this.isPublic && this.species_community.publishing_status.conservation_attributes_public;
         },
         isReadOnly: function () {
+            if (this.is_readonly) {
+                return true;
+            }
             let action = this.$route.query.action;
             if (action === "edit" && this.species_community && this.species_community.user_edit_mode) {
                 return false;
