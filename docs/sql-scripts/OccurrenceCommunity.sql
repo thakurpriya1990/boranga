@@ -128,6 +128,10 @@ identification AS (
 geom AS (
     SELECT
         og.id AS id,
+        '' AS geometry_id,
+        '' AS geometry_name,
+        '' AS geometry_site_type,
+        TO_CHAR(og.updated_date, 'YYYY-MM-DD HH:MM:SS') AS updated,
         CASE
             ST_GeometryType(geometry)
             WHEN 'ST_Point' THEN ST_Buffer(geometry, 0.00001)
@@ -169,6 +173,10 @@ geom AS (
     UNION
     SELECT
         bg.id AS id,
+        '' AS geometry_id,
+        '' AS geometry_name,
+        '' AS geometry_site_type,
+        TO_CHAR(bg.updated_date, 'YYYY-MM-DD HH:MM:SS') AS updated,
         bg.geometry AS geometry,
         ST_GeometryType(bg.geometry) AS geometry_type,
         og.occurrence_id AS occurrence_id,
@@ -181,12 +189,39 @@ geom AS (
     FROM
         boranga_buffergeometry bg
         INNER JOIN boranga_occurrencegeometry og ON og.id = bg.buffered_from_geometry_id
+    UNION
+    SELECT
+        sg.id AS id,
+        sg.site_number AS geometry_id,
+        sg.site_name AS geometry_name,
+        st.name AS geometry_site_type,
+        TO_CHAR(sg.updated_date, 'YYYY-MM-DD HH:MM:SS') AS updated,
+        ST_Buffer(sg.geometry, 0.00001) AS geometry,
+        ST_GeometryType(sg.geometry) AS geometry_type,
+        sg.occurrence_id AS occurrence_id,
+        'site geometry' AS data_type,
+        0 AS buffer_radius,
+        '' AS occurrence_tenures,
+        0 AS area_sqm
+    FROM
+        boranga_occurrencesite sg
+        INNER JOIN boranga_occurrencegeometry og ON og.occurrence_id = sg.occurrence_id
+        INNER JOIN boranga_sitetype st ON sg.site_type_id = st.id
+    GROUP BY
+        sg.id,
+        st.name
+    HAVING
+        sg.visible = TRUE
 )
 SELECT
     occ.occurrence_number AS occ_id,
     occ.occurrence_name AS occ_name,
     gt.name AS group_type,
     geom.geometry AS geometry,
+    geom.geometry_id AS geom_id,
+    geom.geometry_name AS geom_name,
+    geom.geometry_site_type AS site_type,
+    geom.updated AS updated,
     geom.geometry_type AS geom_type,
     geom.area_sqm AS g_area_sqm,
     geom.data_type AS g_datatype,
