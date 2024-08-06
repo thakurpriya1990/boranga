@@ -32,16 +32,14 @@ from boranga.components.species_and_communities.models import (
     SpeciesUserAction,
     Taxonomy,
 )
-
 from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_internal,
-    is_species_communities_approver,
-    is_occurrence_assessor,
     is_occurrence_approver,
+    is_occurrence_assessor,
+    is_species_communities_approver,
 )
-
 from boranga.ledger_api_utils import retrieve_email_user
 
 logger = logging.getLogger("boranga")
@@ -870,15 +868,20 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
         request = self.context["request"]
         if request.user.is_superuser:
             return False
-        return not ((obj.can_user_edit or obj.has_user_edit_mode) and is_species_communities_approver(request))
+        return not (
+            (obj.can_user_edit or obj.has_user_edit_mode)
+            and is_species_communities_approver(request)
+        )
 
     def get_can_add_log(self, obj):
         request = self.context["request"]
-        return (is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
-                or is_species_communities_approver(request)
-                or is_occurrence_assessor(request)
-                or is_occurrence_approver(request))
+        return (
+            is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+        )
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
@@ -1228,7 +1231,7 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
 
 
 class CommunitySerializer(BaseCommunitySerializer):
-    #submitter = serializers.SerializerMethodField(read_only=True)
+    # submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
 
     def get_readonly(self, obj):
@@ -1301,15 +1304,20 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
         request = self.context["request"]
         if request.user.is_superuser:
             return False
-        return not ((obj.can_user_edit or obj.has_user_edit_mode) and is_species_communities_approver(request))
+        return not (
+            (obj.can_user_edit or obj.has_user_edit_mode)
+            and is_species_communities_approver(request)
+        )
 
     def get_can_add_log(self, obj):
         request = self.context["request"]
-        return (is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
-                or is_species_communities_approver(request)
-                or is_occurrence_assessor(request)
-                or is_occurrence_approver(request))
+        return (
+            is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+        )
 
     def get_can_user_edit(self, obj):
         request = self.context["request"]
@@ -1398,6 +1406,23 @@ class SaveCommunitySerializer(BaseCommunitySerializer):
             "districts",
         )
         read_only_fields = ("id", "group_type")
+
+
+class RenameCommunitySerializer(serializers.Serializer):
+    community_name = serializers.CharField(required=True)
+    community_migrated_id = serializers.CharField(required=True)
+    community_description = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
+    previous_name = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
+    name_authority = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
+    name_comments = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
 
 
 class CreateCommunitySerializer(BaseCommunitySerializer):
