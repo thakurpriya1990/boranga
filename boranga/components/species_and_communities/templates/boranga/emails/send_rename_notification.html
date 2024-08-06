@@ -8,12 +8,12 @@
     </ul>
     <p>
         {% if conservation_status_url %}
-            Please action for related Conservation Status <a href="{{conservation_status_url}}">here</a>
+            Please action the related Conservation Status <a href="{{conservation_status_url}}">here</a>
         {% endif %}
     </p>
     <p>
         {% if occurrences_url %}
-            Please action for related Occurrences:
+            Please action any related Occurrences:
             {% for occ in occurrences_url %}
                 <li><a href="{{occ.occurrence_url}}">{{ occ.occurrence_number }}</a></li>
             {% endfor %}
