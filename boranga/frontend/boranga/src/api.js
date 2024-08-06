@@ -173,6 +173,9 @@ module.exports = {
     reinstate_community_proposal: function (id) {
         return `/api/community/${id}/reinstate/`;
     },
+    rename_community: function (id) {
+        return `/api/community/${id}/rename/`;
+    },
     discard_species_proposal: function (id) {
         return `/api/species/${id}/discard/`;
     },
