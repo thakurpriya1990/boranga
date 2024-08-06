@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
-from boranga import settings
-from boranga.components.spatial.models import GeoserverUrl, Proxy, TileLayer
+from boranga.components.spatial.models import GeoserverUrl, PlausibilityGeometry, Proxy, TileLayer
+
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 
 class GeoserverUrlSerializer(serializers.ModelSerializer):
@@ -25,3 +26,25 @@ class ProxySerializer(serializers.ModelSerializer):
     class Meta:
         model = Proxy
         fields = "__all__"
+
+class PlausibilityGeometrySerializer(GeoFeatureModelSerializer):
+
+    class Meta:
+        model = PlausibilityGeometry
+        geo_field = "geometry"
+        fields = [
+            "id",
+            "check_for_geometry",
+            "geometry",
+            "average_area",
+            "ratio_effective_area",
+            "warning_value",
+            "error_value",
+        ]
+        read_only_fields = ("id",)
+
+    def get_srid(self, obj):
+        if obj.geometry:
+            return obj.geometry.srid
+        else:
+            return None

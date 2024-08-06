@@ -14,6 +14,7 @@
                     :map-info-text="isInternal ? '' : 'Some text to explain the map and its use.'
                         " :selectable="true" :coordinate-reference-systems="coordinateReferenceSystems"
                     :spatial-operations-allowed="['__all__']" :tile-layer-api-url="tileLayerApiUrl"
+                    :validate-feature-before-save="true"
                     :query-layer-definition="{
                         name: queryLayerName,
                         title: 'Occurrence Reports',
@@ -88,8 +89,12 @@
                                 // color: '#FF0000',
                             },
                         },
-                    ]" @features-loaded="mapFeaturesLoaded" @crs-select-search="searchForCRS"
-                    @toggle-show-hide="toggleShowOnMapLayer"></MapComponent>
+                    ]"
+                    @features-loaded="mapFeaturesLoaded"
+                    @crs-select-search="searchForCRS"
+                    @toggle-show-hide="toggleShowOnMapLayer"
+                    @validate-feature="validateFeature"
+                ></MapComponent>
             </div>
             <!-- @refreshFromResponse="refreshFromResponse" -->
             <!-- @validate-feature="validateFeature.bind(this)()" -->
@@ -277,6 +282,10 @@ import { VueSelect } from 'vue-select';
 import OccurrenceSiteDatatable from '@/components/internal/occurrence/occurrence_site_datatable.vue';
 import OccurrenceTenureDatatable from '@/components/internal/occurrence/occurrence_tenure_datatable.vue';
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
+import {
+    intersects,
+    intersectedArea,
+} from '@/components/common/map_functions.js';
 
 export default {
     name: 'OCClocations',
@@ -332,6 +341,7 @@ export default {
             queryLayerName: 'query_layer',
             occurrenceLayerName: 'occurrence_layer',
             bufferLayerName: 'buffer_layer',
+            plausibilityGeometryFeatures: [],
         };
     },
     computed: {
@@ -510,6 +520,36 @@ export default {
             .catch((error) => {
                 console.error(
                     'Error fetching available ocr crs values list:',
+                    error
+                );
+            });
+
+        fetch(
+            helpers.add_endpoint_join(
+                api_endpoints.occurrence,
+                `/plausibility-geometry/?id=${this.occurrence_obj.id}`
+            )
+        )
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then((data) => {
+                const features = [];
+                if (data.features) {
+                    for (let featureData of data.features) {
+                        let feature =
+                            vm.$refs.component_map.featureFromDict(featureData);
+                        features.push(feature);
+                    }
+                }
+                this.plausibilityGeometryFeatures = Object.assign([], features);
+            })
+            .catch((error) => {
+                console.error(
+                    'Error fetching available plausibility-geometry:',
                     error
                 );
             });
@@ -826,6 +866,154 @@ export default {
             });
 
             return occ_geometry;
+        },
+        validateFeature: function (feature) {
+            // Validate the feature
+            if (this.plausibilityGeometryFeatures.length > 0) {
+                console.log('Validating feature:', feature);
+                this.$refs.component_map.setLoadingMap(true);
+                this.plausibilityCheckFeature(feature).then(async (areas) => {
+                    let warning = false;
+                    let error = false;
+
+                    // eslint-disable-next-line no-unused-vars
+                    for (let [key, entry] of Object.entries(areas)) {
+                        const ratio_effective_area =
+                            entry.ratio_effective_area || 1.0;
+                        const entities =
+                            (entry.area * ratio_effective_area) /
+                            entry.average_area;
+                        if (
+                            entry.error_value &&
+                            entities >= entry.error_value
+                        ) {
+                            console.error(
+                                `Feature potentially intersects with up to ${Math.ceil(
+                                    entities
+                                )} entities with an error value threshold of ${
+                                    entry.error_value
+                                } entities with an average area of ${
+                                    entry.average_area
+                                } m²`
+                            );
+                            error = true;
+                            break;
+                        } else if (
+                            entry.warning_value &&
+                            entities >= entry.warning_value
+                        ) {
+                            console.warn(
+                                `Feature potentially intersects with up to ${Math.ceil(
+                                    entities
+                                )} entities with a warning value threshold of ${
+                                    entry.warning_value
+                                } entities with an average area of ${
+                                    entry.average_area
+                                } m²`
+                            );
+                            warning = true;
+                        } else {
+                            console.log(
+                                `Feature potentially intersects with up ${Math.ceil(
+                                    entities
+                                )} entities with an average area of ${
+                                    entry.average_area
+                                } m²`
+                            );
+                        }
+                    }
+
+                    if (warning || error) {
+                        swal.fire({
+                            title: warning ? 'Warning' : 'Error',
+                            text: warning
+                                ? 'The feature potentially intersects with too many tenure areas. Do you want to continue?'
+                                : 'The feature intersects with too many tenure areas. Please adjust the feature.',
+                            icon: warning ? 'warning' : 'error',
+                            showCancelButton: true,
+                            showConfirmButton: warning ? true : false,
+                            confirmButtonText: 'Yes',
+                            cancelButtonText: warning ? 'No' : 'Close',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                                cancelButton: 'btn btn-secondary',
+                            },
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                this.$refs.component_map.finishDrawing();
+                            } else {
+                                this.$refs.component_map.setLoadingMap(false);
+                            }
+                        });
+                    } else {
+                        this.$refs.component_map.finishDrawing();
+                    }
+                });
+            } else {
+                console.log(
+                    'No plausibility geometry features found for validation.'
+                );
+                this.$refs.component_map.finishDrawing();
+            }
+        },
+        /**
+         * Intersects the input feature with the plausibility geometry features and returns a dictionary of intersected areas.
+         * @param feature - The feature to check for plausibility
+         * @returns {Promise<{Object}>} - A dictionary of intersected areas in the form of {area: value, average_area: value, warning_value: value, error_value: value}
+         */
+        plausibilityCheckFeature: async function (feature) {
+            // Store all plausibility features that intersect with the input feature
+            const plausibilityFeatures = {};
+            // Could have more than one plausibility feature defined, so check each one
+            const featuresIntersects = this.plausibilityGeometryFeatures.filter(
+                (f) => {
+                    // A list of plausibility features that intersect with the input feature at this iteration step
+                    const plausibilityFeature = intersects(feature, f);
+                    if (plausibilityFeature.length > 0) {
+                        const props = f.getProperties();
+                        plausibilityFeature.map((pf) => {
+                            // Set the stats properties of the plausibility feature to the intersected plausibility feature
+                            pf.set('average_area', props.average_area);
+                            pf.set('warning_value', props.warning_value);
+                            pf.set('error_value', props.error_value);
+                            pf.set(
+                                'ratio_effective_area',
+                                props.ratio_effective_area
+                            );
+                        });
+                        if (!plausibilityFeatures[f.ol_uid]) {
+                            plausibilityFeatures[f.ol_uid] = [];
+                        }
+                        plausibilityFeatures[f.ol_uid].push(
+                            ...plausibilityFeature
+                        );
+                        return true;
+                    }
+                }
+            );
+            console.log('Features intersects', featuresIntersects);
+
+            const areas = {};
+            if (featuresIntersects.length > 0) {
+                for (let [key, value] of Object.entries(plausibilityFeatures)) {
+                    const props = value[0].getProperties();
+                    areas[key] = {
+                        average_area: props.average_area,
+                        warning_value: props.warning_value,
+                        error_value: props.error_value,
+                        ratio_effective_area: props.ratio_effective_area,
+                    };
+                    areas[key]['area'] = value.reduce(
+                        (accumulator, plausibilityFeature) =>
+                            accumulator +
+                            intersectedArea(feature, plausibilityFeature),
+                        0
+                    );
+                }
+                console.log('Total intersected areas', areas);
+            }
+
+            return areas;
         },
     },
 };

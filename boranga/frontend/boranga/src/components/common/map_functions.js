@@ -6,6 +6,11 @@ import Feature from 'ol/Feature';
 import { Polygon } from 'ol/geom';
 import { Style, Fill, Stroke } from 'ol/style';
 import { utils } from '@/utils/hooks';
+import { booleanIntersects } from '@turf/boolean-intersects';
+import { booleanWithin } from '@turf/boolean-within';
+import { polygon, multiPolygon, featureCollection } from '@turf/helpers';
+import { area } from '@turf/area';
+import { intersect } from '@turf/intersect';
 
 // Tile server url
 // var urlKmi = `${env['gis_server_url']}/geoserver/public/wms/?SERVICE=WMS&VERSION=1.0.0&REQUEST=GetCapabilities`;
@@ -303,6 +308,119 @@ export function validateFeature(feature, component_map) {
         }
     });
 }
+/**
+ * Compares two features to determine whether they intersect. If one of the feature
+ * is a polygon with holes, the function will return a valid feature if the other feature
+ * is within the outer polygon and not completely within any of the holes.
+ * The feature that likely contains the holes should be the second argument.
+ * @param {Object} feature1 A feature to compare
+ * @param {Object} feature2 A feature to compare
+ * @returns The intersected features if the two features intersect, otherwise an empty list
+ */
+export function intersects(feature1, feature2) {
+    // Two polygons to compare
+    let poly1;
+    let poly2;
+    const geom1 = feature1.getGeometry();
+    const geom2 = feature2.getGeometry();
+
+    const coordinates1 = geom1.getCoordinates();
+    if (geom1.getType() == 'Polygon') {
+        poly1 = polygon(coordinates1);
+    } else if (geom1.getType() == 'MultiPolygon') {
+        poly1 = multiPolygon(coordinates1);
+    } else {
+        console.error('Feature 1 is not a polygon or multipolygon');
+        return []; // Return an empty feature list
+    }
+
+    const coordinates2 = geom2.getCoordinates();
+    if (geom2.getType() == 'Polygon') {
+        poly2 = polygon(coordinates2);
+        if (booleanIntersects(poly1, poly2)) {
+            return [
+                new Feature({
+                    geometry: new Polygon(coordinates2),
+                }),
+            ];
+        }
+        return []; // Return an empty feature list
+    } else if (geom2.getType() == 'MultiPolygon') {
+        // let intersectFeature = new Feature({});
+        const intersectFeatures = [];
+        for (let i = 0; i < coordinates2.length; i++) {
+            poly2 = _helper.polygonFromCoordinate(coordinates2[i], poly1);
+            if (poly2 === null) {
+                // We might have to consider edge cases of 'islands' within holes, for instance:
+                // ----------------
+                // |    hole      |
+                // |  +--------+  |
+                // |  | island |  |
+                // |  |        |  |
+                // |  +--------+  |
+                // |              |
+                // ----------------
+                // This is likely to be a rare case, so we can ignore it for now
+                return intersectFeatures;
+            }
+            if (booleanIntersects(poly1, poly2)) {
+                const intersectFeature = new Feature({
+                    geometry: new Polygon(poly2.geometry.coordinates),
+                });
+                intersectFeatures.push(intersectFeature);
+                console.log('Feature 1 intersects with', intersectFeature);
+            }
+        }
+        return intersectFeatures;
+    } else {
+        console.error('Feature 2 is not a polygon or multipolygon');
+        return []; // Return an empty feature list
+    }
+}
+
+/**
+ * Determines the area of the intersection between two features.
+ * The feature that likely contains the holes should be the second argument.
+ * @param {Object} feature1 A feature to intersect
+ * @param {Object} feature2 A feature to intersect
+ */
+export function intersectedArea(feature1, feature2) {
+    const coords1 = feature1.getGeometry().getCoordinates();
+    const coords2 = feature2.getGeometry().getCoordinates();
+    const outer = coords2[0];
+    const inner = coords2.slice(1, coords2.length);
+
+    featureCollection([polygon([outer]), polygon(coords1)]);
+    const outerIntersection = intersect(
+        featureCollection([polygon([outer]), polygon(coords1)])
+    );
+    const innerIntersections = [];
+
+    const outerIntersectionArea = area(outerIntersection);
+
+    if (inner.length > 0) {
+        inner.forEach((hole) => {
+            innerIntersections.push(
+                intersect(
+                    featureCollection([polygon([hole]), polygon(coords1)])
+                )
+            );
+        });
+    }
+
+    // Calculate the area of the intersection
+    const innerIntersectionArea = innerIntersections.reduce(
+        (accumulator, feature) => accumulator + area(feature),
+        0
+    );
+
+    const intersectionArea = outerIntersectionArea - innerIntersectionArea;
+    console.log(
+        `Feature Area: ${outerIntersectionArea}, Intersection Area: ${intersectionArea}`
+    );
+
+    return intersectionArea;
+}
 
 export let owsQuery = {
     version: '1.0.0', // TODO: Change to 1.1.0 or 2.0.0 when supported by the geoserver
@@ -528,5 +646,55 @@ const _helper = {
             tileLayers.push(tileLayer);
         }
         return tileLayers;
+    },
+    /**
+     * Returns a polygon object from a list of coordinates
+     * @param {Array} coordinate A list of coordinates
+     * @param {Object} otherPolygon A polygon object to test coordinate against when there are holes
+     * @returns A list of polygon objects that each contain an intersecting polygon at the first index
+     * and zero or more intersecting holes at the following indices
+     */
+    polygonFromCoordinate: function (coordinate, otherPolygon) {
+        let numCoords = 0;
+        let validCoords = 0;
+        coordinate.forEach((coord) => {
+            numCoords += 1;
+            validCoords += coord.every((coord) => coord.length == 2) ? 1 : 0;
+        });
+        if (numCoords != validCoords) {
+            console.error('Feature 2 contains invalid coordinates');
+            return false;
+        }
+        if (numCoords == 1) {
+            return polygon(coordinate);
+        } else {
+            // A polygon with holes, e.g. [[outer], [hole1], [hole2], ...]
+            if (
+                otherPolygon &&
+                coordinate
+                    .slice(1, coordinate.length)
+                    .some((hole) =>
+                        booleanWithin(otherPolygon, polygon([hole]))
+                    )
+            ) {
+                // The feature is within a hole, which means it does not intersect
+                console.log('Feature is within a hole');
+                return null;
+            }
+            // Find the intersecting holes
+            const holes = coordinate
+                .slice(1, coordinate.length)
+                .filter((hole) => {
+                    return booleanIntersects(otherPolygon, polygon([hole]));
+                });
+            if (holes.length == 0) {
+                // No intersecting holes
+                return polygon([coordinate[0]]);
+            }
+            console.log('Feature intersects with holes', holes);
+            // The outer polygon is the first element in the list
+            const outer = coordinate[0];
+            return polygon([outer, ...holes]);
+        }
     },
 };
