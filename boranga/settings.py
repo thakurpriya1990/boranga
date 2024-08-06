@@ -4,6 +4,7 @@ import os
 import sys
 
 import confy
+from confy import env
 from django.core.exceptions import ImproperlyConfigured
 
 logger = logging.getLogger(__name__)
@@ -182,6 +183,7 @@ DEV_STATIC_URL = env("DEV_STATIC_URL")
 if DEV_STATIC and not DEV_STATIC_URL:
     raise ImproperlyConfigured("If running in DEV_STATIC, DEV_STATIC_URL has to be set")
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None
+DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
 
 # Department details
 SYSTEM_NAME = "Boranga System"
@@ -350,7 +352,7 @@ CACHE_TIMEOUT_2_HOURS = 60 * 60 * 2
 CACHE_TIMEOUT_24_HOURS = 60 * 60 * 24
 CACHE_TIMEOUT_NEVER = None
 
-CACHE_KEY_EPSG_CODES = "epsg-codes-{auth_name}-{pj_type}-{codes}"
+CACHE_KEY_EPSG_CODES = "epsg-codes-{auth_name}-{pj_type}"
 CACHE_KEY_PROXY_LAYER_DATA = "proxy-layer-data-{app_label}-{model_name}"
 CACHE_KEY_PROXY_NODE_DATA = "proxy-node-data-{request_path}"
 CACHE_KEY_MAP_OCCURRENCES = "map-occurrences"
@@ -359,6 +361,7 @@ CACHE_KEY_USER_BELONGS_TO_GROUP = "user-{user_id}-belongs-to-{group_name}"
 CACHE_KEY_USER_IS_REFEREE = "user-{user_id}-is-referee-{model}-{pk}"
 CACHE_KEY_SUPERUSER_IDS = "superuser-ids"
 CACHE_KEY_FILE_EXTENSION_WHITELIST = "file-extension-whitelist"
+CACHE_KEY_PLAUSIBILITY_GEOMETRY = "plausibility-geometry-{geometry_model}"
 
 # ---------- Conservation Change Codes ----------
 

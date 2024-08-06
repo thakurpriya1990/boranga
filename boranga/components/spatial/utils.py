@@ -10,6 +10,7 @@ import geojson
 import numpy as np
 import requests
 import shapely.geometry as shp
+import xml.etree.ElementTree as ET
 from django.apps import apps
 from django.contrib.contenttypes import models as ct_models
 from django.contrib.gis.geos import GEOSGeometry
@@ -30,7 +31,7 @@ from boranga.components.occurrence.models import (
     OccurrenceGeometry,
     OccurrenceTenure,
 )
-from boranga.components.spatial.models import Proxy, TileLayer
+from boranga.components.spatial.models import PlausibilityGeometry, Proxy, TileLayer
 from boranga.helpers import is_internal
 
 logger = logging.getLogger(__name__)
@@ -49,8 +50,15 @@ def invert_xy_coordinates(geometries):
     return geometries
 
 
-def intersect_geometry_with_layer(geometry, intersect_layer, geometry_name="SHAPE"):
+def intersect_geometry_with_layer(
+    geometry, intersect_layer, geometry_name="SHAPE", result_type="results"
+):
     """Query a geoserver WFS layer with a geometry and return the intersecting features as JSON."""
+
+    if result_type not in ["hits", "results"]:
+        raise serializers.ValidationError(
+            f"Invalid result type {result_type}. Must be 'hits' or 'results'"
+        )
 
     geoserver_url = intersect_layer.geoserver_url
     intersect_layer_name = intersect_layer.layer_name
@@ -85,6 +93,7 @@ def intersect_geometry_with_layer(geometry, intersect_layer, geometry_name="SHAP
         "srsName": "EPSG:4326",  # using the default projection for open layers and geodjango
         "outputFormat": "application/json",
         "propertyName": f"{geometry_name},CAD_OWNER_NAME,CAD_OWNER_COUNT",
+        "resultType": result_type,
         "CQL_FILTER": f"INTERSECTS({geometry_name}, {test_geom_wkt})",
     }
 
@@ -118,6 +127,9 @@ def intersect_geometry_with_layer(geometry, intersect_layer, geometry_name="SHAP
             f"Failed to intersect geometry with layer {intersect_layer_name}. Reason: {res.reason}"
         )
 
+    if result_type == "hits":
+        # resultType hits returns text/xml
+        return res.text
     return res.json()
 
 
@@ -361,7 +373,7 @@ def save_geometry(
             }
 
             intersect_data = {}
-            # TODO: Hardcoded. Possibly pass in via fn parameter whether to intersect and with what
+            # Note: Hardcoded. Possibly pass in via fn parameter whether to intersect and with what
             if instance_fk_field_name == "occurrence":
                 try:
                     intersect_layer = TileLayer.objects.get(
@@ -374,6 +386,48 @@ def save_geometry(
                     logger.warn("Multiple tenure intersects query layers found")
                     intersect_layer = None
                 else:
+                    plausibility_geometries = PlausibilityGeometry.objects.filter(
+                        active=True,
+                        check_for_geometry="OccurrenceGeometry",
+                        error_value__isnull=False,
+                    ).filter(geometry__intersects=geom[0])
+
+                    # Number of cadastre layer features matched against geom[0]
+                    number_matched = None
+                    # Value of matched features at which to error out
+                    error_value = None
+                    if plausibility_geometries.exists():
+                        error_value = (
+                            plausibility_geometries.order_by("-error_value")
+                            .values("error_value")[0]
+                            .get("error_value", None)
+                        )
+
+                        # Query the intersect layer to get the number of features that intersect with geom[0]
+                        result_hits_xml = intersect_geometry_with_layer(
+                            geom[0], intersect_layer, result_type="hits"
+                        )
+                        # Query returns xml, so have to parse
+                        root = ET.fromstring(result_hits_xml)
+                        number_matched = root.attrib.get("numberMatched", None)
+
+                    if (
+                        number_matched
+                        and isinstance(number_matched, str)
+                        and number_matched.isnumeric()
+                    ):
+                        number_matched = int(number_matched)
+
+                    if number_matched:
+                        if error_value and number_matched >= error_value:
+                            logger.info(
+                                f"Rejecting geometry {geom[0]}, it intersects with {number_matched} features from {intersect_layer.layer_name}. "
+                                f"Error value: {error_value}"
+                            )
+                            raise serializers.ValidationError(
+                                f"Geometry intersects with too many features from {intersect_layer.layer_name}: {number_matched}. Error value: {error_value}"
+                            )
+
                     intersect_data = intersect_geometry_with_layer(
                         geom[0], intersect_layer
                     )

@@ -1326,7 +1326,7 @@
                         @mouseenter="showToastCloseButton = true"
                         @mouseleave="showToastCloseButton = false"
                     >
-                        <template v-if="selectedModel">
+                        <template v-if="selectedModel && mode === 'layer'">
                             <div class="toast-header">
                                 <img src="" class="rounded me-2" alt="" />
                                 <strong class="me-auto">
@@ -1633,7 +1633,6 @@ import {
     fetchTileLayers,
     fetchProposals,
     set_mode,
-    // validateFeature,
     layerAtEventPixel,
     queryLayerAtPoint,
 } from '@/components/common/map_functions.js';
@@ -1932,6 +1931,16 @@ export default {
                 return [];
             },
         },
+        /**
+         * Whether to validate the feature before saving it
+         * If set to true, the `validate-feature` event is emitted before saving the feature
+         * and the parent component needs to call finishDrawing on the map component
+         */
+        validateFeatureBeforeSave: {
+            type: Boolean,
+            required: false,
+            default: false,
+        },
     },
     emits: [
         'validate-feature',
@@ -1940,8 +1949,6 @@ export default {
         'toggle-show-hide',
     ],
     data() {
-        // eslint-disable-next-line no-unused-vars
-        let vm = this;
         return {
             elem_id: uuid(),
             map_container_id: uuid(),
@@ -2428,6 +2435,7 @@ export default {
     },
     methods: {
         setLoadingMap(loading = false) {
+            console.log('set loading-map', loading);
             this.loadingMap = loading;
         },
         /**
@@ -3068,10 +3076,23 @@ export default {
                 },
                 finishCondition: function () {
                     if (vm.lastPoint) {
-                        // vm.$emit('validate-feature');
-                        vm.finishDrawing();
+                        if (vm.validateFeatureBeforeSave) {
+                            const coordinates = vm.sketchCoordinates.slice();
+                            coordinates.push(coordinates[0]);
+                            const feature = new Feature({
+                                id: -1,
+                                geometry: new Polygon([coordinates]),
+                                label: 'validation',
+                                color: vm.defaultColor,
+                                geometry_source: 'validation',
+                            });
+                            vm.emitValidateFeature(feature);
+                        } else {
+                            console.log('Skipping feature validation');
+                            vm.finishDrawing();
+                        }
                     }
-                    return true;
+                    return false;
                 },
             });
 
@@ -3838,8 +3859,7 @@ export default {
                                     feature
                                         .getGeometry()
                                         .setCoordinates([coord]);
-                                    //commented validateFeature by Priya
-                                    //validateFeature(feature, vm);
+                                    vm.emitValidateFeature(feature);
                                 }
                             }
                         }
@@ -3877,8 +3897,7 @@ export default {
                 const feature = evt.features[0];
                 const coordinates = feature.getGeometry().getCoordinates();
                 vm.userCoordinates(feature, coordinates);
-                //commented validateFeature by Priya
-                //validateFeature(feature, vm);
+                vm.emitValidateFeature(feature);
             });
 
             return modify;
@@ -3894,8 +3913,7 @@ export default {
             const transformEndCallback = function (evt) {
                 // eslint-disable-next-line no-unused-vars
                 evt.features.forEach((feature) => {
-                    //commented validateFeature by Priya
-                    // validateFeature(feature, vm);
+                    vm.emitValidateFeature(feature);
                     const coordinates = feature.getGeometry().getCoordinates();
                     vm.userCoordinates(feature, coordinates);
                 });
@@ -4058,7 +4076,9 @@ export default {
             let cannot_delete_features = [];
             const features = vm.selectedFeatures().filter((feature) => {
                 if (
-                    feature.getProperties().locked === false ||
+                    [undefined, false].includes(
+                        feature.getProperties().locked
+                    ) ||
                     vm.debug // Allow deletion of locked features if debug mode is enabled
                 ) {
                     return feature;
@@ -4369,6 +4389,9 @@ export default {
             console.log('drawend', feature.values_.geometry.flatCoordinates);
 
             vm.setFeaturePropertiesFromContext(feature);
+            if (vm.isPolygonLikeFeature(feature)) {
+                feature.set('area_sqm', vm.featureArea(feature));
+            }
             console.log('newFeatureId = ' + vm.newFeatureId);
             vm.lastPoint = feature;
             vm.sketchCoordinates = [[]];
@@ -4475,6 +4498,10 @@ export default {
                 }
             } else if (type === 'LineString') {
                 alert('LineString not yet supported');
+            } else if (type === 'GeometryCollection') {
+                alert(
+                    'GeometryCollection not yet supported. Consider using MultiPolygon or similar.'
+                );
             } else {
                 console.error(`Unsupported geometry type ${type}`);
             }
@@ -4578,13 +4605,18 @@ export default {
                     vm.owsQuery[layerStr].propertyName || 'wkb_geometry',
             };
         },
+        emitValidateFeature: function (feature) {
+            console.log('Emitting validate feature', feature);
+            this.$emit('validate-feature', feature);
+        },
         finishDrawing: function () {
-            let vm = this;
-            vm.queryingGeoserver = false;
-            vm.errorMessage = null;
-            vm.drawPolygonsForModel.finishDrawing();
-            if (vm.mode == 'draw' && vm.selectedFeatureIds.length == 0) {
-                vm.set_mode('layer');
+            this.queryingGeoserver = false;
+            this.errorMessage = null;
+            // eslint-disable-next-line no-unused-vars
+            const feature = this.drawPolygonsForModel.finishDrawing();
+            this.setLoadingMap(false);
+            if (this.mode == 'draw' && this.selectedFeatureIds.length == 0) {
+                this.set_mode('layer');
             }
         },
         /**

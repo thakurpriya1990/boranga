@@ -1,7 +1,15 @@
-from django import forms
-from django.contrib import admin
+import json
+import geojson
+from shapely import from_geojson
+from shapely.geometry import Polygon, MultiPolygon
+from django.contrib.gis.geos import GEOSGeometry
+from django.core.cache import cache
+import re
 
-from .models import GeoserverUrl, Proxy, TileLayer
+from django.contrib.gis import admin, forms
+
+from boranga import settings
+from .models import GeoserverUrl, PlausibilityGeometry, Proxy, TileLayer
 
 
 class TileLayerModelForm(forms.ModelForm):
@@ -175,6 +183,133 @@ class ProxyAdmin(admin.ModelAdmin):
                     "username",
                     "password",
                     "active",
+                )
+            },
+        ),
+    )
+
+
+class GeometryField(forms.GeometryField):
+    widget = forms.OSMWidget(
+        attrs={
+            "display_raw": True,
+            "map_width": 800,
+            "map_srid": 4326,
+            "map_height": 600,
+            "default_lat": -31.9502682,
+            "default_lon": 115.8590241,
+            "map_srid": 4326,
+        }
+    )
+
+
+class PlausibilityGeometryForm(forms.ModelForm):
+    geometry = GeometryField()
+
+    class Meta:
+        model = PlausibilityGeometry
+        fields = "__all__"
+        help_texts = {
+            "active": "Whether this plausibility check geometry is active",
+            "average_area": "Average area [m²] of a tenure area in this geometry",
+            "ratio_effective_area": "Ratio of effective tenure area to total area of drawn polygon, i.e. total area minus roads, ...",
+            "warning_value": "Number of potential tenure areas at which to issue a warning before finishing a geometry",
+            "error_value": "Number of potential tenure areas at which to reject the geometry and don't finish it",
+            "check_for_geometry": "The geometry model this plausibility check applies to",
+            "geometry": "The geometry for this plausibility check",
+        }
+
+    def clean(self):
+        if "geometry" in self.changed_data:
+            geometry = self.data.get("geometry")
+
+            geo_json = geojson.loads(geometry)
+            srid = 3857
+            crs_name = (
+                geo_json.get("crs", {})
+                .get("properties", {})
+                .get("name", f"EPSG:{srid}")
+            )
+            res = re.search(r"EPSG::(\d+)", crs_name)
+            if res:
+                srid = res.groups(1)[0]
+                srid = int(srid)
+
+            geom_shape = from_geojson(geometry)
+
+            geosgeom = GEOSGeometry(geom_shape.wkt, srid=srid)
+            geosgeom.transform(3857)
+
+            self.data = self.data.copy()
+
+            if geosgeom.geom_type in ["GeometryCollection"]:
+                # Handling GeometryCollections is painful, so we just extract the polygons into a MultiPolygon
+                geo_json = json.loads(geosgeom.geojson)
+                polygons = [
+                    Polygon(p["coordinates"][0])
+                    for p in geo_json["geometries"]
+                    if p["type"] in ["Polygon"]
+                ]
+                multi_polygon = MultiPolygon(polygons)
+                geosgeom = GEOSGeometry(multi_polygon.wkt)
+
+            geo_json = geojson.loads(geosgeom.json)
+            self.data["geometry"] = json.dumps(geo_json)
+
+        cleaned_data = super().clean()
+        geometry = cleaned_data.get("geometry")
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.geometry = self.cleaned_data["geometry"]
+        if commit:
+            instance.save()
+
+        cache_key_old = None
+        check_for_geometry_old = self.initial.get("check_for_geometry", None)
+        if check_for_geometry_old:
+            cache_key_old = settings.CACHE_KEY_PLAUSIBILITY_GEOMETRY.format(
+                **{"geometry_model": self.initial.get("check_for_geometry", None)}
+            )
+        cache_key = settings.CACHE_KEY_PLAUSIBILITY_GEOMETRY.format(
+            **{"geometry_model": instance.check_for_geometry}
+        )
+        cache.delete(cache_key)
+        if cache_key_old and cache_key_old != cache_key:
+            cache.delete(cache_key_old)
+
+        return instance
+
+
+@admin.register(PlausibilityGeometry)
+class PlausibilityGeometryAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "check_for_geometry",
+        "average_area",
+        "warning_value",
+        "error_value",
+        "active",
+    )
+    form = PlausibilityGeometryForm
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "active",
+                    (
+                        "average_area",
+                        "ratio_effective_area",
+                    ),
+                    (
+                        "warning_value",
+                        "error_value",
+                    ),
+                    "check_for_geometry",
+                    "geometry",
                 )
             },
         ),

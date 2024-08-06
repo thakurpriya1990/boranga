@@ -146,7 +146,7 @@ def extract_attached_archives(instance, foreign_key_field=None):
     archive_files_qs = instance.shapefile_documents.filter(Q(name__endswith=".zip"))
     instance_name = instance._meta.model.__name__
     shapefile_archives = [qs._file for qs in archive_files_qs]
-    # TODO: Upload multiple archives
+
     for archive in shapefile_archives:
         archive_path = os.path.dirname(archive.path)
         z = ZipFile(archive.path, "r")

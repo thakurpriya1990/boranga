@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.gis.db import models as gis_models
 from django.core.cache import cache
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -126,3 +127,39 @@ class Proxy(models.Model):
         )
         cache.delete(cache_key)
         super().save(*args, **kwargs)
+
+
+class PlausibilityGeometry(models.Model):
+    OCCURRENCE_GEOMETRY = "OccurrenceGeometry"
+    OCCURRENCE_REPORT_GEOMETRY = "OccurrenceReportGeometry"
+    CHECK_FOR_GEOMETRY_CHOICES = (
+        (OCCURRENCE_GEOMETRY, "Occurrence-Geometry"),
+        (OCCURRENCE_REPORT_GEOMETRY, "Occurrence Report-Geometry"),
+    )
+
+    check_for_geometry = models.CharField(
+        "Check for Geometry",
+        max_length=50,
+        choices=CHECK_FOR_GEOMETRY_CHOICES,
+        default=OCCURRENCE_GEOMETRY,
+    )
+    geometry = gis_models.GeometryField(blank=True, null=True)
+    warning_value = models.FloatField(blank=True, null=True)
+    error_value = models.FloatField(blank=True, null=True)
+    average_area = models.FloatField(blank=True, null=True)
+    ratio_effective_area = models.FloatField(
+        blank=False,
+        null=False,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        default=1.0,
+    )
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        app_label = "boranga"
+        ordering = ["average_area"]
+        verbose_name = "Plausibility Geometry"
+        verbose_name_plural = "Plausibility Geometries"
+
+    def __str__(self):
+        return f"{self.check_for_geometry} {self.__class__.__name__} {self.id} - {self.average_area}m²"
