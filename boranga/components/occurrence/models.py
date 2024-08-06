@@ -1474,9 +1474,6 @@ class OccurrenceReportReferral(models.Model):
             processing_status=OccurrenceReportReferral.PROCESSING_STATUS_WITH_REFERRAL,
         ).exists()
 
-    def can_process(self, user):
-        return True  # TODO: implement
-
     @property
     def referral_as_email_user(self):
         return retrieve_email_user(self.referral)
