@@ -4,6 +4,7 @@ import os
 import sys
 
 import confy
+from confy import env
 from django.core.exceptions import ImproperlyConfigured
 
 logger = logging.getLogger(__name__)
