@@ -69,6 +69,7 @@ loc AS (
 geom AS (
     SELECT
         id,
+        TO_CHAR(updated_date, 'YYYY-MM-DD HH:MM:SS') AS updated,
         CASE
             ST_GeometryType(geometry)
             WHEN 'ST_Point' THEN ST_Buffer(geometry, 0.00001)
@@ -140,6 +141,7 @@ SELECT
     occ.occurrence_number AS occ_id,
     gt.name AS group_type,
     geom.geometry AS geometry,
+    geom.updated AS updated,
     geom.geometry_type AS geom_type,
     geom.area_sqm AS g_area_sqm,
     geom.data_type AS g_data_type,
