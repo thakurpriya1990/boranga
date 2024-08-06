@@ -149,7 +149,10 @@ geom AS (
                 )
             ),
             '; '
-        ) AS occurrence_tenures
+        ) AS occurrence_tenures,
+        ROUND(
+            ST_Area(ST_Transform(geometry, 4326) :: geography)
+        ) AS area_sqm
     FROM
         boranga_occurrencegeometry og
         LEFT JOIN boranga_occurrencetenure otc ON otc.occurrence_geometry_id = og.id
@@ -170,8 +173,11 @@ geom AS (
         ST_GeometryType(bg.geometry) AS geometry_type,
         og.occurrence_id AS occurrence_id,
         'buffer geometry' AS data_type,
-        0 as buffer_radius,
-        '' AS occurrence_tenures
+        0 AS buffer_radius,
+        '' AS occurrence_tenures,
+        ROUND(
+            ST_Area(ST_Transform(bg.geometry, 4326) :: geography)
+        ) AS area_sqm
     FROM
         boranga_buffergeometry bg
         INNER JOIN boranga_occurrencegeometry og ON og.id = bg.buffered_from_geometry_id
@@ -182,6 +188,7 @@ SELECT
     gt.name AS group_type,
     geom.geometry AS geometry,
     geom.geometry_type AS geom_type,
+    geom.area_sqm AS g_area_sqm,
     geom.data_type AS g_datatype,
     geom.buffer_radius AS buff_value,
     geom.occurrence_tenures AS tenures,
