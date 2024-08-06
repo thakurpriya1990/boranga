@@ -47,7 +47,6 @@ export function layerAtEventPixel(map_component, evt) {
         });
     }, layers);
 
-    // TODO: At this point, vector layers are also included in the layers array. Is that useful?
     layers.forEach((layer) => {
         if (!map_component.informing) {
             return;
@@ -423,7 +422,7 @@ export function intersectedArea(feature1, feature2) {
 }
 
 export let owsQuery = {
-    version: '1.0.0', // TODO: Change to 1.1.0 or 2.0.0 when supported by the geoserver
+    version: '1.0.0',
     landwater: {
         typeName: 'public:dbca_legislated_lands_and_waters',
         srsName: 'EPSG:4326',
@@ -631,7 +630,7 @@ const _helper = {
 
             let legend_url = null;
             if (layer.Name == baselayer_name) {
-                // TODO don't add the baselayer to the optional layer control
+                //
             } else {
                 if (typeof layer.Style != 'undefined') {
                     legend_url = layer.Style[0].LegendURL[0].OnlineResource;

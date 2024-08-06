@@ -9,6 +9,7 @@ from rest_framework import viewsets
 from boranga import helpers
 from boranga.components.main.models import GlobalSettings
 from boranga.components.main.serializers import GlobalSettingsSerializer
+from boranga.components.occurrence.models import Datum
 
 logger = logging.getLogger(__name__)
 
@@ -87,18 +88,15 @@ def proj4_string_from_epsg_code(code):
 
 
 def get_cached_epsg_codes(auth_name="EPSG", pj_type="CRS"):
-    # TODO: This is a temporary solution to get the geodetic datums for australia
-    cool_codes = ["4203", "4202", "7842", "7844", "4283", "4326", "3857"]
-
     cache_key = settings.CACHE_KEY_EPSG_CODES.format(
-        **{"auth_name": auth_name, "pj_type": pj_type, "codes": "-".join(cool_codes)}
+        **{"auth_name": auth_name, "pj_type": pj_type}
     )
+    codes = cache.get(cache_key)
 
-    if cache.get(cache_key):
-        return cache.get(cache_key)
-
-    codes = [c for c in pyproj.get_codes(auth_name, pj_type) if c in cool_codes]
-    cache.set(cache_key, codes, timeout=60 * 60 * 24)
+    if not codes:
+        srids = [str(s) for s in Datum.objects.filter(archived=False).values_list("srid", flat=True)]
+        codes = [c for c in pyproj.get_codes(auth_name, pj_type) if c in srids]
+        cache.set(cache_key, codes, timeout=settings.CACHE_TIMEOUT_24_HOURS)
 
     return codes
 

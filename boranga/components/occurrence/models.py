@@ -1665,6 +1665,22 @@ class Datum(ArchivableModel):
     def __str__(self):
         return str(self.srid)
 
+    def save(self, *args, **kwargs):
+        if not self.srid:
+            raise ValidationError("SRID is required")
+
+        try:
+            pyproj.CRS.from_string(str(self.srid))
+        except pyproj.exceptions.CRSError:
+            raise ValidationError(f"Invalid SRID: {self.srid}")
+        else:
+            cache_key = settings.CACHE_KEY_EPSG_CODES.format(
+                **{"auth_name": "EPSG", "pj_type": "CRS"}
+            )
+            cache.delete(cache_key)
+
+        super().save(*args, **kwargs)
+
 
 class CoordinateSource(ArchivableModel):
     """
