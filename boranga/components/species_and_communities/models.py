@@ -1852,7 +1852,9 @@ class CommunityUserAction(UserAction):
     ACTION_IMAGE_UPDATE = "Community Image document updated for Community {}"
     ACTION_IMAGE_DELETE = "Community Image document deleted for Community {}"
     ACTION_IMAGE_REINSTATE = "Community Image document reinstated for Community {}"
-    ACTION_CREATED_FROM_RENAME_COMMUNITY = "New Community {} created from Community {}"
+    ACTION_CREATED_FROM_RENAME_COMMUNITY = (
+        "New Community {} created by renaming Community {}"
+    )
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} uploaded for Community {}"
