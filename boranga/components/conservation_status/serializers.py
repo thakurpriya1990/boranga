@@ -80,6 +80,11 @@ class BasicConservationStatusSerializer(serializers.ModelSerializer):
             under_review_statuses.append(
                 ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
             )
+        if obj.community:
+            return ConservationStatus.objects.filter(
+                community=obj.community,
+                processing_status__in=under_review_statuses,
+            ).exists()
 
         return ConservationStatus.objects.filter(
             species_taxonomy=obj.species_taxonomy,
