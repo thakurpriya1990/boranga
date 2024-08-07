@@ -1275,7 +1275,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         reprod_state_list = []
-        values = ReproductiveState.objects.all()
+        values = ReproductiveState.objects.active()
         if values:
             for val in values:
                 reprod_state_list.append(
@@ -1455,7 +1455,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         reprod_state_list = []
-        values = ReproductiveState.objects.all()
+        values = ReproductiveState.objects.active()
         if values:
             for val in values:
                 reprod_state_list.append(
@@ -5176,7 +5176,7 @@ class OccurrenceViewSet(
                     }
                 )
         reprod_state_list = []
-        values = ReproductiveState.objects.all()
+        values = ReproductiveState.objects.active()
         if values:
             for val in values:
                 reprod_state_list.append(
@@ -5356,7 +5356,7 @@ class OccurrenceViewSet(
                     }
                 )
         reprod_state_list = []
-        values = ReproductiveState.objects.all()
+        values = ReproductiveState.objects.active()
         if values:
             for val in values:
                 reprod_state_list.append(

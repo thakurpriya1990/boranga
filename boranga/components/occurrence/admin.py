@@ -408,6 +408,10 @@ class RockTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["name"]
 
 
+class ReproductiveStateAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, DeleteProtectedModelAdmin)
 admin.site.register(RockType, RockTypeAdmin)
@@ -424,7 +428,7 @@ admin.site.register(CountedSubject, DeleteProtectedModelAdmin)
 admin.site.register(PlantCondition, DeleteProtectedModelAdmin)
 admin.site.register(PrimaryDetectionMethod, DeleteProtectedModelAdmin)
 admin.site.register(SecondarySign, SecondarySignAdmin)
-admin.site.register(ReproductiveState, DeleteProtectedModelAdmin)
+admin.site.register(ReproductiveState, ReproductiveStateAdmin)
 admin.site.register(DeathReason, DeleteProtectedModelAdmin)
 admin.site.register(AnimalHealth, DeleteProtectedModelAdmin)
 admin.site.register(IdentificationCertainty, DeleteProtectedModelAdmin)
