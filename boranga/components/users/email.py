@@ -2,7 +2,7 @@ import logging
 
 from django.conf import settings
 from django.core.mail import EmailMessage, EmailMultiAlternatives
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 
 SYSTEM_NAME = settings.SYSTEM_NAME_SHORT + " Automated Message"
 
@@ -22,13 +22,13 @@ def _log_user_email(email_message, emailuser, customer, sender=None):
     ):
         text = email_message.body
         subject = email_message.subject
-        fromm = smart_text(sender) if sender else smart_text(email_message.from_email)
+        fromm = smart_str(sender) if sender else smart_str(email_message.from_email)
 
         # the to email is normally a list
         if isinstance(email_message.to, list):
             to = ",".join(email_message.to)
         else:
-            to = smart_text(email_message.to)
+            to = smart_str(email_message.to)
 
         # we log the cc and bcc in the same cc field of the log entry as a ',' comma separated string
         all_ccs = []
@@ -39,10 +39,10 @@ def _log_user_email(email_message, emailuser, customer, sender=None):
         all_ccs = ",".join(all_ccs)
 
     else:
-        text = smart_text(email_message)
+        text = smart_str(email_message)
         subject = ""
         to = customer
-        fromm = smart_text(sender) if sender else SYSTEM_NAME
+        fromm = smart_str(sender) if sender else SYSTEM_NAME
         all_ccs = ""
 
     staff_id = None
