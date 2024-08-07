@@ -1,5 +1,9 @@
 // import WMSCapabilities from 'ol/format/WMSCapabilities';
 import TileWMS from 'ol/source/TileWMS';
+import WMTS from 'ol/source/WMTS.js';
+import WMTSTileGrid from 'ol/tilegrid/WMTS.js';
+import { get as getProjection } from 'ol/proj.js';
+import { getTopLeft, getWidth } from 'ol/extent.js';
 import TileLayer from 'ol/layer/Tile';
 import GeoJSON from 'ol/format/GeoJSON';
 import Feature from 'ol/Feature';
@@ -587,37 +591,15 @@ const _helper = {
         const tileLayers = [];
 
         for (let j in layers) {
-            let layer = layers[j];
-
-            const tileWmsParams = {
-                url: layer.geoserver_url,
-                params: {
-                    FORMAT: 'image/png',
-                    VERSION: '1.1.1',
-                    tiled: true,
-                    STYLES: '',
-                    LAYERS: `${layer.layer_name}`,
-                },
-            };
-
-            // Data for an image tiles can only be retrieved if the source's crossOrigin property is set (https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#getData)
-            // E.g. info tool doesn't work without crossOrigin: 'anonymous', getting
-            // "Failed to execute 'getImageData' on 'CanvasRenderingContext2D': The canvas has been tainted by cross-origin data" at canvas/Layer.js::getImageData
-            if (!layer.geoserver_url.startsWith('/geoproxy/')) {
-                tileWmsParams['crossOrigin'] = 'anonymous';
-            }
-            let l = new TileWMS(tileWmsParams);
-
+            const layer = layers[j];
             const isBackgroundLayer =
                 layer.is_satellite_background || layer.is_streets_background;
-
-            let tileLayer = new TileLayer({
+            const layerParams = {
                 name: layer.layer_name,
                 // abstract: layer.Abstract.trim(),
                 title: layer.display_title.trim(),
                 visible: layer.visible,
                 // extent: layer.BoundingBox[0].extent,
-                source: l,
                 displayInLayerSwitcher: !isBackgroundLayer,
                 is_satellite_background: layer.is_satellite_background,
                 is_streets_background: layer.is_streets_background,
@@ -626,7 +608,71 @@ const _helper = {
                 maxZoom: layer.max_zoom,
                 is_tenure_intersects_query_layer:
                     layer.is_tenure_intersects_query_layer,
-            });
+            };
+            const layerType = layer.geoserver_url.split('/').at(-1);
+
+            if (layerType.toLowerCase() === 'wmts') {
+                const projectionCode = 'EPSG:4326';
+                const projection = getProjection(projectionCode);
+                const projectionExtent = projection.getExtent();
+                const layerExtent = [
+                    112.06055, -35.35322, 129.77051, -12.55456,
+                ];
+                const matrixSet = 'gda94';
+                const tilePixelSize = 1024;
+                const resolutions = new Array(19);
+                // const resolutions = [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16]
+                const width = getWidth(projectionExtent); // 360
+                const size = width / tilePixelSize;
+                const matrixIds = new Array(19);
+                for (let z = 0; z <= 18; ++z) {
+                    // generate resolutions and matrixIds arrays for this WMTS
+                    resolutions[z] = size / Math.pow(2, z + 1);
+                    matrixIds[z] = `${matrixSet}:${z}`;
+                }
+
+                const layerWMTSParams = {
+                    url: layer.geoserver_url,
+                    format: 'image/png',
+                    projection: projectionCode,
+                    wrapX: true,
+                    tileGrid: new WMTSTileGrid({
+                        extent: layerExtent,
+                        origin: getTopLeft(projectionExtent),
+                        resolutions: resolutions,
+                        matrixIds: matrixIds,
+                        tileSize: tilePixelSize,
+                    }),
+                    layer: layer.layer_name,
+                    matrixSet: matrixSet,
+                };
+                layerParams['source'] = new WMTS(layerWMTSParams);
+            } else if (['wms', 'ows'].includes(layerType.toLowerCase())) {
+                const layerWMSParams = {
+                    url: layer.geoserver_url,
+                    params: {
+                        FORMAT: 'image/png',
+                        VERSION: '1.1.1',
+                        tiled: true,
+                        STYLES: '',
+                        LAYERS: `${layer.layer_name}`,
+                    },
+                };
+
+                // Data for an image tiles can only be retrieved if the source's crossOrigin property is set (https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#getData)
+                // E.g. info tool doesn't work without crossOrigin: 'anonymous', getting
+                // "Failed to execute 'getImageData' on 'CanvasRenderingContext2D': The canvas has been tainted by cross-origin data" at canvas/Layer.js::getImageData
+                if (!layer.geoserver_url.startsWith('/geoproxy/')) {
+                    layerWMSParams['crossOrigin'] = 'anonymous';
+                }
+
+                layerParams['source'] = new TileWMS(layerWMSParams);
+            } else {
+                console.error('Unknown layer type', layerType);
+                continue;
+            }
+
+            const tileLayer = new TileLayer(layerParams);
 
             let legend_url = null;
             if (layer.Name == baselayer_name) {
