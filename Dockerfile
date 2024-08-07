@@ -23,10 +23,6 @@ FROM builder_base_boranga as apt_packages_boranga
 RUN sed 's/archive.ubuntu.com/au.archive.ubuntu.com/g' /etc/apt/sources.list > /etc/apt/sourcesau.list && \
     mv /etc/apt/sourcesau.list /etc/apt/sources.list
 
-RUN apt-get update && \
-    apt-get install software-properties-common --no-install-recommends -y && \
-    add-apt-repository ppa:deadsnakes/ppa
-
 RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     apt-get upgrade -y && \
     apt-get install --no-install-recommends -y \
@@ -50,13 +46,12 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     mtr \
     patch \
     postgresql-client \
-    python3.10 \
-    python3.10-dev \
+    python3-dev \
     python3-gdal \
     python3-pil \
     python3-pip \
     python3-setuptools \
-    python3.10-venv \
+    python3-venv \
     sqlite3 \
     ssh \
     sudo \
@@ -112,7 +107,7 @@ COPY --chown=oim:oim requirements.txt gunicorn.ini.py manage.py python-cron ./
 COPY --chown=oim:oim .git ./.git
 COPY --chown=oim:oim boranga ./boranga
 
-RUN python3.10 -m venv $VIRTUAL_ENV_PATH
+RUN python3.12 -m venv $VIRTUAL_ENV_PATH
 RUN $VIRTUAL_ENV_PATH/bin/pip3 install --no-cache-dir -r requirements.txt && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
