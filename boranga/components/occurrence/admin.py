@@ -404,9 +404,13 @@ class SampleDestinationAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmi
     list_display = ["name"]
 
 
+class RockTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, DeleteProtectedModelAdmin)
-admin.site.register(RockType, DeleteProtectedModelAdmin)
+admin.site.register(RockType, RockTypeAdmin)
 admin.site.register(SoilType, SoilTypeAdmin)
 admin.site.register(SiteType, SiteTypeAdmin)
 admin.site.register(SoilColour, SoilColourAdmin)

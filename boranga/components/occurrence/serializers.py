@@ -479,6 +479,7 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
         source="soil_condition.name", allow_null=True
     )
     soil_colour = serializers.CharField(source="soil_colour.name", allow_null=True)
+    rock_type = serializers.CharField(source="rock_type.name", allow_null=True)
 
     class Meta:
         model = OCRHabitatComposition
@@ -487,6 +488,7 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
             "occurrence_report_id",
             "land_form",
             "rock_type_id",
+            "rock_type",
             "loose_rock_percent",
             "soil_type_id",
             "soil_type",
@@ -2510,6 +2512,7 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
         source="soil_condition.name", allow_null=True
     )
     soil_colour = serializers.CharField(source="soil_colour.name", allow_null=True)
+    rock_type = serializers.CharField(source="rock_type.name", allow_null=True)
 
     class Meta:
         model = OCCHabitatComposition
@@ -2519,6 +2522,7 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
             "copied_ocr",
             "land_form",
             "rock_type_id",
+            "rock_type",
             "loose_rock_percent",
             "soil_type_id",
             "soil_type",

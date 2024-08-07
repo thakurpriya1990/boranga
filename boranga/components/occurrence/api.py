@@ -968,7 +968,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         rock_type_list = []
-        types = RockType.objects.all()
+        types = RockType.objects.active()
         if types:
             for val in types:
                 rock_type_list.append(
@@ -5017,7 +5017,7 @@ class OccurrenceViewSet(
                     }
                 )
         rock_type_list = []
-        types = RockType.objects.all()
+        types = RockType.objects.active()
         if types:
             for val in types:
                 rock_type_list.append(
