@@ -412,8 +412,14 @@ class ReproductiveStateAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmi
     list_display = ["name"]
 
 
+class LandFormAdmin(DeleteProtectedModelAdmin):
+    list_display = ["name"]
+    fields = ["name"]  # Not showing the archived field for now as requires
+    # more work on the frontend due to django-multiselectfield
+
+
 # Each of the following models will be available to Django Admin.
-admin.site.register(LandForm, DeleteProtectedModelAdmin)
+admin.site.register(LandForm, LandFormAdmin)
 admin.site.register(RockType, RockTypeAdmin)
 admin.site.register(SoilType, SoilTypeAdmin)
 admin.site.register(SiteType, SiteTypeAdmin)
