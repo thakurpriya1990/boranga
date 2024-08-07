@@ -2590,7 +2590,7 @@ class PrimaryDetectionMethod(models.Model):
 
 
 # used for Animal Observation(MultipleSelect)
-class ReproductiveState(models.Model):
+class ReproductiveState(ArchivableModel):
     """
     # Admin List
 
