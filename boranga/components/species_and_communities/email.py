@@ -59,6 +59,12 @@ class RenameSpeciesSendNotificationEmail(TemplateEmailBase):
     txt_template = "boranga/emails/send_rename_notification.txt"
 
 
+class RenameCommunitySendNotificationEmail(TemplateEmailBase):
+    subject = "A Species has been renamed."
+    html_template = "boranga/emails/send_rename_community_notification.html"
+    txt_template = "boranga/emails/send_rename_community_notification.txt"
+
+
 class CreateCommunitySendNotificationEmail(TemplateEmailBase):
     subject = "A new Community has been created."
     html_template = "boranga/emails/send_create_notification.html"
@@ -492,7 +498,7 @@ def send_user_community_create_email_notification(request, community_proposal):
 def send_community_rename_email_notification(
     request, community_proposal, new_community
 ):
-    email = RenameSpeciesSendNotificationEmail()
+    email = RenameCommunitySendNotificationEmail()
 
     url = request.build_absolute_uri(
         reverse("internal-conservation-status-dashboard", kwargs={})
