@@ -2,7 +2,7 @@ import sys
 
 from django import conf, urls
 from django.conf import settings
-from django.conf.urls import include, url
+from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.urls import path, re_path
@@ -179,155 +179,155 @@ router.register(
 router.registry.sort(key=lambda x: x[0])
 
 api_patterns = [
-    url(r"^api/profile$", users_api.GetProfile.as_view(), name="get-profile"),
-    url(
+    re_path(r"^api/profile$", users_api.GetProfile.as_view(), name="get-profile"),
+    re_path(
         r"^api/save_submitter_information$",
         users_api.SaveSubmitterInformation.as_view(),
         name="save-submitter-information",
     ),
-    url(
+    re_path(
         r"^api/save_area_of_interest$",
         users_api.SaveAreaOfInterest.as_view(),
         name="save-area-of-interest",
     ),
-    url(r"^api/countries$", users_api.GetCountries.as_view(), name="get-countries"),
-    url(
+    re_path(r"^api/countries$", users_api.GetCountries.as_view(), name="get-countries"),
+    re_path(
         r"^api/submitter_categories$",
         users_api.GetSubmitterCategories.as_view(),
         name="get-submitter-categories",
     ),
-    url(
+    re_path(
         r"^api/department_users$",
         users_api.DepartmentUserList.as_view(),
         name="department-users-list",
     ),
-    url(r"^api/", include(router.urls)),
-    url(
+    re_path(r"^api/", include(router.urls)),
+    re_path(
         r"^api/filter_lists_species",
         species_communities_api.GetSpeciesFilterDict.as_view(),
         name="get-filter_lists_species",
     ),
-    url(
+    re_path(
         r"^api/group_types_dict",
         species_communities_api.GetGroupTypeDict.as_view(),
         name="get-group-types-dict",
     ),
-    url(
+    re_path(
         r"^api/community_filter_dict",
         species_communities_api.GetCommunityFilterDict.as_view(),
         name="get-community-filter-dict",
     ),
-    url(
+    re_path(
         r"^api/region_district_filter_dict",
         species_communities_api.GetRegionDistrictFilterDict.as_view(),
         name="get-region_district_filter_dict",
     ),
-    url(
+    re_path(
         r"^api/species_profile_dict",
         species_communities_api.GetSpeciesProfileDict.as_view(),
         name="get-species-profile-dict",
     ),
-    url(
+    re_path(
         r"^api/community_profile_dict",
         species_communities_api.GetCommunityProfileDict.as_view(),
         name="get-community-profile-dict",
     ),
-    url(
+    re_path(
         r"^api/species_lookup$",
         species_communities_api.GetSpecies.as_view(),
         name="get-species",
     ),
-    url(
+    re_path(
         r"^api/communities_lookup$",
         species_communities_api.GetCommunities.as_view(),
         name="get-communities",
     ),
-    url(
+    re_path(
         r"^api/scientific_name_lookup$",
         species_communities_api.GetScientificName.as_view(),
         name="get-scientific-name",
     ),
-    url(
+    re_path(
         r"^api/scientific_name_lookup_by_groupname$",
         species_communities_api.GetScientificNameByGroup.as_view(),
         name="get-scientific-name-by-groupname",
     ),
-    url(
+    re_path(
         r"^api/common_name_lookup$",
         species_communities_api.GetCommonName.as_view(),
         name="get-common-name",
     ),
-    url(
+    re_path(
         r"^api/family_lookup$",
         species_communities_api.GetFamily.as_view(),
         name="get-family",
     ),
-    url(
+    re_path(
         r"^api/genera_lookup$",
         species_communities_api.GetGenera.as_view(),
         name="get-genera",
     ),
-    url(
+    re_path(
         r"^api/phylo_group_lookup$",
         species_communities_api.GetPhyloGroup.as_view(),
         name="get-phylo-group",
     ),
-    url(
+    re_path(
         r"^api/community_id_lookup$",
         species_communities_api.GetCommunityId.as_view(),
         name="get-community_id",
     ),
-    url(
+    re_path(
         r"^api/community_name_lookup$",
         species_communities_api.GetCommunityName.as_view(),
         name="get-community_name",
     ),
-    url(
+    re_path(
         r"^api/wild_status_lookup$",
         occurrence_api.GetWildStatus.as_view(),
         name="get-wild_status",
     ),
-    url(
+    re_path(
         r"^api/species_display$",
         conservation_status_api.GetSpeciesDisplay.as_view(),
         name="get-cs-profile-dict",
     ),
-    url(
+    re_path(
         r"^api/community_display$",
         conservation_status_api.GetCommunityDisplay.as_view(),
         name="get-community-display",
     ),
-    url(
+    re_path(
         r"^api/cs_profile_dict$",
         conservation_status_api.GetCSProfileDict.as_view(),
         name="get-cs-profile-dict",
     ),
-    url(
+    re_path(
         r"^api/proposal_amendment_request_reason_choices",
         conservation_status_api.AmendmentRequestReasonChoicesView.as_view(),
         name="amendment_request_reason_choices",
     ),
-    url(
+    re_path(
         r"^api/meeting_dict$",
         meeting_api.GetMeetingDict.as_view(),
         name="get-meeting-dict",
     ),
-    url(
+    re_path(
         r"^api/document_categories_dict$",
         species_communities_api.GetDocumentCategoriesDict.as_view(),
         name="get-document-categories-dict",
     ),
-    url(
+    re_path(
         r"^api/occ_profile_dict$",
         occurrence_api.GetOCCProfileDict.as_view(),
         name="get-occ-profile-dict",
     ),
-    url(
+    re_path(
         r"^api/history/(?P<app_label>[\w-]+)/(?P<component_name>[\w-]+)/(?P<model_name>[\w-]+)/(?P<pk>\d+)/$",
         history_api.GetPaginatedVersionsView.as_view(),
         name="get-versions",
     ),
-    url(
+    re_path(
         r"^api/history/(?P<app_label>[\w-]+)/(?P<model_name>[\w-]+)/(?P<revision_id>\d+)/$",
         history_api.GetRevisionVersionsView.as_view(),
         name="get-revision",
@@ -337,99 +337,99 @@ api_patterns = [
 # URL Patterns
 urlpatterns = [
     path(r"admin/", admin.site.urls),
-    url(r"", include(api_patterns)),
-    url(r"^$", views.BorangaRoutingView.as_view(), name="home"),
-    url(r"^contact/", views.BorangaContactView.as_view(), name="ds_contact"),
-    url(
+    re_path(r"", include(api_patterns)),
+    re_path(r"^$", views.BorangaRoutingView.as_view(), name="home"),
+    re_path(r"^contact/", views.BorangaContactView.as_view(), name="ds_contact"),
+    re_path(
         r"^further_info/",
         views.BorangaFurtherInformationView.as_view(),
         name="ds_further_info",
     ),
-    url(r"^internal/", views.InternalView.as_view(), name="internal"),
-    url(
+    re_path(r"^internal/", views.InternalView.as_view(), name="internal"),
+    re_path(
         r"^external/species-communities$",
         views.PublicView.as_view(),
         name="species-communities",
     ),
-    url(
+    re_path(
         r"^external/species_communities/(?P<species_proposal_pk>\d+)",
         views.SpeciesView.as_view(),
         name="external-species-detail",
     ),
-    url(r"^external/", views.ExternalView.as_view(), name="external"),
-    url(r"^account/$", views.ExternalView.as_view(), name="manage-account"),
-    url(r"^profiles/", views.ExternalView.as_view(), name="manage-profiles"),
-    url(
+    re_path(r"^external/", views.ExternalView.as_view(), name="external"),
+    re_path(r"^account/$", views.ExternalView.as_view(), name="manage-account"),
+    re_path(r"^profiles/", views.ExternalView.as_view(), name="manage-profiles"),
+    re_path(
         r"^mgt-commands/$", views.ManagementCommandsView.as_view(), name="mgt-commands"
     ),
-    url(r"^private-media/", views.getPrivateFile, name="view_private_file"),
+    re_path(r"^private-media/", views.getPrivateFile, name="view_private_file"),
     # following url is defined so that to include url path when sending Proposal amendment request to user.
-    url(
+    re_path(
         r"^external/conservation_status/(?P<cs_proposal_pk>\d+)/$",
         views.ExternalConservationStatusView.as_view(),
         name="external-conservation-status-detail",
     ),
-    url(
+    re_path(
         r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/$",
         views.InternalConservationStatusView.as_view(),
         name="internal-conservation-status-detail",
     ),
-    url(
+    re_path(
         r"^internal/conservation-status/",
         views.InternalConservationStatusDashboardView.as_view(),
         name="internal-conservation-status-dashboard",
     ),
-    url(
+    re_path(
         r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.ConservationStatusReferralView.as_view(),
         name="internal-conservation-status-referral-detail",
     ),
-    url(
+    re_path(
         r"^external/conservation_status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.ConservationStatusReferralView.as_view(),
         name="external-conservation-status-referral-detail",
     ),
-    url(
+    re_path(
         r"^internal/species_communities/(?P<species_proposal_pk>\d+)/$",
         views.InternalSpeciesView.as_view(),
         name="internal-species-detail",
     ),
-    url(
+    re_path(
         r"^internal/species_communities/(?P<community_proposal_pk>\d+)/$",
         views.InternalCommunityView.as_view(),
         name="internal-community-detail",
     ),
-    url(
+    re_path(
         r"^internal/meetings/",
         views.InternalMeetingDashboardView.as_view(),
         name="internal-meeting-dashboard",
     ),
-    url(
+    re_path(
         r"^internal/occurrence/(?P<occurrence_pk>\d+)/$",
         views.InternalOccurrenceView.as_view(),
         name="internal-occurrence-detail",
     ),
-    url(
+    re_path(
         r"^external/occurrence-report/(?P<occurrence_report_pk>\d+)/$",
         views.ExternalOccurrenceReportView.as_view(),
         name="external-occurrence-report-detail",
     ),
-    url(
+    re_path(
         r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/$",
         views.InternalOccurrenceReportView.as_view(),
         name="internal-occurrence-report-detail",
     ),
-    url(
+    re_path(
         r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.InternalOccurrenceReportReferralView.as_view(),
         name="internal-occurrence-report-referral-detail",
     ),
-    url(
+    re_path(
         r"^external/occurrence_report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.InternalOccurrenceReportReferralView.as_view(),
         name="external-occurrence-report-referral-detail",
     ),
-    # url(f"{settings.BASIC_AUTH_PROXY_PREFIX}(?P<request_path>.*)", spatial_views.mapProxyView),
+    # re_path(f"{settings.BASIC_AUTH_PROXY_PREFIX}(?P<request_path>.*)", spatial_views.mapProxyView),
     re_path(
         "geoproxy/(?P<request_path>[A-Za-z0-9-]+)/(?P<path>.*)",
         spatial_views.mapProxyView,
