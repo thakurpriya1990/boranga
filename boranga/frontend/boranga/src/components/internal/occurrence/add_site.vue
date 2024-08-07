@@ -84,7 +84,7 @@
                                     </template>
                                     <template v-else>
                                         <input class="form-control" type="text" :disabled="isReadOnly"
-                                            v-model="siteObj.datum_name" />
+                                            v-model="siteObj.site_type_name" />
                                     </template>
                                 </div>
                             </div>
