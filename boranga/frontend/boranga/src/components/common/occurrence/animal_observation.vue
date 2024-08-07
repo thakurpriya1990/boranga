@@ -21,7 +21,7 @@
                             <input type="text" v-if="animal_observation.secondary_sign_name" class="form-control mb-3"
                                 :value="animal_observation.secondary_sign_name + ' (Now Archived)'" disabled />
                             <div class="mb-3 text-muted">
-                                Change site type to:
+                                Change secondary sign to:
                             </div>
                         </template>
                         <select class="form-select" v-model="animal_observation.secondary_sign">
