@@ -988,7 +988,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         soil_colour_list = []
-        colours = SoilColour.objects.all()
+        colours = SoilColour.objects.active()
         if colours:
             for val in colours:
                 soil_colour_list.append(
@@ -5037,7 +5037,7 @@ class OccurrenceViewSet(
                     }
                 )
         soil_colour_list = []
-        colours = SoilColour.objects.all()
+        colours = SoilColour.objects.active()
         if colours:
             for val in colours:
                 soil_colour_list.append(
