@@ -588,6 +588,9 @@ const _helper = {
         return features;
     },
     tileLayerFromLayerDefinitions: function (layers) {
+        const projectionCode = 'EPSG:4326';
+        const projection = getProjection(projectionCode);
+        const projectionExtent = projection.getExtent();
         const tileLayers = [];
 
         for (let j in layers) {
@@ -609,17 +612,15 @@ const _helper = {
                 is_tenure_intersects_query_layer:
                     layer.is_tenure_intersects_query_layer,
             };
-            const layerType = layer.geoserver_url.split('/').at(-1);
+            // const layerType = layer.geoserver_url.split('/').at(-1);
+            const layerService = layer.service.toLowerCase();
 
-            if (layerType.toLowerCase() === 'wmts') {
-                const projectionCode = 'EPSG:4326';
-                const projection = getProjection(projectionCode);
-                const projectionExtent = projection.getExtent();
+            if (layerService === 'wmts') {
                 const layerExtent = [
                     112.06055, -35.35322, 129.77051, -12.55456,
                 ];
-                const matrixSet = 'gda94';
-                const tilePixelSize = 1024;
+                const matrixSet = layer.matrix_set;
+                const tilePixelSize = layer.tile_pixel_size;
                 const resolutions = new Array(19);
                 // const resolutions = [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16]
                 const width = getWidth(projectionExtent); // 360
@@ -647,7 +648,7 @@ const _helper = {
                     matrixSet: matrixSet,
                 };
                 layerParams['source'] = new WMTS(layerWMTSParams);
-            } else if (['wms', 'ows'].includes(layerType.toLowerCase())) {
+            } else if (['wms'].includes(layerService)) {
                 const layerWMSParams = {
                     url: layer.geoserver_url,
                     params: {
