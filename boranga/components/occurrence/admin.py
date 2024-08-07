@@ -400,6 +400,10 @@ class SampleTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_filter = ("group_type",)
 
 
+class SampleDestinationAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, DeleteProtectedModelAdmin)
 admin.site.register(RockType, DeleteProtectedModelAdmin)
@@ -421,7 +425,7 @@ admin.site.register(DeathReason, DeleteProtectedModelAdmin)
 admin.site.register(AnimalHealth, DeleteProtectedModelAdmin)
 admin.site.register(IdentificationCertainty, DeleteProtectedModelAdmin)
 admin.site.register(SampleType, SampleTypeAdmin)
-admin.site.register(SampleDestination, DeleteProtectedModelAdmin)
+admin.site.register(SampleDestination, SampleDestinationAdmin)
 admin.site.register(PermitType, PermitTypeAdmin)
 admin.site.register(Datum, DatumAdmin)
 admin.site.register(CoordinateSource, CoordinateSourceAdmin)

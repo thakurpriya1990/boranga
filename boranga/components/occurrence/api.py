@@ -1325,7 +1325,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         sample_dest_list = []
-        values = SampleDestination.objects.all()
+        values = SampleDestination.objects.active()
         if values:
             for val in values:
                 sample_dest_list.append(
@@ -5226,7 +5226,7 @@ class OccurrenceViewSet(
                     }
                 )
         sample_dest_list = []
-        values = SampleDestination.objects.all()
+        values = SampleDestination.objects.active()
         if values:
             for val in values:
                 sample_dest_list.append(

@@ -682,6 +682,9 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
     sample_type = serializers.CharField(
         source="sample_type.name", read_only=True, allow_null=True
     )
+    sample_destination = serializers.CharField(
+        source="sample_destination.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCRIdentification
@@ -693,6 +696,7 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
             "sample_type_id",
             "sample_type",
             "sample_destination_id",
+            "sample_destination",
             "permit_type_id",
             "permit_type",
             "permit_id",
@@ -2792,6 +2796,9 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
     sample_type = serializers.CharField(
         source="sample_type.name", read_only=True, allow_null=True
     )
+    sample_destination = serializers.CharField(
+        source="sample_destination.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCCIdentification
@@ -2804,6 +2811,7 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
             "sample_type_id",
             "sample_type",
             "sample_destination_id",
+            "sample_destination",
             "permit_type_id",
             "permit_type",
             "permit_id",
