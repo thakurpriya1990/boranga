@@ -2805,7 +2805,7 @@ class SampleType(ArchivableModel):
         return str(self.name)
 
 
-class SampleDestination(models.Model):
+class SampleDestination(ArchivableModel):
     """
     # Admin List
 
