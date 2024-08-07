@@ -2497,7 +2497,7 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
     soil_condition = serializers.CharField(
         source="soil_condition.name", allow_null=True
     )
-    coil_colour = serializers.CharField(source="soil_colour.name", allow_null=True)
+    soil_colour = serializers.CharField(source="soil_colour.name", allow_null=True)
 
     class Meta:
         model = OCCHabitatComposition
@@ -3547,6 +3547,7 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
     point_coord2 = serializers.SerializerMethodField()
     datum = serializers.SerializerMethodField()
     datum_name = serializers.SerializerMethodField()
+    site_type_name = serializers.CharField(source="site_type.name", read_only=True)
 
     class Meta:
         model = OccurrenceSite
@@ -3561,6 +3562,7 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
             "datum",
             "datum_name",
             "site_type",
+            "site_type_name",
             "comments",
             "related_occurrence_reports",
             "related_occurrence_report_numbers",

@@ -6130,7 +6130,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def site_list_of_values(self, request, *args, **kwargs):
 
-        site_type_list = list(SiteType.objects.values("id", "name"))
+        site_type_list = list(SiteType.objects.active().values("id", "name"))
         datum_list = list(
             {"srid": datum.srid, "name": datum.name} for datum in Datum.objects.active()
         )

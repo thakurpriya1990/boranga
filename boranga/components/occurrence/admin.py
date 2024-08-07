@@ -392,11 +392,15 @@ class SoilColourAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["name"]
 
 
+class SiteTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, DeleteProtectedModelAdmin)
 admin.site.register(RockType, DeleteProtectedModelAdmin)
 admin.site.register(SoilType, SoilTypeAdmin)
-admin.site.register(SiteType, DeleteProtectedModelAdmin)
+admin.site.register(SiteType, SiteTypeAdmin)
 admin.site.register(SoilColour, SoilColourAdmin)
 admin.site.register(SoilCondition, SoilConditionAdmin)
 admin.site.register(Drainage, DeleteProtectedModelAdmin)
