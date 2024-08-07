@@ -506,7 +506,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         recipients = []
         group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR)
         for id in group_ids:
-            logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
@@ -515,7 +514,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         recipients = []
         group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER)
         for id in group_ids:
-            logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 

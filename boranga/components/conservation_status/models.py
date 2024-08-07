@@ -813,7 +813,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         recipients = []
         group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_ASSESSOR)
         for id in group_ids:
-            logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
@@ -822,7 +821,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         recipients = []
         group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_APPROVER)
         for id in group_ids:
-            logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
