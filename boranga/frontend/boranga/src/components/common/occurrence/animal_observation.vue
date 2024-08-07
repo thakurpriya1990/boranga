@@ -15,11 +15,24 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Secondary Signs:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" v-model="animal_observation.secondary_sign">
-                        <option v-for="option in secondary_sign_list" :value="option.id" :key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                    <template v-if="!isReadOnly">
+                        <template
+                            v-if="secondary_sign_list && secondary_sign_list.length > 0 && animal_observation.secondary_sign && !secondary_sign_list.map((d) => d.id).includes(animal_observation.secondary_sign)">
+                            <input type="text" v-if="animal_observation.secondary_sign_name" class="form-control mb-3"
+                                :value="animal_observation.secondary_sign_name + ' (Now Archived)'" disabled />
+                            <div class="mb-3 text-muted">
+                                Change site type to:
+                            </div>
+                        </template>
+                        <select class="form-select" v-model="animal_observation.secondary_sign">
+                            <option v-for="secondary_sign in secondary_sign_list" :value="secondary_sign.id" v-bind:key="secondary_sign.id">
+                                {{ secondary_sign.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="animal_observation.secondary_sign_name" />
+                    </template>
                 </div>
             </div>
             <div class="row mb-3">

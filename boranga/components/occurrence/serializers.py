@@ -626,6 +626,9 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
         choices=[], allow_null=True, allow_blank=True, required=False
     )
     count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    secondary_sign_name = serializers.CharField(
+        source="secondary_sign.name", allow_null=True
+    )
 
     class Meta:
         model = OCRAnimalObservation
@@ -634,6 +637,7 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "occurrence_report_id",
             "primary_detection_method",
             "secondary_sign",
+            "secondary_sign_name",
             "reproductive_state",
             "animal_health_id",
             "death_reason_id",
@@ -2720,6 +2724,9 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
     )
     copied_ocr = serializers.SerializerMethodField()
     count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    secondary_sign_name = serializers.CharField(
+        source="secondary_sign.name", allow_null=True
+    )
 
     class Meta:
         model = OCCAnimalObservation
@@ -2729,6 +2736,7 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "copied_ocr",
             "primary_detection_method",
             "secondary_sign",
+            "secondary_sign_name",
             "reproductive_state",
             "animal_health_id",
             "death_reason_id",

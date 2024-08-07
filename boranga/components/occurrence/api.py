@@ -1265,7 +1265,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         secondary_sign_list = []
-        values = SecondarySign.objects.all()
+        values = SecondarySign.objects.active()
         if values:
             for val in values:
                 secondary_sign_list.append(
@@ -1445,7 +1445,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         secondary_sign_list = []
-        values = SecondarySign.objects.all()
+        values = SecondarySign.objects.active()
         if values:
             for val in values:
                 secondary_sign_list.append(
@@ -5166,7 +5166,7 @@ class OccurrenceViewSet(
                     }
                 )
         secondary_sign_list = []
-        values = SecondarySign.objects.all()
+        values = SecondarySign.objects.active()
         if values:
             for val in values:
                 secondary_sign_list.append(
@@ -5346,7 +5346,7 @@ class OccurrenceViewSet(
                     }
                 )
         secondary_sign_list = []
-        values = SecondarySign.objects.all()
+        values = SecondarySign.objects.active()
         if values:
             for val in values:
                 secondary_sign_list.append(
