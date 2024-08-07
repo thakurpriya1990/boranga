@@ -866,10 +866,8 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
 
     def get_readonly(self, obj):
         request = self.context["request"]
-        if request.user.is_superuser:
-            return False
         return not (
-            (obj.can_user_edit or obj.has_user_edit_mode)
+            (obj.can_user_edit or obj.has_user_edit_mode(request))
             and is_species_communities_approver(request)
         )
 
@@ -1135,7 +1133,11 @@ class BaseCommunitySerializer(serializers.ModelSerializer):
         return [s.id for s in obj.species.all()]
 
     def get_readonly(self, obj):
-        return False
+        request = self.context["request"]
+        return not (
+            (obj.can_user_edit or obj.has_user_edit_mode(request))
+            and is_species_communities_approver(request)
+        )
 
     def get_group_type(self, obj):
         return obj.group_type.name
@@ -1251,6 +1253,24 @@ class CommunitySerializer(BaseCommunitySerializer):
             return None
 
 
+class SimpleCommunityDisplaySerializer(serializers.ModelSerializer):
+    community_name = serializers.CharField(
+        source="taxonomy.community_name", read_only=True
+    )
+    community_migrated_id = serializers.CharField(
+        source="taxonomy.community_migrated_id", read_only=True
+    )
+
+    class Meta:
+        model = Community
+        fields = (
+            "id",
+            "community_number",
+            "community_name",
+            "community_migrated_id",
+        )
+
+
 class InternalCommunitySerializer(BaseCommunitySerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
@@ -1258,6 +1278,8 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
     user_edit_mode = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField()
     can_add_log = serializers.SerializerMethodField()
+    renamed_from = SimpleCommunityDisplaySerializer(read_only=True, allow_null=True)
+    readonly = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Community
@@ -1291,6 +1313,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "area_of_occupancy_km2",
             "area_occurrence_convex_hull_km2",
             "can_add_log",
+            "renamed_from",
         )
 
     def get_submitter(self, obj):
@@ -1302,10 +1325,8 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
 
     def get_readonly(self, obj):
         request = self.context["request"]
-        if request.user.is_superuser:
-            return False
         return not (
-            (obj.can_user_edit or obj.has_user_edit_mode)
+            (obj.can_user_edit or obj.has_user_edit_mode(request))
             and is_species_communities_approver(request)
         )
 
