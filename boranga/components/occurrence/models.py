@@ -4909,7 +4909,7 @@ class BufferGeometry(GeometryBase):
         return self.buffered_from_geometry
 
 
-class SiteType(models.Model):
+class SiteType(ArchivableModel):
     """
     # Admin List
 
