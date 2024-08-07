@@ -151,6 +151,7 @@ class TileLayerAdmin(admin.ModelAdmin):
                     "layer_name",
                     "layer_title",
                     "geoserver_url",
+                    "service",
                     "is_satellite_background",
                     "is_streets_background",
                     "is_external",
@@ -161,6 +162,8 @@ class TileLayerAdmin(admin.ModelAdmin):
                     "active",
                     "invert_xy",
                     "is_tenure_intersects_query_layer",
+                    "matrix_set",
+                    "tile_pixel_size",
                 )
             },
         ),
