@@ -16,6 +16,7 @@ from boranga.components.occurrence.models import (
     BufferGeometry,
     Datum,
     GeometryType,
+    LandForm,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
@@ -474,6 +475,7 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
     land_form = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
+    land_form_names = serializers.SerializerMethodField()
     soil_type = serializers.CharField(source="soil_type.name", allow_null=True)
     soil_condition = serializers.CharField(
         source="soil_condition.name", allow_null=True
@@ -487,6 +489,7 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_id",
             "land_form",
+            "land_form_names",
             "rock_type_id",
             "rock_type",
             "loose_rock_percent",
@@ -506,6 +509,12 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
         self.fields["land_form"].choices = OCRHabitatComposition._meta.get_field(
             "land_form"
         ).choices
+
+    def get_land_form_names(self, obj):
+        return [
+            lf
+            for lf in LandForm.objects.filter(id__in=obj.land_form).values("id", "name")
+        ]
 
 
 class OCRHabitatConditionSerializer(serializers.ModelSerializer):
