@@ -3263,7 +3263,6 @@ class Occurrence(RevisionedMixin):
             raise ValidationError("Occurrence not Active, cannot be combined to")
 
         occ_combine_data = json.loads(request.POST.get("data"))
-        # print(occ_combine_data)
 
         # OCCs being combined must not be discarded or historical
         combine_occurrences = Occurrence.objects.exclude(id=self.id).filter(
@@ -3312,7 +3311,6 @@ class Occurrence(RevisionedMixin):
         # assess and assign form values
         for key in FORM_KEYS:
             if key in occ_combine_data and occ_combine_data[key] != self.id:
-                # print("set", key, "to that in OCC", occ_combine_data[key])
                 try:  # handle in case somehow the combined occurrence record does not exist
                     setattr(
                         self,
@@ -3320,12 +3318,11 @@ class Occurrence(RevisionedMixin):
                         getattr(combine_occurrences.get(id=occ_combine_data[key]), key),
                     )
                 except Exception as e:
-                    print(e)
+                    logger.exception(e)
 
         # assess and copy section values
         for key in SECTION_KEYS:
             if key in occ_combine_data and occ_combine_data[key] != self.id:
-                # print("copy", key, "from OCC", occ_combine_data[key])
                 try:  # handle in case somehow the combined occurrence record does not exist
                     # or does not have the specified section
                     src_section = getattr(
@@ -3349,15 +3346,13 @@ class Occurrence(RevisionedMixin):
                             else:
                                 value = getattr(src_section, i.name)
                                 setattr(section, i.name, value)
-                            # print(i.name," - ",value)
                     section.save()
                 except Exception as e:
-                    print(e)
+                    logger.exception(e)
 
         # assess and copy table values (contacts, documents, and sites)
         for key in COPY_TABLE_KEYS:
             if key in occ_combine_data:
-                # print("Copy",key,"with ids",occ_combine_data[key],"if not already in OCC")
                 for record in (
                     COPY_TABLE_KEYS[key]
                     .objects.filter(id__in=occ_combine_data[key])
@@ -3375,7 +3370,6 @@ class Occurrence(RevisionedMixin):
         # assess and move threat table values
         for key in MOVE_TABLE_KEYS:
             if key in occ_combine_data:
-                # print("Move",key,"with ids",occ_combine_data[key],"if not already in OCC")
                 for record in (
                     MOVE_TABLE_KEYS[key]
                     .objects.filter(id__in=occ_combine_data[key])
