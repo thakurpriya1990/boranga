@@ -2080,7 +2080,7 @@ class SoilType(ArchivableModel):
         return str(self.name)
 
 
-class SoilColour(models.Model):
+class SoilColour(ArchivableModel):
     """
     # Admin List
 
