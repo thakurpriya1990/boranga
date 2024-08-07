@@ -583,7 +583,6 @@ class Species(RevisionedMixin):
         recipients = []
         group_ids = member_ids(GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
         for id in group_ids:
-            logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
@@ -1350,7 +1349,6 @@ class Community(RevisionedMixin):
         recipients = []
         group_ids = member_ids(GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
         for id in group_ids:
-            logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
