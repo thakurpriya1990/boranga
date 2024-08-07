@@ -2017,7 +2017,7 @@ class OCRObserverDetail(RevisionedMixin):
 
 
 # Is used in HabitatComposition for multiple selection
-class LandForm(models.Model):
+class LandForm(ArchivableModel):
     """
     # Admin List
 
