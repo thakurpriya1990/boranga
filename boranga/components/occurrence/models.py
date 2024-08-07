@@ -2038,7 +2038,7 @@ class LandForm(models.Model):
         return str(self.name)
 
 
-class RockType(models.Model):
+class RockType(ArchivableModel):
     """
     # Admin List
 
