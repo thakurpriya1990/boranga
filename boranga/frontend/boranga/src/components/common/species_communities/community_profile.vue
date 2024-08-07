@@ -9,6 +9,20 @@
                         v-model="species_community.taxonomy_details.community_name" />
                 </div>
             </div>
+            <div v-if="species_community.renamed_from" class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Renamed From:</label>
+                <div class="col-sm-7">
+                    <textarea :disabled="true" class="form-control" rows="1" id="renamed_from" placeholder=""
+                        :value="`${species_community.renamed_from.community_number} - ${species_community.renamed_from.community_name}`" />
+
+                </div>
+                <div class="col-sm-2">
+                    <a class="btn btn-primary" role="button" target="_blank"
+                        :href="`/internal/species_communities/${species_community.renamed_from.id}?group_type_name=${species_community.group_type}`">
+                        <i class="bi bi-box-arrow-up-right"></i> {{ species_community.renamed_from.community_number }}
+                    </a>
+                </div>
+            </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label" :class="isReadOnly ? '' : 'fw-bold'">Community ID: <span
                         v-if="!isReadOnly" class="text-danger">*</span></label>
@@ -112,7 +126,8 @@
                     <label for="" class="col-sm-5 col-form-label">Extent of Occurrences: <i
                             v-if="species_community.distribution.eoo_auto" class="bi bi-info-circle-fill text-primary"
                             data-bs-toggle="popover" data-bs-trigger="hover focus"
-                            data-bs-content="Calculated by creating a 'convex hull' from all occurrence geometries for this species." data-bs-placement="top"></i></label>
+                            data-bs-content="Calculated by creating a 'convex hull' from all occurrence geometries for this species."
+                            data-bs-placement="top"></i></label>
                     <div class="col-sm-4">
                         <div class="input-group">
                             <input v-if="species_community.distribution.eoo_auto" :disabled="isEOOReadOnly"
@@ -154,7 +169,8 @@
                             v-if="species_community.distribution.aoo_actual_auto"
                             class="bi bi-info-circle-fill text-primary" data-bs-toggle="popover"
                             data-bs-trigger="hover focus"
-                            data-bs-content="Calculated by combining the total land area of all occurrence geometries for this species." data-bs-placement="top"></i></label>
+                            data-bs-content="Calculated by combining the total land area of all occurrence geometries for this species."
+                            data-bs-placement="top"></i></label>
                     <div class="col-sm-4">
                         <div class="input-group">
                             <input v-if="species_community.distribution.aoo_actual_auto" :disabled="isAOOActualReadOnly"
@@ -439,8 +455,8 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updatePublishingDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary">Updating <span
-                        class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    <span class="visually-hidden">Loading...</span></button>
+                            class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="visually-hidden">Loading...</span></button>
                 </div>
             </div>
         </FormSection>
