@@ -60,7 +60,7 @@ class RenameSpeciesSendNotificationEmail(TemplateEmailBase):
 
 
 class RenameCommunitySendNotificationEmail(TemplateEmailBase):
-    subject = "A Species has been renamed."
+    subject = "A Community has been renamed."
     html_template = "boranga/emails/send_rename_community_notification.html"
     txt_template = "boranga/emails/send_rename_community_notification.txt"
 
