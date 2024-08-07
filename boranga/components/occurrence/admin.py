@@ -362,11 +362,6 @@ class PermitTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_filter = ("group_type",)
 
 
-class SampleTypeAdmin(DeleteProtectedModelAdmin):
-    list_display = ("group_type", "name")
-    list_filter = ("group_type",)
-
-
 class DatumAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ("srid", "name")
     search_fields = ("srid", "name")
@@ -398,6 +393,11 @@ class SiteTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
 
 class SecondarySignAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["name"]
+
+
+class SampleTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ("group_type", "name")
+    list_filter = ("group_type",)
 
 
 # Each of the following models will be available to Django Admin.

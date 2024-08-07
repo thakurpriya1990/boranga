@@ -1315,7 +1315,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         sample_type_list = []
-        values = SampleType.objects.filter(group_type__name=group_type)
+        values = SampleType.objects.active().filter(group_type__name=group_type)
         if values:
             for val in values:
                 sample_type_list.append(
@@ -5216,7 +5216,7 @@ class OccurrenceViewSet(
                     }
                 )
         sample_type_list = []
-        values = SampleType.objects.filter(group_type__name=group_type)
+        values = SampleType.objects.active().filter(group_type__name=group_type)
         if values:
             for val in values:
                 sample_type_list.append(
