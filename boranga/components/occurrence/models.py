@@ -2652,7 +2652,7 @@ class DeathReason(models.Model):
 
 
 # sed for Animal Observation(MultipleSelect)
-class SecondarySign(models.Model):
+class SecondarySign(ArchivableModel):
     """
     # Admin List
 
