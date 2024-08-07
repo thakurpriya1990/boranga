@@ -2783,7 +2783,7 @@ class IdentificationCertainty(models.Model):
         return str(self.name)
 
 
-class SampleType(models.Model):
+class SampleType(ArchivableModel):
     """
     # Admin List
 
