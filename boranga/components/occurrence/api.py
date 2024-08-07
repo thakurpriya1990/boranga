@@ -978,7 +978,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         soil_type_list = []
-        types = SoilType.objects.all()
+        types = SoilType.objects.active()
         if types:
             for val in types:
                 soil_type_list.append(
@@ -998,7 +998,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         soil_condition_list = []
-        conditions = SoilCondition.objects.all()
+        conditions = SoilCondition.objects.active()
         if conditions:
             for val in conditions:
                 soil_condition_list.append(
@@ -3425,7 +3425,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                             for occurrence in queryset
                         ]
                 except Exception as e:
-                    print(e)
+                    logger.exception(e)
                     queryset = self.get_queryset().none()
             else:
                 queryset = self.get_queryset().none()
@@ -4128,7 +4128,6 @@ class OccurrenceViewSet(
         detail=True,
     )
     def combine(self, request, *args, **kwargs):
-        # print(json.loads(request.POST.get("data")))
         instance = self.get_object()
         occ_combine_data = json.loads(request.POST.get("data"))
         combine_occurrences = Occurrence.objects.exclude(id=instance.id).filter(
@@ -4692,7 +4691,7 @@ class OccurrenceViewSet(
                     update_site.original_geometry_ewkb = geom_original
                     update_site.save(version_user=request.user)
                 except Exception as e:
-                    print(e)
+                    logger.exception(e)
 
         serializer = SaveOccurrenceSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -4813,7 +4812,7 @@ class OccurrenceViewSet(
                     update_site.original_geometry_ewkb = geom_original
                     update_site.save(version_user=request.user)
                 except Exception as e:
-                    print(e)
+                    logger.exception(e)
 
         # the request.data is only the habitat composition data thats been sent from front end
         location_data = request.data.get("location")
@@ -5028,7 +5027,7 @@ class OccurrenceViewSet(
                     }
                 )
         soil_type_list = []
-        types = SoilType.objects.all()
+        types = SoilType.objects.active()
         if types:
             for val in types:
                 soil_type_list.append(
@@ -5048,7 +5047,7 @@ class OccurrenceViewSet(
                     }
                 )
         soil_condition_list = []
-        conditions = SoilCondition.objects.all()
+        conditions = SoilCondition.objects.active()
         if conditions:
             for val in conditions:
                 soil_condition_list.append(

@@ -74,7 +74,6 @@ export default {
             this.close()
         },
         close: function () {
-            let vm = this;
             this.isModalOpen = false;
             this.errors = false;
         },
@@ -102,6 +101,7 @@ export default {
                     }
                     else {
                         vm.$parent.original_species_combine_list.push(species_obj); //--temp species_obj
+                        $(vm.$refs[vm.scientific_name_lookup]).val(null).trigger('change');
                     }
                 },
                     err => {

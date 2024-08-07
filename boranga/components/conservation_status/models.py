@@ -489,6 +489,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     conservation_status_number = models.CharField(max_length=9, blank=True, default="")
 
+    # Field to use when importing data from the legacy system
+    migrated_from_id = models.CharField(max_length=50, blank=True, default="")
+
     # Conservation Lists and Categories
     wa_priority_list = models.ForeignKey(
         WAPriorityList,
@@ -810,7 +813,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         recipients = []
         group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_ASSESSOR)
         for id in group_ids:
-            logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
@@ -819,7 +821,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         recipients = []
         group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_APPROVER)
         for id in group_ids:
-            logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 

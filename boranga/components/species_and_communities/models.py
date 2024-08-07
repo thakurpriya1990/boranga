@@ -388,17 +388,11 @@ class Species(RevisionedMixin):
     PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_ACTIVE = "active"
     PROCESSING_STATUS_HISTORICAL = "historical"
-    PROCESSING_STATUS_TO_BE_SPLIT = "to_be_split"
-    PROCESSING_STATUS_TO_BE_COMBINED = "to_be_combined"
-    PROCESSING_STATUS_TO_BE_RENAMED = "to_be_renamed"
     PROCESSING_STATUS_CHOICES = (
         (PROCESSING_STATUS_DRAFT, "Draft"),
         (PROCESSING_STATUS_DISCARDED, "Discarded"),
         (PROCESSING_STATUS_ACTIVE, "Active"),
         (PROCESSING_STATUS_HISTORICAL, "Historical"),
-        (PROCESSING_STATUS_TO_BE_SPLIT, "To Be Split"),
-        (PROCESSING_STATUS_TO_BE_COMBINED, "To Be Combined"),
-        (PROCESSING_STATUS_TO_BE_RENAMED, "To Be Renamed"),
     )
     RELATED_ITEM_CHOICES = [
         ("species", "species"),
@@ -589,7 +583,6 @@ class Species(RevisionedMixin):
         recipients = []
         group_ids = member_ids(GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
         for id in group_ids:
-            logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
@@ -649,7 +642,7 @@ class Species(RevisionedMixin):
             return False
 
         return is_species_communities_approver(request) or request.user.is_superuser
-    
+
     def can_user_save(self, request):
         user_closed_state = [
             Species.PROCESSING_STATUS_HISTORICAL,
@@ -657,19 +650,17 @@ class Species(RevisionedMixin):
         ]
 
         if self.processing_status in user_closed_state:
-           return False
+            return False
 
         return is_species_communities_approver(request) or request.user.is_superuser
-    
+
     def can_user_submit(self, request):
-        user_submissable_state = [
-            Species.PROCESSING_STATUS_DRAFT
-        ]
+        user_submissable_state = [Species.PROCESSING_STATUS_DRAFT]
 
         if not self.can_user_save(request):
             return False
 
-        if not self.processing_status in user_submissable_state:
+        if self.processing_status not in user_submissable_state:
             return False
 
         return is_species_communities_approver(request) or request.user.is_superuser
@@ -1175,22 +1166,19 @@ class Community(RevisionedMixin):
     PROCESSING_STATUS_DISCARDED = "discarded"
     PROCESSING_STATUS_ACTIVE = "active"
     PROCESSING_STATUS_HISTORICAL = "historical"
-    PROCESSING_STATUS_TO_BE_SPLIT = "to_be_split"
-    PROCESSING_STATUS_TO_BE_COMBINED = "to_be_combined"
-    PROCESSING_STATUS_TO_BE_RENAMED = "to_be_renamed"
     PROCESSING_STATUS_CHOICES = (
         (PROCESSING_STATUS_DRAFT, "Draft"),
         (PROCESSING_STATUS_DISCARDED, "Discarded"),
         (PROCESSING_STATUS_ACTIVE, "Active"),
         (PROCESSING_STATUS_HISTORICAL, "Historical"),
-        (PROCESSING_STATUS_TO_BE_SPLIT, "To Be Split"),
-        (PROCESSING_STATUS_TO_BE_COMBINED, "To Be Combined"),
-        (PROCESSING_STATUS_TO_BE_RENAMED, "To Be Renamed"),
     )
     # RELATED_ITEM_CHOICES = [('species', 'Species'), ('conservation_status', 'Conservation Status')]
     RELATED_ITEM_CHOICES = [("conservation_status", "Conservation Status")]
 
     community_number = models.CharField(max_length=9, blank=True, default="")
+    renamed_from = models.ForeignKey(
+        "self", on_delete=models.PROTECT, null=True, blank=True
+    )
     group_type = models.ForeignKey(GroupType, on_delete=models.CASCADE)
     species = models.ManyToManyField(Species, blank=True)
     regions = models.ManyToManyField(
@@ -1315,7 +1303,7 @@ class Community(RevisionedMixin):
             return False
         else:
             return True
-        
+
     def can_user_save(self, request):
         user_closed_state = [
             Species.PROCESSING_STATUS_HISTORICAL,
@@ -1323,19 +1311,17 @@ class Community(RevisionedMixin):
         ]
 
         if self.processing_status in user_closed_state:
-           return False
+            return False
 
         return is_species_communities_approver(request) or request.user.is_superuser
-    
+
     def can_user_submit(self, request):
-        user_submissable_state = [
-            Species.PROCESSING_STATUS_DRAFT
-        ]
+        user_submissable_state = [Species.PROCESSING_STATUS_DRAFT]
 
         if not self.can_user_save(request):
             return False
 
-        if not self.processing_status in user_submissable_state:
+        if self.processing_status not in user_submissable_state:
             return False
 
         return is_species_communities_approver(request) or request.user.is_superuser
@@ -1363,7 +1349,6 @@ class Community(RevisionedMixin):
         recipients = []
         group_ids = member_ids(GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
         for id in group_ids:
-            logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
@@ -1708,6 +1693,83 @@ class Community(RevisionedMixin):
 
         return round(self.area_occurrence_convex_hull_m2 / 1000000, 5)
 
+    @transaction.atomic
+    def copy_for_rename(self, request):
+        if not self.processing_status == Community.PROCESSING_STATUS_ACTIVE:
+            raise ValidationError("You cannot rename a community that is not active")
+
+        if not is_species_communities_approver(request):
+            raise ValidationError(
+                "You cannot rename a community unless you are a species communities approver"
+            )
+
+        # Create a new community with appropriate values overridden
+        new_community = Community.objects.get(pk=self.pk)
+        new_community.pk = None
+        new_community.community_number = ""
+        new_community.processing_status = Community.PROCESSING_STATUS_DRAFT
+        new_community.renamed_from_id = self.id
+        new_community.save(version_user=request.user)
+
+        new_community.regions.add(*self.regions.all())
+        new_community.districts.add(*self.districts.all())
+
+        # Copy the community distribution
+        new_community_distribution = CommunityDistribution.objects.filter(
+            community=self
+        ).first()
+        new_community_distribution.pk = None
+        new_community_distribution.community = new_community
+        new_community_distribution.save()
+
+        for new_document in self.community_documents.all():
+            new_doc_instance = new_document
+            new_doc_instance.community = new_community
+            new_doc_instance.id = None
+            new_doc_instance.document_number = ""
+            new_doc_instance.can_delete = True
+            new_doc_instance.save(version_user=request.user)
+            new_doc_instance.community.log_user_action(
+                SpeciesUserAction.ACTION_ADD_DOCUMENT.format(
+                    new_doc_instance.document_number,
+                    new_doc_instance.community.community_number,
+                ),
+                request,
+            )
+            request.user.log_user_action(
+                SpeciesUserAction.ACTION_ADD_DOCUMENT.format(
+                    new_doc_instance.document_number,
+                    new_doc_instance.community.community_number,
+                ),
+                request,
+            )
+
+        for new_threat in self.community_threats.all():
+            new_threat_instance = new_threat
+            new_threat_instance.community = new_community
+            new_threat_instance.id = None
+            new_threat_instance.threat_number = ""
+            new_threat_instance.save(version_user=request.user)
+            new_threat_instance.community.log_user_action(
+                SpeciesUserAction.ACTION_ADD_THREAT.format(
+                    new_threat_instance.threat_number,
+                    new_threat_instance.community.community_number,
+                ),
+                request,
+            )
+            request.user.log_user_action(
+                SpeciesUserAction.ACTION_ADD_THREAT.format(
+                    new_threat_instance.threat_number,
+                    new_threat_instance.community.community_number,
+                ),
+                request,
+            )
+
+        self.processing_status = Community.PROCESSING_STATUS_HISTORICAL
+        self.save(version_user=request.user)
+
+        return new_community
+
 
 class CommunityTaxonomy(models.Model):
     """
@@ -1784,9 +1846,13 @@ class CommunityUserAction(UserAction):
     ACTION_REINSTATE_COMMUNITY = "Reinstate Community {}"
     ACTION_CREATE_COMMUNITY = "Create new community {}"
     ACTION_SAVE_COMMUNITY = "Save Community {}"
+    ACTION_RENAME_COMMUNITY = "Community {} renamed to {}"
     ACTION_IMAGE_UPDATE = "Community Image document updated for Community {}"
     ACTION_IMAGE_DELETE = "Community Image document deleted for Community {}"
     ACTION_IMAGE_REINSTATE = "Community Image document reinstated for Community {}"
+    ACTION_CREATED_FROM_RENAME_COMMUNITY = (
+        "New Community {} created by renaming Community {}"
+    )
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} uploaded for Community {}"

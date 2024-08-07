@@ -471,9 +471,12 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
 
 
 class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
-
     land_form = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
+    )
+    soil_type = serializers.CharField(source="soil_type.name", allow_null=True)
+    soil_condition = serializers.CharField(
+        source="soil_condition.name", allow_null=True
     )
 
     class Meta:
@@ -485,8 +488,10 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
             "rock_type_id",
             "loose_rock_percent",
             "soil_type_id",
+            "soil_type",
             "soil_colour_id",
             "soil_condition_id",
+            "soil_condition",
             "drainage_id",
             "water_quality",
             "habitat_notes",
@@ -1270,7 +1275,6 @@ class OccurrenceReportProposalReferralSerializer(serializers.ModelSerializer):
     def get_referral(self, obj):
         referral_email_user = retrieve_email_user(obj.referral)
         # Use a serializer that removes the email address (for privacy)
-        # TODO: In the process of being confirmed with business
         serializer = LimitedEmailUserSerializer(referral_email_user)
         return serializer.data
 
@@ -2487,6 +2491,10 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
         choices=[], allow_null=True, allow_blank=True, required=False
     )
     copied_ocr = serializers.SerializerMethodField()
+    soil_type = serializers.CharField(source="soil_type.name", allow_null=True)
+    soil_condition = serializers.CharField(
+        source="soil_condition.name", allow_null=True
+    )
 
     class Meta:
         model = OCCHabitatComposition
@@ -2498,8 +2506,10 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
             "rock_type_id",
             "loose_rock_percent",
             "soil_type_id",
+            "soil_type",
             "soil_colour_id",
             "soil_condition_id",
+            "soil_condition",
             "drainage_id",
             "water_quality",
             "habitat_notes",
@@ -3389,7 +3399,10 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
 
     def get_vesting(self, obj):
         if obj.vesting:
-            return obj.vesting.code
+            if obj.vesting.code:
+                return obj.vesting.code
+            else:
+                return "No Code Entered"
         return None
 
     def get_featureid(self, obj):
@@ -3397,7 +3410,10 @@ class BaseOccurrenceTenureSerializer(serializers.ModelSerializer):
 
     def get_purpose(self, obj):
         if obj.purpose:
-            return obj.purpose.code
+            if obj.purpose.code:
+                return obj.purpose.code
+            else:
+                return "No Code Entered"
         return None
 
 

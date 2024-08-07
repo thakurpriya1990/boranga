@@ -4,7 +4,9 @@
         Species {{ species_proposal.species_number }} has been renamed. You can review the historical and new Species Profiles at:
         Historical: {{species_url}} {{ species_proposal.species_number }} - {{ species_proposal.taxonomy.scientific_name }}
         New: {{new_species_url}} {{ new_species.species_number }} - {{ new_species.taxonomy.scientific_name }}
-        Please action for related Conservation Status here {{conservation_status_url}}
+        {% if conservation_status_url %}
+            Please action the related Conservation Status here {{conservation_status_url}}
+        {% endif %}
         {% if occurrences_url %}
             To action related Occurrences:
             {% for occ in occurrences_url %}

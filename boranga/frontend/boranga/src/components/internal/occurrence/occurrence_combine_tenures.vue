@@ -30,7 +30,7 @@ export default {
         return{
             panelBody: "tenure-combine-select-"+vm._uid,
             checkedTenureNames: [],
-            tenures_headers:["Occurrence", "Feature Id", "Status", "Vesting", "Purpose", "Signif. to OCC", "Comments", "Owner's Name", "Updated", "Action"],
+            tenures_headers:["Occurrence", "Feature Id", "Status", "Vesting", "Purpose", "Signif. to OCC", "Comments", "Owner/Manager", "Updated", "Action"],
             tenures_options:{
                 autowidth: true,
                 language:{
@@ -131,7 +131,7 @@ export default {
     },
     methods: {
         getSelectedTenureNames: function () {
-            let vm=this;   
+            let vm=this;
             let names = []
             vm.selectedTenures.forEach(tenure => {
                 if (vm.combineTenureIds.includes(tenure.id) && !names.includes(tenure.featureid)) {
@@ -145,17 +145,17 @@ export default {
             helpers.enablePopovers();
         },
         removeTenure: function(id) {
-            let vm=this;   
+            let vm=this;
             vm.combineTenureIds.splice(vm.combineTenureIds.indexOf(id), 1);
             vm.getSelectedTenureNames();
-        }, 
+        },
         addTenure: function(id) {
-            let vm=this;   
+            let vm=this;
             vm.combineTenureIds.push(id);
             vm.getSelectedTenureNames();
-        }, 
+        },
         addEventListeners:function (){
-            let vm=this;     
+            let vm=this;
 
             vm.$refs.tenures_datatable.vmDataTable.on('change', 'input[data-tenure-checkbox]', function(e) {
                 e.preventDefault();
@@ -164,7 +164,7 @@ export default {
                     vm.addTenure(id);
                     vm.selectedTenures.forEach(tenure=> {
                         let checkbox = vm.$refs.tenures_datatable.vmDataTable.$("#"+tenure.id);
-                        if (id != checkbox.attr('data-tenure-checkbox') 
+                        if (id != checkbox.attr('data-tenure-checkbox')
                             && checkbox.attr('tenure-feature-id') == $(this).attr('tenure-feature-id')
                             && (checkbox.attr('tenure-status') == "Current" && $(this).attr('tenure-status') == "Current")
                         ) {
@@ -175,7 +175,7 @@ export default {
                     vm.removeTenure(id);
                     vm.selectedTenures.forEach(tenure=> {
                         let checkbox = vm.$refs.tenures_datatable.vmDataTable.$("#"+tenure.id);
-                        if (id != checkbox.attr('data-tenure-checkbox') 
+                        if (id != checkbox.attr('data-tenure-checkbox')
                             && checkbox.attr('tenure-feature-id') == $(this).attr('tenure-feature-id')
                             && (checkbox.attr('tenure-status') == "Current" && $(this).attr('tenure-status') == "Current")
                         ) {
@@ -193,11 +193,11 @@ export default {
         }
     },
     created: function(){
-        let vm = this;    
+        let vm = this;
         vm.getSelectedTenureNames();
     },
     mounted: function(){
-        let vm = this;    
+        let vm = this;
         this.$nextTick(() => {
             vm.addEventListeners();
         });

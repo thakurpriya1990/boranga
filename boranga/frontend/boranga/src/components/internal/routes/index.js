@@ -110,18 +110,8 @@ export default
                 children: [
                     {
                         path: ':species_community_id',
-                        component: {
-                            render(c) {
-                                return c('router-view')
-                            },
-                        },
-                        children: [
-                            {
-                                path: '/',
-                                component: SpeciesCommunities,
-                                name: "internal-species-communities"
-                            },
-                        ]
+                        component: SpeciesCommunities,
+                        name: "internal-species-communities"
                     },
                 ]
             },

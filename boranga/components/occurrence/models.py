@@ -252,6 +252,9 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     occurrence_report_number = models.CharField(max_length=9, blank=True, default="")
 
+    # Field to use when importing data from the legacy system
+    migrated_from_id = models.CharField(max_length=50, blank=True, default="")
+
     observation_date = models.DateTimeField(null=True, blank=True)
     reported_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     submitter_information = models.OneToOneField(
@@ -503,7 +506,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         recipients = []
         group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR)
         for id in group_ids:
-            logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
@@ -512,7 +514,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         recipients = []
         group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER)
         for id in group_ids:
-            logger.info(id)
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
 
@@ -1471,9 +1472,6 @@ class OccurrenceReportReferral(models.Model):
             processing_status=OccurrenceReportReferral.PROCESSING_STATUS_WITH_REFERRAL,
         ).exists()
 
-    def can_process(self, user):
-        return True  # TODO: implement
-
     @property
     def referral_as_email_user(self):
         return retrieve_email_user(self.referral)
@@ -2061,7 +2059,7 @@ class RockType(models.Model):
         return str(self.name)
 
 
-class SoilType(models.Model):
+class SoilType(ArchivableModel):
     """
     # Admin List
 
@@ -2124,7 +2122,7 @@ class Drainage(models.Model):
         return str(self.name)
 
 
-class SoilCondition(models.Model):
+class SoilCondition(ArchivableModel):
     """
     # Admin List
 
@@ -3117,6 +3115,10 @@ class Occurrence(RevisionedMixin):
 
     objects = OccurrenceManager()
     occurrence_number = models.CharField(max_length=9, blank=True, default="")
+
+    # Field to use when importing data from the legacy system
+    migrated_from_id = models.CharField(max_length=50, blank=True, default="")
+
     occurrence_name = models.CharField(
         max_length=250, blank=True, null=True, unique=True
     )
@@ -3261,7 +3263,6 @@ class Occurrence(RevisionedMixin):
             raise ValidationError("Occurrence not Active, cannot be combined to")
 
         occ_combine_data = json.loads(request.POST.get("data"))
-        # print(occ_combine_data)
 
         # OCCs being combined must not be discarded or historical
         combine_occurrences = Occurrence.objects.exclude(id=self.id).filter(
@@ -3310,7 +3311,6 @@ class Occurrence(RevisionedMixin):
         # assess and assign form values
         for key in FORM_KEYS:
             if key in occ_combine_data and occ_combine_data[key] != self.id:
-                # print("set", key, "to that in OCC", occ_combine_data[key])
                 try:  # handle in case somehow the combined occurrence record does not exist
                     setattr(
                         self,
@@ -3318,12 +3318,11 @@ class Occurrence(RevisionedMixin):
                         getattr(combine_occurrences.get(id=occ_combine_data[key]), key),
                     )
                 except Exception as e:
-                    print(e)
+                    logger.exception(e)
 
         # assess and copy section values
         for key in SECTION_KEYS:
             if key in occ_combine_data and occ_combine_data[key] != self.id:
-                # print("copy", key, "from OCC", occ_combine_data[key])
                 try:  # handle in case somehow the combined occurrence record does not exist
                     # or does not have the specified section
                     src_section = getattr(
@@ -3347,15 +3346,13 @@ class Occurrence(RevisionedMixin):
                             else:
                                 value = getattr(src_section, i.name)
                                 setattr(section, i.name, value)
-                            # print(i.name," - ",value)
                     section.save()
                 except Exception as e:
-                    print(e)
+                    logger.exception(e)
 
         # assess and copy table values (contacts, documents, and sites)
         for key in COPY_TABLE_KEYS:
             if key in occ_combine_data:
-                # print("Copy",key,"with ids",occ_combine_data[key],"if not already in OCC")
                 for record in (
                     COPY_TABLE_KEYS[key]
                     .objects.filter(id__in=occ_combine_data[key])
@@ -3373,7 +3370,6 @@ class Occurrence(RevisionedMixin):
         # assess and move threat table values
         for key in MOVE_TABLE_KEYS:
             if key in occ_combine_data:
-                # print("Move",key,"with ids",occ_combine_data[key],"if not already in OCC")
                 for record in (
                     MOVE_TABLE_KEYS[key]
                     .objects.filter(id__in=occ_combine_data[key])

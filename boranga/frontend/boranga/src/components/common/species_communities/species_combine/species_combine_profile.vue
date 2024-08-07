@@ -299,7 +299,7 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Habitat/Growth Form:</label>
                 <div class="col-sm-8">
-                    <textarea :disabled="isReadOnly" type="text" class="form-control"
+                <textarea :disabled="isReadOnly" type="text" class="form-control"
                     id="habitat_new" placeholder="" v-model="species_community.conservation_attributes.habitat_growth_form" />
                 </div>
             </div>
@@ -1509,6 +1509,7 @@ export default {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.species_community.taxonomy_id = data
+                    vm.species_community.taxonomy_details = e.params.data;
                     vm.species_display = e.params.data.scientific_name;
                     vm.common_name = e.params.data.common_name;
                     vm.taxon_name_id = e.params.data.taxon_name_id;
@@ -1518,8 +1519,6 @@ export default {
                     vm.genus = e.params.data.genera_name;
                     vm.name_authority = e.params.data.name_authority;
                     vm.name_comments = e.params.data.name_comments;
-                    // vm.filterFloraScientificName = data;
-                    // sessionStorage.setItem("filterFloraScientificNameText", e.params.data.text);
                 }).
                 on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);

@@ -32,6 +32,13 @@
                                             @click.prevent="addSpecies"><i class="bi bi-window-plus"></i> Add Another
                                             Species</a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="finalise-split" data-bs-toggle="pill"
+                                            href="#finalise-split-tab-pane" role="tab"
+                                            aria-controls="finalise-split-tab-pane" aria-selected="false"><i
+                                                class="bi bi-check2-circle"></i>
+                                            Finalise Split</a>
+                                    </li>
                                 </ul>
                                 <div class="tab-content border p-3" id="split-pills-tabContent">
                                     <!-- the fade show active was creating the problem of rendering two thing on tab -->
@@ -54,6 +61,49 @@
                                             :is_internal="true">
                                         </SpeciesSplitForm>
                                     </div>
+                                    <div v-if="species_community_original && new_species_list && new_species_list.length > 0"
+                                        class="tab-pane" id="finalise-split-tab-pane" role="tabpanel"
+                                        aria-labelledby="finalise-split">
+                                        <p class="border-bottom mb-3 pb-3">Add in some help text for users here</p>
+
+                                        <p>
+                                            You are about to split the following species:
+                                        </p>
+
+                                        <div class="border-bottom mb-3 pb-3">
+                                            <span class="badge bg-light text-primary text-capitalize border p-2 fs-6">{{
+                                                species_community_original.species_number }} <template
+                                                    v-if="species_community_original.taxonomy_details.scientific_name">-
+                                                    {{
+                                                        species_community_original.taxonomy_details.scientific_name
+                                                    }}</template></span>
+                                        </div>
+
+                                        <p>
+                                            Into the new species:
+                                        </p>
+
+                                        <ul class="mb-3">
+                                            <li v-for="(species, index) in new_species_list" :key="species.id"
+                                                class="text-secondary mb-3">
+                                                <span
+                                                    class="badge bg-light text-primary text-capitalize border p-2 fs-6 me-2">{{
+                                                        species.species_number }} <template
+                                                        v-if="species.taxonomy_details && species.taxonomy_details.scientific_name">-
+                                                        {{
+                                                            species.taxonomy_details.scientific_name }}</template>
+                                                </span>
+                                            </li>
+                                        </ul>
+
+                                        <button class="button btn btn-primary" @click.prevent="ok()"
+                                            :disabled="finalise_split_loading"><i class="bi bi-check2-circle"></i>
+                                            Finalise
+                                            Split <template v-if="finalise_split_loading"><span
+                                                    class="spinner-border spinner-border-sm" role="status"
+                                                    aria-hidden="true"></span>
+                                                <span class="visually-hidden">Loading...</span></template></button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -62,12 +112,6 @@
             </div>
             <div slot="footer">
                 <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
-                <button v-if="submitSpeciesSplit" class="btn btn-primary pull-right" style="margin-top:5px;"
-                    disabled>Submit <span class="spinner-border spinner-border-sm" role="status"
-                        aria-hidden="true"></span>
-                    <span class="visually-hidden">Loading...</span></button>
-                <button v-else class="btn btn-primary" @click.prevent="ok()"
-                    :disabled="submitSpeciesSplit">Submit</button>
             </div>
         </modal>
     </div>
@@ -108,6 +152,7 @@ export default {
             species_community_original: null,
             submitSpeciesSplit: false,
             isModalOpen: false,
+            finalise_split_loading: false,
             new_species_list: [],
             form: null,
             errors: false,
@@ -182,16 +227,16 @@ export default {
             let blank_fields = []
             for (let index = 0; index < vm.new_species_list.length; index++) {
                 if (vm.new_species_list[index].taxonomy_id == null || vm.new_species_list[index].taxonomy_id == '') {
-                    blank_fields.push('Species ' + vm.new_species_list[index].species_number + ' Scientific Name is missing')
+                    blank_fields.push(' Species ' + vm.new_species_list[index].species_number + ' Scientific Name is missing')
                 }
                 if (vm.new_species_list[index].distribution.distribution == null || vm.new_species_list[index].distribution.distribution == '') {
-                    blank_fields.push('Distribution is missing')
+                    blank_fields.push(' Species ' + vm.new_species_list[index].species_number + ' Distribution is missing')
                 }
                 if (vm.new_species_list[index].regions == null || vm.new_species_list[index].regions == '' || vm.new_species_list[index].regions.length == 0) {
-                    blank_fields.push('Region is missing')
+                    blank_fields.push(' Species ' + vm.new_species_list[index].species_number + ' Region is missing')
                 }
                 if (vm.new_species_list[index].districts == null || vm.new_species_list[index].districts == '' || vm.new_species_list[index].districts.length == 0) {
-                    blank_fields.push('District is missing')
+                    blank_fields.push(' Species ' + vm.new_species_list[index].species_number + ' District is missing')
                 }
             }
             if (blank_fields.length == 0) {
@@ -231,6 +276,7 @@ export default {
                 reverseButtons: true,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
+                    vm.finalise_split_loading = true;
                     for (let index = 0; index < vm.new_species_list.length; index++) {
                         let new_species = vm.new_species_list[index]
                         //-- save new species before submit
@@ -381,10 +427,12 @@ export default {
         });
     },
     updated: function () {
-        //  to show the the added species active i.e the last Tab
-        var lastTabEl = document.querySelector('#split-pills-tab li:nth-last-child(2) a')
-        var lastTab = new bootstrap.Tab(lastTabEl)
-        lastTab.show();
+        if (!this.finalise_split_loading) {
+            //  to show the the added species active i.e the last Tab
+            var lastTabEl = document.querySelector('#split-pills-tab li:nth-last-child(3) a')
+            var lastTab = new bootstrap.Tab(lastTabEl)
+            lastTab.show();
+        }
     },
 }
 </script>

@@ -24,11 +24,11 @@
                                             <td scope="row" class="fw-bold">Email</td>
                                             <td>{{ profile.email }}</td>
                                         </tr>
-                                        <tr>
+                                        <tr v-if="profile.phone_number">
                                             <td scope="row" class="fw-bold">Phone Number</td>
                                             <td>{{ profile.phone_number }}</td>
                                         </tr>
-                                        <tr>
+                                        <tr v-if="profile.mobile_number">
                                             <td scope="row" class="fw-bold">Mobile</td>
                                             <td>{{ profile.mobile_number }}</td>
                                         </tr>

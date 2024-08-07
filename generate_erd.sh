@@ -1,9 +1,9 @@
 #!/bin/bash
 
-timestamp=$(date +%s)
+timestamp=$(date '+%Y%m%d%H%M%S')
 project=boranga
 output_folder=diagrams/erd
-filename=$project$timestamp
+filename=$project-erd-$timestamp
 
 echo "Generating ERD for $project"
 
