@@ -2950,7 +2950,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                     }
                 )
         potential_threat_onset_lists = []
-        potential_threats = PotentialThreatOnset.objects.all()
+        potential_threats = PotentialThreatOnset.objects.active()
         if potential_threats:
             for choice in potential_threats:
                 potential_threat_onset_lists.append(
