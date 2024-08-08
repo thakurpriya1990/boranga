@@ -2361,7 +2361,7 @@ class OCRAssociatedSpecies(models.Model):
         return str(self.occurrence_report)
 
 
-class ObservationMethod(models.Model):
+class ObservationMethod(ArchivableModel):
     """
     # Admin List
 
