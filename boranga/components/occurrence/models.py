@@ -1702,7 +1702,7 @@ class CoordinateSource(ArchivableModel):
         return str(self.name)
 
 
-class LocationAccuracy(models.Model):
+class LocationAccuracy(ArchivableModel):
     """
     # Admin List
 
