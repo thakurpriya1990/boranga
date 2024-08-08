@@ -945,8 +945,13 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
     elif "GetFeature" in params.get("request", []):
         # GetFeature request for feature querying
         layers = params.get("typename", [])
+    elif "GetCapabilities" in params.get("request", []):
+        # GetCapabilities request for layer information
+        layers = []
+        if params.get("service", [""])[0] in ["WMS", "WMTS"]:
+            layer_allowed = True
     else:
-        # Note: possibly add support for other request types if needed, like GetFeatureInfo, GetCapabilities
+        # Note: possibly add support for other request types if needed, like GetFeatureInfo
         raise Http404(f"Request {params.get('request')} not supported")
 
     if any(cts["layer_name"].split(":")[-1] in layers for cts in cache_times_strings):

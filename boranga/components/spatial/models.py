@@ -25,9 +25,25 @@ class GeoserverUrl(models.Model):
 
 
 class TileLayer(models.Model):
-    geoserver_url = models.ForeignKey(
-        GeoserverUrl, on_delete=models.CASCADE, null=False, blank=False
+    SERVICE_WMS = "wms"
+    SERVICE_WMTS = "wmts"
+    SERVICE_CHOICES = (
+        (SERVICE_WMS, "WMS"),
+        (SERVICE_WMTS, "WMTS"),
     )
+    service = models.CharField(
+        max_length=10, choices=SERVICE_CHOICES, default=SERVICE_WMS
+    )
+    geoserver_url = models.ForeignKey(
+        GeoserverUrl,
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
+        related_name="tile_layers",
+    )
+    is_capabilities_url = models.BooleanField(
+        default=False
+    )  # Whether the layer is a capabilities URL
     layer_name = models.CharField(
         max_length=255, unique=True, null=False, blank=False
     )  # Name of the layer in Geoserver
@@ -71,6 +87,12 @@ class TileLayer(models.Model):
     invert_xy = models.BooleanField(
         default=False
     )  # Whether the x and y coordinates should be inverted
+    matrix_set = models.CharField(
+        max_length=255, blank=True
+    )  # Matrix set for WMTS layers
+    tile_pixel_size = models.PositiveIntegerField(
+        default=256, null=False, blank=False
+    )  # Tile pixel size for WMTS layers
 
     class Meta:
         app_label = "boranga"
