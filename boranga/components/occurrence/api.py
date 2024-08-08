@@ -1018,7 +1018,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         intensity_list = []
-        intensities = Intensity.objects.all()
+        intensities = Intensity.objects.active()
         if intensities:
             for val in intensities:
                 intensity_list.append(
@@ -5067,7 +5067,7 @@ class OccurrenceViewSet(
                     }
                 )
         intensity_list = []
-        intensities = Intensity.objects.all()
+        intensities = Intensity.objects.active()
         if intensities:
             for val in intensities:
                 intensity_list.append(

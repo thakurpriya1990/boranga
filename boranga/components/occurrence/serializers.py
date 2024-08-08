@@ -551,6 +551,7 @@ class OCRVegetationStructureSerializer(serializers.ModelSerializer):
 
 class OCRFireHistorySerializer(serializers.ModelSerializer):
     last_fire_estimate = serializers.DateField(format="%Y-%m")
+    intensity = serializers.CharField(source="intensity.name", allow_null=True)
 
     class Meta:
         model = OCRFireHistory
@@ -559,6 +560,7 @@ class OCRFireHistorySerializer(serializers.ModelSerializer):
             "occurrence_report_id",
             "last_fire_estimate",
             "intensity_id",
+            "intensity",
             "comment",
         )
 
@@ -2661,6 +2663,7 @@ class SaveOCCVegetationStructureSerializer(serializers.ModelSerializer):
 class OCCFireHistorySerializer(serializers.ModelSerializer):
     last_fire_estimate = serializers.DateField(format="%Y-%m")
     copied_ocr = serializers.SerializerMethodField()
+    intensity = serializers.CharField(source="intensity.name", allow_null=True)
 
     class Meta:
         model = OCCFireHistory
@@ -2670,6 +2673,7 @@ class OCCFireHistorySerializer(serializers.ModelSerializer):
             "copied_ocr",
             "last_fire_estimate",
             "intensity_id",
+            "intensity",
             "comment",
         )
 

@@ -18,7 +18,8 @@
                     <template v-if="!isReadOnly">
                         <template
                             v-if="rock_type_list && rock_type_list.length > 0 && occurrence_obj.habitat_composition.rock_type_id && !rock_type_list.map((d) => d.id).includes(occurrence_obj.habitat_composition.rock_type_id)">
-                            <input type="text" v-if="occurrence_obj.habitat_composition.rock_type" class="form-control mb-3"
+                            <input type="text" v-if="occurrence_obj.habitat_composition.rock_type"
+                                class="form-control mb-3"
                                 :value="occurrence_obj.habitat_composition.rock_type + ' (Now Archived)'" disabled />
                             <div class="mb-3 text-muted">
                                 Change rock type to:
@@ -31,7 +32,8 @@
                         </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="occurrence_obj.habitat_composition.rock_type" />
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_obj.habitat_composition.rock_type" />
                     </template>
                 </div>
             </div>
@@ -48,7 +50,8 @@
                     <template v-if="!isReadOnly">
                         <template
                             v-if="soil_type_list && soil_type_list.length > 0 && occurrence_obj.habitat_composition.soil_type_id && !soil_type_list.map((d) => d.id).includes(occurrence_obj.habitat_composition.soil_type_id)">
-                            <input type="text" v-if="occurrence_obj.habitat_composition.soil_type" class="form-control mb-3"
+                            <input type="text" v-if="occurrence_obj.habitat_composition.soil_type"
+                                class="form-control mb-3"
                                 :value="occurrence_obj.habitat_composition.soil_type + ' (Now Archived)'" disabled />
                             <div class="mb-3 text-muted">
                                 Change soil type to:
@@ -61,7 +64,8 @@
                         </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="occurrence_obj.habitat_composition.soil_type" />
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_obj.habitat_composition.soil_type" />
                     </template>
                 </div>
             </div>
@@ -71,20 +75,23 @@
                     <template v-if="!isReadOnly">
                         <template
                             v-if="soil_colour_list && soil_colour_list.length > 0 && occurrence_obj.habitat_composition.soil_colour_id && !soil_colour_list.map((d) => d.id).includes(occurrence_obj.habitat_composition.soil_colour_id)">
-                            <input colour="text" v-if="occurrence_obj.habitat_composition.soil_colour" class="form-control mb-3"
+                            <input colour="text" v-if="occurrence_obj.habitat_composition.soil_colour"
+                                class="form-control mb-3"
                                 :value="occurrence_obj.habitat_composition.soil_colour + ' (Now Archived)'" disabled />
                             <div class="mb-3 text-muted">
                                 Change soil colour to:
                             </div>
                         </template>
                         <select class="form-select" v-model="occurrence_obj.habitat_composition.soil_colour_id">
-                            <option v-for="soil_colour in soil_colour_list" :value="soil_colour.id" v-bind:key="soil_colour.id">
+                            <option v-for="soil_colour in soil_colour_list" :value="soil_colour.id"
+                                v-bind:key="soil_colour.id">
                                 {{ soil_colour.name }}
                             </option>
                         </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" colour="text" :disabled="isReadOnly" v-model="occurrence_obj.habitat_composition.soil_colour" />
+                        <input class="form-control" colour="text" :disabled="isReadOnly"
+                            v-model="occurrence_obj.habitat_composition.soil_colour" />
                     </template>
                 </div>
             </div>
@@ -94,20 +101,24 @@
                     <template v-if="!isReadOnly">
                         <template
                             v-if="soil_condition_list && soil_condition_list.length > 0 && occurrence_obj.habitat_composition.soil_condition_id && !soil_condition_list.map((d) => d.id).includes(occurrence_obj.habitat_composition.soil_condition_id)">
-                            <input type="text" v-if="occurrence_obj.habitat_composition.soil_condition" class="form-control mb-3"
-                                :value="occurrence_obj.habitat_composition.soil_condition + ' (Now Archived)'" disabled />
+                            <input type="text" v-if="occurrence_obj.habitat_composition.soil_condition"
+                                class="form-control mb-3"
+                                :value="occurrence_obj.habitat_composition.soil_condition + ' (Now Archived)'"
+                                disabled />
                             <div class="mb-3 text-muted">
                                 Change soil condition to:
                             </div>
                         </template>
                         <select class="form-select" v-model="occurrence_obj.habitat_composition.soil_condition_id">
-                            <option v-for="soil_condition in soil_condition_list" :value="soil_condition.id" v-bind:key="soil_condition.id">
+                            <option v-for="soil_condition in soil_condition_list" :value="soil_condition.id"
+                                v-bind:key="soil_condition.id">
                                 {{ soil_condition.name }}
                             </option>
                         </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="occurrence_obj.habitat_composition.soil_condition" />
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_obj.habitat_composition.soil_condition" />
                     </template>
                 </div>
             </div>
@@ -308,13 +319,25 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Intensity:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select"
-                        v-model="occurrence_obj.fire_history.intensity_id">
-                        <option v-for="option in intensity_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
-
+                    <template v-if="!isReadOnly">
+                        <template
+                            v-if="intensity_list && intensity_list.length > 0 && occurrence_obj.fire_history.intensity_id && !intensity_list.map((d) => d.id).includes(occurrence_obj.fire_history.intensity_id)">
+                            <input type="text" v-if="occurrence_obj.fire_history.intensity" class="form-control mb-3"
+                                :value="occurrence_obj.fire_history.intensity + ' (Now Archived)'" disabled />
+                            <div class="mb-3 text-muted">
+                                Change intensity to:
+                            </div>
+                        </template>
+                        <select class="form-select" v-model="occurrence_obj.fire_history.intensity_id">
+                            <option v-for="intensity in intensity_list" :value="intensity.id" v-bind:key="intensity.id">
+                                {{ intensity.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_obj.fire_history.intensity" />
+                    </template>
                 </div>
             </div>
             <div class="row mb-3">
