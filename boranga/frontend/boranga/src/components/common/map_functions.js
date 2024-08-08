@@ -588,9 +588,6 @@ const _helper = {
         return features;
     },
     tileLayerFromLayerDefinitions: function (layers) {
-        const projectionCode = 'EPSG:4326';
-        const projection = getProjection(projectionCode);
-        const projectionExtent = projection.getExtent();
         const tileLayers = [];
 
         for (let j in layers) {
@@ -620,6 +617,11 @@ const _helper = {
                     112.06055, -35.35322, 129.77051, -12.55456,
                 ];
                 const matrixSet = layer.matrix_set;
+                const projectionCode =
+                    matrixSet === 'gda94' ? 'EPSG:4326' : 'EPSG:3857';
+                const projection = getProjection(projectionCode);
+                const projectionExtent = projection.getExtent();
+
                 const tilePixelSize = layer.tile_pixel_size;
                 const resolutions = new Array(19);
                 // const resolutions = [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16]
@@ -628,7 +630,7 @@ const _helper = {
                 const matrixIds = new Array(19);
                 for (let z = 0; z <= 18; ++z) {
                     // generate resolutions and matrixIds arrays for this WMTS
-                    resolutions[z] = size / Math.pow(2, z + 1);
+                    resolutions[z] = size / Math.pow(2, z);
                     matrixIds[z] = `${matrixSet}:${z}`;
                 }
 
@@ -638,7 +640,7 @@ const _helper = {
                     projection: projectionCode,
                     wrapX: true,
                     tileGrid: new WMTSTileGrid({
-                        extent: layerExtent,
+                        // extent: layerExtent,
                         origin: getTopLeft(projectionExtent),
                         resolutions: resolutions,
                         matrixIds: matrixIds,
