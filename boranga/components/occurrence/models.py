@@ -2474,7 +2474,7 @@ class CountedSubject(models.Model):
         return str(self.name)
 
 
-class PlantCondition(models.Model):
+class PlantCondition(ArchivableModel):
     """
     # Admin List
 
