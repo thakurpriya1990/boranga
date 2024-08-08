@@ -125,7 +125,7 @@
                                                 </div>
                                             </template>
                                             <template v-else>
-                                                <div>There are no potential threat onset options available</div>
+                                                <div>There are no potential impact options available</div>
                                             </template>
                                         </template>
                                         <template v-else>
