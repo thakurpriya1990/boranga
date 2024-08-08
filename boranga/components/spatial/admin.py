@@ -151,24 +151,38 @@ class TileLayerAdmin(admin.ModelAdmin):
             None,
             {
                 "fields": (
-                    "display_title",
-                    "layer_name",
-                    "layer_title",
-                    "geoserver_url",
-                    "is_capabilities_url",
-                    "service",
-                    "is_satellite_background",
-                    "is_streets_background",
-                    "is_external",
-                    "is_internal",
-                    "visible",
-                    "min_zoom",
-                    "max_zoom",
-                    "active",
+                    (
+                        "display_title",
+                        "layer_name",
+                        "layer_title",
+                    ),
+                    (
+                        "geoserver_url",
+                        "service",
+                        "is_capabilities_url",
+                    ),
+                    (
+                        "matrix_set",
+                        "tile_pixel_size",
+                    ),
+                    (
+                        "active",
+                        "visible",
+                    ),
+                    (
+                        "is_satellite_background",
+                        "is_streets_background",
+                    ),
+                    (
+                        "is_external",
+                        "is_internal",
+                    ),
+                    (
+                        "min_zoom",
+                        "max_zoom",
+                    ),
                     "invert_xy",
                     "is_tenure_intersects_query_layer",
-                    "matrix_set",
-                    "tile_pixel_size",
                 )
             },
         ),
