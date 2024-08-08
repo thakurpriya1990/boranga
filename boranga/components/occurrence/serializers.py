@@ -2318,10 +2318,21 @@ class OccurrenceReportAmendmentRequestSerializer(serializers.ModelSerializer):
     amendment_request_documents = OccurrenceReportAmendmentRequestDocumentSerializer(
         many=True, read_only=True
     )
+    reason_text = serializers.CharField(source="reason.reason", read_only=True)
 
     class Meta:
         model = OccurrenceReportAmendmentRequest
-        fields = "__all__"
+        fields = [
+            "id",
+            "reason",
+            "reason_text",
+            "amendment_request_documents",
+            "subject",
+            "text",
+            "officer",
+            "status",
+            "occurrence_report",
+        ]
 
 
 class OCCConservationThreatSerializer(serializers.ModelSerializer):

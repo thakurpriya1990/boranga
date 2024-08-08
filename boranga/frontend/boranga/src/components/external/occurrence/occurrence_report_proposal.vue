@@ -12,7 +12,7 @@
                                 <li v-for="a in amendment_request"
                                     class="list-group-item d-flex justify-content-between align-items-start">
                                     <div class="ms-4 me-auto">
-                                        <div><span class="fw-bold">Reason:</span> {{ a.reason }}</div>
+                                        <div class="mb-3"><span class="fw-bold">Reason:</span> {{ a.reason_text }}</div>
                                         <p v-for="t in splitText(a.text)">{{ t }}</p>
                                         <template
                                             v-if="a.amendment_request_documents && a.amendment_request_documents.length > 0">
