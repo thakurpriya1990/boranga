@@ -681,6 +681,13 @@ const _helper = {
                     };
                 }
 
+                if (!wmtsLayerOptions) {
+                    console.error(
+                        'Error creating WMTS layer options for',
+                        layer
+                    );
+                    continue;
+                }
                 layerParams['source'] = new WMTS(wmtsLayerOptions);
             } else if (['wms'].includes(layerService)) {
                 let wmsLayerOptions;
@@ -746,6 +753,13 @@ const _helper = {
                     }
                 }
 
+                if (!wmsLayerOptions) {
+                    console.error(
+                        'Error creating WMS layer options for',
+                        layer
+                    );
+                    continue;
+                }
                 layerParams['source'] = new TileWMS(wmsLayerOptions);
             } else {
                 console.error('Unknown layer service type', layerService);
