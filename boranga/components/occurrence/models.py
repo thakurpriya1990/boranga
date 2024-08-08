@@ -2411,7 +2411,7 @@ class OCRObservationDetail(models.Model):
         return str(self.occurrence_report)
 
 
-class PlantCountMethod(models.Model):
+class PlantCountMethod(ArchivableModel):
     """
     # Admin List
 
