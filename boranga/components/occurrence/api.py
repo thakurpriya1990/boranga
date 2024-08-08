@@ -1235,7 +1235,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         plant_condition_list = []
-        values = PlantCondition.objects.all()
+        values = PlantCondition.objects.active()
         if values:
             for val in values:
                 plant_condition_list.append(
@@ -1395,7 +1395,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         plant_condition_list = []
-        values = PlantCondition.objects.all()
+        values = PlantCondition.objects.active()
         if values:
             for val in values:
                 plant_condition_list.append(
@@ -5136,7 +5136,7 @@ class OccurrenceViewSet(
                     }
                 )
         plant_condition_list = []
-        values = PlantCondition.objects.all()
+        values = PlantCondition.objects.active()
         if values:
             for val in values:
                 plant_condition_list.append(
@@ -5296,7 +5296,7 @@ class OccurrenceViewSet(
                     }
                 )
         plant_condition_list = []
-        values = PlantCondition.objects.all()
+        values = PlantCondition.objects.active()
         if values:
             for val in values:
                 plant_condition_list.append(

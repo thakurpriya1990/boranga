@@ -432,6 +432,10 @@ class PlantCountAccuracyAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdm
     list_display = ["name"]
 
 
+class PlantConditionAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, LandFormAdmin)
 admin.site.register(RockType, RockTypeAdmin)
@@ -445,7 +449,7 @@ admin.site.register(ObservationMethod, DeleteProtectedModelAdmin)
 admin.site.register(PlantCountMethod, PlantCountMethodAdmin)
 admin.site.register(PlantCountAccuracy, PlantCountAccuracyAdmin)
 admin.site.register(CountedSubject, DeleteProtectedModelAdmin)
-admin.site.register(PlantCondition, DeleteProtectedModelAdmin)
+admin.site.register(PlantCondition, PlantConditionAdmin)
 admin.site.register(PrimaryDetectionMethod, PrimaryDetectionMethodAdmin)
 admin.site.register(SecondarySign, SecondarySignAdmin)
 admin.site.register(ReproductiveState, ReproductiveStateAdmin)
