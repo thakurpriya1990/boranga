@@ -1,5 +1,5 @@
-// import WMSCapabilities from 'ol/format/WMSCapabilities';
 import TileWMS from 'ol/source/TileWMS';
+import WMSCapabilities from 'ol/format/WMSCapabilities';
 import WMTS, { optionsFromCapabilities } from 'ol/source/WMTS.js';
 import WMTSTileGrid from 'ol/tilegrid/WMTS.js';
 import WMTSCapabilities from 'ol/format/WMTSCapabilities.js';
@@ -16,10 +16,6 @@ import { booleanWithin } from '@turf/boolean-within';
 import { polygon, multiPolygon, featureCollection } from '@turf/helpers';
 import { area } from '@turf/area';
 import { intersect } from '@turf/intersect';
-
-// Tile server url
-// var urlKmi = `${env['gis_server_url']}/geoserver/public/wms/?SERVICE=WMS&VERSION=1.0.0&REQUEST=GetCapabilities`;
-// const urlKbBase = `${env['gis_server_url']}`;
 
 // Layer to use as map base layer
 export var baselayer_name = 'mapbox-streets';
@@ -624,6 +620,7 @@ const _helper = {
                 let wmtsLayerOptions;
 
                 if (isCapabilitiesUrl) {
+                    // WMTS from GetCapabilities
                     const parser = new WMTSCapabilities();
                     wmtsLayerOptions = await fetch(layer.geoserver_url)
                         .then(async function (response) {
@@ -651,13 +648,13 @@ const _helper = {
                             );
                         });
                 } else {
+                    // WMTS from layer definition directly
                     const projectionCode =
                         matrixSet === 'gda94' ? 'EPSG:4326' : 'EPSG:3857';
                     const projection = getProjection(projectionCode);
                     const projectionExtent = projection.getExtent();
 
                     const resolutions = new Array(19);
-                    // const resolutions = [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16]
                     const width = getWidth(projectionExtent); // 360
                     const size = width / tilePixelSize;
                     const matrixIds = new Array(19);
@@ -686,11 +683,51 @@ const _helper = {
 
                 layerParams['source'] = new WMTS(wmtsLayerOptions);
             } else if (['wms'].includes(layerService)) {
-                let wmtLayerOptions;
+                let wmsLayerOptions;
                 if (isCapabilitiesUrl) {
-                    console.error('WMS capabilities URL not supported');
+                    // WMS from GetCapabilities
+                    let parser = new WMSCapabilities();
+                    wmsLayerOptions = await fetch(layer.geoserver_url)
+                        .then(async function (response) {
+                            if (!response.ok) {
+                                return await response.text().then((json) => {
+                                    throw new Error(json);
+                                });
+                            }
+                            return response.text();
+                        })
+                        .then(function (text) {
+                            const result = parser.read(text);
+                            const options = result.Capability.Layer.Layer.find(
+                                (l) => l.Name === layer.layer_name
+                            );
+                            if (!options) {
+                                throw new Error(
+                                    `Layer ${layer.layer_name} not found in WMS capabilities`
+                                );
+                            }
+
+                            return {
+                                url: result.Capability.Request.GetMap.DCPType[0]
+                                    .HTTP.Get.OnlineResource,
+                                params: {
+                                    FORMAT: 'image/png',
+                                    VERSION: '1.1.1',
+                                    tiled: true,
+                                    STYLES: '',
+                                    LAYERS: `${layer.layer_name}`,
+                                },
+                            };
+                        })
+                        .catch(function (error) {
+                            console.error(
+                                'Error fetching WMS capabilities:',
+                                error
+                            );
+                        });
                 } else {
-                    wmtLayerOptions = {
+                    // WMS from layer definition directly
+                    wmsLayerOptions = {
                         url: layer.geoserver_url,
                         params: {
                             FORMAT: 'image/png',
@@ -705,11 +742,11 @@ const _helper = {
                     // E.g. info tool doesn't work without crossOrigin: 'anonymous', getting
                     // "Failed to execute 'getImageData' on 'CanvasRenderingContext2D': The canvas has been tainted by cross-origin data" at canvas/Layer.js::getImageData
                     if (!layer.geoserver_url.startsWith('/geoproxy/')) {
-                        wmtLayerOptions['crossOrigin'] = 'anonymous';
+                        wmsLayerOptions['crossOrigin'] = 'anonymous';
                     }
                 }
 
-                layerParams['source'] = new TileWMS(wmtLayerOptions);
+                layerParams['source'] = new TileWMS(wmsLayerOptions);
             } else {
                 console.error('Unknown layer service type', layerService);
                 continue;
