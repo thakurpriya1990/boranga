@@ -21,6 +21,7 @@ class TileLayerModelForm(forms.ModelForm):
             "layer_name": "The name of the layer in Geoserver",
             "layer_title": "The title of the layer",
             "geoserver_url": "The Geoserver URL to which the layer belongs",
+            "is_capabilities_url": "Whether the layer is a capabilities URL",
             "is_satellite_background": "Whether the layer is the satellite background layer (mutually exclusive with is_streets_background)",
             "is_streets_background": "Whether the layer is the streets background layer (mutually exclusive with is_satellite_background)",
             "is_external": "Whether the layer is available for external use",
@@ -31,8 +32,8 @@ class TileLayerModelForm(forms.ModelForm):
             "active": "Whether the layer is disabled and won't be used by the map component",
             "invert_xy": "Whether to invert the X and Y coordinates on when querying the layer",
             "is_tenure_intersects_query_layer": "Whether the layer is used for querying tenure intersects",
-            "matrix_set": "The matrix set for the layer",
-            "tile_pixel_size": "The tile pixel size for the layer",
+            "matrix_set": "The matrix set for the layer (for WMTS layers)",
+            "tile_pixel_size": "The tile pixel size for the layer (for WMTS layers)",
             "service": "The service type of the layer: WMS or WMTS",
         }
 
@@ -154,6 +155,7 @@ class TileLayerAdmin(admin.ModelAdmin):
                     "layer_name",
                     "layer_title",
                     "geoserver_url",
+                    "is_capabilities_url",
                     "service",
                     "is_satellite_background",
                     "is_streets_background",

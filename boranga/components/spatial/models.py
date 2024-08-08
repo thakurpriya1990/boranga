@@ -35,8 +35,15 @@ class TileLayer(models.Model):
         max_length=10, choices=SERVICE_CHOICES, default=SERVICE_WMS
     )
     geoserver_url = models.ForeignKey(
-        GeoserverUrl, on_delete=models.CASCADE, null=False, blank=False
+        GeoserverUrl,
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
+        related_name="tile_layers",
     )
+    is_capabilities_url = models.BooleanField(
+        default=False
+    )  # Whether the layer is a capabilities URL
     layer_name = models.CharField(
         max_length=255, unique=True, null=False, blank=False
     )  # Name of the layer in Geoserver
