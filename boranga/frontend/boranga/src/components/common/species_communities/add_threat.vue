@@ -71,8 +71,7 @@
                                     </div>
                                     <div class="col-sm-9">
                                         <textarea :disabled="isReadOnly" class="form-control"
-                                            v-model="threatObj.comment">
-        </textarea>
+                                            v-model="threatObj.comment"></textarea>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -99,17 +98,39 @@
                                         <label class="control-label pull-left">Potential Impact?</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <template v-if="potential_impact_list && potential_impact_list.length > 0">
-                                            <div v-for="option in potential_impact_list"
-                                                class="form-check form-check-inline">
-                                                <input :disabled="isReadOnly" type="radio" class="form-check-input"
-                                                    :value="option.id" :id="'potential_impact_' + option.id"
-                                                    v-bind:key="option.id" v-model="threatObj.potential_impact" />
-                                                <label :for="'potential_impact_' + option.id">{{ option.name }}</label>
-                                            </div>
+                                        <template v-if="!isReadOnly">
+                                            <template
+                                                v-if="potential_impact_list && potential_impact_list.length > 0 && threatObj.potential_impact && !potential_impact_list.map((d) => d.id).includes(threatObj.potential_impact)">
+                                                <input type="text" v-if="threatObj.potential_impact_name"
+                                                    class="form-control mb-3"
+                                                    :value="threatObj.potential_impact_name + ' (Now Archived)'"
+                                                    disabled />
+                                                <div class="mb-3 text-muted">
+                                                    Change potential impact to:
+                                                </div>
+                                            </template>
+                                            <template
+                                                v-if="potential_impact_list && potential_impact_list.length > 0">
+                                                <div v-for="potential_impact in potential_impact_list"
+                                                    class="form-check form-check-inline ">
+                                                    <input :disabled="isReadOnly" type="radio" class="form-check-input"
+                                                        :value="potential_impact.id"
+                                                        :id="'potential_impact_' + potential_impact.id"
+                                                        v-bind:key="potential_impact.id"
+                                                        v-model="threatObj.potential_impact" />
+                                                    <label
+                                                        :for="'potential_impact_' + potential_impact.id">{{
+                                                            potential_impact.name
+                                                        }}</label>
+                                                </div>
+                                            </template>
+                                            <template v-else>
+                                                <div>There are no potential threat onset options available</div>
+                                            </template>
                                         </template>
                                         <template v-else>
-                                            <div>There are no potential impact options available</div>
+                                            <input class="form-control" type="text" :disabled="isReadOnly"
+                                                v-model="threatObj.potential_impact_name" />
                                         </template>
                                     </div>
                                 </div>
@@ -134,10 +155,13 @@
                                                 <div v-for="potential_threat_onset in potential_threat_onset_list"
                                                     class="form-check form-check-inline ">
                                                     <input :disabled="isReadOnly" type="radio" class="form-check-input"
-                                                        :value="potential_threat_onset.id" :id="'potential_threat_onset_' + potential_threat_onset.id"
+                                                        :value="potential_threat_onset.id"
+                                                        :id="'potential_threat_onset_' + potential_threat_onset.id"
                                                         v-bind:key="potential_threat_onset.id"
                                                         v-model="threatObj.potential_threat_onset" />
-                                                    <label :for="'potential_threat_onset_' + potential_threat_onset.id">{{ potential_threat_onset.name
+                                                    <label
+                                                        :for="'potential_threat_onset_' + potential_threat_onset.id">{{
+                                                            potential_threat_onset.name
                                                         }}</label>
                                                 </div>
                                             </template>
@@ -326,7 +350,7 @@ export default {
                 name: null,
             });
         this.current_impact_list = threat_list_of_values_res.current_impact_lists;
-        this.potential_impact_list = threat_list_of_values_res.potential_impact_lists;
+        this.potential_impact_list = threat_list_of_values_res.active_potential_impact_lists;
         this.potential_threat_onset_list = threat_list_of_values_res.potential_threat_onset_lists;
         this.threat_agent_list = threat_list_of_values_res.threat_agent_lists;
         this.threat_agent_list.splice(0, 0,
