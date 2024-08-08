@@ -108,7 +108,8 @@ COPY --chown=oim:oim .git ./.git
 COPY --chown=oim:oim boranga ./boranga
 
 RUN python3.12 -m venv $VIRTUAL_ENV_PATH
-RUN $VIRTUAL_ENV_PATH/bin/pip3 install --no-cache-dir -r requirements.txt && \
+RUN $VIRTUAL_ENV_PATH/bin/pip3 install --upgrade pip && \
+    $VIRTUAL_ENV_PATH/bin/pip3 install --no-cache-dir -r requirements.txt && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
 # Libgeos patch. If not used when deploying to production then may be removed.
