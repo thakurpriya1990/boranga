@@ -2629,7 +2629,7 @@ class AmendmentRequestReasonChoicesView(views.APIView):
 
     def get(self, request, format=None):
         choices_list = []
-        choices = ProposalAmendmentReason.objects.all()
+        choices = ProposalAmendmentReason.objects.active()
         if choices:
             for c in choices:
                 choices_list.append({"key": c.id, "value": c.reason})

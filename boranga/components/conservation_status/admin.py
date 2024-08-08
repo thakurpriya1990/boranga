@@ -5,7 +5,9 @@ from boranga.components.conservation_status import models
 
 
 @admin.register(models.ProposalAmendmentReason)
-class ProposalAmendmentReasonAdmin(DeleteProtectedModelAdmin):
+class ProposalAmendmentReasonAdmin(
+    ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["reason"]
 
 
