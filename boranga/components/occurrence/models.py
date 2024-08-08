@@ -2570,7 +2570,7 @@ class OCRPlantCount(models.Model):
 
 
 # used for Animal Observation(MultipleSelect)
-class PrimaryDetectionMethod(models.Model):
+class PrimaryDetectionMethod(ArchivableModel):
     """
     # Admin List
 
