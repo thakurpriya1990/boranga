@@ -2184,7 +2184,7 @@ class CurrentImpact(models.Model):
         return str(self.name)
 
 
-class PotentialImpact(models.Model):
+class PotentialImpact(ArchivableModel):
     """
     # don't know the data yet
 
