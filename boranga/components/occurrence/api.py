@@ -1255,7 +1255,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.all()
+        values = PrimaryDetectionMethod.objects.active()
         if values:
             for val in values:
                 primary_detection_method_list.append(
@@ -1435,7 +1435,7 @@ class OccurrenceReportViewSet(
         """used for Occurrence Report external form"""
 
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.all()
+        values = PrimaryDetectionMethod.objects.active()
         if values:
             for val in values:
                 primary_detection_method_list.append(
@@ -5156,7 +5156,7 @@ class OccurrenceViewSet(
                     }
                 )
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.all()
+        values = PrimaryDetectionMethod.objects.active()
         if values:
             for val in values:
                 primary_detection_method_list.append(
@@ -5336,7 +5336,7 @@ class OccurrenceViewSet(
         """used for Occurrence Report external form"""
 
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.all()
+        values = PrimaryDetectionMethod.objects.active()
         if values:
             for val in values:
                 primary_detection_method_list.append(

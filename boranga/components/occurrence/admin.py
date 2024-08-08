@@ -418,6 +418,12 @@ class LandFormAdmin(DeleteProtectedModelAdmin):
     # more work on the frontend due to django-multiselectfield
 
 
+class PrimaryDetectionMethodAdmin(DeleteProtectedModelAdmin):
+    list_display = ["name"]
+    fields = ["name"]  # Not showing the archived field for now as requires
+    # more work on the frontend due to django-multiselectfield
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, LandFormAdmin)
 admin.site.register(RockType, RockTypeAdmin)
@@ -432,7 +438,7 @@ admin.site.register(PlantCountMethod, DeleteProtectedModelAdmin)
 admin.site.register(PlantCountAccuracy, DeleteProtectedModelAdmin)
 admin.site.register(CountedSubject, DeleteProtectedModelAdmin)
 admin.site.register(PlantCondition, DeleteProtectedModelAdmin)
-admin.site.register(PrimaryDetectionMethod, DeleteProtectedModelAdmin)
+admin.site.register(PrimaryDetectionMethod, PrimaryDetectionMethodAdmin)
 admin.site.register(SecondarySign, SecondarySignAdmin)
 admin.site.register(ReproductiveState, ReproductiveStateAdmin)
 admin.site.register(DeathReason, DeleteProtectedModelAdmin)
