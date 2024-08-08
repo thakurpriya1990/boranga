@@ -2204,7 +2204,7 @@ class PotentialImpact(models.Model):
         return str(self.name)
 
 
-class PotentialThreatOnset(models.Model):
+class PotentialThreatOnset(ArchivableModel):
     """
     # don't know the data yet
 
