@@ -590,6 +590,9 @@ class OCRObservationDetailSerializer(serializers.ModelSerializer):
 
 class OCRPlantCountSerializer(serializers.ModelSerializer):
     count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    plant_count_method = serializers.CharField(
+        source="plant_count_method.name", allow_null=True
+    )
 
     class Meta:
         model = OCRPlantCount
@@ -597,6 +600,7 @@ class OCRPlantCountSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_id",
             "plant_count_method_id",
+            "plant_count_method",
             "plant_count_accuracy_id",
             "counted_subject_id",
             "plant_condition_id",
@@ -2704,9 +2708,11 @@ class OCCObservationDetailSerializer(serializers.ModelSerializer):
 
 
 class OCCPlantCountSerializer(serializers.ModelSerializer):
-
     copied_ocr = serializers.SerializerMethodField()
     count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    plant_count_method = serializers.CharField(
+        source="plant_count_method.name", allow_null=True
+    )
 
     class Meta:
         model = OCCPlantCount
@@ -2715,6 +2721,7 @@ class OCCPlantCountSerializer(serializers.ModelSerializer):
             "occurrence_id",
             "copied_ocr",
             "plant_count_method_id",
+            "plant_count_method",
             "plant_count_accuracy_id",
             "counted_subject_id",
             "plant_condition_id",

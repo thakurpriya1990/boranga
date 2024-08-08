@@ -1215,7 +1215,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         plant_count_method_list = []
-        values = PlantCountMethod.objects.all()
+        values = PlantCountMethod.objects.active()
         if values:
             for val in values:
                 plant_count_method_list.append(
@@ -1375,7 +1375,7 @@ class OccurrenceReportViewSet(
         """used for Occurrence Report external form"""
 
         plant_count_method_list = []
-        values = PlantCountMethod.objects.all()
+        values = PlantCountMethod.objects.active()
         if values:
             for val in values:
                 plant_count_method_list.append(
@@ -5116,7 +5116,7 @@ class OccurrenceViewSet(
                     }
                 )
         plant_count_method_list = []
-        values = PlantCountMethod.objects.all()
+        values = PlantCountMethod.objects.active()
         if values:
             for val in values:
                 plant_count_method_list.append(
@@ -5276,7 +5276,7 @@ class OccurrenceViewSet(
         """used for Occurrence external form"""
 
         plant_count_method_list = []
-        values = PlantCountMethod.objects.all()
+        values = PlantCountMethod.objects.active()
         if values:
             for val in values:
                 plant_count_method_list.append(
