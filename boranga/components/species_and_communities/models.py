@@ -2436,7 +2436,7 @@ class RootMorphology(ArchivableModel):
         return str(self.name)
 
 
-class PostFireHabitatInteraction(models.Model):
+class PostFireHabitatInteraction(ArchivableModel):
     """
     # list derived from WACensus
 
