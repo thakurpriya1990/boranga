@@ -2284,7 +2284,7 @@ class OCRVegetationStructure(models.Model):
         return str(self.occurrence_report)
 
 
-class Intensity(models.Model):
+class Intensity(ArchivableModel):
     """
     # Admin List
 
