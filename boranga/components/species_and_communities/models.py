@@ -435,7 +435,7 @@ class Species(RevisionedMixin):
     lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True, blank=True)  # EmailUserRO
     # parents will the original species  from the split/combine functionality
-    parent_species = models.ManyToManyField("self", blank=True, related_name="parent")
+    parent_species = models.ManyToManyField("self", blank=True)
     comment = models.CharField(max_length=500, null=True, blank=True)
 
     class Meta:
