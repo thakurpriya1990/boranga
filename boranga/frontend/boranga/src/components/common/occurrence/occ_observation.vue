@@ -4,13 +4,25 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Observation Method:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select"
-                        v-model="occurrence_obj.observation_detail.observation_method_id">
-                        <option v-for="option in observation_method_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
-
+                    <template v-if="!isReadOnly">
+                        <template
+                            v-if="observation_method_list && observation_method_list.length > 0 && occurrence_obj.observation_detail.observation_method_id && !observation_method_list.map((d) => d.id).includes(occurrence_obj.observation_detail.observation_method_id)">
+                            <input type="text" v-if="occurrence_obj.observation_detail.observation_method" class="form-control mb-3"
+                                :value="occurrence_obj.observation_detail.observation_method + ' (Now Archived)'" disabled />
+                            <div class="mb-3 text-muted">
+                                Change observation method to:
+                            </div>
+                        </template>
+                        <select class="form-select" v-model="occurrence_obj.observation_detail.observation_method_id">
+                            <option v-for="observation_method in observation_method_list" :value="observation_method.id" v-bind:key="observation_method.id">
+                                {{ observation_method.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_obj.observation_detail.observation_method" />
+                    </template>
                 </div>
             </div>
             <div class="row mb-3">
@@ -40,8 +52,8 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateObservationDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary">Updating <span
-                        class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    <span class="visually-hidden">Loading...</span></button>
+                            class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="visually-hidden">Loading...</span></button>
                 </div>
             </div>
             <RelatedReports :isReadOnly="isReadOnly" :occurrence_obj=occurrence_obj :section_type="'observation_detail'"
@@ -93,21 +105,22 @@
                     <template v-if="!isReadOnly">
                         <template
                             v-if="sample_type_list && sample_type_list.length > 0 && occurrence_obj.identification.sample_type_id && !sample_type_list.map((d) => d.id).includes(occurrence_obj.identification.sample_type_id)">
-                            <input type="text" v-if="occurrence_obj.identification.sample_type" class="form-control mb-3"
+                            <input type="text" v-if="occurrence_obj.identification.sample_type"
+                                class="form-control mb-3"
                                 :value="occurrence_obj.identification.sample_type + ' (Now Archived)'" disabled />
                             <div class="mb-3 text-muted">
                                 Change sample type to:
                             </div>
                         </template>
-                        <select class="form-select"
-                        v-model="occurrence_obj.identification.sample_type_id">
-                        <option v-for="option in sample_type_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                        <select class="form-select" v-model="occurrence_obj.identification.sample_type_id">
+                            <option v-for="option in sample_type_list" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="occurrence_obj.identification.sample_type" />
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_obj.identification.sample_type" />
                     </template>
                 </div>
             </div>
@@ -117,21 +130,23 @@
                     <template v-if="!isReadOnly">
                         <template
                             v-if="sample_dest_list && sample_dest_list.length > 0 && occurrence_obj.identification.sample_destination_id && !sample_dest_list.map((d) => d.id).includes(occurrence_obj.identification.sample_destination_id)">
-                            <input type="text" v-if="occurrence_obj.identification.sample_destination" class="form-control mb-3"
-                                :value="occurrence_obj.identification.sample_destination + ' (Now Archived)'" disabled />
+                            <input type="text" v-if="occurrence_obj.identification.sample_destination"
+                                class="form-control mb-3"
+                                :value="occurrence_obj.identification.sample_destination + ' (Now Archived)'"
+                                disabled />
                             <div class="mb-3 text-muted">
                                 Change sample destination to:
                             </div>
                         </template>
-                        <select class="form-select"
-                        v-model="occurrence_obj.identification.sample_destination_id">
-                        <option v-for="option in sample_dest_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                        <select class="form-select" v-model="occurrence_obj.identification.sample_destination_id">
+                            <option v-for="option in sample_dest_list" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="occurrence_obj.identification.sample_destination" />
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_obj.identification.sample_destination" />
                     </template>
                 </div>
             </div>
@@ -141,21 +156,22 @@
                     <template v-if="!isReadOnly">
                         <template
                             v-if="permit_type_list && permit_type_list.length > 0 && occurrence_obj.identification.permit_type_id && !permit_type_list.map((d) => d.id).includes(occurrence_obj.identification.permit_type_id)">
-                            <input type="text" v-if="occurrence_obj.identification.permit_type" class="form-control mb-3"
+                            <input type="text" v-if="occurrence_obj.identification.permit_type"
+                                class="form-control mb-3"
                                 :value="occurrence_obj.identification.permit_type + ' (Now Archived)'" disabled />
                             <div class="mb-3 text-muted">
                                 Change permit type to:
                             </div>
                         </template>
-                        <select class="form-select"
-                        v-model="occurrence_obj.identification.permit_type_id">
-                        <option v-for="option in permit_type_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                        <select class="form-select" v-model="occurrence_obj.identification.permit_type_id">
+                            <option v-for="option in permit_type_list" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="occurrence_obj.identification.permit_type" />
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_obj.identification.permit_type" />
                     </template>
                 </div>
             </div>
@@ -201,8 +217,8 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateIdentificationDetails()">Update</button>
                     <button v-else disabled class="float-end btn btn-primary">Updating <span
-                        class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    <span class="visually-hidden">Loading...</span></button>
+                            class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="visually-hidden">Loading...</span></button>
                 </div>
             </div>
             <RelatedReports :isReadOnly="isReadOnly" :occurrence_obj=occurrence_obj :section_type="'identification'"

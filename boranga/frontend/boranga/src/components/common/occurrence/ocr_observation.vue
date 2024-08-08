@@ -4,12 +4,25 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Observation Method:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select"
-                        v-model="occurrence_report_obj.observation_detail.observation_method_id">
-                        <option v-for="option in observation_method_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                    <template v-if="!isReadOnly">
+                        <template
+                            v-if="observation_method_list && observation_method_list.length > 0 && occurrence_report_obj.observation_detail.observation_method_id && !observation_method_list.map((d) => d.id).includes(occurrence_report_obj.observation_detail.observation_method_id)">
+                            <input type="text" v-if="occurrence_report_obj.observation_detail.observation_method" class="form-control mb-3"
+                                :value="occurrence_report_obj.observation_detail.observation_method + ' (Now Archived)'" disabled />
+                            <div class="mb-3 text-muted">
+                                Change observation method to:
+                            </div>
+                        </template>
+                        <select class="form-select" v-model="occurrence_report_obj.observation_detail.observation_method_id">
+                            <option v-for="observation_method in observation_method_list" :value="observation_method.id" v-bind:key="observation_method.id">
+                                {{ observation_method.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_report_obj.observation_detail.observation_method" />
+                    </template>
                 </div>
             </div>
             <div class="row mb-3">

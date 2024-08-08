@@ -576,6 +576,9 @@ class OCRAssociatedSpeciesSerializer(serializers.ModelSerializer):
 
 
 class OCRObservationDetailSerializer(serializers.ModelSerializer):
+    observation_method = serializers.CharField(
+        source="observation_method.name", allow_null=True
+    )
 
     class Meta:
         model = OCRObservationDetail
@@ -583,6 +586,7 @@ class OCRObservationDetailSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_id",
             "observation_method_id",
+            "observation_method",
             "area_surveyed",
             "survey_duration",
         )
@@ -2696,6 +2700,9 @@ class OCCAssociatedSpeciesSerializer(serializers.ModelSerializer):
 class OCCObservationDetailSerializer(serializers.ModelSerializer):
 
     copied_ocr = serializers.SerializerMethodField()
+    observation_method = serializers.CharField(
+        source="observation_method.name", allow_null=True
+    )
 
     class Meta:
         model = OCCObservationDetail
@@ -2704,6 +2711,7 @@ class OCCObservationDetailSerializer(serializers.ModelSerializer):
             "occurrence_id",
             "copied_ocr",
             "observation_method_id",
+            "observation_method",
             "area_surveyed",
             "survey_duration",
         )

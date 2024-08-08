@@ -1205,7 +1205,7 @@ class OccurrenceReportViewSet(
             )
 
         observation_method_list = []
-        values = ObservationMethod.objects.all()
+        values = ObservationMethod.objects.active()
         if values:
             for val in values:
                 observation_method_list.append(
@@ -5106,7 +5106,7 @@ class OccurrenceViewSet(
             )
 
         observation_method_list = []
-        values = ObservationMethod.objects.all()
+        values = ObservationMethod.objects.active()
         if values:
             for val in values:
                 observation_method_list.append(
