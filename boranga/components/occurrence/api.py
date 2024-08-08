@@ -968,7 +968,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         rock_type_list = []
-        types = RockType.objects.all()
+        types = RockType.objects.active()
         if types:
             for val in types:
                 rock_type_list.append(
@@ -988,7 +988,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         soil_colour_list = []
-        colours = SoilColour.objects.all()
+        colours = SoilColour.objects.active()
         if colours:
             for val in colours:
                 soil_colour_list.append(
@@ -1255,7 +1255,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.all()
+        values = PrimaryDetectionMethod.objects.active()
         if values:
             for val in values:
                 primary_detection_method_list.append(
@@ -1265,7 +1265,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         secondary_sign_list = []
-        values = SecondarySign.objects.all()
+        values = SecondarySign.objects.active()
         if values:
             for val in values:
                 secondary_sign_list.append(
@@ -1275,7 +1275,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         reprod_state_list = []
-        values = ReproductiveState.objects.all()
+        values = ReproductiveState.objects.active()
         if values:
             for val in values:
                 reprod_state_list.append(
@@ -1315,7 +1315,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         sample_type_list = []
-        values = SampleType.objects.filter(group_type__name=group_type)
+        values = SampleType.objects.active().filter(group_type__name=group_type)
         if values:
             for val in values:
                 sample_type_list.append(
@@ -1325,7 +1325,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         sample_dest_list = []
-        values = SampleDestination.objects.all()
+        values = SampleDestination.objects.active()
         if values:
             for val in values:
                 sample_dest_list.append(
@@ -1435,7 +1435,7 @@ class OccurrenceReportViewSet(
         """used for Occurrence Report external form"""
 
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.all()
+        values = PrimaryDetectionMethod.objects.active()
         if values:
             for val in values:
                 primary_detection_method_list.append(
@@ -1445,7 +1445,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         secondary_sign_list = []
-        values = SecondarySign.objects.all()
+        values = SecondarySign.objects.active()
         if values:
             for val in values:
                 secondary_sign_list.append(
@@ -1455,7 +1455,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         reprod_state_list = []
-        values = ReproductiveState.objects.all()
+        values = ReproductiveState.objects.active()
         if values:
             for val in values:
                 reprod_state_list.append(
@@ -5017,7 +5017,7 @@ class OccurrenceViewSet(
                     }
                 )
         rock_type_list = []
-        types = RockType.objects.all()
+        types = RockType.objects.active()
         if types:
             for val in types:
                 rock_type_list.append(
@@ -5037,7 +5037,7 @@ class OccurrenceViewSet(
                     }
                 )
         soil_colour_list = []
-        colours = SoilColour.objects.all()
+        colours = SoilColour.objects.active()
         if colours:
             for val in colours:
                 soil_colour_list.append(
@@ -5156,7 +5156,7 @@ class OccurrenceViewSet(
                     }
                 )
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.all()
+        values = PrimaryDetectionMethod.objects.active()
         if values:
             for val in values:
                 primary_detection_method_list.append(
@@ -5166,7 +5166,7 @@ class OccurrenceViewSet(
                     }
                 )
         secondary_sign_list = []
-        values = SecondarySign.objects.all()
+        values = SecondarySign.objects.active()
         if values:
             for val in values:
                 secondary_sign_list.append(
@@ -5176,7 +5176,7 @@ class OccurrenceViewSet(
                     }
                 )
         reprod_state_list = []
-        values = ReproductiveState.objects.all()
+        values = ReproductiveState.objects.active()
         if values:
             for val in values:
                 reprod_state_list.append(
@@ -5216,7 +5216,7 @@ class OccurrenceViewSet(
                     }
                 )
         sample_type_list = []
-        values = SampleType.objects.filter(group_type__name=group_type)
+        values = SampleType.objects.active().filter(group_type__name=group_type)
         if values:
             for val in values:
                 sample_type_list.append(
@@ -5226,7 +5226,7 @@ class OccurrenceViewSet(
                     }
                 )
         sample_dest_list = []
-        values = SampleDestination.objects.all()
+        values = SampleDestination.objects.active()
         if values:
             for val in values:
                 sample_dest_list.append(
@@ -5336,7 +5336,7 @@ class OccurrenceViewSet(
         """used for Occurrence Report external form"""
 
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.all()
+        values = PrimaryDetectionMethod.objects.active()
         if values:
             for val in values:
                 primary_detection_method_list.append(
@@ -5346,7 +5346,7 @@ class OccurrenceViewSet(
                     }
                 )
         secondary_sign_list = []
-        values = SecondarySign.objects.all()
+        values = SecondarySign.objects.active()
         if values:
             for val in values:
                 secondary_sign_list.append(
@@ -5356,7 +5356,7 @@ class OccurrenceViewSet(
                     }
                 )
         reprod_state_list = []
-        values = ReproductiveState.objects.all()
+        values = ReproductiveState.objects.active()
         if values:
             for val in values:
                 reprod_state_list.append(
@@ -6130,7 +6130,7 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def site_list_of_values(self, request, *args, **kwargs):
 
-        site_type_list = list(SiteType.objects.values("id", "name"))
+        site_type_list = list(SiteType.objects.active().values("id", "name"))
         datum_list = list(
             {"srid": datum.srid, "name": datum.name} for datum in Datum.objects.active()
         )

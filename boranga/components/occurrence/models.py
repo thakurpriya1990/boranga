@@ -2017,7 +2017,7 @@ class OCRObserverDetail(RevisionedMixin):
 
 
 # Is used in HabitatComposition for multiple selection
-class LandForm(models.Model):
+class LandForm(ArchivableModel):
     """
     # Admin List
 
@@ -2038,7 +2038,7 @@ class LandForm(models.Model):
         return str(self.name)
 
 
-class RockType(models.Model):
+class RockType(ArchivableModel):
     """
     # Admin List
 
@@ -2080,7 +2080,7 @@ class SoilType(ArchivableModel):
         return str(self.name)
 
 
-class SoilColour(models.Model):
+class SoilColour(ArchivableModel):
     """
     # Admin List
 
@@ -2570,7 +2570,7 @@ class OCRPlantCount(models.Model):
 
 
 # used for Animal Observation(MultipleSelect)
-class PrimaryDetectionMethod(models.Model):
+class PrimaryDetectionMethod(ArchivableModel):
     """
     # Admin List
 
@@ -2590,7 +2590,7 @@ class PrimaryDetectionMethod(models.Model):
 
 
 # used for Animal Observation(MultipleSelect)
-class ReproductiveState(models.Model):
+class ReproductiveState(ArchivableModel):
     """
     # Admin List
 
@@ -2652,7 +2652,7 @@ class DeathReason(models.Model):
 
 
 # sed for Animal Observation(MultipleSelect)
-class SecondarySign(models.Model):
+class SecondarySign(ArchivableModel):
     """
     # Admin List
 
@@ -2783,7 +2783,7 @@ class IdentificationCertainty(models.Model):
         return str(self.name)
 
 
-class SampleType(models.Model):
+class SampleType(ArchivableModel):
     """
     # Admin List
 
@@ -2805,7 +2805,7 @@ class SampleType(models.Model):
         return str(self.name)
 
 
-class SampleDestination(models.Model):
+class SampleDestination(ArchivableModel):
     """
     # Admin List
 
@@ -4909,7 +4909,7 @@ class BufferGeometry(GeometryBase):
         return self.buffered_from_geometry
 
 
-class SiteType(models.Model):
+class SiteType(ArchivableModel):
     """
     # Admin List
 

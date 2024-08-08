@@ -16,6 +16,7 @@ from boranga.components.occurrence.models import (
     BufferGeometry,
     Datum,
     GeometryType,
+    LandForm,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
@@ -474,10 +475,13 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
     land_form = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
+    land_form_names = serializers.SerializerMethodField()
     soil_type = serializers.CharField(source="soil_type.name", allow_null=True)
     soil_condition = serializers.CharField(
         source="soil_condition.name", allow_null=True
     )
+    soil_colour = serializers.CharField(source="soil_colour.name", allow_null=True)
+    rock_type = serializers.CharField(source="rock_type.name", allow_null=True)
 
     class Meta:
         model = OCRHabitatComposition
@@ -485,11 +489,14 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_id",
             "land_form",
+            "land_form_names",
             "rock_type_id",
+            "rock_type",
             "loose_rock_percent",
             "soil_type_id",
             "soil_type",
             "soil_colour_id",
+            "soil_colour",
             "soil_condition_id",
             "soil_condition",
             "drainage_id",
@@ -502,6 +509,12 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
         self.fields["land_form"].choices = OCRHabitatComposition._meta.get_field(
             "land_form"
         ).choices
+
+    def get_land_form_names(self, obj):
+        return [
+            lf
+            for lf in LandForm.objects.filter(id__in=obj.land_form).values("id", "name")
+        ]
 
 
 class OCRHabitatConditionSerializer(serializers.ModelSerializer):
@@ -624,6 +637,12 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
         choices=[], allow_null=True, allow_blank=True, required=False
     )
     count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    secondary_sign_name = serializers.CharField(
+        source="secondary_sign.name", allow_null=True
+    )
+    reproductive_state_name = serializers.CharField(
+        source="reproductive_state.name", allow_null=True
+    )
 
     class Meta:
         model = OCRAnimalObservation
@@ -632,7 +651,9 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "occurrence_report_id",
             "primary_detection_method",
             "secondary_sign",
+            "secondary_sign_name",
             "reproductive_state",
+            "reproductive_state_name",
             "animal_health_id",
             "death_reason_id",
             "total_count",
@@ -673,6 +694,12 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
     permit_type = serializers.CharField(
         source="permit_type.name", read_only=True, allow_null=True
     )
+    sample_type = serializers.CharField(
+        source="sample_type.name", read_only=True, allow_null=True
+    )
+    sample_destination = serializers.CharField(
+        source="sample_destination.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCRIdentification
@@ -682,7 +709,9 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
             "id_confirmed_by",
             "identification_certainty_id",
             "sample_type_id",
+            "sample_type",
             "sample_destination_id",
+            "sample_destination",
             "permit_type_id",
             "permit_type",
             "permit_id",
@@ -2289,10 +2318,21 @@ class OccurrenceReportAmendmentRequestSerializer(serializers.ModelSerializer):
     amendment_request_documents = OccurrenceReportAmendmentRequestDocumentSerializer(
         many=True, read_only=True
     )
+    reason_text = serializers.CharField(source="reason.reason", read_only=True)
 
     class Meta:
         model = OccurrenceReportAmendmentRequest
-        fields = "__all__"
+        fields = [
+            "id",
+            "reason",
+            "reason_text",
+            "amendment_request_documents",
+            "subject",
+            "text",
+            "officer",
+            "status",
+            "occurrence_report",
+        ]
 
 
 class OCCConservationThreatSerializer(serializers.ModelSerializer):
@@ -2495,6 +2535,8 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
     soil_condition = serializers.CharField(
         source="soil_condition.name", allow_null=True
     )
+    soil_colour = serializers.CharField(source="soil_colour.name", allow_null=True)
+    rock_type = serializers.CharField(source="rock_type.name", allow_null=True)
 
     class Meta:
         model = OCCHabitatComposition
@@ -2504,10 +2546,12 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
             "copied_ocr",
             "land_form",
             "rock_type_id",
+            "rock_type",
             "loose_rock_percent",
             "soil_type_id",
             "soil_type",
             "soil_colour_id",
+            "soil_colour",
             "soil_condition_id",
             "soil_condition",
             "drainage_id",
@@ -2716,6 +2760,12 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
     )
     copied_ocr = serializers.SerializerMethodField()
     count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    secondary_sign_name = serializers.CharField(
+        source="secondary_sign.name", allow_null=True
+    )
+    reproductive_state_name = serializers.CharField(
+        source="reproductive_state.name", allow_null=True
+    )
 
     class Meta:
         model = OCCAnimalObservation
@@ -2725,7 +2775,9 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "copied_ocr",
             "primary_detection_method",
             "secondary_sign",
+            "secondary_sign_name",
             "reproductive_state",
+            "reproductive_state_name",
             "animal_health_id",
             "death_reason_id",
             "total_count",
@@ -2773,6 +2825,12 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
         source="permit_type.name", read_only=True, allow_null=True
     )
     copied_ocr = serializers.SerializerMethodField()
+    sample_type = serializers.CharField(
+        source="sample_type.name", read_only=True, allow_null=True
+    )
+    sample_destination = serializers.CharField(
+        source="sample_destination.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCCIdentification
@@ -2783,7 +2841,9 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
             "id_confirmed_by",
             "identification_certainty_id",
             "sample_type_id",
+            "sample_type",
             "sample_destination_id",
+            "sample_destination",
             "permit_type_id",
             "permit_type",
             "permit_id",
@@ -3543,6 +3603,7 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
     point_coord2 = serializers.SerializerMethodField()
     datum = serializers.SerializerMethodField()
     datum_name = serializers.SerializerMethodField()
+    site_type_name = serializers.CharField(source="site_type.name", read_only=True)
 
     class Meta:
         model = OccurrenceSite
@@ -3557,6 +3618,7 @@ class OccurrenceSiteSerializer(serializers.ModelSerializer):
             "datum",
             "datum_name",
             "site_type",
+            "site_type_name",
             "comments",
             "related_occurrence_reports",
             "related_occurrence_report_numbers",

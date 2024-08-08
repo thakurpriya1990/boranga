@@ -362,11 +362,6 @@ class PermitTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_filter = ("group_type",)
 
 
-class SampleTypeAdmin(DeleteProtectedModelAdmin):
-    list_display = ("group_type", "name")
-    list_filter = ("group_type",)
-
-
 class DatumAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ("srid", "name")
     search_fields = ("srid", "name")
@@ -388,12 +383,53 @@ class SoilConditionAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["name"]
 
 
+class SoilColourAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class SiteTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class SecondarySignAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class SampleTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ("group_type", "name")
+    list_filter = ("group_type",)
+
+
+class SampleDestinationAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class RockTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class ReproductiveStateAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class LandFormAdmin(DeleteProtectedModelAdmin):
+    list_display = ["name"]
+    fields = ["name"]  # Not showing the archived field for now as requires
+    # more work on the frontend due to django-multiselectfield
+
+
+class PrimaryDetectionMethodAdmin(DeleteProtectedModelAdmin):
+    list_display = ["name"]
+    fields = ["name"]  # Not showing the archived field for now as requires
+    # more work on the frontend due to django-multiselectfield
+
+
 # Each of the following models will be available to Django Admin.
-admin.site.register(LandForm, DeleteProtectedModelAdmin)
-admin.site.register(RockType, DeleteProtectedModelAdmin)
+admin.site.register(LandForm, LandFormAdmin)
+admin.site.register(RockType, RockTypeAdmin)
 admin.site.register(SoilType, SoilTypeAdmin)
-admin.site.register(SiteType, DeleteProtectedModelAdmin)
-admin.site.register(SoilColour, DeleteProtectedModelAdmin)
+admin.site.register(SiteType, SiteTypeAdmin)
+admin.site.register(SoilColour, SoilColourAdmin)
 admin.site.register(SoilCondition, SoilConditionAdmin)
 admin.site.register(Drainage, DeleteProtectedModelAdmin)
 admin.site.register(Intensity, DeleteProtectedModelAdmin)
@@ -402,14 +438,14 @@ admin.site.register(PlantCountMethod, DeleteProtectedModelAdmin)
 admin.site.register(PlantCountAccuracy, DeleteProtectedModelAdmin)
 admin.site.register(CountedSubject, DeleteProtectedModelAdmin)
 admin.site.register(PlantCondition, DeleteProtectedModelAdmin)
-admin.site.register(PrimaryDetectionMethod, DeleteProtectedModelAdmin)
-admin.site.register(SecondarySign, DeleteProtectedModelAdmin)
-admin.site.register(ReproductiveState, DeleteProtectedModelAdmin)
+admin.site.register(PrimaryDetectionMethod, PrimaryDetectionMethodAdmin)
+admin.site.register(SecondarySign, SecondarySignAdmin)
+admin.site.register(ReproductiveState, ReproductiveStateAdmin)
 admin.site.register(DeathReason, DeleteProtectedModelAdmin)
 admin.site.register(AnimalHealth, DeleteProtectedModelAdmin)
 admin.site.register(IdentificationCertainty, DeleteProtectedModelAdmin)
 admin.site.register(SampleType, SampleTypeAdmin)
-admin.site.register(SampleDestination, DeleteProtectedModelAdmin)
+admin.site.register(SampleDestination, SampleDestinationAdmin)
 admin.site.register(PermitType, PermitTypeAdmin)
 admin.site.register(Datum, DatumAdmin)
 admin.site.register(CoordinateSource, CoordinateSourceAdmin)

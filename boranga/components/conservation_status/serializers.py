@@ -1505,10 +1505,21 @@ class ConservationStatusAmendmentRequestDisplaySerializer(serializers.ModelSeria
     cs_amendment_request_documents = (
         ConservationStatusAmendmentRequestDocumentSerializer(many=True, read_only=True)
     )
+    reason_text = serializers.CharField(source="reason.reason", read_only=True)
 
     class Meta:
         model = ConservationStatusAmendmentRequest
-        fields = "__all__"
+        fields = [
+            "id",
+            "reason",
+            "reason_text",
+            "cs_amendment_request_documents",
+            "subject",
+            "text",
+            "officer",
+            "status",
+            "conservation_status",
+        ]
 
 
 class ProposedDeclineSerializer(serializers.Serializer):

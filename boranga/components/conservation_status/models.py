@@ -2469,7 +2469,7 @@ class ConservationStatusProposalRequest(models.Model):
         app_label = "boranga"
 
 
-class ProposalAmendmentReason(models.Model):
+class ProposalAmendmentReason(ArchivableModel):
     reason = models.CharField("Reason", max_length=125)
 
     class Meta:

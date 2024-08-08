@@ -2415,7 +2415,7 @@ class FloraRecruitmentType(models.Model):
         return str(self.recruitment_type)
 
 
-class RootMorphology(models.Model):
+class RootMorphology(ArchivableModel):
     """
     # list derived from WACensus
 
