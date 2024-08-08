@@ -931,7 +931,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         location_accuracy_list = []
-        values = LocationAccuracy.objects.all()
+        values = LocationAccuracy.objects.active()
         if values:
             for val in values:
                 location_accuracy_list.append(
@@ -4512,7 +4512,7 @@ class OccurrenceViewSet(
                     }
                 )
         location_accuracy_list = []
-        values = LocationAccuracy.objects.all()
+        values = LocationAccuracy.objects.active()
         if values:
             for val in values:
                 location_accuracy_list.append(

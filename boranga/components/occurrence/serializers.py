@@ -746,6 +746,9 @@ class OCRLocationSerializer(serializers.ModelSerializer):
     coordinate_source = serializers.CharField(
         source="coordinate_source.name", read_only=True, allow_null=True
     )
+    location_accuracy = serializers.CharField(
+        source="location_accuracy.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCRLocation
@@ -763,6 +766,7 @@ class OCRLocationSerializer(serializers.ModelSerializer):
             "coordinate_source_id",
             "coordinate_source",
             "location_accuracy_id",
+            "location_accuracy",
             "region_id",
             "district_id",
             "locality",
@@ -3168,6 +3172,9 @@ class OCCLocationSerializer(serializers.ModelSerializer):
     coordinate_source = serializers.CharField(
         source="coordinate_source.name", read_only=True, allow_null=True
     )
+    location_accuracy = serializers.CharField(
+        source="location_accuracy.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCCLocation
@@ -3184,6 +3191,7 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             "coordinate_source_id",
             "coordinate_source",
             "location_accuracy_id",
+            "location_accuracy",
             "region_id",
             "district_id",
             "locality",

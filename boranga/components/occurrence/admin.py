@@ -440,6 +440,10 @@ class ObservationMethodAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmi
     list_display = ["name"]
 
 
+class LocationAccuracyAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, LandFormAdmin)
 admin.site.register(RockType, RockTypeAdmin)
@@ -465,6 +469,6 @@ admin.site.register(SampleDestination, SampleDestinationAdmin)
 admin.site.register(PermitType, PermitTypeAdmin)
 admin.site.register(Datum, DatumAdmin)
 admin.site.register(CoordinateSource, CoordinateSourceAdmin)
-admin.site.register(LocationAccuracy, DeleteProtectedModelAdmin)
+admin.site.register(LocationAccuracy, LocationAccuracyAdmin)
 admin.site.register(WildStatus, WildStatusAdmin)
 admin.site.register(OccurrenceSite)
