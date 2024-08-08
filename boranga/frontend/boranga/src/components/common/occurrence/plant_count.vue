@@ -28,11 +28,26 @@
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Plant Count Accuracy:</label>
             <div class="col-sm-9">
-                <select :disabled="isReadOnly" class="form-select" v-model="plant_count.plant_count_accuracy_id">
-                    <option v-for="option in plant_count_accuracy_list" :value="option.id" v-bind:key="option.id">
-                        {{ option.name }}
-                    </option>
-                </select>
+                <template v-if="!isReadOnly">
+                    <template
+                        v-if="plant_count_accuracy_list && plant_count_accuracy_list.length > 0 && plant_count.plant_count_accuracy_id && !plant_count_accuracy_list.map((d) => d.id).includes(plant_count.plant_count_accuracy_id)">
+                        <input type="text" v-if="plant_count.plant_count_accuracy" class="form-control mb-3"
+                            :value="plant_count.plant_count_accuracy + ' (Now Archived)'" disabled />
+                        <div class="mb-3 text-muted">
+                            Change plant count accuracy to:
+                        </div>
+                    </template>
+                    <select class="form-select" v-model="plant_count.plant_count_accuracy_id">
+                        <option v-for="plant_count_accuracy in plant_count_accuracy_list" :value="plant_count_accuracy.id"
+                            v-bind:key="plant_count_accuracy.id">
+                            {{ plant_count_accuracy.name }}
+                        </option>
+                    </select>
+                </template>
+                <template v-else>
+                    <input class="form-control" type="text" :disabled="isReadOnly"
+                        v-model="plant_count.plant_count_accuracy" />
+                </template>
             </div>
         </div>
         <div class="row mb-3">

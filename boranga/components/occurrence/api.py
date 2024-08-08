@@ -1225,7 +1225,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         plant_count_accuracy_list = []
-        values = PlantCountAccuracy.objects.all()
+        values = PlantCountAccuracy.objects.active()
         if values:
             for val in values:
                 plant_count_accuracy_list.append(
@@ -1385,7 +1385,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         plant_count_accuracy_list = []
-        values = PlantCountAccuracy.objects.all()
+        values = PlantCountAccuracy.objects.active()
         if values:
             for val in values:
                 plant_count_accuracy_list.append(
@@ -5126,7 +5126,7 @@ class OccurrenceViewSet(
                     }
                 )
         plant_count_accuracy_list = []
-        values = PlantCountAccuracy.objects.all()
+        values = PlantCountAccuracy.objects.active()
         if values:
             for val in values:
                 plant_count_accuracy_list.append(
@@ -5286,7 +5286,7 @@ class OccurrenceViewSet(
                     }
                 )
         plant_count_accuracy_list = []
-        values = PlantCountAccuracy.objects.all()
+        values = PlantCountAccuracy.objects.active()
         if values:
             for val in values:
                 plant_count_accuracy_list.append(
