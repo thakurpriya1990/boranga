@@ -2394,7 +2394,7 @@ class CommunityPublishingStatus(models.Model):
         return str(self.community)
 
 
-class FloraRecruitmentType(models.Model):
+class FloraRecruitmentType(ArchivableModel):
     """
     # list derived from WACensus
 
