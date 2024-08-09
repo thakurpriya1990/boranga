@@ -521,7 +521,7 @@ export default {
         fetch(
             helpers.add_endpoint_join(
                 api_endpoints.occurrence,
-                `/available-occurrence-reports-crs/?id=${this.occurrence_obj.id}`
+                `/available-crs-for-occurrence/?id=${this.occurrence_obj.id}`
             )
         )
             .then((response) => {

@@ -1622,6 +1622,7 @@ import { FullScreen as FullScreenControl } from 'ol/control';
 import { LineString, Point, MultiPoint, Polygon, MultiPolygon } from 'ol/geom';
 import { fromExtent } from 'ol/geom/Polygon';
 import { getArea } from 'ol/sphere.js';
+import { transform as transformCoordinates } from 'ol/proj';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay.js';
 import DragAndDrop from 'ol/interaction/DragAndDrop.js';
@@ -3895,7 +3896,18 @@ export default {
             modify.addEventListener('modifyend', function (evt) {
                 console.log('Modify end', evt.features);
                 const feature = evt.features[0];
-                const coordinates = feature.getGeometry().getCoordinates();
+                const original_srid =
+                    feature.getProperties().original_geometry.properties.srid;
+                let coordinates = feature.getGeometry().getCoordinates();
+                if (original_srid != vm.mapSrid) {
+                    // Transform the coordinates from the map crs to the user input crs
+                    coordinates = transformCoordinates(
+                        coordinates,
+                        `EPSG:${vm.mapSrid}`,
+                        `EPSG:${original_srid}`
+                    );
+                }
+
                 vm.userCoordinates(feature, coordinates);
                 vm.emitValidateFeature(feature);
             });
@@ -3914,7 +3926,18 @@ export default {
                 // eslint-disable-next-line no-unused-vars
                 evt.features.forEach((feature) => {
                     vm.emitValidateFeature(feature);
-                    const coordinates = feature.getGeometry().getCoordinates();
+                    const original_srid =
+                        feature.getProperties().original_geometry.properties
+                            .srid;
+                    let coordinates = feature.getGeometry().getCoordinates();
+                    if (original_srid != vm.mapSrid) {
+                        // Transform the coordinates from the map crs to the user input crs
+                        coordinates = transformCoordinates(
+                            coordinates,
+                            `EPSG:${vm.mapSrid}`,
+                            `EPSG:${original_srid}`
+                        );
+                    }
                     vm.userCoordinates(feature, coordinates);
                 });
             };
