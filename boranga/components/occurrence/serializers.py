@@ -1452,6 +1452,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "number_of_observers",
             "has_main_observer",
             "is_submitter",
+            "migrated_from_id",
         )
 
     def get_readonly(self, obj):
