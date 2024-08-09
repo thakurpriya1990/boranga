@@ -1245,7 +1245,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         counted_subject_list = []
-        values = CountedSubject.objects.all()
+        values = CountedSubject.objects.active()
         if values:
             for val in values:
                 counted_subject_list.append(
@@ -1405,7 +1405,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         counted_subject_list = []
-        values = CountedSubject.objects.all()
+        values = CountedSubject.objects.active()
         if values:
             for val in values:
                 counted_subject_list.append(
@@ -5146,7 +5146,7 @@ class OccurrenceViewSet(
                     }
                 )
         counted_subject_list = []
-        values = CountedSubject.objects.all()
+        values = CountedSubject.objects.active()
         if values:
             for val in values:
                 counted_subject_list.append(
@@ -5306,7 +5306,7 @@ class OccurrenceViewSet(
                     }
                 )
         counted_subject_list = []
-        values = CountedSubject.objects.all()
+        values = CountedSubject.objects.active()
         if values:
             for val in values:
                 counted_subject_list.append(

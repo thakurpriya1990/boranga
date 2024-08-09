@@ -53,11 +53,26 @@
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Counted Subject:</label>
             <div class="col-sm-9">
-                <select :disabled="isReadOnly" class="form-select" v-model="plant_count.counted_subject_id">
-                    <option v-for="option in counted_subject_list" :value="option.id" v-bind:key="option.id">
-                        {{ option.name }}
-                    </option>
-                </select>
+                <template v-if="!isReadOnly">
+                    <template
+                        v-if="counted_subject_list && counted_subject_list.length > 0 && plant_count.counted_subject_id && !counted_subject_list.map((d) => d.id).includes(plant_count.counted_subject_id)">
+                        <input type="text" v-if="plant_count.counted_subject" class="form-control mb-3"
+                            :value="plant_count.counted_subject + ' (Now Archived)'" disabled />
+                        <div class="mb-3 text-muted">
+                            Change counted subject to:
+                        </div>
+                    </template>
+                    <select class="form-select" v-model="plant_count.counted_subject_id">
+                        <option v-for="counted_subject in counted_subject_list" :value="counted_subject.id"
+                            v-bind:key="counted_subject.id">
+                            {{ counted_subject.name }}
+                        </option>
+                    </select>
+                </template>
+                <template v-else>
+                    <input class="form-control" type="text" :disabled="isReadOnly"
+                        v-model="plant_count.counted_subject" />
+                </template>
             </div>
         </div>
         <div class="row mb-3">

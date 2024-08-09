@@ -607,6 +607,9 @@ class OCRPlantCountSerializer(serializers.ModelSerializer):
     plant_condition = serializers.CharField(
         source="plant_condition.name", allow_null=True
     )
+    counted_subject = serializers.CharField(
+        source="counted_subject.name", allow_null=True
+    )
 
     class Meta:
         model = OCRPlantCount
@@ -618,6 +621,7 @@ class OCRPlantCountSerializer(serializers.ModelSerializer):
             "plant_count_accuracy_id",
             "plant_count_accuracy",
             "counted_subject_id",
+            "counted_subject",
             "plant_condition_id",
             "plant_condition",
             "estimated_population_area",
@@ -2753,6 +2757,9 @@ class OCCPlantCountSerializer(serializers.ModelSerializer):
     plant_condition = serializers.CharField(
         source="plant_condition.name", allow_null=True
     )
+    counted_subject = serializers.CharField(
+        source="counted_subject.name", allow_null=True
+    )
 
     class Meta:
         model = OCCPlantCount
@@ -2765,6 +2772,7 @@ class OCCPlantCountSerializer(serializers.ModelSerializer):
             "plant_count_accuracy_id",
             "plant_count_accuracy",
             "counted_subject_id",
+            "counted_subject",
             "plant_condition_id",
             "plant_condition",
             "estimated_population_area",
