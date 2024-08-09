@@ -296,3 +296,13 @@ class ArchivableModel(models.Model):
     def unarchive(self):
         self.archived = False
         self.save()
+
+
+class HelpTextEntry(ArchivableModel):
+    section_id = models.CharField(max_length=255, unique=True, editable=False)
+    text = models.TextField()
+    icon_with_popover = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name_plural = "Help Text Entries"
