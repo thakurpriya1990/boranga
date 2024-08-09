@@ -229,7 +229,7 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_internal) {
-                return ['ID', 'Number', 'Name of Occurrence', 'Community Name', 'Wild Status', 'Number of Reports', 'Review Due', 'Status', 'Action']
+                return ['ID', 'Number', 'Name of Occurrence', 'Community Name', 'Wild Status', 'Number of Reports', 'Migrated From ID', 'Review Due', 'Status', 'Action']
             }
         },
         column_id: function () {
@@ -293,6 +293,13 @@ export default {
                 orderable: true,
                 searchable: false,
                 visible: true,
+            }
+        },
+        column_migrated_from_id: function () {
+            return {
+                data: "migrated_from_id",
+                orderable: false,
+                searchable: true,
             }
         },
         column_wild_status: function () {
@@ -380,6 +387,7 @@ export default {
                     vm.column_community_name,
                     vm.column_wild_status,
                     vm.column_number_of_reports,
+                    vm.column_migrated_from_id,
                     vm.column_review_due_date,
                     vm.column_status,
                     vm.column_action,
