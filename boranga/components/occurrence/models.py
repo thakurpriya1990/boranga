@@ -2632,7 +2632,7 @@ class AnimalHealth(models.Model):
         return str(self.name)
 
 
-class DeathReason(models.Model):
+class DeathReason(ArchivableModel):
     """
     # Admin List
 
