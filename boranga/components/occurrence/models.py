@@ -2453,7 +2453,7 @@ class PlantCountAccuracy(ArchivableModel):
         return str(self.name)
 
 
-class CountedSubject(models.Model):
+class CountedSubject(ArchivableModel):
     """
     # Admin List
 
