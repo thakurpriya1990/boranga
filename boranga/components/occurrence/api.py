@@ -1008,7 +1008,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         drainage_list = []
-        drainages = Drainage.objects.all()
+        drainages = Drainage.objects.active()
         if drainages:
             for val in drainages:
                 drainage_list.append(
@@ -5057,7 +5057,7 @@ class OccurrenceViewSet(
                     }
                 )
         drainage_list = []
-        drainages = Drainage.objects.all()
+        drainages = Drainage.objects.active()
         if drainages:
             for val in drainages:
                 drainage_list.append(

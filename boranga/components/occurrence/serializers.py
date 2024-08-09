@@ -482,6 +482,7 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
     )
     soil_colour = serializers.CharField(source="soil_colour.name", allow_null=True)
     rock_type = serializers.CharField(source="rock_type.name", allow_null=True)
+    drainage = serializers.CharField(source="drainage.name", allow_null=True)
 
     class Meta:
         model = OCRHabitatComposition
@@ -500,6 +501,7 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
             "soil_condition_id",
             "soil_condition",
             "drainage_id",
+            "drainage",
             "water_quality",
             "habitat_notes",
         )
@@ -2563,6 +2565,7 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
     )
     soil_colour = serializers.CharField(source="soil_colour.name", allow_null=True)
     rock_type = serializers.CharField(source="rock_type.name", allow_null=True)
+    drainage = serializers.CharField(source="drainage.name", allow_null=True)
 
     class Meta:
         model = OCCHabitatComposition
@@ -2581,6 +2584,7 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
             "soil_condition_id",
             "soil_condition",
             "drainage_id",
+            "drainage",
             "water_quality",
             "habitat_notes",
         )
