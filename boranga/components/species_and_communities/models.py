@@ -2164,7 +2164,7 @@ class ThreatCategory(ArchivableModel):
         return str(self.name)
 
 
-class CurrentImpact(models.Model):
+class CurrentImpact(ArchivableModel):
     """
     # don't know the data yet
 
