@@ -49,6 +49,10 @@ class PotentialImpactAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin)
     list_display = ["name"]
 
 
+class CurrentImpactAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(GroupType)
 admin.site.register(Region, DeleteProtectedModelAdmin)
@@ -61,7 +65,7 @@ admin.site.register(ThreatCategory, ThreatCategoryAdmin)
 # admin.site.register(RootMorphology, DeleteProtectedModelAdmin)
 # admin.site.register(PostFireHabitatInteraction, DeleteProtectedModelAdmin)
 
-admin.site.register(CurrentImpact, DeleteProtectedModelAdmin)
+admin.site.register(CurrentImpact, CurrentImpactAdmin)
 admin.site.register(PotentialImpact, PotentialImpactAdmin)
 admin.site.register(PotentialThreatOnset, PotentialThreatOnsetAdmin)
 admin.site.register(ThreatAgent, ThreatAgentAdmin)
