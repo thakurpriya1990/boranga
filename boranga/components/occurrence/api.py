@@ -5413,24 +5413,47 @@ class OccurrenceViewSet(
         except Occurrence.DoesNotExist:
             logger.error(f"Occurrence with id {id} not found")
         else:
+            # Occurrence Geometries
+            occ_geometries = qs.occ_geometry.all().exclude(**{"geometry": None})
+            # Site geometries
+            site_geometries = qs.sites.all().distinct().exclude(**{"geometry": None})
+
             ocr_geometries_ids = (
                 qs.occurrence_reports.all()
                 .values_list("ocr_geometry", flat=True)
                 .distinct()
             )
+            # Occurrence report geoemtries
             ocr_geometries = OccurrenceReportGeometry.objects.filter(
                 id__in=ocr_geometries_ids
             ).exclude(**{"geometry": None})
 
-            epsg_codes = [
+            # Start building up list of epsg codes covering all geometries for this occurrence
+            epsg_codes = []
+            epsg_codes += [
+                str(g.srid)
+                for g in occ_geometries.values_list("geometry", flat=True).distinct()
+            ]
+
+            epsg_codes += [
                 str(g.srid)
                 for g in ocr_geometries.values_list("geometry", flat=True).distinct()
             ]
-            # Add the srids of the original geometries to epsg_codes
+            # Add the srids of the original ocr and occ geometries to epsg_codes
             original_geometry_srids = [
                 str(g.original_geometry_srid) for g in ocr_geometries
             ]
+            original_geometry_srids += [
+                str(g.original_geometry_srid) for g in occ_geometries
+            ]
+
+            # Add the srids of the original site geometries to epsg_codes
+            original_geometry_srids += [
+                str(g.original_geometry_srid) for g in site_geometries
+            ]
+
             epsg_codes += [g for g in original_geometry_srids if g.isnumeric()]
+
             epsg_codes = list(set(epsg_codes))
             crs = search_datums("", codes=epsg_codes)
 
