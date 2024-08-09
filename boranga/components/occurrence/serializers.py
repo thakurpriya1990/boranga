@@ -1022,6 +1022,7 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
             "processing_status",
             "processing_status_display",
             "review_due_date",
+            "migrated_from_id",
             "can_user_edit",
         )
         datatables_always_serialize = (
