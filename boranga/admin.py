@@ -10,6 +10,7 @@ from ledger_api_client.managed_models import SystemGroup, SystemGroupPermission
 
 from boranga import helpers as boranga_helpers
 from boranga.components.main.models import ArchivableManager, ArchivableModel
+from boranga.components.users.models import ExternalContributorBlacklist
 
 
 class DeleteProtectedModelAdmin(admin.ModelAdmin):
@@ -133,6 +134,20 @@ class CustomSystemGroupPermissionInlineForm(SystemGroupPermissionInline.form):
                 raise ValidationError(
                     "Only external users can be added to external groups."
                 )
+
+        if system_group.name != settings.GROUP_NAME_EXTERNAL_CONTRIBUTOR:
+            return cleaned_data
+
+        if not ExternalContributorBlacklist.objects.filter(
+            email=emailuser.email
+        ).exists():
+            return cleaned_data
+
+        raise ValidationError(
+            f"The email address {emailuser.email} is blacklisted. "
+            "Please remove the email from the blacklist and the user will be automatically "
+            "added back into the external contributor group."
+        )
 
 
 class CustomSystemGroupPermissionInline(SystemGroupPermissionInline):
