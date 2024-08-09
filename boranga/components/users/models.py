@@ -136,21 +136,22 @@ class ExternalContributorBlacklist(models.Model):
         try:
             user = EmailUser.objects.get(email=self.email)
         except EmailUser.DoesNotExist:
+            logger.warning(
+                f"ExternalContributorBlacklist: User with email {self.email} does not exist"
+            )
             return
 
         # If user is already in the external contributors group, don't add them again
         external_contributor_group = SystemGroup.objects.get(
             name=settings.GROUP_NAME_EXTERNAL_CONTRIBUTOR
         )
-        if SystemGroupPermission.objects.filter(
+        if not SystemGroupPermission.objects.filter(
             system_group=external_contributor_group, emailuser=user
         ).exists():
-            return
-
-        # Add user back into the external contributors group
-        SystemGroupPermission.objects.create(
-            system_group=external_contributor_group, emailuser=user
-        )
+            # Add user back into the external contributors group
+            SystemGroupPermission.objects.create(
+                system_group=external_contributor_group, emailuser=user
+            )
 
         # Have to save the group to flush the member cache
         external_contributor_group.save()
