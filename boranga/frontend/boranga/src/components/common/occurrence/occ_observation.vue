@@ -90,13 +90,26 @@
                 <label for="" class="col-sm-3 control-label fw-bold">Identification Certainty: <span
                         class="text-danger">*</span></label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select"
-                        v-model="occurrence_obj.identification.identification_certainty_id">
-                        <option v-for="option in identification_certainty_list" :value="option.id"
-                            v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                    <template v-if="!isReadOnly">
+                        <template
+                            v-if="identification_certainty_list && identification_certainty_list.length > 0 && occurrence_obj.identification.identification_certainty_id && !identification_certainty_list.map((d) => d.id).includes(occurrence_obj.identification.identification_certainty_id)">
+                            <input type="text" v-if="occurrence_obj.identification.identification_certainty"
+                                class="form-control mb-3"
+                                :value="occurrence_obj.identification.identification_certainty + ' (Now Archived)'" disabled />
+                            <div class="mb-3 text-muted">
+                                Change identification certainty to:
+                            </div>
+                        </template>
+                        <select class="form-select" v-model="occurrence_obj.identification.identification_certainty_id">
+                            <option v-for="option in identification_certainty_list" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_obj.identification.identification_certainty" />
+                    </template>
                 </div>
             </div>
             <div class="row mb-3">

@@ -1305,7 +1305,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         identification_certainty_list = []
-        values = IdentificationCertainty.objects.all()
+        values = IdentificationCertainty.objects.active()
         if values:
             for val in values:
                 identification_certainty_list.append(
@@ -5206,7 +5206,7 @@ class OccurrenceViewSet(
                     }
                 )
         identification_certainty_list = []
-        values = IdentificationCertainty.objects.all()
+        values = IdentificationCertainty.objects.active()
         if values:
             for val in values:
                 identification_certainty_list.append(

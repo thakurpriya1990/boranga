@@ -718,6 +718,9 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
     sample_destination = serializers.CharField(
         source="sample_destination.name", read_only=True, allow_null=True
     )
+    identification_certainty = serializers.CharField(
+        source="identification_certainty.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCRIdentification
@@ -726,6 +729,7 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
             "occurrence_report_id",
             "id_confirmed_by",
             "identification_certainty_id",
+            "identification_certainty",
             "sample_type_id",
             "sample_type",
             "sample_destination_id",
@@ -2870,6 +2874,9 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
     sample_destination = serializers.CharField(
         source="sample_destination.name", read_only=True, allow_null=True
     )
+    identification_certainty = serializers.CharField(
+        source="identification_certainty.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCCIdentification
@@ -2879,6 +2886,7 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
             "copied_ocr",
             "id_confirmed_by",
             "identification_certainty_id",
+            "identification_certainty",
             "sample_type_id",
             "sample_type",
             "sample_destination_id",

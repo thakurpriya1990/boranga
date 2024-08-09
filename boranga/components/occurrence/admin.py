@@ -448,6 +448,12 @@ class IntensityAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["name"]
 
 
+class IdentificationCertaintyAdmin(
+    ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, LandFormAdmin)
 admin.site.register(RockType, RockTypeAdmin)
@@ -467,7 +473,7 @@ admin.site.register(SecondarySign, SecondarySignAdmin)
 admin.site.register(ReproductiveState, ReproductiveStateAdmin)
 admin.site.register(DeathReason, DeleteProtectedModelAdmin)
 admin.site.register(AnimalHealth, DeleteProtectedModelAdmin)
-admin.site.register(IdentificationCertainty, DeleteProtectedModelAdmin)
+admin.site.register(IdentificationCertainty, IdentificationCertaintyAdmin)
 admin.site.register(SampleType, SampleTypeAdmin)
 admin.site.register(SampleDestination, SampleDestinationAdmin)
 admin.site.register(PermitType, PermitTypeAdmin)
