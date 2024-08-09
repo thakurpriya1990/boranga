@@ -2101,7 +2101,7 @@ class SoilColour(ArchivableModel):
         return str(self.name)
 
 
-class Drainage(models.Model):
+class Drainage(ArchivableModel):
     """
     # Admin List
 
