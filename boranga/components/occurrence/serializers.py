@@ -360,6 +360,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             "main_observer",
             "copied_to_occurrence",
             "geometry_show_on_map",
+            "migrated_from_id",
         )
         datatables_always_serialize = (
             "id",
