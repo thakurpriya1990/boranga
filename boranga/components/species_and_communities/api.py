@@ -2928,7 +2928,16 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                         "name": choice.name,
                     }
                 )
-
+        active_current_impact_lists = []
+        current_impacts = CurrentImpact.objects.active()
+        if current_impacts:
+            for choice in current_impacts:
+                active_current_impact_lists.append(
+                    {
+                        "id": choice.id,
+                        "name": choice.name,
+                    }
+                )
         current_impact_lists = []
         current_impacts = CurrentImpact.objects.all()
         if current_impacts:
@@ -2941,7 +2950,7 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 )
         potential_impact_lists = []
         potential_impacts = PotentialImpact.objects.all()
-        if current_impacts:
+        if potential_impacts:
             for choice in potential_impacts:
                 potential_impact_lists.append(
                     {
@@ -2949,8 +2958,20 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                         "name": choice.name,
                     }
                 )
+        active_potential_impact_lists = []
+        active_potential_impacts = PotentialImpact.objects.active()
+        if active_potential_impacts:
+            for choice in active_potential_impacts:
+                active_potential_impact_lists.append(
+                    {
+                        "id": choice.id,
+                        "name": choice.name,
+                    }
+                )
         potential_threat_onset_lists = []
-        potential_threats = PotentialThreatOnset.objects.all()
+        potential_threats = (
+            PotentialThreatOnset.objects.active()
+        )  # Can return only active because not used in a filter
         if potential_threats:
             for choice in potential_threats:
                 potential_threat_onset_lists.append(
@@ -2972,7 +2993,9 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         res_json = {
             "active_threat_category_lists": active_threat_category_lists,
             "threat_category_lists": threat_category_lists,
+            "active_current_impact_lists": active_current_impact_lists,
             "current_impact_lists": current_impact_lists,
+            "active_potential_impact_lists": active_potential_impact_lists,
             "potential_impact_lists": potential_impact_lists,
             "potential_threat_onset_lists": potential_threat_onset_lists,
             "threat_agent_lists": threat_agent_lists,

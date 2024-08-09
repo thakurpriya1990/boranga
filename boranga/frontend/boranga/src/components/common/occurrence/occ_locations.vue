@@ -218,12 +218,28 @@
                 <label for="" class="col-sm-3 control-label fw-bold">Location Accuracy: <span
                         class="text-danger">*</span></label>
                 <div class="col-sm-9">
-                    <select v-model="occurrence_obj.location.location_accuracy_id
-                        " :disabled="isReadOnly" class="form-select">
-                        <option v-for="option in location_accuracy_list" :key="option.id" :value="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
+                    <template v-if="!isReadOnly">
+                        <template v-if="location_accuracy_list && location_accuracy_list.length > 0 && occurrence_obj.location
+                            .location_accuracy_id && !location_accuracy_list.map((d) => d.id).includes(occurrence_obj.location
+                                .location_accuracy_id)">
+                            <input type="text" v-if="occurrence_obj.location.location_accuracy"
+                                class="form-control mb-3"
+                                :value="occurrence_obj.location.location_accuracy + ' (Now Archived)'" disabled />
+                            <div class="mb-3 text-muted">
+                                Change coordinate source to:
+                            </div>
+                        </template>
+                        <select class="form-select"
+                            v-model="occurrence_obj.location.location_accuracy_id">
+                            <option v-for="option in location_accuracy_list" :value="option.id" v-bind:key="option.id">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_obj.location.location_accuracy" />
+                    </template>
                 </div>
             </div>
             <div class="row mb-3">

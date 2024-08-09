@@ -435,7 +435,7 @@ class Species(RevisionedMixin):
     lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True, blank=True)  # EmailUserRO
     # parents will the original species  from the split/combine functionality
-    parent_species = models.ManyToManyField("self", blank=True, related_name="parent")
+    parent_species = models.ManyToManyField("self", blank=True)
     comment = models.CharField(max_length=500, null=True, blank=True)
 
     class Meta:
@@ -2164,7 +2164,7 @@ class ThreatCategory(ArchivableModel):
         return str(self.name)
 
 
-class CurrentImpact(models.Model):
+class CurrentImpact(ArchivableModel):
     """
     # don't know the data yet
 
@@ -2184,7 +2184,7 @@ class CurrentImpact(models.Model):
         return str(self.name)
 
 
-class PotentialImpact(models.Model):
+class PotentialImpact(ArchivableModel):
     """
     # don't know the data yet
 
@@ -2204,7 +2204,7 @@ class PotentialImpact(models.Model):
         return str(self.name)
 
 
-class PotentialThreatOnset(models.Model):
+class PotentialThreatOnset(ArchivableModel):
     """
     # don't know the data yet
 
@@ -2394,7 +2394,7 @@ class CommunityPublishingStatus(models.Model):
         return str(self.community)
 
 
-class FloraRecruitmentType(models.Model):
+class FloraRecruitmentType(ArchivableModel):
     """
     # list derived from WACensus
 
@@ -2436,7 +2436,7 @@ class RootMorphology(ArchivableModel):
         return str(self.name)
 
 
-class PostFireHabitatInteraction(models.Model):
+class PostFireHabitatInteraction(ArchivableModel):
     """
     # list derived from WACensus
 

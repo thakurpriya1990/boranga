@@ -1002,6 +1002,15 @@ export default {
             }
             this.$refs.species_combine.isModalOpen = true;
         },
+        renameSpecies: async function () {
+            let rename_species_obj = null;
+            let newRenameSpecies = await Vue.http.get(`/api/species/${this.species_community.id}/rename_deep_copy.json`)
+            if (newRenameSpecies) {
+                rename_species_obj = newRenameSpecies.body.species_obj;
+                this.$refs.species_rename.new_rename_species = rename_species_obj;
+                this.$refs.species_rename.isModalOpen = true;
+            }
+        },
         renameCommunity: async function () {
             this.$refs.community_rename.isModalOpen = true;
         },

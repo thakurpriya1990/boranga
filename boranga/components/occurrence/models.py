@@ -1702,7 +1702,7 @@ class CoordinateSource(ArchivableModel):
         return str(self.name)
 
 
-class LocationAccuracy(models.Model):
+class LocationAccuracy(ArchivableModel):
     """
     # Admin List
 
@@ -2101,7 +2101,7 @@ class SoilColour(ArchivableModel):
         return str(self.name)
 
 
-class Drainage(models.Model):
+class Drainage(ArchivableModel):
     """
     # Admin List
 
@@ -2284,7 +2284,7 @@ class OCRVegetationStructure(models.Model):
         return str(self.occurrence_report)
 
 
-class Intensity(models.Model):
+class Intensity(ArchivableModel):
     """
     # Admin List
 
@@ -2361,7 +2361,7 @@ class OCRAssociatedSpecies(models.Model):
         return str(self.occurrence_report)
 
 
-class ObservationMethod(models.Model):
+class ObservationMethod(ArchivableModel):
     """
     # Admin List
 
@@ -2411,7 +2411,7 @@ class OCRObservationDetail(models.Model):
         return str(self.occurrence_report)
 
 
-class PlantCountMethod(models.Model):
+class PlantCountMethod(ArchivableModel):
     """
     # Admin List
 
@@ -2432,7 +2432,7 @@ class PlantCountMethod(models.Model):
         return str(self.name)
 
 
-class PlantCountAccuracy(models.Model):
+class PlantCountAccuracy(ArchivableModel):
     """
     # Admin List
 
@@ -2453,7 +2453,7 @@ class PlantCountAccuracy(models.Model):
         return str(self.name)
 
 
-class CountedSubject(models.Model):
+class CountedSubject(ArchivableModel):
     """
     # Admin List
 
@@ -2474,7 +2474,7 @@ class CountedSubject(models.Model):
         return str(self.name)
 
 
-class PlantCondition(models.Model):
+class PlantCondition(ArchivableModel):
     """
     # Admin List
 
@@ -2632,7 +2632,7 @@ class AnimalHealth(models.Model):
         return str(self.name)
 
 
-class DeathReason(models.Model):
+class DeathReason(ArchivableModel):
     """
     # Admin List
 
@@ -2761,7 +2761,7 @@ class OCRAnimalObservation(models.Model):
         return total
 
 
-class IdentificationCertainty(models.Model):
+class IdentificationCertainty(ArchivableModel):
     """
     # Admin List
     May be a mandatory field that assessor needs to complete

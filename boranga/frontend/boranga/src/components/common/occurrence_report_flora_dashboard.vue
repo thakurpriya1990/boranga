@@ -300,7 +300,7 @@ export default {
             return this.profile && this.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS);
         },
         datatable_headers: function () {
-            return ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Observation Date', 'Main Observer', 'Submitted on', 'Submitter', 'Status', 'Action']
+            return ['ID', 'Number', 'Occurrence', 'Scientific Name', 'Observation Date', 'Main Observer', 'Migrated From ID', 'Submitted on', 'Submitter', 'Status', 'Action']
         },
         column_id: function () {
             return {
@@ -389,6 +389,13 @@ export default {
                 name: "lodgement_date",
             }
         },
+        column_migrated_from_id: function () {
+            return {
+                data: "migrated_from_id",
+                orderable: false,
+                searchable: true,
+            }
+        },
         column_submitter: function () {
             return {
                 data: "submitter",
@@ -464,6 +471,7 @@ export default {
                 vm.column_scientific_name,
                 vm.column_observation_date_time,
                 vm.column_main_observer,
+                vm.column_migrated_from_id,
                 vm.column_lodgement_date,
                 vm.column_submitter,
                 vm.column_status,

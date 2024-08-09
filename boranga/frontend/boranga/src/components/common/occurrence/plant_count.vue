@@ -1,37 +1,78 @@
 <template lang="html">
     <div id="plant_count">
-        <!-- <FormSection :formCollapse="false" label="Plant Count" :Index="plantCountBody"> -->
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Plant Count Method:</label>
             <div class="col-sm-9">
-                <select :disabled="isReadOnly" class="form-select" v-model="plant_count.plant_count_method_id">
-                    <option v-for="option in plant_count_method_list" :value="option.id" v-bind:key="option.id">
-                        {{ option.name }}
-                    </option>
-                </select>
-
+                <template v-if="!isReadOnly">
+                    <template
+                        v-if="plant_count_method_list && plant_count_method_list.length > 0 && plant_count.plant_count_method_id && !plant_count_method_list.map((d) => d.id).includes(plant_count.plant_count_method_id)">
+                        <input type="text" v-if="plant_count.plant_count_method" class="form-control mb-3"
+                            :value="plant_count.plant_count_method + ' (Now Archived)'" disabled />
+                        <div class="mb-3 text-muted">
+                            Change plant count method to:
+                        </div>
+                    </template>
+                    <select class="form-select" v-model="plant_count.plant_count_method_id">
+                        <option v-for="plant_count_method in plant_count_method_list" :value="plant_count_method.id"
+                            v-bind:key="plant_count_method.id">
+                            {{ plant_count_method.name }}
+                        </option>
+                    </select>
+                </template>
+                <template v-else>
+                    <input class="form-control" type="text" :disabled="isReadOnly"
+                        v-model="plant_count.plant_count_method" />
+                </template>
             </div>
         </div>
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Plant Count Accuracy:</label>
             <div class="col-sm-9">
-                <select :disabled="isReadOnly" class="form-select" v-model="plant_count.plant_count_accuracy_id">
-                    <option v-for="option in plant_count_accuracy_list" :value="option.id" v-bind:key="option.id">
-                        {{ option.name }}
-                    </option>
-                </select>
-
+                <template v-if="!isReadOnly">
+                    <template
+                        v-if="plant_count_accuracy_list && plant_count_accuracy_list.length > 0 && plant_count.plant_count_accuracy_id && !plant_count_accuracy_list.map((d) => d.id).includes(plant_count.plant_count_accuracy_id)">
+                        <input type="text" v-if="plant_count.plant_count_accuracy" class="form-control mb-3"
+                            :value="plant_count.plant_count_accuracy + ' (Now Archived)'" disabled />
+                        <div class="mb-3 text-muted">
+                            Change plant count accuracy to:
+                        </div>
+                    </template>
+                    <select class="form-select" v-model="plant_count.plant_count_accuracy_id">
+                        <option v-for="plant_count_accuracy in plant_count_accuracy_list" :value="plant_count_accuracy.id"
+                            v-bind:key="plant_count_accuracy.id">
+                            {{ plant_count_accuracy.name }}
+                        </option>
+                    </select>
+                </template>
+                <template v-else>
+                    <input class="form-control" type="text" :disabled="isReadOnly"
+                        v-model="plant_count.plant_count_accuracy" />
+                </template>
             </div>
         </div>
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Counted Subject:</label>
             <div class="col-sm-9">
-                <select :disabled="isReadOnly" class="form-select" v-model="plant_count.counted_subject_id">
-                    <option v-for="option in counted_subject_list" :value="option.id" v-bind:key="option.id">
-                        {{ option.name }}
-                    </option>
-                </select>
-
+                <template v-if="!isReadOnly">
+                    <template
+                        v-if="counted_subject_list && counted_subject_list.length > 0 && plant_count.counted_subject_id && !counted_subject_list.map((d) => d.id).includes(plant_count.counted_subject_id)">
+                        <input type="text" v-if="plant_count.counted_subject" class="form-control mb-3"
+                            :value="plant_count.counted_subject + ' (Now Archived)'" disabled />
+                        <div class="mb-3 text-muted">
+                            Change counted subject to:
+                        </div>
+                    </template>
+                    <select class="form-select" v-model="plant_count.counted_subject_id">
+                        <option v-for="counted_subject in counted_subject_list" :value="counted_subject.id"
+                            v-bind:key="counted_subject.id">
+                            {{ counted_subject.name }}
+                        </option>
+                    </select>
+                </template>
+                <template v-else>
+                    <input class="form-control" type="text" :disabled="isReadOnly"
+                        v-model="plant_count.counted_subject" />
+                </template>
             </div>
         </div>
         <div class="row mb-3">
@@ -51,15 +92,28 @@
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Condition of Plants:</label>
             <div class="col-sm-9">
-                <select :disabled="isReadOnly" class="form-select" v-model="plant_count.plant_condition_id">
-                    <option v-for="option in plant_condition_list" :value="option.id" v-bind:key="option.id">
-                        {{ option.name }}
-                    </option>
-                </select>
-
+                <template v-if="!isReadOnly">
+                    <template
+                        v-if="plant_condition_list && plant_condition_list.length > 0 && plant_count.plant_condition_id && !plant_condition_list.map((d) => d.id).includes(plant_count.plant_condition_id)">
+                        <input type="text" v-if="plant_count.plant_condition" class="form-control mb-3"
+                            :value="plant_count.plant_condition + ' (Now Archived)'" disabled />
+                        <div class="mb-3 text-muted">
+                            Change plant count accuracy to:
+                        </div>
+                    </template>
+                    <select class="form-select" v-model="plant_count.plant_condition_id">
+                        <option v-for="plant_condition in plant_condition_list" :value="plant_condition.id"
+                            v-bind:key="plant_condition.id">
+                            {{ plant_condition.name }}
+                        </option>
+                    </select>
+                </template>
+                <template v-else>
+                    <input class="form-control" type="text" :disabled="isReadOnly"
+                        v-model="plant_count.plant_condition" />
+                </template>
             </div>
         </div>
-
         <label for="" class="col-lg-3 control-label fs-5 fw-bold">Plant Count - Detailed</label>
         <div class="row mb-3">
             <div class="col-sm-2">
@@ -129,7 +183,6 @@
                     id="dead_unknown" placeholder="" min="0" v-model="plant_count.detailed_dead_unknown" />
             </div>
         </div>
-
         <label for="" class="col-lg-3 control-label fs-5 fw-bold">Plant Count - Simple</label>
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Number alive :</label>
@@ -145,8 +198,6 @@
                     id="simple_dead" placeholder="" min="0" v-model="plant_count.simple_dead" />
             </div>
         </div>
-
-
         <label for="" class="col-lg-3 control-label fs-5 fw-bold">Quadrats</label>
         <div class="row mb-3">
             <label class="col-sm-3 control-label">Quadrats Present?</label>
@@ -206,7 +257,6 @@
                     placeholder="" min="0" max="100" v-model="plant_count.flowering_plants_per" />
             </div>
         </div>
-
         <label for="" class="col-lg-3 control-label fs-5 fw-bold"></label>
         <div class="row mb-3">
             <label class="col-sm-3 control-label">Clonal Reproduction present?</label>
@@ -327,17 +377,14 @@
                     placeholder="" v-model="plant_count.comment" />
             </div>
         </div>
-
         <div class="row mb-3">
             <div class="col-sm-12">
                 <span v-if="plant_count.copied_ocr" class="float-end"><b>Sourced from
                         {{ plant_count.copied_ocr }}</b></span>
             </div>
         </div>
-
         <div class="row mb-3">
             <div class="col-sm-12">
-                <!-- <button v-if="!updatingHabitatCompositionDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
                 <button v-if="!updatingPlantCountDetails" :disabled="isReadOnly"
                     class="btn btn-primary btn-sm float-end" @click.prevent="updatePlantCountDetails()">Update</button>
                 <button v-else disabled class="float-end btn btn-primary">Updating <span
@@ -345,7 +392,6 @@
                     <span class="visually-hidden">Loading...</span></button>
             </div>
         </div>
-        <!-- </FormSection> -->
     </div>
 </template>
 

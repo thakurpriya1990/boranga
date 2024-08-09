@@ -11,7 +11,7 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Category</label>
+                                        <label class="control-label pull-left">Category:</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <template v-if="!isReadOnly">
@@ -24,8 +24,7 @@
                                                     Change threat category to:
                                                 </div>
                                             </template>
-                                            <select class="form-select"
-                                                v-model="threatObj.threat_category_id">
+                                            <select class="form-select" v-model="threatObj.threat_category_id">
                                                 <option v-for="category in threat_category_list" :value="category.id"
                                                     v-bind:key="category.id">
                                                     {{ category.name }}
@@ -40,7 +39,7 @@
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Threat Agent</label>
+                                        <label class="control-label pull-left">Threat Agent:</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <template v-if="!isReadOnly">
@@ -53,8 +52,7 @@
                                                     Change threat agent to:
                                                 </div>
                                             </template>
-                                            <select class="form-select"
-                                                v-model="threatObj.threat_agent_id">
+                                            <select class="form-select" v-model="threatObj.threat_agent_id">
                                                 <option v-for="agent in threat_agent_list" :value="agent.id"
                                                     v-bind:key="agent.id">
                                                     {{ agent.name }}
@@ -69,76 +67,139 @@
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Threat Comments</label>
+                                        <label class="control-label pull-left">Threat Comments:</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <textarea :disabled="isReadOnly" class="form-control"
-                                            v-model="threatObj.comment">
-        </textarea>
+                                            v-model="threatObj.comment"></textarea>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Current Impact?</label>
+                                        <label class="control-label pull-left">Current Impact:</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <template v-if="current_impact_list && current_impact_list.length > 0">
-                                            <div v-for="option in current_impact_list"
-                                                class="form-check form-check-inline">
-                                                <input :disabled="isReadOnly" type="radio" class="form-check-input"
-                                                    :value="option.id" :id="'current_impact_' + option.id"
-                                                    v-bind:key="option.id" v-model="threatObj.current_impact" />
-                                                <label :for="'current_impact_' + option.id">{{ option.name }}</label>
-                                            </div>
+                                        <template v-if="!isReadOnly">
+                                            <template
+                                                v-if="current_impact_list && current_impact_list.length > 0 && threatObj.current_impact && !current_impact_list.map((d) => d.id).includes(threatObj.current_impact)">
+                                                <input type="text" v-if="threatObj.current_impact_name"
+                                                    class="form-control mb-3"
+                                                    :value="threatObj.current_impact_name + ' (Now Archived)'"
+                                                    disabled />
+                                                <div class="mb-3 text-muted">
+                                                    Change current impact to:
+                                                </div>
+                                            </template>
+                                            <template
+                                                v-if="current_impact_list && current_impact_list.length > 0">
+                                                <div v-for="current_impact in current_impact_list"
+                                                    class="form-check form-check-inline ">
+                                                    <input :disabled="isReadOnly" type="radio" class="form-check-input"
+                                                        :value="current_impact.id"
+                                                        :id="'current_impact_' + current_impact.id"
+                                                        v-bind:key="current_impact.id"
+                                                        v-model="threatObj.current_impact" />
+                                                    <label
+                                                        :for="'current_impact_' + current_impact.id">{{
+                                                            current_impact.name
+                                                        }}</label>
+                                                </div>
+                                            </template>
+                                            <template v-else>
+                                                <div>There are no current impact options available</div>
+                                            </template>
                                         </template>
                                         <template v-else>
-                                            <div>There are no current impact options available</div>
+                                            <input class="form-control" type="text" :disabled="isReadOnly"
+                                                v-model="threatObj.current_impact_name" />
                                         </template>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Potential Impact?</label>
+                                        <label class="control-label pull-left">Potential Impact:</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <template v-if="potential_impact_list && potential_impact_list.length > 0">
-                                            <div v-for="option in potential_impact_list"
-                                                class="form-check form-check-inline">
-                                                <input :disabled="isReadOnly" type="radio" class="form-check-input"
-                                                    :value="option.id" :id="'potential_impact_' + option.id"
-                                                    v-bind:key="option.id" v-model="threatObj.potential_impact" />
-                                                <label :for="'potential_impact_' + option.id">{{ option.name }}</label>
-                                            </div>
+                                        <template v-if="!isReadOnly">
+                                            <template
+                                                v-if="potential_impact_list && potential_impact_list.length > 0 && threatObj.potential_impact && !potential_impact_list.map((d) => d.id).includes(threatObj.potential_impact)">
+                                                <input type="text" v-if="threatObj.potential_impact_name"
+                                                    class="form-control mb-3"
+                                                    :value="threatObj.potential_impact_name + ' (Now Archived)'"
+                                                    disabled />
+                                                <div class="mb-3 text-muted">
+                                                    Change potential impact to:
+                                                </div>
+                                            </template>
+                                            <template
+                                                v-if="potential_impact_list && potential_impact_list.length > 0">
+                                                <div v-for="potential_impact in potential_impact_list"
+                                                    class="form-check form-check-inline ">
+                                                    <input :disabled="isReadOnly" type="radio" class="form-check-input"
+                                                        :value="potential_impact.id"
+                                                        :id="'potential_impact_' + potential_impact.id"
+                                                        v-bind:key="potential_impact.id"
+                                                        v-model="threatObj.potential_impact" />
+                                                    <label
+                                                        :for="'potential_impact_' + potential_impact.id">{{
+                                                            potential_impact.name
+                                                        }}</label>
+                                                </div>
+                                            </template>
+                                            <template v-else>
+                                                <div>There are no potential impact options available</div>
+                                            </template>
                                         </template>
                                         <template v-else>
-                                            <div>There are no potential impact options available</div>
+                                            <input class="form-control" type="text" :disabled="isReadOnly"
+                                                v-model="threatObj.potential_impact_name" />
                                         </template>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Potential Threat Onset?</label>
+                                        <label class="control-label pull-left">Potential Threat Onset:</label>
                                     </div>
                                     <div class="col-sm-9">
-                                        <template
-                                            v-if="potential_threat_onset_list && potential_threat_onset_list.length > 0">
-                                            <div v-for="option in potential_threat_onset_list"
-                                                class="form-check form-check-inline ">
-                                                <input :disabled="isReadOnly" type="radio" class="form-check-input"
-                                                    :value="option.id" :id="'potential_threat_onset_' + option.id"
-                                                    v-bind:key="option.id" v-model="threatObj.potential_threat_onset" />
-                                                <label :for="'potential_threat_onset_' + option.id">{{ option.name
-                                                    }}</label>
-                                            </div>
+                                        <template v-if="!isReadOnly">
+                                            <template
+                                                v-if="potential_threat_onset_list && potential_threat_onset_list.length > 0 && threatObj.potential_threat_onset && !potential_threat_onset_list.map((d) => d.id).includes(threatObj.potential_threat_onset)">
+                                                <input type="text" v-if="threatObj.potential_threat_onset_name"
+                                                    class="form-control mb-3"
+                                                    :value="threatObj.potential_threat_onset_name + ' (Now Archived)'"
+                                                    disabled />
+                                                <div class="mb-3 text-muted">
+                                                    Change potential threat onset to:
+                                                </div>
+                                            </template>
+                                            <template
+                                                v-if="potential_threat_onset_list && potential_threat_onset_list.length > 0">
+                                                <div v-for="potential_threat_onset in potential_threat_onset_list"
+                                                    class="form-check form-check-inline ">
+                                                    <input :disabled="isReadOnly" type="radio" class="form-check-input"
+                                                        :value="potential_threat_onset.id"
+                                                        :id="'potential_threat_onset_' + potential_threat_onset.id"
+                                                        v-bind:key="potential_threat_onset.id"
+                                                        v-model="threatObj.potential_threat_onset" />
+                                                    <label
+                                                        :for="'potential_threat_onset_' + potential_threat_onset.id">{{
+                                                            potential_threat_onset.name
+                                                        }}</label>
+                                                </div>
+                                            </template>
+                                            <template v-else>
+                                                <div>There are no potential threat onset options available</div>
+                                            </template>
                                         </template>
                                         <template v-else>
-                                            <div>There are no potential threat onset options available</div>
+                                            <input class="form-control" type="text" :disabled="isReadOnly"
+                                                v-model="threatObj.potential_threat_onset_name" />
                                         </template>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Threat Source</label>
+                                        <label class="control-label pull-left">Threat Source:</label>
                                     </div>
                                     <div class="col-sm-9">
                                         <input type="text" class="form-control" readonly v-model="threatObj.source" />
@@ -310,9 +371,9 @@ export default {
                 id: null,
                 name: null,
             });
-        this.current_impact_list = threat_list_of_values_res.current_impact_lists;
-        this.potential_impact_list = threat_list_of_values_res.potential_impact_lists;
-        this.potential_threat_onset_list = threat_list_of_values_res.potential_threat_onset_lists;
+        this.current_impact_list = threat_list_of_values_res.active_current_impact_lists;
+        this.potential_impact_list = threat_list_of_values_res.active_potential_impact_lists;
+        this.potential_threat_onset_list = threat_list_of_values_res.potential_threat_onset_lists; // Returns only active potential threat onsets
         this.threat_agent_list = threat_list_of_values_res.threat_agent_lists;
         this.threat_agent_list.splice(0, 0,
             {
