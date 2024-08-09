@@ -71,12 +71,24 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Cause of Death:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" v-model="animal_observation.death_reason_id">
-                        <option v-for="option in death_reason_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
-
+                    <template v-if="!isReadOnly">
+                        <template
+                            v-if="death_reason_list && death_reason_list.length > 0 && animal_observation.death_reason_id && !death_reason_list.map((d) => d.id).includes(animal_observation.death_reason_id)">
+                            <input type="text" v-if="animal_observation.death_reason" class="form-control mb-3"
+                                :value="animal_observation.death_reason + ' (Now Archived)'" disabled />
+                            <div class="mb-3 text-muted">
+                                Change death reason to:
+                            </div>
+                        </template>
+                        <select class="form-select" v-model="animal_observation.death_reason_id">
+                            <option v-for="death_reason in death_reason_list" :value="death_reason.id" v-bind:key="death_reason.id">
+                                {{ death_reason.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="animal_observation.death_reason" />
+                    </template>
                 </div>
             </div>
 

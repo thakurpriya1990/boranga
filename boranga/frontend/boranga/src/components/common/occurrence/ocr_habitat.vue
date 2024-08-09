@@ -114,13 +114,28 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Drainage:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select"
-                        v-model="occurrence_report_obj.habitat_composition.drainage_id">
-                        <option v-for="option in drainage_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
-
+                    <template v-if="!isReadOnly">
+                        <template
+                            v-if="drainage_list && drainage_list.length > 0 && occurrence_report_obj.habitat_composition.drainage_id && !drainage_list.map((d) => d.id).includes(occurrence_report_obj.habitat_composition.drainage_id)">
+                            <input type="text" v-if="occurrence_report_obj.habitat_composition.drainage"
+                                class="form-control mb-3"
+                                :value="occurrence_report_obj.habitat_composition.drainage + ' (Now Archived)'"
+                                disabled />
+                            <div class="mb-3 text-muted">
+                                Change drainage to:
+                            </div>
+                        </template>
+                        <select class="form-select" v-model="occurrence_report_obj.habitat_composition.drainage_id">
+                            <option v-for="drainage in drainage_list" :value="drainage.id"
+                                v-bind:key="drainage.id">
+                                {{ drainage.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_report_obj.habitat_composition.drainage" />
+                    </template>
                 </div>
             </div>
             <div class="row mb-3">
@@ -282,13 +297,25 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Intensity:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select"
-                        v-model="occurrence_report_obj.fire_history.intensity_id">
-                        <option v-for="option in intensity_list" :value="option.id" v-bind:key="option.id">
-                            {{ option.name }}
-                        </option>
-                    </select>
-
+                    <template v-if="!isReadOnly">
+                        <template
+                            v-if="intensity_list && intensity_list.length > 0 && occurrence_report_obj.fire_history.intensity_id && !intensity_list.map((d) => d.id).includes(occurrence_report_obj.fire_history.intensity_id)">
+                            <input type="text" v-if="occurrence_report_obj.fire_history.intensity" class="form-control mb-3"
+                                :value="occurrence_report_obj.fire_history.intensity + ' (Now Archived)'" disabled />
+                            <div class="mb-3 text-muted">
+                                Change intensity to:
+                            </div>
+                        </template>
+                        <select class="form-select" v-model="occurrence_report_obj.fire_history.intensity_id">
+                            <option v-for="intensity in intensity_list" :value="intensity.id" v-bind:key="intensity.id">
+                                {{ intensity.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input class="form-control" type="text" :disabled="isReadOnly"
+                            v-model="occurrence_report_obj.fire_history.intensity" />
+                    </template>
                 </div>
             </div>
             <div class="row mb-3">

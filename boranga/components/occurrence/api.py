@@ -931,7 +931,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         location_accuracy_list = []
-        values = LocationAccuracy.objects.all()
+        values = LocationAccuracy.objects.active()
         if values:
             for val in values:
                 location_accuracy_list.append(
@@ -1008,7 +1008,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         drainage_list = []
-        drainages = Drainage.objects.all()
+        drainages = Drainage.objects.active()
         if drainages:
             for val in drainages:
                 drainage_list.append(
@@ -1018,7 +1018,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         intensity_list = []
-        intensities = Intensity.objects.all()
+        intensities = Intensity.objects.active()
         if intensities:
             for val in intensities:
                 intensity_list.append(
@@ -1205,7 +1205,7 @@ class OccurrenceReportViewSet(
             )
 
         observation_method_list = []
-        values = ObservationMethod.objects.all()
+        values = ObservationMethod.objects.active()
         if values:
             for val in values:
                 observation_method_list.append(
@@ -1215,7 +1215,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         plant_count_method_list = []
-        values = PlantCountMethod.objects.all()
+        values = PlantCountMethod.objects.active()
         if values:
             for val in values:
                 plant_count_method_list.append(
@@ -1225,7 +1225,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         plant_count_accuracy_list = []
-        values = PlantCountAccuracy.objects.all()
+        values = PlantCountAccuracy.objects.active()
         if values:
             for val in values:
                 plant_count_accuracy_list.append(
@@ -1235,7 +1235,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         plant_condition_list = []
-        values = PlantCondition.objects.all()
+        values = PlantCondition.objects.active()
         if values:
             for val in values:
                 plant_condition_list.append(
@@ -1245,7 +1245,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         counted_subject_list = []
-        values = CountedSubject.objects.all()
+        values = CountedSubject.objects.active()
         if values:
             for val in values:
                 counted_subject_list.append(
@@ -1285,7 +1285,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         death_reason_list = []
-        values = DeathReason.objects.all()
+        values = DeathReason.objects.active()
         if values:
             for val in values:
                 death_reason_list.append(
@@ -1305,7 +1305,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         identification_certainty_list = []
-        values = IdentificationCertainty.objects.all()
+        values = IdentificationCertainty.objects.active()
         if values:
             for val in values:
                 identification_certainty_list.append(
@@ -1375,7 +1375,7 @@ class OccurrenceReportViewSet(
         """used for Occurrence Report external form"""
 
         plant_count_method_list = []
-        values = PlantCountMethod.objects.all()
+        values = PlantCountMethod.objects.active()
         if values:
             for val in values:
                 plant_count_method_list.append(
@@ -1385,7 +1385,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         plant_count_accuracy_list = []
-        values = PlantCountAccuracy.objects.all()
+        values = PlantCountAccuracy.objects.active()
         if values:
             for val in values:
                 plant_count_accuracy_list.append(
@@ -1395,7 +1395,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         plant_condition_list = []
-        values = PlantCondition.objects.all()
+        values = PlantCondition.objects.active()
         if values:
             for val in values:
                 plant_condition_list.append(
@@ -1405,7 +1405,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         counted_subject_list = []
-        values = CountedSubject.objects.all()
+        values = CountedSubject.objects.active()
         if values:
             for val in values:
                 counted_subject_list.append(
@@ -1465,7 +1465,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         death_reason_list = []
-        values = DeathReason.objects.all()
+        values = DeathReason.objects.active()
         if values:
             for val in values:
                 death_reason_list.append(
@@ -4512,7 +4512,7 @@ class OccurrenceViewSet(
                     }
                 )
         location_accuracy_list = []
-        values = LocationAccuracy.objects.all()
+        values = LocationAccuracy.objects.active()
         if values:
             for val in values:
                 location_accuracy_list.append(
@@ -5057,7 +5057,7 @@ class OccurrenceViewSet(
                     }
                 )
         drainage_list = []
-        drainages = Drainage.objects.all()
+        drainages = Drainage.objects.active()
         if drainages:
             for val in drainages:
                 drainage_list.append(
@@ -5067,7 +5067,7 @@ class OccurrenceViewSet(
                     }
                 )
         intensity_list = []
-        intensities = Intensity.objects.all()
+        intensities = Intensity.objects.active()
         if intensities:
             for val in intensities:
                 intensity_list.append(
@@ -5106,7 +5106,7 @@ class OccurrenceViewSet(
             )
 
         observation_method_list = []
-        values = ObservationMethod.objects.all()
+        values = ObservationMethod.objects.active()
         if values:
             for val in values:
                 observation_method_list.append(
@@ -5116,7 +5116,7 @@ class OccurrenceViewSet(
                     }
                 )
         plant_count_method_list = []
-        values = PlantCountMethod.objects.all()
+        values = PlantCountMethod.objects.active()
         if values:
             for val in values:
                 plant_count_method_list.append(
@@ -5126,7 +5126,7 @@ class OccurrenceViewSet(
                     }
                 )
         plant_count_accuracy_list = []
-        values = PlantCountAccuracy.objects.all()
+        values = PlantCountAccuracy.objects.active()
         if values:
             for val in values:
                 plant_count_accuracy_list.append(
@@ -5136,7 +5136,7 @@ class OccurrenceViewSet(
                     }
                 )
         plant_condition_list = []
-        values = PlantCondition.objects.all()
+        values = PlantCondition.objects.active()
         if values:
             for val in values:
                 plant_condition_list.append(
@@ -5146,7 +5146,7 @@ class OccurrenceViewSet(
                     }
                 )
         counted_subject_list = []
-        values = CountedSubject.objects.all()
+        values = CountedSubject.objects.active()
         if values:
             for val in values:
                 counted_subject_list.append(
@@ -5186,7 +5186,7 @@ class OccurrenceViewSet(
                     }
                 )
         death_reason_list = []
-        values = DeathReason.objects.all()
+        values = DeathReason.objects.active()
         if values:
             for val in values:
                 death_reason_list.append(
@@ -5206,7 +5206,7 @@ class OccurrenceViewSet(
                     }
                 )
         identification_certainty_list = []
-        values = IdentificationCertainty.objects.all()
+        values = IdentificationCertainty.objects.active()
         if values:
             for val in values:
                 identification_certainty_list.append(
@@ -5276,7 +5276,7 @@ class OccurrenceViewSet(
         """used for Occurrence external form"""
 
         plant_count_method_list = []
-        values = PlantCountMethod.objects.all()
+        values = PlantCountMethod.objects.active()
         if values:
             for val in values:
                 plant_count_method_list.append(
@@ -5286,7 +5286,7 @@ class OccurrenceViewSet(
                     }
                 )
         plant_count_accuracy_list = []
-        values = PlantCountAccuracy.objects.all()
+        values = PlantCountAccuracy.objects.active()
         if values:
             for val in values:
                 plant_count_accuracy_list.append(
@@ -5296,7 +5296,7 @@ class OccurrenceViewSet(
                     }
                 )
         plant_condition_list = []
-        values = PlantCondition.objects.all()
+        values = PlantCondition.objects.active()
         if values:
             for val in values:
                 plant_condition_list.append(
@@ -5306,7 +5306,7 @@ class OccurrenceViewSet(
                     }
                 )
         counted_subject_list = []
-        values = CountedSubject.objects.all()
+        values = CountedSubject.objects.active()
         if values:
             for val in values:
                 counted_subject_list.append(
@@ -5366,7 +5366,7 @@ class OccurrenceViewSet(
                     }
                 )
         death_reason_list = []
-        values = DeathReason.objects.all()
+        values = DeathReason.objects.active()
         if values:
             for val in values:
                 death_reason_list.append(

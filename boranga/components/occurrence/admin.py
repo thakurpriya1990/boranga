@@ -424,6 +424,48 @@ class PrimaryDetectionMethodAdmin(DeleteProtectedModelAdmin):
     # more work on the frontend due to django-multiselectfield
 
 
+class PlantCountMethodAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class PlantCountAccuracyAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class PlantConditionAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class ObservationMethodAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class LocationAccuracyAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class IntensityAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class IdentificationCertaintyAdmin(
+    ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
+    list_display = ["name"]
+
+
+class DrainageAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class DeathReasonAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
+class CountedSubjectAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+    list_display = ["name"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, LandFormAdmin)
 admin.site.register(RockType, RockTypeAdmin)
@@ -431,24 +473,24 @@ admin.site.register(SoilType, SoilTypeAdmin)
 admin.site.register(SiteType, SiteTypeAdmin)
 admin.site.register(SoilColour, SoilColourAdmin)
 admin.site.register(SoilCondition, SoilConditionAdmin)
-admin.site.register(Drainage, DeleteProtectedModelAdmin)
-admin.site.register(Intensity, DeleteProtectedModelAdmin)
-admin.site.register(ObservationMethod, DeleteProtectedModelAdmin)
-admin.site.register(PlantCountMethod, DeleteProtectedModelAdmin)
-admin.site.register(PlantCountAccuracy, DeleteProtectedModelAdmin)
-admin.site.register(CountedSubject, DeleteProtectedModelAdmin)
-admin.site.register(PlantCondition, DeleteProtectedModelAdmin)
+admin.site.register(Drainage, DrainageAdmin)
+admin.site.register(Intensity, IntensityAdmin)
+admin.site.register(ObservationMethod, ObservationMethodAdmin)
+admin.site.register(PlantCountMethod, PlantCountMethodAdmin)
+admin.site.register(PlantCountAccuracy, PlantCountAccuracyAdmin)
+admin.site.register(CountedSubject, CountedSubjectAdmin)
+admin.site.register(PlantCondition, PlantConditionAdmin)
 admin.site.register(PrimaryDetectionMethod, PrimaryDetectionMethodAdmin)
 admin.site.register(SecondarySign, SecondarySignAdmin)
 admin.site.register(ReproductiveState, ReproductiveStateAdmin)
-admin.site.register(DeathReason, DeleteProtectedModelAdmin)
+admin.site.register(DeathReason, DeathReasonAdmin)
 admin.site.register(AnimalHealth, DeleteProtectedModelAdmin)
-admin.site.register(IdentificationCertainty, DeleteProtectedModelAdmin)
+admin.site.register(IdentificationCertainty, IdentificationCertaintyAdmin)
 admin.site.register(SampleType, SampleTypeAdmin)
 admin.site.register(SampleDestination, SampleDestinationAdmin)
 admin.site.register(PermitType, PermitTypeAdmin)
 admin.site.register(Datum, DatumAdmin)
 admin.site.register(CoordinateSource, CoordinateSourceAdmin)
-admin.site.register(LocationAccuracy, DeleteProtectedModelAdmin)
+admin.site.register(LocationAccuracy, LocationAccuracyAdmin)
 admin.site.register(WildStatus, WildStatusAdmin)
 admin.site.register(OccurrenceSite)

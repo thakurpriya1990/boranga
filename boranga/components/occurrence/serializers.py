@@ -482,6 +482,7 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
     )
     soil_colour = serializers.CharField(source="soil_colour.name", allow_null=True)
     rock_type = serializers.CharField(source="rock_type.name", allow_null=True)
+    drainage = serializers.CharField(source="drainage.name", allow_null=True)
 
     class Meta:
         model = OCRHabitatComposition
@@ -500,6 +501,7 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
             "soil_condition_id",
             "soil_condition",
             "drainage_id",
+            "drainage",
             "water_quality",
             "habitat_notes",
         )
@@ -551,6 +553,7 @@ class OCRVegetationStructureSerializer(serializers.ModelSerializer):
 
 class OCRFireHistorySerializer(serializers.ModelSerializer):
     last_fire_estimate = serializers.DateField(format="%Y-%m")
+    intensity = serializers.CharField(source="intensity.name", allow_null=True)
 
     class Meta:
         model = OCRFireHistory
@@ -559,6 +562,7 @@ class OCRFireHistorySerializer(serializers.ModelSerializer):
             "occurrence_report_id",
             "last_fire_estimate",
             "intensity_id",
+            "intensity",
             "comment",
         )
 
@@ -576,6 +580,9 @@ class OCRAssociatedSpeciesSerializer(serializers.ModelSerializer):
 
 
 class OCRObservationDetailSerializer(serializers.ModelSerializer):
+    observation_method = serializers.CharField(
+        source="observation_method.name", allow_null=True
+    )
 
     class Meta:
         model = OCRObservationDetail
@@ -583,6 +590,7 @@ class OCRObservationDetailSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_id",
             "observation_method_id",
+            "observation_method",
             "area_surveyed",
             "survey_duration",
         )
@@ -590,6 +598,18 @@ class OCRObservationDetailSerializer(serializers.ModelSerializer):
 
 class OCRPlantCountSerializer(serializers.ModelSerializer):
     count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    plant_count_method = serializers.CharField(
+        source="plant_count_method.name", allow_null=True
+    )
+    plant_count_accuracy = serializers.CharField(
+        source="plant_count_accuracy.name", allow_null=True
+    )
+    plant_condition = serializers.CharField(
+        source="plant_condition.name", allow_null=True
+    )
+    counted_subject = serializers.CharField(
+        source="counted_subject.name", allow_null=True
+    )
 
     class Meta:
         model = OCRPlantCount
@@ -597,9 +617,13 @@ class OCRPlantCountSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_id",
             "plant_count_method_id",
+            "plant_count_method",
             "plant_count_accuracy_id",
+            "plant_count_accuracy",
             "counted_subject_id",
+            "counted_subject",
             "plant_condition_id",
+            "plant_condition",
             "estimated_population_area",
             "quadrats_present",
             "quadrats_data_attached",
@@ -643,6 +667,7 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
     reproductive_state_name = serializers.CharField(
         source="reproductive_state.name", allow_null=True
     )
+    death_reason = serializers.CharField(source="death_reason.name", allow_null=True)
 
     class Meta:
         model = OCRAnimalObservation
@@ -656,6 +681,7 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "reproductive_state_name",
             "animal_health_id",
             "death_reason_id",
+            "death_reason",
             "total_count",
             "distinctive_feature",
             "action_taken",
@@ -700,6 +726,9 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
     sample_destination = serializers.CharField(
         source="sample_destination.name", read_only=True, allow_null=True
     )
+    identification_certainty = serializers.CharField(
+        source="identification_certainty.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCRIdentification
@@ -708,6 +737,7 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
             "occurrence_report_id",
             "id_confirmed_by",
             "identification_certainty_id",
+            "identification_certainty",
             "sample_type_id",
             "sample_type",
             "sample_destination_id",
@@ -730,6 +760,9 @@ class OCRLocationSerializer(serializers.ModelSerializer):
     coordinate_source = serializers.CharField(
         source="coordinate_source.name", read_only=True, allow_null=True
     )
+    location_accuracy = serializers.CharField(
+        source="location_accuracy.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCRLocation
@@ -747,6 +780,7 @@ class OCRLocationSerializer(serializers.ModelSerializer):
             "coordinate_source_id",
             "coordinate_source",
             "location_accuracy_id",
+            "location_accuracy",
             "region_id",
             "district_id",
             "locality",
@@ -2537,6 +2571,7 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
     )
     soil_colour = serializers.CharField(source="soil_colour.name", allow_null=True)
     rock_type = serializers.CharField(source="rock_type.name", allow_null=True)
+    drainage = serializers.CharField(source="drainage.name", allow_null=True)
 
     class Meta:
         model = OCCHabitatComposition
@@ -2555,6 +2590,7 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
             "soil_condition_id",
             "soil_condition",
             "drainage_id",
+            "drainage",
             "water_quality",
             "habitat_notes",
         )
@@ -2641,6 +2677,7 @@ class SaveOCCVegetationStructureSerializer(serializers.ModelSerializer):
 class OCCFireHistorySerializer(serializers.ModelSerializer):
     last_fire_estimate = serializers.DateField(format="%Y-%m")
     copied_ocr = serializers.SerializerMethodField()
+    intensity = serializers.CharField(source="intensity.name", allow_null=True)
 
     class Meta:
         model = OCCFireHistory
@@ -2650,6 +2687,7 @@ class OCCFireHistorySerializer(serializers.ModelSerializer):
             "copied_ocr",
             "last_fire_estimate",
             "intensity_id",
+            "intensity",
             "comment",
         )
 
@@ -2684,6 +2722,9 @@ class OCCAssociatedSpeciesSerializer(serializers.ModelSerializer):
 class OCCObservationDetailSerializer(serializers.ModelSerializer):
 
     copied_ocr = serializers.SerializerMethodField()
+    observation_method = serializers.CharField(
+        source="observation_method.name", allow_null=True
+    )
 
     class Meta:
         model = OCCObservationDetail
@@ -2692,6 +2733,7 @@ class OCCObservationDetailSerializer(serializers.ModelSerializer):
             "occurrence_id",
             "copied_ocr",
             "observation_method_id",
+            "observation_method",
             "area_surveyed",
             "survey_duration",
         )
@@ -2704,9 +2746,20 @@ class OCCObservationDetailSerializer(serializers.ModelSerializer):
 
 
 class OCCPlantCountSerializer(serializers.ModelSerializer):
-
     copied_ocr = serializers.SerializerMethodField()
     count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    plant_count_method = serializers.CharField(
+        source="plant_count_method.name", allow_null=True
+    )
+    plant_count_accuracy = serializers.CharField(
+        source="plant_count_accuracy.name", allow_null=True
+    )
+    plant_condition = serializers.CharField(
+        source="plant_condition.name", allow_null=True
+    )
+    counted_subject = serializers.CharField(
+        source="counted_subject.name", allow_null=True
+    )
 
     class Meta:
         model = OCCPlantCount
@@ -2715,9 +2768,13 @@ class OCCPlantCountSerializer(serializers.ModelSerializer):
             "occurrence_id",
             "copied_ocr",
             "plant_count_method_id",
+            "plant_count_method",
             "plant_count_accuracy_id",
+            "plant_count_accuracy",
             "counted_subject_id",
+            "counted_subject",
             "plant_condition_id",
+            "plant_condition",
             "estimated_population_area",
             "quadrats_present",
             "quadrats_data_attached",
@@ -2766,6 +2823,7 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
     reproductive_state_name = serializers.CharField(
         source="reproductive_state.name", allow_null=True
     )
+    death_reason = serializers.CharField(source="death_reason.name", allow_null=True)
 
     class Meta:
         model = OCCAnimalObservation
@@ -2780,6 +2838,7 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "reproductive_state_name",
             "animal_health_id",
             "death_reason_id",
+            "death_reason",
             "total_count",
             "distinctive_feature",
             "action_taken",
@@ -2831,6 +2890,9 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
     sample_destination = serializers.CharField(
         source="sample_destination.name", read_only=True, allow_null=True
     )
+    identification_certainty = serializers.CharField(
+        source="identification_certainty.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCCIdentification
@@ -2840,6 +2902,7 @@ class OCCIdentificationSerializer(serializers.ModelSerializer):
             "copied_ocr",
             "id_confirmed_by",
             "identification_certainty_id",
+            "identification_certainty",
             "sample_type_id",
             "sample_type",
             "sample_destination_id",
@@ -3137,6 +3200,9 @@ class OCCLocationSerializer(serializers.ModelSerializer):
     coordinate_source = serializers.CharField(
         source="coordinate_source.name", read_only=True, allow_null=True
     )
+    location_accuracy = serializers.CharField(
+        source="location_accuracy.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = OCCLocation
@@ -3153,6 +3219,7 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             "coordinate_source_id",
             "coordinate_source",
             "location_accuracy_id",
+            "location_accuracy",
             "region_id",
             "district_id",
             "locality",
