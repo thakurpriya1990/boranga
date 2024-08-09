@@ -5400,10 +5400,13 @@ class OccurrenceViewSet(
             "GET",
         ],
         detail=False,
-        url_path="available-occurrence-reports-crs",
+        url_path="available-crs-for-occurrence",
     )
-    def available_occurrence_reports_crs(self, request, *args, **kwargs):
-        """used for Occurrence Report external form"""
+    def available_crs_for_occurrence(self, request, *args, **kwargs):
+        """Returns the available CRS for the occurrence, occurrence report, and
+        site geometries associated with this occurrence
+        """
+
         qs = self.get_queryset()
         crs = []
 
