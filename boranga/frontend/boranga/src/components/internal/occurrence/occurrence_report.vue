@@ -1,49 +1,42 @@
 <template lang="html">
     <div v-if="occurrence_report" class="container" id="internal-occurence-report-detail">
-        <div class="row">
+        <div class="row mb-2">
             <div class="col">
-                <h3 class="mb-1">Occurrence Report: {{ occurrence_report.occurrence_report_number }} - <span
+                <h3 class="float-start">Occurrence Report: {{ occurrence_report.occurrence_report_number }} - <span
                         class="text-capitalize">{{ display_group_type }}</span></h3>
-                <!-- <h4 class="text-muted mb-3">
-                    Occurrence:
-                    <template v-if="occurrence_report.occurrence">
-                        {{ occurrence_report.occurrence.occurrence_number }} <small><a
-                                :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${occurrence_report.group_type}&action=view`"
-                                target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
-                    </template>
-<template v-else>
-                        NOT SET
-                    </template>
-</h4> -->
-                <h4 class="text-muted mb-3">
-                    <template v-if="occurrence_report.occurrence">Occurrence:
-                        {{ occurrence_report.occurrence.occurrence_number }} <small><a
-                                :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${occurrence_report.group_type}&action=view`"
-                                target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
-                    </template>
-                    <template v-else>
-                        Occurrence: NOT SET
-                    </template>
-                    <template v-if="isCommunity">
-                        <template v-if="occurrence_report.community_id">
-                            Community: {{ occurrence_report.community_number }} <small><a
-                                    :href="`/internal/species_communities/${occurrence_report.community_id}?group_type_name=${occurrence_report.group_type}&action=view`"
-                                    target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
+                <h4 class="text-muted mb-3 float-end">
+                    <span class="badge bg-light text-primary text-capitalize border p-2 fs-6 me-3">
+                        <template v-if="occurrence_report.occurrence">Occurrence:
+                            {{ occurrence_report.occurrence.occurrence_number }}<small><a
+                                    :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${occurrence_report.group_type}&action=view`"
+                                    target="_blank"><i class="bi bi-box-arrow-up-right ms-2"></i></a></small>
                         </template>
                         <template v-else>
-                            Community: NOT SET
+                            Occurrence: NOT SET
                         </template>
-                    </template>
-                    <template v-else>
-                        <template v-if="occurrence_report.species_id">
-                            Species: {{ occurrence_report.species_number }} <small><a
-                                    :href="`/internal/species_communities/${occurrence_report.species_id}?group_type_name=${occurrence_report.group_type}&action=view`"
-                                    target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
+                    </span>
+                    <span class="badge bg-light text-primary text-capitalize border p-2 fs-6 me-2 align-middle">
+                        <template v-if="isCommunity">
+                            <template v-if="occurrence_report.community_id">
+                                Community: {{ occurrence_report.community_number }}<small><a
+                                        :href="`/internal/species_communities/${occurrence_report.community_id}?group_type_name=${occurrence_report.group_type}&action=view`"
+                                        target="_blank"><i class="bi bi-box-arrow-up-right ms-2"></i></a></small>
+                            </template>
+                            <template v-else>
+                                Community: NOT SET
+                            </template>
                         </template>
                         <template v-else>
-                            Species: NOT SET
+                            <template v-if="occurrence_report.species_id">
+                                Species: {{ occurrence_report.species_number }}<small><a
+                                        :href="`/internal/species_communities/${occurrence_report.species_id}?group_type_name=${occurrence_report.group_type}&action=view`"
+                                        target="_blank"><i class="bi bi-box-arrow-up-right ms-2"></i></a></small>
+                            </template>
+                            <template v-else>
+                                Species: NOT SET
+                            </template>
                         </template>
-                    </template>
+                    </span>
                 </h4>
             </div>
         </div>
@@ -75,7 +68,8 @@
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
                             <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id && occurrence_report.assessor_mode.assessor_can_assess"
-                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to me</a>
+                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
+                                me</a>
                         </template>
                         <template v-else>
                             <select ref="assigned_officer" :disabled="!occurrence_report.can_user_assess"
@@ -85,7 +79,8 @@
                                     {{ member.first_name }} {{ member.last_name }}</option>
                             </select>
                             <a v-if="(with_assessor || with_referral || unlocked) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id && occurrence_report.assessor_mode.assessor_can_assess"
-                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to me</a>
+                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
+                                me</a>
                         </template>
                     </div>
                     <div v-if="display_referral_actions" class="card-body border-top">
