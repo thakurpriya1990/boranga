@@ -663,6 +663,7 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
     reproductive_state_name = serializers.CharField(
         source="reproductive_state.name", allow_null=True
     )
+    death_reason = serializers.CharField(source="death_reason.name", allow_null=True)
 
     class Meta:
         model = OCRAnimalObservation
@@ -676,6 +677,7 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "reproductive_state_name",
             "animal_health_id",
             "death_reason_id",
+            "death_reason",
             "total_count",
             "distinctive_feature",
             "action_taken",
@@ -2813,6 +2815,7 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
     reproductive_state_name = serializers.CharField(
         source="reproductive_state.name", allow_null=True
     )
+    death_reason = serializers.CharField(source="death_reason.name", allow_null=True)
 
     class Meta:
         model = OCCAnimalObservation
@@ -2827,6 +2830,7 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "reproductive_state_name",
             "animal_health_id",
             "death_reason_id",
+            "death_reason",
             "total_count",
             "distinctive_feature",
             "action_taken",

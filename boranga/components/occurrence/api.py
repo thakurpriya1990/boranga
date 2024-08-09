@@ -1285,7 +1285,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         death_reason_list = []
-        values = DeathReason.objects.all()
+        values = DeathReason.objects.active()
         if values:
             for val in values:
                 death_reason_list.append(
@@ -1465,7 +1465,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         death_reason_list = []
-        values = DeathReason.objects.all()
+        values = DeathReason.objects.active()
         if values:
             for val in values:
                 death_reason_list.append(
@@ -5186,7 +5186,7 @@ class OccurrenceViewSet(
                     }
                 )
         death_reason_list = []
-        values = DeathReason.objects.all()
+        values = DeathReason.objects.active()
         if values:
             for val in values:
                 death_reason_list.append(
@@ -5366,7 +5366,7 @@ class OccurrenceViewSet(
                     }
                 )
         death_reason_list = []
-        values = DeathReason.objects.all()
+        values = DeathReason.objects.active()
         if values:
             for val in values:
                 death_reason_list.append(
