@@ -2761,7 +2761,7 @@ class OCRAnimalObservation(models.Model):
         return total
 
 
-class IdentificationCertainty(models.Model):
+class IdentificationCertainty(ArchivableModel):
     """
     # Admin List
     May be a mandatory field that assessor needs to complete
