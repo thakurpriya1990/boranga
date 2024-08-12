@@ -7,8 +7,11 @@ from django.core.cache import cache
 from rest_framework import viewsets
 
 from boranga import helpers
-from boranga.components.main.models import GlobalSettings
-from boranga.components.main.serializers import GlobalSettingsSerializer
+from boranga.components.main.models import GlobalSettings, HelpTextEntry
+from boranga.components.main.serializers import (
+    GlobalSettingsSerializer,
+    HelpTextEntrySerializer,
+)
 from boranga.components.occurrence.models import Datum
 
 logger = logging.getLogger(__name__)
@@ -22,6 +25,20 @@ class GlobalSettingsViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.is_authenticated:
             qs = GlobalSettings.objects.all().order_by("id")
             return qs
+
+
+class HelpTextEntryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = HelpTextEntry.objects.active()
+    serializer_class = HelpTextEntrySerializer
+    lookup_field = "section_id"
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_authenticated:
+            qs = qs.filter(authenticated_users_only=False, internal_users_only=False)
+        if not helpers.is_internal(self.request):
+            qs = qs.filter(authenticated_users_only=False)
+        return qs
 
 
 class RetrieveActionLoggingViewsetMixin:
@@ -94,7 +111,10 @@ def get_cached_epsg_codes(auth_name="EPSG", pj_type="CRS"):
     codes = cache.get(cache_key)
 
     if not codes:
-        srids = [str(s) for s in Datum.objects.filter(archived=False).values_list("srid", flat=True)]
+        srids = [
+            str(s)
+            for s in Datum.objects.filter(archived=False).values_list("srid", flat=True)
+        ]
         codes = [c for c in pyproj.get_codes(auth_name, pj_type) if c in srids]
         cache.set(cache_key, codes, timeout=settings.CACHE_TIMEOUT_24_HOURS)
 

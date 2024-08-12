@@ -2,7 +2,12 @@ from ledger_api_client.ledger_models import EmailUserRO
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import serializers
 
-from boranga.components.main.models import CommunicationsLogEntry, GlobalSettings
+from boranga.components.main.models import (
+    CommunicationsLogEntry,
+    GlobalSettings,
+    HelpTextEntry,
+)
+from boranga.helpers import is_django_admin
 
 
 class CommunicationLogEntrySerializer(serializers.ModelSerializer):
@@ -87,3 +92,20 @@ class LimitedEmailUserSerializer(EmailUserSerializer):
             "organisation",
             "fullname",
         ]
+
+
+class HelpTextEntrySerializer(serializers.ModelSerializer):
+    user_can_administer = serializers.SerializerMethodField()
+
+    class Meta:
+        model = HelpTextEntry
+        fields = [
+            "id",
+            "section_id",
+            "text",
+            "icon_with_popover",
+            "user_can_administer",
+        ]
+
+    def get_user_can_administer(self, obj):
+        return is_django_admin(self.context["request"])
