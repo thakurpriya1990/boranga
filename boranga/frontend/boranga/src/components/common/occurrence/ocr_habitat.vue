@@ -222,7 +222,7 @@
                         v-model="habitat_cond_sum" />
                 </div>
             </div>
-            <div class="row mb-3">
+            <div v-if="occurrence_report_obj.group_type=='community'" class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Count Date: </label>
                 <div class="col-sm-9">
                     <input v-model="occurrence_report_obj.habitat_condition.count_date
