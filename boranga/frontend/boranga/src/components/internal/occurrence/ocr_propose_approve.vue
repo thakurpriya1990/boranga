@@ -138,7 +138,6 @@ export default {
             }
         },
         close: function () {
-            this.isModalOpen = false;
             this.propose_approve = {
                 occurrence_id: null,
                 occurrence_name: '',
@@ -146,7 +145,9 @@ export default {
                 new_occurrence_name: '',
                 details: '',
             };
+            $(this.$refs.occurrence_name_lookup_propose_approve).empty().trigger('change');
             this.errorString = '';
+            this.isModalOpen = false;
         },
         proposeApprove: function () {
             let vm = this;
