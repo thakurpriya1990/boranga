@@ -1,0 +1,74 @@
+[
+    {
+        "model": "boranga.helptextentry",
+        "pk": 4,
+        "fields": {
+            "archived": false,
+            "section_id": "communities_extent_of_occurrences",
+            "text": "Calculated by creating a 'convex hull' from all occurrence geometries for this community.",
+            "icon_with_popover": true,
+            "authenticated_users_only": true,
+            "internal_users_only": true
+        }
+    },
+    {
+        "model": "boranga.helptextentry",
+        "pk": 5,
+        "fields": {
+            "archived": false,
+            "section_id": "communities_actual_area_of_occupancy",
+            "text": "Calculated by combining the total land area of all occurrence geometries for this community.",
+            "icon_with_popover": true,
+            "authenticated_users_only": true,
+            "internal_users_only": true
+        }
+    },
+    {
+        "model": "boranga.helptextentry",
+        "pk": 6,
+        "fields": {
+            "archived": false,
+            "section_id": "species_extent_of_occurrences",
+            "text": "Calculated by creating a 'convex hull' from all occurrence geometries for this species.",
+            "icon_with_popover": true,
+            "authenticated_users_only": true,
+            "internal_users_only": true
+        }
+    },
+    {
+        "model": "boranga.helptextentry",
+        "pk": 7,
+        "fields": {
+            "archived": false,
+            "section_id": "species_actual_area_of_occupancy",
+            "text": "Calculated by combining the total land area of all occurrence geometries for this species.",
+            "icon_with_popover": true,
+            "authenticated_users_only": true,
+            "internal_users_only": true
+        }
+    },
+    {
+        "model": "boranga.helptextentry",
+        "pk": 8,
+        "fields": {
+            "archived": false,
+            "section_id": "species_split_finalise",
+            "text": "Some help text for species split finalise.",
+            "icon_with_popover": false,
+            "authenticated_users_only": true,
+            "internal_users_only": true
+        }
+    },
+    {
+        "model": "boranga.helptextentry",
+        "pk": 9,
+        "fields": {
+            "archived": false,
+            "section_id": "species_combine_finalise",
+            "text": "Some help text for species combine finalise.",
+            "icon_with_popover": false,
+            "authenticated_users_only": true,
+            "internal_users_only": true
+        }
+    }
+]

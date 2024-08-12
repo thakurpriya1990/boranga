@@ -60,7 +60,7 @@
                                     <div v-if="new_combine_species && original_species_combine_list && original_species_combine_list.length > 0"
                                         class="tab-pane" id="finalise-combine-tab-pane" role="tabpanel"
                                         aria-labelledby="finalise-combine">
-                                        <p class="border-bottom mb-3 pb-3">Add in some help text for users here</p>
+                                        <p class="border-bottom mb-3"><HelpText section_id="species_combine_finalise" /></p>
 
                                         <p>
                                             You are about to combine the following species:
@@ -118,6 +118,8 @@ import FileField2 from '@/components/forms/filefield.vue'
 import SpeciesCommunitiesComponent from '@/components/form_species_communities.vue'
 import SpeciesCombineForm from '@/components/form_species_combine.vue'
 import AddCombineSpecies from '@/components/common/species_communities/species_combine/add_combine_species.vue'
+import HelpText from '@/components/common/help_text.vue';
+
 import { helpers, api_endpoints } from "@/utils/hooks.js"
 
 export default {
@@ -129,6 +131,7 @@ export default {
         SpeciesCommunitiesComponent,
         SpeciesCombineForm,
         AddCombineSpecies,
+        HelpText,
     },
     props: {
         species_community: {

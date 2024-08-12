@@ -1,4 +1,3 @@
-import json
 import logging
 
 from rest_framework import permissions
@@ -8,6 +7,7 @@ from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_conservation_status_referee,
+    is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
     is_readonly_user,
@@ -15,6 +15,7 @@ from boranga.helpers import (
 )
 
 logger = logging.getLogger(__name__)
+
 
 class CommsLogPermission(BasePermission):
     def has_permission(self, request, view):
@@ -45,7 +46,7 @@ class CommsLogPermission(BasePermission):
         )
 
     def has_object_permission(self, request, view, obj):
-        
+
         if request.method in permissions.SAFE_METHODS:
             return True
 
@@ -56,3 +57,14 @@ class CommsLogPermission(BasePermission):
             or is_occurrence_assessor(request)
             or is_occurrence_approver(request)
         )
+
+
+class HelpTextEntryPermission(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if obj.authenticated_users_only:
+            return request.user.is_authenticated
+
+        if obj.internal_users_only:
+            return is_internal(request)
+
+        return True

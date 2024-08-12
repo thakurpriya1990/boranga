@@ -22,6 +22,7 @@ module.exports = {
     districts: "/api/districts.json",
     document_categories_dict: "/api/document_categories_dict",
     filtered_organisations: '/api/filtered_organisations',
+    help_text_entries: "/api/help_text_entries",
     marine_treeview: "/api/marine_treeview",
     ocr_external_referee_invites: "/api/ocr_external_referee_invites",
     ocr_referrals: "/api/ocr_referrals.json",

@@ -175,6 +175,9 @@ router.register(
     occurrence_api.OccurrenceTenurePaginatedViewSet,
     "occurrence-tenure-paginated",
 )
+router.register(
+    r"help_text_entries", main_api.HelpTextEntryViewSet, "help_text_entries"
+)
 
 router.registry.sort(key=lambda x: x[0])
 
@@ -337,7 +340,7 @@ api_patterns = [
 # URL Patterns
 urlpatterns = [
     path(r"admin/", admin.site.urls),
-    re_path(r"", include(api_patterns)),
+    path(r"", include(api_patterns)),
     re_path(r"^$", views.BorangaRoutingView.as_view(), name="home"),
     re_path(r"^contact/", views.BorangaContactView.as_view(), name="ds_contact"),
     re_path(
