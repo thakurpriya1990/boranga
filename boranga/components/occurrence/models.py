@@ -1146,6 +1146,17 @@ class OccurrenceReportApprovalDetails(models.Model):
     class Meta:
         app_label = "boranga"
 
+    def save(self, *args, **kwargs):
+        if self.occurrence and self.new_occurrence_name:
+            raise ValidationError(
+                "You can't have both an existing occurrence and a new occurrence name"
+            )
+        if not self.occurrence and not self.new_occurrence_name:
+            raise ValidationError(
+                "You must have either an existing occurrence or a new occurrence name"
+            )
+        super().save(*args, **kwargs)
+
     @property
     def officer_name(self):
         if not self.officer:
