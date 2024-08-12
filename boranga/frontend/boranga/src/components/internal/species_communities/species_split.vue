@@ -64,7 +64,9 @@
                                     <div v-if="species_community_original && new_species_list && new_species_list.length > 0"
                                         class="tab-pane" id="finalise-split-tab-pane" role="tabpanel"
                                         aria-labelledby="finalise-split">
-                                        <p class="border-bottom mb-3 pb-3">Add in some help text for users here</p>
+                                        <p class="border-bottom mb-3">
+                                            <HelpText section_id="species_split_finalise" />
+                                        </p>
 
                                         <p>
                                             You are about to split the following species:
@@ -124,6 +126,8 @@ import alert from '@vue-utils/alert.vue'
 import FileField2 from '@/components/forms/filefield.vue'
 import SpeciesCommunitiesComponent from '@/components/form_species_communities.vue'
 import SpeciesSplitForm from '@/components/form_species_split.vue'
+import HelpText from '@/components/common/help_text.vue';
+
 import { helpers, api_endpoints } from "@/utils/hooks.js"
 export default {
     name: 'SpeciesSplit',
@@ -133,6 +137,7 @@ export default {
         FileField2,
         SpeciesCommunitiesComponent,
         SpeciesSplitForm,
+        HelpText,
     },
     props: {
         species_community: {

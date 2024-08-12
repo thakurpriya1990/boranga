@@ -138,11 +138,8 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="" class="col-sm-4 col-form-label">Extent of Occurrences: <i
-                            v-if="species_community.distribution.eoo_auto" class="bi bi-info-circle-fill text-primary"
-                            data-bs-toggle="popover" data-bs-trigger="hover focus"
-                            data-bs-content="Calculated by creating a 'convex hull' from all occurrence geometries for this species."
-                            data-bs-placement="top"></i></label>
+                    <label for="" class="col-sm-4 col-form-label">Extent of Occurrences: <HelpText v-if="species_community.distribution.eoo_auto"
+                        section_id="species_extent_of_occurrences" /></label>
                     <div class="col-sm-4">
                         <div class="input-group">
                             <input v-if="species_community.distribution.eoo_auto" :disabled="isEOOReadOnly"
@@ -180,12 +177,8 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="" class="col-sm-4 col-form-label">Actual Area of Occupancy: <i
-                            v-if="species_community.distribution.aoo_actual_auto"
-                            class="bi bi-info-circle-fill text-primary" data-bs-toggle="popover"
-                            data-bs-trigger="hover focus"
-                            data-bs-content="Calculated by combining the total land area of all occurrence geometries for this species."
-                            data-bs-placement="top"></i></label>
+                    <label for="" class="col-sm-4 col-form-label">Actual Area of Occupancy:  <HelpText v-if="species_community.distribution.aoo_actual_auto"
+                        section_id="species_actual_area_of_occupancy" /></label>
                     <div class="col-sm-4">
                         <div class="input-group">
                             <input v-if="species_community.distribution.aoo_actual_auto" :disabled="isAOOActualReadOnly"
@@ -778,6 +771,8 @@
 import Vue from 'vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import BasicConservationStatus from './basic_conservation_status.vue';
+import HelpText from '@/components/common/help_text.vue';
+
 import {
     api_endpoints,
     helpers
@@ -883,7 +878,8 @@ export default {
     },
     components: {
         FormSection,
-        BasicConservationStatus
+        BasicConservationStatus,
+        HelpText
     },
     computed: {
         distribution_public: function () {
