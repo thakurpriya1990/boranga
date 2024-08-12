@@ -59,7 +59,7 @@ export default {
             return {
                 data: 'identifier',
                 orderable: false,
-                searchable: false,
+                searchable: true,
                 visible: true,
             }
         },
@@ -75,7 +75,7 @@ export default {
             return {
                 data: 'descriptor',
                 orderable: false,
-                searchable: false,
+                searchable: true,
                 visible: true,
                 'render': function (value, type) {
                     let result = helpers.dtPopover(value, 30, 'hover');
