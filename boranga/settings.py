@@ -69,10 +69,17 @@ GROUP_NAME_CHOICES = [
     GROUP_NAME_SPECIES_COMMUNITIES_APPROVER,
 ]
 
+# This settings is used for security checks in which case an internal contributor is not considered 'internal'
 INTERNAL_GROUPS = [
     g
     for g in GROUP_NAME_CHOICES
     if g != GROUP_NAME_EXTERNAL_CONTRIBUTOR and g != GROUP_NAME_INTERNAL_CONTRIBUTOR
+]
+
+# This settings is used in django admin to prevent internal users from being added to external groups and visa versa
+# I.e. we don't want external users added to the internal contributor group
+GROUPS_THAT_ALLOW_INTERNAL_MEMBERS_ONLY = [
+    g for g in GROUP_NAME_CHOICES if g != GROUP_NAME_EXTERNAL_CONTRIBUTOR
 ]
 
 if env("CONSOLE_EMAIL_BACKEND", False):

@@ -124,7 +124,7 @@ class CustomSystemGroupPermissionInlineForm(SystemGroupPermissionInline.form):
         cleaned_data = super().clean()
         system_group = cleaned_data.get("system_group")
         emailuser = cleaned_data.get("emailuser")
-        if system_group.name in settings.INTERNAL_GROUPS:
+        if system_group.name in settings.GROUPS_THAT_ALLOW_INTERNAL_MEMBERS_ONLY:
             if not emailuser.is_staff:
                 raise ValidationError(
                     "Only internal users can be added to internal groups."
