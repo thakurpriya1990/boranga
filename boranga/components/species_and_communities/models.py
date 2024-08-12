@@ -395,7 +395,7 @@ class Species(RevisionedMixin):
         (PROCESSING_STATUS_HISTORICAL, "Historical"),
     )
     RELATED_ITEM_CHOICES = [
-        ("species", "species"),
+        ("parent_species", "Species"),
         ("conservation_status", "Conservation Status"),
     ]
 
@@ -1172,7 +1172,6 @@ class Community(RevisionedMixin):
         (PROCESSING_STATUS_ACTIVE, "Active"),
         (PROCESSING_STATUS_HISTORICAL, "Historical"),
     )
-    # RELATED_ITEM_CHOICES = [('species', 'Species'), ('conservation_status', 'Conservation Status')]
     RELATED_ITEM_CHOICES = [("conservation_status", "Conservation Status")]
 
     community_number = models.CharField(max_length=9, blank=True, default="")
