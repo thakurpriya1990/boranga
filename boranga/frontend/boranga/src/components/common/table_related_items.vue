@@ -128,6 +128,12 @@ export default {
                 buttons: [],
                 columns: columns,
                 processing: true,
+                drawCallback: function () {
+                    helpers.enablePopovers();
+                },
+                initComplete: function () {
+                    helpers.enablePopovers();
+                },
             }
         },
         datatable_headers: function () {
@@ -176,6 +182,11 @@ export default {
     mounted: function () {
         let vm = this;
         vm.fetchFilterList();
+        vm.$nextTick(() => {
+            vm.$refs.related_items_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
+            });
+        });
     }
 }
 </script>
