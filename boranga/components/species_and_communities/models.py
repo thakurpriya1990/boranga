@@ -681,6 +681,12 @@ class Species(RevisionedMixin):
                 "occurrences",
                 "occurrence_report",
             ]
+        elif filter_type == "all_except_parent_species":
+            related_field_names = [
+                "conservation_status",
+                "occurrences",
+                "occurrence_report",
+            ]
         else:
             related_field_names = [
                 filter_type,
@@ -712,8 +718,15 @@ class Species(RevisionedMixin):
                         related_item = field_object.as_related_item
                         return_list.append(related_item)
 
-        # serializer = RelatedItemsSerializer(return_list, many=True)
-        # return serializer.data
+                # Add parent species related items to the list (limited to one degree of separation)
+                if a_field.name == "parent_species":
+                    for parent_species in self.parent_species.all():
+                        return_list.extend(
+                            parent_species.get_related_items(
+                                "all_except_parent_species"
+                            )
+                        )
+
         return return_list
 
     @property
