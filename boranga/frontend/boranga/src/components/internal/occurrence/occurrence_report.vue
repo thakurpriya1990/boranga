@@ -183,7 +183,7 @@
                                             {{ r.processing_status }}
                                         </td>
                                         <td class="text-center">
-                                            <template v-if="'with_referral' == r.processing_status">
+                                            <template v-if="'Awaiting' == r.processing_status">
                                                 <a v-if="canAction" role="button" data-bs-toggle="popover"
                                                     data-bs-trigger="hover" :data-bs-content="'Send a reminder to ' +
                                                         r.referral['fullname']
