@@ -1456,6 +1456,7 @@ class Community(RevisionedMixin):
                             "all_except_renamed_community"
                         )
                     )
+                # Add renamed to related items to the list (limited to one degree of separation)
                 if a_field.name == "renamed_to" and self.renamed_to:
                     return_list.extend(
                         self.renamed_to.get_related_items(
