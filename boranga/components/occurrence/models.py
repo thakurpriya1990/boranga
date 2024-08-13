@@ -1136,88 +1136,100 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         ocr_copy.save(no_revision=True)
 
         # Clone all the associated models
-        location = clone_model(
-            OCRLocation,
-            OCRLocation,
-            self.location,
-        )
-        if location:
-            location.occurrence_report = ocr_copy
-            location.save()
+        if hasattr(self, "location") and self.location:
+            location = clone_model(
+                OCRLocation,
+                OCRLocation,
+                self.location,
+            )
+            if location:
+                location.occurrence_report = ocr_copy
+                location.save()
 
-        habitat_composition = clone_model(
-            OCRHabitatComposition,
-            OCRHabitatComposition,
-            self.habitat_composition,
-        )
-        if habitat_composition:
-            habitat_composition.occurrence_report = ocr_copy
-            habitat_composition.save()
+        if hasattr(self, "habitat_composition") and self.habitat_composition:
+            habitat_composition = clone_model(
+                OCRHabitatComposition,
+                OCRHabitatComposition,
+                self.habitat_composition,
+            )
+            if habitat_composition:
+                habitat_composition.occurrence_report = ocr_copy
+                habitat_composition.save()
 
-        habitat_condition = clone_model(
-            OCRHabitatCondition,
-            OCRHabitatCondition,
-            self.habitat_condition,
-        )
-        if habitat_condition:
-            habitat_condition.occurrence_report = ocr_copy
-            habitat_condition.save()
+        if hasattr(self, "habitat_condition") and self.habitat_condition:
+            habitat_condition = clone_model(
+                OCRHabitatCondition,
+                OCRHabitatCondition,
+                self.habitat_condition,
+            )
+            if habitat_condition:
+                habitat_condition.occurrence_report = ocr_copy
+                habitat_condition.save()
 
-        vegetation_structure = clone_model(
-            OCRVegetationStructure,
-            OCRVegetationStructure,
-            self.vegetation_structure,
-        )
-        if vegetation_structure:
-            vegetation_structure.occurrence_report = ocr_copy
-            vegetation_structure.save()
+        if hasattr(self, "vegetation_structure") and self.vegetation_structure:
+            vegetation_structure = clone_model(
+                OCRVegetationStructure,
+                OCRVegetationStructure,
+                self.vegetation_structure,
+            )
+            if vegetation_structure:
+                vegetation_structure.occurrence_report = ocr_copy
+                vegetation_structure.save()
 
-        fire_history = clone_model(OCRFireHistory, OCRFireHistory, self.fire_history)
-        if fire_history:
-            fire_history.occurrence_report = ocr_copy
-            fire_history.save()
+        if hasattr(self, "fire_history") and self.fire_history:
+            fire_history = clone_model(
+                OCRFireHistory, OCRFireHistory, self.fire_history
+            )
+            if fire_history:
+                fire_history.occurrence_report = ocr_copy
+                fire_history.save()
 
-        associated_species = clone_model(
-            OCRAssociatedSpecies,
-            OCRAssociatedSpecies,
-            self.associated_species,
-        )
-        if associated_species:
-            associated_species.occurrence_report = ocr_copy
-            associated_species.save()
-            # copy over related species separately
-            for i in self.associated_species.related_species.all():
-                associated_species.related_species.add(i)
+        if hasattr(self, "associated_species") and self.associated_species:
+            associated_species = clone_model(
+                OCRAssociatedSpecies,
+                OCRAssociatedSpecies,
+                self.associated_species,
+            )
+            if associated_species:
+                associated_species.occurrence_report = ocr_copy
+                associated_species.save()
+                # copy over related species separately
+                for i in self.associated_species.related_species.all():
+                    associated_species.related_species.add(i)
 
-        observation_detail = clone_model(
-            OCRObservationDetail,
-            OCRObservationDetail,
-            self.observation_detail,
-        )
-        if observation_detail:
-            observation_detail.occurrence_report = ocr_copy
-            observation_detail.save()
+        if hasattr(self, "observation_detail") and self.observation_detail:
+            observation_detail = clone_model(
+                OCRObservationDetail,
+                OCRObservationDetail,
+                self.observation_detail,
+            )
+            if observation_detail:
+                observation_detail.occurrence_report = ocr_copy
+                observation_detail.save()
 
-        plant_count = clone_model(OCRPlantCount, OCRPlantCount, self.plant_count)
-        if plant_count:
-            plant_count.occurrence_report = ocr_copy
-            plant_count.save()
+        if hasattr(self, "plant_count") and self.plant_count:
+            plant_count = clone_model(OCRPlantCount, OCRPlantCount, self.plant_count)
+            if plant_count:
+                plant_count.occurrence_report = ocr_copy
+                plant_count.save()
 
-        animal_observation = clone_model(
-            OCRAnimalObservation,
-            OCRAnimalObservation,
-            self.animal_observation,
-        )
-        if animal_observation:
-            animal_observation.occurrence_report = ocr_copy
-            animal_observation.save()
+        if hasattr(self, "animal_observation") and self.animal_observation:
+            animal_observation = clone_model(
+                OCRAnimalObservation,
+                OCRAnimalObservation,
+                self.animal_observation,
+            )
+            if animal_observation:
+                animal_observation.occurrence_report = ocr_copy
+                animal_observation.save()
 
-        identification = clone_model(
-            OCRIdentification, OCRIdentification, self.identification
-        )
-        if identification:
-            identification.occurrence_report = ocr_copy
-            identification.save()
+        if hasattr(self, "identification") and self.identification:
+            identification = clone_model(
+                OCRIdentification, OCRIdentification, self.identification
+            )
+            if identification:
+                identification.occurrence_report = ocr_copy
+                identification.save()
 
         # Clone the threats
         for threat in self.ocr_threats.all():
@@ -1237,6 +1249,15 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             if occ_doc:
                 occ_doc.occurrence_report = ocr_copy
                 occ_doc.save()
+
+        # Clone any occurrence geometries
+        for geom in self.ocr_geometry.all():
+            occ_geom = clone_model(
+                OccurrenceReportGeometry, OccurrenceReportGeometry, geom
+            )
+            if occ_geom:
+                occ_geom.occurrence_report = ocr_copy
+                occ_geom.save()
 
         return ocr_copy
 
