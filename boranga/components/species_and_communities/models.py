@@ -733,7 +733,7 @@ class Species(RevisionedMixin):
     def as_related_item(self):
         related_item = RelatedItem(
             identifier=self.related_item_identifier,
-            model_name=self._meta.verbose_name,
+            model_name=self._meta.verbose_name.title(),
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
@@ -1229,6 +1229,7 @@ class Community(RevisionedMixin):
 
     class Meta:
         app_label = "boranga"
+        verbose_name_plural = "communities"
 
     def __str__(self):
         return f"{self.community_number}"
@@ -1470,7 +1471,7 @@ class Community(RevisionedMixin):
     def as_related_item(self):
         related_item = RelatedItem(
             identifier=self.related_item_identifier,
-            model_name=self._meta.verbose_name,
+            model_name=self._meta.verbose_name.title(),
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
