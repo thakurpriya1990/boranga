@@ -2430,6 +2430,33 @@ class OccurrenceReportViewSet(
     def copy(self, request, *args, **kwargs):
         instance = self.get_object()
         ocr_copy = instance.copy(request.user.id)
+
+        # Log the action
+        ocr_copy.log_user_action(
+            OccurrenceReportUserAction.ACTION_COPY.format(
+                ocr_copy.occurrence_report_number, instance.occurrence_report_number
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_COPY.format(
+                ocr_copy.occurrence_report_number, instance.occurrence_report_number
+            ),
+            request,
+        )
+        instance.log_user_action(
+            OccurrenceReportUserAction.Action_COPY_TO.format(
+                ocr_copy.occurrence_report_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.Action_COPY_TO.format(
+                ocr_copy.occurrence_report_number,
+            ),
+            request,
+        )
+
         serializer = self.get_serializer(ocr_copy)
         return Response(serializer.data)
 
