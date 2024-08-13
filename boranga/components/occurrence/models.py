@@ -1336,7 +1336,7 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
     ACTION_UPDATE_OBSERVER_DETAIL = "Update Observer {} on occurrence report {}"
     ACTION_COPY = "Created occurrence report {} from a copy of occurrence report {}"
-    Action_COPY_TO = "Copy occurrence report to {}"
+    ACTION_COPY_TO = "Copy occurrence report to {}"
 
     # Amendment
     ACTION_ID_REQUEST_AMENDMENTS = "Request amendments"
