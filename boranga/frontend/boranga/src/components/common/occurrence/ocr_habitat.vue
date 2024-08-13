@@ -365,7 +365,6 @@
 <script>
 import Vue from 'vue';
 import FormSection from '@/components/forms/section_toggle.vue';
-import RichText from '@/components/forms/richtext.vue'
 import RelatedSpecies from '@/components/common/occurrence/ocr_related_species_table.vue'
 import {
     api_endpoints,
@@ -419,7 +418,6 @@ export default {
     },
     components: {
         FormSection,
-        RichText,
         RelatedSpecies,
     },
     computed: {

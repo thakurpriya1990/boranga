@@ -417,7 +417,6 @@
 <script>
 import Vue from 'vue';
 import FormSection from '@/components/forms/section_toggle.vue';
-import RichText from '@/components/forms/richtext.vue'
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 import RelatedSpecies from '@/components/common/occurrence/occ_related_species_table.vue'
 import {
@@ -472,7 +471,6 @@ export default {
     },
     components: {
         FormSection,
-        RichText,
         RelatedReports,
         RelatedSpecies,
     },
