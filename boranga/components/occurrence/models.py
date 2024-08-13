@@ -1119,6 +1119,126 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             archived=False, datetime_first_logged_in__isnull=True
         )
 
+    @transaction.atomic
+    def copy(self, request_user_id):
+        ocr_copy = OccurrenceReport.objects.get(id=self.id)
+        ocr_copy.pk = None
+        ocr_copy.processing_status = OccurrenceReport.PROCESSING_STATUS_DRAFT
+        ocr_copy.customer_status = OccurrenceReport.CUSTOMER_STATUS_DRAFT
+        ocr_copy.occurrence_report_number = ""
+        ocr_copy.lodgement_date = None
+        ocr_copy.assigned_officer = None
+        ocr_copy.assigned_approver = None
+        ocr_copy.approved_by = None
+        if request_user_id != self.submitter:
+            self.submitter = request_user_id
+        ocr_copy.save(no_revision=True)
+
+        # Clone all the associated models
+        location = clone_model(
+            OCRLocation,
+            OCRLocation,
+            self.location,
+        )
+        if location:
+            location.occurrence_report = ocr_copy
+            location.save()
+
+        habitat_composition = clone_model(
+            OCRHabitatComposition,
+            OCRHabitatComposition,
+            self.habitat_composition,
+        )
+        if habitat_composition:
+            habitat_composition.occurrence_report = ocr_copy
+            habitat_composition.save()
+
+        habitat_condition = clone_model(
+            OCRHabitatCondition,
+            OCRHabitatCondition,
+            self.habitat_condition,
+        )
+        if habitat_condition:
+            habitat_condition.occurrence_report = ocr_copy
+            habitat_condition.save()
+
+        vegetation_structure = clone_model(
+            OCRVegetationStructure,
+            OCRVegetationStructure,
+            self.vegetation_structure,
+        )
+        if vegetation_structure:
+            vegetation_structure.occurrence_report = ocr_copy
+            vegetation_structure.save()
+
+        fire_history = clone_model(OCRFireHistory, OCRFireHistory, self.fire_history)
+        if fire_history:
+            fire_history.occurrence_report = ocr_copy
+            fire_history.save()
+
+        associated_species = clone_model(
+            OCRAssociatedSpecies,
+            OCRAssociatedSpecies,
+            self.associated_species,
+        )
+        if associated_species:
+            associated_species.occurrence_report = ocr_copy
+            associated_species.save()
+            # copy over related species separately
+            for i in self.associated_species.related_species.all():
+                associated_species.related_species.add(i)
+
+        observation_detail = clone_model(
+            OCRObservationDetail,
+            OCRObservationDetail,
+            self.observation_detail,
+        )
+        if observation_detail:
+            observation_detail.occurrence_report = ocr_copy
+            observation_detail.save()
+
+        plant_count = clone_model(OCRPlantCount, OCRPlantCount, self.plant_count)
+        if plant_count:
+            plant_count.occurrence_report = ocr_copy
+            plant_count.save()
+
+        animal_observation = clone_model(
+            OCRAnimalObservation,
+            OCRAnimalObservation,
+            self.animal_observation,
+        )
+        if animal_observation:
+            animal_observation.occurrence_report = ocr_copy
+            animal_observation.save()
+
+        identification = clone_model(
+            OCRIdentification, OCRIdentification, self.identification
+        )
+        if identification:
+            identification.occurrence_report = ocr_copy
+            identification.save()
+
+        # Clone the threats
+        for threat in self.ocr_threats.all():
+            occ_threat = clone_model(
+                OCRConservationThreat, OCRConservationThreat, threat
+            )
+            if occ_threat:
+                occ_threat.occurrence_report = ocr_copy
+                occ_threat.occurrence_report_threat = threat
+                occ_threat.save()
+
+        # Clone the documents
+        for doc in self.documents.all():
+            occ_doc = clone_model(
+                OccurrenceReportDocument, OccurrenceReportDocument, doc
+            )
+            if occ_doc:
+                occ_doc.occurrence_report = ocr_copy
+                occ_doc.save()
+
+        return ocr_copy
+
 
 class OccurrenceReportDeclinedDetails(models.Model):
     occurrence_report = models.OneToOneField(
