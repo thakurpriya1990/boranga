@@ -35,7 +35,15 @@ def ocr_process_ocr_external_referee_invite(sender, user, request, **kwargs):
 
     logger.info("External occurrence report referee invite found for user: %s", user)
 
-    ocr_external_referee_invite = OCRExternalRefereeInvite.objects.get(email=user.email)
+    ocr_external_referee_invites = OCRExternalRefereeInvite.objects.filter(
+        email=user.email, archived=False
+    )
+    if ocr_external_referee_invites.count() > 1:
+        logger.warning(
+            "Multiple external occurrence report referee invites found for user: %s",
+            user,
+        )
+    ocr_external_referee_invite = ocr_external_referee_invites.first()
     ocr_external_referee_invite.datetime_first_logged_in = user.last_login
     logger.info(
         "Saving datetime_first_logged_in for occurrence report external referee invite: %s",
@@ -69,7 +77,15 @@ def cs_process_cs_external_referee_invite(sender, user, request, **kwargs):
 
     logger.info("External conservation status referee invite found for user: %s", user)
 
-    cs_external_referee_invite = CSExternalRefereeInvite.objects.get(email=user.email)
+    cs_external_referee_invites = CSExternalRefereeInvite.objects.filter(
+        email=user.email, archived=False
+    )
+    if cs_external_referee_invites.count() > 1:
+        logger.warning(
+            "Multiple external conservation status referee invites found for user: %s",
+            user,
+        )
+    cs_external_referee_invite = cs_external_referee_invites.first()
     cs_external_referee_invite.datetime_first_logged_in = user.last_login
     logger.info(
         "Saving datetime_first_logged_in for conservation status external referee invite: %s",
