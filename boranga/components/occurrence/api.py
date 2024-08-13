@@ -2445,13 +2445,13 @@ class OccurrenceReportViewSet(
             request,
         )
         instance.log_user_action(
-            OccurrenceReportUserAction.Action_COPY_TO.format(
+            OccurrenceReportUserAction.ACTION_COPY_TO.format(
                 ocr_copy.occurrence_report_number,
             ),
             request,
         )
         request.user.log_user_action(
-            OccurrenceReportUserAction.Action_COPY_TO.format(
+            OccurrenceReportUserAction.ACTION_COPY_TO.format(
                 ocr_copy.occurrence_report_number,
             ),
             request,
