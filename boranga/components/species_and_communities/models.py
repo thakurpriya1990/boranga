@@ -687,6 +687,12 @@ class Species(RevisionedMixin):
                 "occurrences",
                 "occurrence_report",
             ]
+        elif filter_type == "all_except_occurrence_reports":
+            related_field_names = [
+                "parent_species",
+                "conservation_status",
+                "occurrences",
+            ]
         else:
             related_field_names = [
                 filter_type,
@@ -1418,6 +1424,13 @@ class Community(RevisionedMixin):
                 "conservation_status",
                 "occurrences",
                 "occurrence_report",
+            ]
+        elif filter_type == "all_except_occurrence_reports":
+            related_field_names = [
+                "renamed_from",
+                "renamed_to",
+                "conservation_status",
+                "occurrences",
             ]
         else:
             related_field_names = [
