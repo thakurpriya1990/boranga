@@ -1188,8 +1188,12 @@ class Community(RevisionedMixin):
     RELATED_ITEM_CHOICES = [("conservation_status", "Conservation Status")]
 
     community_number = models.CharField(max_length=9, blank=True, default="")
-    renamed_from = models.ForeignKey(
-        "self", on_delete=models.PROTECT, null=True, blank=True
+    renamed_from = models.OneToOneField(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="renamed_to",
     )
     group_type = models.ForeignKey(GroupType, on_delete=models.CASCADE)
     species = models.ManyToManyField(Species, blank=True)
@@ -1402,7 +1406,14 @@ class Community(RevisionedMixin):
         return_list = []
         if filter_type == "all":
             related_field_names = [
-                "species",
+                "renamed_from",
+                "renamed_to",
+                "conservation_status",
+                "occurrences",
+                "occurrence_report",
+            ]
+        elif filter_type == "all_except_renamed_community":
+            related_field_names = [
                 "conservation_status",
                 "occurrences",
                 "occurrence_report",
@@ -1438,8 +1449,20 @@ class Community(RevisionedMixin):
                         related_item = field_object.as_related_item
                         return_list.append(related_item)
 
-        # serializer = RelatedItemsSerializer(return_list, many=True)
-        # return serializer.data
+                # Add renamed from related items to the list (limited to one degree of separation)
+                if a_field.name == "renamed_from" and self.renamed_from:
+                    return_list.extend(
+                        self.renamed_from.get_related_items(
+                            "all_except_renamed_community"
+                        )
+                    )
+                if a_field.name == "renamed_to" and self.renamed_to:
+                    return_list.extend(
+                        self.renamed_to.get_related_items(
+                            "all_except_renamed_community"
+                        )
+                    )
+
         return return_list
 
     @property
