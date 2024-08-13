@@ -1132,6 +1132,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         ocr_copy.approved_by = None
         if request_user_id != self.submitter:
             self.submitter = request_user_id
+        ocr_copy.submitter_information = None
         ocr_copy.save(no_revision=True)
 
         # Clone all the associated models
@@ -1334,6 +1335,9 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_REINSTATE_PROPOSAL = "Reinstate occurrence report {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
     ACTION_UPDATE_OBSERVER_DETAIL = "Update Observer {} on occurrence report {}"
+    ACTION_COPY = "Created occurrence report {} from a copy of occurrence report {}"
+    Action_COPY_TO = "Copy occurrence report to {}"
+
     # Amendment
     ACTION_ID_REQUEST_AMENDMENTS = "Request amendments"
 
