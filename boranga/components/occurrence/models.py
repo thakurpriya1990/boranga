@@ -1130,10 +1130,17 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         ocr_copy.assigned_officer = None
         ocr_copy.assigned_approver = None
         ocr_copy.approved_by = None
+        ocr_copy.submitter_information = None
         if request_user_id != self.submitter:
             self.submitter = request_user_id
-        ocr_copy.submitter_information = None
         ocr_copy.save(no_revision=True)
+
+        if request_user_id == self.submitter:
+            # Use the same submitter category as the previous proposal when the user copying is the submitter
+            ocr_copy.submitter_information.submitter_category_id = (
+                self.submitter_information.submitter_category_id
+            )
+            ocr_copy.submitter_information.save()
 
         # Clone all the associated models
         if hasattr(self, "location") and self.location:
@@ -1233,31 +1240,38 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         # Clone the threats
         for threat in self.ocr_threats.all():
-            occ_threat = clone_model(
+            ocr_threat = clone_model(
                 OCRConservationThreat, OCRConservationThreat, threat
             )
-            if occ_threat:
-                occ_threat.occurrence_report = ocr_copy
-                occ_threat.occurrence_report_threat = threat
-                occ_threat.save()
+            if ocr_threat:
+                ocr_threat.occurrence_report = ocr_copy
+                ocr_threat.occurrence_report_threat = threat
+                ocr_threat.save()
 
         # Clone the documents
         for doc in self.documents.all():
-            occ_doc = clone_model(
+            ocr_doc = clone_model(
                 OccurrenceReportDocument, OccurrenceReportDocument, doc
             )
-            if occ_doc:
-                occ_doc.occurrence_report = ocr_copy
-                occ_doc.save()
+            if ocr_doc:
+                ocr_doc.occurrence_report = ocr_copy
+                ocr_doc.save()
+
+        # Clone any observers
+        for observer in self.observer_detail.all():
+            ocr_observer = clone_model(OCRObserverDetail, OCRObserverDetail, observer)
+            if ocr_observer:
+                ocr_observer.occurrence_report = ocr_copy
+                ocr_observer.save()
 
         # Clone any occurrence geometries
         for geom in self.ocr_geometry.all():
-            occ_geom = clone_model(
+            ocr_geom = clone_model(
                 OccurrenceReportGeometry, OccurrenceReportGeometry, geom
             )
-            if occ_geom:
-                occ_geom.occurrence_report = ocr_copy
-                occ_geom.save()
+            if ocr_geom:
+                ocr_geom.occurrence_report = ocr_copy
+                ocr_geom.save()
 
         return ocr_copy
 
