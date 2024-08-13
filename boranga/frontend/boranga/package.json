@@ -26,7 +26,6 @@
         "@vue/cli-service": "^5.0.8",
         "babel-polyfill": "^6.26.0",
         "buffer": "^6.0.3",
-        "ckeditor4-vue": "^2.4.0",
         "datatables.net-bs5": "^1.13.6",
         "datatables.net-buttons": "^2.4.1",
         "datatables.net-buttons-bs5": "^2.4.1",

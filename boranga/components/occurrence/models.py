@@ -536,7 +536,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     def as_related_item(self):
         related_item = RelatedItem(
             identifier=self.related_item_identifier,
-            model_name=self._meta.verbose_name,
+            model_name=self._meta.verbose_name.title(),
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
@@ -1145,6 +1145,17 @@ class OccurrenceReportApprovalDetails(models.Model):
 
     class Meta:
         app_label = "boranga"
+
+    def save(self, *args, **kwargs):
+        if self.occurrence and self.new_occurrence_name:
+            raise ValidationError(
+                "You can't have both an existing occurrence and a new occurrence name"
+            )
+        if not self.occurrence and not self.new_occurrence_name:
+            raise ValidationError(
+                "You must have either an existing occurrence or a new occurrence name"
+            )
+        super().save(*args, **kwargs)
 
     @property
     def officer_name(self):
@@ -3245,7 +3256,7 @@ class Occurrence(RevisionedMixin):
     def as_related_item(self):
         related_item = RelatedItem(
             identifier=self.related_item_identifier,
-            model_name=self._meta.verbose_name,
+            model_name=self._meta.verbose_name.title(),
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
@@ -3693,6 +3704,12 @@ class Occurrence(RevisionedMixin):
                 "occurrence_report",
                 "conservation_status",
             ]
+        elif filter_type == "all_except_parent_species":
+            related_field_names = [
+                "conservation_status",
+                "occurrences",
+                "occurrence_report",
+            ]
         else:
             related_field_names = [
                 filter_type,
@@ -3723,19 +3740,29 @@ class Occurrence(RevisionedMixin):
                     if field_object:
                         related_item = field_object.as_related_item
                         return_list.append(related_item)
-        if "conservation_status" in related_field_names:
-            cs_filter_type = "conservation_status"
-            if self.species:
-                species_occurences = self.species.get_related_items(cs_filter_type)
-                if species_occurences:
-                    # return_list.append(species_occurences)
-                    return_list += species_occurences
-            if self.community:
-                community_occurences = self.community.get_related_items(cs_filter_type)
-                if community_occurences:
-                    return_list += community_occurences
-        # serializer = RelatedItemsSerializer(return_list, many=True)
-        # return serializer.data
+
+                # Add parent species related items to the list (limited to one degree of separation)
+                if a_field.name == "species" and self.species:
+                    return_list.extend(
+                        self.species.get_related_items("all_except_occurrence_reports")
+                    )
+
+                # Add renamed from / renamed to community related items to the list
+                if a_field.name == "community" and self.community:
+                    return_list.extend(
+                        self.community.get_related_items(
+                            "all_except_occurrence_reports"
+                        )
+                    )
+
+        # Remove the occurrence itself from the list if it ended up there
+        for item in return_list:
+            if (
+                item.model_name == "Occurrence"
+                and item.identifier == self.occurrence_number
+            ):
+                return_list.remove(item)
+
         return return_list
 
     @classmethod

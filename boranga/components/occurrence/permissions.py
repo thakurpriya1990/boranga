@@ -14,7 +14,6 @@ from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_contributor,
-    is_internal_contributor,
     is_occurrence_approver,
     is_occurrence_assessor,
     is_occurrence_report_referee,
@@ -220,14 +219,14 @@ class ExternalOccurrenceReportPermission(BasePermission):
             return True
 
         return (
-                is_contributor(request) 
-                or is_readonly_user(request)
-                or is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
-                or is_species_communities_approver(request)
-                or is_occurrence_assessor(request)
-                or is_occurrence_approver(request)
-            )
+            is_contributor(request)
+            or is_readonly_user(request)
+            or is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+        )
 
     def has_object_permission(self, request, view, obj):
         if (
@@ -241,7 +240,7 @@ class ExternalOccurrenceReportPermission(BasePermission):
             or (hasattr(view, "action") and view.action == "process_shapefile_document")
         ):
             return (
-                is_contributor(request) 
+                is_contributor(request)
                 or is_readonly_user(request)
                 or is_conservation_status_assessor(request)
                 or is_conservation_status_approver(request)
@@ -382,14 +381,14 @@ class ExternalOccurrenceReportObjectPermission(BasePermission):
             return True
 
         return (
-                is_contributor(request) 
-                or is_readonly_user(request)
-                or is_conservation_status_assessor(request)
-                or is_conservation_status_approver(request)
-                or is_species_communities_approver(request)
-                or is_occurrence_assessor(request)
-                or is_occurrence_approver(request)
-            )
+            is_contributor(request)
+            or is_readonly_user(request)
+            or is_conservation_status_assessor(request)
+            or is_conservation_status_approver(request)
+            or is_species_communities_approver(request)
+            or is_occurrence_assessor(request)
+            or is_occurrence_approver(request)
+        )
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -403,7 +402,7 @@ class ExternalOccurrenceReportObjectPermission(BasePermission):
             and occurrence_report.can_user_edit
         ):
             return (
-                is_contributor(request) 
+                is_contributor(request)
                 or is_readonly_user(request)
                 or is_conservation_status_assessor(request)
                 or is_conservation_status_approver(request)
@@ -439,6 +438,7 @@ class OccurrencePermission(BasePermission):
         return (is_occurrence_approver(request) or request.user.is_superuser) and (
             obj.processing_status == Occurrence.PROCESSING_STATUS_ACTIVE
             or obj.processing_status == Occurrence.PROCESSING_STATUS_DRAFT
+            or obj.processing_status == Occurrence.PROCESSING_STATUS_DISCARDED
         )
 
     def is_authorised_to_reopen(self, request, obj):

@@ -98,9 +98,9 @@ class Command(BaseCommand):
                                 "taxon_rank_id": t["rank_id"],
                                 "taxonomy_rank_fk": taxon_rank_fk,
                                 "family_id": t["family_id"],
-                                "family_name": t["family"],
+                                "family_name": t["family_canonical_name"],
                                 "genera_id": t["genus_id"],
-                                "genera_name": t["genus"],
+                                "genera_name": t["genus_canonical_name"],
                             },
                         )
                         updates.append(taxon_obj.id)

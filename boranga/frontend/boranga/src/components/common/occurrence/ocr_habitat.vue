@@ -222,7 +222,7 @@
                         v-model="habitat_cond_sum" />
                 </div>
             </div>
-            <div class="row mb-3">
+            <div v-if="occurrence_report_obj.group_type=='community'" class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Count Date: </label>
                 <div class="col-sm-9">
                     <input v-model="occurrence_report_obj.habitat_condition.count_date
@@ -365,7 +365,6 @@
 <script>
 import Vue from 'vue';
 import FormSection from '@/components/forms/section_toggle.vue';
-import RichText from '@/components/forms/richtext.vue'
 import RelatedSpecies from '@/components/common/occurrence/ocr_related_species_table.vue'
 import {
     api_endpoints,
@@ -419,7 +418,6 @@ export default {
     },
     components: {
         FormSection,
-        RichText,
         RelatedSpecies,
     },
     computed: {

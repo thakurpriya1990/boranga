@@ -59,7 +59,7 @@ export default {
             return {
                 data: 'identifier',
                 orderable: false,
-                searchable: false,
+                searchable: true,
                 visible: true,
             }
         },
@@ -75,7 +75,7 @@ export default {
             return {
                 data: 'descriptor',
                 orderable: false,
-                searchable: false,
+                searchable: true,
                 visible: true,
                 'render': function (value, type) {
                     let result = helpers.dtPopover(value, 30, 'hover');
@@ -128,6 +128,12 @@ export default {
                 buttons: [],
                 columns: columns,
                 processing: true,
+                drawCallback: function () {
+                    helpers.enablePopovers();
+                },
+                initComplete: function () {
+                    helpers.enablePopovers();
+                },
             }
         },
         datatable_headers: function () {
@@ -176,6 +182,11 @@ export default {
     mounted: function () {
         let vm = this;
         vm.fetchFilterList();
+        vm.$nextTick(() => {
+            vm.$refs.related_items_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                helpers.enablePopovers();
+            });
+        });
     }
 }
 </script>

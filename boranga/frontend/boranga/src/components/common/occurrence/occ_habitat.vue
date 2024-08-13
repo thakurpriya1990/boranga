@@ -130,15 +130,13 @@
                             v-if="drainage_list && drainage_list.length > 0 && occurrence_obj.habitat_composition.drainage_id && !drainage_list.map((d) => d.id).includes(occurrence_obj.habitat_composition.drainage_id)">
                             <input type="text" v-if="occurrence_obj.habitat_composition.drainage"
                                 class="form-control mb-3"
-                                :value="occurrence_obj.habitat_composition.drainage + ' (Now Archived)'"
-                                disabled />
+                                :value="occurrence_obj.habitat_composition.drainage + ' (Now Archived)'" disabled />
                             <div class="mb-3 text-muted">
                                 Change drainage to:
                             </div>
                         </template>
                         <select class="form-select" v-model="occurrence_obj.habitat_composition.drainage_id">
-                            <option v-for="drainage in drainage_list" :value="drainage.id"
-                                v-bind:key="drainage.id">
+                            <option v-for="drainage in drainage_list" :value="drainage.id" v-bind:key="drainage.id">
                                 {{ drainage.name }}
                             </option>
                         </select>
@@ -241,7 +239,7 @@
                         v-model="habitat_cond_sum" />
                 </div>
             </div>
-            <div class="row mb-3">
+            <div v-if="occurrence_obj.group_type=='community'"  class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Count Date: </label>
                 <div class="col-sm-9">
                     <input v-model="occurrence_obj.habitat_condition.count_date
@@ -419,7 +417,6 @@
 <script>
 import Vue from 'vue';
 import FormSection from '@/components/forms/section_toggle.vue';
-import RichText from '@/components/forms/richtext.vue'
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
 import RelatedSpecies from '@/components/common/occurrence/occ_related_species_table.vue'
 import {
@@ -474,7 +471,6 @@ export default {
     },
     components: {
         FormSection,
-        RichText,
         RelatedReports,
         RelatedSpecies,
     },

@@ -69,10 +69,17 @@ GROUP_NAME_CHOICES = [
     GROUP_NAME_SPECIES_COMMUNITIES_APPROVER,
 ]
 
+# This settings is used for security checks in which case an internal contributor is not considered 'internal'
 INTERNAL_GROUPS = [
     g
     for g in GROUP_NAME_CHOICES
     if g != GROUP_NAME_EXTERNAL_CONTRIBUTOR and g != GROUP_NAME_INTERNAL_CONTRIBUTOR
+]
+
+# This settings is used in django admin to prevent internal users from being added to external groups and visa versa
+# I.e. we don't want external users added to the internal contributor group
+GROUPS_THAT_ALLOW_INTERNAL_MEMBERS_ONLY = [
+    g for g in GROUP_NAME_CHOICES if g != GROUP_NAME_EXTERNAL_CONTRIBUTOR
 ]
 
 if env("CONSOLE_EMAIL_BACKEND", False):
@@ -113,7 +120,6 @@ INSTALLED_APPS += [
     "rest_framework_datatables",
     "rest_framework_gis",
     "reset_migrations",
-    "ckeditor",
     "multiselectfield",
     "import_export",
     "ledger_api_client",
@@ -231,17 +237,6 @@ CRON_CLASSES = [
 
 
 BASE_URL = env("BASE_URL")
-
-CKEDITOR_CONFIGS = {
-    "default": {
-        "toolbar": "full",
-        "height": 300,
-        "width": "100%",
-    },
-    "awesome_ckeditor": {
-        "toolbar": "Basic",
-    },
-}
 
 # Additional logging for boranga
 LOGGING["loggers"]["boranga"] = {"handlers": ["file"], "level": "INFO"}
