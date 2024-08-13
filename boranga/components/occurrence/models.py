@@ -3743,16 +3743,12 @@ class Occurrence(RevisionedMixin):
 
                 # Add parent species related items to the list (limited to one degree of separation)
                 if a_field.name == "species" and self.species:
-                    return_list.extend(
-                        self.species.get_related_items("all_except_occurrence_reports")
-                    )
+                    return_list.extend(self.species.get_related_items("for_occurrence"))
 
                 # Add renamed from / renamed to community related items to the list
                 if a_field.name == "community" and self.community:
                     return_list.extend(
-                        self.community.get_related_items(
-                            "all_except_occurrence_reports"
-                        )
+                        self.community.get_related_items("for_occurrence")
                     )
 
         # Remove the occurrence itself from the list if it ended up there

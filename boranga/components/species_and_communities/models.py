@@ -687,7 +687,12 @@ class Species(RevisionedMixin):
                 "occurrences",
                 "occurrence_report",
             ]
-        elif filter_type == "all_except_occurrence_reports":
+        elif filter_type == "conservation_status_and_occurrences":
+            related_field_names = [
+                "conservation_status",
+                "occurrences",
+            ]
+        elif filter_type == "for_occurrence":
             related_field_names = [
                 "parent_species",
                 "conservation_status",
@@ -727,11 +732,18 @@ class Species(RevisionedMixin):
                 # Add parent species related items to the list (limited to one degree of separation)
                 if a_field.name == "parent_species":
                     for parent_species in self.parent_species.all():
-                        return_list.extend(
-                            parent_species.get_related_items(
-                                "all_except_parent_species"
+                        if filter_type == "for_occurrence":
+                            return_list.extend(
+                                parent_species.get_related_items(
+                                    "conservation_status_and_occurrences"
+                                )
                             )
-                        )
+                        else:
+                            return_list.extend(
+                                parent_species.get_related_items(
+                                    "all_except_parent_species"
+                                )
+                            )
 
         return return_list
 
@@ -1425,7 +1437,12 @@ class Community(RevisionedMixin):
                 "occurrences",
                 "occurrence_report",
             ]
-        elif filter_type == "all_except_occurrence_reports":
+        elif filter_type == "conservation_status_and_occurrences":
+            related_field_names = [
+                "conservation_status",
+                "occurrences",
+            ]
+        elif filter_type == "for_occurrence":
             related_field_names = [
                 "renamed_from",
                 "renamed_to",
@@ -1465,18 +1482,36 @@ class Community(RevisionedMixin):
 
                 # Add renamed from related items to the list (limited to one degree of separation)
                 if a_field.name == "renamed_from" and self.renamed_from:
-                    return_list.extend(
-                        self.renamed_from.get_related_items(
-                            "all_except_renamed_community"
+                    if filter_type == "for_occurrence":
+                        return_list.extend(
+                            self.renamed_from.get_related_items(
+                                "conservation_status_and_occurrences"
+                            )
                         )
-                    )
+                    else:
+                        return_list.extend(
+                            self.renamed_from.get_related_items(
+                                "all_except_renamed_community"
+                            )
+                        )
                 # Add renamed to related items to the list (limited to one degree of separation)
-                if a_field.name == "renamed_to" and self.renamed_to:
-                    return_list.extend(
-                        self.renamed_to.get_related_items(
-                            "all_except_renamed_community"
+                if (
+                    a_field.name == "renamed_to"
+                    and hasattr(self, "renamed_to")
+                    and self.renamed_to
+                ):
+                    if filter_type == "for_occurrence":
+                        return_list.extend(
+                            self.renamed_to.get_related_items(
+                                "conservation_status_and_occurrences"
+                            )
                         )
-                    )
+                    else:
+                        return_list.extend(
+                            self.renamed_to.get_related_items(
+                                "all_except_renamed_community"
+                            )
+                        )
 
         return return_list
 
@@ -1488,8 +1523,9 @@ class Community(RevisionedMixin):
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
-                f'<a href="/internal/species_communities/{self.id}" '
-                'target="_blank">View <i class="bi bi-box-arrow-up-right"></i></a>'
+                f'<a href="/internal/species_communities/{self.id}'
+                f'?group_type_name={self.group_type.name}" target="_blank">View '
+                '<i class="bi bi-box-arrow-up-right"></i></a>'
             ),
         )
         return related_item
