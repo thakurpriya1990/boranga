@@ -46,8 +46,9 @@
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="ocr_type">
                     <li v-for="group in group_types">
-                        <a class="dropdown-item" role="button" @click.prevent="createOccurrenceReport(group.id, group.display)">{{
-                            group.display }}
+                        <a class="dropdown-item" role="button"
+                            @click.prevent="createOccurrenceReport(group.id, group.display)">{{
+                                group.display }}
                         </a>
                     </li>
                 </ul>
@@ -281,8 +282,9 @@ export default {
                         }
                     }
                     else if (full.can_user_view) {
-                        links += `<a href='/external/occurrence_report/${full.id}'>View</a>`;
+                        links += `<a href='/external/occurrence_report/${full.id}'>View</a><br />`;
                     }
+                    links += `<a href='#${full.id}' data-copy-ocr-proposal='${full.id}'>Copy</a>`;
                     return links;
                 }
             }
@@ -546,6 +548,46 @@ export default {
                 console.log(error);
             });
         },
+        copyOCRProposal: function (occurrence_report_id) {
+            let vm = this;
+            swal.fire({
+                title: "Copy Occurrence Report",
+                text: `Are you sure you want to make a copy of occurrence report OCR${occurrence_report_id}?`,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: 'Copy Occurrence Report',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+                reverseButtons: true,
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    this.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, occurrence_report_id + '/copy')).then(res => {
+                        const ocr_copy = res.body;
+                        swal.fire({
+                            title: 'Copied',
+                            text: `The occurrence report has been copied to ${ocr_copy.occurrence_report_number}. When you click OK, the new occurrence report will open in a new window.`,
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                            didClose: () => {
+                                vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload();
+                                const routeData = this.$router.resolve({
+                                    name: 'draft_ocr_proposal',
+                                    params: { occurrence_report_id: ocr_copy.id },
+                                    query: { action: 'edit' }
+                                });
+                                window.open(routeData.href, '_blank');
+                            }
+                        });
+                    }, (error) => {
+                        console.log(error);
+                    });
+                }
+            });
+        },
         addEventListeners: function () {
             let vm = this;
             // External Discard listener
@@ -558,6 +600,11 @@ export default {
                 e.preventDefault();
                 var id = $(this).attr('data-reinstate-ocr-proposal');
                 vm.reinstateOCRProposal(id);
+            });
+            vm.$refs.occurrence_report_datatable.vmDataTable.on('click', 'a[data-copy-ocr-proposal]', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-copy-ocr-proposal');
+                vm.copyOCRProposal(id);
             });
             vm.$refs.occurrence_report_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                 helpers.enablePopovers();
