@@ -110,6 +110,7 @@ from boranga.components.occurrence.permissions import (
     IsOccurrenceReportReferee,
     OccurrenceObjectPermission,
     OccurrencePermission,
+    OccurrenceReportCopyPermission,
     OccurrenceReportObjectPermission,
     OccurrenceReportPermission,
 )
@@ -2416,6 +2417,20 @@ class OccurrenceReportViewSet(
         ).update(show_on_map=show_on_map)
         serializer = self.get_serializer(instance)
 
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "POST",
+        ],
+        detail=True,
+        permission_classes=[OccurrenceReportCopyPermission],
+    )
+    @renderer_classes((JSONRenderer,))
+    def copy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        ocr_copy = instance.copy(request.user.id)
+        serializer = self.get_serializer(ocr_copy)
         return Response(serializer.data)
 
 
