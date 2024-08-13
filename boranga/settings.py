@@ -120,7 +120,6 @@ INSTALLED_APPS += [
     "rest_framework_datatables",
     "rest_framework_gis",
     "reset_migrations",
-    "ckeditor",
     "multiselectfield",
     "import_export",
     "ledger_api_client",
@@ -238,17 +237,6 @@ CRON_CLASSES = [
 
 
 BASE_URL = env("BASE_URL")
-
-CKEDITOR_CONFIGS = {
-    "default": {
-        "toolbar": "full",
-        "height": 300,
-        "width": "100%",
-    },
-    "awesome_ckeditor": {
-        "toolbar": "Basic",
-    },
-}
 
 # Additional logging for boranga
 LOGGING["loggers"]["boranga"] = {"handlers": ["file"], "level": "INFO"}
