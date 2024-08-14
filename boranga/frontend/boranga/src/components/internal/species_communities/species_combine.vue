@@ -48,7 +48,7 @@
                                         <SpeciesCombineForm v-if="new_combine_species && new_combine_species.id"
                                             ref="species_communities_new" :species_community.sync="new_combine_species"
                                             :original_species_combine_list="original_species_combine_list"
-                                            id="new_combine_species" :is_internal="true">
+                                            id="new_combine_species" :is_internal="true" :key="speciesCombineFormKey">
                                         </SpeciesCombineForm>
                                     </div>
                                     <div v-for="(species, index) in original_species_combine_list"
@@ -155,6 +155,7 @@ export default {
         return {
             newSpeciesBody: 'newSpeciesBody' + vm._uid,
             speciesBody: 'speciesBody' + vm._uid,
+            speciesCombineFormKey: 0,
             new_combine_species: null,
             new_combine_species_display: '',
             submitSpeciesCombine: false,
@@ -165,6 +166,18 @@ export default {
             errors: false,
             errorString: '',
         }
+    },
+    watch: {
+        isModalOpen: function (val) {
+            if (val) {
+                this.$nextTick(() => {
+                    // was added to set the first species Tab active but the updated() method overrides it
+                    var firstTabEl = document.querySelector('#combine-pills-tab li:nth-child(1) a')
+                    var firstTab = bootstrap.Tab.getOrCreateInstance(firstTabEl)
+                    firstTab.show()
+                });
+            }
+        },
     },
     computed: {
         csrf_token: function () {
@@ -199,8 +212,11 @@ export default {
         close: function () {
             let vm = this;
             vm.removeSpecies(vm.new_combine_species.id);
+            vm.new_combine_species = null;
             vm.original_species_combine_list = [];
+            $(this.$refs.occurrence_name_lookup_propose_approve).empty().trigger('change');
             this.isModalOpen = false;
+            vm.speciesCombineFormKey += 1;
             this.errors = false;
         },
         save_before_submit: async function (new_species) {
@@ -350,6 +366,12 @@ export default {
                 if (swalresult.isConfirmed) {
                     let species_index = vm.original_species_combine_list.indexOf(species);
                     vm.original_species_combine_list.splice(species_index, 1);
+                    this.$nextTick(() => {
+                        // was added to set the first species Tab active but the updated() method overrides it
+                        var firstTabEl = document.querySelector('#combine-pills-tab li:nth-child(1) a')
+                        var firstTab = bootstrap.Tab.getOrCreateInstance(firstTabEl)
+                        firstTab.show()
+                    });
                 }
             });
         },
@@ -360,20 +382,6 @@ export default {
     mounted: function () {
         let vm = this;
         vm.form = document.forms.combineSpeciesForm;
-        this.$nextTick(() => {
-            // was added to set the first species Tab active but the updated() method overrides it
-            var firstTabEl = document.querySelector('#combine-pills-tab li:nth-child(1) a')
-            var firstTab = new bootstrap.Tab(firstTabEl)
-            firstTab.show()
-        });
-    },
-    updated: function () {
-        if (!this.finalise_combine_loading) {
-            //  to show the the added species active i.e the last Tab
-            var mostRecentlyAddedSpeciesTabElement = document.querySelector('#combine-pills-tab li:nth-last-child(3) a')
-            var mostRecentlyAddedSpeciesTab = bootstrap.Tab.getOrCreateInstance(mostRecentlyAddedSpeciesTabElement)
-            mostRecentlyAddedSpeciesTab.show()
-        }
     },
 }
 </script>
