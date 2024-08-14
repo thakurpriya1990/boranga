@@ -1496,17 +1496,47 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     @transaction.atomic
     def split_new_species_submit(self, request, *args, **kwargs):
         instance = self.get_object()
-        # instance.submit(request,self)
         species_form_submit(instance, request)
+
         # add parent id to new species instance
-        parent_species_arr = request.data.get("parent_species")
-        for species in parent_species_arr:
-            species_instance = Species.objects.get(id=species.get("id"))
-            instance.parent_species.add(species_instance)
+        parent_species_data = request.data.get("parent_species")
+        parent_species = Species.objects.get(id=parent_species_data.get("id"))
+        instance.parent_species.add(parent_species)
+
         # copy/clone the original species document and create new for new split species
         instance.clone_documents(request)
         instance.clone_threats(request)
         instance.save(version_user=request.user)
+
+        # Log the action
+        parent_species.log_user_action(
+            SpeciesUserAction.ACTION_SPLIT_SPECIES_TO.format(
+                parent_species.species_number,
+                instance.species_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_SPLIT_SPECIES_TO.format(
+                parent_species.species_number,
+                instance.species_number,
+            ),
+            request,
+        )
+        instance.log_user_action(
+            SpeciesUserAction.ACTION_SPLIT_SPECIES_FROM.format(
+                instance.species_number,
+                parent_species.species_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_SPLIT_SPECIES_FROM.format(
+                instance.species_number,
+                parent_species.species_number,
+            ),
+            request,
+        )
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
