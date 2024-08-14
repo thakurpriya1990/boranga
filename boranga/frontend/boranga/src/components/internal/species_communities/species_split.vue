@@ -402,7 +402,7 @@ export default {
         },
         eventListeners: function () {
             let vm = this;
-            $(".nav-pills").on("click", "span", function () {
+            $("#splitSpecies .nav-pills").on("click", "span", function () {
                 let species_obj = vm.new_species_list[$(this).attr('id')];
                 swal.fire({
                     title: 'Remove Species',
