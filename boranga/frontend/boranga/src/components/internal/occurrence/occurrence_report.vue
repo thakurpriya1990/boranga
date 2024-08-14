@@ -241,14 +241,16 @@
                             <button v-if="display_decline_button" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="decline()">Decline</button>
 
-                            <button v-if="with_assessor || with_approver" style="width:80%;"
-                                class="btn btn-primary mb-2" @click.prevent="splitSpecies()">Split</button><br />
-
                             <button v-if="approved" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="unlock()">Unlock</button>
                             <button v-if="unlocked" style="width:80%;" class="btn btn-primary mb-4"
                                 @click.prevent="lock()">Lock</button>
+
                         </div>
+                    </div>
+                    <div v-if="occurrence_report.user_is_assessor" class="card-body border-top text-center">
+                        <button style="width:80%;" class="btn btn-primary mb-1"
+                            @click.prevent="copyOccurrenceReport()"><i class="bi bi-copy me-1"></i> Copy {{ occurrence_report.occurrence_report_number }}</button><br />
                     </div>
                 </div>
             </div>
@@ -339,20 +341,17 @@
 
         <Decline v-if="display_decline_button" ref="decline" :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="occurrence_report.occurrence_report_number"
-            :declined_details="occurrence_report.declined_details" @refreshFromResponse="refreshFromResponse"></Decline>
+            :declined_details="occurrence_report.declined_details" @refreshFromResponse="refreshFromResponse">
+        </Decline>
         <Approve v-if="display_approve_button && occurrence_report.approval_details" ref="approve"
             :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="occurrence_report.occurrence_report_number"
-            :approval_details="occurrence_report.approval_details" @refreshFromResponse="refreshFromResponse"></Approve>
+            :approval_details="occurrence_report.approval_details" @refreshFromResponse="refreshFromResponse">
+        </Approve>
         <InviteExternalReferee ref="inviteExternalReferee" :pk="occurrence_report.id" model="occurrence_report"
             :email="external_referee_email" @externalRefereeInviteSent="externalRefereeInviteSent" />
     </div>
-    <!-- <SpeciesSplit ref="species_split" :occurrence_report="occurrence_report" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" />
-        <SpeciesCombine ref="species_combine" :occurrence_report="occurrence_report" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" />
-        <SpeciesRename ref="species_rename" :occurrence_report_original="occurrence_report" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" /> -->
+
 
 </template>
 <script>
@@ -370,10 +369,6 @@ import InviteExternalReferee from '@common-utils/invite_external_referee.vue'
 import Decline from './ocr_decline.vue'
 import Approve from './ocr_approve.vue'
 
-// import SpeciesSplit from './species_split.vue'
-// import SpeciesCombine from './species_combine.vue'
-// import SpeciesRename from './species_rename.vue'
-
 import {
     api_endpoints,
     helpers
@@ -382,7 +377,6 @@ import {
 export default {
     name: 'InternalOccurrenceReportDetail',
     data: function () {
-        let vm = this;
         return {
             occurrence_report: null,
             original_occurrence_report: null,
@@ -415,9 +409,6 @@ export default {
         Decline,
         Approve,
         InviteExternalReferee,
-        // SpeciesSplit,
-        // SpeciesCombine,
-        // SpeciesRename,
     },
     filters: {
         formatDate: function (data) {
@@ -856,6 +847,46 @@ export default {
                 vm.submitOccurrenceReport = false;
             });
         },
+        copyOccurrenceReport: function () {
+            swal.fire({
+                title: "Copy Occurrence Report",
+                text: `Are you sure you want to make a copy of occurrence report ${this.occurrence_report.occurrence_report_number}?`,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Copy Occurrence Report",
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    this.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, this.occurrence_report.id + '/copy')).then(res => {
+                        const ocr_copy = res.body;
+                        swal.fire({
+                            title: 'Copied',
+                            text: `The occurrence report has been copied to ${ocr_copy.occurrence_report_number}. When you click OK, the new occurrence report will open in a new window.`,
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                            didClose: () => {
+                                const routeData = this.$router.resolve({
+                                    name: 'internal-occurrence-report-detail',
+                                    params: { occurrence_report_id: ocr_copy.id },
+                                    query: { action: 'edit' }
+                                });
+                                window.open(routeData.href, '_blank');
+                            }
+                        });
+                    }, (error) => {
+                        console.log(error);
+                    });
+                }
+            }, (error) => {
+                console.log(error);
+            });
+        },
         refreshFromResponse: function (response) {
             let vm = this;
             vm.original_occurrence = helpers.copyObject(response.body);
@@ -864,105 +895,6 @@ export default {
                 vm.initialiseAssignedOfficerSelect(true);
                 vm.updateAssignedOfficerSelect();
             });
-        },
-        splitSpecies: async function () {
-            this.$refs.species_split.occurrence_original = this.occurrence_report;
-            let newSpeciesId1 = null
-            try {
-                const createUrl = api_endpoints.species + "/";
-                let payload = new Object();
-                payload.group_type_id = this.occurrence_report.group_type_id;
-                let savedSpecies = await Vue.http.post(createUrl, payload);
-                if (savedSpecies) {
-                    newSpeciesId1 = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId1}/internal_species.json`).then(res => {
-                        let species_obj = res.body.species_obj;
-                        //--- to add empty documents array
-                        species_obj.documents = []
-                        //---empty threats array added to store the select threat ids in from the child component
-                        species_obj.threats = []
-                        this.$refs.species_split.occurrence_list.push(species_obj); //--temp species_obj
-                    },
-                        err => {
-                            console.log(err);
-                        });
-                }
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-            let newSpeciesId2 = null
-            try {
-                const createUrl = api_endpoints.species + "/";
-                let payload = new Object();
-                payload.group_type_id = this.occurrence_report.group_type_id
-                let savedSpecies = await Vue.http.post(createUrl, payload);
-                if (savedSpecies) {
-                    newSpeciesId2 = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId2}/internal_species.json`).then(res => {
-                        let species_obj = res.body.species_obj;
-                        // to add documents id array from original species
-                        species_obj.documents = []
-                        //---empty threats array added to store the select threat ids in from the child component
-                        species_obj.threats = []
-                        this.$refs.species_split.occurrence_list.push(species_obj); //--temp species_obj
-                    },
-                        err => {
-                            console.log(err);
-                        });
-                }
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-            this.$refs.species_split.isModalOpen = true;
-        },
-        combineSpecies: async function () {
-            this.$refs.species_combine.original_species_combine_list.push(this.occurrence_report); //--push current original into the array
-            let newSpeciesId = null
-            try {
-                const createUrl = api_endpoints.species + "/";
-                let payload = new Object();
-                payload.group_type_id = this.occurrence_report.group_type_id;
-                let savedSpecies = await Vue.http.post(createUrl, payload);
-                if (savedSpecies) {
-                    newSpeciesId = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId}/internal_species.json`).then(res => {
-                        let species_obj = res.body.species_obj;
-                        //--- to add empty documents array
-                        species_obj.documents = []
-                        //---empty threats array added to store the selected threat ids in from the child component
-                        species_obj.threats = []
-                        this.$refs.species_combine.new_combine_species = species_obj; //---assign the new created species to the modal obj
-                    },
-                        err => {
-                            console.log(err);
-                        });
-                }
-
-            }
-            catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
-            this.$refs.species_combine.isModalOpen = true;
-        },
-        renameSpecies: async function () {
-            let rename_species_obj = null;
-            let newRenameSpecies = await Vue.http.get(`/api/species/${this.occurrence_report.id}/rename_deep_copy.json`)
-            if (newRenameSpecies) {
-                rename_species_obj = newRenameSpecies.body.species_obj;
-                this.$refs.species_rename.new_rename_species = rename_species_obj;
-                this.$refs.species_rename.isModalOpen = true;
-            }
         },
         initialiseSelects: function () {
             let vm = this;

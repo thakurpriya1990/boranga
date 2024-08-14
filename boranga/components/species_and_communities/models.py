@@ -687,7 +687,12 @@ class Species(RevisionedMixin):
                 "occurrences",
                 "occurrence_report",
             ]
-        elif filter_type == "all_except_occurrence_reports":
+        elif filter_type == "conservation_status_and_occurrences":
+            related_field_names = [
+                "conservation_status",
+                "occurrences",
+            ]
+        elif filter_type == "for_occurrence":
             related_field_names = [
                 "parent_species",
                 "conservation_status",
@@ -727,11 +732,18 @@ class Species(RevisionedMixin):
                 # Add parent species related items to the list (limited to one degree of separation)
                 if a_field.name == "parent_species":
                     for parent_species in self.parent_species.all():
-                        return_list.extend(
-                            parent_species.get_related_items(
-                                "all_except_parent_species"
+                        if filter_type == "for_occurrence":
+                            return_list.extend(
+                                parent_species.get_related_items(
+                                    "conservation_status_and_occurrences"
+                                )
                             )
-                        )
+                        else:
+                            return_list.extend(
+                                parent_species.get_related_items(
+                                    "all_except_parent_species"
+                                )
+                            )
 
         return return_list
 
@@ -1089,6 +1101,20 @@ class SpeciesUserAction(UserAction):
     ACTION_IMAGE_DELETE = "Species Image document deleted for Species {}"
     ACTION_IMAGE_REINSTATE = "Species Image document reinstated for Species {}"
 
+    # Species are copied prior to being renamed so we want to capture this in case the rename
+    # Doesn't go through and we end up with orphaned species records we know where they came from
+    ACTION_COPY_SPECIES_TO = "Species {} copied to new species {}"
+    ACTION_COPY_SPECIES_FROM = "Species {} copied from species {}"
+
+    ACTION_RENAME_SPECIES_TO = "Species {} renamed to new species {}"
+    ACTION_RENAME_SPECIES_FROM = "Species {} created by renaming species {}"
+
+    ACTION_SPLIT_SPECIES_TO = "Species {} split into new species {}"
+    ACTION_SPLIT_SPECIES_FROM = "Species {} created from a split of species {}"
+
+    ACTION_COMBINE_SPECIES_TO = "Species {} combined into new species {}"
+    ACTION_COMBINE_SPECIES_FROM = "Species {} created from a combination of species {}"
+
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for Species {}"
     ACTION_UPDATE_DOCUMENT = "Document {} updated for Species {}"
@@ -1425,7 +1451,12 @@ class Community(RevisionedMixin):
                 "occurrences",
                 "occurrence_report",
             ]
-        elif filter_type == "all_except_occurrence_reports":
+        elif filter_type == "conservation_status_and_occurrences":
+            related_field_names = [
+                "conservation_status",
+                "occurrences",
+            ]
+        elif filter_type == "for_occurrence":
             related_field_names = [
                 "renamed_from",
                 "renamed_to",
@@ -1465,18 +1496,36 @@ class Community(RevisionedMixin):
 
                 # Add renamed from related items to the list (limited to one degree of separation)
                 if a_field.name == "renamed_from" and self.renamed_from:
-                    return_list.extend(
-                        self.renamed_from.get_related_items(
-                            "all_except_renamed_community"
+                    if filter_type == "for_occurrence":
+                        return_list.extend(
+                            self.renamed_from.get_related_items(
+                                "conservation_status_and_occurrences"
+                            )
                         )
-                    )
+                    else:
+                        return_list.extend(
+                            self.renamed_from.get_related_items(
+                                "all_except_renamed_community"
+                            )
+                        )
                 # Add renamed to related items to the list (limited to one degree of separation)
-                if a_field.name == "renamed_to" and self.renamed_to:
-                    return_list.extend(
-                        self.renamed_to.get_related_items(
-                            "all_except_renamed_community"
+                if (
+                    a_field.name == "renamed_to"
+                    and hasattr(self, "renamed_to")
+                    and self.renamed_to
+                ):
+                    if filter_type == "for_occurrence":
+                        return_list.extend(
+                            self.renamed_to.get_related_items(
+                                "conservation_status_and_occurrences"
+                            )
                         )
-                    )
+                    else:
+                        return_list.extend(
+                            self.renamed_to.get_related_items(
+                                "all_except_renamed_community"
+                            )
+                        )
 
         return return_list
 
@@ -1488,8 +1537,9 @@ class Community(RevisionedMixin):
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
-                f'<a href="/internal/species_communities/{self.id}" '
-                'target="_blank">View <i class="bi bi-box-arrow-up-right"></i></a>'
+                f'<a href="/internal/species_communities/{self.id}'
+                f'?group_type_name={self.group_type.name}" target="_blank">View '
+                '<i class="bi bi-box-arrow-up-right"></i></a>'
             ),
         )
         return related_item

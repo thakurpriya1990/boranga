@@ -1366,6 +1366,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     can_user_assess = serializers.SerializerMethodField()
     can_user_action = serializers.SerializerMethodField()
     can_add_log = serializers.SerializerMethodField()
+    user_is_assessor = serializers.SerializerMethodField()
     current_assessor = serializers.SerializerMethodField(read_only=True)
     approval_details = OccurrenceReportApprovalDetailsSerializer(
         read_only=True, allow_null=True
@@ -1455,6 +1456,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "has_main_observer",
             "is_submitter",
             "migrated_from_id",
+            "user_is_assessor",
         )
 
     def get_readonly(self, obj):
@@ -1486,6 +1488,10 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             ]
             and obj.assigned_officer == request.user.id
         )
+
+    def get_user_is_assessor(self, obj):
+        request = self.context["request"]
+        return is_occurrence_assessor(request)
 
     def get_can_user_approve(self, obj):
         request = self.context["request"]

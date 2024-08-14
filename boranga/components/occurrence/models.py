@@ -1119,6 +1119,156 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             archived=False, datetime_first_logged_in__isnull=True
         )
 
+    @transaction.atomic
+    def copy(self, request_user_id):
+        ocr_copy = OccurrenceReport.objects.get(id=self.id)
+        ocr_copy.pk = None
+        ocr_copy.processing_status = OccurrenceReport.PROCESSING_STATUS_DRAFT
+        ocr_copy.customer_status = OccurrenceReport.CUSTOMER_STATUS_DRAFT
+        ocr_copy.occurrence_report_number = ""
+        ocr_copy.lodgement_date = None
+        ocr_copy.observation_date = None
+        ocr_copy.assigned_officer = None
+        ocr_copy.assigned_approver = None
+        ocr_copy.approved_by = None
+        ocr_copy.submitter_information = None
+        if request_user_id != self.submitter:
+            ocr_copy.submitter = request_user_id
+            ocr_copy.internal_application = True
+        ocr_copy.save(no_revision=True)
+
+        if request_user_id == self.submitter:
+            # Use the same submitter category as the previous proposal when the user copying is the submitter
+            ocr_copy.submitter_information.submitter_category_id = (
+                self.submitter_information.submitter_category_id
+            )
+            ocr_copy.submitter_information.save()
+
+        # Clone all the associated models
+        if hasattr(self, "location") and self.location:
+            location = clone_model(
+                OCRLocation,
+                OCRLocation,
+                self.location,
+            )
+            if location:
+                location.occurrence_report = ocr_copy
+                location.save()
+
+        if hasattr(self, "habitat_composition") and self.habitat_composition:
+            habitat_composition = clone_model(
+                OCRHabitatComposition,
+                OCRHabitatComposition,
+                self.habitat_composition,
+            )
+            if habitat_composition:
+                habitat_composition.occurrence_report = ocr_copy
+                habitat_composition.save()
+
+        if hasattr(self, "habitat_condition") and self.habitat_condition:
+            habitat_condition = clone_model(
+                OCRHabitatCondition,
+                OCRHabitatCondition,
+                self.habitat_condition,
+            )
+            if habitat_condition:
+                habitat_condition.occurrence_report = ocr_copy
+                habitat_condition.save()
+
+        if hasattr(self, "vegetation_structure") and self.vegetation_structure:
+            vegetation_structure = clone_model(
+                OCRVegetationStructure,
+                OCRVegetationStructure,
+                self.vegetation_structure,
+            )
+            if vegetation_structure:
+                vegetation_structure.occurrence_report = ocr_copy
+                vegetation_structure.save()
+
+        if hasattr(self, "fire_history") and self.fire_history:
+            fire_history = clone_model(
+                OCRFireHistory, OCRFireHistory, self.fire_history
+            )
+            if fire_history:
+                fire_history.occurrence_report = ocr_copy
+                fire_history.save()
+
+        if hasattr(self, "associated_species") and self.associated_species:
+            associated_species = clone_model(
+                OCRAssociatedSpecies,
+                OCRAssociatedSpecies,
+                self.associated_species,
+            )
+            if associated_species:
+                associated_species.occurrence_report = ocr_copy
+                associated_species.save()
+                # copy over related species separately
+                for i in self.associated_species.related_species.all():
+                    associated_species.related_species.add(i)
+
+        # Clone the threats
+        for threat in self.ocr_threats.all():
+            ocr_threat = clone_model(
+                OCRConservationThreat, OCRConservationThreat, threat
+            )
+            if ocr_threat:
+                ocr_threat.occurrence_report = ocr_copy
+                ocr_threat.occurrence_report_threat = threat
+                ocr_threat.save()
+
+        # Clone the documents
+        for doc in self.documents.all():
+            ocr_doc = clone_model(
+                OccurrenceReportDocument, OccurrenceReportDocument, doc
+            )
+            if ocr_doc:
+                ocr_doc.occurrence_report = ocr_copy
+                ocr_doc.save()
+
+        # Clone any observers
+        observer_qs = self.observer_detail.all()
+        if request_user_id == self.submitter:
+            # If the user copying is not the submitter, only copy the main observer
+            observer_qs = self.observer_detail.filter(main_observer=True)
+        for observer in observer_qs:
+            ocr_observer = clone_model(OCRObserverDetail, OCRObserverDetail, observer)
+            if ocr_observer:
+                ocr_observer.occurrence_report = ocr_copy
+                ocr_observer.save()
+
+        # Clone any occurrence geometries
+        for geom in self.ocr_geometry.all():
+            ocr_geom = clone_model(
+                OccurrenceReportGeometry, OccurrenceReportGeometry, geom
+            )
+            if ocr_geom:
+                ocr_geom.occurrence_report = ocr_copy
+                ocr_geom.save()
+
+        # For flora create an empty plant count
+        if self.group_type.name == GroupType.GROUP_TYPE_FLORA:
+            plant_count = OCRPlantCount()
+            plant_count.occurrence_report = ocr_copy
+            plant_count.save()
+
+        # For fauna create an empty animal observation
+        if self.group_type.name == GroupType.GROUP_TYPE_FAUNA:
+            animal_observation = OCRAnimalObservation()
+            animal_observation.occurrence_report = ocr_copy
+            animal_observation.save()
+
+        # Create an empty observation detail
+        observation_detail = OCRObservationDetail()
+        observation_detail.occurrence_report = ocr_copy
+        observation_detail.save()
+
+        # Create an empty identification
+        identification = OCRIdentification()
+        identification.occurrence_report = ocr_copy
+        identification.save()
+
+        return ocr_copy
+
 
 class OccurrenceReportDeclinedDetails(models.Model):
     occurrence_report = models.OneToOneField(
@@ -1214,6 +1364,9 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_REINSTATE_PROPOSAL = "Reinstate occurrence report {}"
     ACTION_APPROVAL_LEVEL_DOCUMENT = "Assign Approval level document {}"
     ACTION_UPDATE_OBSERVER_DETAIL = "Update Observer {} on occurrence report {}"
+    ACTION_COPY = "Created occurrence report {} from a copy of occurrence report {}"
+    ACTION_COPY_TO = "Copy occurrence report to {}"
+
     # Amendment
     ACTION_ID_REQUEST_AMENDMENTS = "Request amendments"
 
@@ -3743,16 +3896,12 @@ class Occurrence(RevisionedMixin):
 
                 # Add parent species related items to the list (limited to one degree of separation)
                 if a_field.name == "species" and self.species:
-                    return_list.extend(
-                        self.species.get_related_items("all_except_occurrence_reports")
-                    )
+                    return_list.extend(self.species.get_related_items("for_occurrence"))
 
                 # Add renamed from / renamed to community related items to the list
                 if a_field.name == "community" and self.community:
                     return_list.extend(
-                        self.community.get_related_items(
-                            "all_except_occurrence_reports"
-                        )
+                        self.community.get_related_items("for_occurrence")
                     )
 
         # Remove the occurrence itself from the list if it ended up there

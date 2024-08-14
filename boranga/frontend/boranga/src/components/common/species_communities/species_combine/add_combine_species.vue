@@ -133,6 +133,7 @@ export default {
                             type: 'public',
                             group_type_id: vm.$parent.species_community.group_type_id,
                             has_species: true,
+                            active_only: true,
                         }
                         return query;
                     },

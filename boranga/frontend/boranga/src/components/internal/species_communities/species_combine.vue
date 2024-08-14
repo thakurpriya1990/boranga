@@ -10,8 +10,8 @@
                                 <ul v-if="is_internal" class="nav nav-pills" id="combine-pills-tab" role="tablist">
                                     <li class="nav-item">
                                         <a class="nav-link" id="pills-new-species-tab" data-bs-toggle="pill"
-                                            :href="'#' + newSpeciesBody" role="tab" :aria-controls="newSpeciesBody"
-                                            aria-selected="true">
+                                            :data-bs-target="`#${newSpeciesBody}`" :href="'#' + newSpeciesBody"
+                                            role="tab" :aria-controls="newSpeciesBody" aria-selected="true">
                                             New Species {{
                                                 this.new_combine_species ? this.new_combine_species.species_number : '' }}
                                         </a>
@@ -19,10 +19,11 @@
                                     <li class="nav-item" v-for="(species, index) in original_species_combine_list"
                                         :key="'li' + species.id">
                                         <a class="nav-link" :id="'pills-species-' + index + '-tab'"
-                                            data-bs-toggle="pill" :href="'#species-body-' + index" role="tab"
+                                            data-bs-toggle="pill" :data-bs-target="'#species-body-' + index"
+                                            :href="'#species-body-' + index" role="tab"
                                             :aria-controls="'species-body-' + index" aria-selected="false">
                                             {{ species.species_number }}<span v-if="index > 0" class="ms-2"
-                                                @click="removeCombineSpecies(species)" :id=index><i
+                                                @click.prevent="removeCombineSpecies(species)" :id=index><i
                                                     class="bi bi-trash3-fill"></i></span>
                                             <!-- can delete the original species except the current original species , so check index>0 -->
                                         </a>
@@ -34,6 +35,7 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" id="finalise-combine" data-bs-toggle="pill"
+                                            data-bs-target="#finalise-combine-tab-pane"
                                             href="#finalise-combine-tab-pane" role="tab"
                                             aria-controls="finalise-combine-tab-pane" aria-selected="false"><i
                                                 class="bi bi-check2-circle"></i>
@@ -46,7 +48,7 @@
                                         <SpeciesCombineForm v-if="new_combine_species && new_combine_species.id"
                                             ref="species_communities_new" :species_community.sync="new_combine_species"
                                             :original_species_combine_list="original_species_combine_list"
-                                            id="new_combine_species" :is_internal="true">
+                                            id="new_combine_species" :is_internal="true" :key="speciesCombineFormKey">
                                         </SpeciesCombineForm>
                                     </div>
                                     <div v-for="(species, index) in original_species_combine_list"
@@ -60,7 +62,9 @@
                                     <div v-if="new_combine_species && original_species_combine_list && original_species_combine_list.length > 0"
                                         class="tab-pane" id="finalise-combine-tab-pane" role="tabpanel"
                                         aria-labelledby="finalise-combine">
-                                        <p class="border-bottom mb-3"><HelpText section_id="species_combine_finalise" /></p>
+                                        <p class="border-bottom mb-3">
+                                            <HelpText section_id="species_combine_finalise" />
+                                        </p>
 
                                         <p>
                                             You are about to combine the following species:
@@ -68,12 +72,13 @@
 
                                         <div class="mb-3">
                                             <li v-for="(species, index) in original_species_combine_list"
-                                            :key="species.id" class="text-secondary mb-3">
-                                            <span
-                                                class="badge bg-light text-primary text-capitalize border p-2 fs-6 me-2">{{
-                                                    species.species_number }} - {{ species.taxonomy_details.scientific_name
-                                                }}</span>
-                                                </li>
+                                                :key="species.id" class="text-secondary mb-3">
+                                                <span
+                                                    class="badge bg-light text-primary text-capitalize border p-2 fs-6 me-2">{{
+                                                        species.species_number }} - {{
+                                                        species.taxonomy_details.scientific_name
+                                                    }}</span>
+                                            </li>
                                         </div>
 
                                         <p>
@@ -83,8 +88,10 @@
                                         <div class="border-bottom mb-3 pb-3">
                                             <span class="badge bg-light text-primary text-capitalize border p-2 fs-6">{{
                                                 new_combine_species.species_number }} <template
-                                                    v-if="new_combine_species.taxonomy_details && new_combine_species.taxonomy_details.scientific_name">- {{
-                                                        new_combine_species.taxonomy_details.scientific_name }}</template></span>
+                                                    v-if="new_combine_species.taxonomy_details && new_combine_species.taxonomy_details.scientific_name">-
+                                                    {{
+                                                        new_combine_species.taxonomy_details.scientific_name
+                                                    }}</template></span>
                                         </div>
 
                                         <button class="button btn btn-primary" @click.prevent="ok()"
@@ -148,6 +155,7 @@ export default {
         return {
             newSpeciesBody: 'newSpeciesBody' + vm._uid,
             speciesBody: 'speciesBody' + vm._uid,
+            speciesCombineFormKey: 0,
             new_combine_species: null,
             new_combine_species_display: '',
             submitSpeciesCombine: false,
@@ -158,6 +166,18 @@ export default {
             errors: false,
             errorString: '',
         }
+    },
+    watch: {
+        isModalOpen: function (val) {
+            if (val) {
+                this.$nextTick(() => {
+                    // was added to set the first species Tab active but the updated() method overrides it
+                    var firstTabEl = document.querySelector('#combine-pills-tab li:nth-child(1) a')
+                    var firstTab = bootstrap.Tab.getOrCreateInstance(firstTabEl)
+                    firstTab.show()
+                });
+            }
+        },
     },
     computed: {
         csrf_token: function () {
@@ -192,8 +212,11 @@ export default {
         close: function () {
             let vm = this;
             vm.removeSpecies(vm.new_combine_species.id);
+            vm.new_combine_species = null;
             vm.original_species_combine_list = [];
+            $(this.$refs.occurrence_name_lookup_propose_approve).empty().trigger('change');
             this.isModalOpen = false;
+            vm.speciesCombineFormKey += 1;
             this.errors = false;
         },
         save_before_submit: async function (new_species) {
@@ -302,11 +325,14 @@ export default {
                                 },
                             });
                             vm.saveError = true;
+                            vm.finalise_combine_loading = false;
                         });
                     }
                 }
             }, (error) => {
-                vm.submitSpeciesCombine = false;
+                console.log(error);
+            }).finally(() => {
+                vm.finalise_combine_loading = false;
             });
 
         },
@@ -339,13 +365,13 @@ export default {
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
                     let species_index = vm.original_species_combine_list.indexOf(species);
-
-                    // Show the closest species combine tab before removing the current one
-                    var firstTabEl = document.querySelector('#combine-pills-tab li:nth-child(1) a')
-                    var firstTab = new bootstrap.Tab(firstTabEl)
-
-                    firstTab.show()
                     vm.original_species_combine_list.splice(species_index, 1);
+                    this.$nextTick(() => {
+                        // was added to set the first species Tab active but the updated() method overrides it
+                        var firstTabEl = document.querySelector('#combine-pills-tab li:nth-child(1) a')
+                        var firstTab = bootstrap.Tab.getOrCreateInstance(firstTabEl)
+                        firstTab.show()
+                    });
                 }
             });
         },
@@ -356,20 +382,6 @@ export default {
     mounted: function () {
         let vm = this;
         vm.form = document.forms.combineSpeciesForm;
-        this.$nextTick(() => {
-            // was added to set the first species Tab active but the updated() method overrides it
-            var firstTabEl = document.querySelector('#combine-pills-tab li:nth-child(1) a')
-            var firstTab = new bootstrap.Tab(firstTabEl)
-            firstTab.show()
-        });
-    },
-    updated: function () {
-        if (!this.finalise_combine_loading) {
-            //  to show the the added species active i.e the last Tab
-            var mostRecentlyAddedSpeciesTabElement = document.querySelector('#combine-pills-tab li:nth-last-child(3) a')
-            var mostRecentlyAddedSpeciesTab = new bootstrap.Tab(mostRecentlyAddedSpeciesTabElement)
-            mostRecentlyAddedSpeciesTab.show()
-        }
     },
 }
 </script>
