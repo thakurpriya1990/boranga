@@ -208,6 +208,7 @@ class GetScientificName(views.APIView):
         species_profile = request.GET.get("species_profile", False)
         # identifies the request as for a species profile dependent record - we only include those taxonomies in use
         has_species = request.GET.get("has_species", False)
+        active_only = request.GET.get("active_only", False)
 
         if not search_term:
             return Response({"results": []})
@@ -219,6 +220,11 @@ class GetScientificName(views.APIView):
 
         if has_species:
             taxonomies = taxonomies.exclude(species=None)
+
+        if active_only:
+            taxonomies = taxonomies.filter(
+                species__processing_status=Species.PROCESSING_STATUS_ACTIVE
+            )
 
         taxonomies = taxonomies.filter(
             scientific_name__icontains=search_term,
@@ -1518,6 +1524,7 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance.clone_documents(request)
         instance.clone_threats(request)
         instance.save(version_user=request.user)
+
         # add parent ids to new species instance
         parent_species_arr = request.data.get("parent_species")
         for species in parent_species_arr:
@@ -1525,6 +1532,42 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             instance.parent_species.add(parent_instance)
             # set the original species from the combine list to historical and its conservation status to 'closed'
             combine_species_original_submit(parent_instance, request)
+
+            # Log the action
+            parent_instance.log_user_action(
+                SpeciesUserAction.ACTION_COMBINE_SPECIES_TO.format(
+                    parent_instance.species_number,
+                    instance.species_number,
+                ),
+                request,
+            )
+            request.user.log_user_action(
+                SpeciesUserAction.ACTION_COMBINE_SPECIES_TO.format(
+                    parent_instance.species_number,
+                    instance.species_number,
+                ),
+                request,
+            )
+
+        parent_species_numbers = ", ".join(
+            [parent.species_number for parent in instance.parent_species.all()]
+        )
+
+        # Log user action
+        instance.log_user_action(
+            SpeciesUserAction.ACTION_COMBINE_SPECIES_FROM.format(
+                instance.species_number,
+                parent_species_numbers,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_COMBINE_SPECIES_FROM.format(
+                instance.species_number,
+                parent_species_numbers,
+            ),
+            request,
+        )
 
         #  send the combine species email notification
         send_species_combine_email_notification(request, instance)
