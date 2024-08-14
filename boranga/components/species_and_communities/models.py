@@ -1100,6 +1100,10 @@ class SpeciesUserAction(UserAction):
     ACTION_IMAGE_UPDATE = "Species Image document updated for Species {}"
     ACTION_IMAGE_DELETE = "Species Image document deleted for Species {}"
     ACTION_IMAGE_REINSTATE = "Species Image document reinstated for Species {}"
+    ACTION_COPY_SPECIES_TO = "Species {} copied to new species {}"
+    ACTION_COPY_SPECIES_FROM = "Species {} copied from species {}"
+    ACTION_RENAME_SPECIES_TO = "Species {} renamed to new species {}"
+    ACTION_RENAME_SPECIES_FROM = "Species {} created by renaming species {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for Species {}"

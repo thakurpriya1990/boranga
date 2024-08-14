@@ -1583,23 +1583,49 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance_distribution = SpeciesDistribution.objects.filter(species=instance.id)
 
         # clone the species instance into new rename instance
-        new_rename_instance = instance
+        new_rename_instance = Species.objects.get(pk=instance.pk)
         new_rename_instance.id = None
         new_rename_instance.taxonomy_id = None
         new_rename_instance.species_number = ""
-        new_rename_instance.processing_status = "draft"
+        new_rename_instance.processing_status = Species.PROCESSING_STATUS_DRAFT
+        new_rename_instance.lodgement_date = None
         new_rename_instance.save(version_user=request.user)
+
+        # Log action
+        new_rename_instance.log_user_action(
+            SpeciesUserAction.ACTION_COPY_SPECIES_FROM.format(
+                new_rename_instance.species_number,
+                instance.species_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_COPY_SPECIES_FROM.format(
+                new_rename_instance.species_number,
+                instance.species_number,
+            ),
+            request,
+        )
+        instance.log_user_action(
+            SpeciesUserAction.ACTION_COPY_SPECIES_TO.format(
+                instance.species_number,
+                new_rename_instance.species_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_COPY_SPECIES_TO.format(
+                instance.species_number,
+                new_rename_instance.species_number,
+            ),
+            request,
+        )
 
         for new_document in instance_documents:
             new_doc_instance = new_document
             new_doc_instance.species = new_rename_instance
             new_doc_instance.id = None
             new_doc_instance.document_number = ""
-            # new_doc_instance._file.name = (
-            #    "boranga/species/{}/species_documents/{}".format(
-            #        new_rename_instance.id, new_doc_instance.name
-            #    )
-            # )
             new_doc_instance.can_delete = True
             new_doc_instance.save(version_user=request.user)
             new_doc_instance.species.log_user_action(
@@ -1664,12 +1690,41 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         species_form_submit(instance, request)
         # add parent ids to new species instance
-        parent_species_arr = request.data.get("parent_species")
-        for species in parent_species_arr:
-            parent_instance = Species.objects.get(id=species.get("id"))
-            instance.parent_species.add(parent_instance)
-            # set the original species from the rename  to historical and its conservation status to 'closed'
-            rename_species_original_submit(parent_instance, instance, request)
+        parent_species_data = request.data.get("parent_species")
+        parent_instance = Species.objects.get(id=parent_species_data.get("id"))
+        instance.parent_species.add(parent_instance)
+        # set the original species from the rename  to historical and its conservation status to 'closed'
+        rename_species_original_submit(parent_instance, instance, request)
+
+        # Log action
+        instance.log_user_action(
+            SpeciesUserAction.ACTION_RENAME_SPECIES_FROM.format(
+                instance.species_number,
+                parent_instance,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_RENAME_SPECIES_FROM.format(
+                instance.species_number,
+                parent_instance,
+            ),
+            request,
+        )
+        parent_instance.log_user_action(
+            SpeciesUserAction.ACTION_RENAME_SPECIES_TO.format(
+                parent_instance,
+                instance.species_number,
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            SpeciesUserAction.ACTION_RENAME_SPECIES_TO.format(
+                parent_instance,
+                instance.species_number,
+            ),
+            request,
+        )
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
