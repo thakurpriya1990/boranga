@@ -85,18 +85,20 @@
                                             Into the new species:
                                         </p>
 
-                                        <ul class="mb-3">
-                                            <li v-for="(species, index) in new_species_list" :key="species.id"
-                                                class="text-secondary mb-3">
-                                                <span
-                                                    class="badge bg-light text-primary text-capitalize border p-2 fs-6 me-2">{{
-                                                        species.species_number }} <template
-                                                        v-if="species.taxonomy_details && species.taxonomy_details.scientific_name">-
-                                                        {{
-                                                            species.taxonomy_details.scientific_name }}</template>
-                                                </span>
-                                            </li>
-                                        </ul>
+                                        <div class="border-bottom mb-3 pb-3">
+                                            <ul class="mb-3">
+                                                <li v-for="(species, index) in new_species_list" :key="species.id"
+                                                    class="text-secondary mb-3">
+                                                    <span
+                                                        class="badge bg-light text-primary text-capitalize border p-2 fs-6 me-2">{{
+                                                            species.species_number }} <template
+                                                            v-if="species.taxonomy_details && species.taxonomy_details.scientific_name">-
+                                                            {{
+                                                                species.taxonomy_details.scientific_name }}</template>
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </div>
 
                                         <button class="button btn btn-primary" @click.prevent="ok()"
                                             :disabled="finalise_split_loading"><i class="bi bi-check2-circle"></i>
