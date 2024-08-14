@@ -288,7 +288,7 @@ export default {
                         let result = await vm.save_before_submit(new_species);
                         if (result) {
                             // add the parent species to the new species object
-                            new_species.parent_species = [vm.species_community_original];
+                            new_species.parent_species = vm.species_community_original;
                             let payload = new Object();
                             Object.assign(payload, new_species);
                             let submit_url = helpers.add_endpoint_json(api_endpoints.species, new_species.id + '/split_new_species_submit')
