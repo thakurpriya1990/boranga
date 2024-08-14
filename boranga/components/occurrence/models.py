@@ -1127,12 +1127,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         ocr_copy.customer_status = OccurrenceReport.CUSTOMER_STATUS_DRAFT
         ocr_copy.occurrence_report_number = ""
         ocr_copy.lodgement_date = None
+        ocr_copy.observation_date = None
         ocr_copy.assigned_officer = None
         ocr_copy.assigned_approver = None
         ocr_copy.approved_by = None
         ocr_copy.submitter_information = None
         if request_user_id != self.submitter:
-            self.submitter = request_user_id
+            ocr_copy.submitter = request_user_id
+            ocr_copy.internal_application = True
         ocr_copy.save(no_revision=True)
 
         if request_user_id == self.submitter:
@@ -1204,40 +1206,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                 for i in self.associated_species.related_species.all():
                     associated_species.related_species.add(i)
 
-        if hasattr(self, "observation_detail") and self.observation_detail:
-            observation_detail = clone_model(
-                OCRObservationDetail,
-                OCRObservationDetail,
-                self.observation_detail,
-            )
-            if observation_detail:
-                observation_detail.occurrence_report = ocr_copy
-                observation_detail.save()
-
-        if hasattr(self, "plant_count") and self.plant_count:
-            plant_count = clone_model(OCRPlantCount, OCRPlantCount, self.plant_count)
-            if plant_count:
-                plant_count.occurrence_report = ocr_copy
-                plant_count.save()
-
-        if hasattr(self, "animal_observation") and self.animal_observation:
-            animal_observation = clone_model(
-                OCRAnimalObservation,
-                OCRAnimalObservation,
-                self.animal_observation,
-            )
-            if animal_observation:
-                animal_observation.occurrence_report = ocr_copy
-                animal_observation.save()
-
-        if hasattr(self, "identification") and self.identification:
-            identification = clone_model(
-                OCRIdentification, OCRIdentification, self.identification
-            )
-            if identification:
-                identification.occurrence_report = ocr_copy
-                identification.save()
-
         # Clone the threats
         for threat in self.ocr_threats.all():
             ocr_threat = clone_model(
@@ -1258,7 +1226,11 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                 ocr_doc.save()
 
         # Clone any observers
-        for observer in self.observer_detail.all():
+        observer_qs = self.observer_detail.all()
+        if request_user_id == self.submitter:
+            # If the user copying is not the submitter, only copy the main observer
+            observer_qs = self.observer_detail.filter(main_observer=True)
+        for observer in observer_qs:
             ocr_observer = clone_model(OCRObserverDetail, OCRObserverDetail, observer)
             if ocr_observer:
                 ocr_observer.occurrence_report = ocr_copy
@@ -1272,6 +1244,28 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             if ocr_geom:
                 ocr_geom.occurrence_report = ocr_copy
                 ocr_geom.save()
+
+        # For flora create an empty plant count
+        if self.group_type.name == GroupType.GROUP_TYPE_FLORA:
+            plant_count = OCRPlantCount()
+            plant_count.occurrence_report = ocr_copy
+            plant_count.save()
+
+        # For fauna create an empty animal observation
+        if self.group_type.name == GroupType.GROUP_TYPE_FAUNA:
+            animal_observation = OCRAnimalObservation()
+            animal_observation.occurrence_report = ocr_copy
+            animal_observation.save()
+
+        # Create an empty observation detail
+        observation_detail = OCRObservationDetail()
+        observation_detail.occurrence_report = ocr_copy
+        observation_detail.save()
+
+        # Create an empty identification
+        identification = OCRIdentification()
+        identification.occurrence_report = ocr_copy
+        identification.save()
 
         return ocr_copy
 
