@@ -1100,10 +1100,20 @@ class SpeciesUserAction(UserAction):
     ACTION_IMAGE_UPDATE = "Species Image document updated for Species {}"
     ACTION_IMAGE_DELETE = "Species Image document deleted for Species {}"
     ACTION_IMAGE_REINSTATE = "Species Image document reinstated for Species {}"
+
+    # Species are copied prior to being renamed so we want to capture this in case the rename
+    # Doesn't go through and we end up with orphaned species records we know where they came from
     ACTION_COPY_SPECIES_TO = "Species {} copied to new species {}"
     ACTION_COPY_SPECIES_FROM = "Species {} copied from species {}"
+
     ACTION_RENAME_SPECIES_TO = "Species {} renamed to new species {}"
     ACTION_RENAME_SPECIES_FROM = "Species {} created by renaming species {}"
+
+    ACTION_SPLIT_SPECIES_TO = "Species {} split into new species {}"
+    ACTION_SPLIT_SPECIES_FROM = "Species {} created from a split of species {}"
+
+    ACTION_COMBINE_SPECIES_TO = "Species {} combined into new species {}"
+    ACTION_COMBINE_SPECIES_FROM = "Species {} created from a combination of species {}"
 
     # Document
     ACTION_ADD_DOCUMENT = "Document {} added for Species {}"
