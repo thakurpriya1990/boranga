@@ -309,6 +309,7 @@ export default {
                                 },
                             });
                             vm.saveError = true;
+                            vm.finalise_combine_loading = false;
                         });
                     }
                 }
