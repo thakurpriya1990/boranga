@@ -150,6 +150,11 @@ router.register(
     occurrence_api.OccurrenceReportPaginatedViewSet,
     "occurrence_report_paginated",
 )
+router.register(
+    r"occurrence_report_bulk_imports",
+    occurrence_api.OccurrenceReportBulkImportTaskViewSet,
+    "occurrence_report_bulk_imports",
+)
 router.register(r"observer_detail", occurrence_api.ObserverDetailViewSet)
 router.register(r"contact_detail", occurrence_api.ContactDetailViewSet)
 router.register(r"occurrence_sites", occurrence_api.OccurrenceSiteViewSet)
