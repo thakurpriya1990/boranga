@@ -5225,3 +5225,98 @@ reversion.register(
         "identification",
     ],
 )
+
+
+def get_occurrence_report_bulk_import_path(instance, filename):
+    return (
+        f"occurrence_report/bulk-imports/{instance.occurrence_report.occurrence_report_number}"
+        f"/{instance.datetime_queued}/{filename}"
+    )
+
+
+class OccurrenceReportBulkImportTask(models.Model):
+    _file = models.FileField(
+        upload_to=get_occurrence_report_bulk_import_path,
+        max_length=512,
+        storage=private_storage,
+    )
+    rows = models.IntegerField(null=True)
+    rows_processed = models.IntegerField(default=0)
+
+    datetime_queued = models.DateTimeField(auto_now_add=True)
+    datetime_started = models.DateTimeField(null=True, blank=True)
+    datetime_completed = models.DateTimeField(null=True, blank=True)
+
+    datetime_error = models.DateTimeField(null=True, blank=True)
+    error_row = models.IntegerField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+
+    email_user = models.IntegerField(null=False)
+
+    PROCESSING_STATUS_QUEUED = "queued"
+    PROCESSING_STATUS_STARTED = "started"
+    PROCESSING_STATUS_FAILED = "failed"
+    PROCESSING_STATUS_COMPLETED = "completed"
+
+    PROCESSING_STATUS_CHOICES = (
+        (PROCESSING_STATUS_QUEUED, "Queued"),
+        (PROCESSING_STATUS_STARTED, "Started"),
+        (PROCESSING_STATUS_FAILED, "Failed"),
+        (PROCESSING_STATUS_COMPLETED, "Completed"),
+    )
+
+    processing_status = models.CharField(
+        max_length=20,
+        choices=PROCESSING_STATUS_CHOICES,
+        default=PROCESSING_STATUS_QUEUED,
+    )
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Report Bulk Import Task"
+        verbose_name_plural = "Occurrence Report Bulk Import Tasks"
+
+    @property
+    def percentage_complete(self):
+        if self.rows:
+            return round((self.rows_processed / self.rows) * 100)
+        return 0
+
+    @property
+    def total_time_taken(self):
+        if self.datetime_started and self.datetime_completed:
+            return self.datetime_completed - self.datetime_started
+        return None
+
+    @property
+    def time_taken_per_row(self):
+        if self.datetime_started and self.datetime_completed:
+            return self.total_time_taken() / self.rows_processed
+        return None
+
+    @property
+    def file_size(self):
+        if self._file:
+            return self._file.size
+        return None
+
+    @classmethod
+    def average_time_taken_per_row(cls):
+        task_count = cls.objects.filter(
+            datetime_completed__isnull=False, rows_processed__gt=0
+        ).count()
+        total_time_taken = 0
+        for task in cls.objects.filter(
+            datetime_completed__isnull=False, rows_processed__gt=0
+        ):
+            total_time_taken += task.average_time_taken_per_row()
+
+        return total_time_taken / task_count if task_count > 0 else None
+
+    @property
+    def estimated_processing_time(self):
+        if self.rows and self.datetime_queued:
+            return (
+                self.rows - self.rows_processed
+            ) * OccurrenceReportBulkImportTask.average_time_taken_per_row()
+        return None
