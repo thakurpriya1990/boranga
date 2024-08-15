@@ -24,6 +24,7 @@ module.exports = {
     filtered_organisations: '/api/filtered_organisations',
     help_text_entries: "/api/help_text_entries",
     marine_treeview: "/api/marine_treeview",
+    occurrence_report_bulk_imports: "/api/occurrence_report_bulk_imports",
     ocr_external_referee_invites: "/api/ocr_external_referee_invites",
     ocr_referrals: "/api/ocr_referrals.json",
     organisation_access_group_members: '/api/organisation_access_group_members',
