@@ -12,6 +12,7 @@ from django.db.models.functions import Concat
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django_filters import rest_framework as filters
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from multiselectfield import MultiSelectField
 from openpyxl import Workbook
@@ -65,6 +66,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
+    OccurrenceReportBulkImportTask,
     OccurrenceReportDocument,
     OccurrenceReportGeometry,
     OccurrenceReportReferral,
@@ -110,6 +112,7 @@ from boranga.components.occurrence.permissions import (
     IsOccurrenceReportReferee,
     OccurrenceObjectPermission,
     OccurrencePermission,
+    OccurrenceReportBulkImportPermission,
     OccurrenceReportCopyPermission,
     OccurrenceReportObjectPermission,
     OccurrenceReportPermission,
@@ -132,6 +135,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceDocumentSerializer,
     OccurrenceLogEntrySerializer,
     OccurrenceReportAmendmentRequestSerializer,
+    OccurrenceReportBulkImportTaskSerializer,
     OccurrenceReportDocumentSerializer,
     OccurrenceReportLogEntrySerializer,
     OccurrenceReportProposalReferralSerializer,
@@ -6230,3 +6234,20 @@ class OCRExternalRefereeInviteViewSet(
             instance.occurrence_report, context={"request": request}
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class OccurrenceReportBulkImportTaskViewSet(
+    viewsets.GenericViewSet,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+):
+    queryset = OccurrenceReportBulkImportTask.objects.all()
+    permission_classes = [OccurrenceReportBulkImportPermission]
+    serializer_class = OccurrenceReportBulkImportTaskSerializer
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_fields = ["processing_status"]
+
+    def perform_create(self, serializer):
+        serializer.save(email_user=self.request.user.id)
