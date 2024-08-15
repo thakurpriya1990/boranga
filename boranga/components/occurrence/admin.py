@@ -16,6 +16,7 @@ from boranga.components.occurrence.models import (
     LocationAccuracy,
     ObservationMethod,
     OccurrenceGeometry,
+    OccurrenceReportBulkImportTask,
     OccurrenceReportGeometry,
     OccurrenceSite,
     OccurrenceTenure,
@@ -466,6 +467,12 @@ class CountedSubjectAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["name"]
 
 
+class OccurrenceReportBulkImportTaskAdmin(DeleteProtectedModelAdmin):
+    list_display = ["id", "datetime_queued", "processing_status"]
+    list_filter = ["processing_status", "datetime_completed"]
+    readonly_fields = ["datetime_queued"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, LandFormAdmin)
 admin.site.register(RockType, RockTypeAdmin)
@@ -494,3 +501,4 @@ admin.site.register(CoordinateSource, CoordinateSourceAdmin)
 admin.site.register(LocationAccuracy, LocationAccuracyAdmin)
 admin.site.register(WildStatus, WildStatusAdmin)
 admin.site.register(OccurrenceSite)
+admin.site.register(OccurrenceReportBulkImportTask, OccurrenceReportBulkImportTaskAdmin)
