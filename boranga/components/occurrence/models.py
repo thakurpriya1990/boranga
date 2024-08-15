@@ -290,6 +290,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     internal_application = models.BooleanField(default=False)
     site = models.TextField(null=True, blank=True)
 
+    bulk_import_task = models.ForeignKey(
+        "OccurrenceReportBulkImportTask",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="occurrence_reports",
+    )
+
     class Meta:
         app_label = "boranga"
         ordering = ["-id"]
