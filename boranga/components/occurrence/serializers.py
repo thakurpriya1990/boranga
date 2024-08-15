@@ -36,6 +36,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
     OccurrenceReportApprovalDetails,
+    OccurrenceReportBulkImportTask,
     OccurrenceReportDeclinedDetails,
     OccurrenceReportDocument,
     OccurrenceReportGeometry,
@@ -3857,3 +3858,27 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
             email_user = retrieve_email_user(obj.last_updated_by)
             return EmailUserSerializer(email_user).data.get("fullname", None)
         return None
+
+
+class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
+    estimated_processing_time = serializers.CharField(read_only=True)
+    file_size_megabytes = serializers.CharField(read_only=True)
+    file_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = OccurrenceReportBulkImportTask
+        fields = "__all__"
+        read_only_fields = (
+            "id",
+            "rows",
+            "rows_processed",
+            "datetime_queued",
+            "datetime_started",
+            "datetime_completed",
+            "datetime_error",
+            "error_row",
+            "error_message",
+            "processing_status",
+            "email_user",
+            "estimated_processing_time",
+        )
