@@ -10,6 +10,7 @@ import OccurrenceDash from '../occurrence/dashboard.vue'
 import Occurrence from '../occurrence/occurrence.vue'
 import OccurrenceReport from '../occurrence/occurrence_report.vue'
 import OccurrenceReportReferral from '../occurrence/referral.vue'
+import BulkImport from '../occurrence/bulk_import.vue'
 
 export default
     {
@@ -63,6 +64,11 @@ export default
                     },
                 },
                 children: [
+                    {
+                        path: 'bulk_import/',
+                        name: "occurrence-report-bulk-import",
+                        component: BulkImport
+                    },
                     {
                         path: ':occurrence_report_id',
                         component: {
