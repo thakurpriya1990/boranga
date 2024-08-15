@@ -128,6 +128,7 @@ INSTALLED_APPS += [
     "reversion_compare",
     "nested_admin",
     "colorfield",
+    "django_filters",
 ]
 
 ADD_REVERSION_ADMIN = True
