@@ -11,6 +11,7 @@ import Occurrence from '../occurrence/occurrence.vue'
 import OccurrenceReport from '../occurrence/occurrence_report.vue'
 import OccurrenceReportReferral from '../occurrence/referral.vue'
 import BulkImport from '../occurrence/bulk_import.vue'
+import BulkImportSchema from '../occurrence/bulk_import_schema.vue'
 
 export default
     {
@@ -64,6 +65,11 @@ export default
                     },
                 },
                 children: [
+                    {
+                        path: 'bulk_import_schema/',
+                        name: "occurrence-report-bulk-import-schema",
+                        component: BulkImportSchema
+                    },
                     {
                         path: 'bulk_import/',
                         name: "occurrence-report-bulk-import",

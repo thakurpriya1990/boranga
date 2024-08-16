@@ -1,9 +1,12 @@
+import hashlib
 import json
 import logging
 import os
 from abc import abstractmethod
 from datetime import datetime
+from decimal import Decimal
 
+import dateutil
 import openpyxl
 import pyproj
 import reversion
@@ -25,6 +28,7 @@ from django.utils import timezone
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
+from openpyxl.worksheet.datavalidation import DataValidation
 
 from boranga import exceptions
 from boranga.components.conservation_status.models import ProposalAmendmentReason
@@ -290,6 +294,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     internal_application = models.BooleanField(default=False)
     site = models.TextField(null=True, blank=True)
 
+    # If this OCR was created as part of a bulk import task, this field will be populated
     bulk_import_task = models.ForeignKey(
         "OccurrenceReportBulkImportTask",
         on_delete=models.PROTECT,
@@ -297,6 +302,8 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         blank=True,
         related_name="occurrence_reports",
     )
+    # A hash of the import row data to allow for duplicate detection
+    import_hash = models.CharField(max_length=64, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -5157,6 +5164,388 @@ class OccurrenceSite(GeometryBase, DrawnByGeometry, RevisionedMixin):
             super().save(*args, **kwargs)
 
 
+def validate_bulk_import_file_extension(value):
+    ext = os.path.splitext(value.name)[1]
+    valid_extensions = [".xlsx"]
+    if ext not in valid_extensions:
+        raise ValidationError(
+            "Only .xlsx files are supported by the bulk import facility!"
+        )
+
+
+def get_occurrence_report_bulk_import_path(instance, filename):
+    return f"occurrence_report/bulk-imports/{timezone.now()}/{filename}"
+
+
+class OccurrenceReportBulkImportTask(models.Model):
+    _file = models.FileField(
+        upload_to=get_occurrence_report_bulk_import_path,
+        max_length=512,
+        storage=private_storage,
+        validators=[validate_bulk_import_file_extension],
+    )
+    # A hash of the file to allow for duplicate detection
+    file_hash = models.CharField(max_length=64, null=True, blank=True)
+
+    rows = models.IntegerField(null=True, editable=False)
+    rows_processed = models.IntegerField(default=0)
+
+    datetime_queued = models.DateTimeField(auto_now_add=True)
+    datetime_started = models.DateTimeField(null=True, blank=True)
+    datetime_completed = models.DateTimeField(null=True, blank=True)
+
+    datetime_error = models.DateTimeField(null=True, blank=True)
+    error_row = models.IntegerField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+
+    email_user = models.IntegerField(null=False)
+
+    PROCESSING_STATUS_QUEUED = "queued"
+    PROCESSING_STATUS_STARTED = "started"
+    PROCESSING_STATUS_FAILED = "failed"
+    PROCESSING_STATUS_COMPLETED = "completed"
+
+    PROCESSING_STATUS_CHOICES = (
+        (PROCESSING_STATUS_QUEUED, "Queued"),
+        (PROCESSING_STATUS_STARTED, "Started"),
+        (PROCESSING_STATUS_FAILED, "Failed"),
+        (PROCESSING_STATUS_COMPLETED, "Completed"),
+    )
+
+    processing_status = models.CharField(
+        max_length=20,
+        choices=PROCESSING_STATUS_CHOICES,
+        default=PROCESSING_STATUS_QUEUED,
+    )
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Report Bulk Import Task"
+        verbose_name_plural = "Occurrence Report Bulk Import Tasks"
+
+    def save(self, *args, **kwargs):
+        if self._file:
+            self.file_hash = hashlib.sha256(self._file.read()).hexdigest()
+        super().save(*args, **kwargs)
+
+    @property
+    def file_name(self):
+        return os.path.basename(self._file.name)
+
+    @property
+    def percentage_complete(self):
+        if self.rows:
+            return round((self.rows_processed / self.rows) * 100, 2)
+        return 0
+
+    @property
+    def total_time_taken(self):
+        if self.datetime_started and self.datetime_completed:
+            delta = self.datetime_completed - self.datetime_started
+            return delta.seconds
+        return None
+
+    @property
+    def total_time_taken_minues(self):
+        if self.total_time_taken:
+            return round(self.total_time_taken / 60, 2)
+        return None
+
+    @property
+    def total_time_taken_human_readable(self):
+        if self.total_time_taken == 0:
+            return "Less than a second"
+        if not self.total_time_taken:
+            return None
+
+        if self.total_time_taken < 60:
+            return f"{self.total_time_taken} seconds"
+        if self.total_time_taken:
+            return f"{self.total_time_taken_minues} minutes"
+        return None
+
+    @property
+    def time_taken_per_row(self):
+        if self.datetime_started and self.datetime_completed:
+            value = self.total_time_taken / self.rows_processed
+            return round(value, 4)
+        return None
+
+    @property
+    def file_size_bytes(self):
+        if self._file:
+            return self._file.size
+        return None
+
+    @property
+    def file_size_megabytes(self):
+        if self.file_size_bytes:
+            return round(self.file_size_bytes / 1024 / 1024, 2)
+        return None
+
+    @classmethod
+    def average_time_taken_per_row(cls):
+        task_count = cls.objects.filter(
+            datetime_completed__isnull=False, rows_processed__gt=0
+        ).count()
+        if task_count == 0:
+            return None
+
+        total_time_taken = 0
+        for task in cls.objects.filter(
+            datetime_completed__isnull=False, rows_processed__gt=0
+        ):
+            total_time_taken += task.time_taken_per_row
+
+        return total_time_taken / task_count
+
+    @property
+    def estimated_processing_time_seconds(self):
+        average_time_taken_per_row = (
+            OccurrenceReportBulkImportTask.average_time_taken_per_row()
+        )
+
+        if self.rows and self.datetime_queued and average_time_taken_per_row:
+            precisely = (self.rows - self.rows_processed) * average_time_taken_per_row
+            return round(precisely)
+
+        return None
+
+    @property
+    def estimated_processing_time_minutes(self):
+        seconds = self.estimated_processing_time_seconds
+        if seconds:
+            return round(seconds / 60)
+        return None
+
+    @property
+    def estimated_processing_time_human_readable(self):
+        minutes = self.estimated_processing_time_minutes
+
+        if not minutes:
+            return "No processing data available to estimate time"
+
+        if minutes == 0:
+            return "Less than a minute"
+
+        return f"~{minutes} minutes"
+
+    def count_rows(self):
+        logger.info(f"Pre-queue processing bulk import task {self.id}")
+        try:
+            workbook = openpyxl.load_workbook(self._file)
+        except Exception as e:
+            logger.error(f"Error opening bulk import file {self._file.name}: {e}")
+            self.processing_status = (
+                OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
+            )
+            self.datetime_error = timezone.now()
+            self.error_message = f"Error opening bulk import file: {e}"
+            self.save()
+            return
+
+        sheet = workbook.active
+        self.rows = sheet.max_row - 1
+        logger.debug(f"Found {self.rows} rows in bulk import file {self._file.name}")
+        self.save()
+
+    def process(self):
+        if self.processing_status == self.PROCESSING_STATUS_COMPLETED:
+            logger.info(f"Bulk import task {self.id} has already been processed")
+            return
+
+        if self.processing_status == self.PROCESSING_STATUS_FAILED:
+            logger.info(
+                f"Bulk import task {self.id} failed. Please correct the issues and try again"
+            )
+            return
+
+        if self.processing_status == self.PROCESSING_STATUS_STARTED:
+            logger.info(f"Bulk import task {self.id} is already in progress")
+            return
+
+        self.processing_status = self.PROCESSING_STATUS_STARTED
+        self.datetime_started = timezone.now()
+        self.save()
+
+        # Open the file
+        logger.info(f"Opening bulk import file {self._file.name}")
+        try:
+            workbook = openpyxl.load_workbook(self._file, read_only=True)
+        except Exception as e:
+            logger.error(f"Error opening bulk import file {self._file.name}: {e}")
+            self.processing_status = (
+                OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
+            )
+            self.datetime_error = timezone.now()
+            self.error_message = f"Error opening bulk import file: {e}"
+            self.save()
+            return
+
+        # Get the first sheet
+        sheet = workbook.active
+
+        # Get the headers
+        headers = [cell.value for cell in sheet[1]]
+
+        # Get the rows
+        rows = list(sheet.iter_rows(min_row=2, max_row=self.rows + 1, values_only=True))
+
+        # Process the rows
+        for i, row in enumerate(rows):
+            self.rows_processed = i + 1
+            if self.rows_processed > self.rows:
+                logger.warning(
+                    f"Bulk import task {self.id} tried to process row {i + 1} "
+                    "which is greater than the total number of rows"
+                )
+                break
+
+            self.save()
+
+            try:
+                self.process_row(row, headers)
+            except Exception as e:
+                logger.error(f"Error processing row {i + 1}: {e}")
+                self.processing_status = (
+                    OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
+                )
+                self.datetime_error = timezone.now()
+                self.error_row = i + 1
+                self.error_message = f"Error processing row {i + 1}: {e}"
+                self.save()
+                return
+
+        # Set the task to completed
+        self.processing_status = (
+            OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
+        )
+        self.datetime_completed = timezone.now()
+        self.save()
+
+        return
+
+    def process_row(self, row, headers):
+        row_hash = hashlib.sha256(str(row).encode()).hexdigest()
+        logger.info(f"Row hash: {row_hash}")
+        return
+
+    def retry(self):
+        self.processing_status = self.PROCESSING_STATUS_QUEUED
+        self.datetime_started = None
+        self.datetime_completed = None
+        self.datetime_error = None
+        self.error_row = None
+        self.error_message = None
+        self.save()
+
+
+class OccurrenceReportBulkImportSchema(models.Model):
+    name = models.CharField(max_length=255, blank=False, null=False)
+    version = models.IntegerField(default=1)
+    group_type = models.ForeignKey(
+        GroupType, on_delete=models.PROTECT, null=True, blank=True
+    )
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Report Bulk Import Schema"
+        verbose_name_plural = "Occurrence Report Bulk Import Schemas"
+
+    def __str__(self):
+        return f"{self.name} (Version: {self.version})"
+
+
+class OccurrenceReportBulkImportSchemaColumn(models.Model):
+    schema = models.ForeignKey(
+        OccurrenceReportBulkImportSchema,
+        related_name="columns",
+        on_delete=models.CASCADE,
+    )
+    import_content_type = models.ForeignKey(
+        ct_models.ContentType,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="import_columns",
+    )
+    import_field_name = models.CharField(max_length=50, blank=False, null=False)
+
+    column_header_name = models.CharField(max_length=50, blank=False, null=False)
+    data_validation_type = models.CharField(
+        max_length=20,
+        choices=[(x, x) for x in DataValidation.type.values],
+        default="string",
+    )
+    required = models.BooleanField(default=False)
+    default_value = models.CharField(max_length=255, blank=True, null=True)
+
+    max_length = models.IntegerField(null=True, blank=True)
+    min_value = models.IntegerField(null=True, blank=True)
+    max_value = models.IntegerField(null=True, blank=True)
+
+    list_lookup_class = models.ForeignKey(
+        ct_models.ContentType,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="list_lookup_columns",
+    )
+    list_lookup_field = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Report Bulk Import Schema Column"
+        verbose_name_plural = "Occurrence Report Bulk Import Schema Columns"
+
+    def __str__(self):
+        return f"{self.name} ({self.schema.name})"
+
+    def validate(self, value):
+        if self.data_validation_type == "whole":
+            if not isinstance(value, int):
+                raise ValidationError(
+                    f"Default value for {self.column_header_name} must be an integer"
+                )
+
+            if self.min_value and value < self.min_value:
+                raise ValidationError(
+                    f"Default value for {self.column_header_name} is too low"
+                )
+
+            if self.max_value and value > self.max_value:
+                raise ValidationError(
+                    f"Default value for {self.column_header_name} is too high"
+                )
+        if self.data_validation_type == "decimal":
+            try:
+                value = Decimal(value)
+            except Exception:
+                raise ValidationError(
+                    f"Default value for {self.column_header_name} must be a decimal"
+                )
+        if self.data_validation_type == "date":
+            try:
+                value = dateutil.parser.parse(value)
+            except Exception:
+                raise ValidationError(
+                    f"Default value for {self.column_header_name} must be a date"
+                )
+        if self.data_validation_type == "time":
+            try:
+                value = dateutil.parser.parse(value)
+            except Exception:
+                raise ValidationError(
+                    f"Default value for {self.column_header_name} must be a time"
+                )
+
+        if self.max_length:
+            if len(value) > self.max_length:
+                raise ValidationError(
+                    f"Default value for {self.column_header_name} is too long"
+                )
+
+
 # Occurrence Report Document
 reversion.register(OccurrenceReportDocument)
 
@@ -5236,211 +5625,3 @@ reversion.register(
         "identification",
     ],
 )
-
-
-def validate_bulk_import_file_extension(value):
-    ext = os.path.splitext(value.name)[1]
-    valid_extensions = [".xlsx"]
-    if ext not in valid_extensions:
-        raise ValidationError(
-            "Only .xlsx files are supported by the bulk import facility!"
-        )
-
-
-def get_occurrence_report_bulk_import_path(instance, filename):
-    return f"occurrence_report/bulk-imports/{timezone.now()}/{filename}"
-
-
-class OccurrenceReportBulkImportTask(models.Model):
-    _file = models.FileField(
-        upload_to=get_occurrence_report_bulk_import_path,
-        max_length=512,
-        storage=private_storage,
-        validators=[validate_bulk_import_file_extension],
-    )
-    rows = models.IntegerField(null=True, editable=False)
-    rows_processed = models.IntegerField(default=0)
-
-    datetime_queued = models.DateTimeField(auto_now_add=True)
-    datetime_started = models.DateTimeField(null=True, blank=True)
-    datetime_completed = models.DateTimeField(null=True, blank=True)
-
-    datetime_error = models.DateTimeField(null=True, blank=True)
-    error_row = models.IntegerField(null=True, blank=True)
-    error_message = models.TextField(null=True, blank=True)
-
-    email_user = models.IntegerField(null=False)
-
-    PROCESSING_STATUS_QUEUED = "queued"
-    PROCESSING_STATUS_STARTED = "started"
-    PROCESSING_STATUS_FAILED = "failed"
-    PROCESSING_STATUS_COMPLETED = "completed"
-
-    PROCESSING_STATUS_CHOICES = (
-        (PROCESSING_STATUS_QUEUED, "Queued"),
-        (PROCESSING_STATUS_STARTED, "Started"),
-        (PROCESSING_STATUS_FAILED, "Failed"),
-        (PROCESSING_STATUS_COMPLETED, "Completed"),
-    )
-
-    processing_status = models.CharField(
-        max_length=20,
-        choices=PROCESSING_STATUS_CHOICES,
-        default=PROCESSING_STATUS_QUEUED,
-    )
-
-    class Meta:
-        app_label = "boranga"
-        verbose_name = "Occurrence Report Bulk Import Task"
-        verbose_name_plural = "Occurrence Report Bulk Import Tasks"
-
-    @property
-    def file_name(self):
-        return os.path.basename(self._file.name)
-
-    @property
-    def percentage_complete(self):
-        if self.rows:
-            return round((self.rows_processed / self.rows) * 100)
-        return 0
-
-    @property
-    def total_time_taken(self):
-        if self.datetime_started and self.datetime_completed:
-            return self.datetime_completed - self.datetime_started
-        return None
-
-    @property
-    def time_taken_per_row(self):
-        if self.datetime_started and self.datetime_completed:
-            return self.total_time_taken() / self.rows_processed
-        return None
-
-    @property
-    def file_size_bytes(self):
-        if self._file:
-            return self._file.size
-        return None
-
-    @property
-    def file_size_megabytes(self):
-        if self.file_size_bytes:
-            return round(self.file_size_bytes / 1024 / 1024, 2)
-        return None
-
-    @classmethod
-    def average_time_taken_per_row(cls):
-        task_count = cls.objects.filter(
-            datetime_completed__isnull=False, rows_processed__gt=0
-        ).count()
-        total_time_taken = 0
-        for task in cls.objects.filter(
-            datetime_completed__isnull=False, rows_processed__gt=0
-        ):
-            total_time_taken += task.average_time_taken_per_row()
-
-        return total_time_taken / task_count if task_count > 0 else None
-
-    @property
-    def estimated_processing_time(self):
-        average_time_taken_per_row = (
-            OccurrenceReportBulkImportTask.average_time_taken_per_row()
-        )
-        if not average_time_taken_per_row:
-            return "No processing data available to estimate time"
-        if self.rows and self.datetime_queued:
-            return (self.rows - self.rows_processed) * average_time_taken_per_row
-        return None
-
-    @transaction.atomic
-    def pre_process(self):
-        logger.info(f"Pre-queue processing bulk import task {self.id}")
-        try:
-            workbook = openpyxl.load_workbook(self._file)
-        except Exception as e:
-            logger.error(f"Error opening bulk import file {self._file.name}: {e}")
-            self.processing_status = (
-                OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
-            )
-            self.datetime_error = timezone.now()
-            self.error_message = f"Error opening bulk import file: {e}"
-            self.save()
-            return
-
-        sheet = workbook.active
-        self.rows = sheet.max_row - 1
-        self.save()
-
-    def process(self):
-        if self.processing_status == self.PROCESSING_STATUS_COMPLETED:
-            logger.info(f"Bulk import task {self.id} has already been processed")
-            return
-
-        if self.processing_status == self.PROCESSING_STATUS_FAILED:
-            logger.info(
-                f"Bulk import task {self.id} failed. Please correct the issues and try again"
-            )
-            return
-
-        if self.processing_status == self.PROCESSING_STATUS_STARTED:
-            logger.info(f"Bulk import task {self.id} is already in progress")
-            return
-
-        self.processing_status = self.PROCESSING_STATUS_STARTED
-        self.datetime_started = timezone.now()
-        self.save()
-
-        # Open the file
-        logger.info(f"Opening bulk import file {self._file.name}")
-        try:
-            workbook = openpyxl.load_workbook(self._file)
-        except Exception as e:
-            logger.error(f"Error opening bulk import file {self._file.name}: {e}")
-            self.processing_status = (
-                OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
-            )
-            self.datetime_error = timezone.now()
-            self.error_message = f"Error opening bulk import file: {e}"
-            self.save()
-            return
-
-        # Get the first sheet
-        sheet = workbook.active
-
-        # Get the headers
-        headers = [cell.value for cell in sheet[1]]
-
-        # Get the rows
-        rows = list(sheet.iter_rows(min_row=2, values_only=True))
-
-        # Process the rows
-        for i, row in enumerate(rows):
-            self.rows_processed = i + 1
-            self.save()
-
-            logger.info(f"Processing row {i + 1}")
-            try:
-                self.process_row(row, headers)
-            except Exception as e:
-                logger.error(f"Error processing row {i + 1}: {e}")
-                self.processing_status = (
-                    OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
-                )
-                self.datetime_error = timezone.now()
-                self.error_row = i + 1
-                self.error_message = f"Error processing row {i + 1}: {e}"
-                self.save()
-                return
-
-        # Set the task to completed
-        self.processing_status = (
-            OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
-        )
-        self.save()
-
-        logger.info(f"Processing bulk import task {self.id}")
-        return
-
-    def process_row(self, row, headers):
-        logger.info(f"Processing row {row}")
-        return

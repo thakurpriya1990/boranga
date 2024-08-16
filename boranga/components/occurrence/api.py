@@ -22,6 +22,7 @@ from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -6248,6 +6249,14 @@ class OccurrenceReportBulkImportTaskViewSet(
     serializer_class = OccurrenceReportBulkImportTaskSerializer
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ["processing_status"]
+    pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
         serializer.save(email_user=self.request.user.id)
+
+    @detail_route(methods=["patch"], detail=True)
+    def retry(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.retry()
+        instance.save()
+        return Response(status=status.HTTP_200_OK)

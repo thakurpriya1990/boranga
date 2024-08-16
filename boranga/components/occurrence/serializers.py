@@ -3861,9 +3861,11 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
 
 
 class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
-    estimated_processing_time = serializers.CharField(read_only=True)
+    estimated_processing_time_human_readable = serializers.CharField(read_only=True)
+    total_time_taken_human_readable = serializers.CharField(read_only=True)
     file_size_megabytes = serializers.CharField(read_only=True)
     file_name = serializers.CharField(read_only=True)
+    percentage_complete = serializers.CharField(read_only=True)
 
     class Meta:
         model = OccurrenceReportBulkImportTask
@@ -3880,5 +3882,7 @@ class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
             "error_message",
             "processing_status",
             "email_user",
-            "estimated_processing_time",
+            "estimated_processing_time_human_readable",
+            "total_time_taken_human_readable",
+            "percentage_complete",
         )

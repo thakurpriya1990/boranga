@@ -3,3 +3,6 @@
 {% if is_django_admin_user %}
     <li><a class="dropdown-item" href="{% url 'admin:index' %}">Admin</a></li>
 {% endif %}
+{% if is_django_admin_user or request.user.is_superuser %}
+    <li><a class="dropdown-item" href="/internal/occurrence_report/bulk_import_schema/">OCR Bulk Import Schema</a></li>
+{% endif %}
