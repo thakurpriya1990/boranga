@@ -5177,7 +5177,7 @@ def get_occurrence_report_bulk_import_path(instance, filename):
     return f"occurrence_report/bulk-imports/{timezone.now()}/{filename}"
 
 
-class OccurrenceReportBulkImportTask(models.Model):
+class OccurrenceReportBulkImportTask(ArchivableModel):
     _file = models.FileField(
         upload_to=get_occurrence_report_bulk_import_path,
         max_length=512,
@@ -5242,6 +5242,13 @@ class OccurrenceReportBulkImportTask(models.Model):
     def total_time_taken(self):
         if self.datetime_started and self.datetime_completed:
             delta = self.datetime_completed - self.datetime_started
+            return delta.total_seconds()
+        return None
+
+    @property
+    def total_time_taken_seconds(self):
+        if self.datetime_started and self.datetime_completed:
+            delta = self.datetime_completed - self.datetime_started
             return delta.seconds
         return None
 
@@ -5253,7 +5260,7 @@ class OccurrenceReportBulkImportTask(models.Model):
 
     @property
     def total_time_taken_human_readable(self):
-        if self.total_time_taken == 0:
+        if self.total_time_taken < 1:
             return "Less than a second"
         if not self.total_time_taken:
             return None
@@ -5268,7 +5275,7 @@ class OccurrenceReportBulkImportTask(models.Model):
     def time_taken_per_row(self):
         if self.datetime_started and self.datetime_completed:
             value = self.total_time_taken / self.rows_processed
-            return round(value, 4)
+            return round(value, 6)
         return None
 
     @property
