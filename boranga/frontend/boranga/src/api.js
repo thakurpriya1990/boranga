@@ -25,6 +25,8 @@ module.exports = {
     help_text_entries: "/api/help_text_entries",
     marine_treeview: "/api/marine_treeview",
     occurrence_report_bulk_imports: "/api/occurrence_report_bulk_imports/",
+    occurrence_report_bulk_import_schemas: "/api/occurrence_report_bulk_import_schemas/",
+    occurrence_report_bulk_import_schemas_by_group_type: "/api/occurrence_report_bulk_import_schemas/get_schema_list_by_group_type/",
     ocr_external_referee_invites: "/api/ocr_external_referee_invites",
     ocr_referrals: "/api/ocr_referrals.json",
     organisation_access_group_members: '/api/organisation_access_group_members',
