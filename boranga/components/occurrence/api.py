@@ -67,6 +67,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
+    OccurrenceReportBulkImportSchema,
     OccurrenceReportBulkImportTask,
     OccurrenceReportDocument,
     OccurrenceReportGeometry,
@@ -136,6 +137,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceDocumentSerializer,
     OccurrenceLogEntrySerializer,
     OccurrenceReportAmendmentRequestSerializer,
+    OccurrenceReportBulkImportSchemaSerializer,
     OccurrenceReportBulkImportTaskSerializer,
     OccurrenceReportDocumentSerializer,
     OccurrenceReportLogEntrySerializer,
@@ -6239,9 +6241,7 @@ class OCRExternalRefereeInviteViewSet(
 
 class OccurrenceReportBulkImportTaskViewSet(
     viewsets.GenericViewSet,
-    mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
-    mixins.UpdateModelMixin,
     mixins.ListModelMixin,
 ):
     queryset = OccurrenceReportBulkImportTask.objects.all()
@@ -6258,5 +6258,54 @@ class OccurrenceReportBulkImportTaskViewSet(
     def retry(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.retry()
-        instance.save()
         return Response(status=status.HTTP_200_OK)
+
+    @detail_route(methods=["patch"], detail=True)
+    def revert(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.revert()
+        return Response(status=status.HTTP_200_OK)
+
+
+class OccurrenceReportBulkImportSchemaViewSet(
+    viewsets.GenericViewSet,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+):
+    queryset = OccurrenceReportBulkImportSchema.objects.all()
+    serializer_class = OccurrenceReportBulkImportSchemaSerializer
+    permission_classes = [OccurrenceReportBulkImportPermission]
+
+    def get_queryset(self):
+        qs = self.queryset
+        if not (is_internal(self.request) or self.request.user.is_superuser):
+            qs = OccurrenceReportBulkImportSchema.objects.none()
+        return qs
+
+    @list_route(methods=["get"], detail=False)
+    def get_schema_list_by_group_type(self, request, *args, **kwargs):
+        group_type = request.GET.get("group_type", None)
+        if not group_type:
+            raise serializers.ValidationError(
+                "Group Type is required to return correct list of values"
+            )
+
+        group_type = GroupType.objects.get(name=group_type)
+
+        schema = OccurrenceReportBulkImportSchema.objects.filter(group_type=group_type)
+        serializer = OccurrenceReportBulkImportSchemaSerializer(schema, many=True)
+        return Response(serializer.data)
+
+    @detail_route(methods=["get"], detail=True)
+    def preview_import_file(self, request, *args, **kwargs):
+        instance = self.get_object()
+        buffer = BytesIO()
+        workbook = instance.preview_import_file
+        workbook.save(buffer)
+        buffer.seek(0)
+        filename = f"bulk-import-schema-{instance.group_type.name}-version-{instance.version}-preview.xlsx"
+        response = HttpResponse(buffer.read(), content_type="application/vnd.ms-excel")
+        response["Content-Disposition"] = f"attachment; filename={filename}"
+        buffer.close()
+        return response
