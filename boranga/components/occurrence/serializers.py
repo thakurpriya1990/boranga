@@ -1,3 +1,4 @@
+import hashlib
 import logging
 
 from django.db import models
@@ -36,6 +37,8 @@ from boranga.components.occurrence.models import (
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
     OccurrenceReportApprovalDetails,
+    OccurrenceReportBulkImportSchema,
+    OccurrenceReportBulkImportSchemaColumn,
     OccurrenceReportBulkImportTask,
     OccurrenceReportDeclinedDetails,
     OccurrenceReportDocument,
@@ -3886,3 +3889,43 @@ class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
             "total_time_taken_human_readable",
             "percentage_complete",
         )
+
+    def create(self, validated_data):
+        file_hash = hashlib.sha256(validated_data["_file"].read()).hexdigest()
+        qs = OccurrenceReportBulkImportTask.objects.filter(file_hash=file_hash)
+        if qs.filter(
+            processing_status=OccurrenceReportBulkImportTask.PROCESSING_STATUS_QUEUED
+        ).exists():
+            raise serializers.ValidationError(
+                "An import task with exactly same file contents has already been queued."
+            )
+        if qs.filter(
+            processing_status=OccurrenceReportBulkImportTask.PROCESSING_STATUS_STARTED
+        ).exists():
+            raise serializers.ValidationError(
+                "An import task with exactly same file contents is already in progress."
+            )
+        if qs.filter(
+            processing_status=OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
+        ).exists():
+            raise serializers.ValidationError(
+                "An import task with exactly same file contents has already been completed."
+            )
+        return super().create(validated_data)
+
+
+class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OccurrenceReportBulkImportSchemaColumn
+        fields = "__all__"
+        read_only_fields = ("id",)
+
+
+class OccurrenceReportBulkImportSchemaSerializer(serializers.ModelSerializer):
+    columns = OccurrenceReportBulkImportSchemaColumnSerializer(many=True)
+
+    class Meta:
+        model = OccurrenceReportBulkImportSchema
+        fields = "__all__"
+        read_only_fields = ("id",)
