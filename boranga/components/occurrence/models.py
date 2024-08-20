@@ -10,6 +10,7 @@ import dateutil
 import openpyxl
 import pyproj
 import reversion
+import xlrd
 from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib.contenttypes import fields
@@ -5178,6 +5179,12 @@ def get_occurrence_report_bulk_import_path(instance, filename):
 
 
 class OccurrenceReportBulkImportTask(ArchivableModel):
+    schema = models.ForeignKey(
+        "OccurrenceReportBulkImportSchema",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
     _file = models.FileField(
         upload_to=get_occurrence_report_bulk_import_path,
         max_length=512,
@@ -5204,12 +5211,14 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
     PROCESSING_STATUS_STARTED = "started"
     PROCESSING_STATUS_FAILED = "failed"
     PROCESSING_STATUS_COMPLETED = "completed"
+    PROCESSING_STATUS_ARCHIVED = "archived"
 
     PROCESSING_STATUS_CHOICES = (
         (PROCESSING_STATUS_QUEUED, "Queued"),
         (PROCESSING_STATUS_STARTED, "Started"),
         (PROCESSING_STATUS_FAILED, "Failed"),
         (PROCESSING_STATUS_COMPLETED, "Completed"),
+        (PROCESSING_STATUS_ARCHIVED, "Archived"),
     )
 
     processing_status = models.CharField(
@@ -5225,7 +5234,13 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
     def save(self, *args, **kwargs):
         if self._file:
-            self.file_hash = hashlib.sha256(self._file.read()).hexdigest()
+            logger.debug(f"Calculating hash for bulk import file {self._file.name}")
+            file_contents = self._file.read()
+            logger.debug(type(file_contents))
+            self.file_hash = hashlib.sha256(file_contents).hexdigest()
+            logger.debug(
+                f"Hash for bulk import file {self._file.name}: {self.file_hash}"
+            )
         super().save(*args, **kwargs)
 
     @property
@@ -5260,10 +5275,11 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
     @property
     def total_time_taken_human_readable(self):
+        if self.total_time_taken is None:
+            return None
+
         if self.total_time_taken < 1:
             return "Less than a second"
-        if not self.total_time_taken:
-            return None
 
         if self.total_time_taken < 60:
             return f"{self.total_time_taken} seconds"
@@ -5356,6 +5372,36 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         logger.debug(f"Found {self.rows} rows in bulk import file {self._file.name}")
         self.save()
 
+    @classmethod
+    def validate_headers(self, _file, schema):
+        logger.info(f"Validating headers for bulk import task {self.id}")
+
+        workbook = xlrd.open_workbook(file_contents=_file.read())
+
+        sheet = workbook.active
+
+        headers = [cell.value for cell in sheet[1]]
+
+        if not headers:
+            raise ValidationError("No headers found in the file")
+
+        # Check that the headers match the schema (group type and version headings)
+
+        schema_headers = self.schema.columns.all().values_list(
+            "xlsx_column_header_name", flat=True
+        )
+        if headers == schema_headers:
+            return True
+
+        extra_headers = set(headers) - set(schema_headers)
+        missing_headers = set(schema_headers) - set(headers)
+        error_string = f"Headers do not match schema: {self.schema}."
+        if missing_headers:
+            error_string += f" Missing: {missing_headers}"
+        if extra_headers:
+            error_string += f" Extra: {extra_headers}"
+        raise ValidationError(error_string)
+
     def process(self):
         if self.processing_status == self.PROCESSING_STATUS_COMPLETED:
             logger.info(f"Bulk import task {self.id} has already been processed")
@@ -5395,8 +5441,13 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         # Get the headers
         headers = [cell.value for cell in sheet[1]]
 
+        # TODO: Check that the headers match the schema (group type and version headings)
+
         # Get the rows
         rows = list(sheet.iter_rows(min_row=2, max_row=self.rows + 1, values_only=True))
+
+        # Occurrence reports to create
+        occurrence_reports = []
 
         # Process the rows
         for i, row in enumerate(rows):
@@ -5411,7 +5462,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             self.save()
 
             try:
-                self.process_row(row, headers)
+                self.process_row(row, headers, occurrence_reports)
             except Exception as e:
                 logger.error(f"Error processing row {i + 1}: {e}")
                 self.processing_status = (
@@ -5432,8 +5483,12 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
         return
 
-    def process_row(self, row, headers):
+    def process_row(self, row, headers, occurrence_reports):
         row_hash = hashlib.sha256(str(row).encode()).hexdigest()
+        OccurrenceReport(
+            bulk_import_task=self,
+            import_hash=row_hash,
+        )
         logger.info(f"Row hash: {row_hash}")
         return
 
@@ -5446,21 +5501,56 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         self.error_message = None
         self.save()
 
+    def revert(self):
+        # TODO: Using delete here due to the sheer number of records that could be created
+        # Still need to consider if we want to archive them
+        OccurrenceReport.objects.filter(bulk_import_task=self).delete()
+
+        self.processing_status = self.PROCESSING_STATUS_ARCHIVED
+        self.archived = True
+        self.save()
+
 
 class OccurrenceReportBulkImportSchema(models.Model):
-    name = models.CharField(max_length=255, blank=False, null=False)
-    version = models.IntegerField(default=1)
     group_type = models.ForeignKey(
-        GroupType, on_delete=models.PROTECT, null=True, blank=True
+        GroupType, on_delete=models.PROTECT, null=False, blank=False
     )
+    version = models.IntegerField(default=1)
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    datetime_updated = models.DateTimeField(default=datetime.now)
 
     class Meta:
         app_label = "boranga"
         verbose_name = "Occurrence Report Bulk Import Schema"
         verbose_name_plural = "Occurrence Report Bulk Import Schemas"
+        ordering = ["group_type", "-version"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "group_type",
+                    "version",
+                ],
+                name="unique_schema_version",
+            )
+        ]
 
     def __str__(self):
-        return f"{self.name} (Version: {self.version})"
+        return f"Group type: {self.group_type.name} (Version: {self.version})"
+
+    @property
+    def preview_import_file(self):
+        workbook = openpyxl.Workbook()
+        worksheet = workbook.active
+        columns = self.columns.all()
+        if not columns.exists() or columns.count() == 0:
+            logger.warning(
+                f"No columns found for bulk import schema {self}. Returning empty preview file"
+            )
+            return workbook
+
+        headers = [column.xlsx_column_header_name for column in columns]
+        worksheet.append(headers)
+        return workbook
 
 
 class OccurrenceReportBulkImportSchemaColumn(models.Model):
@@ -5469,36 +5559,49 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
         related_name="columns",
         on_delete=models.CASCADE,
     )
-    import_content_type = models.ForeignKey(
+
+    # These two fields define where the data from the column will be imported to
+    django_import_content_type = models.ForeignKey(
         ct_models.ContentType,
         on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="import_columns",
     )
-    import_field_name = models.CharField(max_length=50, blank=False, null=False)
+    django_import_field_name = models.CharField(max_length=50, blank=False, null=False)
 
-    column_header_name = models.CharField(max_length=50, blank=False, null=False)
-    data_validation_type = models.CharField(
+    # The name of the column header in the .xlsx file
+    xlsx_column_header_name = models.CharField(max_length=50, blank=False, null=False)
+
+    # The following fields are used to embed data validation in the .xlsx file
+    # so that the users can do a quick check before uploading
+    xlsx_data_validation_type = models.CharField(
         max_length=20,
-        choices=[(x, x) for x in DataValidation.type.values],
-        default="string",
-    )
-    required = models.BooleanField(default=False)
-    default_value = models.CharField(max_length=255, blank=True, null=True)
-
-    max_length = models.IntegerField(null=True, blank=True)
-    min_value = models.IntegerField(null=True, blank=True)
-    max_value = models.IntegerField(null=True, blank=True)
-
-    list_lookup_class = models.ForeignKey(
-        ct_models.ContentType,
-        on_delete=models.PROTECT,
+        choices=sorted(
+            [(x, x) for x in DataValidation.type.values],
+            key=lambda x: (x[0] is None, x),
+        ),
         null=True,
         blank=True,
-        related_name="list_lookup_columns",
     )
-    list_lookup_field = models.CharField(max_length=50, blank=True, null=True)
+    xlsx_data_validation_allow_blank = models.BooleanField(default=False)
+    xlsx_data_validation_operator = models.CharField(
+        max_length=20,
+        choices=sorted(
+            [(x, x) for x in DataValidation.operator.values],
+            key=lambda x: (x[0] is None, x),
+        ),
+        null=True,
+        blank=True,
+    )
+    xlsx_data_validation_formula1 = models.CharField(
+        max_length=50, blank=True, null=True
+    )
+    xlsx_data_validation_formula2 = models.CharField(
+        max_length=50, blank=True, null=True
+    )
+
+    # TODO: How are we going to do the list lookup validation for much larger datasets (mostly for species)
 
     class Meta:
         app_label = "boranga"
@@ -5506,7 +5609,7 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
         verbose_name_plural = "Occurrence Report Bulk Import Schema Columns"
 
     def __str__(self):
-        return f"{self.name} ({self.schema.name})"
+        return f"{self.xlsx_column_header_name} - {self.schema}"
 
     def validate(self, value):
         if self.data_validation_type == "whole":
@@ -5515,15 +5618,6 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
                     f"Default value for {self.column_header_name} must be an integer"
                 )
 
-            if self.min_value and value < self.min_value:
-                raise ValidationError(
-                    f"Default value for {self.column_header_name} is too low"
-                )
-
-            if self.max_value and value > self.max_value:
-                raise ValidationError(
-                    f"Default value for {self.column_header_name} is too high"
-                )
         if self.data_validation_type == "decimal":
             try:
                 value = Decimal(value)
@@ -5544,12 +5638,6 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
             except Exception:
                 raise ValidationError(
                     f"Default value for {self.column_header_name} must be a time"
-                )
-
-        if self.max_length:
-            if len(value) > self.max_length:
-                raise ValidationError(
-                    f"Default value for {self.column_header_name} is too long"
                 )
 
 

@@ -62,7 +62,7 @@
                                             ref="bulk-import-file" aria-describedby="bulk-import-button"
                                             @change="bulkImportFileSelected"
                                             accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-                                        <div v-if="importFileErrors" class="invalid-feedback">
+                                        <div v-if="importFileErrors" class="invalid-feedback mt-3">
                                             <ul>
                                                 <li v-for="error in importFileErrors">{{ error }}</li>
                                             </ul>
