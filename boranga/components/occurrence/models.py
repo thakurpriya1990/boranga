@@ -5233,14 +5233,9 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         verbose_name_plural = "Occurrence Report Bulk Import Tasks"
 
     def save(self, *args, **kwargs):
-        if self._file:
-            logger.debug(f"Calculating hash for bulk import file {self._file.name}")
-            file_contents = self._file.read()
-            logger.debug(type(file_contents))
-            self.file_hash = hashlib.sha256(file_contents).hexdigest()
-            logger.debug(
-                f"Hash for bulk import file {self._file.name}: {self.file_hash}"
-            )
+        if not self.file_hash and self._file:
+            self._file.seek(0)
+            self.file_hash = hashlib.sha256(self._file.read()).hexdigest()
         super().save(*args, **kwargs)
 
     @property
@@ -5284,7 +5279,11 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         if self.total_time_taken < 60:
             return f"{self.total_time_taken} seconds"
         if self.total_time_taken:
-            return f"{self.total_time_taken_minues} minutes"
+            whole_minutes = int(self.total_time_taken // 60)
+            remaining_seconds = round(self.total_time_taken - (whole_minutes * 60))
+            if not remaining_seconds:
+                return f"{whole_minutes} minutes"
+            return f"{whole_minutes} minutes and {remaining_seconds} seconds"
         return None
 
     @property
@@ -5375,7 +5374,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
     @classmethod
     def validate_headers(self, _file, schema):
         logger.info(f"Validating headers for bulk import task {self.id}")
-
         workbook = xlrd.open_workbook(file_contents=_file.read())
 
         sheet = workbook.active
