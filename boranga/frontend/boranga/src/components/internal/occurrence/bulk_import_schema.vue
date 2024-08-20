@@ -15,21 +15,11 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="border-bottom mb-3">
-                                <h4>Schema (Version: 1.0)</h4>
-                            </div>
-                            <div class="border-bottom mb-3">
-                                <form>
-                                    <div class="row mb-3">
-                                        <label for="group-type" class="col-sm-2 col-form-label">Group Type</label>
-                                        <select class="form-select w-25" aria-label="Group Type">
-                                            <option value="1">Flora</option>
-                                        </select>
-                                    </div>
-                                </form>
+                                <h4>Flora Bulk Import Schema (Version: 1)</h4>
                             </div>
                             <div class="mb-3">
                                 <label for="exampleFormControlInput1" class="form-label fs-5"><i
-                                        class="bi bi-filetype-xlsx text-success me-3"></i>Excel preview <span
+                                        class="bi bi-filetype-xlsx text-success me-3"></i>Columns <span
                                         class="text-muted ms-2 fs-6">(.xlsx)</span></label>
                                 <div class="">
                                     <table class="table table-bordered table-hover table-sm w-50">
@@ -42,19 +32,11 @@
                                                     <i class="bi bi-trash3-fill text-danger" role="button"></i>
                                                 </td>
                                             </tr>
-                                            <tr class="">
+                                            <tr class="" style="background: rgba(51, 170, 51, .4)">
                                                 <th class="text-center">2</th>
                                                 <th class="ps-3">Scientific Name</th>
                                                 <td class="text-muted text-center">
                                                     <i class="bi bi-pencil-square text-primary me-2" role="button"></i>
-                                                    <i class="bi bi-trash3-fill text-danger" role="button"></i>
-                                                </td>
-                                            </tr>
-                                            <tr class="">
-                                                <th class="text-center">2</th>
-                                                <th class="ps-3">Scientific Name</th>
-                                                <td class="text-muted text-center"><i
-                                                        class="bi bi-pencil-square text-primary me-2" role="button"></i>
                                                     <i class="bi bi-trash3-fill text-danger" role="button"></i>
                                                 </td>
                                             </tr>
@@ -88,8 +70,21 @@
                             <div class="mb-3">
                                 <div class="card" style="width:60%">
                                     <div class="card-body">
-                                        <h4 class="card-title border-bottom mb-3">Scientific Name</h4>
+                                        <h5 class="card-title border-bottom pb-2 mb-3">
+                                            Selected Column Details
+                                        </h5>
                                         <form>
+                                            <div class="row d-flex align-items-center mb-2">
+                                                <label for="inputEmail3" class="col-sm-4 col-form-label">Column
+                                                    Name</label>
+                                                <div class="col-sm-8 ">
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control" name="" id=""
+                                                            aria-describedby="helpId" placeholder=""
+                                                            value="Scientific Name" />
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <div class="row d-flex align-items-center mb-2">
                                                 <label for="inputEmail3" class="col-sm-4 col-form-label">Django Import
                                                     Model</label>
@@ -172,7 +167,7 @@
                                                             </select>
                                                             <span class="input-group-text" id="basic-addon1">
                                                                 <i class="bi bi-trash3-fill text-danger float-end"
-                                                            role="button"></i></span>
+                                                                    role="button"></i></span>
                                                         </div>
                                                         <div class="input-group input-group-sm mb-2">
                                                             <span class="input-group-text w-25" id="basic-addon1">
