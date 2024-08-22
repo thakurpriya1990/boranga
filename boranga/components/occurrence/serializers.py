@@ -3925,7 +3925,11 @@ class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializ
 
 
 class OccurrenceReportBulkImportSchemaSerializer(serializers.ModelSerializer):
-    columns = OccurrenceReportBulkImportSchemaColumnSerializer(many=True)
+    columns = OccurrenceReportBulkImportSchemaColumnSerializer(
+        many=True, read_only=True
+    )
+    group_type_display = serializers.CharField(source="group_type.name", read_only=True)
+    version = serializers.CharField(read_only=True)
 
     class Meta:
         model = OccurrenceReportBulkImportSchema
