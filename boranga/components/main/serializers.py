@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from ledger_api_client.ledger_models import EmailUserRO
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import serializers
@@ -7,7 +8,10 @@ from boranga.components.main.models import (
     GlobalSettings,
     HelpTextEntry,
 )
-from boranga.helpers import is_django_admin
+from boranga.helpers import (
+    get_openpyxl_data_validation_type_for_django_field,
+    is_django_admin,
+)
 
 
 class CommunicationLogEntrySerializer(serializers.ModelSerializer):
@@ -109,3 +113,41 @@ class HelpTextEntrySerializer(serializers.ModelSerializer):
 
     def get_user_can_administer(self, obj):
         return is_django_admin(self.context["request"])
+
+
+class ContentTypeSerializer(serializers.ModelSerializer):
+    model_fields = serializers.SerializerMethodField()
+    model_verbose_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ContentType
+        fields = "__all__"
+
+    def get_model_verbose_name(self, obj):
+        if not obj.model_class():
+            return None
+        return obj.model_class()._meta.verbose_name.title()
+
+    def get_model_fields(self, obj):
+        if not obj.model_class():
+            return []
+        fields = obj.model_class()._meta.get_fields()
+        return [
+            {
+                "name": (
+                    field.verbose_name.title()
+                    if hasattr(field, "verbose_name")
+                    else field.name
+                ),
+                "type": str(type(field)).split(".")[-1].replace("'>", ""),
+                "allow_null": field.null if hasattr(field, "null") else None,
+                "max_length": (
+                    field.max_length if hasattr(field, "max_length") else None
+                ),
+                "xlsx_validation_type": get_openpyxl_data_validation_type_for_django_field(
+                    field
+                ),
+            }
+            for field in fields
+            if field.name != "id"
+        ]
