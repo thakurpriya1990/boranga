@@ -29,6 +29,9 @@ from django.utils import timezone
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
+from openpyxl.styles import NamedStyle
+from openpyxl.styles.fonts import Font
+from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from boranga import exceptions
@@ -5548,7 +5551,136 @@ class OccurrenceReportBulkImportSchema(models.Model):
 
         headers = [column.xlsx_column_header_name for column in columns]
         worksheet.append(headers)
+
+        dv_types = dict(zip(DataValidation.type.values, DataValidation.type.values))
+        dv_operators = dict(
+            zip(DataValidation.operator.values, DataValidation.operator.values)
+        )
+
+        # Add the data validation for each column
+        for index, column in enumerate(columns):
+            column_letter = get_column_letter(index + 1)
+            cell_range = f"{column_letter}2:{column_letter}1048576"  # 1048576 is the maximum number of rows in Excel
+
+            model_class = column.django_import_content_type.model_class()
+            if not hasattr(model_class, column.django_import_field_name):
+                raise ValidationError(
+                    f"Model {model_class} does not have field {column.django_import_field_name}"
+                )
+            model_field = model_class._meta.get_field(column.django_import_field_name)
+            logger.debug(f"model_field_type: {type(model_field)}")
+            dv = None
+            if isinstance(model_field, models.fields.CharField) and model_field.choices:
+                dv = DataValidation(
+                    type=dv_types["list"],
+                    allow_blank=model_field.null,
+                    formula1=",".join([c[0] for c in model_field.choices]),
+                    error="Please select a valid option from the list",
+                    errorTitle="Invalid selection",
+                    prompt="Select a value from the list",
+                    promptTitle="List selection",
+                )
+            elif isinstance(model_field, models.fields.CharField):
+                dv = DataValidation(
+                    type=dv_types["textLength"],
+                    allow_blank=model_field.null,
+                    operator=dv_operators["lessThanOrEqual"],
+                    formula1=f"{model_field.max_length}",
+                    error="Text must be less than or equal to {model_field.max_length} characters",
+                    errorTitle="Text too long",
+                    prompt=f"Maximum {model_field.max_length} characters",
+                    promptTitle="Text length",
+                )
+            elif isinstance(
+                model_field, (models.fields.DateTimeField, models.fields.DateField)
+            ):
+                dv = DataValidation(
+                    type=dv_types["date"],
+                    operator=dv_operators["greaterThanOrEqual"],
+                    formula1="1900-01-01",
+                    allow_blank=model_field.null,
+                    error="Please enter a valid date",
+                    errorTitle="Invalid date",
+                    prompt="Enter a date",
+                    promptTitle="Date",
+                )
+                if isinstance(model_field, models.fields.DateTimeField):
+                    date_style = NamedStyle(
+                        name="datetime", number_format="DD/MM/YYYY HH:MM:MM"
+                    )
+                    for cell in worksheet[column_letter]:
+                        cell.style = date_style
+            elif isinstance(model_field, models.fields.IntegerField):
+                dv = DataValidation(
+                    type=dv_types["whole"],
+                    allow_blank=model_field.null,
+                    error="Please enter a whole number",
+                    errorTitle="Invalid number",
+                    prompt="Enter a whole number",
+                    promptTitle="Whole number",
+                )
+            elif isinstance(model_field, models.fields.DecimalField):
+                dv = DataValidation(
+                    type=dv_types["decimal"],
+                    allow_blank=model_field.null,
+                    error="Please enter a decimal number",
+                    errorTitle="Invalid number",
+                    prompt="Enter a decimal number",
+                    promptTitle="Decimal number",
+                )
+            elif isinstance(model_field, models.fields.BooleanField):
+                dv = DataValidation(
+                    type=dv_types["list"],
+                    allow_blank=model_field.null,
+                    formula1='"True,False"',
+                    error="Please select True or False",
+                    errorTitle="Invalid selection",
+                    prompt="Select True or False",
+                    promptTitle="Boolean selection",
+                )
+            else:
+                # Most covers TextField
+                # Postgresql Text field can handle up to 65,535 characters, .xlsx can handle 32,767 characters
+                # We'll gleefully assume this won't be an issue and not add a data validation for text fields =D
+                continue
+
+            dv.showErrorMessage = True
+            worksheet.add_data_validation(dv)
+            dv.add(cell_range)
+
+        # Make the headers bold
+        for cell in worksheet["A0:ZZ0"][0]:
+            cell.font = Font(bold=True)
+
+        # Make the column widths appropriate
+        dims = {}
+        for row in worksheet.rows:
+            for cell in row:
+                if cell.value:
+                    dims[cell.column] = (
+                        max((dims.get(cell.column, 0), len(str(cell.value)))) + 2
+                    ) + 2
+        for col, value in dims.items():
+            worksheet.column_dimensions[get_column_letter(col)].width = value
+
         return workbook
+
+    def copy(self):
+        new_schema = OccurrenceReportBulkImportSchema(
+            group_type=self.group_type,
+            version=self.version + 1,
+        )
+        new_schema.save()
+
+        for column in self.columns.all():
+            new_column = OccurrenceReportBulkImportSchemaColumn.objects.get(
+                pk=column.pk
+            )
+            new_column.pk = None
+            new_column.schema = new_schema
+            new_column.save()
+
+        return new_schema
 
 
 class OccurrenceReportBulkImportSchemaColumn(models.Model):
@@ -5718,3 +5850,6 @@ reversion.register(
         "identification",
     ],
 )
+
+reversion.register(OccurrenceReportGeometry)
+reversion.register(OccurrenceGeometry)
