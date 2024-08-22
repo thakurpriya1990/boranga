@@ -188,7 +188,7 @@ router.register(
 router.register(
     r"help_text_entries", main_api.HelpTextEntryViewSet, "help_text_entries"
 )
-
+router.register(r"content_types", main_api.ContentTypeViewSet, "content_types")
 router.registry.sort(key=lambda x: x[0])
 
 api_patterns = [
