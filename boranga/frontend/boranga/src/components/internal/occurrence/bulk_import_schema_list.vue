@@ -12,17 +12,15 @@
                                 <div class="mb-3">
                                     <label for="schema-version" class="form-label">Group Type</label>
                                     <select class="form-select text-secondary w-25" id="schema-version"
-                                        ref="schema-version" v-model="group_type" aria-label="Select Schema Version"
+                                        ref="schema-version" v-model="groupType" aria-label="Select Schema Version"
                                         @change="fetchBulkSchemas">
                                         <option :value="null" selected>Select Group Type</option>
-                                        <option value="flora">Flora</option>
-                                        <option value="fauna">Fauna</option>
-                                        <option value="community">Community</option>
+                                        <option v-for="groupType in groupTypes" :value="groupType.id">{{ groupType.name.charAt(0).toUpperCase() + groupType.name.substring(1) }}</option>
                                     </select>
                                 </div>
                             </form>
                             <div>
-                                <button v-if="group_type" class="btn btn-primary float"><i class="bi bi-plus-circle-fill"></i> Create New Version</button>
+                                <button v-if="groupType" class="btn btn-primary float" @click="createNewVersion"><i class="bi bi-plus-circle-fill"></i> Create New Version</button>
                             </div>
                         </div>
                     </div>
@@ -49,7 +47,7 @@
                                         <a class="btn btn-sm btn-primary my-0 me-2" role="button"
                                             :href="`/internal/occurrence_report/bulk_import_schema/${schema.id}`"><i
                                                 class="bi bi-pencil-fill me-2"></i> Edit</a>
-                                        <button class="btn btn-sm btn-primary my-0"><i class="bi bi-copy me-2"></i> Create a Copy</button>
+                                        <button class="btn btn-sm btn-primary my-0" @click.prevent="copySchema(schema.id)"><i class="bi bi-copy me-2"></i> Create a Copy</button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -70,7 +68,8 @@ export default {
     name: 'OccurrenceReportBulkImportSchemaList',
     data() {
         return {
-            group_type: null,
+            groupTypes: null,
+            groupType: null,
             bulkSchemas: null,
         }
     },
@@ -78,23 +77,73 @@ export default {
         alert
     },
     methods: {
+        fetchGroupTypes() {
+            this.$http.get(api_endpoints.group_types_dict)
+                .then(response => {
+                    this.groupTypes = response.data
+                })
+                .catch(error => {
+                    console.error(error)
+                })
+        },
         fetchBulkSchemas() {
-            if (!this.group_type) {
+            if (!this.groupType) {
                 this.bulkSchemas = null
                 return
             }
-            this.$http.get(api_endpoints.occurrence_report_bulk_import_schemas_by_group_type, {
+            this.$http.get(api_endpoints.occurrence_report_bulk_import_schemas, {
                 params: {
-                    group_type: this.group_type
+                    group_type: this.groupType
                 }
             })
                 .then(response => {
-                    this.bulkSchemas = response.data
+                    this.bulkSchemas = response.data.results
+                })
+                .catch(error => {
+                    console.error(error)
+                })
+        },
+        copySchema(id) {
+            this.$http.post(`${api_endpoints.occurrence_report_bulk_import_schemas}${id}/copy/`)
+                .then(response => {
+                    if (response.status === 201) {
+                        swal.fire({
+                            title: 'Success',
+                            text: 'Schema copied successfully',
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 1500
+                        })
+                        this.$router.push(`/internal/occurrence_report/bulk_import_schema/${response.data.id}`)
+                    }
+                })
+                .catch(error => {
+                    console.error(error)
+                })
+        },
+        createNewVersion() {
+            this.$http.post(api_endpoints.occurrence_report_bulk_import_schemas, {
+                group_type: this.groupType
+            })
+                .then(response => {
+                    if (response.status === 201) {
+                        swal.fire({
+                            title: 'Success',
+                            text: 'New version created successfully',
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 1500
+                        })
+                        this.$router.push(`/internal/occurrence_report/bulk_import_schema/${response.data.id}`)
+                    }
                 })
                 .catch(error => {
                     console.error(error)
                 })
         }
     },
+    created() {
+        this.fetchGroupTypes()
+    }
 }
 </script>
