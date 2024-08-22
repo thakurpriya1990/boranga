@@ -137,6 +137,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceDocumentSerializer,
     OccurrenceLogEntrySerializer,
     OccurrenceReportAmendmentRequestSerializer,
+    OccurrenceReportBulkImportSchemaColumnSerializer,
     OccurrenceReportBulkImportSchemaSerializer,
     OccurrenceReportBulkImportTaskSerializer,
     OccurrenceReportDocumentSerializer,
@@ -6276,12 +6277,26 @@ class OccurrenceReportBulkImportSchemaViewSet(
     queryset = OccurrenceReportBulkImportSchema.objects.all()
     serializer_class = OccurrenceReportBulkImportSchemaSerializer
     permission_classes = [OccurrenceReportBulkImportPermission]
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_fields = ["group_type"]
 
     def get_queryset(self):
         qs = self.queryset
         if not (is_internal(self.request) or self.request.user.is_superuser):
             qs = OccurrenceReportBulkImportSchema.objects.none()
         return qs
+
+    def perform_create(self, serializer):
+        latest_version = (
+            OccurrenceReportBulkImportSchema.objects.filter(
+                group_type=serializer.validated_data["group_type"]
+            )
+            .order_by("-version")
+            .first()
+            .version
+        )
+        serializer.save(version=latest_version + 1)
+        return super().perform_create(serializer)
 
     @list_route(methods=["get"], detail=False)
     def get_schema_list_by_group_type(self, request, *args, **kwargs):
@@ -6309,3 +6324,25 @@ class OccurrenceReportBulkImportSchemaViewSet(
         response["Content-Disposition"] = f"attachment; filename={filename}"
         buffer.close()
         return response
+
+    @detail_route(methods=["post"], detail=True)
+    def copy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        new_instance = instance.copy()
+        serializer = OccurrenceReportBulkImportSchemaSerializer(new_instance)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @detail_route(methods=["put"], detail=True)
+    def save_column(self, request, *args, **kwargs):
+        instance = self.get_object()
+        column_data = request.data.get("column_data", None)
+        if not column_data:
+            raise serializers.ValidationError("Column data is required")
+        serializer = OccurrenceReportBulkImportSchemaColumnSerializer(
+            instance, data=column_data
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        serializer = OccurrenceReportBulkImportSchemaSerializer(instance)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
