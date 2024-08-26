@@ -3925,9 +3925,7 @@ class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializ
 
 
 class OccurrenceReportBulkImportSchemaSerializer(serializers.ModelSerializer):
-    columns = OccurrenceReportBulkImportSchemaColumnSerializer(
-        many=True, read_only=True
-    )
+    columns = OccurrenceReportBulkImportSchemaColumnSerializer(many=True)
     group_type_display = serializers.CharField(source="group_type.name", read_only=True)
     version = serializers.CharField(read_only=True)
 
@@ -3935,3 +3933,19 @@ class OccurrenceReportBulkImportSchemaSerializer(serializers.ModelSerializer):
         model = OccurrenceReportBulkImportSchema
         fields = "__all__"
         read_only_fields = ("id",)
+
+    def update(self, instance, validated_data):
+        columns_data = validated_data.pop("columns")
+        # Delete any columns that are not in the new data
+        instance.columns.exclude(
+            id__in=[
+                column_data["id"]
+                for column_data in columns_data
+                if hasattr(column_data, "id")
+            ]
+        ).delete()
+        for column_data in columns_data:
+            OccurrenceReportBulkImportSchemaColumn.objects.update_or_create(
+                **column_data
+            )
+        return super().update(instance, validated_data)
