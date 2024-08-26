@@ -5639,7 +5639,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     promptTitle="Boolean selection",
                 )
             else:
-                # Most covers TextField
+                # Mostly covers TextField
                 # Postgresql Text field can handle up to 65,535 characters, .xlsx can handle 32,767 characters
                 # We'll gleefully assume this won't be an issue and not add a data validation for text fields =D
                 continue
