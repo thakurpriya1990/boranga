@@ -6272,6 +6272,7 @@ class OccurrenceReportBulkImportSchemaViewSet(
     viewsets.GenericViewSet,
     mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
     mixins.ListModelMixin,
 ):
     queryset = OccurrenceReportBulkImportSchema.objects.all()
