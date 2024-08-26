@@ -413,7 +413,6 @@ def get_openpyxl_data_validation_type_for_django_field(field):
         models.BooleanField: "list",
         models.DateField: "date",
         models.DateTimeField: "date",
-        models.ForeignKey: "list",
     }
 
     if isinstance(field, models.CharField) and field.choices:
