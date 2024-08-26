@@ -8,8 +8,7 @@
                 <div class="mb-3">
                     <alert type="primary">
                         <i class="bi bi-info-circle-fill text-primary fs-4 help-text-popover me-2"></i>
-                        Some information about the import process. Including a link to <a href="">an example template
-                            .xlsx file</a>?
+                        Some help text about the import process.
                     </alert>
                 </div>
                 <div class="mb-3">
