@@ -1,4 +1,7 @@
+import logging
+
 from django.contrib.contenttypes.models import ContentType
+from django.db.models.fields.related import ForeignKey, OneToOneField
 from ledger_api_client.ledger_models import EmailUserRO
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import serializers
@@ -12,6 +15,8 @@ from boranga.helpers import (
     get_openpyxl_data_validation_type_for_django_field,
     is_django_admin,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class CommunicationLogEntrySerializer(serializers.ModelSerializer):
@@ -132,22 +137,41 @@ class ContentTypeSerializer(serializers.ModelSerializer):
         if not obj.model_class():
             return []
         fields = obj.model_class()._meta.get_fields()
-        return [
-            {
-                "name": (
-                    field.verbose_name.title()
-                    if hasattr(field, "verbose_name")
-                    else field.name
-                ),
-                "type": str(type(field)).split(".")[-1].replace("'>", ""),
-                "allow_null": field.null if hasattr(field, "null") else None,
-                "max_length": (
-                    field.max_length if hasattr(field, "max_length") else None
-                ),
-                "xlsx_validation_type": get_openpyxl_data_validation_type_for_django_field(
-                    field
-                ),
-            }
-            for field in fields
-            if field.name != "id"
-        ]
+
+        def filter_fields(field):
+            return not field.auto_created and not (
+                field.is_relation
+                and type(field)
+                not in [
+                    ForeignKey,
+                    OneToOneField,
+                ]
+            )
+
+        fields = list(filter(filter_fields, fields))
+        model_fields = []
+        for field in fields:
+            display_name = (
+                field.verbose_name.title()
+                if hasattr(field, "verbose_name")
+                else field.name
+            )
+            field_type = str(type(field)).split(".")[-1].replace("'>", "")
+            choices = field.choices if hasattr(field, "choices") else None
+            allow_null = field.null if hasattr(field, "null") else None
+            max_length = field.max_length if hasattr(field, "max_length") else None
+            xlsx_validation_type = get_openpyxl_data_validation_type_for_django_field(
+                field
+            )
+            model_fields.append(
+                {
+                    "name": field.name,
+                    "display_name": display_name,
+                    "type": field_type,
+                    "choices": choices,
+                    "allow_null": allow_null,
+                    "max_length": max_length,
+                    "xlsx_validation_type": xlsx_validation_type,
+                }
+            )
+        return model_fields
