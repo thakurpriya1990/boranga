@@ -1807,9 +1807,18 @@ class Community(RevisionedMixin):
         new_community = Community.objects.get(pk=self.pk)
         new_community.pk = None
         new_community.community_number = ""
-        new_community.processing_status = Community.PROCESSING_STATUS_DRAFT
+        new_community.processing_status = Community.PROCESSING_STATUS_ACTIVE
         new_community.renamed_from_id = self.id
         new_community.save(version_user=request.user)
+
+        # Copy the community publishing status but set it to private (not public)
+        publishing_status = CommunityPublishingStatus.objects.get(
+            id=self.community_publishing_status.id
+        )
+        publishing_status.pk = None
+        publishing_status.community = new_community
+        publishing_status.community_public = False
+        publishing_status.save()
 
         new_community.regions.add(*self.regions.all())
         new_community.districts.add(*self.districts.all())
