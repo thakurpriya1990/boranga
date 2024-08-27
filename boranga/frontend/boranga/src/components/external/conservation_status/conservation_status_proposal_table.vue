@@ -599,19 +599,6 @@ export default {
                 helpers.enablePopovers();
             });
         },
-        initialiseSearch: function () {
-            this.submitterSearch();
-        },
-        submitterSearch: function () {
-            let vm = this;
-            vm.$refs.conservation_status_datatable.table.dataTableExt.afnFiltering.push(
-                function (settings, data, dataIndex, original) {
-                    let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All') { return true; }
-                    return filtered_submitter == original.submitter.email;
-                }
-            );
-        },
         check_assessor: function (proposal) {
             let vm = this;
             if (proposal.assigned_officer) {
@@ -646,7 +633,6 @@ export default {
             vm.initialiseScientificNameLookup();
             vm.initialiseCommunityNameLookup();
             vm.addEventListeners();
-            vm.initialiseSearch();
             // -- to set the select2 field with the session value if exists onload()
             if (sessionStorage.getItem("filterCSScientificName") != 'all' && sessionStorage.getItem("filterCSScientificName") != null) {
                 // contructor new Option(text, value, defaultSelected, selected)

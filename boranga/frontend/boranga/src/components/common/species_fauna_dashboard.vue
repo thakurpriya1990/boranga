@@ -1430,19 +1430,6 @@ export default {
                 helpers.enablePopovers();
             });
         },
-        initialiseSearch: function () {
-            this.submitterSearch();
-        },
-        submitterSearch: function () {
-            let vm = this;
-            vm.$refs.fauna_datatable.table.dataTableExt.afnFiltering.push(
-                function (settings, data, dataIndex, original) {
-                    let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All') { return true; }
-                    return filtered_submitter == original.submitter.email;
-                }
-            );
-        },
     },
     mounted: function () {
         this.fetchFilterLists();
@@ -1459,7 +1446,6 @@ export default {
             vm.initialisePhyloGroupLookup();
             vm.initialiseFamilyLookup();
             vm.initialiseGeneraLookup()
-            vm.initialiseSearch();
             vm.addEventListeners();
             // -- to set the select2 field with the session value if exists onload()
             if (sessionStorage.getItem("filterFaunaScientificName") != 'all' && sessionStorage.getItem("filterFaunaScientificName") != null) {

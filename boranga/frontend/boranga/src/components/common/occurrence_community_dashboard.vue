@@ -673,19 +673,6 @@ export default {
                 helpers.enablePopovers();
             });
         },
-        initialiseSearch: function () {
-            this.submitterSearch();
-        },
-        submitterSearch: function () {
-            let vm = this;
-            vm.$refs.community_occ_datatable.table.dataTableExt.afnFiltering.push(
-                function (settings, data, dataIndex, original) {
-                    let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All') { return true; }
-                    return filtered_submitter == original.submitter.email;
-                }
-            );
-        },
         exportData: function (format) {
             let vm = this;
             const columns_new = {

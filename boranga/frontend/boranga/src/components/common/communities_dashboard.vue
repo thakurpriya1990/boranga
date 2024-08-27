@@ -944,19 +944,6 @@ export default {
                 helpers.enablePopovers();
             });
         },
-        initialiseSearch: function () {
-            this.submitterSearch();
-        },
-        submitterSearch: function () {
-            let vm = this;
-            vm.$refs.communities_datatable.table.dataTableExt.afnFiltering.push(
-                function (settings, data, dataIndex, original) {
-                    let filtered_submitter = vm.filterProposalSubmitter;
-                    if (filtered_submitter == 'All') { return true; }
-                    return filtered_submitter == original.submitter.email;
-                }
-            );
-        },
         exportData: function (format) {
             let vm = this;
             const columns_new = {
@@ -1153,7 +1140,6 @@ export default {
         this.$nextTick(() => {
             vm.initialiseCommunityNameLookup();
             vm.initialiseCommunityIdLookup();
-            vm.initialiseSearch();
             vm.addEventListeners();
             // -- to set the select2 field with the session value if exists onload()
             if (sessionStorage.getItem("filterCommunityName") != 'all' && sessionStorage.getItem("filterCommunityName") != null) {
