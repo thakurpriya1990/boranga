@@ -219,9 +219,14 @@ export default {
                 payload.action = 'submit';
             }
             const res = await vm.$http.post(vm.ocr_proposal_form_url, payload).then(res => {
+                let swalHtml = '<p>Your occurrence report has been saved as a draft.</p>';
+                if (vm.saveExitOCRProposal) {
+                    swalHtml += '<p>It has <span class="fw-bold">NOT</span> been submitted.</p><p>You can find the draft on the occurrence report dashboard to continue working on the report later.</p>'
+                }
+
                 swal.fire({
-                    title: 'Saved',
-                    text: 'Your report has been saved',
+                    title: 'Occurrence Report Saved',
+                    html: swalHtml,
                     icon: 'success',
                     buttonsStyling: false,
                     customClass: {
