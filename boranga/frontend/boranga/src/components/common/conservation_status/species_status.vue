@@ -60,7 +60,7 @@
                     <label :for="scientific_name_lookup" class="col-sm-4 col-form-label fw-bold">Scientific Name: <span
                             class="text-danger">*</span></label>
                     <div class="col-sm-8" :id="select_scientific_name">
-                        <select :disabled="isReadOnly" :id="scientific_name_lookup" :name="scientific_name_lookup"
+                        <select :disabled="isReadOnly || 'Unlocked' == conservation_status_obj.processing_status" :id="scientific_name_lookup" :name="scientific_name_lookup"
                             :ref="scientific_name_lookup" class="form-control" />
                     </div>
                 </div>
@@ -84,14 +84,14 @@
                         <label for="change_code" class="col-sm-4 col-form-label fw-bold">Change Type <span
                                 class="text-danger">*</span></label>
                         <div class="col-sm-8">
-                            <template v-if="!isReadOnly">
+                            <template v-if="!isReadOnly && 'Unlocked' != conservation_status_obj.processing_status">
                                 <template
                                     v-if="change_codes && change_codes.length > 0 && conservation_status_obj.change_code_id && !change_codes.map((d) => d.id).includes(conservation_status_obj.change_code_id)">
                                     <input type="text" v-if="conservation_status_obj.change_code"
                                         class="form-control mb-3"
                                         :value="conservation_status_obj.change_code + ' (Now Archived)'" disabled />
                                     <div class="mb-3 text-muted">
-                                        Change datum to:
+                                        Change change type to:
                                     </div>
                                 </template>
                                 <select class="form-select" v-model="conservation_status_obj.change_code_id">
@@ -102,7 +102,7 @@
                                 </select>
                             </template>
                             <template v-else>
-                                <input class="form-control" type="text" :disabled="isReadOnly"
+                                <input class="form-control" type="text" disabled
                                     v-model="conservation_status_obj.change_code" />
                             </template>
                         </div>
@@ -614,7 +614,7 @@ export default {
             ) {
                 return true;
             } else {
-                if (this.conservation_status_obj.processing_status == "Ready For Agenda") {
+                if (["Ready For Agenda", "Approved", "Closed", "DeListed", "Discarded"].includes(this.conservation_status_obj.processing_status)) {
                     return true;
                 }
                 if (

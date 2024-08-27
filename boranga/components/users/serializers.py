@@ -20,6 +20,8 @@ from boranga.components.users.models import (
     SubmitterInformation,
 )
 from boranga.helpers import (
+    is_conservation_status_approver,
+    is_conservation_status_assessor,
     is_contributor,
     is_internal,
     is_occurrence_approver,
@@ -265,6 +267,18 @@ class SubmitterInformationSerializer(serializers.ModelSerializer):
         if instance.email_user == request.user.id and is_contributor(request):
             return ret
 
-        if not is_occurrence_assessor(request) and not is_occurrence_approver(request):
+        if (
+            hasattr(instance, "occurrence_report")
+            and (
+                not is_occurrence_assessor(request)
+                and not is_occurrence_approver(request)
+            )
+            or hasattr(instance, "conservation_status")
+            and (
+                not is_conservation_status_assessor(request)
+                and not is_conservation_status_approver(request)
+            )
+        ):
             ret.pop("contact_details")
+
         return ret

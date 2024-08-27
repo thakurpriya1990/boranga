@@ -263,17 +263,12 @@ export default {
             let vm = this;
             this.$nextTick(() => {
                 vm.addEventListeners();
-                //vm.initialiseSearch();
                 if(vm.$parent.document_selection!=null){
-
                     if(vm.$parent.document_selection==="selectAll"){
-                        //alert(vm.$parent.document_selection)
                         document.getElementById('doc_select_all'+vm.species_community.id).checked=true;
                     }
                     else{
-                        //alert(vm.$parent.document_selection)
                         document.getElementById('doc_select_individual'+vm.species_community.id).checked=true;
-                        //$('#doc_select_individual').checked=true;
                     }
                 }
 

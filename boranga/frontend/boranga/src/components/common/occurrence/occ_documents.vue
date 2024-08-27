@@ -390,10 +390,8 @@ export default {
             let vm = this;
             this.$nextTick(() => {
                 vm.addEventListeners();
-                //vm.initialiseSearch();
             });
         },
-
     }
 </script>
 

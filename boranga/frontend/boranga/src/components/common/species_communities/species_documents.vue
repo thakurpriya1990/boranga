@@ -197,10 +197,10 @@ export default {
                             if (!vm.is_readonly) {
                                 if (full.visible) {
                                     links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;                                
+                                    links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
                                 }
                                 else {
-                                    links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;                                    
+                                    links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
                                 }
                             }
                             links += `<a href='#' data-history-document='${full.id}'>History</a><br>`;
@@ -384,7 +384,6 @@ export default {
         let vm = this;
         this.$nextTick(() => {
             vm.addEventListeners();
-            //vm.initialiseSearch();
         });
     },
 

@@ -195,9 +195,14 @@ export default {
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
             await vm.$http.post(vm.cs_proposal_form_url, payload).then(res => {
+                let swalHtml = '<p>Your conservation status proposal has been saved as a draft.</p>';
+                if (vm.saveExitCSProposal) {
+                    swalHtml += '<p>It has <span class="fw-bold">NOT</span> been submitted.</p>';
+                    swalHtml += '<p>You can find the draft on the conservation status dashboard to continue working on the proposal later.</p>';
+                }
                 swal.fire({
-                    title: 'Proposal Saved',
-                    text: 'Your conservation status proposal has been saved',
+                    title: 'Conservation Status Proposal Saved',
+                    html: swalHtml,
                     icon: 'success',
                     customClass: {
                         confirmButton: 'btn btn-primary',

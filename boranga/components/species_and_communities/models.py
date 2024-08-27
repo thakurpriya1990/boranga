@@ -1220,7 +1220,7 @@ class Community(RevisionedMixin):
     RELATED_ITEM_CHOICES = [("conservation_status", "Conservation Status")]
 
     community_number = models.CharField(max_length=9, blank=True, default="")
-    renamed_from = models.OneToOneField(
+    renamed_from = models.ForeignKey(
         "self",
         on_delete=models.PROTECT,
         null=True,
@@ -1509,23 +1509,20 @@ class Community(RevisionedMixin):
                             )
                         )
                 # Add renamed to related items to the list (limited to one degree of separation)
-                if (
-                    a_field.name == "renamed_to"
-                    and hasattr(self, "renamed_to")
-                    and self.renamed_to
-                ):
-                    if filter_type == "for_occurrence":
-                        return_list.extend(
-                            self.renamed_to.get_related_items(
-                                "conservation_status_and_occurrences"
+                if self.renamed_to.exists():
+                    for community in self.renamed_to.all():
+                        if filter_type == "for_occurrence":
+                            return_list.extend(
+                                community.get_related_items(
+                                    "conservation_status_and_occurrences"
+                                )
                             )
-                        )
-                    else:
-                        return_list.extend(
-                            self.renamed_to.get_related_items(
-                                "all_except_renamed_community"
+                        else:
+                            return_list.extend(
+                                community.get_related_items(
+                                    "all_except_renamed_community"
+                                )
                             )
-                        )
 
         return return_list
 
@@ -1807,9 +1804,21 @@ class Community(RevisionedMixin):
         new_community = Community.objects.get(pk=self.pk)
         new_community.pk = None
         new_community.community_number = ""
-        new_community.processing_status = Community.PROCESSING_STATUS_DRAFT
+        new_community.processing_status = Community.PROCESSING_STATUS_ACTIVE
         new_community.renamed_from_id = self.id
         new_community.save(version_user=request.user)
+
+        # Copy the community publishing status but set it to private (not public)
+        try:
+            publishing_status = CommunityPublishingStatus.objects.get(
+                id=self.community_publishing_status.id
+            )
+            publishing_status.pk = None
+            publishing_status.community = new_community
+            publishing_status.community_public = False
+            publishing_status.save()
+        except CommunityPublishingStatus.DoesNotExist:
+            CommunityPublishingStatus.objects.get_or_create(community=self)
 
         new_community.regions.add(*self.regions.all())
         new_community.districts.add(*self.districts.all())

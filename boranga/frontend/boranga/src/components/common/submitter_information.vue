@@ -36,7 +36,7 @@
                                 v-model="submitter_information.name">
                         </div>
                     </div>
-                    <div v-if="show_submitter_contact_details" class="row mb-3 pb-3 border-bottom">
+                    <div v-if="show_submitter_contact_details && Object.hasOwn(submitter_information, 'contact_details')" class="row mb-3 pb-3 border-bottom">
                         <label for="contact_details" class="col-sm-2 col-form-label">Contact Details</label>
                         <div class="col-sm-6">
                             <textarea class="form-control" id="contact_details"
