@@ -113,8 +113,20 @@ def add_external_user_to_external_contributors_group(sender, user, request, **kw
         "user_logged_in_signal running add_external_user_to_external_contributors_group function"
     )
 
+    external_contributor_group = SystemGroup.objects.get(
+        name=settings.GROUP_NAME_EXTERNAL_CONTRIBUTOR
+    )
+
     # Only add external users to the external contributors group
     if is_internal(request):
+        # Check if the internal user is in the external contributors group and remove them if so
+        if SystemGroupPermission.objects.filter(
+            system_group=external_contributor_group, emailuser=user
+        ).exists():
+            SystemGroupPermission.objects.filter(
+                system_group=external_contributor_group, emailuser=user
+            ).delete()
+            external_contributor_group.save()
         return
 
     # If user is blacklisted, don't add them to the external contributors group
@@ -125,9 +137,7 @@ def add_external_user_to_external_contributors_group(sender, user, request, **kw
         return
 
     # If user is already in the external contributors group, don't add them again
-    external_contributor_group = SystemGroup.objects.get(
-        name=settings.GROUP_NAME_EXTERNAL_CONTRIBUTOR
-    )
+
     if SystemGroupPermission.objects.filter(
         system_group=external_contributor_group, emailuser=user
     ).exists():
