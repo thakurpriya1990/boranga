@@ -182,6 +182,10 @@ export async function queryLayerAtPoint(map_component, layer, coordinate) {
  * @param {string=} subMode The submode to set the map to (e.g. draw: 'Polygon', 'Point')
  */
 export function set_mode(mode, subMode = null) {
+    if (!this.map.getTargetElement()) {
+        console.warn('Map not initialized in set_mode function. Returning false.');
+        return false;
+    }
     // Toggle map mode on/off when the new mode is the old one
     if (this.mode == mode) {
         if (this.subMode == subMode) {
