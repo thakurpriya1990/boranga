@@ -53,15 +53,18 @@
                                                                     </th>
                                                                     <th class="ps-3" style="width:40%">{{
                                                                         column.xlsx_column_header_name }}
+                                                                        <span class="text-danger"
+                                                                            v-if="!column.xlsx_data_validation_allow_blank">*</span>
                                                                     </th>
                                                                     <td class="text-muted text-center"
-                                                                        style="width:15%">
+                                                                        style="width:10%">
                                                                         <i class="bi bi-eye-fill" role="button"></i>
                                                                     </td>
                                                                 </tr>
-                                                                <tr class="border-bottom-0" @click.prevent="addNewColumn"
-                                                                    role="button">
-                                                                    <th class="border-0 ps-3 pt-2 text-muted" colspan="2">Add Another Column</th>
+                                                                <tr class="border-bottom-0"
+                                                                    @click.prevent="addNewColumn" role="button">
+                                                                    <th class="border-0 ps-3 pt-2 text-muted"
+                                                                        colspan="2">Add Another Column</th>
                                                                     <td class="border-0 text-muted text-center pt-2"><i
                                                                             class="bi bi-plus-circle-fill text-success"
                                                                             role="button"></i>
@@ -240,24 +243,25 @@
                                                                             data-bs-trigger="hover focus"
                                                                             data-bs-content="Basic validations embedded in the .xlsx file"
                                                                             data-bs-placement="top"></i></label>
-                                                                    <div class="col-sm-8 ">
+                                                                    <div class="col-sm-4">
                                                                         <div class="input-group input-group-sm mb-2">
                                                                             <span class="input-group-text"
-                                                                                id="basic-addon1">Allow
+                                                                                id="allow-blank-label">Allow
                                                                                 Blank</span>
-                                                                            <input type="text" class="form-control"
-                                                                                placeholder="Username"
-                                                                                aria-label="Username"
-                                                                                aria-describedby="basic-addon1" disabled
-                                                                                :value="selectedField.allow_null == null ? 'N/A' : (selectedField.allow_null ? 'Yes' : 'No')">
+                                                                            <select class="form-select w-50"
+                                                                                aria-label="Allow Blank"
+                                                                                aria-describedby="allow-blank-label" :disabled="!selectedField.allow_null"
+                                                                                v-model="selectedColumn.xlsx_data_validation_allow_blank">
+                                                                                <option :value="true">Yes</option>
+                                                                                <option :value="false">No</option>
+                                                                            </select>
                                                                         </div>
                                                                         <div class="input-group input-group-sm mb-2">
                                                                             <span class="input-group-text"
                                                                                 id="basic-addon1">Max
                                                                                 Length</span>
                                                                             <input type="text" class="form-control"
-                                                                                placeholder="Username"
-                                                                                aria-label="Username"
+                                                                                aria-label="Max Length"
                                                                                 aria-describedby="basic-addon1"
                                                                                 :value="selectedField.max_length ? selectedField.max_length : 'N/A'"
                                                                                 disabled>
@@ -488,6 +492,7 @@ export default {
                 this.enablePopovers();
                 if (!this.selectedColumn.id) {
                     this.selectedColumn.xlsx_column_header_name = this.selectedField.display_name
+                    this.selectedColumn.xlsx_data_validation_allow_blank = this.selectedField.allow_null
                 }
                 this.$refs['column-name'].focus()
             })
