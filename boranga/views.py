@@ -27,15 +27,11 @@ from boranga.components.occurrence.models import (
 from boranga.components.species_and_communities.models import Community, Species
 from boranga.forms import LoginForm
 from boranga.helpers import (
-    is_conservation_status_assessor,
     is_conservation_status_referee,
     is_contributor,
     is_django_admin,
     is_internal,
-    is_occurrence_approver,
-    is_occurrence_assessor,
     is_occurrence_report_referee,
-    is_species_communities_approver,
 )
 
 logger = logging.getLogger(__name__)
@@ -209,10 +205,7 @@ class ManagementCommandsView(LoginRequiredMixin, UserPassesTestMixin, TemplateVi
 def is_authorised_to_access_community_document(request, document_id):
     if is_internal(request):
         # check auth
-        return (
-            request.user.is_superuser
-            or is_internal(request)
-        )
+        return request.user.is_superuser or is_internal(request)
     else:
         return False
 
@@ -220,10 +213,7 @@ def is_authorised_to_access_community_document(request, document_id):
 def is_authorised_to_access_species_document(request, document_id):
     if is_internal(request):
         # check auth
-        return (
-            request.user.is_superuser
-            or is_internal(request)
-        )
+        return request.user.is_superuser or is_internal(request)
     else:
         return False
 
@@ -231,10 +221,7 @@ def is_authorised_to_access_species_document(request, document_id):
 def is_authorised_to_access_meeting_document(request, document_id):
     if is_internal(request):
         # check auth
-        return (
-            request.user.is_superuser
-            or is_internal(request)
-        )
+        return request.user.is_superuser or is_internal(request)
     else:
         return False
 
@@ -257,10 +244,7 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
 
     if is_internal(request):
         # check auth
-        return (
-            request.user.is_superuser
-            or is_internal(request)
-        )
+        return request.user.is_superuser or is_internal(request)
 
     if is_occurrence_report_referee(request) and is_contributor(request):
         file_name = get_file_name_from_path(request.path)
@@ -322,10 +306,7 @@ def is_authorised_to_access_occurrence_report_document(request, document_id):
 def is_authorised_to_access_occurrence_document(request, document_id):
     if is_internal(request):
         # check auth
-        return (
-            request.user.is_superuser
-            or is_internal(request)
-        )
+        return request.user.is_superuser or is_internal(request)
     else:
         return False
 
@@ -336,10 +317,7 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
 
     if is_internal(request):
         # check auth
-        return (
-            request.user.is_superuser
-            or is_internal(request)
-        )
+        return request.user.is_superuser or is_internal(request)
 
     if is_conservation_status_referee(request) and is_contributor(request):
         file_name = get_file_name_from_path(request.path)
@@ -378,7 +356,7 @@ def is_authorised_to_access_conservation_status_document(request, document_id):
             document_id, request.path, referee_allowed_paths
         )
 
-    if is_contributor(request):        
+    if is_contributor(request):
         contributor_allowed_paths = ["documents", "amendment_request_documents"]
         file_name = get_file_name_from_path(request.path)
         return (

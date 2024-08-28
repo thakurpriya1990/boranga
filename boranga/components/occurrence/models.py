@@ -1,10 +1,16 @@
+import hashlib
 import json
 import logging
+import os
 from abc import abstractmethod
 from datetime import datetime
+from decimal import Decimal
 
+import dateutil
+import openpyxl
 import pyproj
 import reversion
+import xlrd
 from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib.contenttypes import fields
@@ -19,9 +25,14 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
 from django.db.models import CharField, Count, Func, Q
 from django.db.models.functions import Cast
+from django.utils import timezone
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
+from openpyxl.styles import NamedStyle
+from openpyxl.styles.fonts import Font
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.datavalidation import DataValidation
 
 from boranga import exceptions
 from boranga.components.conservation_status.models import ProposalAmendmentReason
@@ -286,6 +297,17 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
     site = models.TextField(null=True, blank=True)
+
+    # If this OCR was created as part of a bulk import task, this field will be populated
+    bulk_import_task = models.ForeignKey(
+        "OccurrenceReportBulkImportTask",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="occurrence_reports",
+    )
+    # A hash of the import row data to allow for duplicate detection
+    import_hash = models.CharField(max_length=64, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -5146,6 +5168,609 @@ class OccurrenceSite(GeometryBase, DrawnByGeometry, RevisionedMixin):
             super().save(*args, **kwargs)
 
 
+def validate_bulk_import_file_extension(value):
+    ext = os.path.splitext(value.name)[1]
+    valid_extensions = [".xlsx"]
+    if ext not in valid_extensions:
+        raise ValidationError(
+            "Only .xlsx files are supported by the bulk import facility!"
+        )
+
+
+def get_occurrence_report_bulk_import_path(instance, filename):
+    return f"occurrence_report/bulk-imports/{timezone.now()}/{filename}"
+
+
+class OccurrenceReportBulkImportTask(ArchivableModel):
+    schema = models.ForeignKey(
+        "OccurrenceReportBulkImportSchema",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+    _file = models.FileField(
+        upload_to=get_occurrence_report_bulk_import_path,
+        max_length=512,
+        storage=private_storage,
+        validators=[validate_bulk_import_file_extension],
+    )
+    # A hash of the file to allow for duplicate detection
+    file_hash = models.CharField(max_length=64, null=True, blank=True)
+
+    rows = models.IntegerField(null=True, editable=False)
+    rows_processed = models.IntegerField(default=0)
+
+    datetime_queued = models.DateTimeField(auto_now_add=True)
+    datetime_started = models.DateTimeField(null=True, blank=True)
+    datetime_completed = models.DateTimeField(null=True, blank=True)
+
+    datetime_error = models.DateTimeField(null=True, blank=True)
+    error_row = models.IntegerField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+
+    email_user = models.IntegerField(null=False)
+
+    PROCESSING_STATUS_QUEUED = "queued"
+    PROCESSING_STATUS_STARTED = "started"
+    PROCESSING_STATUS_FAILED = "failed"
+    PROCESSING_STATUS_COMPLETED = "completed"
+    PROCESSING_STATUS_ARCHIVED = "archived"
+
+    PROCESSING_STATUS_CHOICES = (
+        (PROCESSING_STATUS_QUEUED, "Queued"),
+        (PROCESSING_STATUS_STARTED, "Started"),
+        (PROCESSING_STATUS_FAILED, "Failed"),
+        (PROCESSING_STATUS_COMPLETED, "Completed"),
+        (PROCESSING_STATUS_ARCHIVED, "Archived"),
+    )
+
+    processing_status = models.CharField(
+        max_length=20,
+        choices=PROCESSING_STATUS_CHOICES,
+        default=PROCESSING_STATUS_QUEUED,
+    )
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Report Bulk Import Task"
+        verbose_name_plural = "Occurrence Report Bulk Import Tasks"
+
+    def save(self, *args, **kwargs):
+        if not self.file_hash and self._file:
+            self._file.seek(0)
+            self.file_hash = hashlib.sha256(self._file.read()).hexdigest()
+        super().save(*args, **kwargs)
+
+    @property
+    def file_name(self):
+        return os.path.basename(self._file.name)
+
+    @property
+    def percentage_complete(self):
+        if self.rows:
+            return round((self.rows_processed / self.rows) * 100, 2)
+        return 0
+
+    @property
+    def total_time_taken(self):
+        if self.datetime_started and self.datetime_completed:
+            delta = self.datetime_completed - self.datetime_started
+            return delta.total_seconds()
+        return None
+
+    @property
+    def total_time_taken_seconds(self):
+        if self.datetime_started and self.datetime_completed:
+            delta = self.datetime_completed - self.datetime_started
+            return delta.seconds
+        return None
+
+    @property
+    def total_time_taken_minues(self):
+        if self.total_time_taken:
+            return round(self.total_time_taken / 60, 2)
+        return None
+
+    @property
+    def total_time_taken_human_readable(self):
+        if self.total_time_taken is None:
+            return None
+
+        if self.total_time_taken < 1:
+            return "Less than a second"
+
+        if self.total_time_taken < 60:
+            return f"{self.total_time_taken} seconds"
+        if self.total_time_taken:
+            whole_minutes = int(self.total_time_taken // 60)
+            remaining_seconds = round(self.total_time_taken - (whole_minutes * 60))
+            if not remaining_seconds:
+                return f"{whole_minutes} minutes"
+            return f"{whole_minutes} minutes and {remaining_seconds} seconds"
+        return None
+
+    @property
+    def time_taken_per_row(self):
+        if self.datetime_started and self.datetime_completed:
+            value = self.total_time_taken / self.rows_processed
+            return round(value, 6)
+        return None
+
+    @property
+    def file_size_bytes(self):
+        if self._file:
+            return self._file.size
+        return None
+
+    @property
+    def file_size_megabytes(self):
+        if self.file_size_bytes:
+            return round(self.file_size_bytes / 1024 / 1024, 2)
+        return None
+
+    @classmethod
+    def average_time_taken_per_row(cls):
+        task_count = cls.objects.filter(
+            datetime_completed__isnull=False, rows_processed__gt=0
+        ).count()
+        if task_count == 0:
+            return None
+
+        total_time_taken = 0
+        for task in cls.objects.filter(
+            datetime_completed__isnull=False, rows_processed__gt=0
+        ):
+            total_time_taken += task.time_taken_per_row
+
+        return total_time_taken / task_count
+
+    @property
+    def estimated_processing_time_seconds(self):
+        average_time_taken_per_row = (
+            OccurrenceReportBulkImportTask.average_time_taken_per_row()
+        )
+
+        if self.rows and self.datetime_queued and average_time_taken_per_row:
+            precisely = (self.rows - self.rows_processed) * average_time_taken_per_row
+            return round(precisely)
+
+        return None
+
+    @property
+    def estimated_processing_time_minutes(self):
+        seconds = self.estimated_processing_time_seconds
+        if seconds:
+            return round(seconds / 60)
+        return None
+
+    @property
+    def estimated_processing_time_human_readable(self):
+        minutes = self.estimated_processing_time_minutes
+
+        if not minutes:
+            return "No processing data available to estimate time"
+
+        if minutes == 0:
+            return "Less than a minute"
+
+        return f"~{minutes} minutes"
+
+    def count_rows(self):
+        logger.info(f"Pre-queue processing bulk import task {self.id}")
+        try:
+            workbook = openpyxl.load_workbook(self._file)
+        except Exception as e:
+            logger.error(f"Error opening bulk import file {self._file.name}: {e}")
+            self.processing_status = (
+                OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
+            )
+            self.datetime_error = timezone.now()
+            self.error_message = f"Error opening bulk import file: {e}"
+            self.save()
+            return
+
+        sheet = workbook.active
+        self.rows = sheet.max_row - 1
+        logger.debug(f"Found {self.rows} rows in bulk import file {self._file.name}")
+        self.save()
+
+    @classmethod
+    def validate_headers(self, _file, schema):
+        logger.info(f"Validating headers for bulk import task {self.id}")
+        workbook = xlrd.open_workbook(file_contents=_file.read())
+
+        sheet = workbook.active
+
+        headers = [cell.value for cell in sheet[1]]
+
+        if not headers:
+            raise ValidationError("No headers found in the file")
+
+        # Check that the headers match the schema (group type and version headings)
+
+        schema_headers = self.schema.columns.all().values_list(
+            "xlsx_column_header_name", flat=True
+        )
+        if headers == schema_headers:
+            return True
+
+        extra_headers = set(headers) - set(schema_headers)
+        missing_headers = set(schema_headers) - set(headers)
+        error_string = f"Headers do not match schema: {self.schema}."
+        if missing_headers:
+            error_string += f" Missing: {missing_headers}"
+        if extra_headers:
+            error_string += f" Extra: {extra_headers}"
+        raise ValidationError(error_string)
+
+    def process(self):
+        if self.processing_status == self.PROCESSING_STATUS_COMPLETED:
+            logger.info(f"Bulk import task {self.id} has already been processed")
+            return
+
+        if self.processing_status == self.PROCESSING_STATUS_FAILED:
+            logger.info(
+                f"Bulk import task {self.id} failed. Please correct the issues and try again"
+            )
+            return
+
+        if self.processing_status == self.PROCESSING_STATUS_STARTED:
+            logger.info(f"Bulk import task {self.id} is already in progress")
+            return
+
+        self.processing_status = self.PROCESSING_STATUS_STARTED
+        self.datetime_started = timezone.now()
+        self.save()
+
+        # Open the file
+        logger.info(f"Opening bulk import file {self._file.name}")
+        try:
+            workbook = openpyxl.load_workbook(self._file, read_only=True)
+        except Exception as e:
+            logger.error(f"Error opening bulk import file {self._file.name}: {e}")
+            self.processing_status = (
+                OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
+            )
+            self.datetime_error = timezone.now()
+            self.error_message = f"Error opening bulk import file: {e}"
+            self.save()
+            return
+
+        # Get the first sheet
+        sheet = workbook.active
+
+        # Get the headers
+        headers = [cell.value for cell in sheet[1]]
+
+        # TODO: Check that the headers match the schema (group type and version headings)
+
+        # Get the rows
+        rows = list(sheet.iter_rows(min_row=2, max_row=self.rows + 1, values_only=True))
+
+        # Occurrence reports to create
+        occurrence_reports = []
+
+        # Process the rows
+        for i, row in enumerate(rows):
+            self.rows_processed = i + 1
+            if self.rows_processed > self.rows:
+                logger.warning(
+                    f"Bulk import task {self.id} tried to process row {i + 1} "
+                    "which is greater than the total number of rows"
+                )
+                break
+
+            self.save()
+
+            try:
+                self.process_row(row, headers, occurrence_reports)
+            except Exception as e:
+                logger.error(f"Error processing row {i + 1}: {e}")
+                self.processing_status = (
+                    OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
+                )
+                self.datetime_error = timezone.now()
+                self.error_row = i + 1
+                self.error_message = f"Error processing row {i + 1}: {e}"
+                self.save()
+                return
+
+        # Set the task to completed
+        self.processing_status = (
+            OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
+        )
+        self.datetime_completed = timezone.now()
+        self.save()
+
+        return
+
+    def process_row(self, row, headers, occurrence_reports):
+        row_hash = hashlib.sha256(str(row).encode()).hexdigest()
+        OccurrenceReport(
+            bulk_import_task=self,
+            import_hash=row_hash,
+        )
+        logger.info(f"Row hash: {row_hash}")
+        return
+
+    def retry(self):
+        self.processing_status = self.PROCESSING_STATUS_QUEUED
+        self.datetime_started = None
+        self.datetime_completed = None
+        self.datetime_error = None
+        self.error_row = None
+        self.error_message = None
+        self.save()
+
+    def revert(self):
+        # TODO: Using delete here due to the sheer number of records that could be created
+        # Still need to consider if we want to archive them
+        OccurrenceReport.objects.filter(bulk_import_task=self).delete()
+
+        self.processing_status = self.PROCESSING_STATUS_ARCHIVED
+        self.archived = True
+        self.save()
+
+
+class OccurrenceReportBulkImportSchema(models.Model):
+    group_type = models.ForeignKey(
+        GroupType, on_delete=models.PROTECT, null=False, blank=False
+    )
+    version = models.IntegerField(default=1)
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    datetime_updated = models.DateTimeField(default=datetime.now)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Report Bulk Import Schema"
+        verbose_name_plural = "Occurrence Report Bulk Import Schemas"
+        ordering = ["group_type", "-version"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "group_type",
+                    "version",
+                ],
+                name="unique_schema_version",
+            )
+        ]
+
+    def __str__(self):
+        return f"Group type: {self.group_type.name} (Version: {self.version})"
+
+    @property
+    def preview_import_file(self):
+        workbook = openpyxl.Workbook()
+        worksheet = workbook.active
+        columns = self.columns.all()
+        if not columns.exists() or columns.count() == 0:
+            logger.warning(
+                f"No columns found for bulk import schema {self}. Returning empty preview file"
+            )
+            return workbook
+
+        headers = [column.xlsx_column_header_name for column in columns]
+        worksheet.append(headers)
+
+        dv_types = dict(zip(DataValidation.type.values, DataValidation.type.values))
+        dv_operators = dict(
+            zip(DataValidation.operator.values, DataValidation.operator.values)
+        )
+
+        # Add the data validation for each column
+        for index, column in enumerate(columns):
+            column_letter = get_column_letter(index + 1)
+            cell_range = f"{column_letter}2:{column_letter}1048576"  # 1048576 is the maximum number of rows in Excel
+
+            model_class = column.django_import_content_type.model_class()
+            if not hasattr(model_class, column.django_import_field_name):
+                raise ValidationError(
+                    f"Model {model_class} does not have field {column.django_import_field_name}"
+                )
+            model_field = model_class._meta.get_field(column.django_import_field_name)
+            logger.debug(f"model_field_type: {type(model_field)}")
+            dv = None
+            if isinstance(model_field, models.fields.CharField) and model_field.choices:
+                dv = DataValidation(
+                    type=dv_types["list"],
+                    allow_blank=model_field.null,
+                    formula1=",".join([c[0] for c in model_field.choices]),
+                    error="Please select a valid option from the list",
+                    errorTitle="Invalid selection",
+                    prompt="Select a value from the list",
+                    promptTitle="List selection",
+                )
+            elif isinstance(model_field, models.fields.CharField):
+                dv = DataValidation(
+                    type=dv_types["textLength"],
+                    allow_blank=model_field.null,
+                    operator=dv_operators["lessThanOrEqual"],
+                    formula1=f"{model_field.max_length}",
+                    error="Text must be less than or equal to {model_field.max_length} characters",
+                    errorTitle="Text too long",
+                    prompt=f"Maximum {model_field.max_length} characters",
+                    promptTitle="Text length",
+                )
+            elif isinstance(
+                model_field, (models.fields.DateTimeField, models.fields.DateField)
+            ):
+                dv = DataValidation(
+                    type=dv_types["date"],
+                    operator=dv_operators["greaterThanOrEqual"],
+                    formula1="1900-01-01",
+                    allow_blank=model_field.null,
+                    error="Please enter a valid date",
+                    errorTitle="Invalid date",
+                    prompt="Enter a date",
+                    promptTitle="Date",
+                )
+                if isinstance(model_field, models.fields.DateTimeField):
+                    date_style = NamedStyle(
+                        name="datetime", number_format="DD/MM/YYYY HH:MM:MM"
+                    )
+                    for cell in worksheet[column_letter]:
+                        cell.style = date_style
+            elif isinstance(model_field, models.fields.IntegerField):
+                dv = DataValidation(
+                    type=dv_types["whole"],
+                    allow_blank=model_field.null,
+                    error="Please enter a whole number",
+                    errorTitle="Invalid number",
+                    prompt="Enter a whole number",
+                    promptTitle="Whole number",
+                )
+            elif isinstance(model_field, models.fields.DecimalField):
+                dv = DataValidation(
+                    type=dv_types["decimal"],
+                    allow_blank=model_field.null,
+                    error="Please enter a decimal number",
+                    errorTitle="Invalid number",
+                    prompt="Enter a decimal number",
+                    promptTitle="Decimal number",
+                )
+            elif isinstance(model_field, models.fields.BooleanField):
+                dv = DataValidation(
+                    type=dv_types["list"],
+                    allow_blank=model_field.null,
+                    formula1='"True,False"',
+                    error="Please select True or False",
+                    errorTitle="Invalid selection",
+                    prompt="Select True or False",
+                    promptTitle="Boolean selection",
+                )
+            else:
+                # Mostly covers TextField
+                # Postgresql Text field can handle up to 65,535 characters, .xlsx can handle 32,767 characters
+                # We'll gleefully assume this won't be an issue and not add a data validation for text fields =D
+                continue
+
+            dv.showErrorMessage = True
+            worksheet.add_data_validation(dv)
+            dv.add(cell_range)
+
+        # Make the headers bold
+        for cell in worksheet["A0:ZZ0"][0]:
+            cell.font = Font(bold=True)
+
+        # Make the column widths appropriate
+        dims = {}
+        for row in worksheet.rows:
+            for cell in row:
+                if cell.value:
+                    dims[cell.column] = (
+                        max((dims.get(cell.column, 0), len(str(cell.value)))) + 2
+                    ) + 2
+        for col, value in dims.items():
+            worksheet.column_dimensions[get_column_letter(col)].width = value
+
+        return workbook
+
+    def copy(self):
+        new_schema = OccurrenceReportBulkImportSchema(
+            group_type=self.group_type,
+            version=self.version + 1,
+        )
+        new_schema.save()
+
+        for column in self.columns.all():
+            new_column = OccurrenceReportBulkImportSchemaColumn.objects.get(
+                pk=column.pk
+            )
+            new_column.pk = None
+            new_column.schema = new_schema
+            new_column.save()
+
+        return new_schema
+
+
+class OccurrenceReportBulkImportSchemaColumn(models.Model):
+    schema = models.ForeignKey(
+        OccurrenceReportBulkImportSchema,
+        related_name="columns",
+        on_delete=models.CASCADE,
+    )
+
+    # These two fields define where the data from the column will be imported to
+    django_import_content_type = models.ForeignKey(
+        ct_models.ContentType,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="import_columns",
+    )
+    django_import_field_name = models.CharField(max_length=50, blank=False, null=False)
+
+    # The name of the column header in the .xlsx file
+    xlsx_column_header_name = models.CharField(max_length=50, blank=False, null=False)
+
+    # The following fields are used to embed data validation in the .xlsx file
+    # so that the users can do a quick check before uploading
+    xlsx_data_validation_type = models.CharField(
+        max_length=20,
+        choices=sorted(
+            [(x, x) for x in DataValidation.type.values],
+            key=lambda x: (x[0] is None, x),
+        ),
+        null=True,
+        blank=True,
+    )
+    xlsx_data_validation_allow_blank = models.BooleanField(default=False)
+    xlsx_data_validation_operator = models.CharField(
+        max_length=20,
+        choices=sorted(
+            [(x, x) for x in DataValidation.operator.values],
+            key=lambda x: (x[0] is None, x),
+        ),
+        null=True,
+        blank=True,
+    )
+    xlsx_data_validation_formula1 = models.CharField(
+        max_length=50, blank=True, null=True
+    )
+    xlsx_data_validation_formula2 = models.CharField(
+        max_length=50, blank=True, null=True
+    )
+
+    # TODO: How are we going to do the list lookup validation for much larger datasets (mostly for species)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Occurrence Report Bulk Import Schema Column"
+        verbose_name_plural = "Occurrence Report Bulk Import Schema Columns"
+
+    def __str__(self):
+        return f"{self.xlsx_column_header_name} - {self.schema}"
+
+    def validate(self, value):
+        if self.data_validation_type == "whole":
+            if not isinstance(value, int):
+                raise ValidationError(
+                    f"Default value for {self.column_header_name} must be an integer"
+                )
+
+        if self.data_validation_type == "decimal":
+            try:
+                value = Decimal(value)
+            except Exception:
+                raise ValidationError(
+                    f"Default value for {self.column_header_name} must be a decimal"
+                )
+        if self.data_validation_type == "date":
+            try:
+                value = dateutil.parser.parse(value)
+            except Exception:
+                raise ValidationError(
+                    f"Default value for {self.column_header_name} must be a date"
+                )
+        if self.data_validation_type == "time":
+            try:
+                value = dateutil.parser.parse(value)
+            except Exception:
+                raise ValidationError(
+                    f"Default value for {self.column_header_name} must be a time"
+                )
+
+
 # Occurrence Report Document
 reversion.register(OccurrenceReportDocument)
 
@@ -5225,3 +5850,6 @@ reversion.register(
         "identification",
     ],
 )
+
+reversion.register(OccurrenceReportGeometry)
+reversion.register(OccurrenceGeometry)

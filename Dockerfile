@@ -85,16 +85,10 @@ RUN chmod 755 /startup.sh && \
     mkdir /app && \
     chown -R oim.oim /app && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-    wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin/health_check.sh -O /bin/health_check.sh && \
-    chmod 755 /bin/health_check.sh && \
-    wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin-python/scheduler/scheduler.py -O /bin/scheduler.py && \
-    chmod 755 /bin/scheduler.py && \
-    mkdir /tmp/azcopy/ && \
-    wget https://aka.ms/downloadazcopy-v10-linux -O /tmp/azcopy/azcopy.tar.gz && \
-    cd /tmp/azcopy/ ; tar -xzvf azcopy.tar.gz && \
-    cp /tmp/azcopy/azcopy_linux_amd64_10.*/azcopy /bin/azcopy && \
-    chmod 755 /bin/azcopy && \
-    rm -rf /tmp/azcopy/
+    wget https://raw.githubusercontent.com/dbca-wa/wagov_utils/main/wagov_utils/bin/default_script_installer.sh -O /tmp/default_script_installer.sh && \
+    chmod 755 /tmp/default_script_installer.sh && \
+    /tmp/default_script_installer.sh && \
+    rm -rf /tmp/*
 
 FROM configure_boranga as python_dependencies_boranga
 
