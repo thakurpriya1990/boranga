@@ -54,7 +54,7 @@
                                                                     <th class="ps-3" style="width:40%">{{
                                                                         column.xlsx_column_header_name }}
                                                                         <span class="text-danger"
-                                                                            v-if="!column.xlsx_data_validation_allow_blank">*</span>
+                                                                            v-if="column.xlsx_data_validation_allow_blank==false">*</span>
                                                                     </th>
                                                                     <td class="text-muted text-center"
                                                                         style="width:10%">
@@ -77,7 +77,7 @@
                                             </div>
                                         </div>
                                         <div class="col-8">
-                                            <div v-if="addEditMode" class="mb-3">
+                                            <div v-if="addEditMode && selectedColumn" class="mb-3">
                                                 <div class="card">
                                                     <div class="card-body">
                                                         <h5 class="card-title border-bottom pb-2 mb-3">
@@ -398,6 +398,7 @@ export default {
             schema: null,
             djangoContentTypes: null,
             selectedColumn: null,
+            selectedColumnIndex: null,
             selectedContentType: null,
             selectedField: null,
             addEditMode: false,
@@ -521,6 +522,7 @@ export default {
         selectColumn(column) {
             this.addEditMode = true
             this.selectedColumn = column
+            this.selectedColumnIndex = this.schema.columns.indexOf(column)
             this.$nextTick(() => {
                 this.enablePopovers();
                 if (this.selectedColumn.django_import_content_type) {
@@ -577,7 +579,10 @@ export default {
             this.$http.put(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/`, this.schema)
                 .then(response => {
                     this.saving = false;
-                    this.schema = response.data
+                    this.schema = Object.assign({}, response.data)
+                    if (this.addEditMode) {
+                        this.selectedColumn = this.schema.columns[this.selectedColumnIndex]
+                    }
                 })
                 .catch(error => {
                     this.saving = false;
