@@ -3,16 +3,21 @@ import re
 
 import pyproj
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
+from django_filters import rest_framework as filters
+from rest_framework import filters as rest_framework_filters
 from rest_framework import viewsets
 
 from boranga import helpers
 from boranga.components.main.models import GlobalSettings, HelpTextEntry
 from boranga.components.main.serializers import (
+    ContentTypeSerializer,
     GlobalSettingsSerializer,
     HelpTextEntrySerializer,
 )
 from boranga.components.occurrence.models import Datum
+from boranga.permissions import IsInternal
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +44,15 @@ class HelpTextEntryViewSet(viewsets.ReadOnlyModelViewSet):
         if not helpers.is_internal(self.request):
             qs = qs.filter(authenticated_users_only=False)
         return qs
+
+
+class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ContentType.objects.filter(app_label="boranga")
+    serializer_class = ContentTypeSerializer
+    permission_classes = [IsInternal]
+    filter_backends = [filters.DjangoFilterBackend, rest_framework_filters.SearchFilter]
+    filterset_fields = ["app_label", "model"]
+    search_fields = ["^model"]
 
 
 class RetrieveActionLoggingViewsetMixin:

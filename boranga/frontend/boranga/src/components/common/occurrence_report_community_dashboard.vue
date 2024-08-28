@@ -60,6 +60,8 @@
 
         <div v-if="addCommunityOCRVisibility" class="col-md-12">
             <div class="text-end">
+                <a type="button" role="button" class="btn btn-primary mb-2 me-2" :href="`/internal/occurrence_report/bulk_import/?group_type=community`"><i
+                    class="bi bi-download pe-2"></i>Bulk Import</a>
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityOccurrenceReport"><i
                         class="fa-solid fa-circle-plus"></i> Add Community Occurrence Report</button>
             </div>

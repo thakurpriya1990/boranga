@@ -60,6 +60,8 @@
         </CollapsibleFilters>
         <div v-if="addFaunaOCRVisibility" class="col-md-12">
             <div class="text-end">
+                <a type="button" role="button" class="btn btn-primary mb-2 me-2" :href="`/internal/occurrence_report/bulk_import/?group_type=fauna`"><i
+                    class="bi bi-download pe-2"></i>Bulk Import</a>
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFaunaOccurrenceReport"><i
                         class="fa-solid fa-circle-plus"></i> Add Fauna Occurrence Report</button>
             </div>

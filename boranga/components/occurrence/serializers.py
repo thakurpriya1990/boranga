@@ -1,3 +1,4 @@
+import hashlib
 import logging
 
 from django.db import models
@@ -36,6 +37,9 @@ from boranga.components.occurrence.models import (
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
     OccurrenceReportApprovalDetails,
+    OccurrenceReportBulkImportSchema,
+    OccurrenceReportBulkImportSchemaColumn,
+    OccurrenceReportBulkImportTask,
     OccurrenceReportDeclinedDetails,
     OccurrenceReportDocument,
     OccurrenceReportGeometry,
@@ -3857,3 +3861,91 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
             email_user = retrieve_email_user(obj.last_updated_by)
             return EmailUserSerializer(email_user).data.get("fullname", None)
         return None
+
+
+class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
+    estimated_processing_time_human_readable = serializers.CharField(read_only=True)
+    total_time_taken_human_readable = serializers.CharField(read_only=True)
+    file_size_megabytes = serializers.CharField(read_only=True)
+    file_name = serializers.CharField(read_only=True)
+    percentage_complete = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = OccurrenceReportBulkImportTask
+        fields = "__all__"
+        read_only_fields = (
+            "id",
+            "rows",
+            "rows_processed",
+            "datetime_queued",
+            "datetime_started",
+            "datetime_completed",
+            "datetime_error",
+            "error_row",
+            "error_message",
+            "processing_status",
+            "email_user",
+            "estimated_processing_time_human_readable",
+            "total_time_taken_human_readable",
+            "percentage_complete",
+        )
+
+    def create(self, validated_data):
+        _file = validated_data["_file"]
+        file_hash = hashlib.sha256(_file.read()).hexdigest()
+        _file.seek(0)
+        qs = OccurrenceReportBulkImportTask.objects.filter(file_hash=file_hash)
+        if qs.filter(
+            processing_status=OccurrenceReportBulkImportTask.PROCESSING_STATUS_QUEUED
+        ).exists():
+            raise serializers.ValidationError(
+                "An import task with exactly the same file contents has already been queued."
+            )
+        if qs.filter(
+            processing_status=OccurrenceReportBulkImportTask.PROCESSING_STATUS_STARTED
+        ).exists():
+            raise serializers.ValidationError(
+                "An import task with exactly the same file contents is already in progress."
+            )
+        if qs.filter(
+            processing_status=OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
+        ).exists():
+            raise serializers.ValidationError(
+                "An import task with exactly the same file contents has already been completed."
+            )
+        return super().create(validated_data)
+
+
+class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OccurrenceReportBulkImportSchemaColumn
+        fields = "__all__"
+        read_only_fields = ("id",)
+
+
+class OccurrenceReportBulkImportSchemaSerializer(serializers.ModelSerializer):
+    columns = OccurrenceReportBulkImportSchemaColumnSerializer(many=True)
+    group_type_display = serializers.CharField(source="group_type.name", read_only=True)
+    version = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = OccurrenceReportBulkImportSchema
+        fields = "__all__"
+        read_only_fields = ("id",)
+
+    def update(self, instance, validated_data):
+        columns_data = validated_data.pop("columns")
+        # Delete any columns that are not in the new data
+        instance.columns.exclude(
+            id__in=[
+                column_data["id"]
+                for column_data in columns_data
+                if hasattr(column_data, "id")
+            ]
+        ).delete()
+        for column_data in columns_data:
+            OccurrenceReportBulkImportSchemaColumn.objects.update_or_create(
+                **column_data
+            )
+        return super().update(instance, validated_data)

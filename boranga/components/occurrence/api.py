@@ -12,6 +12,7 @@ from django.db.models.functions import Concat
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django_filters import rest_framework as filters
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from multiselectfield import MultiSelectField
 from openpyxl import Workbook
@@ -21,6 +22,7 @@ from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -65,6 +67,8 @@ from boranga.components.occurrence.models import (
     OccurrenceReport,
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
+    OccurrenceReportBulkImportSchema,
+    OccurrenceReportBulkImportTask,
     OccurrenceReportDocument,
     OccurrenceReportGeometry,
     OccurrenceReportReferral,
@@ -110,6 +114,7 @@ from boranga.components.occurrence.permissions import (
     IsOccurrenceReportReferee,
     OccurrenceObjectPermission,
     OccurrencePermission,
+    OccurrenceReportBulkImportPermission,
     OccurrenceReportCopyPermission,
     OccurrenceReportObjectPermission,
     OccurrenceReportPermission,
@@ -132,6 +137,9 @@ from boranga.components.occurrence.serializers import (
     OccurrenceDocumentSerializer,
     OccurrenceLogEntrySerializer,
     OccurrenceReportAmendmentRequestSerializer,
+    OccurrenceReportBulkImportSchemaColumnSerializer,
+    OccurrenceReportBulkImportSchemaSerializer,
+    OccurrenceReportBulkImportTaskSerializer,
     OccurrenceReportDocumentSerializer,
     OccurrenceReportLogEntrySerializer,
     OccurrenceReportProposalReferralSerializer,
@@ -6256,3 +6264,112 @@ class OCRExternalRefereeInviteViewSet(
             instance.occurrence_report, context={"request": request}
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class OccurrenceReportBulkImportTaskViewSet(
+    viewsets.GenericViewSet,
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+):
+    queryset = OccurrenceReportBulkImportTask.objects.all()
+    permission_classes = [OccurrenceReportBulkImportPermission]
+    serializer_class = OccurrenceReportBulkImportTaskSerializer
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_fields = ["processing_status"]
+    pagination_class = LimitOffsetPagination
+
+    def perform_create(self, serializer):
+        serializer.save(email_user=self.request.user.id)
+
+    @detail_route(methods=["patch"], detail=True)
+    def retry(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.retry()
+        return Response(status=status.HTTP_200_OK)
+
+    @detail_route(methods=["patch"], detail=True)
+    def revert(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.revert()
+        return Response(status=status.HTTP_200_OK)
+
+
+class OccurrenceReportBulkImportSchemaViewSet(
+    viewsets.GenericViewSet,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+):
+    queryset = OccurrenceReportBulkImportSchema.objects.all()
+    serializer_class = OccurrenceReportBulkImportSchemaSerializer
+    permission_classes = [OccurrenceReportBulkImportPermission]
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_fields = ["group_type"]
+
+    def get_queryset(self):
+        qs = self.queryset
+        if not (is_internal(self.request) or self.request.user.is_superuser):
+            qs = OccurrenceReportBulkImportSchema.objects.none()
+        return qs
+
+    def perform_create(self, serializer):
+        latest_version = (
+            OccurrenceReportBulkImportSchema.objects.filter(
+                group_type=serializer.validated_data["group_type"]
+            )
+            .order_by("-version")
+            .first()
+            .version
+        )
+        serializer.save(version=latest_version + 1)
+        return super().perform_create(serializer)
+
+    @list_route(methods=["get"], detail=False)
+    def get_schema_list_by_group_type(self, request, *args, **kwargs):
+        group_type = request.GET.get("group_type", None)
+        if not group_type:
+            raise serializers.ValidationError(
+                "Group Type is required to return correct list of values"
+            )
+
+        group_type = GroupType.objects.get(name=group_type)
+
+        schema = OccurrenceReportBulkImportSchema.objects.filter(group_type=group_type)
+        serializer = OccurrenceReportBulkImportSchemaSerializer(schema, many=True)
+        return Response(serializer.data)
+
+    @detail_route(methods=["get"], detail=True)
+    def preview_import_file(self, request, *args, **kwargs):
+        instance = self.get_object()
+        buffer = BytesIO()
+        workbook = instance.preview_import_file
+        workbook.save(buffer)
+        buffer.seek(0)
+        filename = f"bulk-import-schema-{instance.group_type.name}-version-{instance.version}-preview.xlsx"
+        response = HttpResponse(buffer.read(), content_type="application/vnd.ms-excel")
+        response["Content-Disposition"] = f"attachment; filename={filename}"
+        buffer.close()
+        return response
+
+    @detail_route(methods=["post"], detail=True)
+    def copy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        new_instance = instance.copy()
+        serializer = OccurrenceReportBulkImportSchemaSerializer(new_instance)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @detail_route(methods=["put"], detail=True)
+    def save_column(self, request, *args, **kwargs):
+        instance = self.get_object()
+        column_data = request.data.get("column_data", None)
+        if not column_data:
+            raise serializers.ValidationError("Column data is required")
+        serializer = OccurrenceReportBulkImportSchemaColumnSerializer(
+            instance, data=column_data
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        serializer = OccurrenceReportBulkImportSchemaSerializer(instance)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

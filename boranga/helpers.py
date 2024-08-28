@@ -401,6 +401,31 @@ def get_instance_identifier(instance):
     )
 
 
+def get_openpyxl_data_validation_type_for_django_field(field):
+    from openpyxl.worksheet.datavalidation import DataValidation
+
+    dv_types = dict(zip(DataValidation.type.values, DataValidation.type.values))
+
+    field_type_map = {
+        models.CharField: "textLength",
+        models.IntegerField: "whole",
+        models.DecimalField: "decimal",
+        models.BooleanField: "list",
+        models.DateField: "date",
+        models.DateTimeField: "date",
+    }
+
+    if isinstance(field, models.CharField) and field.choices:
+        return dv_types["list"]
+
+    for django_field, dv_type in field_type_map.items():
+        if isinstance(field, django_field):
+            return dv_types[dv_type]
+
+    # Mainly covers TextField and other fields not explicitly handled
+    return None
+
+
 def clone_model(
     source_model_class: models.base.ModelBase,
     target_model_class: models.base.ModelBase,
