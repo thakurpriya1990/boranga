@@ -17,20 +17,27 @@
                             <div class="mb-1">
                                 <div class="container mb-0 pb-2">
                                     <div class="row">
-                                        <div class="col-6">
+                                        <div class="col-5">
                                             <h4 class="text-capitalize">{{ schema.group_type_display }} Bulk Import
                                                 Schema <span class="badge bg-secondary ms-3">Version: {{ schema.version
                                                     }}</span></h4>
                                         </div>
-                                        <div class="col-6 d-flex justify-content-end">
-                                            <input type="text" class="form-control w-25 me-3" placeholder="Add tag"
-                                                @keydown="addTag" />
-                                            <button role="button" class="btn btn-primary me-2"
-                                                @click.prevent="validateSchema()"><i
-                                                    class="bi bi-card-checklist me-1"></i> Validate Schema</button>
-                                            <a role="button" class="btn btn-primary"
-                                                :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
-                                                    class="bi bi-filetype-xlsx me-1"></i> Preview .xlsx File</a>
+                                        <div class="col-7">
+                                            <div class="input-group float-start me-3" style="width:250px;">
+                                                <span class="input-group-text" id="basic-addon1"><i
+                                                        class="bi bi-tag-fill text-secondary me-3"></i></span>
+                                                <input type="text" class="form-control form-control-sm"
+                                                    placeholder="Add tag" @keydown="addTag" />
+                                            </div>
+                                            <div class="float-end">
+                                                <button role="button" class="btn btn-primary me-2"
+                                                    @click.prevent="validateSchema()"><i
+                                                        class="bi bi-card-checklist me-1"></i> Validate Schema</button>
+                                                <a role="button" class="btn btn-primary"
+                                                    :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
+                                                        class="bi bi-filetype-xlsx me-1"></i> Preview .xlsx File</a>
+
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -45,9 +52,9 @@
                                                 placeholder="Enter Schema Name" autofocus>
                                         </div>
                                         <label for="schema-tags" class="col-sm-1 col-form-label">Tags</label>
-                                        <div class="col-sm-6 d-flex align-items-center">
+                                        <div class="col-sm-6 d-flex flex-wrap align-items-center">
                                             <template v-if="schema.tags && schema.tags.length > 0">
-                                                <span class="badge bg-info fs-6 me-2"
+                                                <span class="badge bg-info fs-6 me-2 mb-2"
                                                     v-for="(tag, index) in schema.tags" :key="tag">{{ tag }}<i
                                                         class="bi bi-x-circle-fill ps-2" role="button"
                                                         @click="removeTag(index)"></i></span>
@@ -245,7 +252,7 @@
                                                                                                                 class="">
                                                                                                                 <td>{{
                                                                                                                     choice[0]
-                                                                                                                }}
+                                                                                                                    }}
                                                                                                                 </td>
                                                                                                             </tr>
                                                                                                         </tbody>
@@ -614,7 +621,7 @@ export default {
         },
         addTag(event) {
             if (event.key === 'Enter') {
-                if(this.schema.tags.includes(event.target.value)) {
+                if (this.schema.tags.includes(event.target.value)) {
                     event.target.value = ''
                     return
                 }

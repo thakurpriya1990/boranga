@@ -15,12 +15,15 @@
                                         ref="schema-version" v-model="groupType" aria-label="Select Schema Version"
                                         @change="fetchBulkSchemas">
                                         <option :value="null" selected>Select Group Type</option>
-                                        <option v-for="groupType in groupTypes" :value="groupType.id">{{ groupType.name.charAt(0).toUpperCase() + groupType.name.substring(1) }}</option>
+                                        <option v-for="groupType in groupTypes" :value="groupType.id">{{
+                                            groupType.name.charAt(0).toUpperCase() + groupType.name.substring(1) }}
+                                        </option>
                                     </select>
                                 </div>
                             </form>
                             <div>
-                                <button v-if="groupType" class="btn btn-primary float" @click="createNewVersion"><i class="bi bi-plus-circle-fill"></i> Create New Version</button>
+                                <button v-if="groupType" class="btn btn-primary float" @click="createNewVersion"><i
+                                        class="bi bi-plus-circle-fill"></i> Create New Version</button>
                             </div>
                         </div>
                     </div>
@@ -30,26 +33,39 @@
                         <table class="table table-sm">
                             <thead>
                                 <tr>
-                                    <th scope="col">Version</th>
-                                    <th scope="col">Name</th>
-                                    <th scope="col">Created</th>
-                                    <th scope="col">Updated</th>
+                                    <th scope="col" style="width: 40px;">Version</th>
+                                    <th scope="col" style="width: 250px;">Name</th>
+                                    <th scope="col" style="width: 260px;">Tags</th>
+                                    <th scope="col" style="width: 170px;">Created</th>
+                                    <th scope="col" style="width: 170px;">Updated</th>
                                     <th scope="col">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="text-muted">
                                 <tr v-for="schema in bulkSchemas" class="">
                                     <td>{{ schema.version }}</td>
-                                    <td class="text-truncate">{{ schema.name }}</td>
-                                    <td>{{ new Date(schema.datetime_created).toLocaleDateString() }} {{ new
-                                        Date(schema.datetime_created).toLocaleTimeString() }}</td>
-                                    <td>{{ new Date(schema.datetime_updated).toLocaleDateString() }} {{ new
-                                        Date(schema.datetime_updated).toLocaleTimeString() }}</td>
+                                    <td class="text-truncate text-align-end" style="max-width: 300px;"
+                                        :title="schema.name">{{
+                                            schema.name }}</td>
+                                    <td class="text-truncate"><span class="badge bg-info fs-6 me-2"
+                                            v-for="(tag, index) in schema.tags.slice(0, 3)" :key="tag">{{ tag }}</span>
+                                        <span v-if="schema.tags.length > 3"
+                                            :title="String(schema.tags).replace(/,/g, ', ')" @click.prevent="">+{{
+                                            schema.tags.length - 3 }}</span>
+                                    </td>
+                                    <td>{{ new
+                                        Date(schema.datetime_created).toLocaleDateString() }} {{ new
+                                            Date(schema.datetime_created).toLocaleTimeString() }}</td>
+                                    <td>{{ new
+                                        Date(schema.datetime_updated).toLocaleDateString() }} {{ new
+                                            Date(schema.datetime_updated).toLocaleTimeString() }}</td>
                                     <td>
                                         <a class="btn btn-sm btn-primary my-0 me-2" role="button"
                                             :href="`/internal/occurrence_report/bulk_import_schema/${schema.id}`"><i
                                                 class="bi bi-pencil-fill me-2"></i> Edit</a>
-                                        <button class="btn btn-sm btn-primary my-0" @click.prevent="copySchema(schema.id)"><i class="bi bi-copy me-2"></i> Create a Copy</button>
+                                        <button class="btn btn-sm btn-primary my-0"
+                                            @click.prevent="copySchema(schema.id)"><i class="bi bi-copy me-2"></i>
+                                            Create a Copy</button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -147,7 +163,7 @@ export default {
     },
     created() {
         this.fetchGroupTypes()
-        if(localStorage.getItem('ocr-bulk-import-group-type')) {
+        if (localStorage.getItem('ocr-bulk-import-group-type')) {
             this.groupType = localStorage.getItem('ocr-bulk-import-group-type')
             this.fetchBulkSchemas()
         }
