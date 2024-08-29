@@ -33,6 +33,7 @@ from openpyxl.styles import NamedStyle
 from openpyxl.styles.fonts import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
+from taggit.managers import TaggableManager
 
 from boranga import exceptions
 from boranga.components.conservation_status.models import ProposalAmendmentReason
@@ -5517,6 +5518,8 @@ class OccurrenceReportBulkImportSchema(models.Model):
         GroupType, on_delete=models.PROTECT, null=False, blank=False
     )
     version = models.IntegerField(default=1)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    tags = TaggableManager(blank=True)
     datetime_created = models.DateTimeField(auto_now_add=True)
     datetime_updated = models.DateTimeField(default=datetime.now)
 
