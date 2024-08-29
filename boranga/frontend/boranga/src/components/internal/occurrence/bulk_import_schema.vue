@@ -23,7 +23,7 @@
                                                     }}</span></h4>
                                         </div>
                                         <div class="col-6 d-flex justify-content-end">
-                                            <button role="button" class="btn btn-primary me-2" @click.prevent=""><i
+                                            <button role="button" class="btn btn-primary me-2" @click.prevent="validateSchema()"><i
                                                     class="bi bi-card-checklist me-1"></i> Validate Schema</button>
                                             <a role="button" class="btn btn-primary"
                                                 :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
@@ -61,10 +61,10 @@
                                                                         <i class="bi bi-eye-fill" role="button"></i>
                                                                     </td>
                                                                 </tr>
-                                                                <tr class="border-bottom-0"
+                                                                <tr class="border-bottom-0" :class="schema.columns.length==0 ? 'border-top-0' : ''"
                                                                     @click.prevent="addNewColumn" role="button">
                                                                     <th class="border-0 ps-3 pt-2 text-muted"
-                                                                        colspan="2">Add Another Column</th>
+                                                                        colspan="2">Add <template v-if="schema.columns.length==0">a</template><template v-else>Another</template> Column</th>
                                                                     <td class="border-0 text-muted text-center pt-2"><i
                                                                             class="bi bi-plus-circle-fill text-success"
                                                                             role="button"></i>
@@ -505,24 +505,27 @@ export default {
                 django_import_content_type: '',
                 django_import_field_name: '',
                 xlsx_column_header_name: '',
+                xlsx_data_validation_allow_blank: true,
                 import_validations: []
             }
         },
         addNewColumn() {
             this.newColumn = Object.assign({}, this.getNewColumnData())
             this.schema.columns.push(this.newColumn)
+            this.selectedContentType = null;
+            this.selectedField = null;
             this.selectedColumn = this.newColumn
+            this.selectedColumnIndex = this.schema.columns.indexOf(this.newColumn)
             this.addEditMode = true
-            // this.removeAlreadySelectedFields();
             this.$nextTick(() => {
                 this.enablePopovers();
                 this.$refs['django-import-model'].focus()
             })
         },
         selectColumn(column) {
-            this.addEditMode = true
             this.selectedColumn = column
             this.selectedColumnIndex = this.schema.columns.indexOf(column)
+            this.addEditMode = true
             this.$nextTick(() => {
                 this.enablePopovers();
                 if (this.selectedColumn.django_import_content_type) {
@@ -541,6 +544,7 @@ export default {
         cancelAddingColumn(column) {
             this.schema.columns = this.schema.columns.filter(col => col !== column)
             this.selectedColumn = null
+            this.selectedColumnIndex = null
             this.addEditMode = false
         },
         removeColumn(column) {
@@ -572,6 +576,19 @@ export default {
                         this.$refs['django-import-model'].focus()
                     }
                 }
+            })
+        },
+        validateSchema() {
+            swal.fire({
+                title: 'Validate Schema',
+                text: 'Not yet implemented',
+                icon: 'warning',
+                showCancelButton: false,
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2'
+                },
             })
         },
         save() {
