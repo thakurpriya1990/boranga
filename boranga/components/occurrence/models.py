@@ -5541,6 +5541,22 @@ class OccurrenceReportBulkImportSchema(models.Model):
     def __str__(self):
         return f"Group type: {self.group_type.name} (Version: {self.version})"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Every schema should have a migrated_from_id column regardless if it is used
+        # for create new OCR records or updating existing ones
+        content_type = ct_models.ContentType.objects.get_for_model(OccurrenceReport)
+        if not self.columns.filter(
+            django_import_content_type=content_type,
+            django_import_field_name="migrated_from_id",
+        ).exists():
+            OccurrenceReportBulkImportSchemaColumn.objects.create(
+                schema=self,
+                xlsx_column_header_name="OCR Migrated From ID",
+                django_import_content_type=content_type,
+                django_import_field_name="migrated_from_id",
+            )
+
     @property
     def preview_import_file(self):
         workbook = openpyxl.Workbook()
