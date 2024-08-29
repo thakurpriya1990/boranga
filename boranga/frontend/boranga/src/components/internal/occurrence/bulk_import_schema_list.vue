@@ -31,6 +31,7 @@
                             <thead>
                                 <tr>
                                     <th scope="col">Version</th>
+                                    <th scope="col">Name</th>
                                     <th scope="col">Created</th>
                                     <th scope="col">Updated</th>
                                     <th scope="col">Actions</th>
@@ -39,6 +40,7 @@
                             <tbody class="text-muted">
                                 <tr v-for="schema in bulkSchemas" class="">
                                     <td>{{ schema.version }}</td>
+                                    <td class="text-truncate">{{ schema.name }}</td>
                                     <td>{{ new Date(schema.datetime_created).toLocaleDateString() }} {{ new
                                         Date(schema.datetime_created).toLocaleTimeString() }}</td>
                                     <td>{{ new Date(schema.datetime_updated).toLocaleDateString() }} {{ new
@@ -91,6 +93,7 @@ export default {
                 this.bulkSchemas = null
                 return
             }
+            localStorage.setItem('ocr-bulk-import-group-type', this.groupType)
             this.$http.get(api_endpoints.occurrence_report_bulk_import_schemas, {
                 params: {
                     group_type: this.groupType
@@ -144,6 +147,10 @@ export default {
     },
     created() {
         this.fetchGroupTypes()
+        if(localStorage.getItem('ocr-bulk-import-group-type')) {
+            this.groupType = localStorage.getItem('ocr-bulk-import-group-type')
+            this.fetchBulkSchemas()
+        }
     }
 }
 </script>
