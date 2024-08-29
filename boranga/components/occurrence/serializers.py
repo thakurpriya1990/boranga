@@ -5,6 +5,7 @@ from django.db import models
 from django.urls import reverse
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from taggit.serializers import TaggitSerializer, TagListSerializerField
 
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.serializers import (
@@ -3924,10 +3925,13 @@ class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializ
         read_only_fields = ("id",)
 
 
-class OccurrenceReportBulkImportSchemaSerializer(serializers.ModelSerializer):
+class OccurrenceReportBulkImportSchemaSerializer(
+    TaggitSerializer, serializers.ModelSerializer
+):
     columns = OccurrenceReportBulkImportSchemaColumnSerializer(
         many=True, allow_null=True, required=False
     )
+    tags = TagListSerializerField(allow_null=True, required=False)
     group_type_display = serializers.CharField(source="group_type.name", read_only=True)
     version = serializers.CharField(read_only=True)
 

@@ -23,7 +23,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
-from django.db.models import CharField, Count, Func, Q
+from django.db.models import CharField, Count, Func, Max, Q
 from django.db.models.functions import Cast
 from django.utils import timezone
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
@@ -33,6 +33,7 @@ from openpyxl.styles import NamedStyle
 from openpyxl.styles.fonts import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
+from taggit.managers import TaggableManager
 
 from boranga import exceptions
 from boranga.components.conservation_status.models import ProposalAmendmentReason
@@ -5517,6 +5518,8 @@ class OccurrenceReportBulkImportSchema(models.Model):
         GroupType, on_delete=models.PROTECT, null=False, blank=False
     )
     version = models.IntegerField(default=1)
+    name = models.CharField(max_length=255, blank=True, null=True)
+    tags = TaggableManager(blank=True)
     datetime_created = models.DateTimeField(auto_now_add=True)
     datetime_updated = models.DateTimeField(default=datetime.now)
 
@@ -5666,10 +5669,17 @@ class OccurrenceReportBulkImportSchema(models.Model):
         return workbook
 
     def copy(self):
+        highest_version = OccurrenceReportBulkImportSchema.objects.filter(
+            group_type=self.group_type
+        ).aggregate(Max("version"))["version__max"]
         new_schema = OccurrenceReportBulkImportSchema(
             group_type=self.group_type,
-            version=self.version + 1,
+            version=highest_version + 1,
         )
+        if self.name:
+            new_schema.name = f"{self.name} (Copy)"
+        else:
+            new_schema.name = f"Copy of Version {self.version}"
         new_schema.save()
 
         for column in self.columns.all():
@@ -5679,6 +5689,8 @@ class OccurrenceReportBulkImportSchema(models.Model):
             new_column.pk = None
             new_column.schema = new_schema
             new_column.save()
+
+        new_schema.tags.add(*self.tags.all())
 
         return new_schema
 

@@ -14,20 +14,54 @@
                 <div class="mb-3">
                     <div class="card">
                         <div class="card-body">
-                            <div class="border-bottom mb-3">
+                            <div class="mb-1">
                                 <div class="container mb-0 pb-2">
                                     <div class="row">
-                                        <div class="col-6">
+                                        <div class="col-5">
                                             <h4 class="text-capitalize">{{ schema.group_type_display }} Bulk Import
                                                 Schema <span class="badge bg-secondary ms-3">Version: {{ schema.version
                                                     }}</span></h4>
                                         </div>
-                                        <div class="col-6 d-flex justify-content-end">
-                                            <button role="button" class="btn btn-primary me-2" @click.prevent="validateSchema()"><i
-                                                    class="bi bi-card-checklist me-1"></i> Validate Schema</button>
-                                            <a role="button" class="btn btn-primary"
-                                                :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
-                                                    class="bi bi-filetype-xlsx me-1"></i> Preview .xlsx File</a>
+                                        <div class="col-7">
+                                            <div class="input-group float-start me-3" style="width:250px;">
+                                                <span class="input-group-text" id="basic-addon1"><i
+                                                        class="bi bi-tag-fill text-secondary me-3"></i></span>
+                                                <input type="text" class="form-control form-control-sm"
+                                                    placeholder="Add tag" @keydown="addTag" />
+                                            </div>
+                                            <div class="float-end">
+                                                <button role="button" class="btn btn-primary me-2"
+                                                    @click.prevent="validateSchema()"><i
+                                                        class="bi bi-card-checklist me-1"></i> Validate Schema</button>
+                                                <a role="button" class="btn btn-primary"
+                                                    :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
+                                                        class="bi bi-filetype-xlsx me-1"></i> Preview .xlsx File</a>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-bottom mb-3">
+                                <div class="container mb-1 pb-3">
+                                    <div class="row">
+                                        <label for="schema-name" class="col-sm-1 col-form-label">Name</label>
+                                        <div class="col-sm-4">
+                                            <input type="text" class="form-control" id="schema-name" ref="schema-name"
+                                                v-model="schema.name" aria-describedby="schema-name-help"
+                                                placeholder="Enter Schema Name" autofocus>
+                                        </div>
+                                        <label for="schema-tags" class="col-sm-1 col-form-label">Tags</label>
+                                        <div class="col-sm-6 d-flex flex-wrap align-items-center">
+                                            <template v-if="schema.tags && schema.tags.length > 0">
+                                                <span class="badge bg-info fs-6 me-2 mb-2"
+                                                    v-for="(tag, index) in schema.tags" :key="tag">{{ tag }}<i
+                                                        class="bi bi-x-circle-fill ps-2" role="button"
+                                                        @click="removeTag(index)"></i></span>
+                                            </template>
+                                            <template v-else>
+                                                <span class="text-muted">No tags added</span>
+                                            </template>
                                         </div>
                                     </div>
                                 </div>
@@ -54,17 +88,21 @@
                                                                     <th class="ps-3" style="width:40%">{{
                                                                         column.xlsx_column_header_name }}
                                                                         <span class="text-danger"
-                                                                            v-if="column.xlsx_data_validation_allow_blank==false">*</span>
+                                                                            title="Mandatory Column"
+                                                                            v-if="column.xlsx_data_validation_allow_blank == false">*</span>
                                                                     </th>
                                                                     <td class="text-muted text-center"
                                                                         style="width:10%">
                                                                         <i class="bi bi-eye-fill" role="button"></i>
                                                                     </td>
                                                                 </tr>
-                                                                <tr class="border-bottom-0" :class="schema.columns.length==0 ? 'border-top-0' : ''"
+                                                                <tr class="border-bottom-0"
+                                                                    :class="schema.columns.length == 0 ? 'border-top-0' : ''"
                                                                     @click.prevent="addNewColumn" role="button">
                                                                     <th class="border-0 ps-3 pt-2 text-muted"
-                                                                        colspan="2">Add <template v-if="schema.columns.length==0">a</template><template v-else>Another</template> Column</th>
+                                                                        colspan="2">Add <template
+                                                                            v-if="schema.columns.length == 0">a</template><template
+                                                                            v-else>Another</template> Column</th>
                                                                     <td class="border-0 text-muted text-center pt-2"><i
                                                                             class="bi bi-plus-circle-fill text-success"
                                                                             role="button"></i>
@@ -117,7 +155,8 @@
                                                                         <option value="">Select Django Model</option>
                                                                         <option
                                                                             v-for="modelField in selectedContentType.model_fields"
-                                                                            :value="modelField.name">{{
+                                                                            :value="modelField.name">
+                                                                            {{
                                                                                 modelField.display_name }} ({{
                                                                                 modelField.type }})
                                                                         </option>
@@ -250,7 +289,8 @@
                                                                                 Blank</span>
                                                                             <select class="form-select w-50"
                                                                                 aria-label="Allow Blank"
-                                                                                aria-describedby="allow-blank-label" :disabled="!selectedField.allow_null"
+                                                                                aria-describedby="allow-blank-label"
+                                                                                :disabled="!selectedField.allow_null"
                                                                                 v-model="selectedColumn.xlsx_data_validation_allow_blank">
                                                                                 <option :value="true">Yes</option>
                                                                                 <option :value="false">No</option>
@@ -327,7 +367,8 @@
                                                                 <button class="btn btn-danger btn-sm"
                                                                     v-if="!selectedColumn.id"
                                                                     @click.prevent="cancelAddingColumn(selectedColumn)"><i
-                                                                        class="bi bi-x-circle-fill me-1"></i> Cancel
+                                                                        class="bi bi-x-circle-fill me-1"></i>
+                                                                    Cancel
                                                                     Adding
                                                                     Column</button>
                                                                 <button v-else class="btn btn-danger btn-sm"
@@ -578,6 +619,21 @@ export default {
                 }
             })
         },
+        addTag(event) {
+            if (event.key === 'Enter') {
+                if (this.schema.tags.includes(event.target.value)) {
+                    event.target.value = ''
+                    return
+                }
+                this.schema.tags.push(event.target.value)
+                this.save();
+                event.target.value = ''
+            }
+        },
+        removeTag(index) {
+            this.schema.tags.splice(index, 1)
+            this.save();
+        },
         validateSchema() {
             swal.fire({
                 title: 'Validate Schema',
@@ -622,6 +678,10 @@ export default {
         this.fetchBulkImportSchema()
         this.fetchContentTypes()
     },
+    onRouteEnter() {
+        this.fetchBulkImportSchema()
+        this.fetchContentTypes()
+    }
 }
 </script>
 
