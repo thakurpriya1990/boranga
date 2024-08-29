@@ -3931,7 +3931,7 @@ class OccurrenceReportBulkImportSchemaSerializer(
     columns = OccurrenceReportBulkImportSchemaColumnSerializer(
         many=True, allow_null=True, required=False
     )
-    tags = TagListSerializerField()
+    tags = TagListSerializerField(allow_null=True, required=False)
     group_type_display = serializers.CharField(source="group_type.name", read_only=True)
     version = serializers.CharField(read_only=True)
 
