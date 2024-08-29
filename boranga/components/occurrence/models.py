@@ -5685,9 +5685,17 @@ class OccurrenceReportBulkImportSchema(models.Model):
         return workbook
 
     def copy(self):
-        highest_version = OccurrenceReportBulkImportSchema.objects.filter(
+        if not self.pk:
+            raise ValueError("Schema must be saved before it can be copied")
+
+        if OccurrenceReportBulkImportSchema.objects.filter(
             group_type=self.group_type
-        ).aggregate(Max("version"))["version__max"]
+        ).exists():
+            highest_version = OccurrenceReportBulkImportSchema.objects.filter(
+                group_type=self.group_type
+            ).aggregate(Max("version"))["version__max"]
+        else:
+            highest_version = 0
         new_schema = OccurrenceReportBulkImportSchema(
             group_type=self.group_type,
             version=highest_version + 1,
@@ -5765,6 +5773,22 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
         app_label = "boranga"
         verbose_name = "Occurrence Report Bulk Import Schema Column"
         verbose_name_plural = "Occurrence Report Bulk Import Schema Columns"
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "schema",
+                    "django_import_content_type",
+                    "django_import_field_name",
+                ],
+                name="unique_schema_column_import",
+                violation_error_message="This field already exists in the schema",
+            ),
+            models.UniqueConstraint(
+                fields=["schema", "xlsx_column_header_name"],
+                name="unique_schema_column_header",
+                violation_error_message="This column name already exists in the schema",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.xlsx_column_header_name} - {self.schema}"
