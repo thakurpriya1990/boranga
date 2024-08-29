@@ -23,7 +23,7 @@
                                                     }}</span></h4>
                                         </div>
                                         <div class="col-6 d-flex justify-content-end">
-                                            <button role="button" class="btn btn-primary me-2" @click.prevent=""><i
+                                            <button role="button" class="btn btn-primary me-2" @click.prevent="validateSchema()"><i
                                                     class="bi bi-card-checklist me-1"></i> Validate Schema</button>
                                             <a role="button" class="btn btn-primary"
                                                 :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
@@ -53,15 +53,18 @@
                                                                     </th>
                                                                     <th class="ps-3" style="width:40%">{{
                                                                         column.xlsx_column_header_name }}
+                                                                        <span class="text-danger"
+                                                                            v-if="column.xlsx_data_validation_allow_blank==false">*</span>
                                                                     </th>
                                                                     <td class="text-muted text-center"
-                                                                        style="width:15%">
+                                                                        style="width:10%">
                                                                         <i class="bi bi-eye-fill" role="button"></i>
                                                                     </td>
                                                                 </tr>
-                                                                <tr class="border-bottom-0" @click.prevent="addNewColumn"
-                                                                    role="button">
-                                                                    <th class="border-0 ps-3 pt-2 text-muted" colspan="2">Add Another Column</th>
+                                                                <tr class="border-bottom-0" :class="schema.columns.length==0 ? 'border-top-0' : ''"
+                                                                    @click.prevent="addNewColumn" role="button">
+                                                                    <th class="border-0 ps-3 pt-2 text-muted"
+                                                                        colspan="2">Add <template v-if="schema.columns.length==0">a</template><template v-else>Another</template> Column</th>
                                                                     <td class="border-0 text-muted text-center pt-2"><i
                                                                             class="bi bi-plus-circle-fill text-success"
                                                                             role="button"></i>
@@ -74,7 +77,7 @@
                                             </div>
                                         </div>
                                         <div class="col-8">
-                                            <div v-if="addEditMode" class="mb-3">
+                                            <div v-if="addEditMode && selectedColumn" class="mb-3">
                                                 <div class="card">
                                                     <div class="card-body">
                                                         <h5 class="card-title border-bottom pb-2 mb-3">
@@ -240,24 +243,25 @@
                                                                             data-bs-trigger="hover focus"
                                                                             data-bs-content="Basic validations embedded in the .xlsx file"
                                                                             data-bs-placement="top"></i></label>
-                                                                    <div class="col-sm-8 ">
+                                                                    <div class="col-sm-4">
                                                                         <div class="input-group input-group-sm mb-2">
                                                                             <span class="input-group-text"
-                                                                                id="basic-addon1">Allow
+                                                                                id="allow-blank-label">Allow
                                                                                 Blank</span>
-                                                                            <input type="text" class="form-control"
-                                                                                placeholder="Username"
-                                                                                aria-label="Username"
-                                                                                aria-describedby="basic-addon1" disabled
-                                                                                :value="selectedField.allow_null == null ? 'N/A' : (selectedField.allow_null ? 'Yes' : 'No')">
+                                                                            <select class="form-select w-50"
+                                                                                aria-label="Allow Blank"
+                                                                                aria-describedby="allow-blank-label" :disabled="!selectedField.allow_null"
+                                                                                v-model="selectedColumn.xlsx_data_validation_allow_blank">
+                                                                                <option :value="true">Yes</option>
+                                                                                <option :value="false">No</option>
+                                                                            </select>
                                                                         </div>
                                                                         <div class="input-group input-group-sm mb-2">
                                                                             <span class="input-group-text"
                                                                                 id="basic-addon1">Max
                                                                                 Length</span>
                                                                             <input type="text" class="form-control"
-                                                                                placeholder="Username"
-                                                                                aria-label="Username"
+                                                                                aria-label="Max Length"
                                                                                 aria-describedby="basic-addon1"
                                                                                 :value="selectedField.max_length ? selectedField.max_length : 'N/A'"
                                                                                 disabled>
@@ -394,6 +398,7 @@ export default {
             schema: null,
             djangoContentTypes: null,
             selectedColumn: null,
+            selectedColumnIndex: null,
             selectedContentType: null,
             selectedField: null,
             addEditMode: false,
@@ -488,6 +493,7 @@ export default {
                 this.enablePopovers();
                 if (!this.selectedColumn.id) {
                     this.selectedColumn.xlsx_column_header_name = this.selectedField.display_name
+                    this.selectedColumn.xlsx_data_validation_allow_blank = this.selectedField.allow_null
                 }
                 this.$refs['column-name'].focus()
             })
@@ -499,23 +505,27 @@ export default {
                 django_import_content_type: '',
                 django_import_field_name: '',
                 xlsx_column_header_name: '',
+                xlsx_data_validation_allow_blank: true,
                 import_validations: []
             }
         },
         addNewColumn() {
             this.newColumn = Object.assign({}, this.getNewColumnData())
             this.schema.columns.push(this.newColumn)
+            this.selectedContentType = null;
+            this.selectedField = null;
             this.selectedColumn = this.newColumn
+            this.selectedColumnIndex = this.schema.columns.indexOf(this.newColumn)
             this.addEditMode = true
-            // this.removeAlreadySelectedFields();
             this.$nextTick(() => {
                 this.enablePopovers();
                 this.$refs['django-import-model'].focus()
             })
         },
         selectColumn(column) {
-            this.addEditMode = true
             this.selectedColumn = column
+            this.selectedColumnIndex = this.schema.columns.indexOf(column)
+            this.addEditMode = true
             this.$nextTick(() => {
                 this.enablePopovers();
                 if (this.selectedColumn.django_import_content_type) {
@@ -534,6 +544,7 @@ export default {
         cancelAddingColumn(column) {
             this.schema.columns = this.schema.columns.filter(col => col !== column)
             this.selectedColumn = null
+            this.selectedColumnIndex = null
             this.addEditMode = false
         },
         removeColumn(column) {
@@ -567,12 +578,28 @@ export default {
                 }
             })
         },
+        validateSchema() {
+            swal.fire({
+                title: 'Validate Schema',
+                text: 'Not yet implemented',
+                icon: 'warning',
+                showCancelButton: false,
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2'
+                },
+            })
+        },
         save() {
             this.saving = true;
             this.$http.put(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/`, this.schema)
                 .then(response => {
                     this.saving = false;
-                    this.schema = response.data
+                    this.schema = Object.assign({}, response.data)
+                    if (this.addEditMode) {
+                        this.selectedColumn = this.schema.columns[this.selectedColumnIndex]
+                    }
                 })
                 .catch(error => {
                     this.saving = false;
