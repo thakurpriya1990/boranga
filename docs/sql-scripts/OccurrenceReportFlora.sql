@@ -117,10 +117,10 @@ species AS (
         LEFT JOIN cs ON s.id = cs.species_id
         LEFT JOIN boranga_walegislativelist wal ON cs.wa_legislative_list_id = wal.id
         LEFT JOIN boranga_walegislativecategory wac ON cs.wa_legislative_category_id = wac.id
-        INNER JOIN boranga_walegislativecategory_wa_legislative_lists wac_wal ON wac_wal.walegislativecategory_id = cs.wa_legislative_category_id
-        INNER JOIN boranga_walegislativecategory walc ON walc.id = wac_wal.walegislativecategory_id
-        INNER JOIN boranga_waprioritycategory_wa_priority_lists wap_wal ON wap_wal.waprioritycategory_id = cs.wa_priority_category_id
-        INNER JOIN boranga_waprioritycategory wapc ON wapc.id = wap_wal.waprioritycategory_id
+        LEFT JOIN boranga_walegislativecategory_wa_legislative_lists wac_wal ON wac_wal.walegislativecategory_id = cs.wa_legislative_category_id
+        LEFT JOIN boranga_walegislativecategory walc ON walc.id = wac_wal.walegislativecategory_id
+        LEFT JOIN boranga_waprioritycategory_wa_priority_lists wap_wal ON wap_wal.waprioritycategory_id = cs.wa_priority_category_id
+        LEFT JOIN boranga_waprioritycategory wapc ON wapc.id = wap_wal.waprioritycategory_id
     GROUP BY
         s.id,
         t.scientific_name,
