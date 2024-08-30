@@ -5340,19 +5340,25 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
     @property
     def estimated_processing_time_minutes(self):
         seconds = self.estimated_processing_time_seconds
-        if seconds:
-            return round(seconds / 60)
-        return None
+        if seconds is None:
+            return None
+
+        return round(seconds / 60)
 
     @property
     def estimated_processing_time_human_readable(self):
-        minutes = self.estimated_processing_time_minutes
+        seconds = self.estimated_processing_time_seconds
 
-        if not minutes:
+        if seconds is None:
             return "No processing data available to estimate time"
 
-        if minutes == 0:
-            return "Less than a minute"
+        if seconds == 0:
+            return "Less than a second"
+
+        if seconds < 60:
+            return f"~{seconds} seconds"
+
+        minutes = self.estimated_processing_time_minutes
 
         return f"~{minutes} minutes"
 
