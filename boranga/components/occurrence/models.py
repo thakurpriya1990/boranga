@@ -5364,22 +5364,18 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         return f"~{minutes} minutes"
 
     def count_rows(self):
-        logger.info(f"Pre-queue processing bulk import task {self.id}")
+        logger.info(f"Beginning row count for OCR Bulk Import Task {self.id}")
+
         try:
             workbook = openpyxl.load_workbook(self._file)
         except Exception as e:
             logger.error(f"Error opening bulk import file {self._file.name}: {e}")
-            self.processing_status = (
-                OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
-            )
-            self.datetime_error = timezone.now()
-            self.error_message = f"Error opening bulk import file: {e}"
-            self.save()
+            logger.error("Unable to count rows. Returning from method.")
             return
 
         sheet = workbook.active
         self.rows = sheet.max_row - 1
-        logger.debug(f"Found {self.rows} rows in bulk import file {self._file.name}")
+        logger.info(f"Found {self.rows} rows in OCR Bulk Import Task {self._file.name}")
         self.save()
 
     @classmethod
