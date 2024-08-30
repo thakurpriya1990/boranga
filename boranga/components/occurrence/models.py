@@ -5281,7 +5281,8 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             return "Less than a second"
 
         if self.total_time_taken < 60:
-            return f"{self.total_time_taken} seconds"
+            return f"{round(self.total_time_taken)} seconds"
+
         if self.total_time_taken:
             whole_minutes = int(self.total_time_taken // 60)
             remaining_seconds = round(self.total_time_taken - (whole_minutes * 60))
