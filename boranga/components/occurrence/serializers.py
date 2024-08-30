@@ -3933,7 +3933,7 @@ class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
         model = OccurrenceReportBulkImportSchemaColumn
         fields = "__all__"
         read_only_fields = ("id",)
-        validators = []
+        validators = []  # Validation is done in the parent serializer
 
     def validate(self, attrs):
         return super().validate(attrs)
