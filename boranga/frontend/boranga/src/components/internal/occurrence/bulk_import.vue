@@ -163,7 +163,7 @@
                                             <th scope="col">Datetime Started</th>
                                             <th scope="col">File Name</th>
                                             <th scope="col">File Size</th>
-                                            <th scope="col">Records Imported</th>
+                                            <th scope="col">Rows Attempted</th>
                                             <th scope="col">Actions</th>
                                         </tr>
                                     </thead>
@@ -174,17 +174,14 @@
                                             <td class="text-truncate" style="max-width: 350px;">{{
                                                 failedImport.file_name }}</td>
                                             <td>{{ failedImport.file_size_megabytes }} MB</td>
-                                            <td class="text-end pe-3">{{ failedImport.rows ? failedImport.rows :
+                                            <td class="">{{ failedImport.rows ? failedImport.rows :
                                                 'Not Counted' }}</td>
                                             <td>
                                                 <button class="btn btn-sm btn-danger me-2"
-                                                    data-bs-target="#staticBackdrop" data-bs-toggle="modal"
+                                                    data-bs-target="#errors-modal" data-bs-toggle="modal"
                                                     @click="selectedErrors = failedImport.error_message"><i
                                                         class="bi bi-eye"></i>
                                                     View Errors</button>
-                                                <button class="btn btn-sm btn-primary"
-                                                    @click.prevent="retryBulkImportTask(failedImport.id)"><i
-                                                        class="bi bi-arrow-clockwise"></i> Retry</button>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -196,7 +193,7 @@
                         </div>
                     </div>
                     <!-- Modal -->
-                    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
+                    <div class="modal fade" id="errors-modal" data-bs-backdrop="static" data-bs-keyboard="false"
                         tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
