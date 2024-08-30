@@ -6314,14 +6314,19 @@ class OccurrenceReportBulkImportSchemaViewSet(
         return qs
 
     def perform_create(self, serializer):
-        latest_version = (
-            OccurrenceReportBulkImportSchema.objects.filter(
-                group_type=serializer.validated_data["group_type"]
+        if OccurrenceReportBulkImportSchema.objects.filter(
+            group_type=serializer.validated_data["group_type"]
+        ).exists():
+            latest_version = (
+                OccurrenceReportBulkImportSchema.objects.filter(
+                    group_type=serializer.validated_data["group_type"]
+                )
+                .order_by("-version")
+                .first()
+                .version
             )
-            .order_by("-version")
-            .first()
-            .version
-        )
+        else:
+            latest_version = 0
         serializer.save(version=latest_version + 1)
         return super().perform_create(serializer)
 
