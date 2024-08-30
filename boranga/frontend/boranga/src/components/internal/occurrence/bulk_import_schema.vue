@@ -14,8 +14,8 @@
                 <div class="mb-3">
                     <div class="card">
                         <div class="card-body">
-                            <div class="mb-1">
-                                <div class="container mb-0 pb-2">
+                            <div class="border-bottom mb-2">
+                                <div class="container mb-1 pb-2">
                                     <div class="row">
                                         <div class="col-5">
                                             <h4 class="text-capitalize">{{ schema.group_type_display }} Bulk Import
@@ -25,7 +25,7 @@
                                         <div class="col-7">
                                             <div class="input-group float-start me-3" style="width:250px;">
                                                 <span class="input-group-text" id="basic-addon1"><i
-                                                        class="bi bi-tag-fill text-secondary me-3"></i></span>
+                                                        class="bi bi-tag-fill text-secondary"></i></span>
                                                 <input type="text" class="form-control form-control-sm"
                                                     placeholder="Add tag" @keydown="addTag" />
                                             </div>
@@ -43,8 +43,8 @@
                                 </div>
                             </div>
                             <div class="border-bottom mb-3">
-                                <div class="container mb-1 pb-3">
-                                    <div class="row">
+                                <div class="container mb-1 pb-2">
+                                    <div class="row align-items-center">
                                         <label for="schema-name" class="col-sm-1 col-form-label">Name</label>
                                         <div class="col-sm-4">
                                             <input type="text" class="form-control" id="schema-name" ref="schema-name"
@@ -52,9 +52,10 @@
                                                 placeholder="Enter Schema Name" autofocus>
                                         </div>
                                         <label for="schema-tags" class="col-sm-1 col-form-label">Tags</label>
-                                        <div class="col-sm-6 d-flex flex-wrap align-items-center">
+                                        <div class="col-sm-6">
                                             <template v-if="schema.tags && schema.tags.length > 0">
-                                                <span class="badge bg-info fs-6 me-2 mb-2"
+                                                <span
+                                                    class="d-inline-flex align-items-center badge bg-info fs-6 my-2 me-2"
                                                     v-for="(tag, index) in schema.tags" :key="tag">{{ tag }}<i
                                                         class="bi bi-x-circle-fill ps-2" role="button"
                                                         @click="removeTag(index)"></i></span>
@@ -65,6 +66,11 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div v-if="errors" class="mb-3">
+                                <alert type="danger">
+                                    {{ errors}}
+                                </alert>
                             </div>
                             <div class="mb-3">
                                 <div class="container">
@@ -153,13 +159,24 @@
                                                                         v-model="selectedColumn.django_import_field_name"
                                                                         @change="selectDjangoImportField">
                                                                         <option value="">Select Django Model</option>
-                                                                        <option
-                                                                            v-for="modelField in selectedContentType.model_fields"
-                                                                            :value="modelField.name">
-                                                                            {{
-                                                                                modelField.display_name }} ({{
-                                                                                modelField.type }})
-                                                                        </option>
+                                                                        <template v-if="selectedColumn.id">
+                                                                            <option
+                                                                                v-for="modelField in selectedContentType.model_fields"
+                                                                                :value="modelField.name">
+                                                                                {{
+                                                                                    modelField.display_name }} ({{
+                                                                                    modelField.type }}) <template v-if="!modelField.allow_null">*</template>
+                                                                            </option>
+                                                                        </template>
+                                                                        <template v-else>
+                                                                            <option
+                                                                                v-for="modelField in djangoImportFieldsFiltered"
+                                                                                :value="modelField.name">
+                                                                                {{
+                                                                                    modelField.display_name }} ({{
+                                                                                    modelField.type }}) <template v-if="!modelField.allow_null">*</template>
+                                                                            </option>
+                                                                        </template>
                                                                     </select>
                                                                 </div>
                                                             </div>
@@ -252,7 +269,7 @@
                                                                                                                 class="">
                                                                                                                 <td>{{
                                                                                                                     choice[0]
-                                                                                                                    }}
+                                                                                                                }}
                                                                                                                 </td>
                                                                                                             </tr>
                                                                                                         </tbody>
@@ -373,7 +390,8 @@
                                                                     Column</button>
                                                                 <button v-else class="btn btn-danger btn-sm"
                                                                     @click.prevent="removeColumn(selectedColumn)"><i
-                                                                        class="bi bi-trash3-fill me-1"></i> Delete
+                                                                        class="bi bi-trash3-fill me-1"></i>
+                                                                    Delete
                                                                     Column</button>
                                                             </div>
                                                         </form>
@@ -438,6 +456,7 @@ export default {
         return {
             schema: null,
             djangoContentTypes: null,
+            djangoImportFieldsFiltered: null,
             selectedColumn: null,
             selectedColumnIndex: null,
             selectedContentType: null,
@@ -445,6 +464,7 @@ export default {
             addEditMode: false,
             newColumn: null,
             saving: false,
+            errors: null
         }
     },
     components: {
@@ -516,6 +536,10 @@ export default {
             this.selectedContentType = this.djangoContentTypes.filter(
                 djangoContentType => djangoContentType.id == this.selectedColumn.django_import_content_type
             )[0]
+            // Filter out fields that are already columns in the schema
+            this.djangoImportFieldsFiltered = this.selectedContentType.model_fields.filter(
+                modelField => !this.schema.columns.some(column => column.django_import_field_name == modelField.name)
+            )
             this.$nextTick(() => {
                 this.enablePopovers();
                 this.$refs['django-import-field'].focus()
@@ -532,8 +556,8 @@ export default {
             )[0]
             this.$nextTick(() => {
                 this.enablePopovers();
+                this.selectedColumn.xlsx_column_header_name = this.selectedField.display_name
                 if (!this.selectedColumn.id) {
-                    this.selectedColumn.xlsx_column_header_name = this.selectedField.display_name
                     this.selectedColumn.xlsx_data_validation_allow_blank = this.selectedField.allow_null
                 }
                 this.$refs['column-name'].focus()
@@ -649,6 +673,7 @@ export default {
         },
         save() {
             this.saving = true;
+            this.errors = null;
             this.$http.put(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/`, this.schema)
                 .then(response => {
                     this.saving = false;
@@ -659,6 +684,7 @@ export default {
                 })
                 .catch(error => {
                     this.saving = false;
+                    this.errors = error.data
                     console.error(error)
                 })
         },

@@ -5340,19 +5340,25 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
     @property
     def estimated_processing_time_minutes(self):
         seconds = self.estimated_processing_time_seconds
-        if seconds:
-            return round(seconds / 60)
-        return None
+        if seconds is None:
+            return None
+
+        return round(seconds / 60)
 
     @property
     def estimated_processing_time_human_readable(self):
-        minutes = self.estimated_processing_time_minutes
+        seconds = self.estimated_processing_time_seconds
 
-        if not minutes:
+        if seconds is None:
             return "No processing data available to estimate time"
 
-        if minutes == 0:
-            return "Less than a minute"
+        if seconds == 0:
+            return "Less than a second"
+
+        if seconds < 60:
+            return f"~{seconds} seconds"
+
+        minutes = self.estimated_processing_time_minutes
 
         return f"~{minutes} minutes"
 
@@ -5541,6 +5547,22 @@ class OccurrenceReportBulkImportSchema(models.Model):
     def __str__(self):
         return f"Group type: {self.group_type.name} (Version: {self.version})"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Every schema should have a migrated_from_id column regardless if it is used
+        # for create new OCR records or updating existing ones
+        content_type = ct_models.ContentType.objects.get_for_model(OccurrenceReport)
+        if not self.columns.filter(
+            django_import_content_type=content_type,
+            django_import_field_name="migrated_from_id",
+        ).exists():
+            OccurrenceReportBulkImportSchemaColumn.objects.create(
+                schema=self,
+                xlsx_column_header_name="OCR Migrated From ID",
+                django_import_content_type=content_type,
+                django_import_field_name="migrated_from_id",
+            )
+
     @property
     def preview_import_file(self):
         workbook = openpyxl.Workbook()
@@ -5669,9 +5691,17 @@ class OccurrenceReportBulkImportSchema(models.Model):
         return workbook
 
     def copy(self):
-        highest_version = OccurrenceReportBulkImportSchema.objects.filter(
+        if not self.pk:
+            raise ValueError("Schema must be saved before it can be copied")
+
+        if OccurrenceReportBulkImportSchema.objects.filter(
             group_type=self.group_type
-        ).aggregate(Max("version"))["version__max"]
+        ).exists():
+            highest_version = OccurrenceReportBulkImportSchema.objects.filter(
+                group_type=self.group_type
+            ).aggregate(Max("version"))["version__max"]
+        else:
+            highest_version = 0
         new_schema = OccurrenceReportBulkImportSchema(
             group_type=self.group_type,
             version=highest_version + 1,
@@ -5749,6 +5779,22 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
         app_label = "boranga"
         verbose_name = "Occurrence Report Bulk Import Schema Column"
         verbose_name_plural = "Occurrence Report Bulk Import Schema Columns"
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "schema",
+                    "django_import_content_type",
+                    "django_import_field_name",
+                ],
+                name="unique_schema_column_import",
+                violation_error_message="This field already exists in the schema",
+            ),
+            models.UniqueConstraint(
+                fields=["schema", "xlsx_column_header_name"],
+                name="unique_schema_column_header",
+                violation_error_message="This column name already exists in the schema",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.xlsx_column_header_name} - {self.schema}"
