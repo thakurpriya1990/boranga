@@ -3925,10 +3925,24 @@ class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializ
         read_only_fields = ("id",)
 
 
+class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
+    serializers.ModelSerializer
+):
+
+    class Meta:
+        model = OccurrenceReportBulkImportSchemaColumn
+        fields = "__all__"
+        read_only_fields = ("id",)
+        validators = []
+
+    def validate(self, attrs):
+        return super().validate(attrs)
+
+
 class OccurrenceReportBulkImportSchemaSerializer(
     TaggitSerializer, serializers.ModelSerializer
 ):
-    columns = OccurrenceReportBulkImportSchemaColumnSerializer(
+    columns = OccurrenceReportBulkImportSchemaColumnNestedSerializer(
         many=True, allow_null=True, required=False
     )
     tags = TagListSerializerField(allow_null=True, required=False)
@@ -3939,6 +3953,10 @@ class OccurrenceReportBulkImportSchemaSerializer(
         model = OccurrenceReportBulkImportSchema
         fields = "__all__"
         read_only_fields = ("id",)
+
+    def validate(self, data):
+        logger.debug(f"data: {data}")
+        return data
 
     def update(self, instance, validated_data):
         columns_data = validated_data.pop("columns", None)
@@ -3955,6 +3973,7 @@ class OccurrenceReportBulkImportSchemaSerializer(
             ]
         ).delete()
         for column_data in columns_data:
+            logger.debug(f"Column data: {column_data}")
             OccurrenceReportBulkImportSchemaColumn.objects.update_or_create(
                 **column_data
             )
