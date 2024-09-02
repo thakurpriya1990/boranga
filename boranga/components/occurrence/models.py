@@ -10,7 +10,6 @@ import dateutil
 import openpyxl
 import pyproj
 import reversion
-import xlrd
 from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib.contenttypes import fields
@@ -5374,14 +5373,22 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             return
 
         sheet = workbook.active
-        self.rows = sheet.max_row - 1
+
+        # Count the rows that have data in them
+        all_rows = len(
+            [row for row in sheet if not all([cell.value is None for cell in row])]
+        )
+
+        # Remove the header row
+        self.rows = all_rows - 1
+
         logger.info(f"Found {self.rows} rows in OCR Bulk Import Task {self._file.name}")
         self.save()
 
     @classmethod
-    def validate_headers(self, _file, schema):
+    def validate_headers(self):
         logger.info(f"Validating headers for bulk import task {self.id}")
-        workbook = xlrd.open_workbook(file_contents=_file.read())
+        workbook = openpyxl.load_workbook(self._file, read_only=True)
 
         sheet = workbook.active
 
