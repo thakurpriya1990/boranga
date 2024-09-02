@@ -96,8 +96,7 @@
                                             <td class="text-truncate" style="max-width: 350px;">{{
                                                 queuedImport.file_name }}</td>
                                             <td>{{ queuedImport.file_size_megabytes }} MB</td>
-                                            <td class="text-end pe-3">{{ queuedImport.rows ? queuedImport.rows : 'Not
-                                                Counted' }}</td>
+                                            <td class="text-end pe-3">{{ queuedImport.rows ? queuedImport.rows : 'Not Counted' }}</td>
                                             <td>{{ queuedImport.estimated_processing_time_human_readable }}</td>
                                         </tr>
                                     </tbody>
@@ -194,17 +193,17 @@
                     </div>
                     <!-- Modal -->
                     <div class="modal fade" id="errors-modal" data-bs-backdrop="static" data-bs-keyboard="false"
-                        tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                        <div class="modal-dialog">
+                        tabindex="-1" aria-labelledby="errors-modal-label" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="staticBackdropLabel">
+                                    <h5 class="modal-title" id="errors-modal-label">
                                         Bulk Import Task Errors</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    {{ selectedErrors }}
+                                    <pre>{{ selectedErrors }}</pre>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary"
@@ -295,7 +294,7 @@ export default {
     computed: {
         title: function () {
             return this.$route.query.group_type + ' Occurrence Report Bulk Import';
-        }
+        },
     },
     methods: {
         getSchemaVersionText(schema_version) {
@@ -388,7 +387,7 @@ export default {
             });
         },
         fetchFailedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=failed&limit=${this.failedImportsLimit}`).then((response) => {
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=failed&limit=${this.failedImportsLimit}&ordering=-datetime_started`).then((response) => {
                 this.failedImports = response.body;
             }, (error) => {
                 console.log(error);
@@ -441,7 +440,7 @@ export default {
                     this.$http.patch(`${api_endpoints.occurrence_report_bulk_imports}${bulkImportTaskId}/revert/`).then((response) => {
                         console.log(response);
                         // Remove the completed import from the completed imports list
-                        this.completedImports = this.completedImports.filter((completedImport) => {
+                        this.completedImports = this.completedImports.results.filter((completedImport) => {
                             return completedImport.id !== bulkImportTaskId;
                         });
                         this.fetchQueuedImports();
