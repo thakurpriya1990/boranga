@@ -12,6 +12,7 @@ from django.db.models.functions import Concat
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.utils import timezone
 from django_filters import rest_framework as filters
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from multiselectfield import MultiSelectField
@@ -22,6 +23,7 @@ from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
+from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
@@ -6274,12 +6276,35 @@ class OccurrenceReportBulkImportTaskViewSet(
     queryset = OccurrenceReportBulkImportTask.objects.all()
     permission_classes = [OccurrenceReportBulkImportPermission]
     serializer_class = OccurrenceReportBulkImportTaskSerializer
-    filter_backends = [filters.DjangoFilterBackend]
+    filter_backends = [OrderingFilter, filters.DjangoFilterBackend]
     filterset_fields = ["processing_status"]
+    ordering_fields = ["datetime_queued", "datetime_started", "datetime_completed"]
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
-        serializer.save(email_user=self.request.user.id)
+        instance = serializer.save(email_user=self.request.user.id)
+        if settings.OCR_BULK_IMPORT_PROCESS_TASKS_IMMEDIATELY:
+            try:
+                errors = instance.process()
+                if errors:
+                    instance.processing_status = (
+                        OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
+                    )
+                    instance.datetime_error = timezone.now()
+                else:
+                    instance.processing_status = (
+                        OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
+                    )
+                    instance.datetime_completed = timezone.now()
+                instance.save()
+            except Exception as e:
+                logger.error(
+                    f"Error processing bulk import task {instance.id}: {str(e)}"
+                )
+                instance.processing_status = (
+                    OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
+                )
+                instance.datetime_error = timezone.now()
 
     @detail_route(methods=["patch"], detail=True)
     def retry(self, request, *args, **kwargs):
