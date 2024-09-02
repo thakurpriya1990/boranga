@@ -315,6 +315,7 @@ export default {
             const file = event.target.files[0];
             const formData = new FormData();
             formData.append('_file', file);
+            formData.append('schema_id', this.selected_schema_version.id);
 
             this.$http.post(api_endpoints.occurrence_report_bulk_imports, formData).then((response) => {
                 if (response.status >= 200 && response.status < 300) {
@@ -334,11 +335,13 @@ export default {
                     });
                 } else {
                     this.importFileErrors = response.body;
+                    event.target.value = '';
                     this.$refs['bulk-import-file'].setCustomValidity('Invalid field');
                     this.form.classList.add('was-validated');
                 }
             }, (error) => {
                 this.importFileErrors = error.body;
+                event.target.value = '';
                 this.$refs['bulk-import-file'].setCustomValidity('Invalid field');
                 this.form.classList.add('was-validated');
                 console.log(error.body);
