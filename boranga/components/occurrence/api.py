@@ -6283,7 +6283,7 @@ class OccurrenceReportBulkImportTaskViewSet(
 
     def perform_create(self, serializer):
         instance = serializer.save(email_user=self.request.user.id)
-        if settings.OCR_BULK_IMPORT_PROCESS_TASKS_IMMEDIATELY:
+        if settings.OCR_BULK_IMPORT_PROCESS_TASKS_IMMEDIATELY is True:
             try:
                 errors = instance.process()
                 if errors:
