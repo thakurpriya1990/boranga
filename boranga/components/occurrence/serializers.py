@@ -3934,7 +3934,6 @@ class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
     file_name = serializers.CharField(read_only=True)
     percentage_complete = serializers.CharField(read_only=True)
     schema_id = serializers.IntegerField(write_only=True)
-    schema = OccurrenceReportBulkImportSchemaSerializer(read_only=True)
 
     class Meta:
         model = OccurrenceReportBulkImportTask
@@ -3970,6 +3969,9 @@ class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         _file = validated_data["_file"]
+        # The file is read in the validate method, so we need to reset the file pointer
+        # before generating the hash
+        _file.seek(0)
         file_hash = hashlib.sha256(_file.read()).hexdigest()
         _file.seek(0)
         qs = OccurrenceReportBulkImportTask.objects.filter(file_hash=file_hash)
