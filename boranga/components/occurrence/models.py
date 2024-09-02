@@ -5386,32 +5386,42 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         self.save()
 
     @classmethod
-    def validate_headers(self):
+    def validate_headers(self, _file, schema):
         logger.info(f"Validating headers for bulk import task {self.id}")
-        workbook = openpyxl.load_workbook(self._file, read_only=True)
+
+        try:
+            workbook = openpyxl.load_workbook(_file, read_only=True)
+        except Exception as e:
+            logger.error(f"Error opening bulk import file {_file.name}: {e}")
+            logger.error("Unable to validate headers.")
+            return
 
         sheet = workbook.active
 
-        headers = [cell.value for cell in sheet[1]]
+        headers = [cell.value for cell in sheet[1] if cell.value is not None]
 
         if not headers:
             raise ValidationError("No headers found in the file")
 
         # Check that the headers match the schema (group type and version headings)
-
-        schema_headers = self.schema.columns.all().values_list(
-            "xlsx_column_header_name", flat=True
+        schema_headers = list(
+            schema.columns.all().values_list("xlsx_column_header_name", flat=True)
         )
         if headers == schema_headers:
-            return True
+            return
 
-        extra_headers = set(headers) - set(schema_headers)
-        missing_headers = set(schema_headers) - set(headers)
-        error_string = f"Headers do not match schema: {self.schema}."
+        extra_headers = ",".join(map(repr, set(headers) - set(schema_headers)))
+        missing_headers = ",".join(map(repr, set(schema_headers) - set(headers)))
+        error_string = (
+            f"The headers of the uploaded file do not match schema: {schema}."
+        )
         if missing_headers:
-            error_string += f" Missing: {missing_headers}"
+            error_string += (
+                " The file is missing the following headers that are part of the schema: "
+                f"{missing_headers}."
+            )
         if extra_headers:
-            error_string += f" Extra: {extra_headers}"
+            error_string += f" The file has the following headers that are not part of the schema: {extra_headers}"
         raise ValidationError(error_string)
 
     def process(self):
