@@ -3864,59 +3864,6 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
         return None
 
 
-class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
-    estimated_processing_time_human_readable = serializers.CharField(read_only=True)
-    total_time_taken_human_readable = serializers.CharField(read_only=True)
-    file_size_megabytes = serializers.CharField(read_only=True)
-    file_name = serializers.CharField(read_only=True)
-    percentage_complete = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = OccurrenceReportBulkImportTask
-        fields = "__all__"
-        read_only_fields = (
-            "id",
-            "rows",
-            "rows_processed",
-            "datetime_queued",
-            "datetime_started",
-            "datetime_completed",
-            "datetime_error",
-            "error_row",
-            "error_message",
-            "processing_status",
-            "email_user",
-            "estimated_processing_time_human_readable",
-            "total_time_taken_human_readable",
-            "percentage_complete",
-        )
-
-    def create(self, validated_data):
-        _file = validated_data["_file"]
-        file_hash = hashlib.sha256(_file.read()).hexdigest()
-        _file.seek(0)
-        qs = OccurrenceReportBulkImportTask.objects.filter(file_hash=file_hash)
-        if qs.filter(
-            processing_status=OccurrenceReportBulkImportTask.PROCESSING_STATUS_QUEUED
-        ).exists():
-            raise serializers.ValidationError(
-                "An import task with exactly the same file contents has already been queued."
-            )
-        if qs.filter(
-            processing_status=OccurrenceReportBulkImportTask.PROCESSING_STATUS_STARTED
-        ).exists():
-            raise serializers.ValidationError(
-                "An import task with exactly the same file contents is already in progress."
-            )
-        if qs.filter(
-            processing_status=OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
-        ).exists():
-            raise serializers.ValidationError(
-                "An import task with exactly the same file contents has already been completed."
-            )
-        return super().create(validated_data)
-
-
 class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -3978,3 +3925,70 @@ class OccurrenceReportBulkImportSchemaSerializer(
                 **column_data
             )
         return super().update(instance, validated_data)
+
+
+class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
+    estimated_processing_time_human_readable = serializers.CharField(read_only=True)
+    total_time_taken_human_readable = serializers.CharField(read_only=True)
+    file_size_megabytes = serializers.CharField(read_only=True)
+    file_name = serializers.CharField(read_only=True)
+    percentage_complete = serializers.CharField(read_only=True)
+    schema_id = serializers.IntegerField(write_only=True)
+    schema = OccurrenceReportBulkImportSchemaSerializer(read_only=True)
+
+    class Meta:
+        model = OccurrenceReportBulkImportTask
+        fields = "__all__"
+        read_only_fields = (
+            "id",
+            "rows",
+            "rows_processed",
+            "datetime_queued",
+            "datetime_started",
+            "datetime_completed",
+            "datetime_error",
+            "error_row",
+            "error_message",
+            "processing_status",
+            "email_user",
+            "estimated_processing_time_human_readable",
+            "total_time_taken_human_readable",
+            "percentage_complete",
+        )
+
+    def validate(self, attrs):
+        logger.debug(f"attrs: {attrs}")
+        _file = attrs["_file"]
+        try:
+            schema = OccurrenceReportBulkImportSchema.objects.get(id=attrs["schema_id"])
+        except OccurrenceReportBulkImportSchema.DoesNotExist:
+            raise serializers.ValidationError(
+                f"Schema with id {attrs['schema']} does not exist."
+            )
+        OccurrenceReportBulkImportTask.validate_headers(_file, schema)
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        _file = validated_data["_file"]
+        file_hash = hashlib.sha256(_file.read()).hexdigest()
+        _file.seek(0)
+        qs = OccurrenceReportBulkImportTask.objects.filter(file_hash=file_hash)
+        if qs.filter(
+            processing_status=OccurrenceReportBulkImportTask.PROCESSING_STATUS_QUEUED
+        ).exists():
+            raise serializers.ValidationError(
+                "An import task with exactly the same file contents has already been queued."
+            )
+        if qs.filter(
+            processing_status=OccurrenceReportBulkImportTask.PROCESSING_STATUS_STARTED
+        ).exists():
+            raise serializers.ValidationError(
+                "An import task with exactly the same file contents is already in progress."
+            )
+        if qs.filter(
+            processing_status=OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
+        ).exists():
+            raise serializers.ValidationError(
+                "An import task with exactly the same file contents has already been completed."
+            )
+        return super().create(validated_data)
