@@ -70,6 +70,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
     OccurrenceReportBulkImportSchema,
+    OccurrenceReportBulkImportSchemaColumn,
     OccurrenceReportBulkImportTask,
     OccurrenceReportDocument,
     OccurrenceReportGeometry,
@@ -6403,3 +6404,10 @@ class OccurrenceReportBulkImportSchemaViewSet(
 
         serializer = OccurrenceReportBulkImportSchemaSerializer(instance)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @detail_route(methods=["get"], detail=False)
+    def default_value_choices(self, request, *args, **kwargs):
+        default_value_field = OccurrenceReportBulkImportSchemaColumn._meta.get_field(
+            "default_value"
+        )
+        return Response(default_value_field.choices, status=status.HTTP_200_OK)
