@@ -5674,7 +5674,19 @@ class OccurrenceReportBulkImportSchema(models.Model):
             model_field = model_class._meta.get_field(column.django_import_field_name)
             logger.debug(f"model_field_type: {type(model_field)}")
             dv = None
-            if isinstance(model_field, models.fields.CharField) and model_field.choices:
+            if column.default_value is not None:
+                dv = DataValidation(
+                    type=dv_types["list"],
+                    allow_blank=model_field.null,
+                    formula1=column.default_value,
+                    error=f"This field may only contain the value '{column.default_value}'",
+                    errorTitle="Invalid value for column with default value",
+                    prompt="Either leave the field blank or enter the default value",
+                    promptTitle="Value",
+                )
+            elif (
+                isinstance(model_field, models.fields.CharField) and model_field.choices
+            ):
                 dv = DataValidation(
                     type=dv_types["list"],
                     allow_blank=model_field.null,
@@ -5717,6 +5729,8 @@ class OccurrenceReportBulkImportSchema(models.Model):
             elif isinstance(model_field, models.fields.IntegerField):
                 dv = DataValidation(
                     type=dv_types["whole"],
+                    operator=dv_operators["greaterThanOrEqual"],
+                    formula1="0",
                     allow_blank=model_field.null,
                     error="Please enter a whole number",
                     errorTitle="Invalid number",
@@ -5912,11 +5926,7 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
     )
 
     DEFAULT_VALUE_REQUEST_USER_ID = "request_user_id"
-    DEFAULT_VALUE_REQUEST_USER_EMAIL = "request_user_email"
-    DEFAULT_VALUE_CHOICES = (
-        (DEFAULT_VALUE_REQUEST_USER_ID, "Request User ID"),
-        (DEFAULT_VALUE_REQUEST_USER_EMAIL, "Request User Email"),
-    )
+    DEFAULT_VALUE_CHOICES = ((DEFAULT_VALUE_REQUEST_USER_ID, "Request User ID"),)
 
     default_value = models.CharField(
         max_length=255, choices=DEFAULT_VALUE_CHOICES, blank=True, null=True
