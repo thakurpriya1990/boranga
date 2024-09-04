@@ -33,6 +33,7 @@ from openpyxl.styles import NamedStyle
 from openpyxl.styles.fonts import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
+from ordered_model.models import OrderedModel
 from taggit.managers import TaggableManager
 
 from boranga import exceptions
@@ -5510,7 +5511,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
         return errors
 
-    def process_row(self, index, row, occurrence_reports, errors):
+    def process_row(self, index, row, models_to_insert, errors):
         logger.debug(f"Processing row: Index {index}, Data: {row}")
         row_hash = hashlib.sha256(str(row).encode()).hexdigest()
         if OccurrenceReport.objects.filter(import_hash=row_hash).exists():
@@ -5877,7 +5878,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
         return new_schema
 
 
-class OccurrenceReportBulkImportSchemaColumn(models.Model):
+class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
     schema = models.ForeignKey(
         OccurrenceReportBulkImportSchema,
         related_name="columns",
@@ -5925,6 +5926,8 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
         max_length=50, blank=True, null=True
     )
 
+    order_with_respect_to = "schema"
+
     DEFAULT_VALUE_REQUEST_USER_ID = "request_user_id"
     DEFAULT_VALUE_CHOICES = ((DEFAULT_VALUE_REQUEST_USER_ID, "Request User ID"),)
 
@@ -5934,10 +5937,11 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
 
     # TODO: How are we going to do the list lookup validation for much larger datasets (mostly for species)
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Occurrence Report Bulk Import Schema Column"
         verbose_name_plural = "Occurrence Report Bulk Import Schema Columns"
+        ordering = ["schema", "order"]
         constraints = [
             models.UniqueConstraint(
                 fields=[
@@ -5953,6 +5957,11 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
                 name="unique_schema_column_header",
                 violation_error_message="This column name already exists in the schema",
             ),
+            # models.UniqueConstraint(
+            #     fields=["schema", "order"],
+            #     name="unique_schema_column_order",
+            #     violation_error_message="A column with this order value already exists in the same schema",
+            # ),
         ]
 
     def __str__(self):
