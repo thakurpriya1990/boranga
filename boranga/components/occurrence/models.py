@@ -5769,6 +5769,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
 
         return workbook
 
+    @transaction.atomic
     def copy(self):
         if not self.pk:
             raise ValueError("Schema must be saved before it can be copied")
@@ -5790,8 +5791,14 @@ class OccurrenceReportBulkImportSchema(models.Model):
         else:
             new_schema.name = f"Copy of Version {self.version}"
         new_schema.save()
-
-        for column in self.columns.all():
+        django_import_content_type = ct_models.ContentType.objects.get_for_model(
+            OccurrenceReport
+        )
+        # Copy all columns except those that were automatically created
+        for column in self.columns.exclude(
+            django_import_content_type=django_import_content_type,
+            django_import_field_name="migrated_from_id",
+        ):
             new_column = OccurrenceReportBulkImportSchemaColumn.objects.get(
                 pk=column.pk
             )
