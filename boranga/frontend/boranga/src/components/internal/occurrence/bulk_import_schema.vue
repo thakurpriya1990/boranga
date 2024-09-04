@@ -69,7 +69,7 @@
                             </div>
                             <div v-if="errors" class="mb-3">
                                 <alert type="danger">
-                                    {{ errors}}
+                                    {{ errors }}
                                 </alert>
                             </div>
                             <div class="mb-3">
@@ -165,7 +165,8 @@
                                                                                 :value="modelField.name">
                                                                                 {{
                                                                                     modelField.display_name }} ({{
-                                                                                    modelField.type }}) <template v-if="!modelField.allow_null">*</template>
+                                                                                    modelField.type }}) <template
+                                                                                    v-if="!modelField.allow_null">*</template>
                                                                             </option>
                                                                         </template>
                                                                         <template v-else>
@@ -174,7 +175,8 @@
                                                                                 :value="modelField.name">
                                                                                 {{
                                                                                     modelField.display_name }} ({{
-                                                                                    modelField.type }}) <template v-if="!modelField.allow_null">*</template>
+                                                                                    modelField.type }}) <template
+                                                                                    v-if="!modelField.allow_null">*</template>
                                                                             </option>
                                                                         </template>
                                                                     </select>
@@ -182,7 +184,7 @@
                                                             </div>
                                                             <template v-if="selectedField">
                                                                 <div class="row d-flex align-items-center mb-2">
-                                                                    <label for="inputEmail3"
+                                                                    <label for="column-name"
                                                                         class="col-sm-4 col-form-label">Column
                                                                         Name</label>
                                                                     <div class="col-sm-8 ">
@@ -192,6 +194,24 @@
                                                                                 ref="column-name"
                                                                                 aria-describedby="helpId" placeholder=""
                                                                                 v-model="selectedColumn.xlsx_column_header_name" />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div v-if="selectedField.type == 'IntegerField' && this.defaultValueChoices && this.defaultValueChoices.length > 0"
+                                                                    class="row d-flex align-items-center mb-2">
+                                                                    <label for="default-value"
+                                                                        class="col-sm-4 col-form-label">Default
+                                                                        Value</label>
+                                                                    <div class="col-sm-8 ">
+                                                                        <div class="input-group input-group-sm">
+                                                                            <select class="form-select" v-model="selectedColumn.default_value"
+                                                                                id="default-value">
+                                                                                <option :value="null">No Default</option>
+                                                                                <option
+                                                                                    v-for="choice in defaultValueChoices"
+                                                                                    :value="choice[0]">{{ choice[1] }}
+                                                                                </option>
+                                                                            </select>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -269,7 +289,7 @@
                                                                                                                 class="">
                                                                                                                 <td>{{
                                                                                                                     choice[0]
-                                                                                                                }}
+                                                                                                                    }}
                                                                                                                 </td>
                                                                                                             </tr>
                                                                                                         </tbody>
@@ -457,6 +477,7 @@ export default {
             schema: null,
             djangoContentTypes: null,
             djangoImportFieldsFiltered: null,
+            defaultValueChoices: null,
             selectedColumn: null,
             selectedColumnIndex: null,
             selectedContentType: null,
@@ -510,6 +531,15 @@ export default {
                         .catch(error => {
                             console.error(error)
                         })
+                })
+                .catch(error => {
+                    console.error(error)
+                })
+        },
+        fetchDefaultValueChoices() {
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas}default_value_choices/`)
+                .then(response => {
+                    this.defaultValueChoices = response.data
                 })
                 .catch(error => {
                     console.error(error)
@@ -571,6 +601,7 @@ export default {
                 django_import_field_name: '',
                 xlsx_column_header_name: '',
                 xlsx_data_validation_allow_blank: true,
+                default_value: null,
                 import_validations: []
             }
         },
@@ -673,7 +704,7 @@ export default {
         },
         save() {
             // If there is a column with no django_import_content_type or django_import_field_name, remove it
-            if(this.schema.columns.some(column => !column.django_import_content_type || !column.django_import_field_name)) {
+            if (this.schema.columns.some(column => !column.django_import_content_type || !column.django_import_field_name)) {
                 this.schema.columns = this.schema.columns.filter(column => column.django_import_content_type && column.django_import_field_name)
             }
             this.saving = true;
@@ -707,6 +738,7 @@ export default {
     created() {
         this.fetchBulkImportSchema()
         this.fetchContentTypes()
+        this.fetchDefaultValueChoices()
     },
     onRouteEnter() {
         this.fetchBulkImportSchema()
