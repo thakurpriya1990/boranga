@@ -6017,6 +6017,18 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
                 )
                 errors_added += 1
 
+        if self.xlsx_data_validation_type == "list":
+            if cell_value not in self.xlsx_data_validation_formula1:
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not in the list",
+                    }
+                )
+                errors_added += 1
+
         return errors_added
 
 
