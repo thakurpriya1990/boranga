@@ -672,6 +672,10 @@ export default {
             })
         },
         save() {
+            // If there is a column with no django_import_content_type or django_import_field_name, remove it
+            if(this.schema.columns.some(column => !column.django_import_content_type || !column.django_import_field_name)) {
+                this.schema.columns = this.schema.columns.filter(column => column.django_import_content_type && column.django_import_field_name)
+            }
             this.saving = true;
             this.errors = null;
             this.$http.put(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/`, this.schema)
