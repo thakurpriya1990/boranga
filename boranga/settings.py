@@ -129,6 +129,7 @@ INSTALLED_APPS += [
     "nested_admin",
     "colorfield",
     "django_filters",
+    "ordered_model",
 ]
 
 ADD_REVERSION_ADMIN = True
