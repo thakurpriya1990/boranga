@@ -5911,6 +5911,17 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
         max_length=50, blank=True, null=True
     )
 
+    DEFAULT_VALUE_REQUEST_USER_ID = "request_user_id"
+    DEFAULT_VALUE_REQUEST_USER_EMAIL = "request_user_email"
+    DEFAULT_VALUE_CHOICES = (
+        (DEFAULT_VALUE_REQUEST_USER_ID, "Request User ID"),
+        (DEFAULT_VALUE_REQUEST_USER_EMAIL, "Request User Email"),
+    )
+
+    default_value = models.CharField(
+        max_length=255, choices=DEFAULT_VALUE_CHOICES, blank=True, null=True
+    )
+
     # TODO: How are we going to do the list lookup validation for much larger datasets (mostly for species)
 
     class Meta:
