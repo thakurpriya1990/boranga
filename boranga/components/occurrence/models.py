@@ -10,8 +10,8 @@ import dateutil
 import openpyxl
 import pyproj
 import reversion
-import xlrd
 from colorfield.fields import ColorField
+from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes import fields
 from django.contrib.contenttypes import models as ct_models
@@ -22,7 +22,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models, transaction
+from django.db import IntegrityError, models, transaction
 from django.db.models import CharField, Count, Func, Max, Q
 from django.db.models.functions import Cast
 from django.utils import timezone
@@ -33,6 +33,7 @@ from openpyxl.styles import NamedStyle
 from openpyxl.styles.fonts import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
+from ordered_model.models import OrderedModel
 from taggit.managers import TaggableManager
 
 from boranga import exceptions
@@ -5281,7 +5282,8 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             return "Less than a second"
 
         if self.total_time_taken < 60:
-            return f"{self.total_time_taken} seconds"
+            return f"{round(self.total_time_taken)} seconds"
+
         if self.total_time_taken:
             whole_minutes = int(self.total_time_taken // 60)
             remaining_seconds = round(self.total_time_taken - (whole_minutes * 60))
@@ -5363,51 +5365,65 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         return f"~{minutes} minutes"
 
     def count_rows(self):
-        logger.info(f"Pre-queue processing bulk import task {self.id}")
+        logger.info(f"Beginning row count for OCR Bulk Import Task {self.id}")
+
         try:
             workbook = openpyxl.load_workbook(self._file)
         except Exception as e:
             logger.error(f"Error opening bulk import file {self._file.name}: {e}")
-            self.processing_status = (
-                OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
-            )
-            self.datetime_error = timezone.now()
-            self.error_message = f"Error opening bulk import file: {e}"
-            self.save()
+            logger.error("Unable to count rows. Returning from method.")
             return
 
         sheet = workbook.active
-        self.rows = sheet.max_row - 1
-        logger.debug(f"Found {self.rows} rows in bulk import file {self._file.name}")
+
+        # Count the rows that have data in them
+        all_rows = len(
+            [row for row in sheet if not all([cell.value is None for cell in row])]
+        )
+
+        # Remove the header row
+        self.rows = all_rows - 1
+
+        logger.info(f"Found {self.rows} rows in OCR Bulk Import Task {self._file.name}")
         self.save()
 
     @classmethod
     def validate_headers(self, _file, schema):
         logger.info(f"Validating headers for bulk import task {self.id}")
-        workbook = xlrd.open_workbook(file_contents=_file.read())
+
+        try:
+            workbook = openpyxl.load_workbook(_file, read_only=True)
+        except Exception as e:
+            logger.error(f"Error opening bulk import file {_file.name}: {e}")
+            logger.error("Unable to validate headers.")
+            return
 
         sheet = workbook.active
 
-        headers = [cell.value for cell in sheet[1]]
+        headers = [cell.value for cell in sheet[1] if cell.value is not None]
 
         if not headers:
             raise ValidationError("No headers found in the file")
 
         # Check that the headers match the schema (group type and version headings)
-
-        schema_headers = self.schema.columns.all().values_list(
-            "xlsx_column_header_name", flat=True
+        schema_headers = list(
+            schema.columns.all().values_list("xlsx_column_header_name", flat=True)
         )
         if headers == schema_headers:
-            return True
+            return
 
-        extra_headers = set(headers) - set(schema_headers)
-        missing_headers = set(schema_headers) - set(headers)
-        error_string = f"Headers do not match schema: {self.schema}."
+        extra_headers = ",".join(map(repr, set(headers) - set(schema_headers)))
+        missing_headers = ",".join(map(repr, set(schema_headers) - set(headers)))
+        error_string = (
+            f"The headers of the uploaded file do not match schema: {schema}."
+        )
         if missing_headers:
-            error_string += f" Missing: {missing_headers}"
+            error_string += (
+                " The file is missing the following headers that are part of the schema: "
+                f"{missing_headers}."
+            )
         if extra_headers:
-            error_string += f" Extra: {extra_headers}"
+            error_string += f" The file has the following headers that are not part of the schema: {extra_headers}"
         raise ValidationError(error_string)
 
     def process(self):
@@ -5429,6 +5445,9 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         self.datetime_started = timezone.now()
         self.save()
 
+        if not self.rows:
+            self.count_rows()
+
         # Open the file
         logger.info(f"Opening bulk import file {self._file.name}")
         try:
@@ -5446,58 +5465,119 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         # Get the first sheet
         sheet = workbook.active
 
-        # Get the headers
-        headers = [cell.value for cell in sheet[1]]
-
-        # TODO: Check that the headers match the schema (group type and version headings)
-
         # Get the rows
-        rows = list(sheet.iter_rows(min_row=2, max_row=self.rows + 1, values_only=True))
+        rows = list(
+            sheet.iter_rows(
+                min_row=2,
+                max_row=self.rows,
+                max_col=self.schema.columns.count(),
+                values_only=True,
+            )
+        )
 
         # Occurrence reports to create
-        occurrence_reports = []
+        models_to_insert = []
+        errors = []
 
         # Process the rows
-        for i, row in enumerate(rows):
-            self.rows_processed = i + 1
+        for index, row in enumerate(rows):
+            self.rows_processed = index + 1
             if self.rows_processed > self.rows:
                 logger.warning(
-                    f"Bulk import task {self.id} tried to process row {i + 1} "
+                    f"Bulk import task {self.id} tried to process row {index + 1} "
                     "which is greater than the total number of rows"
                 )
                 break
 
             self.save()
 
-            try:
-                self.process_row(row, headers, occurrence_reports)
-            except Exception as e:
-                logger.error(f"Error processing row {i + 1}: {e}")
-                self.processing_status = (
-                    OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
-                )
-                self.datetime_error = timezone.now()
-                self.error_row = i + 1
-                self.error_message = f"Error processing row {i + 1}: {e}"
-                self.save()
-                return
+            self.process_row(index, row, models_to_insert, errors)
 
-        # Set the task to completed
-        self.processing_status = (
-            OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
-        )
-        self.datetime_completed = timezone.now()
+        if errors:
+            self.processing_status = (
+                OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
+            )
+            self.datetime_error = timezone.now()
+            self.error_message = "Errors occurred during processing:\n"
+            for error in errors:
+                self.error_message += error["error_message"] + "\n"
+        else:
+            # Set the task to completed
+            self.processing_status = (
+                OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
+            )
+            self.datetime_completed = timezone.now()
         self.save()
 
-        return
+        return errors
 
-    def process_row(self, row, headers, occurrence_reports):
+    def process_row(self, index, row, models_to_insert, errors):
+        logger.debug(f"Processing row: Index {index}, Data: {row}")
         row_hash = hashlib.sha256(str(row).encode()).hexdigest()
-        OccurrenceReport(
-            bulk_import_task=self,
-            import_hash=row_hash,
+        if OccurrenceReport.objects.filter(import_hash=row_hash).exists():
+            duplicate_ocr = OccurrenceReport.objects.get(import_hash=row_hash)
+            error_message = (
+                f"Row {index} has the exact same data as "
+                f"Occurrence Report {duplicate_ocr.occurrence_report_number}"
+            )
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "row",
+                    "data": row,
+                    "error_message": error_message,
+                }
+            )
+            return
+
+        row_error_count = 0
+        column_error_count = 0
+
+        model_data = {}
+
+        # Validate each cell
+        for index, column in enumerate(self.schema.columns.all()):
+            logger.debug(f"  Processing column: {column}")
+
+            logger.debug(f"  Cell value: {row[index]}")
+            cell_value = row[index]
+
+            column_error_count += column.validate(cell_value, index, errors)
+
+            row_error_count += column_error_count
+
+            if column_error_count:
+                continue
+
+            model_data[column.django_import_field_name] = cell_value
+
+        if row_error_count > 0:
+            return
+
+        # Create an instance of the model that is going to be created
+        model_instance = apps.get_model(
+            column.django_import_content_type.app_label,
+            column.django_import_content_type.model,
         )
-        logger.info(f"Row hash: {row_hash}")
+
+        # Create the model instance from the data
+        if model_instance == OccurrenceReport:
+            model_data["bulk_import_task_id"] = self.pk
+            model_data["import_hash"] = row_hash
+            model_data["group_type_id"] = self.schema.group_type_id
+        try:
+            model_instance.objects.create(**model_data)
+        except IntegrityError as e:
+            logger.error(f"Error creating model instance: {e}")
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "integrity",
+                    "data": model_data,
+                    "error_message": f"Error creating model instance: {e}",
+                }
+            )
+
         return
 
     def retry(self):
@@ -5595,7 +5675,19 @@ class OccurrenceReportBulkImportSchema(models.Model):
             model_field = model_class._meta.get_field(column.django_import_field_name)
             logger.debug(f"model_field_type: {type(model_field)}")
             dv = None
-            if isinstance(model_field, models.fields.CharField) and model_field.choices:
+            if column.default_value is not None:
+                dv = DataValidation(
+                    type=dv_types["list"],
+                    allow_blank=model_field.null,
+                    formula1=column.default_value,
+                    error=f"This field may only contain the value '{column.default_value}'",
+                    errorTitle="Invalid value for column with default value",
+                    prompt="Either leave the field blank or enter the default value",
+                    promptTitle="Value",
+                )
+            elif (
+                isinstance(model_field, models.fields.CharField) and model_field.choices
+            ):
                 dv = DataValidation(
                     type=dv_types["list"],
                     allow_blank=model_field.null,
@@ -5638,6 +5730,8 @@ class OccurrenceReportBulkImportSchema(models.Model):
             elif isinstance(model_field, models.fields.IntegerField):
                 dv = DataValidation(
                     type=dv_types["whole"],
+                    operator=dv_operators["greaterThanOrEqual"],
+                    formula1="0",
                     allow_blank=model_field.null,
                     error="Please enter a whole number",
                     errorTitle="Invalid number",
@@ -5662,6 +5756,58 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     errorTitle="Invalid selection",
                     prompt="Select True or False",
                     promptTitle="Boolean selection",
+                )
+            elif (
+                isinstance(model_field, models.fields.related.ForeignKey)
+                and model_field.related_model
+            ):
+                related_model = model_field.related_model
+                related_model_qs = related_model.objects.all()
+
+                # Check if the related model is Archivable
+                if issubclass(related_model, ArchivableModel):
+                    related_model_qs = related_model_qs.exclude(archived=True)
+
+                if (
+                    not related_model_qs.exists()
+                    or related_model_qs.count() == 0
+                    or related_model_qs.count()
+                    > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
+                ):
+                    # If there are no records or too many records, we don't embed a data validation
+                    # Instead, the field will be validated during the import process
+                    continue
+
+                # Find the best field to use for a display value
+                display_field = None
+                fields = related_model._meta.get_fields()
+                for field in fields:
+                    if (
+                        field.name
+                        in settings.OCR_BULK_IMPORT_LOOKUP_TABLE_DISPLAY_FIELDS
+                    ):
+                        display_field = field.name
+                        break
+
+                if not display_field:
+                    # If we can't find a display field, we'll just use the first CharField we find
+                    for field in fields:
+                        if isinstance(field, models.fields.CharField):
+                            display_field = field.name
+                            break
+
+                if not display_field:
+                    # Fall back to the id
+                    display_field = "id"
+
+                dv = DataValidation(
+                    type=dv_types["list"],
+                    allow_blank=model_field.null,
+                    formula1=f'"{",".join([str(getattr(obj, display_field)) for obj in related_model_qs])}"',
+                    error="Please select a valid option from the list",
+                    errorTitle="Invalid selection",
+                    prompt="Select a value from the list",
+                    promptTitle="List selection",
                 )
             else:
                 # Mostly covers TextField
@@ -5690,6 +5836,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
 
         return workbook
 
+    @transaction.atomic
     def copy(self):
         if not self.pk:
             raise ValueError("Schema must be saved before it can be copied")
@@ -5711,8 +5858,14 @@ class OccurrenceReportBulkImportSchema(models.Model):
         else:
             new_schema.name = f"Copy of Version {self.version}"
         new_schema.save()
-
-        for column in self.columns.all():
+        django_import_content_type = ct_models.ContentType.objects.get_for_model(
+            OccurrenceReport
+        )
+        # Copy all columns except those that were automatically created
+        for column in self.columns.exclude(
+            django_import_content_type=django_import_content_type,
+            django_import_field_name="migrated_from_id",
+        ):
             new_column = OccurrenceReportBulkImportSchemaColumn.objects.get(
                 pk=column.pk
             )
@@ -5725,7 +5878,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
         return new_schema
 
 
-class OccurrenceReportBulkImportSchemaColumn(models.Model):
+class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
     schema = models.ForeignKey(
         OccurrenceReportBulkImportSchema,
         related_name="columns",
@@ -5773,12 +5926,22 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
         max_length=50, blank=True, null=True
     )
 
+    order_with_respect_to = "schema"
+
+    DEFAULT_VALUE_REQUEST_USER_ID = "request_user_id"
+    DEFAULT_VALUE_CHOICES = ((DEFAULT_VALUE_REQUEST_USER_ID, "Request User ID"),)
+
+    default_value = models.CharField(
+        max_length=255, choices=DEFAULT_VALUE_CHOICES, blank=True, null=True
+    )
+
     # TODO: How are we going to do the list lookup validation for much larger datasets (mostly for species)
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Occurrence Report Bulk Import Schema Column"
         verbose_name_plural = "Occurrence Report Bulk Import Schema Columns"
+        ordering = ["schema", "order"]
         constraints = [
             models.UniqueConstraint(
                 fields=[
@@ -5794,39 +5957,109 @@ class OccurrenceReportBulkImportSchemaColumn(models.Model):
                 name="unique_schema_column_header",
                 violation_error_message="This column name already exists in the schema",
             ),
+            # models.UniqueConstraint(
+            #     fields=["schema", "order"],
+            #     name="unique_schema_column_order",
+            #     violation_error_message="A column with this order value already exists in the same schema",
+            # ),
         ]
 
     def __str__(self):
         return f"{self.xlsx_column_header_name} - {self.schema}"
 
-    def validate(self, value):
-        if self.data_validation_type == "whole":
-            if not isinstance(value, int):
-                raise ValidationError(
-                    f"Default value for {self.column_header_name} must be an integer"
-                )
+    def validate(self, cell_value, index, errors):
+        errors_added = 0
+        if not self.xlsx_data_validation_allow_blank and not cell_value:
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "column",
+                    "data": cell_value,
+                    "error_message": f"Value in column {self.xlsx_column_header_name} is blank",
+                }
+            )
+            errors_added += 1
 
-        if self.data_validation_type == "decimal":
-            try:
-                value = Decimal(value)
-            except Exception:
-                raise ValidationError(
-                    f"Default value for {self.column_header_name} must be a decimal"
+        if self.xlsx_data_validation_type == "textLength":
+            if len(cell_value) > int(self.xlsx_data_validation_formula1):
+                error_message = f"Value {cell_value} in column {self.xlsx_column_header_name} has too many characters"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
                 )
-        if self.data_validation_type == "date":
-            try:
-                value = dateutil.parser.parse(value)
-            except Exception:
-                raise ValidationError(
-                    f"Default value for {self.column_header_name} must be a date"
+                errors_added += 1
+
+        if self.xlsx_data_validation_type == "whole":
+            if not isinstance(cell_value, int):
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not an integer",
+                    }
                 )
-        if self.data_validation_type == "time":
+                errors_added += 1
+
+        if self.xlsx_data_validation_type == "decimal":
             try:
-                value = dateutil.parser.parse(value)
+                cell_value = Decimal(cell_value)
             except Exception:
-                raise ValidationError(
-                    f"Default value for {self.column_header_name} must be a time"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not a decimal",
+                    }
                 )
+                errors_added += 1
+
+        if self.xlsx_data_validation_type == "date":
+            try:
+                cell_value = dateutil.parser.parse(cell_value)
+            except Exception:
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not a date",
+                    }
+                )
+                errors_added += 1
+
+        if self.xlsx_data_validation_type == "time":
+            try:
+                cell_value = dateutil.parser.parse(cell_value)
+            except Exception:
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not a time",
+                    }
+                )
+                errors_added += 1
+
+        if self.xlsx_data_validation_type == "list":
+            if cell_value not in self.xlsx_data_validation_formula1:
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not in the list",
+                    }
+                )
+                errors_added += 1
+
+        return errors_added
 
 
 # Occurrence Report Document

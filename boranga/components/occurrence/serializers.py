@@ -1,7 +1,7 @@
 import hashlib
 import logging
 
-from django.db import models
+from django.db import models, transaction
 from django.urls import reverse
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
@@ -3864,12 +3864,66 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
         return None
 
 
+class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OccurrenceReportBulkImportSchemaColumn
+        fields = "__all__"
+        read_only_fields = ("id",)
+
+
+class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
+    serializers.ModelSerializer
+):
+    id = serializers.IntegerField()
+    order = serializers.IntegerField()
+
+    class Meta:
+        model = OccurrenceReportBulkImportSchemaColumn
+        fields = "__all__"
+        validators = []  # Validation is done in the parent serializer
+
+
+class OccurrenceReportBulkImportSchemaSerializer(
+    TaggitSerializer, serializers.ModelSerializer
+):
+    columns = OccurrenceReportBulkImportSchemaColumnNestedSerializer(
+        many=True, allow_null=True, required=False
+    )
+    tags = TagListSerializerField(allow_null=True, required=False)
+    group_type_display = serializers.CharField(source="group_type.name", read_only=True)
+    version = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = OccurrenceReportBulkImportSchema
+        fields = "__all__"
+        read_only_fields = ("id",)
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        columns_data = validated_data.pop("columns", None)
+        if not columns_data or len(columns_data) == 0:
+            return super().update(instance, validated_data)
+
+        # Delete any columns that are not in the new data
+        ids_to_keep = [
+            column_data["id"] for column_data in columns_data if "id" in column_data
+        ]
+        instance.columns.exclude(id__in=ids_to_keep).delete()
+        for column_data in columns_data:
+            OccurrenceReportBulkImportSchemaColumn.objects.update_or_create(
+                pk=column_data.get("id"), defaults=column_data
+            )
+        return super().update(instance, validated_data)
+
+
 class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
     estimated_processing_time_human_readable = serializers.CharField(read_only=True)
     total_time_taken_human_readable = serializers.CharField(read_only=True)
     file_size_megabytes = serializers.CharField(read_only=True)
     file_name = serializers.CharField(read_only=True)
     percentage_complete = serializers.CharField(read_only=True)
+    schema_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = OccurrenceReportBulkImportTask
@@ -3891,8 +3945,22 @@ class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
             "percentage_complete",
         )
 
+    def validate(self, attrs):
+        _file = attrs["_file"]
+        try:
+            schema = OccurrenceReportBulkImportSchema.objects.get(id=attrs["schema_id"])
+        except OccurrenceReportBulkImportSchema.DoesNotExist:
+            raise serializers.ValidationError(
+                f"Schema with id {attrs['schema']} does not exist."
+            )
+        OccurrenceReportBulkImportTask.validate_headers(_file, schema)
+        return super().validate(attrs)
+
     def create(self, validated_data):
         _file = validated_data["_file"]
+        # The file is read in the validate method, so we need to reset the file pointer
+        # before generating the hash
+        _file.seek(0)
         file_hash = hashlib.sha256(_file.read()).hexdigest()
         _file.seek(0)
         qs = OccurrenceReportBulkImportTask.objects.filter(file_hash=file_hash)
@@ -3915,66 +3983,3 @@ class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
                 "An import task with exactly the same file contents has already been completed."
             )
         return super().create(validated_data)
-
-
-class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = OccurrenceReportBulkImportSchemaColumn
-        fields = "__all__"
-        read_only_fields = ("id",)
-
-
-class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
-    serializers.ModelSerializer
-):
-
-    class Meta:
-        model = OccurrenceReportBulkImportSchemaColumn
-        fields = "__all__"
-        read_only_fields = ("id",)
-        validators = []  # Validation is done in the parent serializer
-
-    def validate(self, attrs):
-        return super().validate(attrs)
-
-
-class OccurrenceReportBulkImportSchemaSerializer(
-    TaggitSerializer, serializers.ModelSerializer
-):
-    columns = OccurrenceReportBulkImportSchemaColumnNestedSerializer(
-        many=True, allow_null=True, required=False
-    )
-    tags = TagListSerializerField(allow_null=True, required=False)
-    group_type_display = serializers.CharField(source="group_type.name", read_only=True)
-    version = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = OccurrenceReportBulkImportSchema
-        fields = "__all__"
-        read_only_fields = ("id",)
-
-    def validate(self, data):
-        logger.debug(f"data: {data}")
-        return data
-
-    def update(self, instance, validated_data):
-        columns_data = validated_data.pop("columns", None)
-
-        if not columns_data:
-            return super().update(instance, validated_data)
-
-        # Delete any columns that are not in the new data
-        instance.columns.exclude(
-            id__in=[
-                column_data["id"]
-                for column_data in columns_data
-                if hasattr(column_data, "id")
-            ]
-        ).delete()
-        for column_data in columns_data:
-            logger.debug(f"Column data: {column_data}")
-            OccurrenceReportBulkImportSchemaColumn.objects.update_or_create(
-                **column_data
-            )
-        return super().update(instance, validated_data)

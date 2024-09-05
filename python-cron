@@ -7,5 +7,4 @@
 # |  |  |  |  |
 # *  *  *  *  * Command
 
-*/5 * * * * /app/venv/bin/python3 /app/manage.py runcrons >> /app/logs/cronjob.log 2>&1
-1 * * * * * /app/venv/bin/python3 /app/manage.py runcrons >> /app/logs/cronjob.log 2>&1
+*/2 * * * * /app/venv/bin/python3 /app/manage.py runcrons >> /app/logs/cronjob.log 2>&1

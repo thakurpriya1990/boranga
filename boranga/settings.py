@@ -129,6 +129,7 @@ INSTALLED_APPS += [
     "nested_admin",
     "colorfield",
     "django_filters",
+    "ordered_model",
 ]
 
 ADD_REVERSION_ADMIN = True
@@ -470,3 +471,17 @@ FILE_UPLOAD_PERMISSIONS = None
 OCR_BULK_IMPORT_TASK_TIMEOUT_SECONDS = env(
     "OCR_BULK_IMPORT_TASK_TIMEOUT_SECONDS", 60 * 5
 )  # Default = 5 minutes
+
+OCR_BULK_IMPORT_PROCESS_TASKS_IMMEDIATELY = env(
+    "OCR_BULK_IMPORT_PROCESS_TASKS_IMMEDIATELY", False
+)  # used to make testing easier (i.e. set to True in local env) NEVER set to True in production!
+
+OCR_BULK_IMPORT_LOOKUP_TABLE_DISPLAY_FIELDS = [
+    "name",
+    "display_name",
+    "code",
+]
+
+OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT = env(
+    "OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT", 100
+)

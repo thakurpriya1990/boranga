@@ -12,6 +12,7 @@ from django.db.models.functions import Concat
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.utils import timezone
 from django_filters import rest_framework as filters
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from multiselectfield import MultiSelectField
@@ -22,6 +23,7 @@ from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
 from rest_framework.decorators import renderer_classes
+from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
@@ -68,6 +70,7 @@ from boranga.components.occurrence.models import (
     OccurrenceReportAmendmentRequest,
     OccurrenceReportAmendmentRequestDocument,
     OccurrenceReportBulkImportSchema,
+    OccurrenceReportBulkImportSchemaColumn,
     OccurrenceReportBulkImportTask,
     OccurrenceReportDocument,
     OccurrenceReportGeometry,
@@ -6274,12 +6277,35 @@ class OccurrenceReportBulkImportTaskViewSet(
     queryset = OccurrenceReportBulkImportTask.objects.all()
     permission_classes = [OccurrenceReportBulkImportPermission]
     serializer_class = OccurrenceReportBulkImportTaskSerializer
-    filter_backends = [filters.DjangoFilterBackend]
+    filter_backends = [OrderingFilter, filters.DjangoFilterBackend]
     filterset_fields = ["processing_status"]
+    ordering_fields = ["datetime_queued", "datetime_started", "datetime_completed"]
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
-        serializer.save(email_user=self.request.user.id)
+        instance = serializer.save(email_user=self.request.user.id)
+        if settings.OCR_BULK_IMPORT_PROCESS_TASKS_IMMEDIATELY is True:
+            try:
+                errors = instance.process()
+                if errors:
+                    instance.processing_status = (
+                        OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
+                    )
+                    instance.datetime_error = timezone.now()
+                else:
+                    instance.processing_status = (
+                        OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
+                    )
+                    instance.datetime_completed = timezone.now()
+                instance.save()
+            except Exception as e:
+                logger.error(
+                    f"Error processing bulk import task {instance.id}: {str(e)}"
+                )
+                instance.processing_status = (
+                    OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
+                )
+                instance.datetime_error = timezone.now()
 
     @detail_route(methods=["patch"], detail=True)
     def retry(self, request, *args, **kwargs):
@@ -6375,6 +6401,42 @@ class OccurrenceReportBulkImportSchemaViewSet(
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        serializer = OccurrenceReportBulkImportSchemaSerializer(instance)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @detail_route(methods=["get"], detail=False)
+    def default_value_choices(self, request, *args, **kwargs):
+        default_value_field = OccurrenceReportBulkImportSchemaColumn._meta.get_field(
+            "default_value"
+        )
+        return Response(default_value_field.choices, status=status.HTTP_200_OK)
+
+    @detail_route(methods=["patch"], detail=True)
+    def reorder_column(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Don't order columns that haven't been saved
+        pk = request.data.get("id", None)
+        if not pk:
+            raise serializers.ValidationError(
+                "column must have id field to be reordered (i.e. record must be saved first)"
+            )
+
+        order = request.data.get("order", None)
+        if order is None:
+            raise serializers.ValidationError("order field is missing from column")
+
+        try:
+            column = instance.columns.get(pk=pk)
+        except OccurrenceReportBulkImportSchemaColumn.DoesNotExist:
+            raise serializers.ValidationError(
+                f"Column with id {pk} not found in schema"
+            )
+
+        column.to(order)
+
+        # instance.refresh_from_db()
 
         serializer = OccurrenceReportBulkImportSchemaSerializer(instance)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

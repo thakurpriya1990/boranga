@@ -41,7 +41,7 @@
                                                 <tr>
                                                     <td v-for="column in selected_schema_version.columns">{{
                                                         column.xlsx_data_validation_type ?
-                                                        column.xlsx_data_validation_type : 'None' }}</td>
+                                                            column.xlsx_data_validation_type : 'None' }}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -96,8 +96,7 @@
                                             <td class="text-truncate" style="max-width: 350px;">{{
                                                 queuedImport.file_name }}</td>
                                             <td>{{ queuedImport.file_size_megabytes }} MB</td>
-                                            <td class="text-end pe-3">{{ queuedImport.rows ? queuedImport.rows : 'Not
-                                                Counted' }}</td>
+                                            <td class="text-end pe-3">{{ queuedImport.rows ? queuedImport.rows : 'Not Counted' }}</td>
                                             <td>{{ queuedImport.estimated_processing_time_human_readable }}</td>
                                         </tr>
                                     </tbody>
@@ -151,7 +150,7 @@
                         </div>
                     </div>
                 </div>
-                <div v-if="failedImports && failedImports.length > 0" class="mb-3">
+                <div v-if="failedImports && failedImports.count > 0" class="mb-3">
                     <div class="card border-danger">
                         <div class="card-body">
                             <h5 class="card-title text-danger mb-3"><i class="bi bi-list-checkme-2"></i>Failed Bulk
@@ -163,49 +162,48 @@
                                             <th scope="col">Datetime Started</th>
                                             <th scope="col">File Name</th>
                                             <th scope="col">File Size</th>
-                                            <th scope="col">Records Imported</th>
+                                            <th scope="col">Rows Attempted</th>
                                             <th scope="col">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="failedImport in failedImports"
+                                        <tr v-for="failedImport in failedImports.results"
                                             :id="`failed-import-${failedImport.id}`" class="">
                                             <td>{{ new Date(failedImport.datetime_started).toLocaleString() }}</td>
                                             <td class="text-truncate" style="max-width: 350px;">{{
                                                 failedImport.file_name }}</td>
                                             <td>{{ failedImport.file_size_megabytes }} MB</td>
-                                            <td class="text-end pe-3">{{ failedImport.rows ? failedImport.rows :
+                                            <td class="">{{ failedImport.rows ? failedImport.rows :
                                                 'Not Counted' }}</td>
                                             <td>
                                                 <button class="btn btn-sm btn-danger me-2"
-                                                    data-bs-target="#staticBackdrop" data-bs-toggle="modal"
+                                                    data-bs-target="#errors-modal" data-bs-toggle="modal"
                                                     @click="selectedErrors = failedImport.error_message"><i
                                                         class="bi bi-eye"></i>
                                                     View Errors</button>
-                                                <button class="btn btn-sm btn-primary"
-                                                    @click.prevent="retryBulkImportTask(failedImport.id)"><i
-                                                        class="bi bi-arrow-clockwise"></i> Retry</button>
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
-                            <p class="card-text text-center"><a href="">load more</a></p>
+                            <p v-if="failedImports.count > failedImports.results.length" class="card-text text-center">
+                                <a @click.prevent="loadMoreFailedImports" href="">load more</a>
+                            </p>
                         </div>
                     </div>
                     <!-- Modal -->
-                    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
-                        tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                        <div class="modal-dialog">
+                    <div class="modal fade" id="errors-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                        tabindex="-1" aria-labelledby="errors-modal-label" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="staticBackdropLabel">
+                                    <h5 class="modal-title" id="errors-modal-label">
                                         Bulk Import Task Errors</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    {{ selectedErrors }}
+                                    <pre>{{ selectedErrors }}</pre>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary"
@@ -215,7 +213,7 @@
                         </div>
                     </div>
                 </div>
-                <div v-if="completedImports && completedImports.length > 0" class="mb-3">
+                <div v-if="completedImports && completedImports.count > 0" class="mb-3">
                     <div class="card border-success">
                         <div class="card-body">
                             <h5 class="card-title text-success mb-3"><i class="bi bi-list-checkme-2"></i>Completed Bulk
@@ -236,7 +234,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="completedImport in completedImports" class="">
+                                        <tr v-for="completedImport in completedImports.results" class="">
                                             <td>{{ new Date(completedImport.datetime_completed).toLocaleString() }}
                                             </td>
                                             <td class="text-truncate" style="max-width: 350px;">{{
@@ -254,7 +252,10 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <p class="card-text text-center"><a href="">load more</a></p>
+                            <p v-if="completedImports.count > completedImports.results.length"
+                                class="card-text text-center">
+                                <a @click.prevent="loadMoreCompletedImports" href="">load more</a>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -276,7 +277,9 @@ export default {
             queuedImports: null,
             currentlyRunningImports: null,
             failedImports: null,
+            failedImportsLimit: 3,
             completedImports: null,
+            completedImportsLimit: 3,
             timer: null,
             currentlyRunningTimer: null,
             selectedErrors: '',
@@ -291,7 +294,7 @@ export default {
     computed: {
         title: function () {
             return this.$route.query.group_type + ' Occurrence Report Bulk Import';
-        }
+        },
     },
     methods: {
         getSchemaVersionText(schema_version) {
@@ -311,6 +314,7 @@ export default {
             const file = event.target.files[0];
             const formData = new FormData();
             formData.append('_file', file);
+            formData.append('schema_id', this.selected_schema_version.id);
 
             this.$http.post(api_endpoints.occurrence_report_bulk_imports, formData).then((response) => {
                 if (response.status >= 200 && response.status < 300) {
@@ -330,11 +334,13 @@ export default {
                     });
                 } else {
                     this.importFileErrors = response.body;
+                    event.target.value = '';
                     this.$refs['bulk-import-file'].setCustomValidity('Invalid field');
                     this.form.classList.add('was-validated');
                 }
             }, (error) => {
                 this.importFileErrors = error.body;
+                event.target.value = '';
                 this.$refs['bulk-import-file'].setCustomValidity('Invalid field');
                 this.form.classList.add('was-validated');
                 console.log(error.body);
@@ -381,18 +387,26 @@ export default {
             });
         },
         fetchFailedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=failed&limit=3`).then((response) => {
-                this.failedImports = response.body.results;
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=failed&limit=${this.failedImportsLimit}&ordering=-datetime_started`).then((response) => {
+                this.failedImports = response.body;
             }, (error) => {
                 console.log(error);
             });
         },
+        loadMoreFailedImports() {
+            this.failedImportsLimit += 3;
+            this.fetchFailedImports();
+        },
         fetchCompletedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=completed&limit=3`).then((response) => {
-                this.completedImports = response.body.results;
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=completed&limit=${this.completedImportsLimit}`).then((response) => {
+                this.completedImports = response.body;
             }, (error) => {
                 console.log(error);
             });
+        },
+        loadMoreCompletedImports() {
+            this.completedImportsLimit += 3;
+            this.fetchCompletedImports();
         },
         retryBulkImportTask(bulkImportTaskId) {
             // Call the api to retry the bulk import task
@@ -426,7 +440,7 @@ export default {
                     this.$http.patch(`${api_endpoints.occurrence_report_bulk_imports}${bulkImportTaskId}/revert/`).then((response) => {
                         console.log(response);
                         // Remove the completed import from the completed imports list
-                        this.completedImports = this.completedImports.filter((completedImport) => {
+                        this.completedImports = this.completedImports.results.filter((completedImport) => {
                             return completedImport.id !== bulkImportTaskId;
                         });
                         this.fetchQueuedImports();
