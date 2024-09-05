@@ -560,15 +560,6 @@ export default {
                 return vm.isReadOnly;
             }
         },
-        isAOOReadOnly: function () {
-            let vm = this;
-            if (vm.species_community.distribution.aoo_auto === true) {
-                return true;
-            }
-            else {
-                return vm.isReadOnly;
-            }
-        },
         isAOOActualReadOnly: function () {
             let vm = this;
             if (vm.species_community.distribution.aoo_actual_auto === true) {
@@ -969,9 +960,6 @@ export default {
             }
             if (vm.species_community.distribution.aoo_actual_auto == true) {
                 vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.cal_area_of_occupancy_actual;
-            }
-            if (vm.species_community.distribution.aoo_auto == true) {
-                vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
             }
         }
         if (vm.species_community.conservation_attributes) {

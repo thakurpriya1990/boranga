@@ -250,18 +250,6 @@
                     <input :disabled="isReadOnly" type="number" class="form-control" id="area_of_occupany"
                         placeholder="" v-model="species_community.distribution.area_of_occupancy" />
                 </div>
-                <div class="col-sm-3">
-                    <div class="form-check form-check-inline">
-                        <input :disabled="isReadOnly" type="radio" value="true" class="aoo_auto form-check-input"
-                            name="aoo_auto" v-model="species_community.distribution.aoo_auto">
-                        <label class="form-check-label">auto</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input :disabled="isReadOnly" type="radio" value="false" class="aoo_auto form-check-input"
-                            name="aoo_auto" v-model="species_community.distribution.aoo_auto">
-                        <label class="form-check-label">manual</label>
-                    </div>
-                </div>
             </div>
             <div>
                 <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
@@ -1443,16 +1431,6 @@ export default {
                 vm.species_community.distribution.area_of_occupancy_actual = null;
             }
         },
-        "species_community.distribution.aoo_auto": function (newVal) {
-            let vm = this;
-            var selectedValue = newVal;
-            if (selectedValue === "true") {
-                vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
-            }
-            else {
-                vm.species_community.distribution.area_of_occupancy = null;
-            }
-        },
     },
     methods: {
         filterDistrict: function (event) {
@@ -1910,9 +1888,6 @@ export default {
         }
         if (vm.species_community.distribution.aoo_actual_auto == true) {
             vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.cal_area_of_occupancy_actual;
-        }
-        if (vm.species_community.distribution.aoo_auto == true) {
-            vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
         }
         if (vm.species_community.conservation_attributes.minimum_fire_interval_to != null &&
             vm.species_community.conservation_attributes.minimum_fire_interval_to != "" &&

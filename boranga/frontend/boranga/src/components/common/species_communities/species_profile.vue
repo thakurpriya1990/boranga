@@ -931,15 +931,6 @@ export default {
                 return vm.isReadOnly;
             }
         },
-        isAOOReadOnly: function () {
-            let vm = this;
-            if (vm.species_community.distribution.aoo_auto === true) {
-                return true;
-            }
-            else {
-                return vm.isReadOnly;
-            }
-        },
         isAOOActualReadOnly: function () {
             let vm = this;
             if (vm.species_community.distribution.aoo_actual_auto === true) {

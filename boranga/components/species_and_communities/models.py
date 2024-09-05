@@ -1162,9 +1162,6 @@ class SpeciesDistribution(models.Model):
         default=True
     )  # extra boolean field to check auto or manual entry of extent_of_occurrences
     area_of_occupancy = models.IntegerField(null=True, blank=True)
-    aoo_auto = models.BooleanField(
-        default=True
-    )  # to check auto or manual entry of area_of_occupancy
     area_of_occupancy_actual = models.DecimalField(
         max_digits=15, decimal_places=5, null=True, blank=True
     )
@@ -2004,9 +2001,6 @@ class CommunityDistribution(models.Model):
         default=True
     )  # extra boolean field to check auto or manual entry of extent_of_occurrences
     area_of_occupancy = models.IntegerField(null=True, blank=True)
-    aoo_auto = models.BooleanField(
-        default=True
-    )  # to check auto or manual entry of area_of_occupancy
     area_of_occupancy_actual = models.DecimalField(
         max_digits=15, decimal_places=5, null=True, blank=True
     )
