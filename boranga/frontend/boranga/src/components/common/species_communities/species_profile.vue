@@ -642,7 +642,7 @@
                 <label for="" class="col-sm-3 col-form-label">Department File Numbers:</label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="department_file_numbers"
-                        placeholder="" v-model="species_community.distribution.department_file_numbers" />
+                        placeholder="" v-model="species_community.department_file_numbers" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -925,15 +925,6 @@ export default {
         isEOOReadOnly: function () {
             let vm = this;
             if (vm.species_community.distribution.eoo_auto === true) {
-                return true;
-            }
-            else {
-                return vm.isReadOnly;
-            }
-        },
-        isAOOReadOnly: function () {
-            let vm = this;
-            if (vm.species_community.distribution.aoo_auto === true) {
                 return true;
             }
             else {

@@ -191,77 +191,21 @@ export default {
         },
         column_community_name: function () {
             return {
-                data: 'data.data.communitytaxonomy.fields.community_name',
+                data: 'data.communitytaxonomy.fields.community_name',
                 defaultContent: '',
                 orderable: false,
                 searchable: true,
                 visible: true,
-                render: function (row, type, full) {
-                    if (full.data.communitytaxonomy !== undefined) {
-                        //list not dict
-                        var fallback_name = ""; //if none of the names are current somehow, use this
-                        if (full.data.communitytaxonomy.fields === undefined) {
-                            for (var i = 0; i < full.data.communitytaxonomy.length; i++) {
-                                if (full.data.communitytaxonomy[i].name_currency) {
-                                    //return full.data.communitytaxonomy[i].fields.community_name
-                                    let value = full.data.communitytaxonomy[i].fields.community_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    return type=='export' ? value : result;
-                                } else {
-                                    let value = full.data.communitytaxonomy[i].fields.community_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    fallback_name = type=='export' ? value : result;
-                                }
-                            }
-                            return fallback_name;
-                        }
-
-                        //return full.data.communitytaxonomy.fields.community_name;
-                        let value = full.data.communitytaxonomy.fields.community_name;
-                        let result = helpers.dtPopover(value, 30, 'hover');
-                        return type=='export' ? value : result;
-                    } else {
-                        return ''
-                    }
-                },
                 name: 'community_name',
             };
         },
         column_previous_name: function () {
             return {
-                data: 'data.data.communitytaxonomy.fields.previous_name',
+                data: 'data.communitytaxonomy.fields.previous_name',
                 defaultContent: '',
                 orderable: false,
                 searchable: false,
                 visible: true,
-                render: function (row, type, full) {
-                    if (full.data.communitytaxonomy !== undefined) {
-                        //list not dict
-                        var fallback_name = ""; //if none of the names are current somehow, use this
-                        if (full.data.communitytaxonomy.fields === undefined) {
-                            for (var i = 0; i < full.data.communitytaxonomy.length; i++) {
-                                if (full.data.communitytaxonomy[i].name_currency) {
-                                    //return full.data.communitytaxonomy[i].fields.previous_name
-                                    let value = full.data.communitytaxonomy[i].fields.previous_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    return type=='export' ? value : result;
-                                } else {
-                                    let value = full.data.communitytaxonomy[i].fields.previous_name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    fallback_name = type=='export' ? value : result;
-                                }
-                            }
-                            return fallback_name;
-                        }
-
-                        //return full.data.communitytaxonomy.fields.previous_name;
-                        let value = full.data.communitytaxonomy.fields.previous_name;
-                        let result = helpers.dtPopover(value, 30, 'hover');
-                        return type=='export' ? value : result;
-                    } else {
-                        return ''
-                    }
-                },
                 name: 'previous_name', //_name',
             };
         },

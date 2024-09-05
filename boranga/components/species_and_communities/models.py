@@ -431,12 +431,12 @@ class Species(RevisionedMixin):
         null=True,
         blank=True,
     )
-    prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True, blank=True)  # EmailUserRO
     # parents will the original species  from the split/combine functionality
     parent_species = models.ManyToManyField("self", blank=True)
     comment = models.CharField(max_length=500, null=True, blank=True)
+    department_file_numbers = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -1153,9 +1153,6 @@ class SpeciesDistribution(models.Model):
     - Table
     """
 
-    department_file_numbers = models.CharField(
-        max_length=512, null=True, blank=True
-    )  # objective, legacy, list of things
     number_of_occurrences = models.IntegerField(null=True, blank=True)
     noo_auto = models.BooleanField(
         default=True
@@ -1165,9 +1162,6 @@ class SpeciesDistribution(models.Model):
         default=True
     )  # extra boolean field to check auto or manual entry of extent_of_occurrences
     area_of_occupancy = models.IntegerField(null=True, blank=True)
-    aoo_auto = models.BooleanField(
-        default=True
-    )  # to check auto or manual entry of area_of_occupancy
     area_of_occupancy_actual = models.DecimalField(
         max_digits=15, decimal_places=5, null=True, blank=True
     )
@@ -1255,9 +1249,9 @@ class Community(RevisionedMixin):
         choices=PROCESSING_STATUS_CHOICES,
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
-    prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
     lodgement_date = models.DateTimeField(blank=True, null=True)
     comment = models.CharField(max_length=500, null=True, blank=True)
+    department_file_numbers = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -1901,9 +1895,6 @@ class CommunityTaxonomy(models.Model):
         max_length=512, null=True, blank=True, unique=True
     )
     community_description = models.CharField(max_length=2048, null=True, blank=True)
-    name_currency = models.CharField(
-        max_length=16, null=True, blank=True
-    )  # is it the is_current name? true or false
     previous_name = models.CharField(max_length=512, null=True, blank=True)
     name_authority = models.CharField(max_length=500, null=True, blank=True)
     name_comments = models.CharField(max_length=500, null=True, blank=True)
@@ -1998,9 +1989,6 @@ class CommunityDistribution(models.Model):
     - Table
     """
 
-    department_file_numbers = models.CharField(
-        max_length=512, null=True, blank=True
-    )  # objective, legacy, list of things
     number_of_occurrences = models.IntegerField(null=True, blank=True)
     noo_auto = models.BooleanField(
         default=True
@@ -2010,9 +1998,6 @@ class CommunityDistribution(models.Model):
         default=True
     )  # extra boolean field to check auto or manual entry of extent_of_occurrences
     area_of_occupancy = models.IntegerField(null=True, blank=True)
-    aoo_auto = models.BooleanField(
-        default=True
-    )  # to check auto or manual entry of area_of_occupancy
     area_of_occupancy_actual = models.DecimalField(
         max_digits=15, decimal_places=5, null=True, blank=True
     )

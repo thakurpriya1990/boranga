@@ -350,7 +350,7 @@
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
                 <div class="col-sm-9">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="department_file_numbers"
-                        placeholder="" v-model="species_community.distribution.department_file_numbers" />
+                        placeholder="" v-model="species_community.department_file_numbers" />
                 </div>
             </div>
             <div class="row mb-3">
@@ -554,15 +554,6 @@ export default {
         isEOOReadOnly: function () {
             let vm = this;
             if (vm.species_community.distribution.eoo_auto === true) {
-                return true;
-            }
-            else {
-                return vm.isReadOnly;
-            }
-        },
-        isAOOReadOnly: function () {
-            let vm = this;
-            if (vm.species_community.distribution.aoo_auto === true) {
                 return true;
             }
             else {
@@ -969,9 +960,6 @@ export default {
             }
             if (vm.species_community.distribution.aoo_actual_auto == true) {
                 vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.cal_area_of_occupancy_actual;
-            }
-            if (vm.species_community.distribution.aoo_auto == true) {
-                vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
             }
         }
         if (vm.species_community.conservation_attributes) {

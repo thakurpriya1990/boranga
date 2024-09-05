@@ -10,7 +10,7 @@ from wagov_utils.components.utils.email import (
     TemplateEmailBase as WAGovUtilsTemplateEmailBase,
 )
 
-logger = logging.getLogger("log")
+logger = logging.getLogger(__name__)
 
 
 def _render(template, context):

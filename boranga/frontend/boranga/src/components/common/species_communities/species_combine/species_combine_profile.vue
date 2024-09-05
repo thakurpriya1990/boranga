@@ -250,18 +250,6 @@
                     <input :disabled="isReadOnly" type="number" class="form-control" id="area_of_occupany"
                         placeholder="" v-model="species_community.distribution.area_of_occupancy" />
                 </div>
-                <div class="col-sm-3">
-                    <div class="form-check form-check-inline">
-                        <input :disabled="isReadOnly" type="radio" value="true" class="aoo_auto form-check-input"
-                            name="aoo_auto" v-model="species_community.distribution.aoo_auto">
-                        <label class="form-check-label">auto</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input :disabled="isReadOnly" type="radio" value="false" class="aoo_auto form-check-input"
-                            name="aoo_auto" v-model="species_community.distribution.aoo_auto">
-                        <label class="form-check-label">manual</label>
-                    </div>
-                </div>
             </div>
             <div>
                 <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
@@ -1259,13 +1247,13 @@
                         Numbers:</label>
                     <div class="col-sm-8">
                         <input :disabled="true" type="text" class="form-control" id="department_file_numbers"
-                            placeholder="" v-model="species.distribution.department_file_numbers" />
+                            placeholder="" v-model="species.department_file_numbers" />
                     </div>
                     <div class="col-sm-1">
                         <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
                         <input class="form-check-input" type="checkbox" name="dept_file_chk"
                             :id="'dept_file_chk' + species.id"
-                            @change="checkDistributionInput('dept_file_chk', 'dept_file_chk' + species.id, 'department_file_numbers', species.distribution.department_file_numbers)" />
+                            @change="checkDistributionInput('dept_file_chk', 'dept_file_chk' + species.id, 'department_file_numbers', species.department_file_numbers)" />
                     </div>
                 </div>
             </div>
@@ -1273,7 +1261,7 @@
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
                 <div class="col-sm-8">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="department_file_numbers"
-                        placeholder="" v-model="species_community.distribution.department_file_numbers" />
+                        placeholder="" v-model="species_community.department_file_numbers" />
                 </div>
             </div>
 
@@ -1441,16 +1429,6 @@ export default {
             }
             else {
                 vm.species_community.distribution.area_of_occupancy_actual = null;
-            }
-        },
-        "species_community.distribution.aoo_auto": function (newVal) {
-            let vm = this;
-            var selectedValue = newVal;
-            if (selectedValue === "true") {
-                vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
-            }
-            else {
-                vm.species_community.distribution.area_of_occupancy = null;
             }
         },
     },
@@ -1910,9 +1888,6 @@ export default {
         }
         if (vm.species_community.distribution.aoo_actual_auto == true) {
             vm.species_community.distribution.area_of_occupancy_actual = vm.species_community.distribution.cal_area_of_occupancy_actual;
-        }
-        if (vm.species_community.distribution.aoo_auto == true) {
-            vm.species_community.distribution.area_of_occupancy = vm.species_community.distribution.cal_area_of_occupancy;
         }
         if (vm.species_community.conservation_attributes.minimum_fire_interval_to != null &&
             vm.species_community.conservation_attributes.minimum_fire_interval_to != "" &&

@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 
 from django.apps import apps
 from django.db import models
@@ -15,11 +15,9 @@ from rest_framework_datatables.utils import get_param
 from reversion import is_registered
 from reversion.models import Version
 
-from boranga.helpers import (
-    is_internal,
-)
+from boranga.helpers import is_internal
 
-logger = logging.getLogger("log")
+logger = logging.getLogger(__name__)
 
 
 # keeping it as an APIView to control how its handled
@@ -61,27 +59,15 @@ class InternalAuthorizationView(views.APIView):
         else:
             # go through each list, if model is in it run function for allowed group(s)
             # return the result if true, otherwise run other checks until all possibilities exhausted
-            #NOTE: currently redundant as is_internal is not constrained to internal group members and all 
+            # NOTE: currently redundant as is_internal is not constrained to internal group members and all
             # internal group members should have access - but might be worth keeping as is in case granularity required
-            if (
-                model_name in self.species_communities_models
-                and is_internal(request)
-            ):
+            if model_name in self.species_communities_models and is_internal(request):
                 return True
-            if (
-                model_name in self.conservation_status_models
-                and is_internal(request)
-            ):
+            if model_name in self.conservation_status_models and is_internal(request):
                 return True
-            if (
-                model_name in self.meeting_models
-                and is_internal(request)
-            ):
+            if model_name in self.meeting_models and is_internal(request):
                 return True
-            if (
-                model_name in self.occurrence_models
-                and is_internal(request)
-            ):
+            if model_name in self.occurrence_models and is_internal(request):
                 return True
 
             return False
@@ -278,12 +264,14 @@ class GetLookUpValues:
         for i in temp_lookup_fields:
             lookup_value = self.getLookUpFieldValues(versions, model, i)
             try:
-                json.dumps(lookup_value)              
+                json.dumps(lookup_value)
                 lookup_fields.append(i)
                 self.lookup_values[i] = lookup_value
             except Exception as e:
+                logger.warn(e)
                 rejected_lookup_fields.append(i)
         self.lookup_fields = lookup_fields
+
 
 class GetPaginatedVersionsView(InternalAuthorizationView):
     filter_backend = VersionsFilterBackend
@@ -354,7 +342,8 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
                     if (
                         i in data[model._meta.model_name]["fields"]
                         and data[model._meta.model_name]["fields"][i] is not None
-                        and data[model._meta.model_name]["fields"][i] in self.lookup_getter.lookup_values[i]
+                        and data[model._meta.model_name]["fields"][i]
+                        in self.lookup_getter.lookup_values[i]
                     ):
                         data[model._meta.model_name]["fields"][i] = (
                             self.lookup_getter.lookup_values[i][
