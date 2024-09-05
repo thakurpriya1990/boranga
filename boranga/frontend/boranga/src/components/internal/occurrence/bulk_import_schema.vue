@@ -99,8 +99,8 @@
                                                                     </th>
                                                                     <td class="text-muted text-center"
                                                                         style="width:10%">
-                                                                        <i class="bi bi-eye-fill " role="button" :class="index==0 || schema.columns.length <=2 ? 'me-4' : 'me-2'"></i>
-                                                                        <i v-if="!index==0 && schema.columns.length>2" class="bi bi-arrow-down-up" role="button" style="cursor:move;"></i>
+                                                                        <i class="bi bi-eye-fill " role="button" :class="index==0 || schema.columns.length <=2 || !column.id ? 'me-4' : 'me-2'"></i>
+                                                                        <i v-if="!index==0 && schema.columns.length>2 && column.id" class="bi bi-arrow-down-up" role="button" style="cursor:move;"></i>
                                                                     </td>
                                                                 </tr>
                                                                 <tr class="border-bottom-0"
