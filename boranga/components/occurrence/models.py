@@ -1563,37 +1563,6 @@ class OccurrenceReportAmendmentRequestDocument(Document):
             return super().delete()
 
 
-class OccurrenceReportReferralDocument(Document):
-    referral = models.ForeignKey(
-        "OccurrenceReportReferral",
-        related_name="referral_documents",
-        on_delete=models.CASCADE,
-    )
-    _file = models.FileField(
-        upload_to=update_occurrence_report_referral_doc_filename,
-        max_length=512,
-        storage=private_storage,
-    )
-    input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-
-    def delete(self):
-        if self.can_delete:
-            if self._file:
-                self._file.delete()
-            return super().delete()
-        logger.info(
-            "Cannot delete existing document object after occurrence report referral has been submitted: {}".format(
-                self.name
-            )
-        )
-
-    class Meta:
-        app_label = "boranga"
-
-
 class OccurrenceReportReferral(models.Model):
     SENT_CHOICE_FROM_ASSESSOR = 1
     SENT_CHOICE_FROM_REFERRAL = 2
