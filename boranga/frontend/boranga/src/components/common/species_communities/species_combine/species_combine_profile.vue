@@ -1259,13 +1259,13 @@
                         Numbers:</label>
                     <div class="col-sm-8">
                         <input :disabled="true" type="text" class="form-control" id="department_file_numbers"
-                            placeholder="" v-model="species.distribution.department_file_numbers" />
+                            placeholder="" v-model="species.department_file_numbers" />
                     </div>
                     <div class="col-sm-1">
                         <!-- checkInput(checkbox_name,checkbox_id , v-model object attribute of this field) -->
                         <input class="form-check-input" type="checkbox" name="dept_file_chk"
                             :id="'dept_file_chk' + species.id"
-                            @change="checkDistributionInput('dept_file_chk', 'dept_file_chk' + species.id, 'department_file_numbers', species.distribution.department_file_numbers)" />
+                            @change="checkDistributionInput('dept_file_chk', 'dept_file_chk' + species.id, 'department_file_numbers', species.department_file_numbers)" />
                     </div>
                 </div>
             </div>
@@ -1273,7 +1273,7 @@
                 <label for="" class="col-sm-3 control-label">Department File Numbers:</label>
                 <div class="col-sm-8">
                     <input :disabled="isReadOnly" type="text" class="form-control" id="department_file_numbers"
-                        placeholder="" v-model="species_community.distribution.department_file_numbers" />
+                        placeholder="" v-model="species_community.department_file_numbers" />
                 </div>
             </div>
 

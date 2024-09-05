@@ -562,7 +562,6 @@ class SpeciesDistributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpeciesDistribution
         fields = (
-            "department_file_numbers",
             "number_of_occurrences",
             "noo_auto",
             "extent_of_occurrences",
@@ -586,7 +585,6 @@ class SaveSpeciesDistributionSerializer(serializers.ModelSerializer):
         model = SpeciesDistribution
         fields = (
             "species_id",
-            "department_file_numbers",
             "number_of_occurrences",
             "noo_auto",
             "extent_of_occurrences",
@@ -855,6 +853,7 @@ class InternalSpeciesSerializer(BaseSpeciesSerializer):
             "area_of_occupancy_km2",
             "area_occurrence_convex_hull_km2",
             "can_add_log",
+            "department_file_numbers",
         )
 
     def get_submitter(self, obj):
@@ -910,7 +909,6 @@ class CommunityDistributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityDistribution
         fields = (
-            "department_file_numbers",
             "number_of_occurrences",
             "noo_auto",
             "extent_of_occurrences",
@@ -940,7 +938,6 @@ class SaveCommunityDistributionSerializer(serializers.ModelSerializer):
         model = CommunityDistribution
         fields = (
             "community_id",
-            "department_file_numbers",
             "number_of_occurrences",
             "noo_auto",
             "extent_of_occurrences",
@@ -1316,6 +1313,7 @@ class InternalCommunitySerializer(BaseCommunitySerializer):
             "area_occurrence_convex_hull_km2",
             "can_add_log",
             "renamed_from",
+            "department_file_numbers",
         )
 
     def get_submitter(self, obj):
@@ -1387,6 +1385,7 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
             "conservation_plan_reference",
             "regions",
             "districts",
+            "department_file_numbers",
         )
         read_only_fields = ("id", "group_type")
 
@@ -1433,6 +1432,7 @@ class SaveCommunitySerializer(BaseCommunitySerializer):
             "conservation_plan_reference",
             "regions",
             "districts",
+            "department_file_numbers",
         )
         read_only_fields = ("id", "group_type")
 
