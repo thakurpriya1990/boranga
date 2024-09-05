@@ -6411,3 +6411,32 @@ class OccurrenceReportBulkImportSchemaViewSet(
             "default_value"
         )
         return Response(default_value_field.choices, status=status.HTTP_200_OK)
+
+    @detail_route(methods=["patch"], detail=True)
+    def reorder_column(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Don't order columns that haven't been saved
+        pk = request.data.get("id", None)
+        if not pk:
+            raise serializers.ValidationError(
+                "column must have id field to be reordered (i.e. record must be saved first)"
+            )
+
+        order = request.data.get("order", None)
+        if order is None:
+            raise serializers.ValidationError("order field is missing from column")
+
+        try:
+            column = instance.columns.get(pk=pk)
+        except OccurrenceReportBulkImportSchemaColumn.DoesNotExist:
+            raise serializers.ValidationError(
+                f"Column with id {pk} not found in schema"
+            )
+
+        column.to(order)
+
+        # instance.refresh_from_db()
+
+        serializer = OccurrenceReportBulkImportSchemaSerializer(instance)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
