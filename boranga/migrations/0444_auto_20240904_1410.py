@@ -8,7 +8,7 @@ def set_column_order(apps, schema_editor):
         "boranga", "OccurrenceReportBulkImportSchema"
     )
     for schema in OccurrenceReportBulkImportSchema.objects.all():
-        order_index = 1
+        order_index = 0
         for column in schema.columns.all():
             column.order = order_index
             column.save()
