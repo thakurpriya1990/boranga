@@ -137,7 +137,7 @@
                                                                     <select class="form-select form-select-sm"
                                                                         aria-label="Group Type"
                                                                         ref="django-import-model"
-                                                                        v-model="selectedColumn.django_import_content_type"
+                                                                        v-model="selectedColumn.django_import_content_type" :disabled="selectedColumn.order==0"
                                                                         @change="selectDjangoImportContentType">
                                                                         <option value="">Select Django Model</option>
                                                                         <option
@@ -157,7 +157,7 @@
                                                                     <select class="form-select form-select-sm"
                                                                         aria-label="Group Type"
                                                                         ref="django-import-field"
-                                                                        v-model="selectedColumn.django_import_field_name"
+                                                                        v-model="selectedColumn.django_import_field_name" :disabled="selectedColumn.order==0"
                                                                         @change="selectDjangoImportField">
                                                                         <option value="">Select Django Model</option>
                                                                         <template v-if="selectedColumn.id">
@@ -193,7 +193,7 @@
                                                                             <input type="text" class="form-control"
                                                                                 name="column-name" id="column-name"
                                                                                 ref="column-name"
-                                                                                aria-describedby="helpId" placeholder=""
+                                                                                aria-describedby="helpId"
                                                                                 v-model="selectedColumn.xlsx_column_header_name" />
                                                                         </div>
                                                                     </div>
@@ -411,7 +411,7 @@
                                                                     Cancel
                                                                     Adding
                                                                     Column</button>
-                                                                <button v-else class="btn btn-danger btn-sm"
+                                                                <button v-else-if="selectedColumn.order!=0" class="btn btn-danger btn-sm"
                                                                     @click.prevent="removeColumn(selectedColumn)"><i
                                                                         class="bi bi-trash3-fill me-1"></i>
                                                                     Delete
