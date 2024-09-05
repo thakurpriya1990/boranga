@@ -291,7 +291,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         choices=PROCESSING_STATUS_CHOICES,
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
-    prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
 
     proposed_decline_status = models.BooleanField(default=False)
     deficiency_data = models.TextField(null=True, blank=True)  # deficiency comment
