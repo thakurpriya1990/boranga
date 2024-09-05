@@ -1095,20 +1095,11 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         ).exists():
             raise ValidationError("A referral has already been sent to this user")
 
-        # Check if the user sending the referral is a referee themselves
-        sent_from = OccurrenceReportReferral.SENT_CHOICE_FROM_ASSESSOR
-        if OccurrenceReportReferral.objects.filter(
-            occurrence_report=self,
-            referral=request.user.id,
-        ).exists():
-            sent_from = OccurrenceReportReferral.SENT_CHOICE_FROM_REFERRAL
-
         # Create Referral
         referral = OccurrenceReportReferral.objects.create(
             occurrence_report=self,
             referral=referee.id,
             sent_by=request.user.id,
-            sent_from=sent_from,
             text=referral_text,
             assigned_officer=request.user.id,
         )
@@ -1586,9 +1577,6 @@ class OccurrenceReportReferral(models.Model):
     sent_by = models.IntegerField()  # EmailUserRO
     referral = models.IntegerField()  # EmailUserRO
     linked = models.BooleanField(default=False)
-    sent_from = models.SmallIntegerField(
-        choices=SENT_CHOICES, default=SENT_CHOICES[0][0]
-    )
     processing_status = models.CharField(
         "Processing Status",
         max_length=30,
