@@ -84,10 +84,10 @@
                                                     </h5>
                                                     <div class="">
                                                         <table class="table table-bordered table-hover table-sm">
-                                                            <tbody>
+                                                            <tbody class="columns">
                                                                 <tr v-for="(column, index) in schema.columns"
                                                                     :class="selectedColumn == column ? 'active' : ''"
-                                                                    @click="selectColumn(column)" role="button">
+                                                                    @click="selectColumn(column)" role="button" :key="column.id">
                                                                     <th style="width:5%" class="text-center">{{ index +
                                                                         1 }}
                                                                     </th>
@@ -99,7 +99,8 @@
                                                                     </th>
                                                                     <td class="text-muted text-center"
                                                                         style="width:10%">
-                                                                        <i class="bi bi-eye-fill" role="button"></i>
+                                                                        <i class="bi bi-eye-fill " role="button" :class="index==0 || schema.columns.length <=2 ? 'me-4' : 'me-2'"></i>
+                                                                        <i v-if="!index==0 && schema.columns.length>2" class="bi bi-arrow-down-up" role="button" style="cursor:move;"></i>
                                                                     </td>
                                                                 </tr>
                                                                 <tr class="border-bottom-0"
@@ -204,9 +205,11 @@
                                                                         Value</label>
                                                                     <div class="col-sm-8 ">
                                                                         <div class="input-group input-group-sm">
-                                                                            <select class="form-select" v-model="selectedColumn.default_value"
+                                                                            <select class="form-select"
+                                                                                v-model="selectedColumn.default_value"
                                                                                 id="default-value">
-                                                                                <option :value="null">No Default</option>
+                                                                                <option :value="null">No Default
+                                                                                </option>
                                                                                 <option
                                                                                     v-for="choice in defaultValueChoices"
                                                                                     :value="choice[0]">{{ choice[1] }}
@@ -289,7 +292,7 @@
                                                                                                                 class="">
                                                                                                                 <td>{{
                                                                                                                     choice[0]
-                                                                                                                    }}
+                                                                                                                }}
                                                                                                                 </td>
                                                                                                             </tr>
                                                                                                         </tbody>
@@ -467,6 +470,7 @@
 
 <script>
 import alert from '@vue-utils/alert.vue'
+import Sortable from 'sortablejs'
 
 import { api_endpoints } from "@/utils/hooks.js"
 
@@ -482,6 +486,7 @@ export default {
             selectedColumnIndex: null,
             selectedContentType: null,
             selectedField: null,
+            sortable: null,
             addEditMode: false,
             newColumn: null,
             saving: false,
@@ -504,6 +509,23 @@ export default {
             this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.$route.params.bulk_import_schema_id}/`)
                 .then(response => {
                     this.schema = response.data
+                    this.$nextTick(() => {
+                        var el = document.querySelector('.columns')
+                        this.sortable = Sortable.create(
+                            el, {
+                            animation: 150,
+                            handle: '.bi-arrow-down-up',
+                            onEnd: (event) => {
+                                let column = this.schema.columns.splice(event.oldIndex, 1)[0]
+                                this.schema.columns.splice(event.newIndex, 0, column)
+                                // Update the order of the columns
+                                this.schema.columns.forEach((column, index) => {
+                                    column.order = index
+                                })
+                                this.save()
+                            }
+                        })
+                    })
                 })
                 .catch(error => {
                     console.error(error)
@@ -602,7 +624,8 @@ export default {
                 xlsx_column_header_name: '',
                 xlsx_data_validation_allow_blank: true,
                 default_value: null,
-                import_validations: []
+                import_validations: [],
+                order: this.schema.columns.length
             }
         },
         addNewColumn() {
@@ -617,6 +640,25 @@ export default {
                 this.enablePopovers();
                 this.$refs['django-import-model'].focus()
             })
+        },
+        addAllColumns(djangoContentType, onlyMandatory = false) {
+            let newColumns = djangoContentType.model_fields.map(modelField => {
+                return {
+                    id: null,
+                    schema: this.schema.id,
+                    django_import_content_type: djangoContentType.id,
+                    django_import_field_name: modelField.name,
+                    xlsx_column_header_name: modelField.display_name,
+                    xlsx_data_validation_allow_blank: modelField.allow_null,
+                    default_value: null,
+                    import_validations: []
+                }
+            })
+            if (onlyMandatory) {
+                newColumns = newColumns.filter(column => !column.xlsx_data_validation_allow_blank)
+            }
+            this.schema.columns.push(...newColumns)
+            this.save()
         },
         selectColumn(column) {
             this.selectedColumn = column
