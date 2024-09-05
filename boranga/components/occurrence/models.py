@@ -1631,13 +1631,6 @@ class OccurrenceReportReferral(models.Model):
         blank=True
     )  # used in other projects for complete referral comment but not used in boranga
     referral_comment = models.TextField(blank=True, null=True)  # Referral Comment
-    document = models.ForeignKey(
-        OccurrenceReportReferralDocument,
-        blank=True,
-        null=True,
-        related_name="referral_document",
-        on_delete=models.SET_NULL,
-    )
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
     is_external = models.BooleanField(default=False)
 
