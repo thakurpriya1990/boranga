@@ -436,6 +436,7 @@ class Species(RevisionedMixin):
     # parents will the original species  from the split/combine functionality
     parent_species = models.ManyToManyField("self", blank=True)
     comment = models.CharField(max_length=500, null=True, blank=True)
+    department_file_numbers = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -1152,9 +1153,6 @@ class SpeciesDistribution(models.Model):
     - Table
     """
 
-    department_file_numbers = models.CharField(
-        max_length=512, null=True, blank=True
-    )  # objective, legacy, list of things
     number_of_occurrences = models.IntegerField(null=True, blank=True)
     noo_auto = models.BooleanField(
         default=True
@@ -1256,6 +1254,7 @@ class Community(RevisionedMixin):
     )
     lodgement_date = models.DateTimeField(blank=True, null=True)
     comment = models.CharField(max_length=500, null=True, blank=True)
+    department_file_numbers = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -1996,9 +1995,6 @@ class CommunityDistribution(models.Model):
     - Table
     """
 
-    department_file_numbers = models.CharField(
-        max_length=512, null=True, blank=True
-    )  # objective, legacy, list of things
     number_of_occurrences = models.IntegerField(null=True, blank=True)
     noo_auto = models.BooleanField(
         default=True
