@@ -1,7 +1,7 @@
 import hashlib
 import logging
 
-from django.db import models
+from django.db import models, transaction
 from django.urls import reverse
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
@@ -3875,15 +3875,13 @@ class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializ
 class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
     serializers.ModelSerializer
 ):
+    id = serializers.IntegerField()
+    order = serializers.IntegerField()
 
     class Meta:
         model = OccurrenceReportBulkImportSchemaColumn
         fields = "__all__"
-        read_only_fields = ("id",)
         validators = []  # Validation is done in the parent serializer
-
-    def validate(self, attrs):
-        return super().validate(attrs)
 
 
 class OccurrenceReportBulkImportSchemaSerializer(
@@ -3901,28 +3899,20 @@ class OccurrenceReportBulkImportSchemaSerializer(
         fields = "__all__"
         read_only_fields = ("id",)
 
-    def validate(self, data):
-        logger.debug(f"data: {data}")
-        return data
-
+    @transaction.atomic
     def update(self, instance, validated_data):
         columns_data = validated_data.pop("columns", None)
-
-        if not columns_data:
+        if not columns_data or len(columns_data) == 0:
             return super().update(instance, validated_data)
 
         # Delete any columns that are not in the new data
-        instance.columns.exclude(
-            id__in=[
-                column_data["id"]
-                for column_data in columns_data
-                if hasattr(column_data, "id")
-            ]
-        ).delete()
+        ids_to_keep = [
+            column_data["id"] for column_data in columns_data if "id" in column_data
+        ]
+        instance.columns.exclude(id__in=ids_to_keep).delete()
         for column_data in columns_data:
-            logger.debug(f"Column data: {column_data}")
             OccurrenceReportBulkImportSchemaColumn.objects.update_or_create(
-                **column_data
+                pk=column_data.get("id"), defaults=column_data
             )
         return super().update(instance, validated_data)
 
@@ -3956,7 +3946,6 @@ class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, attrs):
-        logger.debug(f"attrs: {attrs}")
         _file = attrs["_file"]
         try:
             schema = OccurrenceReportBulkImportSchema.objects.get(id=attrs["schema_id"])
