@@ -3277,8 +3277,6 @@ class Occurrence(RevisionedMixin):
     comment = models.TextField(null=True, blank=True)
 
     review_due_date = models.DateField(null=True, blank=True)
-    review_date = models.DateField(null=True, blank=True)
-    reviewed_by = models.IntegerField(null=True)  # EmailUserRO
     review_status = models.CharField(
         "Review Status",
         max_length=30,
