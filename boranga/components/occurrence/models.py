@@ -1875,7 +1875,6 @@ class OCRLocation(models.Model):
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
     new_occurrence = models.BooleanField(null=True, blank=True)
-    boundary = models.IntegerField(null=True, blank=True, default=0)
     mapped_boundary = models.BooleanField(null=True, blank=True)
     buffer_radius = models.IntegerField(null=True, blank=True, default=0)
     datum = models.ForeignKey(Datum, on_delete=models.SET_NULL, null=True, blank=True)
