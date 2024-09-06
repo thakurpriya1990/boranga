@@ -442,7 +442,6 @@ def save_geometry(
                         f"Geometry {geom[0]} intersects with {totalFeatures} features from {intersect_layer.layer_name}"
                     )
 
-                    geometry_data["intersects"] = totalFeatures > 0
             else:
                 logger.info("No intersect layer specified")
 

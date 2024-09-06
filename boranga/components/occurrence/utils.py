@@ -280,7 +280,6 @@ def validate_map_files(request, instance, foreign_key_field=None):
                     foreign_key_field: instance,
                     "geometry": geometry,
                     "original_geometry_ewkb": original_geometry.ewkb,
-                    "intersects": True,
                     "drawn_by": request.user.id,
                 }
             )
