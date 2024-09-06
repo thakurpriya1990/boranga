@@ -2082,14 +2082,7 @@ class DrawnByGeometry(models.Model):
         abstract = True
 
 
-class IntersectsGeometry(models.Model):
-    intersects = models.BooleanField(default=False)
-
-    class Meta:
-        abstract = True
-
-
-class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
+class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry):
     occurrence_report = models.ForeignKey(
         OccurrenceReport,
         on_delete=models.CASCADE,
@@ -4219,7 +4212,7 @@ class GeometryType(Func):
     output_field = CharField()
 
 
-class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
+class OccurrenceGeometry(GeometryBase, DrawnByGeometry):
     occurrence = models.ForeignKey(
         Occurrence,
         on_delete=models.CASCADE,
