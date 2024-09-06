@@ -182,22 +182,7 @@
                 </div>
             </div>
 
-            <!--<div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Boundary(m) :</label
-                >
-                <div class="col-sm-6">
-                    <input
-                        id="boundary"
-                        v-model="occurrence_obj.location.boundary"
-                        :disabled="isReadOnly"
-                        type="number"
-                        class="form-control ocr_number"
-                        placeholder=""
-                        min="0"
-                    />
-                </div>
-            </div>
+            <!--
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
                     >Buffer Radius(m) :</label
