@@ -137,15 +137,22 @@ class ContentTypeSerializer(serializers.ModelSerializer):
         if not obj.model_class():
             return []
         fields = obj.model_class()._meta.get_fields()
+        exclude_fields = []
+        if hasattr(obj.model_class(), "BULK_IMPORT_EXCLUDE_FIELDS"):
+            exclude_fields = obj.model_class().BULK_IMPORT_EXCLUDE_FIELDS
 
         def filter_fields(field):
-            return not field.auto_created and not (
-                field.is_relation
-                and type(field)
-                not in [
-                    ForeignKey,
-                    OneToOneField,
-                ]
+            return (
+                field.name not in exclude_fields
+                and not field.auto_created
+                and not (
+                    field.is_relation
+                    and type(field)
+                    not in [
+                        ForeignKey,
+                        OneToOneField,
+                    ]
+                )
             )
 
         fields = list(filter(filter_fields, fields))
