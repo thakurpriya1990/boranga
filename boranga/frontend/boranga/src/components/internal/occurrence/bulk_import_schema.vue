@@ -146,7 +146,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div v-if="selectedContentType && !selectedContentType.id && !addingSingleColumn"
+                            <div v-if="selectedContentType && !selectedColumn?.id && !addingSingleColumn"
                                 class="row d-flex align-items-start mb-2">
                                 <label for="inputEmail3" class="col-sm-4 col-form-label">Operation</label>
                                 <div class="col-sm-8 ">
