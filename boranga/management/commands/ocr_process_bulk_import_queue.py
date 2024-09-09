@@ -1,4 +1,5 @@
 import logging
+import traceback
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -66,6 +67,7 @@ class Command(BaseCommand):
             return
         except Exception as e:
             logger.error(f"Error processing OCR Bulk Import Task {task.id}: {e}")
+            logger.error(traceback.format_exc())
             task.processing_status = (
                 OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
             )
