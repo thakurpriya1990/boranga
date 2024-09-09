@@ -139,10 +139,18 @@
                                         :disabled="selectedColumn.order == 0" @change="selectDjangoImportContentType">
                                         <option value="">Select Django Import Model
                                         </option>
-                                        <option v-for="djangoContentType in djangoContentTypes"
-                                            :value="djangoContentType.id">{{
-                                                djangoContentType.model_verbose_name }}
-                                        </option>
+                                        <template v-if="selectedColumn.id">
+                                            <option v-for="djangoContentType in djangoContentTypes"
+                                                :value="djangoContentType.id">{{
+                                                    djangoContentType.model_verbose_name }}
+                                            </option>
+                                        </template>
+                                        <template v-else>
+                                            <option v-for="djangoContentType in djangoContentTypesFiltered"
+                                                :value="djangoContentType.id">{{
+                                                    djangoContentType.model_verbose_name }}
+                                            </option>
+                                        </template>
                                     </select>
                                 </div>
                             </div>
@@ -429,6 +437,7 @@ export default {
         return {
             schema: null,
             djangoContentTypes: null,
+            djangoContentTypesFiltered: null,
             djangoImportFieldsFiltered: null,
             defaultValueChoices: null,
             selectedColumn: null,
@@ -498,7 +507,16 @@ export default {
                     })
                         .then(response => {
                             this.djangoContentTypes.push(...response.data.results)
-                            // this.removeAlreadySelectedFields();
+                            // Filter out content types that have no fields or no model_verbose_name
+                            this.djangoContentTypesFiltered = this.djangoContentTypes.filter(
+                                djangoContentType => djangoContentType.model_fields.length > 0 && djangoContentType.model_verbose_name
+                            )
+                            // Filter out content types where all their fields are already columns in the schema
+                            this.djangoContentTypesFiltered = this.djangoContentTypesFiltered.filter(
+                                djangoContentType => !djangoContentType.model_fields.every(
+                                    modelField => this.schema.columns.some(column => column.django_import_field_name == modelField.name)
+                                )
+                            )
                         })
                         .catch(error => {
                             console.error(error)
@@ -516,17 +534,6 @@ export default {
                 .catch(error => {
                     console.error(error)
                 })
-        },
-        removeAlreadySelectedFields() {
-            this.schema.columns.forEach(column => {
-                this.djangoContentTypes.forEach(djangoContentType => {
-                    if (column.django_import_content_type == djangoContentType.id) {
-                        djangoContentType.model_fields = djangoContentType.model_fields.filter(
-                            modelField => modelField.name !== column.django_import_field_name
-                        )
-                    }
-                })
-            })
         },
         selectDjangoImportContentType() {
             if (!this.selectedColumn.django_import_content_type) {
@@ -625,6 +632,7 @@ export default {
                             import_validations: []
                         }
                     })
+                    console.log(newColumns)
                     // Remove columns that are already in the schema
                     newColumns = newColumns.filter(newColumn => !this.schema.columns.some(column => column.django_import_field_name == newColumn.django_import_field_name))
                     if (onlyMandatory) {
@@ -790,5 +798,7 @@ tr.active {
     background: rgba(51, 170, 51, .4)
 }
 
-.sticky-top { top: 1.5em; }
+.sticky-top {
+    top: 1.5em;
+}
 </style>
