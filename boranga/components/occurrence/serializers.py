@@ -3854,7 +3854,7 @@ class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializ
 class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
     serializers.ModelSerializer
 ):
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(allow_null=True, required=False)
     order = serializers.IntegerField()
 
     class Meta:
