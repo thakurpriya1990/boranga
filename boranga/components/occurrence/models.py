@@ -134,6 +134,8 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     objects = OccurrenceReportManager()
 
+    BULK_IMPORT_EXCLUDE_FIELDS = ["occurrence_report_number", "import_hash"]
+
     CUSTOMER_STATUS_DRAFT = "draft"
     CUSTOMER_STATUS_WITH_ASSESSOR = "with_assessor"
     CUSTOMER_STATUS_WITH_APPROVER = "with_approver"
