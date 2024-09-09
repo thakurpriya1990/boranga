@@ -1,6 +1,6 @@
 <template>
     <div class="container gx-4" id="occurence-report-bulk-import-schema">
-        <div v-if="schema" class="row mb-2">
+        <div class="row mb-2">
             <div class="col">
                 <div class="mb-4">
                     <h2 class="text-capitalize">Occurrence Report Bulk Import Schema</h2>
@@ -11,67 +11,64 @@
                         Some help text about defining a bulk import schema
                     </alert>
                 </div>
-                <div class="mb-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="border-bottom mb-2">
-                                <div class="container mb-1 pb-2">
-                                    <div class="row">
-                                        <div class="col-5">
-                                            <h4 class="text-capitalize">{{ schema.group_type_display }} Bulk Import
-                                                Schema <span class="badge bg-secondary ms-3">Version: {{ schema.version
-                                                    }}</span></h4>
-                                        </div>
-                                        <div class="col-7">
-                                            <div class="input-group float-start me-3" style="width:250px;">
-                                                <span class="input-group-text" id="basic-addon1"><i
-                                                        class="bi bi-tag-fill text-secondary"></i></span>
-                                                <input type="text" class="form-control form-control-sm"
-                                                    placeholder="Add tag" @keydown="addTag" />
-                                            </div>
-                                            <div class="float-end">
-                                                <button role="button" class="btn btn-primary me-2"
-                                                    @click.prevent="validateSchema()"><i
-                                                        class="bi bi-card-checklist me-1"></i> Validate Schema</button>
-                                                <a role="button" class="btn btn-primary"
-                                                    :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
-                                                        class="bi bi-filetype-xlsx me-1"></i> Preview .xlsx File</a>
+            </div>
+        </div>
+        <div v-if="schema" class="row mb-3">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="row">
+                                <div class="col-5">
+                                    <h4 class="text-capitalize">{{ schema.group_type_display }} Bulk Import
+                                        Schema <span class="badge bg-secondary ms-3">Version: {{ schema.version
+                                            }}</span></h4>
+                                </div>
+                                <div class="col-7">
+                                    <div class="input-group float-start me-3" style="width:250px;">
+                                        <span class="input-group-text" id="basic-addon1"><i
+                                                class="bi bi-tag-fill text-secondary"></i></span>
+                                        <input type="text" class="form-control form-control-sm" placeholder="Add tag"
+                                            @keydown="addTag" />
+                                    </div>
+                                    <div class="float-end">
+                                        <button role="button" class="btn btn-primary me-2"
+                                            @click.prevent="validateSchema()"><i class="bi bi-card-checklist me-1"></i>
+                                            Validate Schema</button>
+                                        <a role="button" class="btn btn-primary"
+                                            :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
+                                                class="bi bi-filetype-xlsx me-1"></i> Preview .xlsx File</a>
 
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="border-bottom mb-3">
-                                <div class="container mb-1 pb-2">
-                                    <div class="row align-items-center">
-                                        <label for="schema-name" class="col-sm-1 col-form-label">Name</label>
-                                        <div class="col-sm-4">
-                                            <input type="text" class="form-control" id="schema-name" ref="schema-name"
-                                                v-model="schema.name" aria-describedby="schema-name-help"
-                                                placeholder="Enter Schema Name" autofocus>
-                                        </div>
-                                        <label for="schema-tags" class="col-sm-1 col-form-label">Tags</label>
-                                        <div class="col-sm-6">
-                                            <template v-if="schema.tags && schema.tags.length > 0">
-                                                <span
-                                                    class="d-inline-flex align-items-center badge bg-info fs-6 my-2 me-2"
-                                                    v-for="(tag, index) in schema.tags" :key="tag">{{ tag }}<i
-                                                        class="bi bi-x-circle-fill ps-2" role="button"
-                                                        @click="removeTag(index)"></i></span>
-                                            </template>
-                                            <template v-else>
-                                                <span class="text-muted">No tags added</span>
-                                            </template>
-                                        </div>
-                                    </div>
+                        </div>
+                        <div class="">
+                            <div class="row align-items-center">
+                                <label for="schema-name" class="col-sm-1 col-form-label">Name</label>
+                                <div class="col-sm-4">
+                                    <input type="text" class="form-control" id="schema-name" ref="schema-name"
+                                        v-model="schema.name" aria-describedby="schema-name-help"
+                                        placeholder="Enter Schema Name" autofocus>
+                                </div>
+                                <label for="schema-tags" class="col-sm-1 col-form-label">Tags</label>
+                                <div class="col-sm-6">
+                                    <template v-if="schema.tags && schema.tags.length > 0">
+                                        <span class="d-inline-flex align-items-center badge bg-info fs-6 my-2 me-2"
+                                            v-for="(tag, index) in schema.tags" :key="tag">{{ tag }}<i
+                                                class="bi bi-x-circle-fill ps-2" role="button"
+                                                @click="removeTag(index)"></i></span>
+                                    </template>
+                                    <template v-else>
+                                        <span class="text-muted">No tags added</span>
+                                    </template>
                                 </div>
                             </div>
-                            <div v-if="errors" class="mb-3">
-                                <alert type="danger">
-                                    {{ errors }}
-                                </alert>
-                            </div>
+                        </div>
+                        <div v-if="errors" class="mb-3">
+                            <alert type="danger">
+                                {{ errors }}
+                            </alert>
                         </div>
                     </div>
                 </div>
@@ -283,7 +280,7 @@
                                                                                 class="">
                                                                                 <td>{{
                                                                                     choice[0]
-                                                                                    }}
+                                                                                }}
                                                                                 </td>
                                                                             </tr>
                                                                         </tbody>
@@ -794,11 +791,11 @@ div.scroll {
     white-space: nowrap;
 }
 
-tr.active {
-    background: rgba(51, 170, 51, .4)
-}
-
 .sticky-top {
     top: 1.5em;
+}
+
+tr.active {
+    background: rgba(51, 170, 51, .4)
 }
 </style>
