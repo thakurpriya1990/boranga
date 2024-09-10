@@ -170,6 +170,17 @@ class ContentTypeSerializer(serializers.ModelSerializer):
             xlsx_validation_type = get_openpyxl_data_validation_type_for_django_field(
                 field
             )
+            lookup_field_options = None
+            if hasattr(field, "related_model") and field.related_model:
+                related_model = field.related_model
+                fields = related_model._meta.get_fields()
+                lookup_field_options = [
+                    field.verbose_name.lower()
+                    for field in related_model._meta.get_fields()
+                    if not field.related_model
+                    and field.unique
+                    and not field.name.endswith("_number")
+                ]
             model_fields.append(
                 {
                     "name": field.name,
@@ -179,6 +190,7 @@ class ContentTypeSerializer(serializers.ModelSerializer):
                     "allow_null": allow_null,
                     "max_length": max_length,
                     "xlsx_validation_type": xlsx_validation_type,
+                    "lookup_field_options": lookup_field_options,
                 }
             )
         return model_fields
