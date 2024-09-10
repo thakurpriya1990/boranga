@@ -5404,14 +5404,12 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         rows = list(
             sheet.iter_rows(
                 min_row=2,
-                max_row=self.rows,
+                max_row=self.rows + 1,
                 max_col=self.schema.columns.count(),
                 values_only=True,
             )
         )
 
-        # Occurrence reports to create
-        models_to_insert = []
         errors = []
 
         # Process the rows
@@ -5426,7 +5424,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
             self.save()
 
-            self.process_row(index, row, models_to_insert, errors)
+            self.process_row(index, row, errors)
 
         if errors:
             self.processing_status = (
@@ -5446,7 +5444,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
         return errors
 
-    def process_row(self, index, row, models_to_insert, errors):
+    def process_row(self, index, row, errors):
         logger.debug(f"Processing row: Index {index}, Data: {row}")
         row_hash = hashlib.sha256(str(row).encode()).hexdigest()
         if OccurrenceReport.objects.filter(import_hash=row_hash).exists():
@@ -5466,52 +5464,162 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             return
 
         row_error_count = 0
-        column_error_count = 0
+        total_column_error_count = 0
 
-        model_data = {}
+        models = {}
 
         # Validate each cell
         for index, column in enumerate(self.schema.columns.all()):
-            logger.debug(f"  Processing column: {column}")
+            # logger.debug(f"  Processing column: {column}")
 
-            logger.debug(f"  Cell value: {row[index]}")
+            # logger.debug(f"  Cell value: {row[index]}")
+            column_error_count = 0
+
             cell_value = row[index]
 
             column_error_count += column.validate(cell_value, index, errors)
 
             row_error_count += column_error_count
+            total_column_error_count += column_error_count
 
             if column_error_count:
                 continue
 
-            model_data[column.django_import_field_name] = cell_value
+            model_name = column.django_import_content_type.model
+
+            if model_name not in models:
+                models[model_name] = {"field_names": [], "values": []}
+
+            models[model_name]["field_names"].append(column.django_import_field_name)
+            models[model_name]["values"].append(cell_value)
 
         if row_error_count > 0:
             return
 
-        # Create an instance of the model that is going to be created
-        model_instance = apps.get_model(
-            column.django_import_content_type.app_label,
-            column.django_import_content_type.model,
-        )
+        model_instances = {}
+        for current_model_name in models:
+            logger.debug(f"Processing model: {current_model_name}")
+            mode = "create"
 
-        # Create the model instance from the data
-        if model_instance == OccurrenceReport:
-            model_data["bulk_import_task_id"] = self.pk
-            model_data["import_hash"] = row_hash
-            model_data["group_type_id"] = self.schema.group_type_id
-        try:
-            model_instance.objects.create(**model_data)
-        except IntegrityError as e:
-            logger.error(f"Error creating model instance: {e}")
-            errors.append(
-                {
-                    "row_index": index,
-                    "error_type": "integrity",
-                    "data": model_data,
-                    "error_message": f"Error creating model instance: {e}",
-                }
+            # If we are at the top level model, check if we are creating a new instance or updating an existing one
+            if (
+                current_model_name == OccurrenceReport._meta.model_name
+                and OccurrenceReport.objects.filter(migrated_from_id=row[0]).exists()
+            ):
+                mode = "update"
+
+            model_data = dict(
+                zip(
+                    models[current_model_name]["field_names"],
+                    models[current_model_name]["values"],
+                )
             )
+
+            # Create an instance of the model that is going to be created
+            model_class = apps.get_model(
+                "boranga",
+                current_model_name,
+            )
+            current_model_instance = model_class(**model_data)
+
+            logger.debug(
+                f"{current_model_name}.__dict__: {current_model_instance.__dict__}"
+            )
+
+            # For OccurrenceReport check if we are creating or updating
+            # and set appropriate fields if so
+            if current_model_name == OccurrenceReport._meta.model_name:
+                if mode == "create":
+                    current_model_instance.bulk_import_task_id = self.pk
+                    current_model_instance.import_hash = row_hash
+                    current_model_instance.group_type_id = self.schema.group_type_id
+                else:
+                    current_model_instance.pk = OccurrenceReport.objects.get(
+                        migrated_from_id=row[0]
+                    ).pk
+
+            # If we are at the top level model (OccurrenceReport) we don't need to relate it to anything
+            if not current_model_name == OccurrenceReport._meta.model_name:
+                # Relate this model to it's parent instance
+
+                related_to_parent = False
+
+                # Look through all the models being imported except for the current model
+                for potential_parent_model_key in [
+                    m for m in models if m != current_model_name
+                ]:
+                    # Check if this model has a relationship with the current model
+                    potential_parent_instance = model_instances[
+                        potential_parent_model_key
+                    ]
+
+                    # First search the current model instance for the relationship
+                    # This is often faster as the child model often has the foreign key
+                    # to the parent model
+                    for field in current_model_instance._meta.get_fields():
+                        if field.related_model == potential_parent_instance.__class__:
+                            logger.debug(f" ---> {field} is a relationship")
+
+                            # If it does, set the relationship
+                            setattr(
+                                current_model_instance,
+                                field.name,
+                                potential_parent_instance,
+                            )
+                            related_to_parent = True
+                            break
+
+                    if related_to_parent:
+                        break
+
+                    # If we didn't find a relationship in the current model, search the parent model
+                    for field in potential_parent_instance.__class__._meta.get_fields():
+                        if field.related_model == current_model_instance:
+                            logger.debug(f" ---> {field} is a relationship")
+
+                            # If it does, set the relationship
+                            setattr(
+                                current_model_instance,
+                                field.name,
+                                potential_parent_instance,
+                            )
+                            related_to_parent = True
+                            break
+
+                    if related_to_parent:
+                        break
+
+                if not related_to_parent:
+                    error_message = (
+                        "Could not find a parent model to relate this model to "
+                        "(Probably due to an error saving the parent model instance)"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "relationship",
+                            "data": model_data,
+                            "error_message": error_message,
+                        }
+                    )
+                    return
+
+            try:
+                current_model_instance.save()
+                model_instances[current_model_instance._meta.model_name] = (
+                    current_model_instance
+                )
+                logger.debug(f"Model instance created: {current_model_instance}")
+            except IntegrityError as e:
+                logger.error(f"Error creating model instance: {e}")
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "integrity",
+                        "data": model_data,
+                        "error_message": f"Error creating model instance: {e}",
+                    }
+                )
 
         return
 
