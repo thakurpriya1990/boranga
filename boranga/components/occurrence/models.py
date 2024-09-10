@@ -5937,7 +5937,9 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         related_name="import_columns",
     )
     django_import_field_name = models.CharField(max_length=50, blank=False, null=False)
-    django_lookup_field_name = models.CharField(max_length=50, blank=True, null=True)
+    django_lookup_field_name = models.CharField(
+        max_length=50, default="id", blank=True, null=True
+    )
 
     # The name of the column header in the .xlsx file
     xlsx_column_header_name = models.CharField(max_length=50, blank=False, null=False)
