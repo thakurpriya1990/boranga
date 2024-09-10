@@ -151,7 +151,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div v-if="selectedContentType && !selectedColumn?.id && !addingSingleColumn"
+                            <div v-if="selectedContentType && !selectedColumn?.id && !showDjangoImportFieldSelect"
                                 class="row d-flex align-items-start mb-2">
                                 <label for="inputEmail3" class="col-sm-4 col-form-label">Operation</label>
                                 <div class="col-sm-8 ">
@@ -167,7 +167,7 @@
                                         Add a Single Field</button>
                                 </div>
                             </div>
-                            <div v-if="addingSingleColumn" class="row d-flex align-items-center mb-2">
+                            <div v-if="showDjangoImportFieldSelect" class="row d-flex align-items-center mb-2">
                                 <label for="inputEmail3" class="col-sm-4 col-form-label">Django Import
                                     Field</label>
                                 <div class="col-sm-8 ">
@@ -280,7 +280,7 @@
                                                                                 class="">
                                                                                 <td>{{
                                                                                     choice[0]
-                                                                                }}
+                                                                                    }}
                                                                                 </td>
                                                                             </tr>
                                                                         </tbody>
@@ -328,36 +328,40 @@
                                     </div>
                                 </div>
                             </template>
-                            <div v-if="showValidationFields" class="row mb-2">
+                            <div v-if="showDjangoLookupField" class="row mb-2">
                                 <label for="inputEmail3" class="col-sm-4 col-form-label">Django
-                                    Validations<i id="pre-import-validation-help-text"
+                                    Lookup Field<i id="django-lookup-field-help-text"
                                         class="bi bi-info-circle-fill text-primary ms-2" data-bs-toggle="popover"
                                         data-bs-trigger="hover focus"
-                                        data-bs-content="More advanced validation that occurs during the import process"
-                                        data-bs-placement="top"></i></label>
+                                        :data-bs-content="`Which field to use when looking up the ${selectedField.display_name} record. <br>(Advanced: You can use a custom field name if it's not in the list and it may span model relationships e.g. 'taxonomy__scientific_name' )`"
+                                        data-bs-placement="top" :data-bs-html="true"></i></label>
                                 <div class="col-sm-8">
                                     <fieldset class="border p-2 mb-2">
-                                        <div class="input-group input-group-sm mb-2">
-                                            <span class="input-group-text w-25" id="type">
-                                                Type</span>
-                                            <input type="text" disabled class="form-control" placeholder="Username"
-                                                aria-label="Username" aria-describedby="lookup-model"
-                                                value="Django Foreign Key Lookup">
-                                        </div>
-                                        <div class="input-group input-group-sm mb-2">
-                                            <span class="input-group-text w-25" id="lookup-model">
-                                                Lookup Model</span>
-                                            <input type="text" disabled class="form-control" placeholder="Username"
-                                                aria-label="Username" aria-describedby="lookup-model" value="Species">
-                                        </div>
                                         <div class="input-group input-group-sm mb-1">
                                             <span class="input-group-text w-25" id="lookup-field">
                                                 Lookup Field</span>
-                                            <select class="form-select" aria-label="Lookup Field">
-                                                <option :value="null">Select a Lookup
-                                                    Field</option>
+                                            <select v-if="!customLookupField" class="form-select"
+                                                aria-label="Lookup Field"
+                                                v-model="selectedColumn.django_lookup_field_name"
+                                                @change="selectLookupField()">
+                                                <option v-for="lookupField in selectedField.lookup_field_options"
+                                                    :value="lookupField">{{
+                                                        lookupField }}</option>
+                                                <option value="custom">custom</option>
+                                            </select>
+                                            <select v-else ref="lookup-field" class="form-select"
+                                                aria-label="Lookup Field" @change="selectLookupField()">
+                                                <option v-for="lookupField in selectedField.lookup_field_options"
+                                                    :value="lookupField">{{
+                                                        lookupField }}</option>
+                                                <option value="custom" selected>custom</option>
                                             </select>
                                         </div>
+                                        <input v-if="customLookupField" ref="custom-lookup-field"
+                                            class="form-control form-control-sm mt-2" type="text"
+                                            placeholder="Enter Custom Lookup Field" aria-label="Custom Lookup Field"
+                                            aria-describedby="lookup-field"
+                                            v-model="selectedColumn.django_lookup_field_name">
                                     </fieldset>
                                 </div>
                             </div>
@@ -441,9 +445,11 @@ export default {
             selectedColumnIndex: null,
             selectedContentType: null,
             selectedField: null,
+            customLookupField: false,
+            previousCustomLookupField: null,
             sortable: null,
             addEditMode: false,
-            addingSingleColumn: false,
+            showDjangoImportFieldSelect: false,
             newColumn: null,
             saving: false,
             errors: null
@@ -453,7 +459,7 @@ export default {
         alert
     },
     computed: {
-        showValidationFields() {
+        showDjangoLookupField() {
             return this.selectedColumn &&
                 this.selectedColumn.xlsx_column_header_name &&
                 this.selectedColumn.django_import_content_type &&
@@ -536,7 +542,7 @@ export default {
             if (!this.selectedColumn.django_import_content_type) {
                 this.selectedField = null
                 this.selectedContentType = null
-                this.addingSingleColumn = false
+                this.showDjangoImportFieldSelect = false
                 this.$refs['django-import-field'].focus()
                 return
             }
@@ -569,12 +575,29 @@ export default {
                 this.$refs['column-name'].focus()
             })
         },
+        selectLookupField() {
+            if (this.selectedColumn.django_lookup_field_name == 'custom') {
+                this.customLookupField = true
+                if (this.previousCustomLookupField) {
+                    this.selectedColumn.django_lookup_field_name = this.previousCustomLookupField
+                } else {
+                    this.selectedColumn.django_lookup_field_name = ''
+                }
+                this.$nextTick(() => {
+                    this.$refs['custom-lookup-field'].focus()
+                })
+            } else {
+                this.customLookupField = false
+                this.selectedColumn.django_lookup_field_name = 'id'
+            }
+        },
         getNewColumnData() {
             return {
                 id: null,
                 schema: this.schema.id,
                 django_import_content_type: '',
                 django_import_field_name: '',
+                django_lookup_field_name: null,
                 xlsx_column_header_name: '',
                 xlsx_data_validation_allow_blank: true,
                 default_value: null,
@@ -583,7 +606,7 @@ export default {
             }
         },
         addSingleColumn() {
-            this.addingSingleColumn = true
+            this.showDjangoImportFieldSelect = true
             this.$nextTick(() => {
                 this.enablePopovers();
                 this.$refs['django-import-field'].focus()
@@ -652,21 +675,30 @@ export default {
 
         },
         selectColumn(column) {
+            if (column.django_import_content_type) {
+                this.selectedContentType = this.djangoContentTypes.filter(
+                    djangoContentType => djangoContentType.id == column.django_import_content_type
+                )[0]
+                if (column.django_import_field_name) {
+                    this.selectedField = this.selectedContentType.model_fields.filter(
+                        modelField => modelField.name == column.django_import_field_name
+                    )[0]
+                    if (this.selectedField.lookup_field_options && !this.selectedField.lookup_field_options.includes(column.django_lookup_field_name)) {
+                        this.customLookupField = true
+                        if (column.django_lookup_field_name) {
+                            this.previousCustomLookupField = column.django_lookup_field_name
+                        }
+                    }
+                }
+            }
             this.selectedColumn = column
             this.selectedColumnIndex = this.schema.columns.indexOf(column)
             this.addEditMode = true
+            if (this.selectedColumn.id) {
+                this.showDjangoImportFieldSelect = true
+            }
             this.$nextTick(() => {
                 this.enablePopovers();
-                if (this.selectedColumn.django_import_content_type) {
-                    this.selectedContentType = this.djangoContentTypes.filter(
-                        djangoContentType => djangoContentType.id == this.selectedColumn.django_import_content_type
-                    )[0]
-                    if (this.selectedColumn.django_import_field_name) {
-                        this.selectedField = this.selectedContentType.model_fields.filter(
-                            modelField => modelField.name == this.selectedColumn.django_import_field_name
-                        )[0]
-                    }
-                }
                 this.$refs['django-import-model'].focus()
             })
         },
@@ -675,7 +707,7 @@ export default {
             this.selectedColumn = null
             this.selectedColumnIndex = null
             this.addEditMode = false
-            this.addingSingleColumn = false
+            this.showDjangoImportFieldSelect = false
         },
         removeColumn(column) {
             let columnTitle = column.xlsx_column_header_name ? `Are you sure you want to delete column: ${column.xlsx_column_header_name}?` : `Are you sure you want to delete this column?`
