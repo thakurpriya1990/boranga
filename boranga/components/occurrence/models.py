@@ -2287,6 +2287,8 @@ class OCRHabitatComposition(models.Model):
         null=True,
         related_name="habitat_composition",
     )
+    # TODO: Consider fixing these to use a function that returns the choices
+    # as setting them in the __init__ method creates issues in other parts of the application
     land_form = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
     rock_type = models.ForeignKey(
         RockType, on_delete=models.SET_NULL, null=True, blank=True
@@ -5731,6 +5733,25 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     prompt="Either leave the field blank or enter the default value",
                     promptTitle="Value",
                 )
+            elif isinstance(
+                model_field, MultiSelectField
+            ):  # MultiSelectField is a custom field, not a standard Django field
+
+                # Have to create an instance for the choices to be populated :-(
+                # as for some reason they are populated in the __init__ method
+                instance = column.django_import_content_type.model_class()()
+                multi_select_field = instance._meta.get_field(model_field.name)
+                choices = multi_select_field.choices
+
+                dv = DataValidation(
+                    type=dv_types["list"],
+                    allow_blank=model_field.null,
+                    formula1=",".join([choice[1] for choice in choices]),
+                    error="Please select a valid option from the list",
+                    errorTitle="Invalid selection",
+                    prompt="Select a value from the list",
+                    promptTitle="List selection",
+                )
             elif (
                 isinstance(model_field, models.fields.CharField) and model_field.choices
             ):
@@ -5995,6 +6016,33 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
     def __str__(self):
         return f"{self.xlsx_column_header_name} - {self.schema}"
+
+    @property
+    def foreign_key_count(self):
+        if not self.django_import_content_type or not self.django_import_field_name:
+            return 0
+
+        field = self.django_import_content_type.model_class()._meta.get_field(
+            self.django_import_field_name
+        )
+        if not isinstance(field, models.ForeignKey):
+            return 0
+
+        related_model_qs = field.related_model.objects.all()
+
+        if issubclass(field.related_model, ArchivableModel):
+            related_model_qs = field.related_model.objects.exclude(archived=True)
+
+        return related_model_qs.count()
+
+    @property
+    def requires_lookup_field(self):
+        if not self.django_import_content_type or not self.django_import_field_name:
+            return False
+
+        return (
+            self.foreign_key_count > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
+        )
 
     def validate(self, cell_value, index, errors):
         errors_added = 0
