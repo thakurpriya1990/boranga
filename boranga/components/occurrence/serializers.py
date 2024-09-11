@@ -3844,7 +3844,6 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
 
 
 class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = OccurrenceReportBulkImportSchemaColumn
         fields = "__all__"
@@ -3856,6 +3855,8 @@ class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
 ):
     id = serializers.IntegerField(allow_null=True, required=False)
     order = serializers.IntegerField()
+    foreign_key_count = serializers.IntegerField(read_only=True)
+    requires_lookup_field = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = OccurrenceReportBulkImportSchemaColumn
