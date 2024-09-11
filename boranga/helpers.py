@@ -489,3 +489,29 @@ def convert_internal_url_to_external_url(url):
         # remove '-internal'. This email is for external submitters
         url = "".join(url.split(settings.SITE_SUBDOMAIN_INTERNAL_SUFFIX))
     return url
+
+
+def get_display_field_for_model(model: models.Model) -> str:
+    """
+    Returns the field name to display for a model in the admin list display.
+    """
+    # Find the best field to use for a display value
+    display_field = None
+    fields = model._meta.get_fields()
+    for field in fields:
+        if field.name in settings.OCR_BULK_IMPORT_LOOKUP_TABLE_DISPLAY_FIELDS:
+            display_field = field.name
+            break
+
+    if not display_field:
+        # If we can't find a display field, we'll just use the first CharField we find
+        for field in fields:
+            if isinstance(field, models.fields.CharField):
+                display_field = field.name
+                break
+
+    if not display_field:
+        # Fall back to the id
+        display_field = "id"
+
+    return display_field
