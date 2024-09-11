@@ -11,6 +11,7 @@ from django.db import models
 from django.db.models import Q
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
+from multiselectfield import MultiSelectField
 
 from boranga.settings import (
     DJANGO_ADMIN_GROUP,
@@ -411,11 +412,14 @@ def get_openpyxl_data_validation_type_for_django_field(field):
         models.IntegerField: "whole",
         models.DecimalField: "decimal",
         models.BooleanField: "list",
+        models.ForeignKey: "list",
         models.DateField: "date",
         models.DateTimeField: "date",
     }
 
-    if isinstance(field, models.CharField) and field.choices:
+    if isinstance(field, MultiSelectField) or (
+        isinstance(field, models.CharField) and field.choices
+    ):
         return dv_types["list"]
 
     for django_field, dv_type in field_type_map.items():
