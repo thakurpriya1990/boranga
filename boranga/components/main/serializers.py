@@ -1,17 +1,21 @@
 import logging
 
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
 from django.db.models.fields.related import ForeignKey, OneToOneField
 from ledger_api_client.ledger_models import EmailUserRO
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import serializers
 
 from boranga.components.main.models import (
+    ArchivableModel,
     CommunicationsLogEntry,
     GlobalSettings,
     HelpTextEntry,
 )
 from boranga.helpers import (
+    get_display_field_for_model,
     get_openpyxl_data_validation_type_for_django_field,
     is_django_admin,
 )
@@ -165,13 +169,20 @@ class ContentTypeSerializer(serializers.ModelSerializer):
             )
             field_type = str(type(field)).split(".")[-1].replace("'>", "")
             choices = field.choices if hasattr(field, "choices") else None
+            if field_type == "MultiSelectField":
+                # Have to create an instance for the choices to be populated :-(
+                # as for some reason they are populated in the __init__ method
+                instance = obj.model_class()()
+                multi_select_field = instance._meta.get_field(field.name)
+                choices = multi_select_field.choices
+
             allow_null = field.null if hasattr(field, "null") else None
             max_length = field.max_length if hasattr(field, "max_length") else None
             xlsx_validation_type = get_openpyxl_data_validation_type_for_django_field(
                 field
             )
             lookup_field_options = None
-            if hasattr(field, "related_model") and field.related_model:
+            if isinstance(field, models.ForeignKey):
                 related_model = field.related_model
                 fields = related_model._meta.get_fields()
                 lookup_field_options = [
@@ -181,6 +192,24 @@ class ContentTypeSerializer(serializers.ModelSerializer):
                     and field.unique
                     and not field.name.endswith("_number")
                 ]
+
+                related_model_qs = related_model.objects.all()
+
+                if issubclass(related_model, ArchivableModel):
+                    related_model_qs = related_model_qs.filter(archived=False)
+
+                related_model_count = related_model_qs.count()
+
+                if (
+                    related_model_count == 0
+                    or related_model_count
+                    > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
+                ):
+                    choices = None
+                else:
+                    display_field = get_display_field_for_model(related_model)
+                    choices = list(related_model_qs.values_list("id", display_field))
+
             model_fields.append(
                 {
                     "name": field.name,
