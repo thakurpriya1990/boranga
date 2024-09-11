@@ -78,6 +78,7 @@ from boranga.components.users.models import (
 )
 from boranga.helpers import (
     clone_model,
+    get_display_field_for_model,
     is_occurrence_approver,
     is_occurrence_assessor,
     member_ids,
@@ -5477,7 +5478,9 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
             cell_value = row[index]
 
-            column_error_count += column.validate(cell_value, index, errors)
+            cell_value, errors_added = column.validate(cell_value, index, errors)
+
+            column_error_count += errors_added
 
             row_error_count += column_error_count
             total_column_error_count += column_error_count
@@ -5821,27 +5824,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     # Instead, the field will be validated during the import process
                     continue
 
-                # Find the best field to use for a display value
-                display_field = None
-                fields = related_model._meta.get_fields()
-                for field in fields:
-                    if (
-                        field.name
-                        in settings.OCR_BULK_IMPORT_LOOKUP_TABLE_DISPLAY_FIELDS
-                    ):
-                        display_field = field.name
-                        break
-
-                if not display_field:
-                    # If we can't find a display field, we'll just use the first CharField we find
-                    for field in fields:
-                        if isinstance(field, models.fields.CharField):
-                            display_field = field.name
-                            break
-
-                if not display_field:
-                    # Fall back to the id
-                    display_field = "id"
+                display_field = get_display_field_for_model(related_model)
 
                 dv = DataValidation(
                     type=dv_types["list"],
@@ -6105,7 +6088,68 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 )
                 errors_added += 1
 
-        return errors_added
+        model_class = apps.get_model("boranga", self.django_import_content_type.model)
+        if hasattr(model_class, self.django_import_field_name):
+            field = model_class._meta.get_field(self.django_import_field_name)
+            if isinstance(field, models.ForeignKey):
+                related_model = field.related_model
+                related_model_qs = related_model.objects.all()
+
+                # Check if the related model is Archivable
+                if issubclass(related_model, ArchivableModel):
+                    related_model_qs = related_model_qs.exclude(archived=True)
+
+                if not related_model_qs.exists() or related_model_qs.count() == 0:
+                    return cell_value, errors_added
+
+                if (
+                    related_model_qs.count()
+                    > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
+                ):
+                    # Use the django lookup field to find the value
+                    lookup_field = self.django_lookup_field_name
+                    try:
+                        related_model_instance = related_model_qs.get(
+                            **{lookup_field: cell_value}
+                        )
+                    except related_model.DoesNotExist:
+                        error_message = (
+                            f"Can't find {self.django_import_field_name} record by looking up "
+                            f"{self.django_lookup_field_name} with value {cell_value} "
+                            f"for column {self.column_header_name}"
+                        )
+                        errors.append(
+                            {
+                                "row_index": index,
+                                "error_type": "column",
+                                "data": cell_value,
+                                "error_message": error_message,
+                            }
+                        )
+                        errors_added += 1
+                        return cell_value, errors_added
+
+                    # Replace the lookup cell_value with the actual instance to assigned
+                    cell_value = related_model_instance
+                    return cell_value, errors_added
+
+                display_field = get_display_field_for_model(related_model)
+
+                if cell_value not in related_model_qs.values_list(
+                    display_field, flat=True
+                ):
+                    error_message = f"Value {cell_value} in column {self.column_header_name} is not in the lookup table"
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": cell_value,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+
+        return cell_value, errors_added
 
 
 # Occurrence Report Document
