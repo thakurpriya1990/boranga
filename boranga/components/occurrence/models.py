@@ -78,6 +78,7 @@ from boranga.components.users.models import (
 )
 from boranga.helpers import (
     clone_model,
+    get_display_field_for_model,
     is_occurrence_approver,
     is_occurrence_assessor,
     member_ids,
@@ -133,6 +134,8 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     """
 
     objects = OccurrenceReportManager()
+
+    BULK_IMPORT_EXCLUDE_FIELDS = ["occurrence_report_number", "import_hash"]
 
     CUSTOMER_STATUS_DRAFT = "draft"
     CUSTOMER_STATUS_WITH_ASSESSOR = "with_assessor"
@@ -1095,20 +1098,11 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         ).exists():
             raise ValidationError("A referral has already been sent to this user")
 
-        # Check if the user sending the referral is a referee themselves
-        sent_from = OccurrenceReportReferral.SENT_CHOICE_FROM_ASSESSOR
-        if OccurrenceReportReferral.objects.filter(
-            occurrence_report=self,
-            referral=request.user.id,
-        ).exists():
-            sent_from = OccurrenceReportReferral.SENT_CHOICE_FROM_REFERRAL
-
         # Create Referral
         referral = OccurrenceReportReferral.objects.create(
             occurrence_report=self,
             referral=referee.id,
             sent_by=request.user.id,
-            sent_from=sent_from,
             text=referral_text,
             assigned_officer=request.user.id,
         )
@@ -1563,37 +1557,6 @@ class OccurrenceReportAmendmentRequestDocument(Document):
             return super().delete()
 
 
-class OccurrenceReportReferralDocument(Document):
-    referral = models.ForeignKey(
-        "OccurrenceReportReferral",
-        related_name="referral_documents",
-        on_delete=models.CASCADE,
-    )
-    _file = models.FileField(
-        upload_to=update_occurrence_report_referral_doc_filename,
-        max_length=512,
-        storage=private_storage,
-    )
-    input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-
-    def delete(self):
-        if self.can_delete:
-            if self._file:
-                self._file.delete()
-            return super().delete()
-        logger.info(
-            "Cannot delete existing document object after occurrence report referral has been submitted: {}".format(
-                self.name
-            )
-        )
-
-    class Meta:
-        app_label = "boranga"
-
-
 class OccurrenceReportReferral(models.Model):
     SENT_CHOICE_FROM_ASSESSOR = 1
     SENT_CHOICE_FROM_REFERRAL = 2
@@ -1617,9 +1580,6 @@ class OccurrenceReportReferral(models.Model):
     sent_by = models.IntegerField()  # EmailUserRO
     referral = models.IntegerField()  # EmailUserRO
     linked = models.BooleanField(default=False)
-    sent_from = models.SmallIntegerField(
-        choices=SENT_CHOICES, default=SENT_CHOICES[0][0]
-    )
     processing_status = models.CharField(
         "Processing Status",
         max_length=30,
@@ -1627,17 +1587,7 @@ class OccurrenceReportReferral(models.Model):
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
     text = models.TextField(blank=True)  # Assessor text when send_referral
-    referral_text = models.TextField(
-        blank=True
-    )  # used in other projects for complete referral comment but not used in boranga
     referral_comment = models.TextField(blank=True, null=True)  # Referral Comment
-    document = models.ForeignKey(
-        OccurrenceReportReferralDocument,
-        blank=True,
-        null=True,
-        related_name="referral_document",
-        on_delete=models.SET_NULL,
-    )
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
     is_external = models.BooleanField(default=False)
 
@@ -1927,8 +1877,6 @@ class OCRLocation(models.Model):
     )
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
-    new_occurrence = models.BooleanField(null=True, blank=True)
-    boundary = models.IntegerField(null=True, blank=True, default=0)
     mapped_boundary = models.BooleanField(null=True, blank=True)
     buffer_radius = models.IntegerField(null=True, blank=True, default=0)
     datum = models.ForeignKey(Datum, on_delete=models.SET_NULL, null=True, blank=True)
@@ -2137,14 +2085,7 @@ class DrawnByGeometry(models.Model):
         abstract = True
 
 
-class IntersectsGeometry(models.Model):
-    intersects = models.BooleanField(default=False)
-
-    class Meta:
-        abstract = True
-
-
-class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
+class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry):
     occurrence_report = models.ForeignKey(
         OccurrenceReport,
         on_delete=models.CASCADE,
@@ -3339,8 +3280,6 @@ class Occurrence(RevisionedMixin):
     comment = models.TextField(null=True, blank=True)
 
     review_due_date = models.DateField(null=True, blank=True)
-    review_date = models.DateField(null=True, blank=True)
-    reviewed_by = models.IntegerField(null=True)  # EmailUserRO
     review_status = models.CharField(
         "Review Status",
         max_length=30,
@@ -4239,8 +4178,6 @@ class OCCLocation(models.Model):
     )
     location_description = models.TextField(null=True, blank=True)
     boundary_description = models.TextField(null=True, blank=True)
-
-    boundary = models.IntegerField(null=True, blank=True, default=0)
     mapped_boundary = models.BooleanField(null=True, blank=True)
     buffer_radius = models.IntegerField(null=True, blank=True, default=0)
     datum = models.ForeignKey(Datum, on_delete=models.SET_NULL, null=True, blank=True)
@@ -4274,7 +4211,7 @@ class GeometryType(Func):
     output_field = CharField()
 
 
-class OccurrenceGeometry(GeometryBase, DrawnByGeometry, IntersectsGeometry):
+class OccurrenceGeometry(GeometryBase, DrawnByGeometry):
     occurrence = models.ForeignKey(
         Occurrence,
         on_delete=models.CASCADE,
@@ -5468,14 +5405,12 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         rows = list(
             sheet.iter_rows(
                 min_row=2,
-                max_row=self.rows,
+                max_row=self.rows + 1,
                 max_col=self.schema.columns.count(),
                 values_only=True,
             )
         )
 
-        # Occurrence reports to create
-        models_to_insert = []
         errors = []
 
         # Process the rows
@@ -5490,7 +5425,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
             self.save()
 
-            self.process_row(index, row, models_to_insert, errors)
+            self.process_row(index, row, errors)
 
         if errors:
             self.processing_status = (
@@ -5510,7 +5445,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
         return errors
 
-    def process_row(self, index, row, models_to_insert, errors):
+    def process_row(self, index, row, errors):
         logger.debug(f"Processing row: Index {index}, Data: {row}")
         row_hash = hashlib.sha256(str(row).encode()).hexdigest()
         if OccurrenceReport.objects.filter(import_hash=row_hash).exists():
@@ -5530,52 +5465,164 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             return
 
         row_error_count = 0
-        column_error_count = 0
+        total_column_error_count = 0
 
-        model_data = {}
+        models = {}
 
         # Validate each cell
         for index, column in enumerate(self.schema.columns.all()):
-            logger.debug(f"  Processing column: {column}")
+            # logger.debug(f"  Processing column: {column}")
 
-            logger.debug(f"  Cell value: {row[index]}")
+            # logger.debug(f"  Cell value: {row[index]}")
+            column_error_count = 0
+
             cell_value = row[index]
 
-            column_error_count += column.validate(cell_value, index, errors)
+            cell_value, errors_added = column.validate(cell_value, index, errors)
+
+            column_error_count += errors_added
 
             row_error_count += column_error_count
+            total_column_error_count += column_error_count
 
             if column_error_count:
                 continue
 
-            model_data[column.django_import_field_name] = cell_value
+            model_name = column.django_import_content_type.model
+
+            if model_name not in models:
+                models[model_name] = {"field_names": [], "values": []}
+
+            models[model_name]["field_names"].append(column.django_import_field_name)
+            models[model_name]["values"].append(cell_value)
 
         if row_error_count > 0:
             return
 
-        # Create an instance of the model that is going to be created
-        model_instance = apps.get_model(
-            column.django_import_content_type.app_label,
-            column.django_import_content_type.model,
-        )
+        model_instances = {}
+        for current_model_name in models:
+            logger.debug(f"Processing model: {current_model_name}")
+            mode = "create"
 
-        # Create the model instance from the data
-        if model_instance == OccurrenceReport:
-            model_data["bulk_import_task_id"] = self.pk
-            model_data["import_hash"] = row_hash
-            model_data["group_type_id"] = self.schema.group_type_id
-        try:
-            model_instance.objects.create(**model_data)
-        except IntegrityError as e:
-            logger.error(f"Error creating model instance: {e}")
-            errors.append(
-                {
-                    "row_index": index,
-                    "error_type": "integrity",
-                    "data": model_data,
-                    "error_message": f"Error creating model instance: {e}",
-                }
+            # If we are at the top level model, check if we are creating a new instance or updating an existing one
+            if (
+                current_model_name == OccurrenceReport._meta.model_name
+                and OccurrenceReport.objects.filter(migrated_from_id=row[0]).exists()
+            ):
+                mode = "update"
+
+            model_data = dict(
+                zip(
+                    models[current_model_name]["field_names"],
+                    models[current_model_name]["values"],
+                )
             )
+
+            # Create an instance of the model that is going to be created
+            model_class = apps.get_model(
+                "boranga",
+                current_model_name,
+            )
+            current_model_instance = model_class(**model_data)
+
+            logger.debug(
+                f"{current_model_name}.__dict__: {current_model_instance.__dict__}"
+            )
+
+            # For OccurrenceReport check if we are creating or updating
+            # and set appropriate fields if so
+            if current_model_name == OccurrenceReport._meta.model_name:
+                if mode == "create":
+                    current_model_instance.bulk_import_task_id = self.pk
+                    current_model_instance.import_hash = row_hash
+                    current_model_instance.group_type_id = self.schema.group_type_id
+                else:
+                    current_model_instance.pk = OccurrenceReport.objects.get(
+                        migrated_from_id=row[0]
+                    ).pk
+
+            # If we are at the top level model (OccurrenceReport) we don't need to relate it to anything
+            if not current_model_name == OccurrenceReport._meta.model_name:
+                # Relate this model to it's parent instance
+
+                related_to_parent = False
+
+                # Look through all the models being imported except for the current model
+                for potential_parent_model_key in [
+                    m for m in models if m != current_model_name
+                ]:
+                    # Check if this model has a relationship with the current model
+                    potential_parent_instance = model_instances[
+                        potential_parent_model_key
+                    ]
+
+                    # First search the current model instance for the relationship
+                    # This is often faster as the child model often has the foreign key
+                    # to the parent model
+                    for field in current_model_instance._meta.get_fields():
+                        if field.related_model == potential_parent_instance.__class__:
+                            logger.debug(f" ---> {field} is a relationship")
+
+                            # If it does, set the relationship
+                            setattr(
+                                current_model_instance,
+                                field.name,
+                                potential_parent_instance,
+                            )
+                            related_to_parent = True
+                            break
+
+                    if related_to_parent:
+                        break
+
+                    # If we didn't find a relationship in the current model, search the parent model
+                    for field in potential_parent_instance.__class__._meta.get_fields():
+                        if field.related_model == current_model_instance:
+                            logger.debug(f" ---> {field} is a relationship")
+
+                            # If it does, set the relationship
+                            setattr(
+                                current_model_instance,
+                                field.name,
+                                potential_parent_instance,
+                            )
+                            related_to_parent = True
+                            break
+
+                    if related_to_parent:
+                        break
+
+                if not related_to_parent:
+                    error_message = (
+                        "Could not find a parent model to relate this model to "
+                        "(Probably due to an error saving the parent model instance)"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "relationship",
+                            "data": model_data,
+                            "error_message": error_message,
+                        }
+                    )
+                    return
+
+            try:
+                current_model_instance.save()
+                model_instances[current_model_instance._meta.model_name] = (
+                    current_model_instance
+                )
+                logger.debug(f"Model instance created: {current_model_instance}")
+            except IntegrityError as e:
+                logger.error(f"Error creating model instance: {e}")
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "integrity",
+                        "data": model_data,
+                        "error_message": f"Error creating model instance: {e}",
+                    }
+                )
 
         return
 
@@ -5777,27 +5824,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     # Instead, the field will be validated during the import process
                     continue
 
-                # Find the best field to use for a display value
-                display_field = None
-                fields = related_model._meta.get_fields()
-                for field in fields:
-                    if (
-                        field.name
-                        in settings.OCR_BULK_IMPORT_LOOKUP_TABLE_DISPLAY_FIELDS
-                    ):
-                        display_field = field.name
-                        break
-
-                if not display_field:
-                    # If we can't find a display field, we'll just use the first CharField we find
-                    for field in fields:
-                        if isinstance(field, models.fields.CharField):
-                            display_field = field.name
-                            break
-
-                if not display_field:
-                    # Fall back to the id
-                    display_field = "id"
+                display_field = get_display_field_for_model(related_model)
 
                 dv = DataValidation(
                     type=dv_types["list"],
@@ -5893,6 +5920,9 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         related_name="import_columns",
     )
     django_import_field_name = models.CharField(max_length=50, blank=False, null=False)
+    django_lookup_field_name = models.CharField(
+        max_length=50, default="id", blank=True, null=True
+    )
 
     # The name of the column header in the .xlsx file
     xlsx_column_header_name = models.CharField(max_length=50, blank=False, null=False)
@@ -6058,7 +6088,68 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 )
                 errors_added += 1
 
-        return errors_added
+        model_class = apps.get_model("boranga", self.django_import_content_type.model)
+        if hasattr(model_class, self.django_import_field_name):
+            field = model_class._meta.get_field(self.django_import_field_name)
+            if isinstance(field, models.ForeignKey):
+                related_model = field.related_model
+                related_model_qs = related_model.objects.all()
+
+                # Check if the related model is Archivable
+                if issubclass(related_model, ArchivableModel):
+                    related_model_qs = related_model_qs.exclude(archived=True)
+
+                if not related_model_qs.exists() or related_model_qs.count() == 0:
+                    return cell_value, errors_added
+
+                if (
+                    related_model_qs.count()
+                    > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
+                ):
+                    # Use the django lookup field to find the value
+                    lookup_field = self.django_lookup_field_name
+                    try:
+                        related_model_instance = related_model_qs.get(
+                            **{lookup_field: cell_value}
+                        )
+                    except related_model.DoesNotExist:
+                        error_message = (
+                            f"Can't find {self.django_import_field_name} record by looking up "
+                            f"{self.django_lookup_field_name} with value {cell_value} "
+                            f"for column {self.column_header_name}"
+                        )
+                        errors.append(
+                            {
+                                "row_index": index,
+                                "error_type": "column",
+                                "data": cell_value,
+                                "error_message": error_message,
+                            }
+                        )
+                        errors_added += 1
+                        return cell_value, errors_added
+
+                    # Replace the lookup cell_value with the actual instance to assigned
+                    cell_value = related_model_instance
+                    return cell_value, errors_added
+
+                display_field = get_display_field_for_model(related_model)
+
+                if cell_value not in related_model_qs.values_list(
+                    display_field, flat=True
+                ):
+                    error_message = f"Value {cell_value} in column {self.column_header_name} is not in the lookup table"
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": cell_value,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+
+        return cell_value, errors_added
 
 
 # Occurrence Report Document

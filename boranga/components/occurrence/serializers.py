@@ -758,9 +758,6 @@ class OCRIdentificationSerializer(serializers.ModelSerializer):
 
 
 class OCRLocationSerializer(serializers.ModelSerializer):
-    # observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
-    # geojson_point = serializers.SerializerMethodField()
-    # geojson_polygon = serializers.SerializerMethodField()
     has_boundary = serializers.SerializerMethodField()
     has_points = serializers.SerializerMethodField()
     coordinate_source = serializers.CharField(
@@ -775,11 +772,8 @@ class OCRLocationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "occurrence_report_id",
-            # "observation_date",
             "location_description",
             "boundary_description",
-            "new_occurrence",
-            "boundary",
             "mapped_boundary",
             "buffer_radius",
             "datum_id",
@@ -790,8 +784,6 @@ class OCRLocationSerializer(serializers.ModelSerializer):
             "region_id",
             "district_id",
             "locality",
-            # 'geojson_point',
-            # 'geojson_polygon',
             "has_boundary",
             "has_points",
         )
@@ -864,7 +856,6 @@ class OccurrenceReportGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSeri
             "srid",
             "area_sqm",
             "area_sqhm",
-            "intersects",
             "geometry_source",
             "locked",
             "report_copied_from",
@@ -1917,9 +1908,6 @@ class SaveOCRLocationSerializer(serializers.ModelSerializer):
     datum_id = serializers.IntegerField(required=False, allow_null=True)
     coordinate_source_id = serializers.IntegerField(required=False, allow_null=True)
     location_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
-    # observation_date = serializers.DateTimeField(
-    #    format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
-    # )
     has_boundary = serializers.SerializerMethodField()
     has_points = serializers.SerializerMethodField()
 
@@ -1928,11 +1916,8 @@ class SaveOCRLocationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "occurrence_report_id",
-            # "observation_date",
             "location_description",
             "boundary_description",
-            "new_occurrence",
-            "boundary",
             "mapped_boundary",
             "buffer_radius",
             "datum_id",
@@ -1941,7 +1926,6 @@ class SaveOCRLocationSerializer(serializers.ModelSerializer):
             "region_id",
             "district_id",
             "locality",
-            # 'geojson_polygon',
             "has_boundary",
             "has_points",
         )
@@ -2044,7 +2028,6 @@ class OccurrenceReportGeometrySaveSerializer(GeoFeatureModelSerializer):
             "occurrence_report_id",
             "geometry",
             "original_geometry_ewkb",
-            "intersects",
             "drawn_by",
             "last_updated_by",
             "locked",
@@ -3226,7 +3209,6 @@ class OCCLocationSerializer(serializers.ModelSerializer):
             "copied_ocr",
             "location_description",
             "boundary_description",
-            "boundary",
             "mapped_boundary",
             "buffer_radius",
             "datum_id",
@@ -3347,7 +3329,6 @@ class OccurrenceGeometrySerializer(BaseTypeSerializer, GeoFeatureModelSerializer
             "srid",
             "area_sqm",
             "area_sqhm",
-            "intersects",
             "geometry_source",
             "locked",
             "object_id",
@@ -3474,7 +3455,6 @@ class SaveOCCLocationSerializer(serializers.ModelSerializer):
             "occurrence_id",
             "location_description",
             "boundary_description",
-            "boundary",
             "mapped_boundary",
             "buffer_radius",
             "datum_id",
@@ -3513,7 +3493,6 @@ class OccurrenceGeometrySaveSerializer(GeoFeatureModelSerializer):
             "occurrence_id",
             "geometry",
             "original_geometry_ewkb",
-            "intersects",
             "drawn_by",
             "last_updated_by",
             "locked",
@@ -3875,7 +3854,7 @@ class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializ
 class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
     serializers.ModelSerializer
 ):
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(allow_null=True, required=False)
     order = serializers.IntegerField()
 
     class Meta:

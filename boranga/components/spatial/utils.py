@@ -4,13 +4,13 @@ import logging
 import re
 import sys
 import urllib.parse
+import xml.etree.ElementTree as ET
 from itertools import combinations
 
 import geojson
 import numpy as np
 import requests
 import shapely.geometry as shp
-import xml.etree.ElementTree as ET
 from django.apps import apps
 from django.contrib.contenttypes import models as ct_models
 from django.contrib.gis.geos import GEOSGeometry
@@ -73,7 +73,8 @@ def intersect_geometry_with_layer(
         # e.g. MULTIPOINT (3 1, 4 1, 5 2), and rather throws unintelligible java class exceptions at me, so we
         # have to convert them to a double-bracket notation in the form of MULTIPOINT ((3 1), (4 1), (5 2)). Even
         # though both forms are (topologically) valid by OGC definition, the jts (java topology suite) library only
-        # seems to except singleton lists (https://www.tsusiatsoftware.net/jts/javadoc/com/vividsolutions/jts/io/WKTReader.html)
+        # seems to except singleton lists
+        # (https://www.tsusiatsoftware.net/jts/javadoc/com/vividsolutions/jts/io/WKTReader.html)
         logger.warn(
             f"Converting MultiPoint geometry {test_geom} to double-bracket notation"
         )
@@ -271,8 +272,11 @@ def save_geometry(
     )
     if instance_fk_field_name is None:
         instance_fk_field_name = instance_model_name.lower()
+    if isinstance(geometry_data, dict):
+        geometry = geometry_data
+    else:
+        geometry = json.loads(geometry_data)
 
-    geometry = json.loads(geometry_data)
     if (
         0 == len(geometry["features"])
         and 0
@@ -421,11 +425,13 @@ def save_geometry(
                     if number_matched:
                         if error_value and number_matched >= error_value:
                             logger.info(
-                                f"Rejecting geometry {geom[0]}, it intersects with {number_matched} features from {intersect_layer.layer_name}. "
+                                f"Rejecting geometry {geom[0]}, it intersects with {number_matched} "
+                                f"features from {intersect_layer.layer_name}. "
                                 f"Error value: {error_value}"
                             )
                             raise serializers.ValidationError(
-                                f"Geometry intersects with too many features from {intersect_layer.layer_name}: {number_matched}. Error value: {error_value}"
+                                f"Geometry intersects with too many features from "
+                                f"{intersect_layer.layer_name}: {number_matched}. Error value: {error_value}"
                             )
 
                     intersect_data = intersect_geometry_with_layer(
@@ -436,7 +442,6 @@ def save_geometry(
                         f"Geometry {geom[0]} intersects with {totalFeatures} features from {intersect_layer.layer_name}"
                     )
 
-                    geometry_data["intersects"] = totalFeatures > 0
             else:
                 logger.info("No intersect layer specified")
 

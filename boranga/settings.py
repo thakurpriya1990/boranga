@@ -243,9 +243,18 @@ BASE_URL = env("BASE_URL")
 # Additional logging for boranga
 LOGGING["loggers"]["boranga"] = {"handlers": ["file"], "level": "INFO"}
 if DEBUG:
+    LOGGING["formatters"] = {
+        "verbose": {
+            "format": "%(levelname)s %(asctime)s %(name)s [Line:%(lineno)s][%(funcName)s] %(message)s"
+        },
+        "simple": {
+            "format": "[Line:%(lineno)s][%(funcName)s] %(levelname)s %(message)s"
+        },
+    }
     LOGGING["loggers"]["boranga"] = {
         "handlers": ["console"],
         "level": "DEBUG",
+        "formatter": "verbose",
         "propagate": False,
     }
 

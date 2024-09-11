@@ -159,7 +159,6 @@ class OccurrenceReportGeometryInline(admin.StackedInline):
                         "area_sqhm",
                     ),
                     (
-                        "intersects",
                         "locked",
                         "show_on_map",
                     ),
@@ -222,10 +221,7 @@ class OccurrenceGeometryInline(nested_admin.NestedStackedInline):
                         "area_sqm",
                         "area_sqhm",
                     ),
-                    (
-                        "intersects",
-                        "locked",
-                    ),
+                    ("locked",),
                     (
                         "created_date",
                         "updated_date",

@@ -137,15 +137,22 @@ class ContentTypeSerializer(serializers.ModelSerializer):
         if not obj.model_class():
             return []
         fields = obj.model_class()._meta.get_fields()
+        exclude_fields = []
+        if hasattr(obj.model_class(), "BULK_IMPORT_EXCLUDE_FIELDS"):
+            exclude_fields = obj.model_class().BULK_IMPORT_EXCLUDE_FIELDS
 
         def filter_fields(field):
-            return not field.auto_created and not (
-                field.is_relation
-                and type(field)
-                not in [
-                    ForeignKey,
-                    OneToOneField,
-                ]
+            return (
+                field.name not in exclude_fields
+                and not field.auto_created
+                and not (
+                    field.is_relation
+                    and type(field)
+                    not in [
+                        ForeignKey,
+                        OneToOneField,
+                    ]
+                )
             )
 
         fields = list(filter(filter_fields, fields))
@@ -163,6 +170,17 @@ class ContentTypeSerializer(serializers.ModelSerializer):
             xlsx_validation_type = get_openpyxl_data_validation_type_for_django_field(
                 field
             )
+            lookup_field_options = None
+            if hasattr(field, "related_model") and field.related_model:
+                related_model = field.related_model
+                fields = related_model._meta.get_fields()
+                lookup_field_options = [
+                    field.verbose_name.lower()
+                    for field in related_model._meta.get_fields()
+                    if not field.related_model
+                    and field.unique
+                    and not field.name.endswith("_number")
+                ]
             model_fields.append(
                 {
                     "name": field.name,
@@ -172,6 +190,7 @@ class ContentTypeSerializer(serializers.ModelSerializer):
                     "allow_null": allow_null,
                     "max_length": max_length,
                     "xlsx_validation_type": xlsx_validation_type,
+                    "lookup_field_options": lookup_field_options,
                 }
             )
         return model_fields
