@@ -256,44 +256,6 @@
                                                     data-bs-target="#preview-choices"><i class="bi bi-search"
                                                         role="button"></i> Preview
                                                     List Choices</button>
-                                                <div class="modal fade" id="preview-choices" data-bs-backdrop="static"
-                                                    data-bs-keyboard="false" tabindex="-1"
-                                                    aria-labelledby="preview-choices-label" aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title" id="preview-choices-label">
-                                                                    {{
-                                                                        selectedField.display_name
-                                                                    }} List
-                                                                    Choices
-                                                                </h5>
-                                                                <button type="button" class="btn-close"
-                                                                    data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <div class="table-responsive">
-                                                                    <table
-                                                                        class="table table-bordered table-hover table-sm">
-                                                                        <tbody>
-                                                                            <tr v-for="choice in selectedField.choices"
-                                                                                class="">
-                                                                                <td>{{
-                                                                                    choice[0]
-                                                                                    }}
-                                                                                </td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary"
-                                                                    data-bs-dismiss="modal">Close</button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                             </template>
                                         </div>
                                     </div>
@@ -423,6 +385,45 @@
                 </div>
             </div>
         </div>
+        <template
+            v-if="selectedField && selectedField.xlsx_validation_type == 'list' && selectedField.choices && selectedField.choices.length > 0">
+            <div class="modal fade" id="preview-choices" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="preview-choices-label" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="preview-choices-label">
+                                {{
+                                    selectedField.display_name
+                                }} List
+                                Choices
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover table-sm">
+                                    <tbody>
+                                        <tr v-for="choice in selectedField.choices" class="">
+                                            <td>
+                                                <template v-if="['MultiSelectField', 'ForeignKey'].includes(selectedField.type)">{{ choice[1] }}</template>
+                                                <template v-else>{{
+                                                choice[0]
+                                            }}</template>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
     </div>
 </template>
 
@@ -463,6 +464,7 @@ export default {
             return this.selectedColumn &&
                 this.selectedColumn.xlsx_column_header_name &&
                 this.selectedColumn.django_import_content_type &&
+                this.selectedColumn.requires_lookup_field &&
                 this.selectedColumn.django_import_field_name && this.selectedField && this.selectedField.type === 'ForeignKey';
         },
     },
@@ -588,7 +590,7 @@ export default {
                 })
             } else {
                 this.customLookupField = false
-                this.selectedColumn.django_lookup_field_name = 'id'
+                this.selectedColumn.django_lookup_field_name = this.$refs['lookup-field'].value
             }
         },
         getNewColumnData() {
@@ -620,6 +622,7 @@ export default {
             this.selectedColumn = this.newColumn
             this.selectedColumnIndex = this.schema.columns.indexOf(this.newColumn)
             this.addEditMode = true
+            this.showDjangoImportFieldSelect = false
             this.$nextTick(() => {
                 this.enablePopovers();
                 this.$refs['django-import-model'].focus()
@@ -694,7 +697,7 @@ export default {
             this.selectedColumn = column
             this.selectedColumnIndex = this.schema.columns.indexOf(column)
             this.addEditMode = true
-            if (this.selectedColumn.id) {
+            if (this.selectedColumn.id && column.django_import_field_name) {
                 this.showDjangoImportFieldSelect = true
             }
             this.$nextTick(() => {
