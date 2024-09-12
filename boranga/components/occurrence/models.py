@@ -79,6 +79,7 @@ from boranga.components.users.models import (
 from boranga.helpers import (
     clone_model,
     get_display_field_for_model,
+    get_openpyxl_data_validation_type_for_django_field,
     is_occurrence_approver,
     is_occurrence_assessor,
     member_ids,
@@ -5538,6 +5539,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     current_model_instance.bulk_import_task_id = self.pk
                     current_model_instance.import_hash = row_hash
                     current_model_instance.group_type_id = self.schema.group_type_id
+                    current_model_instance.submitter = self.email_user
                 else:
                     current_model_instance.pk = OccurrenceReport.objects.get(
                         migrated_from_id=row[0]
@@ -5736,22 +5738,10 @@ class OccurrenceReportBulkImportSchema(models.Model):
             elif isinstance(
                 model_field, MultiSelectField
             ):  # MultiSelectField is a custom field, not a standard Django field
-
-                # Have to create an instance for the choices to be populated :-(
-                # as for some reason they are populated in the __init__ method
-                instance = column.django_import_content_type.model_class()()
-                multi_select_field = instance._meta.get_field(model_field.name)
-                choices = multi_select_field.choices
-
-                dv = DataValidation(
-                    type=dv_types["list"],
-                    allow_blank=model_field.null,
-                    formula1=",".join([choice[1] for choice in choices]),
-                    error="Please select a valid option from the list",
-                    errorTitle="Invalid selection",
-                    prompt="Select a value from the list",
-                    promptTitle="List selection",
-                )
+                # Unfortunately there is no easy way to embed validation in .xlsx
+                # for a comma separated list of values so this will be validated
+                # during the import process
+                continue
             elif (
                 isinstance(model_field, models.fields.CharField) and model_field.choices
             ):
@@ -6096,6 +6086,37 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
     def validate(self, cell_value, index, errors):
         errors_added = 0
+
+        model_class = apps.get_model("boranga", self.django_import_content_type.model)
+
+        if not model_class:
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "column",
+                    "data": cell_value,
+                    "error_message": f"Model class {self.django_import_content_type.model} not found",
+                }
+            )
+            errors_added += 1
+            return cell_value, errors_added
+
+        if not hasattr(model_class, self.django_import_field_name):
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "column",
+                    "data": cell_value,
+                    "error_message": f"Field {self.django_import_field_name} not found in model {model_class}",
+                }
+            )
+            errors_added += 1
+            return cell_value, errors_added
+
+        field = model_class._meta.get_field(self.django_import_field_name)
+
+        logger.debug(f"field: {field}")
+
         if not self.xlsx_data_validation_allow_blank and not cell_value:
             errors.append(
                 {
@@ -6107,8 +6128,67 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             )
             errors_added += 1
 
-        if self.xlsx_data_validation_type == "textLength":
-            if len(cell_value) > int(self.xlsx_data_validation_formula1):
+        xlsx_data_validation_type = get_openpyxl_data_validation_type_for_django_field(
+            field
+        )
+
+        if isinstance(field, MultiSelectField):
+            if not cell_value:
+                return cell_value, errors_added
+
+            if not isinstance(cell_value, str):
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not a string",
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            # Unfortunatly have to have an actual model instance to get the choices
+            # as they are defined in __init__
+            model_instance = model_class()
+            choices = model_instance._meta.get_field(
+                self.django_import_field_name
+            ).choices
+
+            display_values = cell_value.split(",")
+            logger.debug(f"display_values: {display_values}")
+            cell_value = []
+            for display_value in [
+                display_value.strip() for display_value in display_values
+            ]:
+                logger.debug(f"display_value: '{display_value}'")
+                logger.debug([choice[1] for choice in choices])
+                if display_value not in [choice[1] for choice in choices]:
+                    errors_message = (
+                        f"Value '{display_value}' in column {self.xlsx_column_header_name} "
+                        "is not in the list"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": cell_value,
+                            "error_message": errors_message,
+                        }
+                    )
+                    errors_added += 1
+                else:
+                    cell_value.append(
+                        [
+                            choice[0]
+                            for choice in field.choices
+                            if choice[1] == display_value
+                        ][0]
+                    )
+            return cell_value, errors_added
+
+        if xlsx_data_validation_type == "textLength" and field.max_length:
+            if len(str(cell_value)) > field.max_length:
                 error_message = f"Value {cell_value} in column {self.xlsx_column_header_name} has too many characters"
                 errors.append(
                     {
@@ -6120,7 +6200,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 )
                 errors_added += 1
 
-        if self.xlsx_data_validation_type == "whole":
+        if xlsx_data_validation_type == "whole":
             if not isinstance(cell_value, int):
                 errors.append(
                     {
@@ -6132,7 +6212,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 )
                 errors_added += 1
 
-        if self.xlsx_data_validation_type == "decimal":
+        if xlsx_data_validation_type == "decimal":
             try:
                 cell_value = Decimal(cell_value)
             except Exception:
@@ -6146,7 +6226,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 )
                 errors_added += 1
 
-        if self.xlsx_data_validation_type == "date":
+        if xlsx_data_validation_type == "date":
             try:
                 cell_value = dateutil.parser.parse(cell_value)
             except Exception:
@@ -6160,7 +6240,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 )
                 errors_added += 1
 
-        if self.xlsx_data_validation_type == "time":
+        if xlsx_data_validation_type == "time":
             try:
                 cell_value = dateutil.parser.parse(cell_value)
             except Exception:
@@ -6170,18 +6250,6 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                         "error_type": "column",
                         "data": cell_value,
                         "error_message": f"Value {cell_value} in column {self.column_header_name} is not a time",
-                    }
-                )
-                errors_added += 1
-
-        if self.xlsx_data_validation_type == "list":
-            if cell_value not in self.xlsx_data_validation_formula1:
-                errors.append(
-                    {
-                        "row_index": index,
-                        "error_type": "column",
-                        "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not in the list",
                     }
                 )
                 errors_added += 1
@@ -6200,43 +6268,22 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 if not related_model_qs.exists() or related_model_qs.count() == 0:
                     return cell_value, errors_added
 
-                if (
-                    related_model_qs.count()
-                    > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
-                ):
-                    # Use the django lookup field to find the value
+                # Use the django lookup field to find the value
+                if self.django_lookup_field_name:
                     lookup_field = self.django_lookup_field_name
-                    try:
-                        related_model_instance = related_model_qs.get(
-                            **{lookup_field: cell_value}
-                        )
-                    except related_model.DoesNotExist:
-                        error_message = (
-                            f"Can't find {self.django_import_field_name} record by looking up "
-                            f"{self.django_lookup_field_name} with value {cell_value} "
-                            f"for column {self.column_header_name}"
-                        )
-                        errors.append(
-                            {
-                                "row_index": index,
-                                "error_type": "column",
-                                "data": cell_value,
-                                "error_message": error_message,
-                            }
-                        )
-                        errors_added += 1
-                        return cell_value, errors_added
+                else:
+                    lookup_field = get_display_field_for_model(related_model)
 
-                    # Replace the lookup cell_value with the actual instance to assigned
-                    cell_value = related_model_instance
-                    return cell_value, errors_added
-
-                display_field = get_display_field_for_model(related_model)
-
-                if cell_value not in related_model_qs.values_list(
-                    display_field, flat=True
-                ):
-                    error_message = f"Value {cell_value} in column {self.column_header_name} is not in the lookup table"
+                try:
+                    related_model_instance = related_model_qs.get(
+                        **{lookup_field: cell_value}
+                    )
+                except related_model.DoesNotExist:
+                    error_message = (
+                        f"Can't find {self.django_import_field_name} record by looking up "
+                        f"{self.django_lookup_field_name} with value {cell_value} "
+                        f"for column {self.column_header_name}"
+                    )
                     errors.append(
                         {
                             "row_index": index,
@@ -6246,6 +6293,23 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                         }
                     )
                     errors_added += 1
+                    return cell_value, errors_added
+
+                # Replace the lookup cell_value with the actual instance to assigned
+                cell_value = related_model_instance
+                return cell_value, errors_added
+
+        if xlsx_data_validation_type == "list":
+            if cell_value not in self.xlsx_data_validation_formula1:
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not in the list",
+                    }
+                )
+                errors_added += 1
 
         return cell_value, errors_added
 
