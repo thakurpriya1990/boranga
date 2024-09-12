@@ -6390,21 +6390,6 @@ class OccurrenceReportBulkImportSchemaViewSet(
         serializer = OccurrenceReportBulkImportSchemaSerializer(new_instance)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @detail_route(methods=["put"], detail=True)
-    def save_column(self, request, *args, **kwargs):
-        instance = self.get_object()
-        column_data = request.data.get("column_data", None)
-        if not column_data:
-            raise serializers.ValidationError("Column data is required")
-        serializer = OccurrenceReportBulkImportSchemaColumnSerializer(
-            instance, data=column_data
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        serializer = OccurrenceReportBulkImportSchemaSerializer(instance)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
     @detail_route(methods=["get"], detail=False)
     def default_value_choices(self, request, *args, **kwargs):
         default_value_field = OccurrenceReportBulkImportSchemaColumn._meta.get_field(
@@ -6412,31 +6397,36 @@ class OccurrenceReportBulkImportSchemaViewSet(
         )
         return Response(default_value_field.choices, status=status.HTTP_200_OK)
 
-    @detail_route(methods=["patch"], detail=True)
-    def reorder_column(self, request, *args, **kwargs):
+
+class OccurrenceReportBulkImportSchemaColumnViewSet(
+    viewsets.GenericViewSet,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+):
+    queryset = OccurrenceReportBulkImportSchemaColumn.objects.all()
+    serializer_class = OccurrenceReportBulkImportSchemaColumnSerializer
+    permission_classes = [OccurrenceReportBulkImportPermission]
+
+    @detail_route(methods=["get"], detail=True)
+    def preview_foreign_key_values_xlsx(self, request, *args, **kwargs):
         instance = self.get_object()
 
-        # Don't order columns that haven't been saved
-        pk = request.data.get("id", None)
-        if not pk:
-            raise serializers.ValidationError(
-                "column must have id field to be reordered (i.e. record must be saved first)"
+        buffer = BytesIO()
+        workbook = instance.preview_foreign_key_values_xlsx
+        if not workbook:
+            return Response(
+                {"message": "No foreign key values to preview"},
+                status=status.HTTP_404_NOT_FOUND,
             )
-
-        order = request.data.get("order", None)
-        if order is None:
-            raise serializers.ValidationError("order field is missing from column")
-
-        try:
-            column = instance.columns.get(pk=pk)
-        except OccurrenceReportBulkImportSchemaColumn.DoesNotExist:
-            raise serializers.ValidationError(
-                f"Column with id {pk} not found in schema"
-            )
-
-        column.to(order)
-
-        # instance.refresh_from_db()
-
-        serializer = OccurrenceReportBulkImportSchemaSerializer(instance)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        workbook.save(buffer)
+        buffer.seek(0)
+        filename = (
+            f"{instance.django_import_content_type.model}-{instance.django_import_field_name}"
+            f"-foreign-key-list-values.xlsx"
+        )
+        response = HttpResponse(buffer.read(), content_type="application/vnd.ms-excel")
+        response["Content-Disposition"] = f"attachment; filename={filename}"
+        buffer.close()
+        return response
