@@ -160,6 +160,11 @@ router.register(
     occurrence_api.OccurrenceReportBulkImportSchemaViewSet,
     "occurrence_report_bulk_import_schemas",
 )
+router.register(
+    r"occurrence_report_bulk_import_schema_columns",
+    occurrence_api.OccurrenceReportBulkImportSchemaColumnViewSet,
+    "occurrence_report_bulk_import_schema_columns",
+)
 router.register(r"observer_detail", occurrence_api.ObserverDetailViewSet)
 router.register(r"contact_detail", occurrence_api.ContactDetailViewSet)
 router.register(r"occurrence_sites", occurrence_api.OccurrenceSiteViewSet)
