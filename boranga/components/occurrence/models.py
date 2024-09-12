@@ -24,7 +24,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import IntegrityError, models, transaction
 from django.db.models import CharField, Count, Func, Max, Q
-from django.db.models.functions import Cast
+from django.db.models.functions import Cast, Length
 from django.utils import timezone
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -6043,6 +6043,56 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         return (
             self.foreign_key_count > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
         )
+
+    @property
+    def preview_foreign_key_values_xlsx(self):
+        if not self.django_import_content_type or not self.django_import_field_name:
+            return None
+
+        field = self.django_import_content_type.model_class()._meta.get_field(
+            self.django_import_field_name
+        )
+        if not isinstance(field, models.ForeignKey):
+            return None
+
+        related_model = field.related_model
+
+        if self.django_lookup_field_name:
+            display_field = self.django_lookup_field_name
+        else:
+            display_field = get_display_field_for_model(related_model)
+
+        filter_dict = {f"{display_field}__isnull": False}
+        related_model_qs = related_model.objects.filter(**filter_dict)
+
+        if issubclass(related_model, ArchivableModel):
+            related_model_qs = related_model.objects.exclude(archived=True)
+
+        workbook = openpyxl.Workbook()
+        worksheet = workbook.active
+
+        # Query the max characer length of the display field
+        max_length = related_model_qs.aggregate(
+            max_length=Max(Length(Cast(display_field, output_field=CharField())))
+        )["max_length"]
+
+        if len(self.xlsx_column_header_name) > max_length:
+            max_length = len(self.xlsx_column_header_name)
+
+        headers = [self.xlsx_column_header_name]
+        worksheet.append(headers)
+        for cell_value in related_model_qs.order_by(display_field).values_list(
+            display_field, flat=True
+        ):
+            worksheet.append([cell_value])
+
+        # Make the headers bold
+        worksheet["A1"].font = Font(bold=True)
+
+        # Make the column widths appropriate
+        worksheet.column_dimensions["A"].width = max_length + 2
+
+        return workbook
 
     def validate(self, cell_value, index, errors):
         errors_added = 0
