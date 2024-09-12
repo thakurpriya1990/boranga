@@ -250,9 +250,9 @@
                                                 <span class="input-group-text" id="datetime-format-mask">DD/MM/YYYY
                                                     HH:MM:SS</span>
                                             </template>
-                                            <template
-                                                v-if="selectedField.xlsx_validation_type == 'list' && selectedField.choices && selectedField.choices.length > 0">
-                                                <button class="btn btn-primary" data-bs-toggle="modal"
+                                            <template v-if="selectedField.xlsx_validation_type == 'list'">
+                                                <button v-if="selectedField.choices && selectedField.choices.length > 0"
+                                                    class="btn btn-primary" data-bs-toggle="modal"
                                                     data-bs-target="#preview-choices"><i class="bi bi-search"
                                                         role="button"></i> Preview
                                                     List Choices</button>
@@ -302,15 +302,17 @@
                                         <div class="input-group input-group-sm mb-1">
                                             <span class="input-group-text w-25" id="lookup-field">
                                                 Lookup Field</span>
-                                            <select v-if="!customLookupField" class="form-select"
-                                                aria-label="Lookup Field"
-                                                v-model="selectedColumn.django_lookup_field_name"
-                                                @change="selectLookupField()">
-                                                <option v-for="lookupField in selectedField.lookup_field_options"
-                                                    :value="lookupField">{{
-                                                        lookupField }}</option>
-                                                <option value="custom">custom</option>
-                                            </select>
+                                            <template v-if="!customLookupField">
+                                                <select class="form-select" aria-label="Lookup Field"
+                                                    v-model="selectedColumn.django_lookup_field_name"
+                                                    @change="selectLookupField()">
+                                                    <option v-for="lookupField in selectedField.lookup_field_options"
+                                                        :value="lookupField">{{
+                                                            lookupField }}</option>
+                                                    <option value="custom">custom</option>
+                                                </select>
+                                                <a v-if="selectedColumn.id" class="btn btn-primary" :href="`/api/occurrence_report_bulk_import_schema_columns/${selectedColumn.id}/preview_foreign_key_values_xlsx/`"><i class="bi bi-filetype-xlsx" role="button"></i> Preview Choices</a>
+                                            </template>
                                             <select v-else ref="lookup-field" class="form-select"
                                                 aria-label="Lookup Field" @change="selectLookupField()">
                                                 <option v-for="lookupField in selectedField.lookup_field_options"
@@ -319,11 +321,13 @@
                                                 <option value="custom" selected>custom</option>
                                             </select>
                                         </div>
-                                        <input v-if="customLookupField" ref="custom-lookup-field"
-                                            class="form-control form-control-sm mt-2" type="text"
-                                            placeholder="Enter Custom Lookup Field" aria-label="Custom Lookup Field"
-                                            aria-describedby="lookup-field"
-                                            v-model="selectedColumn.django_lookup_field_name">
+                                        <div v-if="customLookupField" class="input-group input-group-sm mb-1 mt-2">
+                                            <input ref="custom-lookup-field" class="form-control form-control-sm"
+                                                type="text" placeholder="Enter Custom Lookup Field"
+                                                aria-label="Custom Lookup Field" aria-describedby="lookup-field"
+                                                v-model="selectedColumn.django_lookup_field_name">
+                                            <a v-if="selectedColumn.id" class="btn btn-primary" :href="`/api/occurrence_report_bulk_import_schema_columns/${selectedColumn.id}/preview_foreign_key_values_xlsx/`"><i class="bi bi-filetype-xlsx" role="button"></i> Preview Choices</a>
+                                        </div>
                                     </fieldset>
                                 </div>
                             </div>
@@ -406,10 +410,12 @@
                                     <tbody>
                                         <tr v-for="choice in selectedField.choices" class="">
                                             <td>
-                                                <template v-if="['MultiSelectField', 'ForeignKey'].includes(selectedField.type)">{{ choice[1] }}</template>
+                                                <template
+                                                    v-if="['MultiSelectField', 'ForeignKey'].includes(selectedField.type)">{{
+                                                        choice[1] }}</template>
                                                 <template v-else>{{
-                                                choice[0]
-                                            }}</template>
+                                                    choice[0]
+                                                    }}</template>
                                             </td>
                                         </tr>
                                     </tbody>
