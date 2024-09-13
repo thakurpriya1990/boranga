@@ -13,7 +13,7 @@ import requests
 import shapely.geometry as shp
 from django.apps import apps
 from django.contrib.contenttypes import models as ct_models
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
@@ -28,6 +28,7 @@ from wagov_utils.components.proxy.views import proxy_view
 from boranga import settings
 from boranga.components.occurrence.models import (
     BufferGeometry,
+    GeometryBase,
     OccurrenceGeometry,
     OccurrenceTenure,
 )
@@ -1001,3 +1002,68 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
             "Access Denied", content_type="text/html", status=401
         )
         return http_response
+
+
+def get_geometry_array_from_geojson(
+    geojson: dict,
+    cell_value: any,
+    index: int,
+    column_name: str,
+    errors: list,
+    errors_added: int,
+) -> list:
+    """
+    Extracts the geometry array from a GeoJSON object.
+    """
+    if not geojson:
+        return None
+
+    features = geojson.get("features")
+
+    geoms = []
+    bbox = Polygon.from_bbox(GeometryBase.EXTENT)
+
+    for feature in features:
+        geom = feature.get("geometry")
+
+        if not geom:
+            error_message = (
+                f"Geometry not defined in {cell_value} for column {column_name}"
+            )
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "column",
+                    "data": cell_value,
+                    "error_message": error_message,
+                }
+            )
+            errors_added += 1
+            continue
+
+        logger.debug(f"---> Geometry: {geom}")
+        logger.debug(f"---> type: {type(geom)}")
+
+        geom = GEOSGeometry(json.dumps(geom))
+
+        if not geom.within(bbox):
+            error_message = (
+                f"Geomtry defined in {cell_value} for column {column_name} "
+                "is not within Western Australia"
+            )
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "column",
+                    "data": cell_value,
+                    "error_message": error_message,
+                }
+            )
+            errors_added += 1
+            continue
+
+        geoms.append(geom)
+
+    logger.debug(f"---> Geometry array: {geoms}")
+
+    return geoms
