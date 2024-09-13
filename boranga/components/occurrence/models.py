@@ -5437,7 +5437,9 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             self.datetime_error = timezone.now()
             self.error_message = "Errors occurred during processing:\n"
             for error in errors:
-                self.error_message += error["error_message"] + "\n"
+                self.error_message += (
+                    f"Row: {error['row_index'] + 1}. Error: {error['error_message']}\n"
+                )
         else:
             # Set the task to completed
             self.processing_status = (
@@ -5471,17 +5473,26 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         total_column_error_count = 0
 
         models = {}
-
+        geometries = {}
         # Validate each cell
         for index, column in enumerate(self.schema.columns.all()):
-            # logger.debug(f"  Processing column: {column}")
-
-            # logger.debug(f"  Cell value: {row[index]}")
             column_error_count = 0
 
             cell_value = row[index]
 
             cell_value, errors_added = column.validate(cell_value, index, errors)
+
+            # Special case for geojson feature collection
+            model_class = apps.get_model(
+                "boranga", column.django_import_content_type.model
+            )
+            if (
+                issubclass(model_class, GeometryBase)
+                and type(cell_value) is list
+                and len(cell_value) > 0
+            ):
+                geometries[model_class._meta.model_name] = cell_value
+                cell_value = geometries[model_class._meta.model_name][0]
 
             column_error_count += errors_added
 
@@ -5526,6 +5537,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 "boranga",
                 current_model_name,
             )
+
             current_model_instance = model_class(**model_data)
 
             logger.debug(
@@ -5555,6 +5567,9 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 for potential_parent_model_key in [
                     m for m in models if m != current_model_name
                 ]:
+                    logger.debug(
+                        f"Checking if {current_model_name} has a relationship with {potential_parent_model_key}"
+                    )
                     # Check if this model has a relationship with the current model
                     potential_parent_instance = model_instances[
                         potential_parent_model_key
@@ -5616,7 +5631,21 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 model_instances[current_model_instance._meta.model_name] = (
                     current_model_instance
                 )
-                logger.debug(f"Model instance created: {current_model_instance}")
+                logger.info(f"Model instance created: {current_model_instance}")
+
+                # Deal with special case of creating mutliple geometries based on the
+                # geojson text from the column
+                if current_model_instance._meta.model_name in geometries:
+                    logger.info(
+                        f"Creating multiple geometries for {current_model_instance}"
+                    )
+                    for geometry in geometries[current_model_instance._meta.model_name][
+                        1:
+                    ]:
+                        current_model_instance.pk = None
+                        current_model_instance.geometry = geometry
+                        current_model_instance.save()
+
             except IntegrityError as e:
                 logger.error(f"Error creating model instance: {e}")
                 errors.append(
@@ -5723,7 +5752,6 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     f"Model {model_class} does not have field {column.django_import_field_name}"
                 )
             model_field = model_class._meta.get_field(column.django_import_field_name)
-            logger.debug(f"model_field_type: {type(model_field)}")
             dv = None
             if column.default_value is not None:
                 dv = DataValidation(
@@ -6085,6 +6113,8 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         return workbook
 
     def validate(self, cell_value, index, errors):
+        from boranga.components.spatial.utils import get_geometry_array_from_geojson
+
         errors_added = 0
 
         model_class = apps.get_model("boranga", self.django_import_content_type.model)
@@ -6142,7 +6172,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                         "row_index": index,
                         "error_type": "column",
                         "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not a string",
+                        "error_message": f"Value {cell_value} in column {self.xlsx_column_header_name} is not a string",
                     }
                 )
                 errors_added += 1
@@ -6164,7 +6194,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 logger.debug(f"display_value: '{display_value}'")
                 logger.debug([choice[1] for choice in choices])
                 if display_value not in [choice[1] for choice in choices]:
-                    errors_message = (
+                    error_message = (
                         f"Value '{display_value}' in column {self.xlsx_column_header_name} "
                         "is not in the list"
                     )
@@ -6173,7 +6203,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                             "row_index": index,
                             "error_type": "column",
                             "data": cell_value,
-                            "error_message": errors_message,
+                            "error_message": error_message,
                         }
                     )
                     errors_added += 1
@@ -6185,6 +6215,53 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                             if choice[1] == display_value
                         ][0]
                     )
+            return cell_value, errors_added
+
+        if isinstance(field, gis_models.GeometryField):
+            try:
+                geom_json = json.loads(cell_value)
+            except json.JSONDecodeError:
+                error_message = f"Value {cell_value} in column {self.xlsx_column_header_name} is not a valid JSON"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            cell_value = []
+
+            geojson_type = geom_json.get("type", None)
+            if not geojson_type or geojson_type != "FeatureCollection":
+                error_message = (
+                    f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                    "does not contain a valid FeatureCollection"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+
+                return cell_value, errors_added
+
+            cell_value = get_geometry_array_from_geojson(
+                geom_json,
+                cell_value,
+                index,
+                self.xlsx_column_header_name,
+                errors,
+                errors_added,
+            )
+
             return cell_value, errors_added
 
         if xlsx_data_validation_type == "textLength" and field.max_length:
@@ -6202,12 +6279,13 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         if xlsx_data_validation_type == "whole":
             if not isinstance(cell_value, int):
+                errors_message = f"Value {cell_value} in column {self.xlsx_column_header_name} is not an integer"
                 errors.append(
                     {
                         "row_index": index,
                         "error_type": "column",
                         "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not an integer",
+                        "error_message": errors_message,
                     }
                 )
                 errors_added += 1
@@ -6216,12 +6294,13 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             try:
                 cell_value = Decimal(cell_value)
             except Exception:
+                error_message = f"Value {cell_value} in column {self.xlsx_column_header_name} is not a decimal"
                 errors.append(
                     {
                         "row_index": index,
                         "error_type": "column",
                         "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not a decimal",
+                        "error_message": error_message,
                     }
                 )
                 errors_added += 1
@@ -6235,7 +6314,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                         "row_index": index,
                         "error_type": "column",
                         "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not a date",
+                        "error_message": f"Value {cell_value} in column {self.xlsx_column_header_name} is not a date",
                     }
                 )
                 errors_added += 1
@@ -6249,7 +6328,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                         "row_index": index,
                         "error_type": "column",
                         "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not a time",
+                        "error_message": f"Value {cell_value} in column {self.xlsx_column_header_name} is not a time",
                     }
                 )
                 errors_added += 1
@@ -6282,7 +6361,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     error_message = (
                         f"Can't find {self.django_import_field_name} record by looking up "
                         f"{self.django_lookup_field_name} with value {cell_value} "
-                        f"for column {self.column_header_name}"
+                        f"for column {self.xlsx_column_header_name}"
                     )
                     errors.append(
                         {
@@ -6301,12 +6380,16 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         if xlsx_data_validation_type == "list":
             if cell_value not in self.xlsx_data_validation_formula1:
+                error_message = (
+                    f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                    "is not in the list"
+                )
                 errors.append(
                     {
                         "row_index": index,
                         "error_type": "column",
                         "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not in the list",
+                        "error_message": error_message,
                     }
                 )
                 errors_added += 1
