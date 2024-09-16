@@ -607,7 +607,7 @@ export default {
             ) {
                 return true;
             } else {
-                if (this.conservation_status_obj.processing_status == "Ready For Agenda") {
+                if (["Ready For Agenda", "Approved", "Closed", "DeListed", "Discarded"].includes(this.conservation_status_obj.processing_status)) {
                     return true;
                 }
                 if (
@@ -635,7 +635,7 @@ export default {
             }
         },
         conservation_list_proposed: function () {
-            return !(this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed")
+            return !(['Approved', 'DeListed', 'Declined', 'Closed', 'Unlocked'].includes(this.conservation_status_obj.processing_status))
         },
         canViewCurrentList: function () {
             return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? false : true;
