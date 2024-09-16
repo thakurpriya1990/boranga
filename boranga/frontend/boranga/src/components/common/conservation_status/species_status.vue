@@ -182,9 +182,8 @@
                                 </select>
                             </template>
                             <template v-else>
-                                {{conservation_status_obj.wa_legislative_list}}
-                                <input class="form-control" type="text" :disabled="isReadOnly"
-                                    v-model="conservation_status_obj.wa_legislative_list" />
+                                <input class="form-control" type="text" :disabled="true"
+                                    :value="conservation_status_obj.wa_legislative_list ? conservation_status_obj.wa_legislative_list : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -215,8 +214,8 @@
                                 </select>
                             </template>
                             <template v-else>
-                                <input class="form-control" type="text" :disabled="isReadOnly"
-                                    v-model="conservation_status_obj.wa_legislative_category" />
+                                <input class="form-control" type="text" :disabled="true"
+                                :value="conservation_status_obj.wa_legislative_category ? conservation_status_obj.wa_legislative_category : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -246,8 +245,8 @@
                                 </select>
                             </template>
                             <template v-else>
-                                <input class="form-control" type="text" :disabled="isReadOnly"
-                                    v-model="conservation_status_obj.wa_priority_list" />
+                                <input class="form-control" type="text" :disabled="true"
+                                    :value="conservation_status_obj.wa_priority_list ? conservation_status_obj.wa_priority_list : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -277,8 +276,8 @@
                                 </select>
                             </template>
                             <template v-else>
-                                <input class="form-control" type="text" :disabled="isReadOnly"
-                                    v-model="conservation_status_obj.wa_priority_category" />
+                                <input class="form-control" type="text" :disabled="true"
+                                :value="conservation_status_obj.wa_priority_category ? conservation_status_obj.wa_priority_category : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -311,8 +310,8 @@
                                 </select>
                             </template>
                             <template v-else>
-                                <input class="form-control" type="text" :disabled="isReadOnly"
-                                    v-model="conservation_status_obj.commonwealth_conservation_list" />
+                                <input class="form-control" type="text" :disabled="true"
+                                :value="conservation_status_obj.commonwealth_conservation_list ? conservation_status_obj.commonwealth_conservation_list : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -322,7 +321,7 @@
                         <div class="col-sm-8">
                             <input :disabled="isReadOnly" type="text" class="form-control"
                                 id="proposed_international_conservation"
-                                placeholder="Enter International Conservation Details if Applicable"
+                                :placeholder="isReadOnly ? 'N/A' : 'Enter International Conservation Details if Applicable'"
                                 v-model="conservation_status_obj.international_conservation" />
                         </div>
                     </div>
@@ -332,7 +331,7 @@
                         <div class="col-sm-8">
                             <input :disabled="isReadOnly" type="text" class="form-control"
                                 id="proposed_conservation_criteria"
-                                placeholder="Enter Conservation Criteria if Applicable"
+                                :placeholder="isReadOnly ? 'N/A' : 'Enter Conservation Criteria if Applicable'"
                                 v-model="conservation_status_obj.conservation_criteria" />
                         </div>
                     </div>
