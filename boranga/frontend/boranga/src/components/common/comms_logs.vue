@@ -4,7 +4,7 @@
         <div class="card mb-3">
             <div class="card-header">Logs</div>
             <div class="card-body border-bottom">
-                <label for="assigned-to" class="form-label">Communications</label>
+                <label for="assigned-to" class="form-label">Communication Logs</label>
                 <div class="rounded border py-2">
                     <span class="ps-3 pe-2"><i class="bi bi-card-list"></i> </span>
                     <a href="#" class="pe-5" ref="showCommsBtn" @click.prevent>View</a>
@@ -18,7 +18,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <label for="assigned-to" class="form-label">Actions</label>
+                <label for="assigned-to" class="form-label">Action Logs</label>
                 <div class="rounded border py-2">
                     <span class="ps-3 pe-2"><i class="bi bi-card-list"></i> </span>
                     <a href="#" ref="showActionBtn" @click.prevent>View</a>
