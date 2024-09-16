@@ -1,9 +1,9 @@
 {%  extends 'boranga/emails/base_email.html' %}
 
 {%  block content %}
-	The Proposal {{ cs_proposal.conservation_status_number }} has been sent back by approver.
+	The Proposal {{ cs_proposal.conservation_status_number }} has been sent back by the approver.
 
-    <p>Approver comments: {{ approver_comment }}</p>
+    <p>Reason / Comments: {{ approver_comment }}</p>
 
     <p>
         You can access this Proposal using the following link:
