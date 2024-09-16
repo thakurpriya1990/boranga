@@ -1518,6 +1518,9 @@ class Community(RevisionedMixin):
                                 )
                             )
 
+        # Remove duplicates
+        return_list = list(set(return_list))
+
         return return_list
 
     @property
