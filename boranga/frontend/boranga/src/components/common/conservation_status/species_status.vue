@@ -84,7 +84,7 @@
                         <label for="change_code" class="col-sm-4 col-form-label fw-bold">Change Type <span
                                 class="text-danger">*</span></label>
                         <div class="col-sm-8">
-                            <template v-if="!isReadOnly && 'Unlocked' != conservation_status_obj.processing_status">
+                            <template v-if="!isReadOnly">
                                 <template
                                     v-if="change_codes && change_codes.length > 0 && conservation_status_obj.change_code_id && !change_codes.map((d) => d.id).includes(conservation_status_obj.change_code_id)">
                                     <input type="text" v-if="conservation_status_obj.change_code"
@@ -125,14 +125,14 @@
                             <label for="effective_from" class="col-sm-3 col-form-label">Effective From:</label>
                             <div class="col-sm-3">
                                 <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="effective_from"
-                                    v-model="conservation_status_obj.effective_from" :disabled="true" />
+                                    v-model="conservation_status_obj.effective_from" :disabled="isReadOnly" />
                             </div>
                         </template>
                         <template v-if="conservation_status_obj.effective_to">
                             <label for="effective_to" class="col-sm-3 col-form-label">Effective to:</label>
                             <div class="col-sm-3">
-                                <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control"
-                                    id="effective_to" v-model="conservation_status_obj.effective_to" :disabled="true" />
+                                <input type="date" placeholder="DD/MM/YYYY" class="form-control"
+                                    id="effective_to" v-model="conservation_status_obj.effective_to" :disabled="isReadOnly" />
                             </div>
                         </template>
                     </div>
@@ -569,7 +569,7 @@ export default {
                 this.conservation_status_obj.processing_status == "With Assessor";
         },
         listing_and_review_due_date_disabled: function () {
-            return this.isReadOnly || this.conservation_status_obj.processing_status != "With Assessor"
+            return this.isReadOnly || !["With Assessor", "Unlocked"].includes(this.conservation_status_obj.processing_status)
         },
         approval_level_disabled: function () {
             return this.isReadOnly || !['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status);
