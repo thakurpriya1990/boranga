@@ -530,21 +530,11 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
     group_type = serializers.SerializerMethodField(read_only=True)
     group_type_id = serializers.SerializerMethodField(read_only=True)
     is_submitter = serializers.SerializerMethodField(read_only=True)
-    wa_legislative_list = serializers.CharField(
-        source="wa_legislative_list.code", read_only=True, allow_null=True
-    )
-    wa_legislative_category = serializers.CharField(
-        source="wa_legislative_category.code", read_only=True, allow_null=True
-    )
-    wa_priority_list = serializers.CharField(
-        source="wa_priority_list.code", read_only=True, allow_null=True
-    )
-    wa_priority_category = serializers.CharField(
-        source="wa_priority_category.code", read_only=True, allow_null=True
-    )
-    commonwealth_conservation_list = serializers.CharField(
-        source="commonwealth_conservation_list.code", read_only=True, allow_null=True
-    )
+    wa_legislative_list = serializers.SerializerMethodField(read_only=True)
+    wa_legislative_category = serializers.SerializerMethodField(read_only=True)
+    wa_priority_list = serializers.SerializerMethodField(read_only=True)
+    wa_priority_category = serializers.SerializerMethodField(read_only=True)
+    commonwealth_conservation_list = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ConservationStatus
@@ -597,6 +587,54 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "submitter_information",
             "is_submitter",
         )
+
+    def get_wa_legislative_list(self, obj):
+        if not obj.wa_legislative_list:
+            return None
+
+        if obj.wa_legislative_list.code and obj.wa_legislative_list.label:
+            return f"{obj.wa_legislative_list.code} - {obj.wa_legislative_list.label}"
+
+        return obj.wa_legislative_list.code
+
+    def get_wa_legislative_category(self, obj):
+        if not obj.wa_legislative_category:
+            return None
+
+        if obj.wa_legislative_category.code and obj.wa_legislative_category.label:
+            return f"{obj.wa_legislative_category.code} - {obj.wa_legislative_category.label}"
+
+        return obj.wa_legislative_category.code
+
+    def get_wa_priority_list(self, obj):
+        if not obj.wa_priority_list:
+            return None
+
+        if obj.wa_priority_list.code and obj.wa_priority_list.label:
+            return f"{obj.wa_priority_list.code} - {obj.wa_priority_list.label}"
+
+        return obj.wa_priority_list.code
+
+    def get_wa_priority_category(self, obj):
+        if not obj.wa_priority_category:
+            return None
+
+        if obj.wa_priority_category.code and obj.wa_priority_category.label:
+            return f"{obj.wa_priority_category.code} - {obj.wa_priority_category.label}"
+
+        return obj.wa_priority_category.code
+
+    def get_commonwealth_conservation_list(self, obj):
+        if not obj.commonwealth_conservation_list:
+            return None
+
+        if (
+            obj.commonwealth_conservation_list.code
+            and obj.commonwealth_conservation_list.label
+        ):
+            return f"{obj.commonwealth_conservation_list.code} - {obj.commonwealth_conservation_list.label}"
+
+        return obj.commonwealth_conservation_list.code
 
     def get_readonly(self, obj):
         return False
@@ -789,10 +827,15 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "community_id",
             "conservation_status_number",
             "wa_legislative_list_id",
+            "wa_legislative_list",
             "wa_legislative_category_id",
+            "wa_legislative_category",
             "wa_priority_list_id",
+            "wa_priority_list",
             "wa_priority_category_id",
+            "wa_priority_category",
             "commonwealth_conservation_list_id",
+            "commonwealth_conservation_list",
             "international_conservation",
             "conservation_criteria",
             "recommended_conservation_criteria",
