@@ -1888,8 +1888,6 @@ class OCRLocation(models.Model):
     location_accuracy = models.ForeignKey(
         LocationAccuracy, on_delete=models.SET_NULL, null=True, blank=True
     )
-    geojson_point = gis_models.PointField(srid=4326, blank=True, null=True)
-    geojson_polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
 
     region = models.ForeignKey(
         Region, default=None, on_delete=models.CASCADE, null=True, blank=True
@@ -4191,8 +4189,6 @@ class OCCLocation(models.Model):
     location_accuracy = models.ForeignKey(
         LocationAccuracy, on_delete=models.SET_NULL, null=True, blank=True
     )
-    geojson_point = gis_models.PointField(srid=4326, blank=True, null=True)
-    geojson_polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
 
     region = models.ForeignKey(
         Region, default=None, on_delete=models.CASCADE, null=True, blank=True

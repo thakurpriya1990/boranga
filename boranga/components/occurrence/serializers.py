@@ -806,20 +806,6 @@ class OCRLocationSerializer(serializers.ModelSerializer):
             .exists()
         )
 
-    # def get_geojson_point(self,obj):
-    #     if(obj.geojson_point):
-    #         coordinates = GEOSGeometry(obj.geojson_point).coords
-    #         return coordinates
-    #     else:
-    #         return None
-
-    # def get_geojson_polygon(self,obj):
-    #     if(obj.geojson_polygon):
-    #         coordinates = GEOSGeometry(obj.geojson_polygon).coords
-    #         return coordinates
-    #     else:
-    #         return None
-
 
 class BaseTypeSerializer(serializers.Serializer):
     model_class = serializers.SerializerMethodField()

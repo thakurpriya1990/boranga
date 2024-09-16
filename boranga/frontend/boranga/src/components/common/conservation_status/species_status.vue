@@ -182,6 +182,7 @@
                                 </select>
                             </template>
                             <template v-else>
+                                {{conservation_status_obj.wa_legislative_list}}
                                 <input class="form-control" type="text" :disabled="isReadOnly"
                                     v-model="conservation_status_obj.wa_legislative_list" />
                             </template>
@@ -628,7 +629,7 @@ export default {
             return true;
         },
         conservation_list_proposed: function () {
-            return !(this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed")
+            return !(['Approved', 'DeListed', 'Declined', 'Closed', 'Unlocked'].includes(this.conservation_status_obj.processing_status))
         },
         canViewCurrentList: function () {
             return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? false : true;
