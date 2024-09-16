@@ -965,22 +965,18 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     def has_assessor_mode(self, request):
         status_without_assessor = [
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_CLOSED,
             ConservationStatus.PROCESSING_STATUS_DECLINED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
             ConservationStatus.PROCESSING_STATUS_DRAFT,
         ]
         if self.processing_status in status_without_assessor:
-            if self.processing_status in [
-                ConservationStatus.PROCESSING_STATUS_UNLOCKED,
-            ]:
-                return is_conservation_status_approver(request)
-
             return False
-        elif self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
-            return is_conservation_status_assessor(
-                request
-            ) or is_conservation_status_approver(request)
+
+        elif self.processing_status == ConservationStatus.PROCESSING_STATUS_UNLOCKED:
+            return is_conservation_status_approver(request)
         else:
             if not self.assigned_officer:
                 return False
@@ -1216,12 +1212,16 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         if self.processing_status == status:
             return
 
-        if self.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_APPROVER:
+        if (
+            self.processing_status
+            == ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
+        ):
             self.approver_comment = ""
             if approver_comment:
                 self.approver_comment = approver_comment
                 self.save()
                 send_proposal_approver_sendback_email_notification(request, self)
+
         previous_status = self.processing_status
         self.processing_status = status
         self.save()
