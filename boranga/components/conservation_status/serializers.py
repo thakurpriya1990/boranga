@@ -1331,7 +1331,7 @@ class SendReferralSerializer(serializers.Serializer):
 
         request = self.context.get("request")
         if request.user.email == data["email"]:
-            non_field_errors.append("You cannot send referral to yourself.")
+            non_field_errors.append("You cannot refer to yourself.")
         elif not data["email"]:
             non_field_errors.append("Referral not found.")
 
