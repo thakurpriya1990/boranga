@@ -531,44 +531,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     international_conservation = models.CharField(max_length=100, blank=True, null=True)
     conservation_criteria = models.CharField(max_length=100, blank=True, null=True)
 
-    # Conservation Lists and Categories (from a meeting)
-    recommended_wa_priority_list = models.ForeignKey(
-        WAPriorityList,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-    )
-    recommended_wa_priority_category = models.ForeignKey(
-        WAPriorityCategory,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-    )
-    recommended_wa_legislative_list = models.ForeignKey(
-        WALegislativeList,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-    )
-    recommended_wa_legislative_category = models.ForeignKey(
-        WALegislativeCategory,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-    )
-    recommended_commonwealth_conservation_list = models.ForeignKey(
-        CommonwealthConservationList,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-    )
-    recommended_international_conservation = models.CharField(
-        max_length=100, blank=True, null=True
-    )
-    recommended_conservation_criteria = models.CharField(
-        max_length=100, blank=True, null=True
-    )
-
     APPROVAL_LEVEL_IMMEDIATE = "immediate"
     APPROVAL_LEVEL_MINISTER = "minister"
     APPROVAL_LEVEL_CHOICES = (
@@ -993,21 +955,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 return False
 
             return is_conservation_status_assessor(request)
-
-    def can_edit_recommended(self, request):
-        recommended_edit_status = [
-            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
-        ]
-        if self.processing_status not in recommended_edit_status:
-            return False
-
-        if not self.assigned_officer:
-            return False
-
-        if not self.assigned_officer == request.user.id:
-            return False
-
-        return is_conservation_status_assessor(request)
 
     @transaction.atomic
     def assign_officer(self, request, officer):

@@ -545,7 +545,6 @@ export default {
             change_codes: [],
             filtered_wa_legislative_categories: [],
             filtered_wa_priority_categories: [],
-            filtered_recommended_wa_legislative_categories: [],
             referral_comments_boxes: [],
             species_display: '',
             taxon_previous_name: '',
@@ -736,28 +735,6 @@ export default {
                 });
             });
         },
-        filterRecommendedWALegislativeCategories: function (event) {
-            this.$nextTick(() => {
-                if (event) {
-                    this.conservation_status_obj.recommended_wa_legislative_category_id = null;
-                }
-
-                this.filtered_recommended_wa_legislative_categories = this.wa_priority_categories.filter((choice) => {
-                    return choice.list_ids.includes(this.conservation_status_obj.recommended_wa_legislative_list_id);
-                });
-            });
-        },
-        filterRecommendedWAPriorityCategories: function (event) {
-            this.$nextTick(() => {
-                if (event) {
-                    this.conservation_status_obj.recommended_wa_priority_category_id = null;
-                }
-
-                this.filtered_recommended_wa_priority_categories = this.wa_priority_categories.filter((choice) => {
-                    return choice.list_ids.includes(this.conservation_status_obj.recommended_wa_priority_list_id);
-                });
-            });
-        },
         generateReferralCommentBoxes: function () {
             var box_visibility = this.conservation_status_obj.assessor_mode.assessor_box_view
             var assessor_mode = this.conservation_status_obj.assessor_mode.assessor_level
@@ -812,8 +789,6 @@ export default {
             this.getSpeciesDisplay();
             this.filterWALegislativeCategories();
             this.filterWAPriorityCategories();
-            this.filterRecommendedWALegislativeCategories();
-            this.filterRecommendedWAPriorityCategories();
             if (!vm.is_external) {
                 this.generateReferralCommentBoxes();
             }
