@@ -87,6 +87,7 @@
                                     </div>
                                 </template>
                                 <select class="form-select" v-model="conservation_status_obj.change_code_id">
+                                    <option :value="null">Select the appropriate Change type</option>
                                     <option v-for="change_code in change_codes" :value="change_code.id"
                                         v-bind:key="change_code.id">
                                         {{ change_code.code }}
