@@ -11,7 +11,6 @@ from rest_framework import serializers
 from boranga.components.main.models import (
     ArchivableModel,
     CommunicationsLogEntry,
-    GlobalSettings,
     HelpTextEntry,
 )
 from boranga.helpers import (
@@ -47,12 +46,6 @@ class CommunicationLogEntrySerializer(serializers.ModelSerializer):
 
     def get_documents(self, obj):
         return [[d.name, d._file.url] for d in obj.documents.all()]
-
-
-class GlobalSettingsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GlobalSettings
-        fields = ("key", "value")
 
 
 class EmailUserROSerializerForReferral(serializers.ModelSerializer):

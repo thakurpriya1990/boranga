@@ -175,7 +175,6 @@ router.register(r"ocr_threat", occurrence_api.OCRConservationThreatViewSet)
 router.register(r"occ_threat", occurrence_api.OCCConservationThreatViewSet)
 
 router.register(r"users", users_api.UserViewSet)
-router.register(r"global_settings", main_api.GlobalSettingsViewSet)
 
 router.register(r"tile_layer", spatial_api.TileLayerViewSet, "tile_layer")
 router.register(r"regions", species_communities_api.RegionViewSet, "regions")

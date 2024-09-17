@@ -10,26 +10,15 @@ from rest_framework import filters as rest_framework_filters
 from rest_framework import viewsets
 
 from boranga import helpers
-from boranga.components.main.models import GlobalSettings, HelpTextEntry
+from boranga.components.main.models import HelpTextEntry
 from boranga.components.main.serializers import (
     ContentTypeSerializer,
-    GlobalSettingsSerializer,
     HelpTextEntrySerializer,
 )
 from boranga.components.occurrence.models import Datum
 from boranga.permissions import IsInternal
 
 logger = logging.getLogger(__name__)
-
-
-class GlobalSettingsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = GlobalSettings.objects.none()
-    serializer_class = GlobalSettingsSerializer
-
-    def get_queryset(self):
-        if self.request.user.is_authenticated:
-            qs = GlobalSettings.objects.all().order_by("id")
-            return qs
 
 
 class HelpTextEntryViewSet(viewsets.ReadOnlyModelViewSet):
