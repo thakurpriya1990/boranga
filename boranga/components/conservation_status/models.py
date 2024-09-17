@@ -965,7 +965,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     def has_assessor_mode(self, request):
         status_without_assessor = [
-            ConservationStatus.PROCESSING_STATUS_APPROVED,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_CLOSED,
             ConservationStatus.PROCESSING_STATUS_DECLINED,
@@ -974,6 +973,12 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         ]
         if self.processing_status in status_without_assessor:
             return False
+
+        if self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
+            # Edge case that allows assessors to propose to delist without being assigned
+            # to the conservation status. This is due to the fact we only show either
+            # the assigned to dropdown for the approver or assessor and not both.
+            return is_conservation_status_assessor(request)
 
         elif self.processing_status == ConservationStatus.PROCESSING_STATUS_UNLOCKED:
             return is_conservation_status_approver(request)
