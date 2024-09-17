@@ -3,7 +3,11 @@
 {%  block content %}
     The Conservation Status Proposal {{ cs_proposal.conservation_status_number }} has been assessed and is now 'Ready for Agenda'.
 
-    You can schedule a meeting for this Proposal using the following link:
+    Assessor Recommended Action / Comments:
+
+    {{ assessor_comment }}
+
+    You can action this Proposal using the following link:
 
     {{url}}
 {%  endblock %}

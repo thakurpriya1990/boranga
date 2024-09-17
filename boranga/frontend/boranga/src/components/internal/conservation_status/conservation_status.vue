@@ -402,6 +402,8 @@
             @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
         <BackToAssessor ref="back_to_assessor_modal" :conservation_status_id="conservation_status_obj.id"
             @refreshFromResponse="refreshFromResponse"></BackToAssessor>
+        <ProposeReadyForAgenda ref="propose_ready_for_agenda_modal" :conservation_status_id="conservation_status_obj.id"
+            @refreshFromResponse="refreshFromResponse"></ProposeReadyForAgenda>
         <ProposedDecline ref="proposed_decline" :processing_status="conservation_status_obj.processing_status"
             :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse">
         </ProposedDecline>
@@ -422,6 +424,7 @@ import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import AmendmentRequest from './amendment_request.vue'
 import BackToAssessor from './back_to_assessor.vue'
+import ProposeReadyForAgenda from './propose_ready_for_agenda.vue'
 import ProposedDecline from './proposal_proposed_decline'
 import ProposeDelist from './proposal_propose_delist'
 import ProposedApproval from './proposed_issuance.vue'
@@ -454,7 +457,6 @@ export default {
             approver_comment: '',
             sendingReferral: false,
             changingStatus: false,
-            proposeReadyForAgenda: false,
             external_referee_email: '',
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comms_url: helpers.add_endpoint_json(api_endpoints.conservation_status, vm.$route.params.conservation_status_id + '/comms_log'),
@@ -472,6 +474,7 @@ export default {
         ProposalConservationStatus,
         AmendmentRequest,
         BackToAssessor,
+        ProposeReadyForAgenda,
         CSMoreReferrals,
         ProposedDecline,
         ProposeDelist,
@@ -705,35 +708,10 @@ export default {
             this.$refs.amendment_request.isModalOpen = true;
         },
         proposedReadyForAgenda: function () {
-            let vm = this;
-            swal.fire({
-                title: `Propose Conservation Status ${this.conservation_status_obj.conservation_status_number} Ready For Agenda`,
-                text: "Are you sure you want to propose this conservation status ready for agenda?",
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonText: 'Propose Ready For Agenda',
-                reverseButtons: true,
-                customClass: {
-                    confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    if (!this.validateConservationStatus()) {
-                        return;
-                    }
-                    vm.proposeReadyForAgenda = true;
-                    vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/proposed_ready_for_agenda')).then((response) => {
-                        vm.proposeReadyForAgenda = false;
-                        vm.$router.push({ path: '/internal/conservation-status/' }); //Navigate to dashboard page after Propose issue.
-                    }, (error) => {
-                        vm.errors = true;
-                        vm.proposeReadyForAgenda = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    });
-                }
-            });
-
+            if (!this.validateConservationStatus()) {
+                return;
+            }
+            this.$refs.propose_ready_for_agenda_modal.isModalOpen = true;
         },
         proposeDelist: function () {
             this.$refs.propose_delist.isModalOpen = true;

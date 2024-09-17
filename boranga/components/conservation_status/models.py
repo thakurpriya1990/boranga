@@ -622,6 +622,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     proposed_decline_status = models.BooleanField(default=False)
     deficiency_data = models.TextField(null=True, blank=True)  # deficiency comment
     assessor_data = models.TextField(null=True, blank=True)  # assessor comment
+
+    # When the CS proposal is sent back to the assessor this comment is used
+    # in the email
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
 
@@ -1571,10 +1574,12 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         self.customer_status = ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
         self.save()
 
+        assessor_comment = request.data.get("assessor_comment")
+
         # Log proposal action
         self.log_user_action(
             ConservationStatusUserAction.ACTION_PROPOSED_READY_FOR_AGENDA.format(
-                self.conservation_status_number
+                self.conservation_status_number, assessor_comment
             ),
             request,
         )
@@ -1582,12 +1587,14 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         # Create a log entry for the user
         request.user.log_user_action(
             ConservationStatusUserAction.ACTION_PROPOSED_READY_FOR_AGENDA.format(
-                self.conservation_status_number,
+                self.conservation_status_number, assessor_comment
             ),
             request,
         )
 
-        send_assessor_ready_for_agenda_email_notification(request, self)
+        send_assessor_ready_for_agenda_email_notification(
+            request, self, assessor_comment
+        )
 
     @transaction.atomic
     def discard(self, request):
@@ -1984,6 +1991,10 @@ class ConservationStatusUserAction(UserAction):
     ACTION_PROPOSE_DELIST_PROPOSAL = (
         "Propose discard conservation status proposal {}. Reason: {}"
     )
+    ACTION_PROPOSED_READY_FOR_AGENDA = (
+        "Propose conservation status proposal {} "
+        "is ready for agenda. Assessor Comment: {}"
+    )
     ACTION_DELIST_PROPOSAL = "Delist conservation status proposal {}"
     ACTION_DISCARD_PROPOSAL_INTERNALLY = (
         "Discard conservation status proposal internally {}"
@@ -1999,9 +2010,6 @@ class ConservationStatusUserAction(UserAction):
     # Assessors
     ACTION_SAVE_ASSESSMENT_ = "Save assessment {}"
     ACTION_CONCLUDE_ASSESSMENT_ = "Conclude assessment {}"
-    ACTION_PROPOSED_READY_FOR_AGENDA = (
-        "Conservation status proposal {} has been proposed for ready for agenda"
-    )
     ACTION_PROPOSED_APPROVAL = (
         "Conservation status proposal {} has been proposed for approval"
     )
