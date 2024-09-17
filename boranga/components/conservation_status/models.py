@@ -1142,39 +1142,47 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         ]:
             raise exceptions.ConservationStatusReferralCannotBeSent()
 
-        self.processing_status = ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
-        self.save()
-        referral = None
-
         # Check if the user is in ledger
         try:
-            user = EmailUser.objects.get(email__icontains=referral_email)
+            referee = EmailUser.objects.get(email__icontains=referral_email)
         except EmailUser.DoesNotExist:
             raise ValidationError(
                 f"There is no user with email {referral_email} in the ledger system. "
                 "Please check the email and try again."
             )
 
+        # Don't allow users to refer to themselves
+        if request.user.id == referee.id:
+            raise ValidationError("You cannot refer to yourself")
+
+        # Don't allow users to refer to the submitter
+        if request.user.id == self.submitter:
+            raise ValidationError("You cannot refer to the submitter")
+
+        referral = None
         try:
             ConservationStatusReferral.objects.get(
-                referral=user.id, conservation_status=self
+                referral=referee.id, conservation_status=self
             )
             raise ValidationError("A referral has already been sent to this user")
         except ConservationStatusReferral.DoesNotExist:
             referral = ConservationStatusReferral.objects.create(
                 conservation_status=self,
-                referral=user.id,
+                referral=referee.id,
                 sent_by=request.user.id,
                 text=referral_text,
                 assigned_officer=request.user.id,
             )
+
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
+        self.save()
 
         # Create a log entry for the proposal
         self.log_user_action(
             ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
                 referral.id,
                 self.conservation_status_number,
-                f"{user.get_full_name()}({user.email})",
+                f"{referee.get_full_name()}({referee.email})",
             ),
             request,
         )
@@ -1184,7 +1192,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
                 referral.id,
                 self.conservation_status_number,
-                f"{user.get_full_name()}({user.email})",
+                f"{referee.get_full_name()}({referee.email})",
             ),
             request,
         )
@@ -2346,8 +2354,14 @@ class ConservationStatusReferral(models.Model):
         ):
             raise exceptions.ConservationStatusReferralCannotBeSent()
 
-        if request.user.id != self.referral:
-            raise exceptions.ReferralNotAuthorized()
+        # Don't allow users to refer to themselves
+        if request.user.id == self.referral:
+            raise ValidationError("You cannot refer to yourself")
+
+        # Don't allow users to refer to the submitter
+        if request.user.id == self.conservation_status.submitter:
+            raise ValidationError("You cannot refer to the submitter")
+
         if self.sent_from != 1:
             raise exceptions.ReferralCanNotSend()
         self.conservation_status.processing_status = (

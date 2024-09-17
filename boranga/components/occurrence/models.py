@@ -1093,6 +1093,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                 "The user you want to send the referral to does not exist in the ledger database"
             )
 
+        # Don't allow the user to refer to themselves
+        if referee.id == request.user.id:
+            raise ValidationError("You cannot refer to yourself")
+
+        # Don't allow the user to refer to the submitter
+        if referee.id == self.submitter:
+            raise ValidationError("You cannot refer to the submitter")
+
         # Check if the referral has already been sent to this user
         if OccurrenceReportReferral.objects.filter(
             referral=referee.id, occurrence_report=self
