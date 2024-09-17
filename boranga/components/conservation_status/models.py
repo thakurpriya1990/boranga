@@ -434,7 +434,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     change_code = models.ForeignKey(
         ConservationChangeCode, on_delete=models.SET_NULL, blank=True, null=True
     )
-    change_date = models.DateField(null=True, blank=True)
 
     APPLICATION_TYPE_CHOICES = (
         ("new_proposal", "New Application"),
