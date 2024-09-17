@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="communityStatus">
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
-            <form @change="$emit('saveConservationStatus')">
+            <form @change="saveConservationStatus($event)">
                 <template v-if="!is_external && !conservation_status_obj.can_user_edit">
                     <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments"
                         :collapsed="false">
@@ -688,6 +688,7 @@ export default {
                     let data = e.params.data.id;
                     vm.conservation_status_obj.community_id = data
                     vm.community_display = e.params.data.text;
+                    vm.$emit('saveConservationStatus');
                 }).
                 on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
@@ -784,6 +785,16 @@ export default {
         },
         toggleComment: function (updatedShowComment) {
             this.isShowComment = updatedShowComment;
+        },
+        saveConservationStatus: function (e) {
+            if(e.target.classList.contains('input.select2-search__field')){
+                // We will emit this save from the select 2 event instead
+                // as it requires some time to populate the selected value
+                // and we don't want to save the conservation status before the
+                // select2 value is populated
+                return;
+            }
+            this.$emit('saveConservationStatus');
         },
     },
     created: async function () {
