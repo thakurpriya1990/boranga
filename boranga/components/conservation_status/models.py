@@ -1144,7 +1144,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
         # Check if the user is in ledger
         try:
-            referee = EmailUser.objects.get(email__icontains=referral_email)
+            referee = EmailUser.objects.get(email__iexact=referral_email.strip())
         except EmailUser.DoesNotExist:
             raise ValidationError(
                 f"There is no user with email {referral_email} in the ledger system. "
@@ -1152,11 +1152,11 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             )
 
         # Don't allow users to refer to themselves
-        if request.user.id == referee.id:
+        if referee.id == request.user.id:
             raise ValidationError("You cannot refer to yourself")
 
         # Don't allow users to refer to the submitter
-        if request.user.id == self.submitter:
+        if referee.id == self.submitter:
             raise ValidationError("You cannot refer to the submitter")
 
         referral = None
