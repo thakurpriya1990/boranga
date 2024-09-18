@@ -1321,7 +1321,6 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
             "lodged_on",
             "conservation_status",
             "can_be_processed",
-            "referral_text",
             "referral_comment",
             "group_type",
             "species_number",

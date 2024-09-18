@@ -2138,9 +2138,6 @@ class ConservationStatusReferral(models.Model):
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
     text = models.TextField(blank=True)  # Assessor text when send_referral
-    referral_text = models.TextField(
-        blank=True
-    )  # used in other projects for complete referral comment but not used in boranga
     referral_comment = models.TextField(blank=True, null=True)  # Referral Comment
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
     is_external = models.BooleanField(default=False)
