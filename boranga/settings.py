@@ -285,6 +285,11 @@ APPLICATION_VERSION = env("APPLICATION_VERSION", "1.0.0") + "-" + GIT_COMMIT_HAS
 
 RUNNING_DEVSERVER = len(sys.argv) > 1 and sys.argv[1] == "runserver"
 
+SECURE_CROSS_ORIGIN_OPENER_POLICY = env(
+    "SECURE_CROSS_ORIGIN_OPENER_POLICY",
+    "same-origin",
+)
+
 # Sentry settings
 SENTRY_DSN = env("SENTRY_DSN", default=None)
 SENTRY_SAMPLE_RATE = env("SENTRY_SAMPLE_RATE", default=1.0)  # Error sampling rate
