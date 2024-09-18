@@ -1296,7 +1296,6 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
     referral = serializers.SerializerMethodField()
     referral_comment = serializers.SerializerMethodField()
     submitter = serializers.SerializerMethodField()
-    document = serializers.SerializerMethodField()
     can_user_process = serializers.SerializerMethodField()
     group_type = serializers.SerializerMethodField()
 
@@ -1322,7 +1321,6 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
             "lodged_on",
             "conservation_status",
             "can_be_processed",
-            "document",
             "referral_text",
             "referral_comment",
             "group_type",
@@ -1353,9 +1351,6 @@ class DTConservationStatusReferralSerializer(serializers.ModelSerializer):
             return EmailUserSerializer(email_user).data
         else:
             return ""
-
-    def get_document(self, obj):
-        return [obj.document.name, obj.document._file.url] if obj.document else None
 
     def get_can_user_process(self, obj):
         request = self.context["request"]
