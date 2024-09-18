@@ -2370,9 +2370,7 @@ class ConservationStatusProposalRequest(models.Model):
     conservation_status = models.ForeignKey(
         ConservationStatus, on_delete=models.CASCADE
     )
-    subject = models.CharField(max_length=200, blank=True)
     text = models.TextField(blank=True)
-    officer = models.IntegerField(null=True)  # EmailUserRO
 
     class Meta:
         app_label = "boranga"
