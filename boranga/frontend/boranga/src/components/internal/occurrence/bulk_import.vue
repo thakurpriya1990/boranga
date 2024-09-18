@@ -398,7 +398,7 @@ export default {
             this.fetchFailedImports();
         },
         fetchCompletedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=completed&limit=${this.completedImportsLimit}`).then((response) => {
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=completed&limit=${this.completedImportsLimit}&ordering=-datetime_completed`).then((response) => {
                 this.completedImports = response.body;
             }, (error) => {
                 console.log(error);
