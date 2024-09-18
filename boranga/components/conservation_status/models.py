@@ -430,7 +430,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         default=CUSTOMER_STATUS_CHOICES[0][0],
     )
 
-    RECURRENCE_PATTERNS = [(1, "Month"), (2, "Year")]
     change_code = models.ForeignKey(
         ConservationChangeCode, on_delete=models.SET_NULL, blank=True, null=True
     )
@@ -546,9 +545,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     comment = models.CharField(max_length=512, blank=True, null=True)
     review_due_date = models.DateField(null=True, blank=True)
     reviewed_by = models.IntegerField(null=True)  # EmailUserRO
-    recurrence_pattern = models.SmallIntegerField(
-        choices=RECURRENCE_PATTERNS, default=1
-    )
     recurrence_schedule = models.IntegerField(null=True, blank=True)
     effective_from = models.DateField(null=True, blank=True)
     effective_to = models.DateField(null=True, blank=True)
