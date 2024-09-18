@@ -2112,7 +2112,6 @@ class ConservationStatusReferralDocument(Document):
 
 
 class ConservationStatusReferral(models.Model):
-    SENT_CHOICES = ((1, "Sent From Assessor"), (2, "Sent From Referral"))
     PROCESSING_STATUS_WITH_REFERRAL = "with_referral"
     PROCESSING_STATUS_RECALLED = "recalled"
     PROCESSING_STATUS_COMPLETED = "completed"
@@ -2128,9 +2127,6 @@ class ConservationStatusReferral(models.Model):
     sent_by = models.IntegerField()  # EmailUserRO
     referral = models.IntegerField()  # EmailUserRO
     linked = models.BooleanField(default=False)
-    sent_from = models.SmallIntegerField(
-        choices=SENT_CHOICES, default=SENT_CHOICES[0][0]
-    )
     processing_status = models.CharField(
         "Processing Status",
         max_length=30,
@@ -2245,7 +2241,6 @@ class ConservationStatusReferral(models.Model):
         )
         self.conservation_status.save()
 
-        self.sent_from = 1
         self.save()
 
         # Create a log entry for the conservation status
@@ -2288,8 +2283,6 @@ class ConservationStatusReferral(models.Model):
         if request.user.id == self.conservation_status.submitter:
             raise ValidationError("You cannot refer to the submitter")
 
-        if self.sent_from != 1:
-            raise exceptions.ReferralCanNotSend()
         self.conservation_status.processing_status = (
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
         )
@@ -2322,7 +2315,6 @@ class ConservationStatusReferral(models.Model):
                 conservation_status=self.conservation_status,
                 referral=referee.id,
                 sent_by=request.user.id,
-                sent_from=2,
                 text=referral_text,
             )
 
