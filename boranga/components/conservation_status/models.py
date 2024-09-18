@@ -414,15 +414,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_DELISTED, "DeListed"),
         (PROCESSING_STATUS_CLOSED, "Closed"),
     )
-    # This status is used as a front end filter but shouldn't be in most cases
+    # This status is used as a front end filter but shouldn't be used in most cases
     # So it is deliberately not included in PROCESSING_STATUS_CHOICES
     PROCESSING_STATUS_DISCARDED_BY_ME = "discarded_by_me"
-    REVIEW_STATUS_CHOICES = (
-        ("not_reviewed", "Not Reviewed"),
-        ("awaiting_amendments", "Awaiting Amendments"),
-        ("amended", "Amended"),
-        ("accepted", "Accepted"),
-    )
     customer_status = models.CharField(
         "Customer Status",
         max_length=40,
@@ -569,12 +563,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     # Currently prev_processing_status is only used to keep track of status prior to unlock
     # so that when locked the record returns to the correct status
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
-    review_status = models.CharField(
-        "Review Status",
-        max_length=30,
-        choices=REVIEW_STATUS_CHOICES,
-        default=REVIEW_STATUS_CHOICES[0][0],
-    )
     proposed_decline_status = models.BooleanField(default=False)
     deficiency_data = models.TextField(null=True, blank=True)  # deficiency comment
     assessor_data = models.TextField(null=True, blank=True)  # assessor comment

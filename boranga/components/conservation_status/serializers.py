@@ -566,7 +566,6 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "assigned_officer",
             "customer_status",
             "processing_status",
-            "review_status",
             "readonly",
             "can_user_edit",
             "can_user_view",
@@ -668,7 +667,6 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
 class ConservationStatusSerializer(BaseConservationStatusSerializer):
     submitter = serializers.SerializerMethodField(read_only=True)
     processing_status = serializers.SerializerMethodField(read_only=True)
-    review_status = serializers.SerializerMethodField(read_only=True)
     customer_status = serializers.SerializerMethodField(read_only=True)
     submitter_information = SubmitterInformationSerializer(read_only=True)
 
