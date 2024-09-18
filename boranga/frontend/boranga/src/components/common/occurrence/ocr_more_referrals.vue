@@ -58,8 +58,6 @@ export default {
                         title: 'Referral',
                         data: 'referral',
                         render: function (data, type, full) {
-                            console.log(data);
-
                             return `<span>${data.first_name} ${data.last_name}</span>`;
                         }
                     },
@@ -201,7 +199,7 @@ export default {
             myDefaultAllowList.table = []
 
             let vm = this;
-            let table_id = 'cs-more-referrals-table' + vm._uid;
+            let table_id = 'ocr-more-referrals-table' + vm._uid;
             let popover_name = 'popover-' + vm._uid;
             let my_content = '<table id="' + table_id + '" class="hover table table-striped table-bordered dt-responsive" cellspacing="0" width="100%"></table>'
             let my_template = '<div class="popover ' + popover_name + '" role="tooltip"><div class="popover-arrow" style="top:110px;"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>'
@@ -223,11 +221,15 @@ export default {
 
                 // activate popover when table is drawn.
                 vm.table.on('draw.dt', function () {
-                    var $tablePopover = $(this).find('[data-bs-toggle="popover"]');
-                    if ($tablePopover.length > 0) {
-                        $tablePopover.popover();
-                        // the next line prevents from scrolling up to the top after clicking on the popover.
-                        $($tablePopover).on('click', function (e) {
+                    var tablePopover = $(this).find('[data-bs-toggle="popover"]');
+                    if (tablePopover.length > 0) {
+                        new bootstrap.Popover(tablePopover, {
+                            html: true,
+                            trigger: 'hover',
+                            placement: 'bottom',
+                            container: 'body',
+                        });                        // the next line prevents from scrolling up to the top after clicking on the popover.
+                        $(tablePopover).on('click', function (e) {
                             e.preventDefault();
                             return true;
                         });
