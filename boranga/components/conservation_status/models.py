@@ -2083,34 +2083,6 @@ class ConservationStatusIssuanceApprovalDetails(models.Model):
         app_label = "boranga"
 
 
-class ConservationStatusReferralDocument(Document):
-    referral = models.ForeignKey(
-        "ConservationStatusReferral",
-        related_name="referral_documents",
-        on_delete=models.CASCADE,
-    )
-    _file = models.FileField(
-        upload_to=update_referral_doc_filename, max_length=512, storage=private_storage
-    )
-    input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-
-    def delete(self):
-        if self.can_delete:
-            return self.can_delete
-        logger.info(
-            "Cannot delete existing document object after proposal has been submitted "
-            "(including document submitted before proposal pushback to status Draft): {}".format(
-                self.name
-            )
-        )
-
-    class Meta:
-        app_label = "boranga"
-
-
 class ConservationStatusReferral(models.Model):
     PROCESSING_STATUS_WITH_REFERRAL = "with_referral"
     PROCESSING_STATUS_RECALLED = "recalled"
