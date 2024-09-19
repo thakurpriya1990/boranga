@@ -6295,7 +6295,7 @@ class OccurrenceReportBulkImportTaskViewSet(
                     instance.datetime_error = timezone.now()
                     error_message = ""
                     for error in errors:
-                        error_message += f"Row: {error['row_index']}. Error: {error['error_message']}\n"
+                        error_message += f"Row: {error['row_index'] + 1}. Error: {error['error_message']}\n"
                     instance.error_message = error_message
                 else:
                     instance.processing_status = (
