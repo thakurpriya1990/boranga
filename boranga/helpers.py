@@ -501,16 +501,18 @@ def get_display_field_for_model(model: models.Model) -> str:
     """
     # Find the best field to use for a display value
     display_field = None
-    fields = model._meta.get_fields()
-    for display_field in settings.OCR_BULK_IMPORT_LOOKUP_TABLE_DISPLAY_FIELDS:
-        if display_field in fields:
-            display_field = fields.get(display_field).name
+    field_names = [field.name for field in model._meta.get_fields()]
+    for field_name in settings.OCR_BULK_IMPORT_LOOKUP_TABLE_DISPLAY_FIELDS:
+        if field_name in field_names:
+            display_field = field_name
+            break
 
     if not display_field:
         # If we can't find a display field, we'll just use the first CharField we find
-        for field in fields:
+        for field in field_names:
             if isinstance(field, models.fields.CharField):
                 display_field = field.name
+                break
 
     if not display_field:
         # Fall back to the id
