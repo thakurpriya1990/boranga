@@ -226,7 +226,7 @@
                                                 Completed</th>
                                             <th scope="col"><i class="bi bi-filetype-xlsx text-success"></i> File Name
                                             </th>
-                                            <th scope="col"><i class="bi bi-list-ol text-success"></i> Records Imported
+                                            <th scope="col"><i class="bi bi-list-ol text-success"></i> Rows Processed
                                             </th>
                                             <th scope="col"><i class="bi bi-hourglass-bottom text-success"></i> Total
                                                 Time Taken</th>
