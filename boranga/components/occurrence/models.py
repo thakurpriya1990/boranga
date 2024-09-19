@@ -2,11 +2,11 @@ import hashlib
 import json
 import logging
 import os
+import zoneinfo
 from abc import abstractmethod
 from datetime import datetime
 from decimal import Decimal
 
-import dateutil
 import openpyxl
 import pyproj
 import reversion
@@ -5442,7 +5442,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             self.error_message = "Errors occurred during processing:\n"
             for error in errors:
                 self.error_message += (
-                    f"Row: {error['row_index'] + 1}. Error: {error['error_message']}\n"
+                    f"Row: {error['row_index']}. Error: {error['error_message']}\n"
                 )
         else:
             # Set the task to completed
@@ -5495,7 +5495,11 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 and type(cell_value) is list
                 and len(cell_value) > 0
             ):
+                # Store every feature / geometry in the geometries dict
                 geometries[model_class._meta.model_name] = cell_value
+
+                # Set the first geometry as the cell value so that it is
+                # created with the main model instance
                 cell_value = geometries[model_class._meta.model_name][0]
 
             column_error_count += errors_added
@@ -6309,33 +6313,29 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 )
                 errors_added += 1
 
-        if xlsx_data_validation_type == "date":
-            try:
-                cell_value = dateutil.parser.parse(cell_value)
-            except Exception:
+        if xlsx_data_validation_type in ["date", "time"]:
+            # The cell_value should already be a datetime object since openpyxl
+            # converts cells formatted as dates to datetime objects automatically
+            if not isinstance(cell_value, datetime):
+                error_message = (
+                    f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                    "was not able to be converted to a datetime object"
+                )
                 errors.append(
                     {
                         "row_index": index,
                         "error_type": "column",
                         "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.xlsx_column_header_name} is not a date",
+                        "error_message": error_message,
                     }
                 )
                 errors_added += 1
+                return cell_value, errors_added
 
-        if xlsx_data_validation_type == "time":
-            try:
-                cell_value = dateutil.parser.parse(cell_value)
-            except Exception:
-                errors.append(
-                    {
-                        "row_index": index,
-                        "error_type": "column",
-                        "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.xlsx_column_header_name} is not a time",
-                    }
-                )
-                errors_added += 1
+            # Make the datetime object timezone aware
+            cell_value.replace(tzinfo=zoneinfo.ZoneInfo(settings.TIME_ZONE))
+
+            return cell_value, errors_added
 
         model_class = apps.get_model("boranga", self.django_import_content_type.model)
         if hasattr(model_class, self.django_import_field_name):
