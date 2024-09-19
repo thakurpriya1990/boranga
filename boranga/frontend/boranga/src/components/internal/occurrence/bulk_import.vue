@@ -93,7 +93,7 @@
                                     <tbody class="text-muted">
                                         <tr v-for="queuedImport in queuedImports" class="">
                                             <td>{{ new Date(queuedImport.datetime_queued).toLocaleString() }}</td>
-                                            <td class="text-truncate" style="max-width: 350px;">{{
+                                            <td class="text-truncate" style="max-width: 350px;" :title="queuedImport.file_name">{{
                                                 queuedImport.file_name }}</td>
                                             <td>{{ queuedImport.file_size_megabytes }} MB</td>
                                             <td class="text-end pe-3">{{ queuedImport.rows ? queuedImport.rows : 'Not Counted' }}</td>
@@ -130,7 +130,7 @@
                                         <tr v-for="currentlyRunningImport in currentlyRunningImports" class="">
                                             <td>{{ new Date(currentlyRunningImport.datetime_started).toLocaleString() }}
                                             </td>
-                                            <td>{{ currentlyRunningImport.file_name }}</td>
+                                            <td class="text-truncate" style="max-width: 350px;" :title="currentlyRunningImport.file_name">{{ currentlyRunningImport.file_name }}</td>
                                             <td>{{ currentlyRunningImport.file_size_megabytes }} MB</td>
                                             <td style="min-width: 200px;">
                                                 <div class="progress">
@@ -170,7 +170,7 @@
                                         <tr v-for="failedImport in failedImports.results"
                                             :id="`failed-import-${failedImport.id}`" class="">
                                             <td>{{ new Date(failedImport.datetime_started).toLocaleString() }}</td>
-                                            <td class="text-truncate" style="max-width: 350px;">{{
+                                            <td class="text-truncate" style="max-width: 350px;" :title="failedImport.file_name">{{
                                                 failedImport.file_name }}</td>
                                             <td>{{ failedImport.file_size_megabytes }} MB</td>
                                             <td class="">{{ failedImport.rows ? failedImport.rows :
@@ -237,7 +237,7 @@
                                         <tr v-for="completedImport in completedImports.results" class="">
                                             <td>{{ new Date(completedImport.datetime_completed).toLocaleString() }}
                                             </td>
-                                            <td class="text-truncate" style="max-width: 350px;">{{
+                                            <td class="text-truncate" style="max-width: 350px;" :title="completedImport.file_name">{{
                                                 completedImport.file_name }}</td>
                                             <td class="">{{ completedImport.rows_processed
                                                 }}</td>
@@ -298,7 +298,7 @@ export default {
     },
     methods: {
         getSchemaVersionText(schema_version) {
-            return `Version: ${schema_version.version} (Created: ${new Date(schema_version.datetime_created).toLocaleDateString()} ${new Date(schema_version.datetime_created).toLocaleTimeString()}, Updated: ${new Date(schema_version.datetime_updated).toLocaleDateString()} ${new Date(schema_version.datetime_updated).toLocaleTimeString()})`;
+            return `Version: ${schema_version.version} - ${schema_version.name ? schema_version.name : 'No Name'}`;
         },
         resetFileField() {
             this.$nextTick(() => {
