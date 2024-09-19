@@ -19,7 +19,7 @@ from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
+from django.core.exceptions import FieldError, ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import IntegrityError, models, transaction
@@ -5967,9 +5967,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         related_name="import_columns",
     )
     django_import_field_name = models.CharField(max_length=50, blank=False, null=False)
-    django_lookup_field_name = models.CharField(
-        max_length=50, default="id", blank=True, null=True
-    )
+    django_lookup_field_name = models.CharField(max_length=50, blank=True, null=True)
 
     # The name of the column header in the .xlsx file
     xlsx_column_header_name = models.CharField(max_length=50, blank=False, null=False)
@@ -6125,9 +6123,11 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         errors_added = 0
 
-        model_class = apps.get_model("boranga", self.django_import_content_type.model)
-
-        if not model_class:
+        try:
+            model_class = apps.get_model(
+                "boranga", self.django_import_content_type.model
+            )
+        except LookupError:
             errors.append(
                 {
                     "row_index": index,
@@ -6316,6 +6316,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         if xlsx_data_validation_type in ["date", "time"]:
             # The cell_value should already be a datetime object since openpyxl
             # converts cells formatted as dates to datetime objects automatically
+            # but lets check just in case
             if not isinstance(cell_value, datetime):
                 error_message = (
                     f"Value {cell_value} in column {self.xlsx_column_header_name} "
@@ -6337,35 +6338,69 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
             return cell_value, errors_added
 
-        model_class = apps.get_model("boranga", self.django_import_content_type.model)
-        if hasattr(model_class, self.django_import_field_name):
-            field = model_class._meta.get_field(self.django_import_field_name)
-            if isinstance(field, models.ForeignKey):
-                related_model = field.related_model
-                related_model_qs = related_model.objects.all()
+        if isinstance(field, models.ForeignKey):
+            related_model = field.related_model
+            related_model_qs = related_model.objects.all()
 
-                # Check if the related model is Archivable
-                if issubclass(related_model, ArchivableModel):
-                    related_model_qs = related_model_qs.exclude(archived=True)
+            # Check if the related model is Archivable
+            if issubclass(related_model, ArchivableModel):
+                related_model_qs = related_model_qs.exclude(archived=True)
 
-                if not related_model_qs.exists() or related_model_qs.count() == 0:
-                    return cell_value, errors_added
+            if not related_model_qs.exists() or related_model_qs.count() == 0:
+                return cell_value, errors_added
+            # Use the django lookup field to find the value
+            if self.django_lookup_field_name:
+                lookup_field = self.django_lookup_field_name
+            else:
+                lookup_field = get_display_field_for_model(related_model)
+            try:
+                related_model_instance = related_model_qs.get(
+                    **{lookup_field: cell_value}
+                )
+            except FieldError:
+                error_message = (
+                    f"Can't find {self.django_import_field_name} record by looking up "
+                    f"{lookup_field} with value {cell_value} "
+                    f"for column {self.xlsx_column_header_name} "
+                    f" no field {lookup_field} found in {related_model}"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+            except related_model.DoesNotExist:
+                error_message = (
+                    f"Can't find {self.django_import_field_name} record by looking up "
+                    f"{self.django_lookup_field_name} with value {cell_value} "
+                    f"for column {self.xlsx_column_header_name}"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
 
-                # Use the django lookup field to find the value
-                if self.django_lookup_field_name:
-                    lookup_field = self.django_lookup_field_name
-                else:
-                    lookup_field = get_display_field_for_model(related_model)
+            # Replace the lookup cell_value with the actual instance to assigned
+            cell_value = related_model_instance
+            return cell_value, errors_added
 
-                try:
-                    related_model_instance = related_model_qs.get(
-                        **{lookup_field: cell_value}
-                    )
-                except related_model.DoesNotExist:
+        if isinstance(field, models.BooleanField):
+            if not cell_value:
+                if not field.null:
                     error_message = (
-                        f"Can't find {self.django_import_field_name} record by looking up "
-                        f"{self.django_lookup_field_name} with value {cell_value} "
-                        f"for column {self.xlsx_column_header_name}"
+                        f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                        "is required to be a boolean"
                     )
                     errors.append(
                         {
@@ -6376,14 +6411,33 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                         }
                     )
                     errors_added += 1
-                    return cell_value, errors_added
-
-                # Replace the lookup cell_value with the actual instance to assigned
-                cell_value = related_model_instance
                 return cell_value, errors_added
 
+            if cell_value not in [True, False]:
+                error_message = (
+                    f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                    "is not a valid boolean"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+            return cell_value, errors_added
+
         if xlsx_data_validation_type == "list":
-            if cell_value not in self.xlsx_data_validation_formula1:
+            # TODO: DO we even need xlsx_data_validation_type and xlsx_data_validation_formula1 etc
+            # as we can get that information by inspecting the field directly
+            # Also, this part for list I think it covered by the ForeignKey part above
+            # Check and remove if so
+            value_list = [
+                v.strip() for v in self.xlsx_data_validation_formula1.split(",")
+            ]
+            if cell_value not in value_list:
                 error_message = (
                     f"Value {cell_value} in column {self.xlsx_column_header_name} "
                     "is not in the list"
