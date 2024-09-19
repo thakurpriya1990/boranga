@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 from datetime import datetime, time
 from io import BytesIO
 
@@ -6292,20 +6293,27 @@ class OccurrenceReportBulkImportTaskViewSet(
                         OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
                     )
                     instance.datetime_error = timezone.now()
+                    error_message = ""
+                    for error in errors:
+                        error_message += f"Row: {error['row_index']}. Error: {error['error_message']}\n"
+                    instance.error_message = error_message
                 else:
                     instance.processing_status = (
                         OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
                     )
                     instance.datetime_completed = timezone.now()
-                instance.save()
+
             except Exception as e:
                 logger.error(
                     f"Error processing bulk import task {instance.id}: {str(e)}"
                 )
+                logger.error(traceback.format_exc())
                 instance.processing_status = (
                     OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
                 )
                 instance.datetime_error = timezone.now()
+                instance.error_message = str(e)
+            instance.save()
 
     @detail_route(methods=["patch"], detail=True)
     def retry(self, request, *args, **kwargs):
