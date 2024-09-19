@@ -5369,6 +5369,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             error_string += f" The file has the following headers that are not part of the schema: {extra_headers}"
         raise ValidationError(error_string)
 
+    @transaction.atomic
     def process(self):
         if self.processing_status == self.PROCESSING_STATUS_COMPLETED:
             logger.info(f"Bulk import task {self.id} has already been processed")
@@ -5434,28 +5435,14 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
             self.process_row(index, row, errors)
 
-        if errors:
-            self.processing_status = (
-                OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
-            )
-            self.datetime_error = timezone.now()
-            self.error_message = "Errors occurred during processing:\n"
-            for error in errors:
-                self.error_message += (
-                    f"Row: {error['row_index']}. Error: {error['error_message']}\n"
-                )
-        else:
-            # Set the task to completed
-            self.processing_status = (
-                OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
-            )
-            self.datetime_completed = timezone.now()
-        self.save()
+        if errors and len(errors) > 0:
+            # If a single thing went wrong roll back everything
+            # Imports either work completely or fail completely
+            transaction.set_rollback(True)
 
         return errors
 
     def process_row(self, index, row, errors):
-        logger.debug(f"Processing row: Index {index}, Data: {row}")
         row_hash = hashlib.sha256(str(row).encode()).hexdigest()
         if OccurrenceReport.objects.filter(import_hash=row_hash).exists():
             duplicate_ocr = OccurrenceReport.objects.get(import_hash=row_hash)
@@ -5473,18 +5460,22 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             )
             return
 
+        mode = "create"
+        if OccurrenceReport.objects.filter(migrated_from_id=row[0]).exists():
+            mode = "update"
+
         row_error_count = 0
         total_column_error_count = 0
 
         models = {}
         geometries = {}
         # Validate each cell
-        for index, column in enumerate(self.schema.columns.all()):
+        for column_index, column in enumerate(self.schema.columns.all()):
             column_error_count = 0
 
-            cell_value = row[index]
+            cell_value = row[column_index]
 
-            cell_value, errors_added = column.validate(cell_value, index, errors)
+            cell_value, errors_added = column.validate(cell_value, mode, index, errors)
 
             # Special case for geojson feature collection
             model_class = apps.get_model(
@@ -5523,16 +5514,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
         model_instances = {}
         for current_model_name in models:
-            logger.debug(f"Processing model: {current_model_name}")
-            mode = "create"
-
-            # If we are at the top level model, check if we are creating a new instance or updating an existing one
-            if (
-                current_model_name == OccurrenceReport._meta.model_name
-                and OccurrenceReport.objects.filter(migrated_from_id=row[0]).exists()
-            ):
-                mode = "update"
-
             model_data = dict(
                 zip(
                     models[current_model_name]["field_names"],
@@ -5546,26 +5527,33 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 current_model_name,
             )
 
-            current_model_instance = model_class(**model_data)
+            if mode == "update":
+                # Remove empty values from the model data
+                model_data = {k: v for k, v in model_data.items() if v is not None}
 
-            logger.debug(
-                f"{current_model_name}.__dict__: {current_model_instance.__dict__}"
-            )
+                # Remove the migrated_from_id field as we don't want to update it
+                model_data.pop("migrated_from_id", None)
 
             # For OccurrenceReport check if we are creating or updating
             # and set appropriate fields if so
             if current_model_name == OccurrenceReport._meta.model_name:
                 if mode == "create":
+                    current_model_instance = model_class(**model_data)
                     current_model_instance.bulk_import_task_id = self.pk
                     current_model_instance.import_hash = row_hash
                     current_model_instance.group_type_id = self.schema.group_type_id
                     current_model_instance.submitter = self.email_user
                 else:
-                    current_model_instance.pk = OccurrenceReport.objects.get(
+                    current_model_instance = OccurrenceReport.objects.get(
                         migrated_from_id=row[0]
-                    ).pk
+                    )
+                    for field, value in model_data.items():
+                        setattr(current_model_instance, field, value)
+            else:
+                current_model_instance = model_class(**model_data)
 
             # If we are at the top level model (OccurrenceReport) we don't need to relate it to anything
+            # TODO: Optimize this relationships finder to minimise looping and move to a separate function
             if not current_model_name == OccurrenceReport._meta.model_name:
                 # Relate this model to it's parent instance
 
@@ -5575,9 +5563,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 for potential_parent_model_key in [
                     m for m in models if m != current_model_name
                 ]:
-                    logger.debug(
-                        f"Checking if {current_model_name} has a relationship with {potential_parent_model_key}"
-                    )
                     # Check if this model has a relationship with the current model
                     potential_parent_instance = model_instances[
                         potential_parent_model_key
@@ -5588,7 +5573,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     # to the parent model
                     for field in current_model_instance._meta.get_fields():
                         if field.related_model == potential_parent_instance.__class__:
-                            logger.debug(f" ---> {field} is a relationship")
 
                             # If it does, set the relationship
                             setattr(
@@ -5605,7 +5589,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     # If we didn't find a relationship in the current model, search the parent model
                     for field in potential_parent_instance.__class__._meta.get_fields():
                         if field.related_model == current_model_instance:
-                            logger.debug(f" ---> {field} is a relationship")
 
                             # If it does, set the relationship
                             setattr(
@@ -5635,7 +5618,12 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     return
 
             try:
-                current_model_instance.save()
+                logger.debug(f"Mode: {mode}")
+                if mode == "create":
+                    current_model_instance.save()
+                elif mode == "update" and len(model_data.keys()):
+                    current_model_instance.save()
+
                 model_instances[current_model_instance._meta.model_name] = (
                     current_model_instance
                 )
@@ -6118,10 +6106,15 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         return workbook
 
-    def validate(self, cell_value, index, errors):
+    def validate(self, cell_value, mode, index, errors):
         from boranga.components.spatial.utils import get_geometry_array_from_geojson
 
         errors_added = 0
+
+        if mode == "update" and (not cell_value or cell_value == ""):
+            # When updating an OCR many of the columns may be blank
+            # So we don't need to validate them if they don't have a value
+            return cell_value, errors_added
 
         try:
             model_class = apps.get_model(
@@ -6152,8 +6145,6 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             return cell_value, errors_added
 
         field = model_class._meta.get_field(self.django_import_field_name)
-
-        logger.debug(f"field: {field}")
 
         if not self.xlsx_data_validation_allow_blank and not cell_value:
             errors.append(
@@ -6194,13 +6185,10 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             ).choices
 
             display_values = cell_value.split(",")
-            logger.debug(f"display_values: {display_values}")
             cell_value = []
             for display_value in [
                 display_value.strip() for display_value in display_values
             ]:
-                logger.debug(f"display_value: '{display_value}'")
-                logger.debug([choice[1] for choice in choices])
                 if display_value not in [choice[1] for choice in choices]:
                     error_message = (
                         f"Value '{display_value}' in column {self.xlsx_column_header_name} "
@@ -6348,6 +6336,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
             if not related_model_qs.exists() or related_model_qs.count() == 0:
                 return cell_value, errors_added
+
             # Use the django lookup field to find the value
             if self.django_lookup_field_name:
                 lookup_field = self.django_lookup_field_name
