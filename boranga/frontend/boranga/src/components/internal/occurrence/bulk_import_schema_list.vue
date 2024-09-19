@@ -48,10 +48,10 @@
                                         :title="schema.name">{{
                                             schema.name }}</td>
                                     <td class="text-truncate"><span class="badge bg-info fs-6 me-2"
-                                            v-for="(tag, index) in schema.tags.slice(0, 3)" :key="tag">{{ tag }}</span>
-                                        <span v-if="schema.tags.length > 3"
+                                            v-for="(tag, index) in schema.tags.slice(0, 2)" :key="tag">{{ tag }}</span>
+                                        <span v-if="schema.tags.length > 2"
                                             :title="String(schema.tags).replace(/,/g, ', ')" @click.prevent="">+{{
-                                            schema.tags.length - 3 }}</span>
+                                            schema.tags.length - 2 }}</span>
                                     </td>
                                     <td>{{ new
                                         Date(schema.datetime_created).toLocaleDateString() }} {{ new
