@@ -2,10 +2,15 @@ import hashlib
 import json
 import logging
 import os
+import random
+import string
+import traceback
 import zoneinfo
 from abc import abstractmethod
 from datetime import datetime
+from datetime import timezone as dt_timezone
 from decimal import Decimal
+from io import BytesIO
 
 import openpyxl
 import pyproj
@@ -19,8 +24,9 @@ from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.core.cache import cache
-from django.core.exceptions import FieldError, ValidationError
+from django.core.exceptions import FieldDoesNotExist, FieldError, ValidationError
 from django.core.files.storage import FileSystemStorage
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import IntegrityError, models, transaction
 from django.db.models import CharField, Count, Func, Max, Q
@@ -5337,9 +5343,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         try:
             workbook = openpyxl.load_workbook(_file, read_only=True)
         except Exception as e:
-            logger.error(f"Error opening bulk import file {_file.name}: {e}")
-            logger.error("Unable to validate headers.")
-            return
+            raise ValidationError(f"Error opening bulk import file {_file}: {e}")
 
         sheet = workbook.active
 
@@ -5898,6 +5902,115 @@ class OccurrenceReportBulkImportSchema(models.Model):
         return workbook
 
     @transaction.atomic
+    def validate(self):
+        # Tries adding valid sample data to each column and then saving to the database
+        # Returns any errors that occur
+        # Rolls back the transaction regardless of success or failure
+
+        errors = []
+
+        columns = self.columns.all()
+        if not columns.exists() or columns.count() == 0:
+            errors.append(
+                {
+                    "error_type": "no_columns",
+                    "error_message": "No columns found in the schema",
+                }
+            )
+            return errors
+
+        # Make sure the schema has a migrated_from_id column
+        if not columns.filter(
+            django_import_content_type=ct_models.ContentType.objects.get_for_model(
+                OccurrenceReport
+            ),
+            django_import_field_name="migrated_from_id",
+        ).exists():
+            errors.append(
+                {
+                    "error_type": "no_migrated_from_id",
+                    "error_message": "No migrated_from_id column found in the schema",
+                }
+            )
+            return errors
+
+        # Create a sample row of data
+        sample_row = []
+        for column in columns:
+            sample_row.append(column.get_sample_value(errors))
+
+        preview_import_file = self.preview_import_file
+
+        logger.debug(f"Sample row: {sample_row}")
+
+        # Write the sample row to the file
+        sheet = preview_import_file.active
+        sheet.append(sample_row)
+
+        # Convert the import file to a Django File object
+        import_file_name = f"sample_{self.group_type.name}_{self.version}.xlsx"
+        import_file = InMemoryUploadedFile(
+            preview_import_file,
+            "_file",
+            import_file_name,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            None,
+            None,
+        )
+
+        import_task = OccurrenceReportBulkImportTask(
+            schema=self,
+            _file=import_file,
+            rows=1,
+        )
+
+        # Convert the file to bytes
+        buffer = BytesIO()
+        preview_import_file.save(buffer)
+        buffer.seek(0)
+
+        try:
+            import_task.validate_headers(buffer, self)
+        except ValidationError as e:
+            logger.error(f"Error validating headers: {e}")
+            logger.error(traceback.format_exc())
+            errors.append(
+                {
+                    "error_type": "header_validation",
+                    "error_message": e.message,
+                }
+            )
+            transaction.set_rollback(True)
+            return errors
+
+        # Get the rows
+        row = list(
+            sheet.iter_rows(
+                min_row=2,
+                max_row=2,
+                max_col=self.columns.count(),
+                values_only=True,
+            )
+        )[0]
+
+        try:
+            import_task.process_row(0, row, errors)
+        except Exception as e:
+            logger.error(f"Error processing sample row: {e}")
+            logger.error(traceback.format_exc())
+            errors.append(
+                {
+                    "error_type": "row_validation",
+                    "error_message": f"Error processing sample row: {e}",
+                }
+            )
+            transaction.set_rollback(True)
+            return errors
+
+        transaction.set_rollback(True)
+        return errors
+
+    @transaction.atomic
     def copy(self):
         if not self.pk:
             raise ValueError("Schema must be saved before it can be copied")
@@ -6056,6 +6169,180 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             self.foreign_key_count > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
         )
 
+    def get_sample_value(self, errors):
+        if not self.django_import_content_type:
+            errors.append(
+                {
+                    "error_type": "no_import_content_type",
+                    "error_message": f"No import content type set for column {self}",
+                }
+            )
+            return None
+
+        if not self.django_import_field_name:
+            errors.append(
+                {
+                    "error_type": "no_import_field_name",
+                    "error_message": f"No import field name set for column {self}",
+                }
+            )
+            return None
+
+        try:
+            field = self.django_import_content_type.model_class()._meta.get_field(
+                self.django_import_field_name
+            )
+        except FieldDoesNotExist:
+            error_message = (
+                f"Field {self.django_import_field_name} not found in model "
+                f"{self.django_import_content_type.model_class()}"
+            )
+            errors.append(
+                {
+                    "error_type": "field_not_found",
+                    "error_message": error_message,
+                }
+            )
+            return None
+
+        if isinstance(field, models.ForeignKey):
+            # TODO Ideally, this code would be in a separate function
+            # So it can be reused in mutliple places
+            related_model = field.related_model
+            if self.django_lookup_field_name:
+                display_field = self.django_lookup_field_name
+            else:
+                display_field = get_display_field_for_model(related_model)
+
+            if not display_field:
+                error_message = (
+                    f"No display field found for model {related_model._meta.model_name}. "
+                    "Please set the lookup field name"
+                )
+                errors.append(
+                    {
+                        "error_type": "no_display_field",
+                        "error_message": error_message,
+                    }
+                )
+                return None
+
+            if issubclass(related_model, ArchivableModel):
+                related_model_qs = related_model.objects.exclude(archived=True)
+            else:
+                related_model_qs = related_model.objects.all()
+
+            filter_dict = {f"{display_field}__isnull": False}
+            related_model_qs = related_model_qs.filter(**filter_dict)
+
+            if not related_model_qs.exists():
+                errors.append(
+                    {
+                        "error_type": "no_records",
+                        "error_message": f"No records found for foreign key {related_model._meta.model_name}",
+                    }
+                )
+
+            random_value = (
+                related_model_qs.order_by("?")
+                .values_list(display_field, flat=True)
+                .first()
+            )
+
+            return random_value
+
+        if isinstance(field, MultiSelectField):
+            model_class = self.django_import_content_type.model_class()
+            # Unfortunatly have to have an actual model instance to get the choices
+            # as they are defined in __init__
+            model_instance = model_class()
+            choices = model_instance._meta.get_field(
+                self.django_import_field_name
+            ).choices
+            if not choices or len(choices) == 0:
+                errors.append(
+                    {
+                        "error_type": "no_choices",
+                        "error_message": f"No choices found for column {self.xlsx_column_header_name}",
+                    }
+                )
+                return None
+            return random.choice([choice[1] for choice in choices])
+
+        if isinstance(field, models.BooleanField):
+            return random.choice([True, False])
+
+        if isinstance(field, models.DecimalField):
+            decimal_places = field.decimal_places if field.decimal_places else 2
+            max_digits = field.max_digits if field.max_digits else 5
+            max_value = 10 ** (max_digits - decimal_places - 1)
+            return round(random.uniform(0, max_value), decimal_places)
+
+        if isinstance(field, models.IntegerField):
+            min_value = field.min_value if hasattr(field, "min_value") else 0
+            max_value = field.max_value if hasattr(field, "max_value") else 10000
+            return random.randint(min_value, max_value)
+
+        if isinstance(field, models.DateField):
+            start = datetime(1900, 1, 1, 0, 0, 0, tzinfo=dt_timezone.utc).date()
+            end = timezone.now().date()
+            random_date = start + (end - start) * random.random()
+            return random_date.strftime("%d/%m/%Y")
+
+        if isinstance(field, models.DateTimeField):
+            start = datetime(1900, 1, 1, 0, 0, 0, tzinfo=dt_timezone.utc)
+            end = timezone.now()
+            random_datetime = start + (end - start) * random.random()
+            return random_datetime.strftime("%d/%m/%Y %H:%M:%S")
+
+        if isinstance(field, (models.CharField, models.TextField)):
+            if hasattr(field, "max_length") and field.max_length:
+                random_length = random.randint(1, field.max_length)
+            else:
+                random_length = random.randint(1, 1000)
+            return "".join(
+                random.choices(
+                    string.ascii_letters + string.digits + " ", k=random_length
+                )
+            )
+
+        if isinstance(field, gis_models.GeometryField):
+            # Generate a random point and polygon that falls within Western Australia
+            # In this case the dbca building in Kensington
+            return json.dumps(
+                {
+                    "type": "FeatureCollection",
+                    "features": [
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [115.8840195356077, -31.99563118840819],
+                            },
+                        },
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Polygon",
+                                "coordinates": [
+                                    [
+                                        [115.88337912139104, -31.995016820738698],
+                                        [115.88337912139104, -31.99586499034117],
+                                        [115.88434603648648, -31.99586499034117],
+                                        [115.88434603648648, -31.995016820738698],
+                                        [115.88337912139104, -31.995016820738698],
+                                    ]
+                                ],
+                            },
+                        },
+                    ],
+                }
+            )
+
+        raise ValueError(
+            f"Not able to generate sample data for field {field} of type {type(field)}"
+        )
+
     @property
     def preview_foreign_key_values_xlsx(self):
         if not self.django_import_content_type or not self.django_import_field_name:
@@ -6146,7 +6433,9 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         field = model_class._meta.get_field(self.django_import_field_name)
 
-        if not self.xlsx_data_validation_allow_blank and not cell_value:
+        if not self.xlsx_data_validation_allow_blank and (
+            cell_value is None or cell_value == ""
+        ):
             errors.append(
                 {
                     "row_index": index,
@@ -6304,22 +6593,28 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         if xlsx_data_validation_type in ["date", "time"]:
             # The cell_value should already be a datetime object since openpyxl
             # converts cells formatted as dates to datetime objects automatically
-            # but lets check just in case
+            # but when validating the schema
             if not isinstance(cell_value, datetime):
-                error_message = (
-                    f"Value {cell_value} in column {self.xlsx_column_header_name} "
-                    "was not able to be converted to a datetime object"
-                )
-                errors.append(
-                    {
-                        "row_index": index,
-                        "error_type": "column",
-                        "data": cell_value,
-                        "error_message": error_message,
-                    }
-                )
-                errors_added += 1
-                return cell_value, errors_added
+                try:
+                    if xlsx_data_validation_type == "date":
+                        cell_value = datetime.strptime(cell_value, "%d/%m/%Y")
+                    elif xlsx_data_validation_type == "time":
+                        cell_value = datetime.strptime(cell_value, "%d/%m/%Y %H:%M:%S")
+                except ValueError:
+                    error_message = (
+                        f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                        "was not able to be converted to a datetime object"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": cell_value,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+                    return cell_value, errors_added
 
             # Make the datetime object timezone aware
             cell_value.replace(tzinfo=zoneinfo.ZoneInfo(settings.TIME_ZONE))
@@ -6385,7 +6680,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             return cell_value, errors_added
 
         if isinstance(field, models.BooleanField):
-            if not cell_value:
+            if cell_value is None or cell_value == "":
                 if not field.null:
                     error_message = (
                         f"Value {cell_value} in column {self.xlsx_column_header_name} "
@@ -6418,7 +6713,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 errors_added += 1
             return cell_value, errors_added
 
-        if xlsx_data_validation_type == "list":
+        if xlsx_data_validation_type == "list" and self.xlsx_data_validation_formula1:
             # TODO: DO we even need xlsx_data_validation_type and xlsx_data_validation_formula1 etc
             # as we can get that information by inspecting the field directly
             # Also, this part for list I think it covered by the ForeignKey part above
