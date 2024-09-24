@@ -33,7 +33,7 @@
                                     </div>
                                     <div class="float-end">
                                         <button role="button" class="btn btn-primary me-2"
-                                            @click.prevent="validateSchema()"><i class="bi bi-card-checklist me-1"></i>
+                                            @click.prevent="validate()"><i class="bi bi-card-checklist me-1"></i>
                                             Validate Schema</button>
                                         <a role="button" class="btn btn-primary"
                                             :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
@@ -764,18 +764,42 @@ export default {
             this.schema.tags.splice(index, 1)
             this.save();
         },
-        validateSchema() {
-            swal.fire({
-                title: 'Validate Schema',
-                text: 'Not yet implemented',
-                icon: 'warning',
-                showCancelButton: false,
-                cancelButtonText: 'Cancel',
-                customClass: {
-                    confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary me-2'
-                },
-            })
+        validate() {
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/validate/`)
+                .then(response => {
+                    swal.fire({
+                        title: 'Schema Validated Successfully',
+                        text: response.data,
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        }
+                    })
+                })
+                .catch(error => {
+                    console.log(error)
+                    console.log(typeof error)
+                    let errors = error.data
+                    console.log(errors)
+                    console.log(typeof errors)
+                    console.log(errors instanceof Array)
+                    let error_message = ''
+                    if (errors instanceof Array) {
+                        for(let i = 0; i < errors.length; i++) {
+                            error_message += `<li class="mb-2">${errors[i].error_message}</li>`
+                        }
+                    }
+                    swal.fire({
+                        title: 'Schema Validation Failed',
+                        html: error_message,
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        }
+                    })
+                })
         },
         save() {
             // If there is a column with no django_import_content_type or django_import_field_name, remove it
