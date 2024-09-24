@@ -6391,6 +6391,14 @@ class OccurrenceReportBulkImportSchemaViewSet(
         buffer.close()
         return response
 
+    @detail_route(methods=["get"], detail=True)
+    def validate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        errors = instance.validate()
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_200_OK)
+
     @detail_route(methods=["post"], detail=True)
     def copy(self, request, *args, **kwargs):
         instance = self.get_object()
