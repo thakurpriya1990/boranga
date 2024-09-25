@@ -3,7 +3,7 @@ import logging
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models.fields.related import ForeignKey, OneToOneField
+from django.db.models.fields.related import ForeignKey, ManyToManyField, OneToOneField
 from ledger_api_client.ledger_models import EmailUserRO
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import serializers
@@ -148,6 +148,7 @@ class ContentTypeSerializer(serializers.ModelSerializer):
                     not in [
                         ForeignKey,
                         OneToOneField,
+                        ManyToManyField,
                     ]
                 )
             )
@@ -175,7 +176,7 @@ class ContentTypeSerializer(serializers.ModelSerializer):
                 field
             )
             lookup_field_options = None
-            if isinstance(field, models.ForeignKey):
+            if isinstance(field, (models.ForeignKey, models.ManyToManyField)):
                 related_model = field.related_model
                 fields = related_model._meta.get_fields()
                 lookup_field_options = [

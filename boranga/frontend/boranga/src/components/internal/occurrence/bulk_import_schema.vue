@@ -411,7 +411,7 @@
                                         <tr v-for="choice in selectedField.choices" class="">
                                             <td>
                                                 <template
-                                                    v-if="['MultiSelectField', 'ForeignKey'].includes(selectedField.type)">{{
+                                                    v-if="['MultiSelectField', 'ForeignKey', 'ManyToManyField'].includes(selectedField.type)">{{
                                                         choice[1] }}</template>
                                                 <template v-else>{{
                                                     choice[0]
@@ -471,7 +471,7 @@ export default {
                 this.selectedColumn.xlsx_column_header_name &&
                 this.selectedColumn.django_import_content_type &&
                 this.selectedColumn.requires_lookup_field &&
-                this.selectedColumn.django_import_field_name && this.selectedField && this.selectedField.type === 'ForeignKey';
+                this.selectedColumn.django_import_field_name && this.selectedField && ['ManyToManyField', 'ForeignKey'].includes(this.selectedField.type);
         },
     },
     methods: {

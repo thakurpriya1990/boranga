@@ -29,7 +29,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import IntegrityError, models, transaction
-from django.db.models import CharField, Count, Func, Max, Q
+from django.db.models import CharField, Count, Func, ManyToManyField, Max, Q
 from django.db.models.functions import Cast, Length
 from django.utils import timezone
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
@@ -5473,6 +5473,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
         models = {}
         geometries = {}
+        many_to_many_fields = {}
         # Validate each cell
         for column_index, column in enumerate(self.schema.columns.all()):
             column_error_count = 0
@@ -5481,12 +5482,15 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
             cell_value, errors_added = column.validate(cell_value, mode, index, errors)
 
-            # Special case for geojson feature collection
             model_class = apps.get_model(
                 "boranga", column.django_import_content_type.model
             )
+            field = model_class._meta.get_field(column.django_import_field_name)
+
+            # Special case: geojson feature collection
             if (
                 issubclass(model_class, GeometryBase)
+                and type(field) is gis_models.GeometryField
                 and type(cell_value) is list
                 and len(cell_value) > 0
             ):
@@ -5496,6 +5500,20 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 # Set the first geometry as the cell value so that it is
                 # created with the main model instance
                 cell_value = geometries[model_class._meta.model_name][0]
+
+            # Special case: Many to many fields
+            if type(field) is ManyToManyField:
+                # Store the many to many field in the many_to_many_fields dict
+                # As you can't assign a list of models directly to a many to many field
+                # via model_data
+                if model_class._meta.model_name not in many_to_many_fields:
+                    many_to_many_fields[model_class._meta.model_name] = []
+                many_to_many_fields[model_class._meta.model_name].append(
+                    {"field": column.django_import_field_name, "value": cell_value}
+                )
+
+                # Continue to the next column
+                continue
 
             column_error_count += errors_added
 
@@ -5622,7 +5640,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     return
 
             try:
-                logger.debug(f"Mode: {mode}")
                 if mode == "create":
                     current_model_instance.save()
                 elif mode == "update" and len(model_data.keys()):
@@ -5645,6 +5662,17 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                         current_model_instance.pk = None
                         current_model_instance.geometry = geometry
                         current_model_instance.save()
+
+                # Deal with special case of many to many fields
+                if current_model_instance._meta.model_name in many_to_many_fields:
+                    logger.info(
+                        f"Adding many to many fields for {current_model_instance}"
+                    )
+                    for m2m_field in many_to_many_fields[
+                        current_model_instance._meta.model_name
+                    ]:
+                        field = getattr(current_model_instance, m2m_field["field"])
+                        field.set(m2m_field["value"])
 
             except IntegrityError as e:
                 logger.error(f"Error creating model instance: {e}")
@@ -5941,8 +5969,6 @@ class OccurrenceReportBulkImportSchema(models.Model):
 
         preview_import_file = self.preview_import_file
 
-        logger.debug(f"Sample row: {sample_row}")
-
         # Write the sample row to the file
         sheet = preview_import_file.active
         sheet.append(sample_row)
@@ -6150,7 +6176,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         field = self.django_import_content_type.model_class()._meta.get_field(
             self.django_import_field_name
         )
-        if not isinstance(field, models.ForeignKey):
+        if not isinstance(field, (models.ForeignKey, models.ManyToManyField)):
             return 0
 
         related_model_qs = field.related_model.objects.all()
@@ -6351,7 +6377,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         field = self.django_import_content_type.model_class()._meta.get_field(
             self.django_import_field_name
         )
-        if not isinstance(field, models.ForeignKey):
+        if not isinstance(field, (models.ForeignKey, models.ManyToManyField)):
             return None
 
         related_model = field.related_model
@@ -6675,8 +6701,71 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 errors_added += 1
                 return cell_value, errors_added
 
-            # Replace the lookup cell_value with the actual instance to assigned
+            # Replace the lookup cell_value with the actual instance to be assigned
             cell_value = related_model_instance
+            return cell_value, errors_added
+
+        if isinstance(field, models.ManyToManyField):
+            related_model = field.related_model
+            related_model_qs = related_model.objects.all()
+
+            # Check if the related model is Archivable
+            if issubclass(related_model, ArchivableModel):
+                related_model_qs = related_model_qs.exclude(archived=True)
+
+            if not related_model_qs.exists() or related_model_qs.count() == 0:
+                return cell_value, errors_added
+
+            # Use the django lookup field to find the value
+            if self.django_lookup_field_name:
+                lookup_field = self.django_lookup_field_name
+            else:
+                lookup_field = get_display_field_for_model(related_model)
+
+            lookup_field += "__in"
+
+            cell_value = [c.strip() for c in cell_value.split(",")]
+
+            try:
+                related_model_instances = related_model_qs.filter(
+                    **{lookup_field: cell_value}
+                )
+            except FieldError:
+                error_message = (
+                    f"Can't find {self.django_import_field_name} record by looking up "
+                    f"{lookup_field} with value {cell_value} "
+                    f"for column {self.xlsx_column_header_name} "
+                    f" no field {lookup_field} found in {related_model}"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+            except related_model.DoesNotExist:
+                error_message = (
+                    f"Can't find {self.django_import_field_name} record by looking up "
+                    f"{self.django_lookup_field_name} with value {cell_value} "
+                    f"for column {self.xlsx_column_header_name}"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            # Replace the lookup cell_value with a list of model instances to be assigned
+            cell_value = list(related_model_instances)
             return cell_value, errors_added
 
         if isinstance(field, models.BooleanField):
