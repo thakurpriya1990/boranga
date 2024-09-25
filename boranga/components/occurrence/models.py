@@ -5512,7 +5512,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     {"field": column.django_import_field_name, "value": cell_value}
                 )
 
-                # Continue to the next column
+                # Continue to the next column without adding the cell value to the model data
                 continue
 
             column_error_count += errors_added
