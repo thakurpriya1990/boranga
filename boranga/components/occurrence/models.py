@@ -5565,7 +5565,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             # and set appropriate fields if so
             if current_model_name == OccurrenceReport._meta.model_name:
                 if mode == "create":
-                    current_model_instance = model_class(**model_data)
+                    current_model_instance = OccurrenceReport(**model_data)
                     current_model_instance.bulk_import_task_id = self.pk
                     current_model_instance.import_hash = row_hash
                     current_model_instance.group_type_id = self.schema.group_type_id
@@ -5576,12 +5576,27 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     )
                     for field, value in model_data.items():
                         setattr(current_model_instance, field, value)
+            elif current_model_name == Occurrence._meta.model_name:
+                occ_migrated_from_id = model_data.pop("migrated_from_id", None)
+                if not occ_migrated_from_id:
+                    current_model_instance = Occurrence(**model_data)
+                else:
+                    current_model_instance = Occurrence.objects.get_or_create(
+                        migrated_from_id=occ_migrated_from_id
+                    )[0]
+                    for field, value in model_data.items():
+                        setattr(current_model_instance, field, value)
             else:
                 current_model_instance = model_class(**model_data)
 
             # If we are at the top level model (OccurrenceReport) we don't need to relate it to anything
+            # We also don't need to relate the Occurrence model to anything here as it is dealt with
+            # as a special case further down
             # TODO: Optimize this relationships finder to minimise looping and move to a separate function
-            if not current_model_name == OccurrenceReport._meta.model_name:
+            if current_model_name not in [
+                OccurrenceReport._meta.model_name,
+                Occurrence._meta.model_name,
+            ]:
                 # Relate this model to it's parent instance
 
                 related_to_parent = False
@@ -5600,7 +5615,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     # to the parent model
                     for field in current_model_instance._meta.get_fields():
                         if field.related_model == potential_parent_instance.__class__:
-
                             # If it does, set the relationship
                             setattr(
                                 current_model_instance,
@@ -5609,14 +5623,10 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                             )
                             related_to_parent = True
                             break
-
-                    if related_to_parent:
-                        break
 
                     # If we didn't find a relationship in the current model, search the parent model
                     for field in potential_parent_instance.__class__._meta.get_fields():
                         if field.related_model == current_model_instance:
-
                             # If it does, set the relationship
                             setattr(
                                 current_model_instance,
@@ -5625,9 +5635,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                             )
                             related_to_parent = True
                             break
-
-                    if related_to_parent:
-                        break
 
                 if not related_to_parent:
                     error_message = (
@@ -5645,15 +5652,22 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     return
 
             try:
-                if mode == "create":
-                    current_model_instance.save()
-                elif mode == "update" and len(model_data.keys()):
+                if mode == "create" or (mode == "update" and len(model_data.keys())):
                     current_model_instance.save()
 
                 model_instances[current_model_instance._meta.model_name] = (
                     current_model_instance
                 )
                 logger.info(f"Model instance created: {current_model_instance}")
+
+                # Deal with special case of relating Occurrence to OccurrenceReport
+                if (
+                    current_model_instance._meta.model_name
+                    == Occurrence._meta.model_name
+                ):
+                    current_model_instance.occurrence_reports.add(
+                        model_instances[OccurrenceReport._meta.model_name]
+                    )
 
                 # Deal with special case of creating mutliple geometries based on the
                 # geojson text from the column
