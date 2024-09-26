@@ -5,9 +5,12 @@ import pyproj
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
+from django.db.models import Q
 from django_filters import rest_framework as filters
 from rest_framework import filters as rest_framework_filters
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from boranga import helpers
 from boranga.components.main.models import HelpTextEntry
@@ -42,6 +45,24 @@ class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [filters.DjangoFilterBackend, rest_framework_filters.SearchFilter]
     filterset_fields = ["app_label", "model"]
     search_fields = ["^model"]
+
+    @action(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def ocr_bulk_import_content_types(self, request):
+        """Returns a list of content types that are allowed to be imported in the ocr bulk importer"""
+        content_types = ContentType.objects.filter(
+            app_label="boranga",
+        ).filter(
+            Q(model__startswith="occurrencereport")
+            | Q(model__startswith="ocr")
+            | Q(model__iexact="occurrence")
+        )
+        serializer = self.get_serializer(content_types, many=True)
+        return Response(serializer.data)
 
 
 class RetrieveActionLoggingViewsetMixin:
