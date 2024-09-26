@@ -139,13 +139,15 @@
                                         <template v-if="selectedColumn.id">
                                             <option v-for="djangoContentType in djangoContentTypes"
                                                 :value="djangoContentType.id">{{
-                                                    djangoContentType.model_verbose_name }}
+                                                    djangoContentType.model_verbose_name ?
+                                                        djangoContentType.model_verbose_name : djangoContentType.model }}
                                             </option>
                                         </template>
                                         <template v-else>
                                             <option v-for="djangoContentType in djangoContentTypesFiltered"
                                                 :value="djangoContentType.id">{{
-                                                    djangoContentType.model_verbose_name }}
+                                                    djangoContentType.model_verbose_name ?
+                                                        djangoContentType.model_verbose_name : djangoContentType.model }}
                                             </option>
                                         </template>
                                     </select>
@@ -311,7 +313,10 @@
                                                             lookupField }}</option>
                                                     <option value="custom">custom</option>
                                                 </select>
-                                                <a v-if="selectedColumn.id" class="btn btn-primary" :href="`/api/occurrence_report_bulk_import_schema_columns/${selectedColumn.id}/preview_foreign_key_values_xlsx/`"><i class="bi bi-filetype-xlsx" role="button"></i> Preview Choices</a>
+                                                <a v-if="selectedColumn.id" class="btn btn-primary"
+                                                    :href="`/api/occurrence_report_bulk_import_schema_columns/${selectedColumn.id}/preview_foreign_key_values_xlsx/`"><i
+                                                        class="bi bi-filetype-xlsx" role="button"></i> Preview
+                                                    Choices</a>
                                             </template>
                                             <select v-else ref="lookup-field" class="form-select"
                                                 aria-label="Lookup Field" @change="selectLookupField()">
@@ -326,7 +331,9 @@
                                                 type="text" placeholder="Enter Custom Lookup Field"
                                                 aria-label="Custom Lookup Field" aria-describedby="lookup-field"
                                                 v-model="selectedColumn.django_lookup_field_name">
-                                            <a v-if="selectedColumn.id" class="btn btn-primary" :href="`/api/occurrence_report_bulk_import_schema_columns/${selectedColumn.id}/preview_foreign_key_values_xlsx/`"><i class="bi bi-filetype-xlsx" role="button"></i> Preview Choices</a>
+                                            <a v-if="selectedColumn.id" class="btn btn-primary"
+                                                :href="`/api/occurrence_report_bulk_import_schema_columns/${selectedColumn.id}/preview_foreign_key_values_xlsx/`"><i
+                                                    class="bi bi-filetype-xlsx" role="button"></i> Preview Choices</a>
                                         </div>
                                     </fieldset>
                                 </div>
@@ -415,7 +422,7 @@
                                                         choice[1] }}</template>
                                                 <template v-else>{{
                                                     choice[0]
-                                                    }}</template>
+                                                }}</template>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -502,36 +509,22 @@ export default {
                 })
         },
         fetchContentTypes() {
-            this.$http.get(`${api_endpoints.content_types}`, {
-                params: {
-                    app_label: 'boranga',
-                    search: 'occurrencereport'
-                }
-            })
+            this.$http.get(`${api_endpoints.content_types}ocr_bulk_import_content_types/`)
                 .then(response => {
-                    this.djangoContentTypes = response.data.results
-                    this.$http.get(`${api_endpoints.content_types}`, {
-                        params: {
-                            app_label: 'boranga',
-                            search: 'ocr'
-                        }
-                    })
-                        .then(response => {
-                            this.djangoContentTypes.push(...response.data.results)
-                            // Filter out content types that have no fields or no model_verbose_name
-                            this.djangoContentTypesFiltered = this.djangoContentTypes.filter(
-                                djangoContentType => djangoContentType.model_fields.length > 0 && djangoContentType.model_verbose_name
+                    this.djangoContentTypes = response.data
+                    // Filter out content types that have no fields
+                    this.djangoContentTypesFiltered = this.djangoContentTypes.filter(
+                        djangoContentType => djangoContentType.model_fields.length > 0
+                    )
+                    // Filter out content types where all their fields are already columns in the schema
+                    this.djangoContentTypesFiltered = this.djangoContentTypesFiltered.filter(
+                        djangoContentType => !djangoContentType.model_fields.every(
+                            modelField => this.schema.columns.some(
+                                column => (column.django_import_field_name == modelField.name &&
+                                    column.django_import_content_type == modelField.content_type)
                             )
-                            // Filter out content types where all their fields are already columns in the schema
-                            this.djangoContentTypesFiltered = this.djangoContentTypesFiltered.filter(
-                                djangoContentType => !djangoContentType.model_fields.every(
-                                    modelField => this.schema.columns.some(column => column.django_import_field_name == modelField.name)
-                                )
-                            )
-                        })
-                        .catch(error => {
-                            console.error(error)
-                        })
+                        )
+                    )
                 })
                 .catch(error => {
                     console.error(error)
@@ -559,7 +552,8 @@ export default {
             )[0]
             // Filter out fields that are already columns in the schema
             this.djangoImportFieldsFiltered = this.selectedContentType.model_fields.filter(
-                modelField => !this.schema.columns.some(column => column.django_import_field_name == modelField.name)
+                modelField => !this.schema.columns.some(column => column.django_import_field_name == modelField.name &&
+                column.django_import_content_type == modelField.content_type)
             )
             this.$nextTick(() => {
                 this.enablePopovers();
@@ -637,7 +631,7 @@ export default {
         addAllColumns(onlyMandatory) {
             swal.fire({
                 title: onlyMandatory ? `Add All Mandatory Fields` : `Add All Fields`,
-                text: onlyMandatory ? `Are you sure you want to add all mandatory fields from the "${this.selectedContentType.model_verbose_name}" model?` : `Are you sure you want to add all fields from the "${this.selectedContentType.model_verbose_name}" model?`,
+                text: onlyMandatory ? `Are you sure you want to add all mandatory fields from the "${this.selectedContentType.model_verbose_name ? this.selectedContentType.model_verbose_name : this.selectedContentType.model}" model?` : `Are you sure you want to add all fields from the "${this.selectedContentType.model_verbose_name}" model?`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Confirm',
@@ -661,7 +655,6 @@ export default {
                             import_validations: []
                         }
                     })
-                    console.log(newColumns)
                     // Remove columns that are already in the schema
                     newColumns = newColumns.filter(newColumn => !this.schema.columns.some(column => column.django_import_field_name == newColumn.django_import_field_name))
                     if (onlyMandatory) {
@@ -778,15 +771,10 @@ export default {
                     })
                 })
                 .catch(error => {
-                    console.log(error)
-                    console.log(typeof error)
                     let errors = error.data
-                    console.log(errors)
-                    console.log(typeof errors)
-                    console.log(errors instanceof Array)
                     let error_message = ''
                     if (errors instanceof Array) {
-                        for(let i = 0; i < errors.length; i++) {
+                        for (let i = 0; i < errors.length; i++) {
                             error_message += `<li class="mb-2">${errors[i].error_message}</li>`
                         }
                     }
