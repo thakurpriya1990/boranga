@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.fields.related import ForeignKey, ManyToManyField, OneToOneField
@@ -133,6 +134,9 @@ class ContentTypeSerializer(serializers.ModelSerializer):
     def get_model_fields(self, obj):
         if not obj.model_class():
             return []
+
+        content_type = ContentType.objects.get_for_model(obj.model_class()).id
+
         fields = obj.model_class()._meta.get_fields()
         exclude_fields = []
         if hasattr(obj.model_class(), "BULK_IMPORT_EXCLUDE_FIELDS"):
@@ -176,6 +180,10 @@ class ContentTypeSerializer(serializers.ModelSerializer):
                 field
             )
             lookup_field_options = None
+
+            if isinstance(field, GenericForeignKey):
+                continue
+
             if isinstance(field, (models.ForeignKey, models.ManyToManyField)):
                 related_model = field.related_model
                 fields = related_model._meta.get_fields()
@@ -183,7 +191,7 @@ class ContentTypeSerializer(serializers.ModelSerializer):
                     field.verbose_name.lower()
                     for field in related_model._meta.get_fields()
                     if not field.related_model
-                    and field.unique
+                    and (hasattr(field, "unique") and field.unique)
                     and not field.name.endswith("_number")
                 ]
 
@@ -208,6 +216,7 @@ class ContentTypeSerializer(serializers.ModelSerializer):
                 {
                     "name": field.name,
                     "display_name": display_name,
+                    "content_type": content_type,
                     "type": field_type,
                     "choices": choices,
                     "allow_null": allow_null,
