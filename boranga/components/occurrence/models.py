@@ -5488,9 +5488,10 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             field = model_class._meta.get_field(column.django_import_field_name)
 
             # Special case: geojson feature collection
+            # TODO: Consider modifying this so that it can support multiple geometry fields
+            # in the same model like the m2m one does below
             if (
-                issubclass(model_class, GeometryBase)
-                and type(field) is gis_models.GeometryField
+                type(field) is gis_models.GeometryField
                 and type(cell_value) is list
                 and len(cell_value) > 0
             ):
