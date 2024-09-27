@@ -48,10 +48,10 @@
                                         :title="schema.name">{{
                                             schema.name }}</td>
                                     <td class="text-truncate"><span class="badge bg-info fs-6 me-2"
-                                            v-for="(tag, index) in schema.tags.slice(0, 2)" :key="tag">{{ tag }}</span>
-                                        <span v-if="schema.tags.length > 2"
+                                            v-for="(tag, index) in tags_to_show(schema.tags)" :key="tag">{{ tag }}</span>
+                                        <span v-if="schema.tags.length > tags_to_show(schema.tags).length"
                                             :title="String(schema.tags).replace(/,/g, ', ')" @click.prevent="">+{{
-                                            schema.tags.length - 2 }}</span>
+                                            schema.tags.length - tags_to_show(schema.tags).length }}</span>
                                     </td>
                                     <td>{{ new
                                         Date(schema.datetime_created).toLocaleDateString() }} {{ new
@@ -159,6 +159,19 @@ export default {
                 .catch(error => {
                     console.error(error)
                 })
+        },
+        tags_to_show(tags) {
+            let total_chars = tags.length * 2;
+            let tags_to_show = [];
+            for (let i = 0; i < tags.length; i++) {
+                total_chars += tags[i].length;
+                if (total_chars <= 30) {
+                    tags_to_show.push(tags[i]);
+                } else {
+                    break;
+                }
+            }
+            return tags_to_show;
         }
     },
     created() {
