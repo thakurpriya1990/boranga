@@ -88,19 +88,19 @@
                                     <tr v-for="(column, index) in schema.columns"
                                         :class="selectedColumn == column ? 'active' : ''" @click="selectColumn(column)"
                                         :style="selectedColumn == column ? '' : `background-color:${stringToRGBAColor(column.model_name)};`" role="button" :key="column.id">
-                                        <td style="width:5%" class="text-center fw-bold">{{ index +
+                                        <td style="width:5%" class="text-center fw-bold py-0">{{ index +
                                             1 }}
                                         </td>
-                                        <td class="ps-3 py-1 fw-bold" style="font-size:0.9em; width:40%">
-                                            <span class="text-truncate pe-1">{{
+                                        <td class="ps-3 py-0 fw-bold" style="font-size:0.9em; width:40%" :class="selectedColumn == column ? 'py-1' : ''">
+                                            <span class="text-truncate pe-1" :class="selectedColumn == column ? 'text-light' : ''">{{
                                                 column.xlsx_column_header_name }}</span>
                                             <span class="text-danger" title="Mandatory Column"
                                                 v-if="column.xlsx_data_validation_allow_blank == false">*</span>
-                                            <small class="d-block text-capitalize text-muted mb-0">
+                                            <small class="d-block text-capitalize mb-0" :class="selectedColumn == column ? 'text-light' : 'text-muted'">
                                                 {{ column.model_name }}
                                             </small>
                                         </td>
-                                        <td class="text-muted text-center" style="width:10%">
+                                        <td class="text-center py-0" :class="selectedColumn == column ? 'text-light' : 'text-muted'" style="width:10%">
                                             <i class="bi bi-eye-fill " role="button"
                                                 :class="index == 0 || schema.columns.length <= 2 || !column.id ? 'me-4' : 'me-2'"></i>
                                             <i v-if="!index == 0 && schema.columns.length > 2 && column.id"
@@ -825,6 +825,9 @@ export default {
             })
         },
         stringToRGBAColor(str) {
+            if (!str) {
+                return '';
+            }
             let hash = 0;
             for (let i = 0; i < str.length; i++) {
                 hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -867,6 +870,11 @@ div.scroll {
 }
 
 tr.active {
-    background: rgba(51, 170, 51, .4)
+    background: #226fbb;
+}
+
+tr.active td {
+    color: white;
+    border:#226fbb
 }
 </style>
