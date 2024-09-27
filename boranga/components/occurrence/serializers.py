@@ -3843,11 +3843,16 @@ class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
     order = serializers.IntegerField()
     foreign_key_count = serializers.IntegerField(read_only=True)
     requires_lookup_field = serializers.BooleanField(read_only=True)
+    model_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReportBulkImportSchemaColumn
         fields = "__all__"
         validators = []  # Validation is done in the parent serializer
+
+    def get_model_name(self, obj):
+        model = obj.django_import_content_type.model_class()
+        return model._meta.verbose_name
 
 
 class OccurrenceReportBulkImportSchemaSerializer(
