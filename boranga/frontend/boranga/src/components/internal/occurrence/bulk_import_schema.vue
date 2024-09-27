@@ -87,22 +87,25 @@
                                 <tbody class="columns">
                                     <tr v-for="(column, index) in schema.columns"
                                         :class="selectedColumn == column ? 'active' : ''" @click="selectColumn(column)"
-                                        role="button" :key="column.id">
-                                        <th style="width:5%" class="text-center">{{ index +
+                                        :style="selectedColumn == column ? '' : `background-color:${stringToRGBAColor(column.model_name)};`" role="button" :key="column.id">
+                                        <td style="width:5%" class="text-center fw-bold">{{ index +
                                             1 }}
-                                        </th>
-                                        <th class="ps-3" style="font-size:0.9em; width:40%">
+                                        </td>
+                                        <td class="ps-3 py-1 fw-bold" style="font-size:0.9em; width:40%">
                                             <span class="text-truncate pe-1">{{
                                                 column.xlsx_column_header_name }}</span>
                                             <span class="text-danger" title="Mandatory Column"
                                                 v-if="column.xlsx_data_validation_allow_blank == false">*</span>
-                                        </th>
+                                            <small class="d-block text-capitalize text-muted mb-0">
+                                                {{ column.model_name }}
+                                            </small>
+                                        </td>
                                         <td class="text-muted text-center" style="width:10%">
                                             <i class="bi bi-eye-fill " role="button"
                                                 :class="index == 0 || schema.columns.length <= 2 || !column.id ? 'me-4' : 'me-2'"></i>
                                             <i v-if="!index == 0 && schema.columns.length > 2 && column.id"
                                                 class="bi bi-arrow-down-up" role="button" style="cursor:move;"></i>
-                                        </td>
+                                            </td>
                                     </tr>
                                     <tr class="border-bottom-0"
                                         :class="schema.columns.length == 0 ? 'border-top-0' : ''"
@@ -820,7 +823,22 @@ export default {
             popoverTriggerList.map(function (popoverTriggerEl) {
                 return new bootstrap.Popover(popoverTriggerEl)
             })
-        }
+        },
+        stringToRGBAColor(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            let c = (hash & 0x00FFFFFF)
+                .toString(16)
+                .toUpperCase();
+            let color_hash = '#' + "00000".substring(0, 6 - c.length) + c;
+            // Consvert to RGB
+            let r = parseInt(color_hash.slice(1, 3), 16);
+            let g = parseInt(color_hash.slice(3, 5), 16);
+            let b = parseInt(color_hash.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, 0.1)`;
+        },
     },
     created() {
         this.fetchBulkImportSchema()
