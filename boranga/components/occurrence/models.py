@@ -6855,6 +6855,89 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         return cell_value, errors_added
 
 
+class SchemaColumnLookupFilter(models.Model):
+    schema_column = models.ForeignKey(
+        OccurrenceReportBulkImportSchemaColumn,
+        related_name="lookup_filters",
+        on_delete=models.CASCADE,
+    )
+
+    LOOKUP_FILTER_TYPE_EXACT = "exact"
+    LOOKUP_FILTER_TYPE_IEXACT = "iexact"
+    LOOKUP_FILTER_TYPE_CONTAINS = "contains"
+    LOOKUP_FILTER_TYPE_ICONTAINS = "icontains"
+    LOOKUP_FILTER_TYPE_STARTSWITH = "startswith"
+    LOOKUP_FILTER_TYPE_ISTARTSWITH = "istartswith"
+    LOOKUP_FILTER_TYPE_ENDSWITH = "endswith"
+    LOOKUP_FILTER_TYPE_IENDSWITH = "iendswith"
+    LOOKUP_FILTER_TYPE_GT = "gt"
+    LOOKUP_FILTER_TYPE_GTE = "gte"
+    LOOKUP_FILTER_TYPE_LT = "lt"
+    LOOKUP_FILTER_TYPE_LTE = "lte"
+    LOOKUP_FILTER_TYPE_IN = "in"
+
+    LOOKUP_FILTER_TYPES = (
+        (LOOKUP_FILTER_TYPE_EXACT, "Exact"),
+        (LOOKUP_FILTER_TYPE_IEXACT, "Case-insensitive Exact"),
+        (LOOKUP_FILTER_TYPE_CONTAINS, "Contains"),
+        (LOOKUP_FILTER_TYPE_ICONTAINS, "Case-insensitive Contains"),
+        (LOOKUP_FILTER_TYPE_STARTSWITH, "Starts with"),
+        (LOOKUP_FILTER_TYPE_ISTARTSWITH, "Case-insensitive Starts with"),
+        (LOOKUP_FILTER_TYPE_ENDSWITH, "Ends with"),
+        (LOOKUP_FILTER_TYPE_IENDSWITH, "Case-insensitive Ends with"),
+        (LOOKUP_FILTER_TYPE_GT, "Greater than"),
+        (LOOKUP_FILTER_TYPE_GTE, "Greater than or equal to"),
+        (LOOKUP_FILTER_TYPE_LT, "Less than"),
+        (LOOKUP_FILTER_TYPE_LTE, "Less than or equal to"),
+        (LOOKUP_FILTER_TYPE_IN, "In"),
+    )
+
+    filter_field_name = models.CharField(max_length=50, blank=False, null=False)
+    filter_type = models.CharField(
+        max_length=50,
+        choices=LOOKUP_FILTER_TYPES,
+        default=LOOKUP_FILTER_TYPE_EXACT,
+        blank=False,
+        null=False,
+    )
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Schema Column Lookup Filter"
+        verbose_name_plural = "Schema Column Lookup Filters"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["schema_column", "filter_field_name", "filter_type"],
+                name="unique_schema_column_lookup_field",
+                violation_error_message=(
+                    "A lookup filter with the same name and type "
+                    "already exists for this schema column"
+                ),
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.schema_column} - {self.filter_field_name}"
+
+
+class SchemaColumnLookupFilterValue(models.Model):
+    lookup_filter = models.ForeignKey(
+        SchemaColumnLookupFilter,
+        related_name="values",
+        on_delete=models.CASCADE,
+    )
+
+    filter_value = models.CharField(max_length=255, blank=False, null=False)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Schema Column Lookup Filter Value"
+        verbose_name_plural = "Schema Column Lookup Filter Values"
+
+    def __str__(self):
+        return f"{self.lookup_filter} - {self.filter_value}"
+
+
 # Occurrence Report Document
 reversion.register(OccurrenceReportDocument)
 
