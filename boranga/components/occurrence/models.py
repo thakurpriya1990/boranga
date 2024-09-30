@@ -6124,33 +6124,9 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
     # The name of the column header in the .xlsx file
     xlsx_column_header_name = models.CharField(max_length=50, blank=False, null=False)
 
-    # The following fields are used to embed data validation in the .xlsx file
-    # so that the users can do a quick check before uploading
-    xlsx_data_validation_type = models.CharField(
-        max_length=20,
-        choices=sorted(
-            [(x, x) for x in DataValidation.type.values],
-            key=lambda x: (x[0] is None, x),
-        ),
-        null=True,
-        blank=True,
-    )
+    # This field allows the user that is generating the schema the ability to
+    # make non mandatory fields mandatory for a specific schema
     xlsx_data_validation_allow_blank = models.BooleanField(default=False)
-    xlsx_data_validation_operator = models.CharField(
-        max_length=20,
-        choices=sorted(
-            [(x, x) for x in DataValidation.operator.values],
-            key=lambda x: (x[0] is None, x),
-        ),
-        null=True,
-        blank=True,
-    )
-    xlsx_data_validation_formula1 = models.CharField(
-        max_length=50, blank=True, null=True
-    )
-    xlsx_data_validation_formula2 = models.CharField(
-        max_length=50, blank=True, null=True
-    )
 
     order_with_respect_to = "schema"
 
@@ -6160,8 +6136,6 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
     default_value = models.CharField(
         max_length=255, choices=DEFAULT_VALUE_CHOICES, blank=True, null=True
     )
-
-    # TODO: How are we going to do the list lookup validation for much larger datasets (mostly for species)
 
     class Meta(OrderedModel.Meta):
         app_label = "boranga"
@@ -6826,29 +6800,6 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 )
                 errors_added += 1
             return cell_value, errors_added
-
-        if xlsx_data_validation_type == "list" and self.xlsx_data_validation_formula1:
-            # TODO: DO we even need xlsx_data_validation_type and xlsx_data_validation_formula1 etc
-            # as we can get that information by inspecting the field directly
-            # Also, this part for list I think it covered by the ForeignKey part above
-            # Check and remove if so
-            value_list = [
-                v.strip() for v in self.xlsx_data_validation_formula1.split(",")
-            ]
-            if cell_value not in value_list:
-                error_message = (
-                    f"Value {cell_value} in column {self.xlsx_column_header_name} "
-                    "is not in the list"
-                )
-                errors.append(
-                    {
-                        "row_index": index,
-                        "error_type": "column",
-                        "data": cell_value,
-                        "error_message": error_message,
-                    }
-                )
-                errors_added += 1
 
         return cell_value, errors_added
 
