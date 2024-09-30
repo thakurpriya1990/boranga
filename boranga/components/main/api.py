@@ -60,6 +60,7 @@ class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
             Q(model__startswith="occurrencereport")
             | Q(model__startswith="ocr")
             | Q(model__iexact="occurrence")
+            | Q(model__iexact="submitterinformation")
         )
         serializer = self.get_serializer(content_types, many=True)
         return Response(serializer.data)
