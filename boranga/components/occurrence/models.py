@@ -84,6 +84,7 @@ from boranga.components.users.models import (
 )
 from boranga.helpers import (
     clone_model,
+    get_choices_for_field,
     get_display_field_for_model,
     get_openpyxl_data_validation_type_for_django_field,
     is_occurrence_approver,
@@ -6166,6 +6167,56 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
     def __str__(self):
         return f"{self.xlsx_column_header_name} - {self.schema}"
+
+    @property
+    def model_name(self):
+        if not self.django_import_content_type:
+            return None
+
+        model = self.django_import_content_type.model_class()
+        return model._meta.verbose_name
+
+    @property
+    def field(self):
+        if not self.django_import_content_type or not self.django_import_field_name:
+            return None
+
+        return self.django_import_content_type.model_class()._meta.get_field(
+            self.django_import_field_name
+        )
+
+    @property
+    def field_type(self):
+        if not self.field:
+            return None
+
+        return self.field.get_internal_type()
+
+    @property
+    def xlsx_validation_type(self):
+        if not self.field:
+            return None
+
+        return get_openpyxl_data_validation_type_for_django_field(self.field)
+
+    @property
+    def text_length(self):
+        if not self.field:
+            return None
+
+        if not isinstance(self.field, models.CharField):
+            return 32767
+
+        return self.field.max_length
+
+    @property
+    def choices(self):
+        if not self.field:
+            return None
+
+        model_class = self.django_import_content_type.model_class()
+
+        return get_choices_for_field(model_class, self.field)
 
     @property
     def foreign_key_count(self):
