@@ -29,19 +29,25 @@
                                 <div v-if="selected_schema_version" class="border-top mb-3 pt-2">
                                     <label for="schema-version" class="form-label"><span class="fw-bold">Step 2:
                                         </span>Make sure your import file matches the schema:</label>
-                                    <div>
-                                        <table class="table table-sm table-bordered">
+                                    <div class="table-responsive mb-2">
+                                        <table class="table table-sm table-bordered custom-table">
                                             <thead>
                                                 <tr>
                                                     <th v-for="column in selected_schema_version.columns" scope="col">{{
-                                                        column.xlsx_column_header_name }}</th>
+                                                        column.xlsx_column_header_name }} <span class="text-danger"
+                                                            title="Mandatory Column"
+                                                            v-if="column.xlsx_data_validation_allow_blank == false">*</span>
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr>
-                                                    <td v-for="column in selected_schema_version.columns">{{
-                                                        column.xlsx_data_validation_type ?
-                                                            column.xlsx_data_validation_type : 'None' }}</td>
+                                                    <td v-for="column in selected_schema_version.columns">
+                                                        <i class="bi bi-info-circle-fill text-primary" role="button"
+                                                            data-bs-toggle="popover" data-bs-placement="bottom"
+                                                            title="Column Information" :data-bs-html="true"
+                                                            :data-bs-content="columnInformation(column)"></i>
+                                                    </td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -93,10 +99,12 @@
                                     <tbody class="text-muted">
                                         <tr v-for="queuedImport in queuedImports" class="">
                                             <td>{{ new Date(queuedImport.datetime_queued).toLocaleString() }}</td>
-                                            <td class="text-truncate" style="max-width: 350px;" :title="queuedImport.file_name">{{
-                                                queuedImport.file_name }}</td>
+                                            <td class="text-truncate" style="max-width: 350px;"
+                                                :title="queuedImport.file_name">{{
+                                                    queuedImport.file_name }}</td>
                                             <td>{{ queuedImport.file_size_megabytes }} MB</td>
-                                            <td class="text-end pe-3">{{ queuedImport.rows ? queuedImport.rows : 'Not Counted' }}</td>
+                                            <td class="text-end pe-3">{{ queuedImport.rows ? queuedImport.rows : 'Not
+                                                Counted' }}</td>
                                             <td>{{ queuedImport.estimated_processing_time_human_readable }}</td>
                                         </tr>
                                     </tbody>
@@ -130,7 +138,9 @@
                                         <tr v-for="currentlyRunningImport in currentlyRunningImports" class="">
                                             <td>{{ new Date(currentlyRunningImport.datetime_started).toLocaleString() }}
                                             </td>
-                                            <td class="text-truncate" style="max-width: 350px;" :title="currentlyRunningImport.file_name">{{ currentlyRunningImport.file_name }}</td>
+                                            <td class="text-truncate" style="max-width: 350px;"
+                                                :title="currentlyRunningImport.file_name">{{
+                                                    currentlyRunningImport.file_name }}</td>
                                             <td>{{ currentlyRunningImport.file_size_megabytes }} MB</td>
                                             <td style="min-width: 200px;">
                                                 <div class="progress">
@@ -170,8 +180,9 @@
                                         <tr v-for="failedImport in failedImports.results"
                                             :id="`failed-import-${failedImport.id}`" class="">
                                             <td>{{ new Date(failedImport.datetime_started).toLocaleString() }}</td>
-                                            <td class="text-truncate" style="max-width: 350px;" :title="failedImport.file_name">{{
-                                                failedImport.file_name }}</td>
+                                            <td class="text-truncate" style="max-width: 350px;"
+                                                :title="failedImport.file_name">{{
+                                                    failedImport.file_name }}</td>
                                             <td>{{ failedImport.file_size_megabytes }} MB</td>
                                             <td class="">{{ failedImport.rows ? failedImport.rows :
                                                 'Not Counted' }}</td>
@@ -237,8 +248,9 @@
                                         <tr v-for="completedImport in completedImports.results" class="">
                                             <td>{{ new Date(completedImport.datetime_completed).toLocaleString() }}
                                             </td>
-                                            <td class="text-truncate" style="max-width: 350px;" :title="completedImport.file_name">{{
-                                                completedImport.file_name }}</td>
+                                            <td class="text-truncate" style="max-width: 350px;"
+                                                :title="completedImport.file_name">{{
+                                                    completedImport.file_name }}</td>
                                             <td class="">{{ completedImport.rows_processed
                                                 }}</td>
                                             <td>{{ completedImport.total_time_taken_human_readable }}</td>
@@ -304,6 +316,18 @@ export default {
             this.$nextTick(() => {
                 this.importFileErrors = null;
                 this.form.classList.remove('was-validated');
+                // Enable all bootstrap 5 popovers
+                var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+                var myDefaultAllowList = bootstrap.Tooltip.Default.allowList
+                myDefaultAllowList.table = []
+                myDefaultAllowList.tr = []
+                myDefaultAllowList.td = []
+                myDefaultAllowList.th = []
+                myDefaultAllowList.thead = []
+                myDefaultAllowList.tbody = []
+                popoverTriggerList.map(function (popoverTriggerEl) {
+                    return bootstrap.Popover.getOrCreateInstance(popoverTriggerEl)
+                });
             });
         },
         bulkImportFileSelected(event) {
@@ -455,6 +479,36 @@ export default {
             this.fetchQueuedImports();
             this.fetchFailedImports();
             this.fetchCompletedImports();
+        },
+        columnInformation(column) {
+            let html = '<table class="table table-sm table-striped">'
+            html += `<tr><th>Column Name</th><td>${column.xlsx_column_header_name}</td></tr>`
+            html += `<tr><th>Django Model Name</th><td class="text-capitalize">${column.model_name}</td></tr>`
+            html += `<tr><th>Django Field Name</th><td>${column.django_import_field_name}</td></tr>`
+            html += `<tr><th>Django Field Type</th><td>${column.field_type}</td></tr>`
+            html += `<tr><th>Allow Blank</th><td>${column.xlsx_data_validation_allow_blank ? 'Yes' : 'No'}</td></tr>`
+            if ('textLength' == column.xlsx_validation_type) {
+                html += `<tr><th>Maximum Text Length</th><td>${column.text_length}</td></tr>`
+            }
+            if (column.xlsx_validation_type) {
+                html += `<tr><th>Validation Type${column.requires_lookup_field ? ' (Django)' : ` (.xlsx)`}</th><td>${column.xlsx_validation_type}</td></tr>`
+            }
+            if ('list' == column.xlsx_validation_type) {
+                if (column.choices && column.choices.length > 0) {
+                    html += '<tr><th class="align-top">Choices</th><td>';
+                    for (let choice of column.choices) {
+                        html += `${choice[1]}<br>`
+                    }
+                    html += '</td></tr>';
+                } else {
+                    if (column.requires_lookup_field) {
+                        html += `<tr><th>Lookup Field</th><td>${column.django_lookup_field_name}</td></tr>`
+                        html += `<tr><th>Preview Choices (.xlsx)</th><td><a class="ms-0 ps-0" href="/api/occurrence_report_bulk_import_schema_columns/${column.id}/preview_foreign_key_values_xlsx/">Preview ${column.foreign_key_count} Choices</a></td></tr>`
+                    }
+                }
+            }
+            html += '</table>'
+            return html;
         }
     },
     created() {
@@ -478,6 +532,9 @@ export default {
 }
 </script>
 <style scoped>
+table.custom-table th, td {
+    white-space: nowrap;
+}
 div.currently-running {
     border-color: rgba(34, 111, 187, 1);
     animation: border-pulsate 1s infinite;
