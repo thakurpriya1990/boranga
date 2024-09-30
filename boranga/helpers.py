@@ -519,3 +519,53 @@ def get_display_field_for_model(model: models.Model) -> str:
         display_field = "id"
 
     return display_field
+
+
+def get_choices_for_field(
+    model_class: models.base.ModelBase, field: models.Field
+) -> list | None:
+    from boranga.components.main.models import ArchivableModel
+
+    choices = field.choices if hasattr(field, "choices") else None
+
+    if isinstance(field, MultiSelectField):
+        # Have to create an instance for the choices to be populated :-(
+        # as for some reason they are populated in the __init__ method
+        instance = model_class()
+        multi_select_field = instance._meta.get_field(field.name)
+        choices = multi_select_field.choices
+    elif isinstance(field, (models.ForeignKey, models.ManyToManyField)):
+        related_model = field.related_model
+        related_model_qs = related_model.objects.all()
+
+        if issubclass(related_model, ArchivableModel):
+            related_model_qs = related_model_qs.filter(archived=False)
+
+        related_model_count = related_model_qs.count()
+
+        if (
+            related_model_count == 0
+            or related_model_count > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
+        ):
+            choices = None
+        else:
+            display_field = get_display_field_for_model(related_model)
+            choices = list(related_model_qs.values_list("id", display_field))
+
+    return choices
+
+
+def get_lookup_field_options_for_field(field: models.Field) -> list | None:
+    lookup_field_options = None
+
+    if isinstance(field, (models.ForeignKey, models.ManyToManyField)):
+        related_model = field.related_model
+        lookup_field_options = [
+            field.verbose_name.lower()
+            for field in related_model._meta.get_fields()
+            if not field.related_model
+            and (hasattr(field, "unique") and field.unique)
+            and not field.name.endswith("_number")
+        ]
+
+    return lookup_field_options
