@@ -5586,6 +5586,12 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     )[0]
                     for field, value in model_data.items():
                         setattr(current_model_instance, field, value)
+            elif current_model_name == SubmitterInformation._meta.model_name:
+                # Submitter information is created automatically when an OccurrenceReport is created
+                occurrence_report = model_instances[OccurrenceReport._meta.model_name]
+                current_model_instance = occurrence_report.submitter_information
+                for field, value in model_data.items():
+                    setattr(current_model_instance, field, value)
             else:
                 current_model_instance = model_class(**model_data)
 
@@ -5658,7 +5664,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 model_instances[current_model_instance._meta.model_name] = (
                     current_model_instance
                 )
-                logger.info(f"Model instance created: {current_model_instance}")
+                logger.info(f"Model instance saved: {current_model_instance}")
 
                 # Deal with special case of relating Occurrence to OccurrenceReport
                 if (
