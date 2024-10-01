@@ -351,18 +351,22 @@
                                             <template v-if="selectedColumn.lookup_filters && selectedColumn.lookup_filters.length > 0">
                                                 <div v-for="(lookupFilter, index) in selectedColumn.lookup_filters"
                                                     class="input-group input-group-sm mb-2">
-                                                    <select class="form-select" v-model="selectedColumn.lookup_filters[index].filter_field_name">
-                                                        <option v-for="field in djangoContentTypes.filter(content_type => content_type.id == selectedColumn.django_import_content_type)[0].model_fields"
-                                                            :value="field.name">{{ field.display_name }}</option>
+                                                    <select class="form-select" v-model="selectedColumn.lookup_filters[index].filter_field_name" @change="lookupFilterFieldChanged(selectedColumn.lookup_filters[index])">
+                                                        <option value="" disabled>Select Field</option>
+                                                        <option v-for="field in selectedField.filter_field_options"
+                                                            :value="field">{{ field }}</option>
                                                     </select>
-                                                    <select class="form-select">
+                                                    <select class="form-select" v-model="selectedColumn.lookup_filters[index].filter_type">
                                                         <option v-for="lookupFilter in lookupSchematypes"
                                                             :value="lookupFilter[0]">{{ lookupFilter[1] }}</option>
                                                     </select>
-                                                    <input type="text" class="form-control"
-                                                        placeholder="Value" aria-label="Value"
+                                                    <input v-if="selectedColumn.lookup_filters[index].values && selectedColumn.lookup_filters[index].values.length > 0" type="text" class="form-control"
+                                                        placeholder="Enter Value" aria-label="Enter Value"
                                                         aria-describedby="value"
                                                         v-model="selectedColumn.lookup_filters[index].values[0].filter_value">
+                                                    <input v-else type="text" class="form-control"
+                                                        placeholder="Enter Value" aria-label="Enter Value"
+                                                        aria-describedby="value" @change="lookupFilterValueChanged($event, selectedColumn.lookup_filters[index])">
                                                     <button class="btn btn-danger"
                                                         @click.prevent="removeLookupFilter(selectedColumn, lookupFilter)">
                                                         <i class="bi bi-x-circle-fill"></i>
@@ -839,6 +843,12 @@ export default {
             if (this.schema.columns.some(column => !column.django_import_content_type || !column.django_import_field_name)) {
                 this.schema.columns = this.schema.columns.filter(column => column.django_import_content_type && column.django_import_field_name)
             }
+            // If there is a lookup filter with no filter_field_name, remove it
+            this.schema.columns.forEach(column => {
+                if (column.lookup_filters) {
+                    column.lookup_filters = column.lookup_filters.filter(filter => filter.filter_field_name)
+                }
+            })
             this.saving = true;
             this.errors = null;
             this.$http.put(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/`, this.schema)
@@ -893,13 +903,26 @@ export default {
                 schema_column: this.selectedColumn.id,
                 filter_field_name: '',
                 filter_type: 'exact',
-                values: [
-                    { id: null, filter_value: '' }
-                ]
+                values: []
             })
         },
         removeLookupFilter(column, lookupFilter) {
             column.lookup_filters = column.lookup_filters.filter(filter => filter !== lookupFilter)
+            this.save()
+        },
+        lookupFilterFieldChanged(lookupFilter) {
+            this.save()
+            lookupFilter.values = [
+                { id: null, lookup_filter: lookupFilter.id, filter_value: '' }
+            ]
+        },
+        lookupFilterValueChanged(event, lookupFilter) {
+            lookupFilter.values.push({
+                id: null,
+                lookup_filter: lookupFilter.id,
+                filter_value: event.target.value
+            })
+            this.save()
         }
     },
     created() {
