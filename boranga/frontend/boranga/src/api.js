@@ -24,6 +24,7 @@ module.exports = {
     document_categories_dict: "/api/document_categories_dict",
     filtered_organisations: '/api/filtered_organisations',
     help_text_entries: "/api/help_text_entries",
+    lookup_schema_types: "/api/occurrence_report_bulk_import_schema_columns/get_lookup_filter_types/",
     marine_treeview: "/api/marine_treeview",
     occurrence_report_bulk_imports: "/api/occurrence_report_bulk_imports/",
     occurrence_report_bulk_import_schemas: "/api/occurrence_report_bulk_import_schemas/",
