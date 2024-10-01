@@ -569,3 +569,14 @@ def get_lookup_field_options_for_field(field: models.Field) -> list | None:
         ]
 
     return lookup_field_options
+
+
+def get_filter_field_options_for_field(field: models.Field) -> list:
+    if not isinstance(field, (models.ForeignKey, models.ManyToManyField)):
+        return []
+
+    return [
+        field.name
+        for field in field.related_model._meta.get_fields()
+        if not field.related_model
+    ]
