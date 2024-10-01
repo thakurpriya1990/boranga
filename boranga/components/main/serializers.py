@@ -10,6 +10,7 @@ from rest_framework import serializers
 from boranga.components.main.models import CommunicationsLogEntry, HelpTextEntry
 from boranga.helpers import (
     get_choices_for_field,
+    get_filter_field_options_for_field,
     get_lookup_field_options_for_field,
     get_openpyxl_data_validation_type_for_django_field,
     is_django_admin,
@@ -173,7 +174,7 @@ class ContentTypeSerializer(serializers.ModelSerializer):
 
             choices = get_choices_for_field(obj.model_class(), field)
             lookup_field_options = get_lookup_field_options_for_field(field)
-
+            filter_field_options = get_filter_field_options_for_field(field)
             model_fields.append(
                 {
                     "name": field.name,
@@ -185,6 +186,7 @@ class ContentTypeSerializer(serializers.ModelSerializer):
                     "xlsx_validation_type": xlsx_validation_type,
                     "choices": choices,
                     "lookup_field_options": lookup_field_options,
+                    "filter_field_options": filter_field_options,
                 }
             )
         return model_fields
