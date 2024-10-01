@@ -294,6 +294,10 @@ module.exports = {
         return `/api/committee/${committee_id}/committee_members/`;
     },
 
+    fields_by_model_name: function (model_name) {
+        `/api/content_types/fields_by_model_name/?model_name=${model_name}`;
+    },
+
     group_type_community: group_type_community,
     group_type_fauna: group_type_fauna,
     group_type_flora: group_type_flora,
