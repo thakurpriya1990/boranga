@@ -87,25 +87,31 @@
                                 <tbody class="columns">
                                     <tr v-for="(column, index) in schema.columns"
                                         :class="selectedColumn == column ? 'active' : ''" @click="selectColumn(column)"
-                                        :style="selectedColumn == column ? '' : `background-color:${stringToRGBAColor(column.model_name)};`" role="button" :key="column.id">
+                                        :style="selectedColumn == column ? '' : `background-color:${stringToRGBAColor(column.model_name)};`"
+                                        role="button" :key="column.id">
                                         <td style="width:5%" class="text-center fw-bold py-0">{{ index +
                                             1 }}
                                         </td>
-                                        <td class="ps-3 py-0 fw-bold" style="font-size:0.9em; width:40%" :class="selectedColumn == column ? 'py-1' : ''">
-                                            <span class="text-truncate pe-1" :class="selectedColumn == column ? 'text-light' : ''">{{
-                                                column.xlsx_column_header_name }}</span>
+                                        <td class="ps-3 py-0 fw-bold" style="font-size:0.9em; width:40%"
+                                            :class="selectedColumn == column ? 'py-1' : ''">
+                                            <span class="text-truncate pe-1"
+                                                :class="selectedColumn == column ? 'text-light' : ''">{{
+                                                    column.xlsx_column_header_name }}</span>
                                             <span class="text-danger" title="Mandatory Column"
                                                 v-if="column.xlsx_data_validation_allow_blank == false">*</span>
-                                            <small class="d-block text-capitalize mb-0" :class="selectedColumn == column ? 'text-light' : 'text-muted'">
+                                            <small class="d-block text-capitalize mb-0"
+                                                :class="selectedColumn == column ? 'text-light' : 'text-muted'">
                                                 {{ column.model_name }}
                                             </small>
                                         </td>
-                                        <td class="text-center py-0" :class="selectedColumn == column ? 'text-light' : 'text-muted'" style="width:10%">
+                                        <td class="text-center py-0"
+                                            :class="selectedColumn == column ? 'text-light' : 'text-muted'"
+                                            style="width:10%">
                                             <i class="bi bi-eye-fill " role="button"
                                                 :class="index == 0 || schema.columns.length <= 2 || !column.id ? 'me-4' : 'me-2'"></i>
                                             <i v-if="!index == 0 && schema.columns.length > 2 && column.id"
                                                 class="bi bi-arrow-down-up" role="button" style="cursor:move;"></i>
-                                            </td>
+                                        </td>
                                     </tr>
                                     <tr class="border-bottom-0"
                                         :class="schema.columns.length == 0 ? 'border-top-0' : ''"
@@ -329,14 +335,40 @@
                                                 <option value="custom" selected>custom</option>
                                             </select>
                                         </div>
-                                        <div v-if="customLookupField" class="input-group input-group-sm mb-1 mt-2">
+                                        <div v-if="customLookupField" class="input-group input-group-sm mb-2 mt-2">
                                             <input ref="custom-lookup-field" class="form-control form-control-sm"
                                                 type="text" placeholder="Enter Custom Lookup Field"
                                                 aria-label="Custom Lookup Field" aria-describedby="lookup-field"
                                                 v-model="selectedColumn.django_lookup_field_name">
                                             <a v-if="selectedColumn.id" class="btn btn-primary"
                                                 :href="`/api/occurrence_report_bulk_import_schema_columns/${selectedColumn.id}/preview_foreign_key_values_xlsx/`"><i
-                                                    class="bi bi-filetype-xlsx" role="button"></i> Preview Choices</a>
+                                                    class="bi bi-filetype-xlsx" role="button"></i> Preview {{ selectedColumn.foreign_key_count }} Choices</a>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-primary btn-sm mb-2"
+                                                @click.prevent="addLookupFilter()">
+                                                <i class="bi bi-plus-circle-fill me-2"></i>Add Lookup Filter</button>
+                                            <template v-if="selectedColumn.lookup_filters && selectedColumn.lookup_filters.length > 0">
+                                                <div v-for="(lookupFilter, index) in selectedColumn.lookup_filters"
+                                                    class="input-group input-group-sm mb-2">
+                                                    <select class="form-select" v-model="selectedColumn.lookup_filters[index].filter_field_name">
+                                                        <option v-for="field in djangoContentTypes.filter(content_type => content_type.id == selectedColumn.django_import_content_type)[0].model_fields"
+                                                            :value="field.name">{{ field.display_name }}</option>
+                                                    </select>
+                                                    <select class="form-select">
+                                                        <option v-for="lookupFilter in lookupSchematypes"
+                                                            :value="lookupFilter[0]">{{ lookupFilter[1] }}</option>
+                                                    </select>
+                                                    <input type="text" class="form-control"
+                                                        placeholder="Value" aria-label="Value"
+                                                        aria-describedby="value"
+                                                        v-model="selectedColumn.lookup_filters[index].values[0].filter_value">
+                                                    <button class="btn btn-danger"
+                                                        @click.prevent="removeLookupFilter(selectedColumn, lookupFilter)">
+                                                        <i class="bi bi-x-circle-fill"></i>
+                                                    </button>
+                                                </div>
+                                            </template>
                                         </div>
                                     </fieldset>
                                 </div>
@@ -439,7 +471,6 @@
                 </div>
             </div>
         </template>
-
     </div>
 </template>
 
@@ -464,6 +495,7 @@ export default {
             selectedField: null,
             customLookupField: false,
             previousCustomLookupField: null,
+            lookupSchematypes: null,
             sortable: null,
             addEditMode: false,
             showDjangoImportFieldSelect: false,
@@ -485,6 +517,15 @@ export default {
         },
     },
     methods: {
+        fetchLookupSchematypes() {
+            this.$http.get(api_endpoints.lookup_schema_types)
+                .then(response => {
+                    this.lookupSchematypes = response.data
+                })
+                .catch(error => {
+                    console.error(error)
+                })
+        },
         fetchBulkImportSchema() {
             this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.$route.params.bulk_import_schema_id}/`)
                 .then(response => {
@@ -556,7 +597,7 @@ export default {
             // Filter out fields that are already columns in the schema
             this.djangoImportFieldsFiltered = this.selectedContentType.model_fields.filter(
                 modelField => !this.schema.columns.some(column => column.django_import_field_name == modelField.name &&
-                column.django_import_content_type == modelField.content_type)
+                    column.django_import_content_type == modelField.content_type)
             )
             this.$nextTick(() => {
                 this.enablePopovers();
@@ -607,7 +648,8 @@ export default {
                 xlsx_data_validation_allow_blank: true,
                 default_value: null,
                 import_validations: [],
-                order: this.schema.columns.length
+                order: this.schema.columns.length,
+                lookup_filters: []
             }
         },
         addSingleColumn() {
@@ -842,11 +884,29 @@ export default {
             let b = parseInt(color_hash.slice(5, 7), 16);
             return `rgba(${r}, ${g}, ${b}, 0.1)`;
         },
+        addLookupFilter() {
+            if (!this.selectedColumn.lookup_filters) {
+                this.selectedColumn.lookup_filters = []
+            }
+            this.selectedColumn.lookup_filters.push({
+                id: null,
+                schema_column: this.selectedColumn.id,
+                filter_field_name: '',
+                filter_type: 'exact',
+                values: [
+                    { id: null, filter_value: '' }
+                ]
+            })
+        },
+        removeLookupFilter(column, lookupFilter) {
+            column.lookup_filters = column.lookup_filters.filter(filter => filter !== lookupFilter)
+        }
     },
     created() {
         this.fetchBulkImportSchema()
         this.fetchContentTypes()
         this.fetchDefaultValueChoices()
+        this.fetchLookupSchematypes()
     },
     onRouteEnter() {
         this.fetchBulkImportSchema()
@@ -875,6 +935,6 @@ tr.active {
 
 tr.active td {
     color: white;
-    border:#226fbb
+    border: #226fbb
 }
 </style>
