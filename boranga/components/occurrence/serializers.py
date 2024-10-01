@@ -64,6 +64,8 @@ from boranga.components.occurrence.models import (
     OCRObserverDetail,
     OCRPlantCount,
     OCRVegetationStructure,
+    SchemaColumnLookupFilter,
+    SchemaColumnLookupFilterValue,
 )
 from boranga.components.spatial.utils import wkb_to_geojson
 from boranga.components.species_and_communities.models import (
@@ -3829,6 +3831,30 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
         return None
 
 
+class SchemaColumnLookupFilterValueNestedSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(allow_null=True, required=False)
+    filter_value = serializers.CharField(allow_null=True, required=False)
+
+    class Meta:
+        model = SchemaColumnLookupFilterValue
+        fields = "__all__"
+        read_only_fields = ("id",)
+        validators = []  # Validation is done in the top parent serializer
+
+
+class SchemaColumnLookupFilterNestedSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(allow_null=True, required=False)
+    values = SchemaColumnLookupFilterValueNestedSerializer(
+        many=True, allow_null=True, required=False
+    )
+
+    class Meta:
+        model = SchemaColumnLookupFilter
+        fields = "__all__"
+        read_only_fields = ("id",)
+        validators = []  # Validation is done in the top parent serializer
+
+
 class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializer):
     class Meta:
         model = OccurrenceReportBulkImportSchemaColumn
@@ -3849,6 +3875,9 @@ class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
     text_length = serializers.IntegerField(read_only=True)
     choices = serializers.ListField(child=serializers.ListField(), read_only=True)
     foreign_key_count = serializers.IntegerField(read_only=True)
+    lookup_filters = SchemaColumnLookupFilterNestedSerializer(
+        many=True, allow_null=True, required=False
+    )
 
     class Meta:
         model = OccurrenceReportBulkImportSchemaColumn
@@ -3883,9 +3912,32 @@ class OccurrenceReportBulkImportSchemaSerializer(
         ]
         instance.columns.exclude(id__in=ids_to_keep).delete()
         for column_data in columns_data:
-            OccurrenceReportBulkImportSchemaColumn.objects.update_or_create(
-                pk=column_data.get("id"), defaults=column_data
+            lookup_filters_data = column_data.pop("lookup_filters", None)
+            column, created = (
+                OccurrenceReportBulkImportSchemaColumn.objects.update_or_create(
+                    pk=column_data.get("id"), defaults=column_data
+                )
             )
+            if not lookup_filters_data:
+                continue
+
+            for lookup_filter in lookup_filters_data:
+                values_data = lookup_filter.pop("values", None)
+                lookup, created = SchemaColumnLookupFilter.objects.update_or_create(
+                    pk=lookup_filter.get("id"),
+                    schema_column=column,
+                    defaults=lookup_filter,
+                )
+                if not values_data:
+                    continue
+
+                for filter_value in values_data:
+                    SchemaColumnLookupFilterValue.objects.update_or_create(
+                        pk=filter_value.get("id"),
+                        lookup_filter=lookup,
+                        defaults=filter_value,
+                    )
+
         return super().update(instance, validated_data)
 
 
