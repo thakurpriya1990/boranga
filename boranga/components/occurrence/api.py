@@ -105,6 +105,7 @@ from boranga.components.occurrence.models import (
     RockType,
     SampleDestination,
     SampleType,
+    SchemaColumnLookupFilter,
     SecondarySign,
     SiteType,
     SoilColour,
@@ -6446,3 +6447,10 @@ class OccurrenceReportBulkImportSchemaColumnViewSet(
         response["Content-Disposition"] = f"attachment; filename={filename}"
         buffer.close()
         return response
+
+    @list_route(methods=["get"], detail=False)
+    def get_lookup_filter_types(self, request, *args, **kwargs):
+        return Response(
+            SchemaColumnLookupFilter.LOOKUP_FILTER_TYPES,
+            status=status.HTTP_200_OK,
+        )
