@@ -6274,6 +6274,15 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         related_model_qs = self.related_model_qs
 
+        related_model = self.related_model
+
+        # If the related model has a group_type field, filter by the schema's group type
+        # (i.e. flora, fauna or community)
+        if hasattr(related_model, "group_type"):
+            related_model_qs = related_model_qs.filter(
+                group_type=self.schema.group_type
+            )
+
         # Apply any lookup filters if they exist
         for lookup_filter in self.lookup_filters.all():
             logger.debug(f"Applying lookup filter {lookup_filter}")
