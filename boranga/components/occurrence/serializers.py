@@ -3833,11 +3833,13 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
 
 class SchemaColumnLookupFilterValueNestedSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(allow_null=True, required=False)
-    filter_value = serializers.CharField(allow_null=True, required=False)
+    filter_value = serializers.CharField(
+        allow_null=True, allow_blank=True, required=False
+    )
 
     class Meta:
         model = SchemaColumnLookupFilterValue
-        fields = "__all__"
+        fields = ["id", "filter_value"]
         read_only_fields = ("id",)
         validators = []  # Validation is done in the top parent serializer
 
@@ -3874,7 +3876,10 @@ class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
     xlsx_validation_type = serializers.CharField(read_only=True)
     text_length = serializers.IntegerField(read_only=True)
     choices = serializers.ListField(child=serializers.ListField(), read_only=True)
+    # Must keep both the full foreign key count and filtered as if the foreign_key_count
+    # fluctuates when filters are added it will cause issues with the frontend
     foreign_key_count = serializers.IntegerField(read_only=True)
+    filtered_foreign_key_count = serializers.IntegerField(read_only=True)
     lookup_filters = SchemaColumnLookupFilterNestedSerializer(
         many=True, allow_null=True, required=False
     )
@@ -3918,8 +3923,6 @@ class OccurrenceReportBulkImportSchemaSerializer(
                     pk=column_data.get("id"), defaults=column_data
                 )
             )
-            if not lookup_filters_data:
-                continue
 
             ids_to_keep = [
                 lookup_filter["id"]
@@ -3927,6 +3930,9 @@ class OccurrenceReportBulkImportSchemaSerializer(
                 if "id" in lookup_filter
             ]
             column.lookup_filters.exclude(id__in=ids_to_keep).delete()
+
+            if not lookup_filters_data:
+                continue
 
             for lookup_filter in lookup_filters_data:
                 values_data = lookup_filter.pop("values", None)
@@ -3938,12 +3944,16 @@ class OccurrenceReportBulkImportSchemaSerializer(
                 if not values_data:
                     continue
 
-                for filter_value in values_data:
+                # For now not supporting multiple values
+                filter_value = values_data.pop(0)
+
+                filter_value, created = (
                     SchemaColumnLookupFilterValue.objects.update_or_create(
                         pk=filter_value.get("id"),
                         lookup_filter=lookup,
                         defaults=filter_value,
                     )
+                )
 
         return super().update(instance, validated_data)
 
