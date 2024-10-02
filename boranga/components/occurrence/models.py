@@ -6929,7 +6929,8 @@ class SchemaColumnLookupFilter(models.Model):
     LOOKUP_FILTER_TYPE_GTE = "gte"
     LOOKUP_FILTER_TYPE_LT = "lt"
     LOOKUP_FILTER_TYPE_LTE = "lte"
-    LOOKUP_FILTER_TYPE_IN = "in"
+    # Only supporting a single value per lookup filter at this stage
+    # LOOKUP_FILTER_TYPE_IN = "in"
 
     LOOKUP_FILTER_TYPES = (
         (LOOKUP_FILTER_TYPE_EXACT, "Exact"),
@@ -6944,7 +6945,7 @@ class SchemaColumnLookupFilter(models.Model):
         (LOOKUP_FILTER_TYPE_GTE, "Greater than or equal to"),
         (LOOKUP_FILTER_TYPE_LT, "Less than"),
         (LOOKUP_FILTER_TYPE_LTE, "Less than or equal to"),
-        (LOOKUP_FILTER_TYPE_IN, "In"),
+        # (LOOKUP_FILTER_TYPE_IN, "In"),
     )
 
     filter_field_name = models.CharField(max_length=50, blank=False, null=False)
