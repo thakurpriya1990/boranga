@@ -5526,7 +5526,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             row_error_count += column_error_count
             total_column_error_count += column_error_count
 
-            if column_error_count:
+            if column_error_count > 0:
                 continue
 
             model_name = column.django_import_content_type.model
@@ -5723,8 +5723,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         self.save()
 
     def revert(self):
-        # TODO: Using delete here due to the sheer number of records that could be created
-        # Still need to consider if we want to archive them
+        # Note: Using delete here due to the sheer number of records that could be created
         OccurrenceReport.objects.filter(bulk_import_task=self).delete()
 
         self.processing_status = self.PROCESSING_STATUS_ARCHIVED
@@ -6219,22 +6218,99 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         return get_choices_for_field(model_class, self.field)
 
     @property
-    def foreign_key_count(self):
+    def related_model(self):
         if not self.django_import_content_type or not self.django_import_field_name:
-            return 0
+            return None
 
         field = self.django_import_content_type.model_class()._meta.get_field(
             self.django_import_field_name
         )
         if not isinstance(field, (models.ForeignKey, models.ManyToManyField)):
+            return None
+
+        return field.related_model
+
+    @property
+    def display_field(self):
+        related_model = self.related_model
+
+        if not related_model:
+            return None
+
+        if self.django_lookup_field_name:
+            display_field = self.django_lookup_field_name
+        else:
+            display_field = get_display_field_for_model(related_model)
+
+        return display_field
+
+    @property
+    def related_model_qs(self):
+        related_model = self.related_model
+
+        if not related_model:
+            return None
+
+        if self.django_lookup_field_name:
+            display_field = self.django_lookup_field_name
+        else:
+            display_field = get_display_field_for_model(related_model)
+
+        filter_dict = {f"{display_field}__isnull": False}
+        related_model_qs = related_model.objects.filter(**filter_dict)
+
+        if issubclass(related_model, ArchivableModel):
+            related_model_qs = related_model.objects.exclude(archived=True)
+
+        return related_model_qs
+
+    @property
+    def filtered_related_model_qs(self):
+        if not self.related_model_qs:
+            return None
+
+        if not self.lookup_filters.exists():
+            return self.related_model_qs
+
+        related_model_qs = self.related_model_qs
+
+        # Apply any lookup filters if they exist
+        for lookup_filter in self.lookup_filters.all():
+            logger.debug(f"Applying lookup filter {lookup_filter}")
+            lookup_filter.filter_field_name + "__" + lookup_filter.filter_type
+            lookup_filter_value = lookup_filter.values.first().filter_value
+            if lookup_filter.values.count() > 1:
+                lookup_filter_value = lookup_filter.values.values_list(
+                    "filter_value", flat=True
+                )
+            if lookup_filter.filter_type == "in" and not isinstance(
+                lookup_filter_value, list
+            ):
+                lookup_filter_value = [lookup_filter_value]
+            # logger.debug(f"Filtering on {lookup_filter.filter_field_name}")
+            # logger.debug(f"Filtering on {lookup_filter.filter_type}")
+            # logger.debug(f"Filtering on {lookup_filter_value}")
+            related_model_qs = related_model_qs.filter(
+                **{
+                    lookup_filter.filter_field_name
+                    + "__"
+                    + lookup_filter.filter_type: lookup_filter_value
+                }
+            )
+
+            logger.debug(f"{related_model_qs.query}")
+
+        return related_model_qs
+
+    @property
+    def foreign_key_count(self):
+        if not self.related_model_qs:
             return 0
 
-        related_model_qs = field.related_model.objects.all()
-
-        if issubclass(field.related_model, ArchivableModel):
-            related_model_qs = field.related_model.objects.exclude(archived=True)
-
-        return related_model_qs.count()
+        # Don't return the filtered count here as if we add filters on the front end
+        # the count will change which will then result in the advanced lookup interface
+        # No longer being shown
+        return self.related_model_qs.count()
 
     @property
     def requires_lookup_field(self):
@@ -6244,6 +6320,13 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         return (
             self.foreign_key_count > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
         )
+
+    @property
+    def filtered_foreign_key_count(self):
+        if not self.filtered_related_model_qs:
+            return 0
+
+        return self.filtered_related_model_qs.count()
 
     def get_sample_value(self, errors):
         if not self.django_import_content_type:
@@ -6282,42 +6365,17 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             return None
 
         if isinstance(field, models.ForeignKey):
-            # TODO Ideally, this code would be in a separate function
-            # So it can be reused in mutliple places
-            related_model = field.related_model
-            if self.django_lookup_field_name:
-                display_field = self.django_lookup_field_name
-            else:
-                display_field = get_display_field_for_model(related_model)
-
-            if not display_field:
-                error_message = (
-                    f"No display field found for model {related_model._meta.model_name}. "
-                    "Please set the lookup field name"
-                )
-                errors.append(
-                    {
-                        "error_type": "no_display_field",
-                        "error_message": error_message,
-                    }
-                )
-                return None
-
-            if issubclass(related_model, ArchivableModel):
-                related_model_qs = related_model.objects.exclude(archived=True)
-            else:
-                related_model_qs = related_model.objects.all()
-
-            filter_dict = {f"{display_field}__isnull": False}
-            related_model_qs = related_model_qs.filter(**filter_dict)
+            related_model_qs = self.filtered_related_model_qs
 
             if not related_model_qs.exists():
                 errors.append(
                     {
                         "error_type": "no_records",
-                        "error_message": f"No records found for foreign key {related_model._meta.model_name}",
+                        "error_message": f"No records found for foreign key {field.related_model._meta.model_name}",
                     }
                 )
+
+            display_field = get_display_field_for_model(field.related_model)
 
             random_value = (
                 related_model_qs.order_by("?")
@@ -6421,32 +6479,20 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
     @property
     def preview_foreign_key_values_xlsx(self):
-        if not self.django_import_content_type or not self.django_import_field_name:
-            return None
 
-        field = self.django_import_content_type.model_class()._meta.get_field(
-            self.django_import_field_name
-        )
-        if not isinstance(field, (models.ForeignKey, models.ManyToManyField)):
-            return None
+        related_model_qs = self.filtered_related_model_qs
 
-        related_model = field.related_model
-
-        if self.django_lookup_field_name:
-            display_field = self.django_lookup_field_name
-        else:
-            display_field = get_display_field_for_model(related_model)
-
-        filter_dict = {f"{display_field}__isnull": False}
-        related_model_qs = related_model.objects.filter(**filter_dict)
-
-        if issubclass(related_model, ArchivableModel):
-            related_model_qs = related_model.objects.exclude(archived=True)
+        if not related_model_qs:
+            raise ValueError("No related model queryset found")
 
         workbook = openpyxl.Workbook()
         worksheet = workbook.active
 
-        # Query the max characer length of the display field
+        display_field = get_display_field_for_model(
+            self.django_import_content_type.model_class()
+        )
+
+        # Query the max character length of the display field
         max_length = related_model_qs.aggregate(
             max_length=Max(Length(Cast(display_field, output_field=CharField())))
         )["max_length"]
@@ -6474,7 +6520,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         errors_added = 0
 
-        if mode == "update" and (not cell_value or cell_value == ""):
+        if mode == "update" and (cell_value is None or cell_value == ""):
             # When updating an OCR many of the columns may be blank
             # So we don't need to validate them if they don't have a value
             return cell_value, errors_added
@@ -6927,7 +6973,7 @@ class SchemaColumnLookupFilterValue(models.Model):
         on_delete=models.CASCADE,
     )
 
-    filter_value = models.CharField(max_length=255, blank=False, null=False)
+    filter_value = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         app_label = "boranga"
