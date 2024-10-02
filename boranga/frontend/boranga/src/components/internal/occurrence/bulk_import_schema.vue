@@ -342,33 +342,41 @@
                                                 v-model="selectedColumn.django_lookup_field_name">
                                             <a v-if="selectedColumn.id" class="btn btn-primary"
                                                 :href="`/api/occurrence_report_bulk_import_schema_columns/${selectedColumn.id}/preview_foreign_key_values_xlsx/`"><i
-                                                    class="bi bi-filetype-xlsx" role="button"></i> Preview {{ selectedColumn.foreign_key_count }} Choices</a>
+                                                    class="bi bi-filetype-xlsx" role="button"></i> Preview {{
+                                                        selectedColumn.filtered_foreign_key_count }} Choices</a>
                                         </div>
                                         <div>
-                                            <button class="btn btn-primary btn-sm mb-2"
+                                            <button type="button" class="btn btn-primary btn-sm mb-2"
                                                 @click.prevent="addLookupFilter()">
                                                 <i class="bi bi-plus-circle-fill me-2"></i>Add Lookup Filter</button>
-                                            <template v-if="selectedColumn.lookup_filters && selectedColumn.lookup_filters.length > 0">
+                                            <template
+                                                v-if="selectedColumn.lookup_filters && selectedColumn.lookup_filters.length > 0">
                                                 <div v-for="(lookupFilter, index) in selectedColumn.lookup_filters"
                                                     class="input-group input-group-sm mb-2">
-                                                    <select class="form-select" v-model="selectedColumn.lookup_filters[index].filter_field_name" @change="lookupFilterFieldChanged(selectedColumn.lookup_filters[index])">
+                                                    <select class="form-select"
+                                                        v-model="selectedColumn.lookup_filters[index].filter_field_name"
+                                                        @change="lookupFilterFieldChanged(selectedColumn.lookup_filters[index])">
                                                         <option value="" disabled>Select Field</option>
                                                         <option v-for="field in selectedField.filter_field_options"
                                                             :value="field">{{ field }}</option>
                                                     </select>
-                                                    <select class="form-select" v-model="selectedColumn.lookup_filters[index].filter_type">
+                                                    <select class="form-select"
+                                                        v-model="selectedColumn.lookup_filters[index].filter_type">
                                                         <option v-for="lookupFilter in lookupSchematypes"
                                                             :value="lookupFilter[0]">{{ lookupFilter[1] }}</option>
                                                     </select>
-                                                    <input v-if="selectedColumn.lookup_filters[index].values && selectedColumn.lookup_filters[index].values.length > 0" type="text" class="form-control"
-                                                        placeholder="Enter Value" aria-label="Enter Value"
-                                                        aria-describedby="value"
-                                                        v-model="selectedColumn.lookup_filters[index].values[0].filter_value">
+                                                    <input
+                                                        v-if="selectedColumn.lookup_filters[index].values && selectedColumn.lookup_filters[index].values.length > 0"
+                                                        type="text" class="form-control" placeholder="Enter Value"
+                                                        aria-label="Enter Value" aria-describedby="value"
+                                                        v-model="selectedColumn.lookup_filters[index].values[0].filter_value"
+                                                        @change="lookupFilterValueChanged($event, selectedColumn.lookup_filters[index])">
                                                     <input v-else type="text" class="form-control"
-                                                        placeholder="Enter Value" aria-label="Enter Value"
-                                                        aria-describedby="value" @change="lookupFilterValueChanged($event, selectedColumn.lookup_filters[index])">
-                                                    <button class="btn btn-danger"
-                                                        @click.prevent="removeLookupFilter(selectedColumn, lookupFilter)">
+                                                        placeholder="Select Field First" aria-label="Select Field First"
+                                                        aria-describedby="Select Field First" disabled>
+
+                                                    <button type="button" class="btn btn-danger"
+                                                        @click.prevent="removeLookupFilter(selectedColumn, index)">
                                                         <i class="bi bi-x-circle-fill"></i>
                                                     </button>
                                                 </div>
@@ -906,22 +914,25 @@ export default {
                 values: []
             })
         },
-        removeLookupFilter(column, lookupFilter) {
-            column.lookup_filters = column.lookup_filters.filter(filter => filter !== lookupFilter)
-            this.save()
+        removeLookupFilter(column, index) {
+            let lookup_filter_id = column.lookup_filters[index].id
+            column.lookup_filters.splice(index, 1)
+            if (lookup_filter_id) {
+                this.save()
+            }
         },
         lookupFilterFieldChanged(lookupFilter) {
+            if (lookupFilter.values.length == 0) {
+                lookupFilter.values.push({
+                    id: null,
+                    filter_value: ''
+                })
+            } else {
+                lookupFilter.values[0].filter_value = ''
+            }
             this.save()
-            lookupFilter.values = [
-                { id: null, lookup_filter: lookupFilter.id, filter_value: '' }
-            ]
         },
-        lookupFilterValueChanged(event, lookupFilter) {
-            lookupFilter.values.push({
-                id: null,
-                lookup_filter: lookupFilter.id,
-                filter_value: event.target.value
-            })
+        lookupFilterValueChanged() {
             this.save()
         }
     },
