@@ -1041,9 +1041,6 @@ def get_geometry_array_from_geojson(
             errors_added += 1
             continue
 
-        logger.debug(f"---> Geometry: {geom}")
-        logger.debug(f"---> type: {type(geom)}")
-
         geom = GEOSGeometry(json.dumps(geom))
 
         if not geom.within(bbox):
@@ -1063,7 +1060,5 @@ def get_geometry_array_from_geojson(
             continue
 
         geoms.append(geom)
-
-    logger.debug(f"---> Geometry array: {geoms}")
 
     return geoms
