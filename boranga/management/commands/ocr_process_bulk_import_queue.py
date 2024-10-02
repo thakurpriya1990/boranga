@@ -63,7 +63,6 @@ class Command(BaseCommand):
                 )
                 task.datetime_error = timezone.now()
                 task.error_message = "Errors occurred during processing:\n"
-                logger.debug(f" = = = Errors: {errors}")
                 for error in errors:
                     task.error_message += f"Row: {error['row_index'] + 1}. Error: {error['error_message']}\n"
             else:
