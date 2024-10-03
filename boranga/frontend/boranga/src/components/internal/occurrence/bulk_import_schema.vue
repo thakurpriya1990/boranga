@@ -83,16 +83,17 @@
                             <span class="text-muted ms-2 fs-6">(.xlsx)</span>
                         </h5>
                         <div class="">
-                            <table class="table table-bordered table-hover table-sm">
+                            <table class="table table-hover table-sm table-schema">
                                 <tbody class="columns">
                                     <tr v-for="(column, index) in schema.columns"
-                                        :class="selectedColumn == column ? 'active' : ''" @click="selectColumn(column)"
+                                        :class="classesForRow(index, column, selectedColumn)"
+                                        @click="selectColumn(column)"
                                         :style="selectedColumn == column ? '' : `background-color:${stringToRGBAColor(column.model_name)};`"
                                         role="button" :key="column.id">
-                                        <td style="width:5%" class="text-center fw-bold py-0">{{ index +
+                                        <td style="width:5%" class="text-center fw-bold">{{ index +
                                             1 }}
                                         </td>
-                                        <td class="ps-3 py-0 fw-bold" style="font-size:0.9em; width:40%"
+                                        <td class="ps-3 fw-bold" style="font-size:0.9em; width:40%"
                                             :class="selectedColumn == column ? 'py-1' : ''">
                                             <span class="text-truncate pe-1"
                                                 :class="selectedColumn == column ? 'text-light' : ''">{{
@@ -104,7 +105,7 @@
                                                 {{ column.model_name }}
                                             </small>
                                         </td>
-                                        <td class="text-center py-0"
+                                        <td class="text-center"
                                             :class="selectedColumn == column ? 'text-light' : 'text-muted'"
                                             style="width:10%">
                                             <i class="bi bi-eye-fill " role="button"
@@ -469,7 +470,7 @@
                                                         choice[1] }}</template>
                                                 <template v-else>{{
                                                     choice[0]
-                                                }}</template>
+                                                    }}</template>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -902,6 +903,18 @@ export default {
             let b = parseInt(color_hash.slice(5, 7), 16);
             return `rgba(${r}, ${g}, ${b}, 0.1)`;
         },
+        classesForRow(index, column, selectedColumn) {
+            let classes = selectedColumn == column ? 'active bg-success' : ''
+            let next_index = index + 1;
+            if (next_index > this.schema.columns.length - 1) {
+                return classes
+            }
+            let next_column = this.schema.columns[next_index]
+            if (next_column.django_import_content_type != column.django_import_content_type) {
+                classes += ' border-bottom border-secondary last-row-for-model'
+            }
+            return classes
+        },
         addLookupFilter() {
             if (!this.selectedColumn.lookup_filters) {
                 this.selectedColumn.lookup_filters = []
@@ -959,16 +972,11 @@ div.scroll {
     white-space: nowrap;
 }
 
+table.table-schema {
+    border-collapse: collapse;
+}
+
 .sticky-top {
     top: 1.5em;
-}
-
-tr.active {
-    background: #226fbb;
-}
-
-tr.active td {
-    color: white;
-    border: #226fbb
 }
 </style>
