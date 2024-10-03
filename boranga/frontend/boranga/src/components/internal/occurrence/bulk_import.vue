@@ -15,16 +15,19 @@
                     <div class="card">
                         <div class="card-body">
                             <form id="bulk-import-form" class="needs-validation" no-validate>
-                                <div class="mb-3">
+                                <div v-if="schema_versions" class="mb-3">
                                     <label for="schema-version" class="form-label"><span class="fw-bold">Step 1:
                                         </span>Select the bulk import schema version to use:</label>
-                                    <select class="form-select text-secondary w-50" id="schema-version"
-                                        ref="schema-version" v-model="selected_schema_version"
+                                    <select class="form-select text-secondary w-50"
+                                        id="schema-version" ref="schema-version" v-model="selected_schema_version"
                                         aria-label="Select Schema Version" @change="resetFileField">
                                         <option :value="null" selected>Select Bulk Import Schema Version</option>
                                         <option v-for="schema_version in schema_versions" :value="schema_version">{{
                                             getSchemaVersionText(schema_version) }}</option>
                                     </select>
+                                </div>
+                                <div v-else class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
                                 </div>
                                 <div v-if="selected_schema_version" class="border-top mb-3 pt-2">
                                     <label for="schema-version" class="form-label"><span class="fw-bold">Step 2:
@@ -295,7 +298,7 @@ export default {
             timer: null,
             currentlyRunningTimer: null,
             selectedErrors: '',
-            schema_versions: [],
+            schema_versions: null,
             selected_schema_version: null,
             importFileErrors: null
         }
@@ -532,9 +535,11 @@ export default {
 }
 </script>
 <style scoped>
-table.custom-table th, td {
+table.custom-table th,
+td {
     white-space: nowrap;
 }
+
 div.currently-running {
     border-color: rgba(34, 111, 187, 1);
     animation: border-pulsate 1s infinite;
