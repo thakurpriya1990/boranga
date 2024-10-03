@@ -5892,11 +5892,16 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     f"Model {model_class} does not have field {column.django_import_field_name}"
                 )
             model_field = model_class._meta.get_field(column.django_import_field_name)
+
+            allow_blank = model_field.null
+            if allow_blank and column.xlsx_data_validation_allow_blank is False:
+                allow_blank = False
+
             dv = None
             if column.default_value is not None:
                 dv = DataValidation(
                     type=dv_types["list"],
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     formula1=column.default_value,
                     error=f"This field may only contain the value '{column.default_value}'",
                     errorTitle="Invalid value for column with default value",
@@ -5915,7 +5920,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
             ):
                 dv = DataValidation(
                     type=dv_types["list"],
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     formula1=",".join([c[0] for c in model_field.choices]),
                     error="Please select a valid option from the list",
                     errorTitle="Invalid selection",
@@ -5925,7 +5930,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
             elif isinstance(model_field, models.fields.CharField):
                 dv = DataValidation(
                     type=dv_types["textLength"],
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     operator=dv_operators["lessThanOrEqual"],
                     formula1=f"{model_field.max_length}",
                     error="Text must be less than or equal to {model_field.max_length} characters",
@@ -5940,7 +5945,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     type=dv_types["date"],
                     operator=dv_operators["greaterThanOrEqual"],
                     formula1="1900-01-01",
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     error="Please enter a valid date",
                     errorTitle="Invalid date",
                     prompt="Enter a date",
@@ -5952,12 +5957,15 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     )
                     for cell in worksheet[column_letter]:
                         cell.style = date_style
-            elif isinstance(model_field, models.fields.IntegerField):
+            elif (
+                isinstance(model_field, models.fields.IntegerField)
+                and column.is_emailuser_column is False
+            ):
                 dv = DataValidation(
                     type=dv_types["whole"],
                     operator=dv_operators["greaterThanOrEqual"],
                     formula1="0",
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     error="Please enter a whole number",
                     errorTitle="Invalid number",
                     prompt="Enter a whole number",
@@ -5966,7 +5974,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
             elif isinstance(model_field, models.fields.DecimalField):
                 dv = DataValidation(
                     type=dv_types["decimal"],
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     error="Please enter a decimal number",
                     errorTitle="Invalid number",
                     prompt="Enter a decimal number",
@@ -5975,7 +5983,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
             elif isinstance(model_field, models.fields.BooleanField):
                 dv = DataValidation(
                     type=dv_types["list"],
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     formula1='"True,False"',
                     error="Please select True or False",
                     errorTitle="Invalid selection",
@@ -6007,7 +6015,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
 
                 dv = DataValidation(
                     type=dv_types["list"],
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     formula1=f'"{",".join([str(getattr(obj, display_field)) for obj in related_model_qs])}"',
                     error="Please select a valid option from the list",
                     errorTitle="Invalid selection",
@@ -6286,7 +6294,9 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         if not self.field:
             return None
 
-        return get_openpyxl_data_validation_type_for_django_field(self.field)
+        return get_openpyxl_data_validation_type_for_django_field(
+            self.field, column=self
+        )
 
     @property
     def text_length(self):
@@ -6336,21 +6346,18 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
     @property
     def related_model_qs(self):
-        related_model = self.related_model
+        display_field = self.display_field
 
-        if not related_model:
+        if not display_field:
             return None
 
-        if self.django_lookup_field_name:
-            display_field = self.django_lookup_field_name
-        else:
-            display_field = get_display_field_for_model(related_model)
-
         filter_dict = {f"{display_field}__isnull": False}
-        related_model_qs = related_model.objects.filter(**filter_dict)
+        related_model_qs = self.related_model.objects.filter(**filter_dict)
 
-        if issubclass(related_model, ArchivableModel):
-            related_model_qs = related_model.objects.exclude(archived=True)
+        if issubclass(self.related_model, ArchivableModel):
+            related_model_qs = self.related_model.objects.exclude(archived=True)
+
+        related_model_qs = related_model_qs.values_list(display_field, flat=True)
 
         return related_model_qs
 
@@ -6578,7 +6585,6 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
     @property
     def preview_foreign_key_values_xlsx(self):
-
         related_model_qs = self.filtered_related_model_qs
 
         if not related_model_qs:
@@ -6587,9 +6593,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         workbook = openpyxl.Workbook()
         worksheet = workbook.active
 
-        display_field = get_display_field_for_model(
-            self.django_import_content_type.model_class()
-        )
+        display_field = self.display_field
 
         # Query the max character length of the display field
         max_length = related_model_qs.aggregate(
@@ -6667,9 +6671,23 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             )
             errors_added += 1
 
-        xlsx_data_validation_type = get_openpyxl_data_validation_type_for_django_field(
-            field
-        )
+        xlsx_data_validation_type = self.xlsx_validation_type
+
+        if self.is_emailuser_column:
+            try:
+                cell_value = EmailUser.objects.get(email=cell_value).id
+            except EmailUser.DoesNotExist:
+                error_message = f"No ledger user found with email address: {cell_value}"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+            return cell_value, errors_added
 
         if isinstance(field, MultiSelectField):
             if not cell_value:
