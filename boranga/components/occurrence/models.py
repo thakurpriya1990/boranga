@@ -5559,8 +5559,9 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 # Remove empty values from the model data
                 model_data = {k: v for k, v in model_data.items() if v is not None}
 
-                # Remove the migrated_from_id field as we don't want to update it
-                model_data.pop("migrated_from_id", None)
+                if current_model_name == OccurrenceReport._meta.model_name:
+                    # Remove the migrated_from_id field as we don't want to update it
+                    model_data.pop("migrated_from_id", None)
 
             # For OccurrenceReport check if we are creating or updating
             # and set appropriate fields if so
@@ -5579,14 +5580,100 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                         setattr(current_model_instance, field, value)
             elif current_model_name == Occurrence._meta.model_name:
                 occ_migrated_from_id = model_data.pop("migrated_from_id", None)
-                if not occ_migrated_from_id:
-                    current_model_instance = Occurrence(**model_data)
+                occurrence_number = model_data.pop("occurrence_number", None)
+
+                if occ_migrated_from_id and occurrence_number:
+                    error_message = (
+                        "Both migrated_from_id and occurrence_number were provided. "
+                        "Please provide only one of these fields."
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "ambiguous_occurrence_idenfitier",
+                            "data": model_data,
+                            "error_message": error_message,
+                        }
+                    )
+                    return
+
+                if occurrence_number:
+                    try:
+                        current_model_instance = Occurrence.objects.get(
+                            occurrence_number=occurrence_number
+                        )
+                    except Occurrence.DoesNotExist:
+                        error_message = "The occurrence number provided does not exist in the database"
+                        errors.append(
+                            {
+                                "row_index": index,
+                                "error_type": "invalid_occurrence_number",
+                                "data": model_data,
+                                "error_message": error_message,
+                            }
+                        )
+                        return
                 else:
-                    current_model_instance = Occurrence.objects.get_or_create(
-                        migrated_from_id=occ_migrated_from_id
-                    )[0]
-                    for field, value in model_data.items():
-                        setattr(current_model_instance, field, value)
+                    if not occ_migrated_from_id:
+                        current_model_instance = Occurrence(**model_data)
+                    else:
+                        if Occurrence.objects.filter(
+                            migrated_from_id=occ_migrated_from_id
+                        ).exists():
+                            current_model_instance = Occurrence.objects.get(
+                                migrated_from_id=occ_migrated_from_id
+                            )
+                        else:
+                            current_model_instance = Occurrence.objects.create(
+                                migrated_from_id=occ_migrated_from_id,
+                                group_type=self.schema.group_type,
+                                species=model_instances[
+                                    OccurrenceReport._meta.model_name
+                                ].species,
+                            )
+
+                        if (
+                            not current_model_instance.group_type
+                            == self.schema.group_type
+                        ):
+                            error_message = (
+                                "The group type of the occurrence does not "
+                                "match the group type of the schema"
+                            )
+                            errors.append(
+                                {
+                                    "row_index": index,
+                                    "error_type": "invalid_occurrence_group_type",
+                                    "data": model_data,
+                                    "error_message": error_message,
+                                }
+                            )
+                            return
+
+                        occurrence_report = model_instances[
+                            OccurrenceReport._meta.model_name
+                        ]
+                        if (
+                            not current_model_instance.species
+                            == occurrence_report.species
+                        ):
+                            error_message = (
+                                "The species of the occurrence does not match "
+                                "the species of the occurrence report"
+                            )
+                            errors.append(
+                                {
+                                    "row_index": index,
+                                    "error_type": "invalid_occurrence_species",
+                                    "data": model_data,
+                                    "error_message": error_message,
+                                }
+                            )
+                            return
+
+                        for field, value in model_data.items():
+                            setattr(current_model_instance, field, value)
+
             elif current_model_name == SubmitterInformation._meta.model_name:
                 # Submitter information is created automatically when an OccurrenceReport is created
                 occurrence_report = model_instances[OccurrenceReport._meta.model_name]
