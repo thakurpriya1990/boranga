@@ -3924,15 +3924,15 @@ class OccurrenceReportBulkImportSchemaSerializer(
                 )
             )
 
+            if not lookup_filters_data:
+                continue
+
             ids_to_keep = [
                 lookup_filter["id"]
                 for lookup_filter in lookup_filters_data
                 if "id" in lookup_filter
             ]
             column.lookup_filters.exclude(id__in=ids_to_keep).delete()
-
-            if not lookup_filters_data:
-                continue
 
             for lookup_filter in lookup_filters_data:
                 values_data = lookup_filter.pop("values", None)
