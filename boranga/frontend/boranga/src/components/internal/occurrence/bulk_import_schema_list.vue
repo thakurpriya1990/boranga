@@ -48,10 +48,11 @@
                                         :title="schema.name">{{
                                             schema.name }}</td>
                                     <td class="text-truncate"><span class="badge bg-info fs-6 me-2"
-                                            v-for="(tag, index) in tags_to_show(schema.tags)" :key="tag">{{ tag }}</span>
+                                            v-for="(tag, index) in tags_to_show(schema.tags)" :key="tag">{{ tag
+                                            }}</span>
                                         <span v-if="schema.tags.length > tags_to_show(schema.tags).length"
                                             :title="String(schema.tags).replace(/,/g, ', ')" @click.prevent="">+{{
-                                            schema.tags.length - tags_to_show(schema.tags).length }}</span>
+                                                schema.tags.length - tags_to_show(schema.tags).length }}</span>
                                     </td>
                                     <td>{{ new
                                         Date(schema.datetime_created).toLocaleDateString() }} {{ new
@@ -71,6 +72,11 @@
                             </tbody>
                         </table>
                     </div>
+                    <div v-else-if="loadingSchemas" class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -89,6 +95,7 @@ export default {
             groupTypes: null,
             groupType: null,
             bulkSchemas: null,
+            loadingSchemas: false
         }
     },
     components: {
@@ -110,6 +117,7 @@ export default {
                 return
             }
             localStorage.setItem('ocr-bulk-import-group-type', this.groupType)
+            this.loadingSchemas = true
             this.$http.get(api_endpoints.occurrence_report_bulk_import_schemas, {
                 params: {
                     group_type: this.groupType
@@ -120,6 +128,9 @@ export default {
                 })
                 .catch(error => {
                     console.error(error)
+                })
+                .finally(() => {
+                    this.loadingSchemas = false
                 })
         },
         copySchema(id) {
