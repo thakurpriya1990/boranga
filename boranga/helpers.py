@@ -402,7 +402,7 @@ def get_instance_identifier(instance):
     )
 
 
-def get_openpyxl_data_validation_type_for_django_field(field):
+def get_openpyxl_data_validation_type_for_django_field(field, column=None):
     from openpyxl.worksheet.datavalidation import DataValidation
 
     dv_types = dict(zip(DataValidation.type.values, DataValidation.type.values))
@@ -421,6 +421,12 @@ def get_openpyxl_data_validation_type_for_django_field(field):
         isinstance(field, models.CharField) and field.choices
     ):
         return dv_types["list"]
+
+    if column:
+        if isinstance(field, models.IntegerField) and column.is_emailuser_column:
+            # No embedded validation for email user columns because
+            # validating emails in Excel is a pain
+            return None
 
     for django_field, dv_type in field_type_map.items():
         if isinstance(field, django_field):
