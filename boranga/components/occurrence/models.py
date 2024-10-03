@@ -6217,8 +6217,10 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
     order_with_respect_to = "schema"
 
-    DEFAULT_VALUE_REQUEST_USER_ID = "request_user_id"
-    DEFAULT_VALUE_CHOICES = ((DEFAULT_VALUE_REQUEST_USER_ID, "Request User ID"),)
+    DEFAULT_VALUE_BULK_IMPORT_SUBMITTER = "bulk_import_submitter"
+    DEFAULT_VALUE_CHOICES = (
+        (DEFAULT_VALUE_BULK_IMPORT_SUBMITTER, "Bulk Import Submitter"),
+    )
 
     default_value = models.CharField(
         max_length=255, choices=DEFAULT_VALUE_CHOICES, blank=True, null=True
