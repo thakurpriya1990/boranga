@@ -6225,6 +6225,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
     default_value = models.CharField(
         max_length=255, choices=DEFAULT_VALUE_CHOICES, blank=True, null=True
     )
+    is_emailuser_column = models.BooleanField(default=False)
 
     class Meta(OrderedModel.Meta):
         app_label = "boranga"
