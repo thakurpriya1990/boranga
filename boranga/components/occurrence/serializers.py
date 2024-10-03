@@ -3925,7 +3925,7 @@ class OccurrenceReportBulkImportSchemaSerializer(
             )
 
             if not lookup_filters_data:
-                column.lookup_filters.delete()
+                column.lookup_filters.all().delete()
                 continue
 
             ids_to_keep = [
