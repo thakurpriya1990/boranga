@@ -6829,7 +6829,10 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
             lookup_field += "__in"
 
-            cell_value = [c.strip() for c in cell_value.split(",")]
+            cell_value = [
+                c.strip()
+                for c in cell_value.split(settings.OCR_BULK_IMPORT_M2M_DELIMITER)
+            ]
 
             try:
                 related_model_instances = related_model_qs.filter(
