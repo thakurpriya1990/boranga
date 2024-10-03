@@ -48,7 +48,7 @@
                                 <label for="schema-name" class="col-sm-1 col-form-label">Name</label>
                                 <div class="col-sm-4">
                                     <input type="text" class="form-control" id="schema-name" ref="schema-name"
-                                        v-model="schema.name" aria-describedby="schema-name-help"
+                                        v-model="schema.name"
                                         placeholder="Enter Schema Name" autofocus>
                                 </div>
                                 <label for="schema-tags" class="col-sm-1 col-form-label">Tags</label>
@@ -214,7 +214,7 @@
                                     <div class="col-sm-8 ">
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" name="column-name" id="column-name"
-                                                ref="column-name" aria-describedby="helpId"
+                                                ref="column-name"
                                                 v-model="selectedColumn.xlsx_column_header_name" />
                                         </div>
                                     </div>
@@ -236,6 +236,23 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div v-if="selectedField.type == 'IntegerField' && !selectedColumn.default_value"
+                                    class="row d-flex align-items-center mb-2">
+                                    <label for="default-value" class="col-sm-4 col-form-label">Ledger Email User Column?<i id="is-email-user-column-help-text"
+                                            class="bi bi-info-circle-fill text-primary ms-2" data-bs-toggle="popover"
+                                            data-bs-trigger="hover focus"
+                                            data-bs-content="If set to 'Yes' the column value will be validated as an email address during the import and  the email will be used to lookup the user id in ledger"
+                                            data-bs-placement="top"></i></label>
+                                    <div class="col-sm-8 ">
+                                        <div class="input-group input-group-sm">
+                                            <select class="form-select w-50" aria-label="Allow Blank"
+                                                v-model="selectedColumn.is_emailuser_column">
+                                                <option :value="true">Yes</option>
+                                                <option :value="false">No</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="row d-flex align-items-center mb-2">
                                     <label for="inputEmail3" class="col-sm-4 col-form-label">Django
                                         Field
@@ -243,20 +260,20 @@
                                     <div class="col-sm-8 ">
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" name="" id=""
-                                                aria-describedby="helpId" placeholder="" disabled
+                                                placeholder="" disabled
                                                 :value="selectedField.type" />
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row d-flex align-items-center mb-2">
-                                    <label for="inputEmail3" class="col-sm-4 col-form-label">Excel
+                                    <label for="xlsx-validation-type" class="col-sm-4 col-form-label">Excel
                                         Validation
                                         Type</label>
                                     <div class="col-sm-8 ">
                                         <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control form-control-sm" name="" id=""
-                                                aria-describedby="helpId" placeholder="" disabled
-                                                :value="selectedField.xlsx_validation_type ? selectedField.xlsx_validation_type : 'None'" />
+                                            <input type="text" class="form-control form-control-sm" name="xlsx-validation-type" id="xlsx-validation-type"
+                                                disabled
+                                                :value="excelValidationType()" />
                                             <template v-if="selectedField.xlsx_validation_type == 'date'">
                                                 <span class="input-group-text" id="datetime-format">Format:</span>
                                                 <span class="input-group-text" id="datetime-format-mask">DD/MM/YYYY
@@ -284,7 +301,6 @@
                                             <span class="input-group-text" id="allow-blank-label">Allow
                                                 Blank</span>
                                             <select class="form-select w-50" aria-label="Allow Blank"
-                                                aria-describedby="allow-blank-label"
                                                 :disabled="!selectedField.allow_null"
                                                 v-model="selectedColumn.xlsx_data_validation_allow_blank">
                                                 <option :value="true">Yes</option>
@@ -292,10 +308,10 @@
                                             </select>
                                         </div>
                                         <div class="input-group input-group-sm mb-2">
-                                            <span class="input-group-text" id="basic-addon1">Max
+                                            <span class="input-group-text" id="max-length">Max
                                                 Length</span>
                                             <input type="text" class="form-control" aria-label="Max Length"
-                                                aria-describedby="basic-addon1"
+                                                aria-describedby="max-length"
                                                 :value="selectedField.max_length ? selectedField.max_length : 'N/A'"
                                                 disabled>
                                         </div>
@@ -339,7 +355,7 @@
                                         <div v-if="customLookupField" class="input-group input-group-sm mb-2 mt-2">
                                             <input ref="custom-lookup-field" class="form-control form-control-sm"
                                                 type="text" placeholder="Enter Custom Lookup Field"
-                                                aria-label="Custom Lookup Field" aria-describedby="lookup-field"
+                                                aria-label="Custom Lookup Field"
                                                 v-model="selectedColumn.django_lookup_field_name">
                                             <a v-if="selectedColumn.id" class="btn btn-primary"
                                                 :href="`/api/occurrence_report_bulk_import_schema_columns/${selectedColumn.id}/preview_foreign_key_values_xlsx/`"><i
@@ -369,12 +385,11 @@
                                                     <input
                                                         v-if="selectedColumn.lookup_filters[index].values && selectedColumn.lookup_filters[index].values.length > 0"
                                                         type="text" class="form-control" placeholder="Enter Value"
-                                                        aria-label="Enter Value" aria-describedby="value"
+                                                        aria-label="Enter Value"
                                                         v-model="selectedColumn.lookup_filters[index].values[0].filter_value"
                                                         @change="lookupFilterValueChanged($event, selectedColumn.lookup_filters[index])">
                                                     <input v-else type="text" class="form-control"
-                                                        placeholder="Select Field First" aria-label="Select Field First"
-                                                        aria-describedby="Select Field First" disabled>
+                                                        placeholder="Select Field First" disabled>
 
                                                     <button type="button" class="btn btn-danger"
                                                         @click.prevent="removeLookupFilter(selectedColumn, index)">
@@ -914,6 +929,12 @@ export default {
                 classes += ' border-bottom border-secondary last-row-for-model'
             }
             return classes
+        },
+        excelValidationType() {
+            if(this.selectedColumn.is_emailuser_column) {
+                return 'None'
+            }
+            return this.selectedField.xlsx_validation_type ? this.selectedField.xlsx_validation_type : 'None'
         },
         addLookupFilter() {
             if (!this.selectedColumn.lookup_filters) {
