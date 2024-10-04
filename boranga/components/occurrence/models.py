@@ -6186,12 +6186,30 @@ class OccurrenceReportBulkImportSchema(models.Model):
             django_import_content_type=django_import_content_type,
             django_import_field_name="migrated_from_id",
         ):
-            new_column = OccurrenceReportBulkImportSchemaColumn.objects.get(
-                pk=column.pk
-            )
-            new_column.pk = None
+            # Note: Due to an issue in django-ordered-model you can't use the
+            # method of cloning objects here where to make a copy of the object
+            # you set the pk to None and save it (that will mess up the ordering of
+            # the original schema's columns) Strange bug but can't be bothered looking into it further
+            new_column = OccurrenceReportBulkImportSchemaColumn()
+            for field in column._meta.fields:
+                if field.name == "id":
+                    continue
+                setattr(new_column, field.name, getattr(column, field.name))
             new_column.schema = new_schema
             new_column.save()
+
+            for lookup_filter in column.lookup_filters.all():
+                new_lookup_filter = SchemaColumnLookupFilter.objects.create(
+                    schema_column=new_column,
+                    filter_field_name=lookup_filter.filter_field_name,
+                    filter_type=lookup_filter.filter_type,
+                )
+
+                for value in lookup_filter.values.all():
+                    SchemaColumnLookupFilterValue.objects.create(
+                        lookup_filter=new_lookup_filter,
+                        filter_value=value.filter_value,
+                    )
 
         new_schema.tags.add(*self.tags.all())
 
