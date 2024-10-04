@@ -143,6 +143,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceLogEntrySerializer,
     OccurrenceReportAmendmentRequestSerializer,
     OccurrenceReportBulkImportSchemaColumnSerializer,
+    OccurrenceReportBulkImportSchemaListSerializer,
     OccurrenceReportBulkImportSchemaSerializer,
     OccurrenceReportBulkImportTaskSerializer,
     OccurrenceReportDocumentSerializer,
@@ -6342,6 +6343,11 @@ class OccurrenceReportBulkImportSchemaViewSet(
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ["group_type"]
 
+    def get_serializer_class(self):
+        if self.action == "list":
+            return OccurrenceReportBulkImportSchemaListSerializer
+        return super().get_serializer_class()
+
     def get_queryset(self):
         qs = self.queryset
         if not (is_internal(self.request) or self.request.user.is_superuser):
@@ -6376,7 +6382,7 @@ class OccurrenceReportBulkImportSchemaViewSet(
         group_type = GroupType.objects.get(name=group_type)
 
         schema = OccurrenceReportBulkImportSchema.objects.filter(group_type=group_type)
-        serializer = OccurrenceReportBulkImportSchemaSerializer(schema, many=True)
+        serializer = OccurrenceReportBulkImportSchemaListSerializer(schema, many=True)
         return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)

@@ -3890,6 +3890,25 @@ class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
         validators = []  # Validation is done in the parent serializer
 
 
+class OccurrenceReportBulkImportSchemaListSerializer(serializers.ModelSerializer):
+    tags = TagListSerializerField(allow_null=True, required=False)
+    group_type_display = serializers.CharField(source="group_type.name", read_only=True)
+    version = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = OccurrenceReportBulkImportSchema
+        fields = [
+            "version",
+            "name",
+            "tags",
+            "group_type",
+            "group_type_display",
+            "datetime_created",
+            "datetime_updated",
+        ]
+        read_only_fields = ("id",)
+
+
 class OccurrenceReportBulkImportSchemaSerializer(
     TaggitSerializer, serializers.ModelSerializer
 ):
