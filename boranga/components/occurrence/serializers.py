@@ -3898,6 +3898,7 @@ class OccurrenceReportBulkImportSchemaListSerializer(serializers.ModelSerializer
     class Meta:
         model = OccurrenceReportBulkImportSchema
         fields = [
+            "id",
             "version",
             "name",
             "tags",
