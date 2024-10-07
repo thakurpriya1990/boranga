@@ -32,12 +32,15 @@
                                             @keydown="addTag" />
                                     </div>
                                     <div class="float-end">
+                                        <button class="btn btn-primary me-2"
+                                            @click.prevent="copySchema(schema.id)"><i class="bi bi-copy me-2"></i>
+                                            Copy</button>
                                         <button role="button" class="btn btn-primary me-2"
                                             @click.prevent="validate()"><i class="bi bi-card-checklist me-1"></i>
-                                            Validate Schema</button>
+                                            Validate</button>
                                         <a role="button" class="btn btn-primary"
                                             :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
-                                                class="bi bi-filetype-xlsx me-1"></i> Preview .xlsx File</a>
+                                                class="bi bi-filetype-xlsx me-1"></i> Preview</a>
 
                                     </div>
                                 </div>
@@ -48,8 +51,7 @@
                                 <label for="schema-name" class="col-sm-1 col-form-label">Name</label>
                                 <div class="col-sm-4">
                                     <input type="text" class="form-control" id="schema-name" ref="schema-name"
-                                        v-model="schema.name"
-                                        placeholder="Enter Schema Name" autofocus>
+                                        v-model="schema.name" placeholder="Enter Schema Name" autofocus>
                                 </div>
                                 <label for="schema-tags" class="col-sm-1 col-form-label">Tags</label>
                                 <div class="col-sm-6">
@@ -214,8 +216,7 @@
                                     <div class="col-sm-8 ">
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" name="column-name" id="column-name"
-                                                ref="column-name"
-                                                v-model="selectedColumn.xlsx_column_header_name" />
+                                                ref="column-name" v-model="selectedColumn.xlsx_column_header_name" />
                                         </div>
                                     </div>
                                 </div>
@@ -238,7 +239,8 @@
                                 </div>
                                 <div v-if="selectedField.type == 'IntegerField' && !selectedColumn.default_value"
                                     class="row d-flex align-items-center mb-2">
-                                    <label for="default-value" class="col-sm-4 col-form-label">Ledger Email User Column?<i id="is-email-user-column-help-text"
+                                    <label for="default-value" class="col-sm-4 col-form-label">Ledger Email User
+                                        Column?<i id="is-email-user-column-help-text"
                                             class="bi bi-info-circle-fill text-primary ms-2" data-bs-toggle="popover"
                                             data-bs-trigger="hover focus"
                                             data-bs-content="If set to 'Yes' the column value will be validated as an email address during the import and  the email will be used to lookup the user id in ledger"
@@ -259,9 +261,8 @@
                                         Type</label>
                                     <div class="col-sm-8 ">
                                         <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control" name="" id=""
-                                                placeholder="" disabled
-                                                :value="selectedField.type" />
+                                            <input type="text" class="form-control" name="" id="" placeholder=""
+                                                disabled :value="selectedField.type" />
                                         </div>
                                     </div>
                                 </div>
@@ -271,8 +272,8 @@
                                         Type</label>
                                     <div class="col-sm-8 ">
                                         <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control form-control-sm" name="xlsx-validation-type" id="xlsx-validation-type"
-                                                disabled
+                                            <input type="text" class="form-control form-control-sm"
+                                                name="xlsx-validation-type" id="xlsx-validation-type" disabled
                                                 :value="excelValidationType()" />
                                             <template v-if="selectedField.xlsx_validation_type == 'date'">
                                                 <span class="input-group-text" id="datetime-format">Format:</span>
@@ -485,7 +486,7 @@
                                                         choice[1] }}</template>
                                                 <template v-else>{{
                                                     choice[0]
-                                                    }}</template>
+                                                }}</template>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -893,6 +894,25 @@ export default {
             this.save()
             this.$router.push(`/internal/occurrence_report/bulk_import_schema/`)
         },
+        copySchema(id) {
+            this.$http.post(`${api_endpoints.occurrence_report_bulk_import_schemas}${id}/copy/`)
+                .then(response => {
+                    if (response.status === 201) {
+                        swal.fire({
+                            title: 'Success',
+                            text: 'Schema copied successfully',
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 1500
+                        })
+                        this.$router.push(`/internal/occurrence_report/bulk_import_schema/${response.data.id}`)
+                        this.fetchBulkImportSchema()
+                    }
+                })
+                .catch(error => {
+                    console.error(error)
+                })
+        },
         enablePopovers() {
             // enable all bootstrap 5 popovers
             var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
@@ -931,7 +951,7 @@ export default {
             return classes
         },
         excelValidationType() {
-            if(this.selectedColumn.is_emailuser_column) {
+            if (this.selectedColumn.is_emailuser_column) {
                 return 'None'
             }
             return this.selectedField.xlsx_validation_type ? this.selectedField.xlsx_validation_type : 'None'
