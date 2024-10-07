@@ -18,8 +18,8 @@
                                 <div v-if="schema_versions" class="mb-3">
                                     <label for="schema-version" class="form-label"><span class="fw-bold">Step 1:
                                         </span>Select the bulk import schema version to use:</label>
-                                    <select class="form-select text-secondary w-50"
-                                        id="schema-version" ref="schema-version" v-model="selected_schema_version"
+                                    <select class="form-select text-secondary w-50" id="schema-version"
+                                        ref="schema-version" v-model="selected_schema"
                                         aria-label="Select Schema Version" @change="resetFileField">
                                         <option :value="null" selected>Select Bulk Import Schema Version</option>
                                         <option v-for="schema_version in schema_versions" :value="schema_version">{{
@@ -299,6 +299,7 @@ export default {
             currentlyRunningTimer: null,
             selectedErrors: '',
             schema_versions: null,
+            selected_schema: null,
             selected_schema_version: null,
             importFileErrors: null
         }
@@ -316,21 +317,26 @@ export default {
             return `Version: ${schema_version.version} - ${schema_version.name ? schema_version.name : 'No Name'}`;
         },
         resetFileField() {
-            this.$nextTick(() => {
-                this.importFileErrors = null;
-                this.form.classList.remove('was-validated');
-                // Enable all bootstrap 5 popovers
-                var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
-                var myDefaultAllowList = bootstrap.Tooltip.Default.allowList
-                myDefaultAllowList.table = []
-                myDefaultAllowList.tr = []
-                myDefaultAllowList.td = []
-                myDefaultAllowList.th = []
-                myDefaultAllowList.thead = []
-                myDefaultAllowList.tbody = []
-                popoverTriggerList.map(function (popoverTriggerEl) {
-                    return bootstrap.Popover.getOrCreateInstance(popoverTriggerEl)
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.selected_schema.id}/`).then((response) => {
+                this.selected_schema_version = response.body;
+                this.$nextTick(() => {
+                    this.importFileErrors = null;
+                    this.form.classList.remove('was-validated');
+                    // Enable all bootstrap 5 popovers
+                    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+                    var myDefaultAllowList = bootstrap.Tooltip.Default.allowList
+                    myDefaultAllowList.table = []
+                    myDefaultAllowList.tr = []
+                    myDefaultAllowList.td = []
+                    myDefaultAllowList.th = []
+                    myDefaultAllowList.thead = []
+                    myDefaultAllowList.tbody = []
+                    popoverTriggerList.map(function (popoverTriggerEl) {
+                        return bootstrap.Popover.getOrCreateInstance(popoverTriggerEl)
+                    });
                 });
+            }, (error) => {
+                console.log(error);
             });
         },
         bulkImportFileSelected(event) {
@@ -398,6 +404,9 @@ export default {
             }, (error) => {
                 console.log(error);
             });
+        },
+        async fetchSchema() {
+
         },
         fetchQueuedImports() {
             this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=queued`).then((response) => {
@@ -506,7 +515,14 @@ export default {
                 } else {
                     if (column.requires_lookup_field) {
                         html += `<tr><th>Lookup Field</th><td>${column.django_lookup_field_name}</td></tr>`
-                        html += `<tr><th>Preview Choices (.xlsx)</th><td><a class="ms-0 ps-0" href="/api/occurrence_report_bulk_import_schema_columns/${column.id}/preview_foreign_key_values_xlsx/">Preview ${column.foreign_key_count} Choices</a></td></tr>`
+                        if (column.lookup_filters && column.lookup_filters.length > 0) {
+                            html += `<tr><th>Lookup Filters</th><td>`
+                            for (let lookupFilter of column.lookup_filters) {
+                                html += `<div>Field: ${lookupFilter.filter_field_name}, Filter Type: ${lookupFilter.filter_type}, Value: ${lookupFilter.values[0].filter_value}</div>`
+                            }
+                            html += '</td></tr>'
+                        }
+                        html += `<tr><th>Preview Choices (.xlsx)</th><td><a class="ms-0 ps-0" href="/api/occurrence_report_bulk_import_schema_columns/${column.id}/preview_foreign_key_values_xlsx/">Preview ${column.filtered_foreign_key_count} Choices</a></td></tr>`
                     }
                 }
             }
