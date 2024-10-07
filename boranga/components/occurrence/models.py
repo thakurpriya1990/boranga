@@ -5863,6 +5863,23 @@ class OccurrenceReportBulkImportSchema(models.Model):
             )
 
     @property
+    def mandatory_fields(self):
+        if self.group_type.name == "community":
+            return [
+                "migrated_from_id",
+                "community",
+                "processing_status",
+                "assigned_officer",
+            ]
+
+        return [
+            "migrated_from_id",
+            "species",
+            "processing_status",
+            "assigned_officer",
+        ]
+
+    @property
     def preview_import_file(self):
         workbook = openpyxl.Workbook()
         worksheet = workbook.active
@@ -6067,25 +6084,68 @@ class OccurrenceReportBulkImportSchema(models.Model):
             )
             return errors
 
-        # Make sure the schema has a migrated_from_id column
-        if not columns.filter(
-            django_import_content_type=ct_models.ContentType.objects.get_for_model(
-                OccurrenceReport
-            ),
-            django_import_field_name="migrated_from_id",
-        ).exists():
-            errors.append(
-                {
-                    "error_type": "no_migrated_from_id",
-                    "error_message": "No migrated_from_id column found in the schema",
-                }
-            )
-            return errors
+        for field in self.mandatory_fields:
+            if not columns.filter(
+                django_import_content_type=ct_models.ContentType.objects.get_for_model(
+                    OccurrenceReport
+                ),
+                django_import_field_name=field,
+            ).exists():
+                errors.append(
+                    {
+                        "error_type": "missing_mandatory_column",
+                        "error_message": f"Missing mandatory occurrence report column for django field: {field}",
+                    }
+                )
+                return errors
 
         # Create a sample row of data
         sample_row = []
+
+        # Special case where only a migrated_from_id or occurrence_number
+        # Should be provided when both columns are present otherwise validation will fail
+        row_contains_occ_migrated_from_id = (
+            columns.filter(
+                django_import_content_type=ct_models.ContentType.objects.get_for_model(
+                    Occurrence
+                ),
+                django_import_field_name="migrated_from_id",
+            ).exists()
+            and columns.filter(
+                django_import_content_type=ct_models.ContentType.objects.get_for_model(
+                    Occurrence
+                ),
+                django_import_field_name="occurrence_number",
+            ).exists()
+        )
+        species_or_community_name = None
         for column in columns:
-            sample_row.append(column.get_sample_value(errors))
+            sample_value = column.get_sample_value(errors, species_or_community_name)
+            if (
+                column.django_import_content_type.model == Occurrence._meta.model_name
+                and column.django_import_field_name == "species"
+            ):
+                species_or_community_name = Species.objects.get(
+                    taxonomy__scientific_name=sample_value
+                )
+
+            if (
+                column.django_import_content_type.model == Occurrence._meta.model_name
+                and column.django_import_field_name == "community"
+            ):
+                species_or_community_name = Community.objects.get(
+                    taxonomy__community_migrated_id=sample_value
+                )
+
+            if (
+                column.django_import_content_type.model == Occurrence._meta.model_name
+                and column.django_import_field_name == "migrated_from_id"
+                and row_contains_occ_migrated_from_id
+            ):
+                sample_value = ""
+            sample_row.append(sample_value)
+
+        logger.info(f"Sample row: {sample_row}")
 
         preview_import_file = self.preview_import_file
 
@@ -6452,7 +6512,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         return self.filtered_related_model_qs.count()
 
-    def get_sample_value(self, errors):
+    def get_sample_value(self, errors, species_or_community_name=None):
         if not self.django_import_content_type:
             errors.append(
                 {
@@ -6499,7 +6559,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     }
                 )
 
-            display_field = get_display_field_for_model(field.related_model)
+            display_field = self.display_field
 
             random_value = (
                 related_model_qs.order_by("?")
@@ -6537,9 +6597,13 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             return round(random.uniform(0, max_value), decimal_places)
 
         if isinstance(field, models.IntegerField):
-            min_value = field.min_value if hasattr(field, "min_value") else 0
-            max_value = field.max_value if hasattr(field, "max_value") else 10000
-            return random.randint(min_value, max_value)
+            if self.is_emailuser_column:
+                user = EmailUser.objects.filter(is_active=True).order_by("?").first()
+                return user.email
+            else:
+                min_value = field.min_value if hasattr(field, "min_value") else 0
+                max_value = field.max_value if hasattr(field, "max_value") else 10000
+                return random.randint(min_value, max_value)
 
         if isinstance(field, models.DateField):
             start = datetime(1900, 1, 1, 0, 0, 0, tzinfo=dt_timezone.utc).date()
@@ -6554,6 +6618,28 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             return random_datetime.strftime("%d/%m/%Y %H:%M:%S")
 
         if isinstance(field, (models.CharField, models.TextField)):
+            if (
+                self.django_import_content_type.model_class() == Occurrence
+                and self.django_import_field_name == "occurrence_number"
+            ):
+                # Special case for occurrence number (Make sure that the occurrence is of the same
+                # group type as the schema and same species or community name as the sample data)
+                group_type = self.schema.group_type
+                random_occurrence = Occurrence.objects.filter(group_type=group_type)
+                filter_field = {
+                    "species__taxonomy__scientific_name": species_or_community_name
+                }
+                if group_type.name == "community":
+                    filter_field = {
+                        "community__taxonomy__community_name": species_or_community_name
+                    }
+                return (
+                    random_occurrence.filter(**filter_field)
+                    .order_by("?")
+                    .first()
+                    .occurrence_number
+                )
+
             if hasattr(field, "max_length") and field.max_length:
                 random_length = random.randint(1, field.max_length)
             else:
