@@ -7,6 +7,7 @@ import py7zr
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
@@ -593,3 +594,14 @@ def get_mock_request(emailuser: EmailUser):
     request.user = type("User", (), {})()
     request.user.id = emailuser.id
     return request
+
+
+# Because the OCR Bulk Importer uses commas to embed list validation in the .xlsx
+# import files, we need to ensure that the display field for the lookup table
+# does not contain commas.
+no_commas_validator = RegexValidator(
+    "[,]",
+    code="comma_not_allowed",
+    message="Commas not allowed in the display field for a django lookup.",
+    inverse_match=True,
+)
