@@ -83,9 +83,11 @@ from boranga.components.users.models import (
     SubmitterInformationModelMixin,
 )
 from boranga.helpers import (
+    belongs_to_by_user_id,
     clone_model,
     get_choices_for_field,
     get_display_field_for_model,
+    get_mock_request,
     get_openpyxl_data_validation_type_for_django_field,
     is_occurrence_approver,
     is_occurrence_assessor,
@@ -5457,7 +5459,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             duplicate_ocr = OccurrenceReport.objects.get(import_hash=row_hash)
             error_message = (
                 f"Row {index} has the exact same data as "
-                f"Occurrence Report {duplicate_ocr.occurrence_report_number}"
+                f"Occurrence Report {duplicate_ocr.occurrence_report_number} did when it was imported."
             )
             errors.append(
                 {
@@ -5479,13 +5481,16 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         models = {}
         geometries = {}
         many_to_many_fields = {}
+
         # Validate each cell
         for column_index, column in enumerate(self.schema.columns.all()):
             column_error_count = 0
 
             cell_value = row[column_index]
 
-            cell_value, errors_added = column.validate(cell_value, mode, index, errors)
+            cell_value, errors_added = column.validate(
+                cell_value, mode, index, row, errors
+            )
 
             model_class = apps.get_model(
                 "boranga", column.django_import_content_type.model
@@ -5749,6 +5754,8 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 if mode == "create" or (mode == "update" and len(model_data.keys())):
                     current_model_instance.save()
 
+                self.ocr_bulk_import_generate_action_logs(mode, current_model_instance)
+
                 model_instances[current_model_instance._meta.model_name] = (
                     current_model_instance
                 )
@@ -5799,6 +5806,57 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 )
 
         return
+
+    def ocr_bulk_import_generate_action_logs(self, mode, model_instance):
+        if not model_instance._meta.model_name == OccurrenceReport._meta.model_name:
+            return
+
+        log_suffix = " (via bulk importer)"
+        bulk_importer = EmailUser.objects.get(id=self.email_user)
+        request = get_mock_request(bulk_importer)
+        if mode == "create":
+            model_instance.log_user_action(
+                OccurrenceReportUserAction.ACTION_LODGE_PROPOSAL.format(
+                    model_instance.occurrence_report_number
+                )
+                + log_suffix,
+                request,
+            )
+            if model_instance.processing_status in [
+                OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+                OccurrenceReport.PROCESSING_STATUS_APPROVED,
+            ]:
+                assessor = EmailUser.objects.get(id=model_instance.assigned_officer)
+                request = get_mock_request(assessor)
+                model_instance.log_user_action(
+                    OccurrenceReportUserAction.ACTION_PROPOSED_APPROVAL.format(
+                        model_instance.occurrence_report_number
+                    )
+                    + log_suffix,
+                    request,
+                )
+            if (
+                model_instance.processing_status
+                == OccurrenceReport.PROCESSING_STATUS_APPROVED
+            ):
+                approver = EmailUser.objects.get(id=model_instance.assigned_approver)
+                request = get_mock_request(approver)
+                model_instance.log_user_action(
+                    OccurrenceReportUserAction.ACTION_APPROVE.format(
+                        model_instance.occurrence_report_number,
+                        approver.get_full_name(),
+                    )
+                    + log_suffix,
+                    request,
+                )
+        elif mode == "update":
+            model_instance.log_user_action(
+                OccurrenceReportUserAction.ACTION_EDIT_APPLICATION.format(
+                    model_instance.occurrence_report_number
+                )
+                + log_suffix,
+                request,
+            )
 
     def retry(self):
         self.processing_status = self.PROCESSING_STATUS_QUEUED
@@ -6067,7 +6125,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
         return workbook
 
     @transaction.atomic
-    def validate(self):
+    def validate(self, request_user_id: int):
         # Tries adding valid sample data to each column and then saving to the database
         # Returns any errors that occur
         # Rolls back the transaction regardless of success or failure
@@ -6168,6 +6226,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
             schema=self,
             _file=import_file,
             rows=1,
+            email_user=request_user_id,
         )
 
         # Convert the file to bytes
@@ -6460,7 +6519,6 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         # Apply any lookup filters if they exist
         for lookup_filter in self.lookup_filters.all():
-            logger.debug(f"Applying lookup filter {lookup_filter}")
             lookup_filter.filter_field_name + "__" + lookup_filter.filter_type
             lookup_filter_value = lookup_filter.values.first().filter_value
             if lookup_filter.values.count() > 1:
@@ -6471,9 +6529,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 lookup_filter_value, list
             ):
                 lookup_filter_value = [lookup_filter_value]
-            # logger.debug(f"Filtering on {lookup_filter.filter_field_name}")
-            # logger.debug(f"Filtering on {lookup_filter.filter_type}")
-            # logger.debug(f"Filtering on {lookup_filter_value}")
+
             related_model_qs = related_model_qs.filter(
                 **{
                     lookup_filter.filter_field_name
@@ -6481,8 +6537,6 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     + lookup_filter.filter_type: lookup_filter_value
                 }
             )
-
-            logger.debug(f"{related_model_qs.query}")
 
         return related_model_qs
 
@@ -6547,6 +6601,20 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 }
             )
             return None
+
+        if (
+            self.django_import_content_type
+            == ct_models.ContentType.objects.get_for_model(OccurrenceReport)
+            and self.django_import_field_name == "processing_status"
+        ):
+            # Special case as there are only 3 processing statuses allow for OCR
+            return random.choice(
+                [
+                    OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+                    OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+                    OccurrenceReport.PROCESSING_STATUS_APPROVED,
+                ]
+            )
 
         if isinstance(field, models.ForeignKey):
             related_model_qs = self.filtered_related_model_qs
@@ -6722,7 +6790,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         return workbook
 
-    def validate(self, cell_value, mode, index, errors):
+    def validate(self, cell_value, mode, index, row, errors):
         from boranga.components.spatial.utils import get_geometry_array_from_geojson
 
         errors_added = 0
@@ -6762,6 +6830,150 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         field = model_class._meta.get_field(self.django_import_field_name)
 
+        if (
+            self.django_import_content_type
+            == ct_models.ContentType.objects.get_for_model(OccurrenceReport)
+            and self.django_import_field_name == "processing_status"
+        ):
+            if cell_value not in [
+                OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+                OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+                OccurrenceReport.PROCESSING_STATUS_APPROVED,
+            ]:
+                error_message = (
+                    f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                    f"is not a valid processing status (must be one of with_assessor, with_approver or approved)"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return
+
+            if cell_value in [
+                OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+                OccurrenceReport.PROCESSING_STATUS_APPROVED,
+            ]:
+                assigned_officer_column = self.schema.columns.filter(
+                    django_import_content_type=ct_models.ContentType.objects.get_for_model(
+                        OccurrenceReport
+                    ),
+                    django_import_field_name="assigned_officer",
+                ).first()
+                assigned_officer_email = row[assigned_officer_column.order]
+                try:
+                    assigned_officer_id = EmailUser.objects.get(
+                        email=assigned_officer_email
+                    ).id
+                except EmailUser.DoesNotExist:
+                    error_message = (
+                        "No ledger user found for assigned_officer with "
+                        f"email address: {assigned_officer_email}"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": assigned_officer_email,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+                if not assigned_officer_id:
+                    error_message = (
+                        f"Value in column {assigned_officer_column.xlsx_column_header_name} "
+                        "is blank when processing status is with_approver"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": assigned_officer_id,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+                if not belongs_to_by_user_id(
+                    assigned_officer_id, settings.GROUP_NAME_OCCURRENCE_ASSESSOR
+                ):
+                    error_message = (
+                        f"User {assigned_officer_id} is not a member"
+                        " of the occurrence assessor group"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": assigned_officer_id,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+            if cell_value == OccurrenceReport.PROCESSING_STATUS_APPROVED:
+                assigned_approver_column = self.schema.columns.filter(
+                    django_import_content_type=ct_models.ContentType.objects.get_for_model(
+                        OccurrenceReport
+                    ),
+                    django_import_field_name="assigned_approver",
+                ).first()
+                assigned_approver_email = row[assigned_approver_column.order]
+                try:
+                    assigned_approver_id = EmailUser.objects.get(
+                        email=assigned_approver_email
+                    ).id
+                except EmailUser.DoesNotExist:
+                    error_message = (
+                        "No ledger user found for assigned_approver with "
+                        f"email address: {assigned_approver_email}"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": assigned_approver_email,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+                if not assigned_approver_id:
+                    error_message = (
+                        f"Value in column {assigned_approver_column.xlsx_column_header_name} "
+                        "is blank when processing status is approved"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": assigned_approver_id,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+
+                if not belongs_to_by_user_id(
+                    assigned_approver_id, settings.GROUP_NAME_OCCURRENCE_APPROVER
+                ):
+                    error_message = (
+                        f"User {assigned_approver_id} is not a member"
+                        " of the occurrence approver group"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": assigned_officer_id,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+
+            return cell_value, errors_added
+
         if not self.xlsx_data_validation_allow_blank and (
             cell_value is None or cell_value == ""
         ):
@@ -6778,7 +6990,13 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         xlsx_data_validation_type = self.xlsx_validation_type
 
         if self.is_emailuser_column:
+            if not cell_value:
+                # Depending on the status of the OCR the assigned_officer and / or assigned_approver
+                # fields may be blank
+                return cell_value, errors_added
             try:
+                # TODO: Make sure to add something to return users that are member of OCR assessor group
+                # or OCR approver group for fields that require it
                 cell_value = EmailUser.objects.get(email=cell_value).id
             except EmailUser.DoesNotExist:
                 error_message = f"No ledger user found with email address: {cell_value}"
