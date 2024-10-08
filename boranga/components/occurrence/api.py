@@ -6401,7 +6401,7 @@ class OccurrenceReportBulkImportSchemaViewSet(
     @detail_route(methods=["get"], detail=True)
     def validate(self, request, *args, **kwargs):
         instance = self.get_object()
-        errors = instance.validate()
+        errors = instance.validate(request.user.id)
         if errors:
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
