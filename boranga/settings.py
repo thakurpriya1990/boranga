@@ -492,6 +492,7 @@ OCR_BULK_IMPORT_PROCESS_TASKS_IMMEDIATELY = env(
 
 OCR_BULK_IMPORT_LOOKUP_TABLE_DISPLAY_FIELDS = [
     "name",
+    "label",
     "display_name",
     "code",
 ]
