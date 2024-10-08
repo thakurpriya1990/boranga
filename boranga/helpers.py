@@ -586,3 +586,10 @@ def get_filter_field_options_for_field(field: models.Field) -> list:
         for field in field.related_model._meta.get_fields()
         if not field.related_model
     ]
+
+
+def get_mock_request(emailuser: EmailUser):
+    request = type("Request", (), {})()
+    request.user = type("User", (), {})()
+    request.user.id = emailuser.id
+    return request
