@@ -92,6 +92,7 @@ from boranga.helpers import (
     is_occurrence_approver,
     is_occurrence_assessor,
     member_ids,
+    no_commas_validator,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import (
@@ -1847,7 +1848,13 @@ class CoordinateSource(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -1869,7 +1876,13 @@ class LocationAccuracy(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2172,7 +2185,13 @@ class LandForm(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2193,7 +2212,13 @@ class RockType(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2214,7 +2239,13 @@ class SoilType(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2235,7 +2266,13 @@ class SoilColour(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2256,7 +2293,13 @@ class Drainage(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2277,7 +2320,13 @@ class SoilCondition(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2441,7 +2490,13 @@ class Intensity(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2518,7 +2573,13 @@ class ObservationMethod(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2568,7 +2629,13 @@ class PlantCountMethod(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2589,7 +2656,13 @@ class PlantCountAccuracy(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2610,7 +2683,13 @@ class CountedSubject(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2631,7 +2710,13 @@ class PlantCondition(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2727,7 +2812,13 @@ class PrimaryDetectionMethod(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2747,7 +2838,13 @@ class ReproductiveState(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2768,7 +2865,13 @@ class AnimalHealth(models.Model):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2789,7 +2892,13 @@ class DeathReason(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2809,7 +2918,13 @@ class SecondarySign(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2919,7 +3034,13 @@ class IdentificationCertainty(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2940,7 +3061,9 @@ class SampleType(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False)
+    name = models.CharField(
+        max_length=250, blank=False, null=False, validators=[no_commas_validator]
+    )
     group_type = models.ForeignKey(
         GroupType, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -2962,7 +3085,9 @@ class SampleDestination(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False)
+    name = models.CharField(
+        max_length=250, blank=False, null=False, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2981,7 +3106,9 @@ class PermitType(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False)
+    name = models.CharField(
+        max_length=250, blank=False, null=False, validators=[no_commas_validator]
+    )
     group_type = models.ForeignKey(
         GroupType, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -3217,7 +3344,13 @@ class OCRConservationThreat(RevisionedMixin):
 
 
 class WildStatus(ArchivableModel):
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -4866,8 +4999,12 @@ class OCRExternalRefereeInvite(models.Model):
 
 
 class OccurrenceTenurePurpose(ArchivableModel):
-    label = models.CharField(max_length=100, blank=True, null=True)
-    code = models.CharField(max_length=20, blank=True, null=True)
+    label = models.CharField(
+        max_length=100, blank=True, null=True, validators=[no_commas_validator]
+    )
+    code = models.CharField(
+        max_length=20, blank=True, null=True, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"
@@ -4879,8 +5016,12 @@ class OccurrenceTenurePurpose(ArchivableModel):
 
 
 class OccurrenceTenureVesting(models.Model):
-    label = models.CharField(max_length=100, blank=True, null=True)
-    code = models.CharField(max_length=20, blank=True, null=True)
+    label = models.CharField(
+        max_length=100, blank=True, null=True, validators=[no_commas_validator]
+    )
+    code = models.CharField(
+        max_length=20, blank=True, null=True, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"

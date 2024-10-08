@@ -49,6 +49,7 @@ from boranga.helpers import (
     is_external_contributor,
     is_internal_contributor,
     member_ids,
+    no_commas_validator,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import (
@@ -2377,7 +2378,9 @@ class ConservationStatusProposalRequest(models.Model):
 
 
 class ProposalAmendmentReason(ArchivableModel):
-    reason = models.CharField("Reason", max_length=125)
+    reason = models.CharField(
+        "Reason", max_length=125, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"

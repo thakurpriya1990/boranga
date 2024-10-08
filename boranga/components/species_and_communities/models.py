@@ -26,7 +26,11 @@ from boranga.components.main.models import (
     UserAction,
 )
 from boranga.components.main.related_item import RelatedItem
-from boranga.helpers import is_species_communities_approver, member_ids
+from boranga.helpers import (
+    is_species_communities_approver,
+    member_ids,
+    no_commas_validator,
+)
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import GROUP_NAME_SPECIES_COMMUNITIES_APPROVER
 
@@ -54,7 +58,9 @@ def update_community_comms_log_filename(instance, filename):
 
 
 class Region(models.Model):
-    name = models.CharField(unique=True, default=None, max_length=200)
+    name = models.CharField(
+        unique=True, default=None, max_length=200, validators=[no_commas_validator]
+    )
     forest_region = models.BooleanField(default=False)
 
     class Meta:
@@ -66,7 +72,9 @@ class Region(models.Model):
 
 
 class District(models.Model):
-    name = models.CharField(unique=True, max_length=200)
+    name = models.CharField(
+        unique=True, max_length=200, validators=[no_commas_validator]
+    )
     code = models.CharField(unique=True, max_length=3, null=True)
     region = models.ForeignKey(
         Region, on_delete=models.CASCADE, related_name="districts"
@@ -2048,7 +2056,9 @@ class DocumentCategory(ArchivableModel):
     - Table
     """
 
-    document_category_name = models.CharField(max_length=128, unique=True)
+    document_category_name = models.CharField(
+        max_length=128, unique=True, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2081,6 +2091,7 @@ class DocumentSubCategory(ArchivableModel):
     document_sub_category_name = models.CharField(
         max_length=128,
         unique=True,
+        validators=[no_commas_validator],
     )
 
     class Meta:
@@ -2250,7 +2261,9 @@ class ThreatCategory(ArchivableModel):
     # e.g. mechnical disturbance
     """
 
-    name = models.CharField(max_length=128, blank=False, unique=True)
+    name = models.CharField(
+        max_length=128, blank=False, unique=True, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2270,7 +2283,9 @@ class CurrentImpact(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=100, blank=False, unique=True)
+    name = models.CharField(
+        max_length=100, blank=False, unique=True, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2290,7 +2305,9 @@ class PotentialImpact(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=100, blank=False, unique=True)
+    name = models.CharField(
+        max_length=100, blank=False, unique=True, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2310,7 +2327,9 @@ class PotentialThreatOnset(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=100, blank=False, unique=True)
+    name = models.CharField(
+        max_length=100, blank=False, unique=True, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2328,7 +2347,9 @@ class ThreatAgent(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=100, blank=False, unique=True)
+    name = models.CharField(
+        max_length=100, blank=False, unique=True, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"
