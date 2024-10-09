@@ -1465,9 +1465,7 @@ def update_occurrence_report_referral_doc_filename(instance, filename):
 
 class OccurrenceReportProposalRequest(models.Model):
     occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE)
-    subject = models.CharField(max_length=200, blank=True)
     text = models.TextField(blank=True)
-    officer = models.IntegerField(null=True)  # EmailUserRO
 
     class Meta:
         app_label = "boranga"
@@ -6220,6 +6218,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
                 if (
                     not related_model_qs.exists()
                     or related_model_qs.count() == 0
+                    or related_model._meta.model_name in ["species", "community"]
                     or related_model_qs.count()
                     > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
                 ):
@@ -6317,14 +6316,16 @@ class OccurrenceReportBulkImportSchema(models.Model):
                 django_import_field_name="occurrence_number",
             ).exists()
         )
-        species_or_community_name = None
+        species_or_community_identifier = None
         for column in columns:
-            sample_value = column.get_sample_value(errors, species_or_community_name)
+            sample_value = column.get_sample_value(
+                errors, species_or_community_identifier
+            )
             if (
                 column.django_import_content_type.model == Occurrence._meta.model_name
                 and column.django_import_field_name == "species"
             ):
-                species_or_community_name = Species.objects.get(
+                species_or_community_identifier = Species.objects.get(
                     taxonomy__scientific_name=sample_value
                 )
 
@@ -6332,7 +6333,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
                 column.django_import_content_type.model == Occurrence._meta.model_name
                 and column.django_import_field_name == "community"
             ):
-                species_or_community_name = Community.objects.get(
+                species_or_community_identifier = Community.objects.get(
                     taxonomy__community_migrated_id=sample_value
                 )
 
@@ -6696,6 +6697,13 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         if not self.django_import_content_type or not self.django_import_field_name:
             return False
 
+        if (
+            self.django_import_content_type
+            == ct_models.ContentType.objects.get_for_model(OccurrenceReport)
+            and self.django_import_field_name in ["species", "community"]
+        ):
+            return True
+
         return (
             self.foreign_key_count > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
         )
@@ -6707,7 +6715,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         return self.filtered_related_model_qs.count()
 
-    def get_sample_value(self, errors, species_or_community_name=None):
+    def get_sample_value(self, errors, species_or_community_identifier=None):
         if not self.django_import_content_type:
             errors.append(
                 {
@@ -6836,11 +6844,11 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 group_type = self.schema.group_type
                 random_occurrence = Occurrence.objects.filter(group_type=group_type)
                 filter_field = {
-                    "species__taxonomy__scientific_name": species_or_community_name
+                    "species__taxonomy__scientific_name": species_or_community_identifier
                 }
                 if group_type.name == "community":
                     filter_field = {
-                        "community__taxonomy__community_name": species_or_community_name
+                        "community__taxonomy__community_migrated_id": species_or_community_identifier
                     }
                 return (
                     random_occurrence.filter(**filter_field)
@@ -6994,7 +7002,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     }
                 )
                 errors_added += 1
-                return
+                return cell_value, errors_added
 
             if cell_value in [
                 OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
@@ -7007,6 +7015,8 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     django_import_field_name="assigned_officer",
                 ).first()
                 assigned_officer_email = row[assigned_officer_column.order]
+                logger.debug(f"Assigned officer email: {assigned_officer_email}")
+                assigned_officer_id = None
                 try:
                     assigned_officer_id = EmailUser.objects.get(
                         email=assigned_officer_email
@@ -7025,20 +7035,8 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                         }
                     )
                     errors_added += 1
-                if not assigned_officer_id:
-                    error_message = (
-                        f"Value in column {assigned_officer_column.xlsx_column_header_name} "
-                        "is blank when processing status is with_approver"
-                    )
-                    errors.append(
-                        {
-                            "row_index": index,
-                            "error_type": "column",
-                            "data": assigned_officer_id,
-                            "error_message": error_message,
-                        }
-                    )
-                    errors_added += 1
+                    return cell_value, errors_added
+
                 if not belongs_to_by_user_id(
                     assigned_officer_id, settings.GROUP_NAME_OCCURRENCE_ASSESSOR
                 ):
@@ -7063,6 +7061,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     django_import_field_name="assigned_approver",
                 ).first()
                 assigned_approver_email = row[assigned_approver_column.order]
+                assigned_approver_id = None
                 try:
                     assigned_approver_id = EmailUser.objects.get(
                         email=assigned_approver_email
@@ -7081,20 +7080,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                         }
                     )
                     errors_added += 1
-                if not assigned_approver_id:
-                    error_message = (
-                        f"Value in column {assigned_approver_column.xlsx_column_header_name} "
-                        "is blank when processing status is approved"
-                    )
-                    errors.append(
-                        {
-                            "row_index": index,
-                            "error_type": "column",
-                            "data": assigned_approver_id,
-                            "error_message": error_message,
-                        }
-                    )
-                    errors_added += 1
+                    return cell_value, errors_added
 
                 if not belongs_to_by_user_id(
                     assigned_approver_id, settings.GROUP_NAME_OCCURRENCE_APPROVER
