@@ -6281,7 +6281,7 @@ class OccurrenceReportBulkImportTaskViewSet(
     permission_classes = [OccurrenceReportBulkImportPermission]
     serializer_class = OccurrenceReportBulkImportTaskSerializer
     filter_backends = [OrderingFilter, filters.DjangoFilterBackend]
-    filterset_fields = ["processing_status"]
+    filterset_fields = ["processing_status", "schema__group_type__name"]
     ordering_fields = ["datetime_queued", "datetime_started", "datetime_completed"]
     pagination_class = LimitOffsetPagination
 
