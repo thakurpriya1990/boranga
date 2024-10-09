@@ -297,7 +297,7 @@ export default {
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
-                                text: 'Your document has been removed',
+                                text: 'The document has been discarded',
                                 icon: 'success',
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
