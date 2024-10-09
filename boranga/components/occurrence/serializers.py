@@ -2346,9 +2346,7 @@ class OccurrenceReportAmendmentRequestSerializer(serializers.ModelSerializer):
             "reason",
             "reason_text",
             "amendment_request_documents",
-            "subject",
             "text",
-            "officer",
             "status",
             "occurrence_report",
         ]
@@ -3986,6 +3984,9 @@ class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
     file_name = serializers.CharField(read_only=True)
     percentage_complete = serializers.CharField(read_only=True)
     schema_id = serializers.IntegerField(write_only=True)
+    group_type_name = serializers.CharField(
+        source="schema__group_type__name", read_only=True
+    )
 
     class Meta:
         model = OccurrenceReportBulkImportTask
@@ -4005,6 +4006,7 @@ class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
             "estimated_processing_time_human_readable",
             "total_time_taken_human_readable",
             "percentage_complete",
+            "group_type_name",
         )
 
     def validate(self, attrs):

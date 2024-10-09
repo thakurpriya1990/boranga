@@ -1489,9 +1489,7 @@ class ConservationStatusAmendmentRequestDisplaySerializer(serializers.ModelSeria
             "reason",
             "reason_text",
             "cs_amendment_request_documents",
-            "subject",
             "text",
-            "officer",
             "status",
             "conservation_status",
         ]
