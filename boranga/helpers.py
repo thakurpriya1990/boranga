@@ -406,6 +406,10 @@ def get_instance_identifier(instance):
 def get_openpyxl_data_validation_type_for_django_field(field, column=None):
     from openpyxl.worksheet.datavalidation import DataValidation
 
+    if field in ["species", "community"]:
+        # There are always lookup tables (never embedded validation)
+        return None
+
     dv_types = dict(zip(DataValidation.type.values, DataValidation.type.values))
 
     field_type_map = {
@@ -552,6 +556,7 @@ def get_choices_for_field(
 
         if (
             related_model_count == 0
+            or field.name in ["species", "community"]
             or related_model_count > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
         ):
             choices = None
