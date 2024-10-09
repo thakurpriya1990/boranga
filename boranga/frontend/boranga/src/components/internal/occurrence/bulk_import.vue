@@ -409,21 +409,21 @@ export default {
 
         },
         fetchQueuedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=queued`).then((response) => {
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=queued&schema__group_type__name=${this.$route.query.group_type}`).then((response) => {
                 this.queuedImports = response.body.results;
             }, (error) => {
                 console.log(error);
             });
         },
         fetchCurrentlyRunningImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=started`).then((response) => {
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=started&schema__group_type__name=${this.$route.query.group_type}`).then((response) => {
                 this.currentlyRunningImports = response.body.results;
             }, (error) => {
                 console.log(error);
             });
         },
         fetchFailedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=failed&limit=${this.failedImportsLimit}&ordering=-datetime_started`).then((response) => {
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=failed&schema__group_type__name=${this.$route.query.group_type}&limit=${this.failedImportsLimit}&ordering=-datetime_started`).then((response) => {
                 this.failedImports = response.body;
             }, (error) => {
                 console.log(error);
@@ -434,7 +434,7 @@ export default {
             this.fetchFailedImports();
         },
         fetchCompletedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=completed&limit=${this.completedImportsLimit}&ordering=-datetime_completed`).then((response) => {
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=completed&schema__group_type__name=${this.$route.query.group_type}&limit=${this.completedImportsLimit}&ordering=-datetime_completed`).then((response) => {
                 this.completedImports = response.body;
             }, (error) => {
                 console.log(error);
