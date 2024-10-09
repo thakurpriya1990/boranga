@@ -212,6 +212,12 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_CLOSED, "DeListed"),
     )
 
+    VALID_BULK_IMPORT_PROCESSING_STATUSES = [
+        (PROCESSING_STATUS_WITH_ASSESSOR, "With Assessor"),
+        (PROCESSING_STATUS_WITH_APPROVER, "With Approver"),
+        (PROCESSING_STATUS_APPROVED, "Approved"),
+    ]
+
     FINALISED_STATUSES = [
         PROCESSING_STATUS_APPROVED,
         PROCESSING_STATUS_DECLINED,
@@ -483,8 +489,8 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     def has_assessor_mode(self, request):
         status_with_assessor = [
-            "with_assessor",
-            "with_referral",
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
         ]
         if self.processing_status not in status_with_assessor:
             return False
@@ -5559,6 +5565,9 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         # Get the first sheet
         sheet = workbook.active
 
+        # headers
+        headers = [cell.value for cell in sheet[1] if cell.value is not None]
+
         # Get the rows
         rows = list(
             sheet.iter_rows(
@@ -5583,7 +5592,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
             self.save()
 
-            self.process_row(index, row, errors)
+            self.process_row(index, headers, row, errors)
 
         if errors and len(errors) > 0:
             # If a single thing went wrong roll back everything
@@ -5592,7 +5601,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
         return errors
 
-    def process_row(self, index, row, errors):
+    def process_row(self, index, headers, row, errors):
         row_hash = hashlib.sha256(str(row).encode()).hexdigest()
         if OccurrenceReport.objects.filter(import_hash=row_hash).exists():
             duplicate_ocr = OccurrenceReport.objects.get(import_hash=row_hash)
@@ -5628,7 +5637,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             cell_value = row[column_index]
 
             cell_value, errors_added = column.validate(
-                cell_value, mode, index, row, errors
+                cell_value, mode, index, headers, row, errors
             )
 
             model_class = apps.get_model(
@@ -6132,10 +6141,19 @@ class OccurrenceReportBulkImportSchema(models.Model):
             elif (
                 isinstance(model_field, models.fields.CharField) and model_field.choices
             ):
+                choices = [c[0] for c in model_field.choices]
+                if (
+                    model_class is OccurrenceReport
+                    and model_field.name == "processing_status"
+                ):
+                    choices = [
+                        c[0]
+                        for c in OccurrenceReport.VALID_BULK_IMPORT_PROCESSING_STATUSES
+                    ]
                 dv = DataValidation(
                     type=dv_types["list"],
                     allow_blank=allow_blank,
-                    formula1=",".join([c[0] for c in model_field.choices]),
+                    formula1=",".join(choices),
                     error="Please select a valid option from the list",
                     errorTitle="Invalid selection",
                     prompt="Select a value from the list",
@@ -6390,6 +6408,8 @@ class OccurrenceReportBulkImportSchema(models.Model):
             transaction.set_rollback(True)
             return errors
 
+        headers = [cell.value for cell in sheet[1] if cell.value is not None]
+
         # Get the rows
         row = list(
             sheet.iter_rows(
@@ -6401,7 +6421,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
         )[0]
 
         try:
-            import_task.process_row(0, row, errors)
+            import_task.process_row(0, headers, row, errors)
         except Exception as e:
             logger.error(f"Error processing sample row: {e}")
             logger.error(traceback.format_exc())
@@ -6939,7 +6959,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         return workbook
 
-    def validate(self, cell_value, mode, index, row, errors):
+    def validate(self, cell_value, mode, index, headers, row, errors):
         from boranga.components.spatial.utils import get_geometry_array_from_geojson
 
         errors_added = 0
@@ -6985,13 +7005,12 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             and self.django_import_field_name == "processing_status"
         ):
             if cell_value not in [
-                OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
-                OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
-                OccurrenceReport.PROCESSING_STATUS_APPROVED,
+                c[0] for c in OccurrenceReport.VALID_BULK_IMPORT_PROCESSING_STATUSES
             ]:
                 error_message = (
                     f"Value {cell_value} in column {self.xlsx_column_header_name} "
-                    f"is not a valid processing status (must be one of with_assessor, with_approver or approved)"
+                    f"is not a valid processing status (must be one of "
+                    f"{str([c[0] for c in OccurrenceReport.VALID_BULK_IMPORT_PROCESSING_STATUSES])})"
                 )
                 errors.append(
                     {
@@ -7014,7 +7033,9 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     ),
                     django_import_field_name="assigned_officer",
                 ).first()
-                assigned_officer_email = row[assigned_officer_column.order]
+                assigned_officer_email = row[
+                    headers.index(assigned_officer_column.xlsx_column_header_name)
+                ]
                 logger.debug(f"Assigned officer email: {assigned_officer_email}")
                 assigned_officer_id = None
                 try:
@@ -7041,14 +7062,15 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     assigned_officer_id, settings.GROUP_NAME_OCCURRENCE_ASSESSOR
                 ):
                     error_message = (
-                        f"User {assigned_officer_id} is not a member"
+                        f"User with email {assigned_officer_email} "
+                        f"(Ledger Emailuser ID: {assigned_officer_id}) is not a member"
                         " of the occurrence assessor group"
                     )
                     errors.append(
                         {
                             "row_index": index,
                             "error_type": "column",
-                            "data": assigned_officer_id,
+                            "data": assigned_officer_email,
                             "error_message": error_message,
                         }
                     )
@@ -7060,7 +7082,9 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     ),
                     django_import_field_name="assigned_approver",
                 ).first()
-                assigned_approver_email = row[assigned_approver_column.order]
+                assigned_approver_email = row[
+                    headers.index(assigned_approver_column.xlsx_column_header_name)
+                ]
                 assigned_approver_id = None
                 try:
                     assigned_approver_id = EmailUser.objects.get(
@@ -7086,14 +7110,15 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     assigned_approver_id, settings.GROUP_NAME_OCCURRENCE_APPROVER
                 ):
                     error_message = (
-                        f"User {assigned_approver_id} is not a member"
+                        f"User with email {assigned_approver_email} "
+                        f"(Ledger Emailuser ID: {assigned_approver_id}) is not a member"
                         " of the occurrence approver group"
                     )
                     errors.append(
                         {
                             "row_index": index,
                             "error_type": "column",
-                            "data": assigned_officer_id,
+                            "data": assigned_approver_email,
                             "error_message": error_message,
                         }
                     )

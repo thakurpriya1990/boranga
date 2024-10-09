@@ -536,6 +536,13 @@ def get_choices_for_field(
     model_class: models.base.ModelBase, field: models.Field
 ) -> list | None:
     from boranga.components.main.models import ArchivableModel
+    from boranga.components.occurrence.models import OccurrenceReport
+
+    if model_class is OccurrenceReport and field.name == "processing_status":
+        logger.debug(f"Getting choices for field {field.name} in model {model_class}")
+
+        # Only certain statuses are valid for OCR bulk import processing
+        return OccurrenceReport.VALID_BULK_IMPORT_PROCESSING_STATUSES
 
     choices = field.choices if hasattr(field, "choices") else None
 
