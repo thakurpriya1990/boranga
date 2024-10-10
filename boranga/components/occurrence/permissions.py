@@ -443,7 +443,11 @@ class OccurrenceReportBulkImportPermission(BasePermission):
         if request.user.is_superuser:
             return True
 
-        if request.method not in permissions.SAFE_METHODS and obj.is_master:
+        if (
+            view.action != "copy"
+            and request.method not in permissions.SAFE_METHODS
+            and obj.is_master
+        ):
             return is_django_admin(request)
 
         return is_django_admin(request) or is_occurrence_approver(request)
