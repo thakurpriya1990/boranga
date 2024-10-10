@@ -6409,8 +6409,10 @@ class OccurrenceReportBulkImportSchemaViewSet(
     @detail_route(methods=["post"], detail=True)
     def copy(self, request, *args, **kwargs):
         instance = self.get_object()
-        new_instance = instance.copy()
-        serializer = OccurrenceReportBulkImportSchemaSerializer(new_instance)
+        new_instance = instance.copy(request)
+        serializer = OccurrenceReportBulkImportSchemaSerializer(
+            new_instance, context={"request": request}
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @detail_route(methods=["get"], detail=False)
