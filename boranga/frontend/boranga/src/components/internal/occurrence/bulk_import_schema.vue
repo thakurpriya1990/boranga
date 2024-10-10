@@ -15,65 +15,89 @@
         </div>
         <div v-if="schema" class="row mb-3">
             <div class="col">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="border-bottom pb-3 mb-3">
-                            <div class="row">
-                                <div class="col-5">
-                                    <h4 class="text-capitalize">{{ schema.group_type_display }} Bulk Import
-                                        Schema <span class="badge bg-secondary ms-3">Version: {{ schema.version
-                                            }}</span></h4>
-                                </div>
-                                <div class="col-7">
-                                    <div class="input-group float-start me-3" style="width:250px;">
-                                        <span class="input-group-text" id="basic-addon1"><i
-                                                class="bi bi-tag-fill text-secondary"></i></span>
-                                        <input type="text" class="form-control form-control-sm" placeholder="Add tag"
-                                            @keydown="addTag" />
-                                    </div>
-                                    <div class="float-end">
-                                        <button class="btn btn-primary me-2"
-                                            @click.prevent="copySchema(schema.id)"><i class="bi bi-copy me-2"></i>
-                                            Copy</button>
-                                        <button role="button" class="btn btn-primary me-2"
-                                            @click.prevent="validate()"><i class="bi bi-card-checklist me-1"></i>
-                                            Validate</button>
-                                        <a role="button" class="btn btn-primary"
-                                            :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
-                                                class="bi bi-filetype-xlsx me-1"></i> Preview</a>
+                <form>
+                    <fieldset :class="!schema.can_user_edit ? 'disabled' : ''">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="border-bottom pb-3 mb-3">
+                                    <div class="row">
+                                        <div class="col-5">
+                                            <h4 class="text-capitalize">{{ schema.group_type_display }} Bulk Import
+                                                Schema <span class="badge bg-secondary ms-3">V{{ schema.version
+                                                    }}</span></h4>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="input-group float-start me-3" style="width:250px;">
+                                                <span class="input-group-text" id="basic-addon1"><i
+                                                        class="bi bi-tag-fill text-secondary"></i></span>
+                                                <input type="text" class="form-control form-control-sm"
+                                                    placeholder="Add tag" @keydown="addTag" />
+                                            </div>
+                                            <div class="float-end">
+                                                <button id="copy-schema" class="btn btn-primary me-2" :disabled="false"
+                                                    @click.prevent="copySchema(schema.id)"><i
+                                                        class="bi bi-copy me-2"></i>
+                                                    Copy</button>
+                                                <button role="button" class="btn btn-primary me-2"
+                                                    @click.prevent="validate()"><i
+                                                        class="bi bi-card-checklist me-1"></i>
+                                                    Validate</button>
+                                                <a role="button" class="btn btn-primary"
+                                                    :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
+                                                        class="bi bi-filetype-xlsx me-1"></i> Preview</a>
 
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="border-bottom pb-3 mb-2">
+                                    <div class="row align-items-center">
+                                        <label for="schema-name" class="col-sm-1 col-form-label">Name</label>
+                                        <div class="col-sm-7">
+                                            <input type="text" class="form-control" id="schema-name" ref="schema-name"
+                                                v-model="schema.name" placeholder="Enter Schema Name" autofocus>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pb-0 mb-0">
+                                    <div class="row align-items-center">
+                                        <template v-if="schema.can_user_toggle_master">
+                                            <label for="schema-name" class="col-sm-2 col-form-label">Master Schema<i
+                                                    class="bi bi-lock-fill text-warning ms-2 fs-5"
+                                                    v-if="schema.is_master"></i></label>
+                                            <div class="col-sm-1">
+                                                <div class="form-check form-switch form-switch-lg"
+                                                    style="transform: scale(1.3);">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        id="is-master-schema" v-model="schema.is_master"
+                                                        @change="save()">
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <label for="schema-tags" class="col-sm-1 col-form-label">Tags</label>
+                                        <div class="col-sm-6">
+                                            <template v-if="schema.tags && schema.tags.length > 0">
+                                                <span
+                                                    class="d-inline-flex align-items-center badge bg-info fs-6 my-2 me-2"
+                                                    v-for="(tag, index) in schema.tags" :key="tag">{{ tag }}<i
+                                                        v-if="schema.can_user_edit" class="bi bi-x-circle-fill ps-2"
+                                                        role="button" @click="removeTag(index)"></i></span>
+                                            </template>
+                                            <template v-else>
+                                                <span class="text-muted">No tags added</span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="errors" class="mb-3">
+                                    <alert type="danger">
+                                        {{ errors }}
+                                    </alert>
+                                </div>
                             </div>
                         </div>
-                        <div class="">
-                            <div class="row align-items-center">
-                                <label for="schema-name" class="col-sm-1 col-form-label">Name</label>
-                                <div class="col-sm-4">
-                                    <input type="text" class="form-control" id="schema-name" ref="schema-name"
-                                        v-model="schema.name" placeholder="Enter Schema Name" autofocus>
-                                </div>
-                                <label for="schema-tags" class="col-sm-1 col-form-label">Tags</label>
-                                <div class="col-sm-6">
-                                    <template v-if="schema.tags && schema.tags.length > 0">
-                                        <span class="d-inline-flex align-items-center badge bg-info fs-6 my-2 me-2"
-                                            v-for="(tag, index) in schema.tags" :key="tag">{{ tag }}<i
-                                                class="bi bi-x-circle-fill ps-2" role="button"
-                                                @click="removeTag(index)"></i></span>
-                                    </template>
-                                    <template v-else>
-                                        <span class="text-muted">No tags added</span>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-                        <div v-if="errors" class="mb-3">
-                            <alert type="danger">
-                                {{ errors }}
-                            </alert>
-                        </div>
-                    </div>
-                </div>
+                    </fieldset>
+                </form>
             </div>
         </div>
         <div v-if="schema" class="row">
@@ -92,8 +116,9 @@
                                         @click="selectColumn(column)"
                                         :style="selectedColumn == column ? '' : `background-color:${stringToRGBAColor(column.model_name)};`"
                                         role="button" :key="column.id">
-                                        <td style="width:5%" class="text-center fw-bold">{{ index +
-                                            1 }}
+                                        <td style="width:5%" class="text-center fw-bold"
+                                            :class="selectedColumn == column ? 'text-light' : ''">{{ index +
+                                                1 }}
                                         </td>
                                         <td class="ps-3 fw-bold" style="font-size:0.9em; width:40%"
                                             :class="selectedColumn == column ? 'py-1' : ''">
@@ -111,12 +136,13 @@
                                             :class="selectedColumn == column ? 'text-light' : 'text-muted'"
                                             style="width:10%">
                                             <i class="bi bi-eye-fill " role="button"
-                                                :class="index == 0 || schema.columns.length <= 2 || !column.id ? 'me-4' : 'me-2'"></i>
-                                            <i v-if="!index == 0 && schema.columns.length > 2 && column.id"
+                                                :class="schema.can_user_edit && column.is_editable_by_user && (index == 0 || schema.columns.length <= 2 || !column.id) ? 'me-4' : 'me-2'"></i>
+                                            <i v-if="schema.can_user_edit && column.is_editable_by_user && (!index == 0 && schema.columns.length > 2 && column.id)"
                                                 class="bi bi-arrow-down-up" role="button" style="cursor:move;"></i>
+                                            <i v-if="!column.is_editable_by_user" class="bi bi-lock-fill"></i>
                                         </td>
                                     </tr>
-                                    <tr class="border-bottom-0"
+                                    <tr v-if="schema.can_user_edit" class="border-bottom-0"
                                         :class="schema.columns.length == 0 ? 'border-top-0' : ''"
                                         @click.prevent="addNewColumn" role="button">
                                         <th class="border-0 ps-3 pt-2 text-muted" colspan="2">Add <template
@@ -135,291 +161,305 @@
             <div class="col-8">
                 <div v-if="addEditMode && selectedColumn" class="card sticky-top">
                     <div class="card-body">
-                        <h5 class="card-title border-bottom pb-2 mb-3">
+                        <h5 class="card-title border-bottom pb-3 mb-3">
                             Selected Column Details
                         </h5>
                         <form @submit.prevent="" class="needs-validation" novalidate>
-                            <div class="row d-flex align-items-center mb-2">
-                                <label for="inputEmail3" class="col-sm-4 col-form-label">Django Import
-                                    Model</label>
-                                <div class="col-sm-8 ">
-                                    <select class="form-select form-select-sm" aria-label="Django Import Model"
-                                        ref="django-import-model" v-model="selectedColumn.django_import_content_type"
-                                        :disabled="selectedColumn.order == 0" @change="selectDjangoImportContentType">
-                                        <option value="">Select Django Import Model
-                                        </option>
-                                        <template v-if="selectedColumn.id">
-                                            <option v-for="djangoContentType in djangoContentTypes"
-                                                :value="djangoContentType.id">{{
-                                                    djangoContentType.model_verbose_name ?
-                                                        djangoContentType.model_verbose_name : djangoContentType.model }}
-                                            </option>
-                                        </template>
-                                        <template v-else>
-                                            <option v-for="djangoContentType in djangoContentTypesFiltered"
-                                                :value="djangoContentType.id">{{
-                                                    djangoContentType.model_verbose_name ?
-                                                        djangoContentType.model_verbose_name : djangoContentType.model }}
-                                            </option>
-                                        </template>
-                                    </select>
-                                </div>
-                            </div>
-                            <div v-if="selectedContentType && !selectedColumn?.id && !showDjangoImportFieldSelect"
-                                class="row d-flex align-items-start mb-2">
-                                <label for="inputEmail3" class="col-sm-4 col-form-label">Operation</label>
-                                <div class="col-sm-8 ">
-                                    <button class="btn btn-primary btn-sm d-block mb-2"
-                                        @click.prevent="addAllColumns(false)"><i
-                                            class="bi bi-plus-circle-fill me-1"></i>
-                                        Add All Fields</button>
-                                    <button class="btn btn-primary btn-sm me-2 d-block mb-2"
-                                        @click.prevent="addAllColumns(true)"><i class="bi bi-plus-circle-fill me-1"></i>
-                                        Add All Mandatory Fields</button>
-                                    <button class="btn btn-primary btn-sm d-block" @click.prevent="addSingleColumn()"><i
-                                            class="bi bi-plus-circle-fill me-1"></i>
-                                        Add a Single Field</button>
-                                </div>
-                            </div>
-                            <div v-if="showDjangoImportFieldSelect" class="row d-flex align-items-center mb-2">
-                                <label for="inputEmail3" class="col-sm-4 col-form-label">Django Import
-                                    Field</label>
-                                <div class="col-sm-8 ">
-                                    <select class="form-select form-select-sm" aria-label="Django Import Field"
-                                        ref="django-import-field" v-model="selectedColumn.django_import_field_name"
-                                        :disabled="selectedColumn.order == 0" @change="selectDjangoImportField">
-                                        <option value="">Select Django Import Field
-                                        </option>
-                                        <template v-if="selectedColumn.id">
-                                            <option v-for="modelField in selectedContentType.model_fields"
-                                                :value="modelField.name">
-                                                {{
-                                                    modelField.display_name }} ({{
-                                                    modelField.type }}) <template v-if="!modelField.allow_null">*</template>
-                                            </option>
-                                        </template>
-                                        <template v-else>
-                                            <option v-for="modelField in djangoImportFieldsFiltered"
-                                                :value="modelField.name">
-                                                {{
-                                                    modelField.display_name }} ({{
-                                                    modelField.type }}) <template v-if="!modelField.allow_null">*</template>
-                                            </option>
-                                        </template>
-                                    </select>
-                                </div>
-                            </div>
-                            <template v-if="selectedField">
+                            <fieldset :disabled="!schema.can_user_edit || !selectedColumn.is_editable_by_user">
                                 <div class="row d-flex align-items-center mb-2">
-                                    <label for="column-name" class="col-sm-4 col-form-label">Column
-                                        Name</label>
+                                    <label for="inputEmail3" class="col-sm-4 col-form-label">Django Import
+                                        Model</label>
                                     <div class="col-sm-8 ">
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control" name="column-name" id="column-name"
-                                                ref="column-name" v-model="selectedColumn.xlsx_column_header_name" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div v-if="selectedField.type == 'IntegerField' && this.defaultValueChoices && this.defaultValueChoices.length > 0"
-                                    class="row d-flex align-items-center mb-2">
-                                    <label for="default-value" class="col-sm-4 col-form-label">Default
-                                        Value</label>
-                                    <div class="col-sm-8 ">
-                                        <div class="input-group input-group-sm">
-                                            <select class="form-select" v-model="selectedColumn.default_value"
-                                                id="default-value">
-                                                <option :value="null">No Default
+                                        <select class="form-select form-select-sm" aria-label="Django Import Model"
+                                            ref="django-import-model"
+                                            v-model="selectedColumn.django_import_content_type"
+                                            :disabled="selectedColumn.order == 0"
+                                            @change="selectDjangoImportContentType">
+                                            <option value="">Select Django Import Model
+                                            </option>
+                                            <template v-if="selectedColumn.id">
+                                                <option v-for="djangoContentType in djangoContentTypes"
+                                                    :value="djangoContentType.id">{{
+                                                        djangoContentType.model_verbose_name ?
+                                                            djangoContentType.model_verbose_name : djangoContentType.model }}
                                                 </option>
-                                                <option v-for="choice in defaultValueChoices" :value="choice[0]">{{
-                                                    choice[1] }}
+                                            </template>
+                                            <template v-else>
+                                                <option v-for="djangoContentType in djangoContentTypesFiltered"
+                                                    :value="djangoContentType.id">{{
+                                                        djangoContentType.model_verbose_name ?
+                                                            djangoContentType.model_verbose_name : djangoContentType.model }}
                                                 </option>
-                                            </select>
-                                        </div>
+                                            </template>
+                                        </select>
                                     </div>
                                 </div>
-                                <div v-if="selectedField.type == 'IntegerField' && !selectedColumn.default_value"
-                                    class="row d-flex align-items-center mb-2">
-                                    <label for="default-value" class="col-sm-4 col-form-label">Ledger Email User
-                                        Column?<i id="is-email-user-column-help-text"
-                                            class="bi bi-info-circle-fill text-primary ms-2" data-bs-toggle="popover"
-                                            data-bs-trigger="hover focus"
-                                            data-bs-content="If set to 'Yes' the column value will be validated as an email address during the import and  the email will be used to lookup the user id in ledger"
-                                            data-bs-placement="top"></i></label>
+                                <div v-if="selectedContentType && !selectedColumn?.id && !showDjangoImportFieldSelect"
+                                    class="row d-flex align-items-start mb-2">
+                                    <label for="inputEmail3" class="col-sm-4 col-form-label">Operation</label>
                                     <div class="col-sm-8 ">
-                                        <div class="input-group input-group-sm">
-                                            <select class="form-select w-50" aria-label="Allow Blank"
-                                                v-model="selectedColumn.is_emailuser_column">
-                                                <option :value="true">Yes</option>
-                                                <option :value="false">No</option>
-                                            </select>
-                                        </div>
+                                        <button class="btn btn-primary btn-sm d-block mb-2"
+                                            @click.prevent="addAllColumns(false)"><i
+                                                class="bi bi-plus-circle-fill me-1"></i>
+                                            Add All Fields</button>
+                                        <button class="btn btn-primary btn-sm me-2 d-block mb-2"
+                                            @click.prevent="addAllColumns(true)"><i
+                                                class="bi bi-plus-circle-fill me-1"></i>
+                                            Add All Mandatory Fields</button>
+                                        <button class="btn btn-primary btn-sm d-block"
+                                            @click.prevent="addSingleColumn()"><i
+                                                class="bi bi-plus-circle-fill me-1"></i>
+                                            Add a Single Field</button>
                                     </div>
                                 </div>
-                                <div class="row d-flex align-items-center mb-2">
+                                <div v-if="showDjangoImportFieldSelect" class="row d-flex align-items-center mb-2">
+                                    <label for="inputEmail3" class="col-sm-4 col-form-label">Django Import
+                                        Field</label>
+                                    <div class="col-sm-8 ">
+                                        <select class="form-select form-select-sm" aria-label="Django Import Field"
+                                            ref="django-import-field" v-model="selectedColumn.django_import_field_name"
+                                            :disabled="selectedColumn.order == 0" @change="selectDjangoImportField">
+                                            <option value="">Select Django Import Field
+                                            </option>
+                                            <template v-if="selectedColumn.id">
+                                                <option v-for="modelField in selectedContentType.model_fields"
+                                                    :value="modelField.name">
+                                                    {{
+                                                        modelField.display_name }} ({{
+                                                        modelField.type }}) <template
+                                                        v-if="!modelField.allow_null">*</template>
+                                                </option>
+                                            </template>
+                                            <template v-else>
+                                                <option v-for="modelField in djangoImportFieldsFiltered"
+                                                    :value="modelField.name">
+                                                    {{
+                                                        modelField.display_name }} ({{
+                                                        modelField.type }}) <template
+                                                        v-if="!modelField.allow_null">*</template>
+                                                </option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                </div>
+                                <template v-if="selectedField">
+                                    <div class="row d-flex align-items-center mb-2">
+                                        <label for="column-name" class="col-sm-4 col-form-label">Column
+                                            Name</label>
+                                        <div class="col-sm-8 ">
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control" name="column-name"
+                                                    id="column-name" ref="column-name"
+                                                    v-model="selectedColumn.xlsx_column_header_name" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-if="selectedField.type == 'IntegerField' && this.defaultValueChoices && this.defaultValueChoices.length > 0"
+                                        class="row d-flex align-items-center mb-2">
+                                        <label for="default-value" class="col-sm-4 col-form-label">Default
+                                            Value</label>
+                                        <div class="col-sm-8 ">
+                                            <div class="input-group input-group-sm">
+                                                <select class="form-select" v-model="selectedColumn.default_value"
+                                                    id="default-value">
+                                                    <option :value="null">No Default
+                                                    </option>
+                                                    <option v-for="choice in defaultValueChoices" :value="choice[0]">{{
+                                                        choice[1] }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-if="selectedField.type == 'IntegerField' && !selectedColumn.default_value"
+                                        class="row d-flex align-items-center mb-2">
+                                        <label for="default-value" class="col-sm-4 col-form-label">Ledger Email User
+                                            Column?<i id="is-email-user-column-help-text"
+                                                class="bi bi-info-circle-fill text-primary ms-2"
+                                                data-bs-toggle="popover" data-bs-trigger="hover focus"
+                                                data-bs-content="If set to 'Yes' the column value will be validated as an email address during the import and  the email will be used to lookup the user id in ledger"
+                                                data-bs-placement="top"></i></label>
+                                        <div class="col-sm-8 ">
+                                            <div class="input-group input-group-sm">
+                                                <select class="form-select w-50" aria-label="Allow Blank"
+                                                    v-model="selectedColumn.is_emailuser_column">
+                                                    <option :value="true">Yes</option>
+                                                    <option :value="false">No</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row d-flex align-items-center mb-2">
+                                        <label for="inputEmail3" class="col-sm-4 col-form-label">Django
+                                            Field
+                                            Type</label>
+                                        <div class="col-sm-8 ">
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control" name="" id="" placeholder=""
+                                                    disabled :value="selectedField.type" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row d-flex align-items-center mb-2">
+                                        <label for="xlsx-validation-type" class="col-sm-4 col-form-label">Excel
+                                            Validation
+                                            Type</label>
+                                        <div class="col-sm-8 ">
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control form-control-sm"
+                                                    name="xlsx-validation-type" id="xlsx-validation-type" disabled
+                                                    :value="excelValidationType()" />
+                                                <template v-if="selectedField.xlsx_validation_type == 'date'">
+                                                    <span class="input-group-text" id="datetime-format">Format:</span>
+                                                    <span class="input-group-text" id="datetime-format-mask">DD/MM/YYYY
+                                                        HH:MM:SS</span>
+                                                </template>
+                                                <template v-if="selectedField.xlsx_validation_type == 'list'">
+                                                    <button
+                                                        v-if="selectedField.choices && selectedField.choices.length > 0"
+                                                        class="btn btn-primary" data-bs-toggle="modal"
+                                                        data-bs-target="#preview-choices"><i class="bi bi-search"
+                                                            role="button"></i> Preview
+                                                        List Choices</button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-if="selectedField.xlsx_validation_type" class="row mb-2">
+                                        <label for="inputEmail3" class="col-sm-4 col-form-label">Excel Data
+                                            Validations<i id="pre-import-validation-help-text"
+                                                class="bi bi-info-circle-fill text-primary ms-2"
+                                                data-bs-toggle="popover" data-bs-trigger="hover focus"
+                                                data-bs-content="Basic validations embedded in the .xlsx file"
+                                                data-bs-placement="top"></i></label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group input-group-sm mb-2">
+                                                <span class="input-group-text" id="allow-blank-label">Allow
+                                                    Blank</span>
+                                                <select class="form-select w-50" aria-label="Allow Blank"
+                                                    :disabled="!selectedField.allow_null"
+                                                    v-model="selectedColumn.xlsx_data_validation_allow_blank">
+                                                    <option :value="true">Yes</option>
+                                                    <option :value="false">No</option>
+                                                </select>
+                                            </div>
+                                            <div class="input-group input-group-sm mb-2">
+                                                <span class="input-group-text" id="max-length">Max
+                                                    Length</span>
+                                                <input type="text" class="form-control" aria-label="Max Length"
+                                                    aria-describedby="max-length"
+                                                    :value="selectedField.max_length ? selectedField.max_length : 'N/A'"
+                                                    disabled>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div v-if="showDjangoLookupField" class="row mb-2">
                                     <label for="inputEmail3" class="col-sm-4 col-form-label">Django
-                                        Field
-                                        Type</label>
-                                    <div class="col-sm-8 ">
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control" name="" id="" placeholder=""
-                                                disabled :value="selectedField.type" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row d-flex align-items-center mb-2">
-                                    <label for="xlsx-validation-type" class="col-sm-4 col-form-label">Excel
-                                        Validation
-                                        Type</label>
-                                    <div class="col-sm-8 ">
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control form-control-sm"
-                                                name="xlsx-validation-type" id="xlsx-validation-type" disabled
-                                                :value="excelValidationType()" />
-                                            <template v-if="selectedField.xlsx_validation_type == 'date'">
-                                                <span class="input-group-text" id="datetime-format">Format:</span>
-                                                <span class="input-group-text" id="datetime-format-mask">DD/MM/YYYY
-                                                    HH:MM:SS</span>
-                                            </template>
-                                            <template v-if="selectedField.xlsx_validation_type == 'list'">
-                                                <button v-if="selectedField.choices && selectedField.choices.length > 0"
-                                                    class="btn btn-primary" data-bs-toggle="modal"
-                                                    data-bs-target="#preview-choices"><i class="bi bi-search"
-                                                        role="button"></i> Preview
-                                                    List Choices</button>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div v-if="selectedField.xlsx_validation_type" class="row mb-2">
-                                    <label for="inputEmail3" class="col-sm-4 col-form-label">Excel Data
-                                        Validations<i id="pre-import-validation-help-text"
+                                        Lookup Field<i id="django-lookup-field-help-text"
                                             class="bi bi-info-circle-fill text-primary ms-2" data-bs-toggle="popover"
                                             data-bs-trigger="hover focus"
-                                            data-bs-content="Basic validations embedded in the .xlsx file"
-                                            data-bs-placement="top"></i></label>
-                                    <div class="col-sm-4">
-                                        <div class="input-group input-group-sm mb-2">
-                                            <span class="input-group-text" id="allow-blank-label">Allow
-                                                Blank</span>
-                                            <select class="form-select w-50" aria-label="Allow Blank"
-                                                :disabled="!selectedField.allow_null"
-                                                v-model="selectedColumn.xlsx_data_validation_allow_blank">
-                                                <option :value="true">Yes</option>
-                                                <option :value="false">No</option>
-                                            </select>
-                                        </div>
-                                        <div class="input-group input-group-sm mb-2">
-                                            <span class="input-group-text" id="max-length">Max
-                                                Length</span>
-                                            <input type="text" class="form-control" aria-label="Max Length"
-                                                aria-describedby="max-length"
-                                                :value="selectedField.max_length ? selectedField.max_length : 'N/A'"
-                                                disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                            <div v-if="showDjangoLookupField" class="row mb-2">
-                                <label for="inputEmail3" class="col-sm-4 col-form-label">Django
-                                    Lookup Field<i id="django-lookup-field-help-text"
-                                        class="bi bi-info-circle-fill text-primary ms-2" data-bs-toggle="popover"
-                                        data-bs-trigger="hover focus"
-                                        :data-bs-content="`Which field to use when looking up the ${selectedField.display_name} record. <br>(Advanced: You can use a custom field name if it's not in the list and it may span model relationships e.g. 'taxonomy__scientific_name' )`"
-                                        data-bs-placement="top" :data-bs-html="true"></i></label>
-                                <div class="col-sm-8">
-                                    <fieldset class="border p-2 mb-2">
-                                        <div class="input-group input-group-sm mb-1">
-                                            <span class="input-group-text w-25" id="lookup-field">
-                                                Lookup Field</span>
-                                            <template v-if="!customLookupField">
-                                                <select class="form-select" aria-label="Lookup Field"
-                                                    v-model="selectedColumn.django_lookup_field_name"
-                                                    @change="selectLookupField()">
+                                            :data-bs-content="`Which field to use when looking up the ${selectedField.display_name} record. <br>(Advanced: You can use a custom field name if it's not in the list and it may span model relationships e.g. 'taxonomy__scientific_name' )`"
+                                            data-bs-placement="top" :data-bs-html="true"></i></label>
+                                    <div class="col-sm-8">
+                                        <fieldset class="border p-2 mb-2">
+                                            <div class="input-group input-group-sm mb-1">
+                                                <span class="input-group-text w-25" id="lookup-field">
+                                                    Lookup Field</span>
+                                                <template v-if="!customLookupField">
+                                                    <select class="form-select" aria-label="Lookup Field"
+                                                        v-model="selectedColumn.django_lookup_field_name"
+                                                        @change="selectLookupField()">
+                                                        <option
+                                                            v-for="lookupField in selectedField.lookup_field_options"
+                                                            :value="lookupField">{{
+                                                                lookupField }}</option>
+                                                        <option value="custom">custom</option>
+                                                    </select>
+                                                    <a v-if="selectedColumn.id" class="btn btn-primary"
+                                                        :href="`/api/occurrence_report_bulk_import_schema_columns/${selectedColumn.id}/preview_foreign_key_values_xlsx/`"><i
+                                                            class="bi bi-filetype-xlsx" role="button"></i> Preview
+                                                        Choices</a>
+                                                </template>
+                                                <select v-else ref="lookup-field" class="form-select"
+                                                    aria-label="Lookup Field" @change="selectLookupField()">
                                                     <option v-for="lookupField in selectedField.lookup_field_options"
                                                         :value="lookupField">{{
                                                             lookupField }}</option>
-                                                    <option value="custom">custom</option>
+                                                    <option value="custom" selected>custom</option>
                                                 </select>
+                                            </div>
+                                            <div v-if="customLookupField" class="input-group input-group-sm mb-2 mt-2">
+                                                <input ref="custom-lookup-field" class="form-control form-control-sm"
+                                                    type="text" placeholder="Enter Custom Lookup Field"
+                                                    aria-label="Custom Lookup Field"
+                                                    v-model="selectedColumn.django_lookup_field_name">
                                                 <a v-if="selectedColumn.id" class="btn btn-primary"
                                                     :href="`/api/occurrence_report_bulk_import_schema_columns/${selectedColumn.id}/preview_foreign_key_values_xlsx/`"><i
-                                                        class="bi bi-filetype-xlsx" role="button"></i> Preview
-                                                    Choices</a>
-                                            </template>
-                                            <select v-else ref="lookup-field" class="form-select"
-                                                aria-label="Lookup Field" @change="selectLookupField()">
-                                                <option v-for="lookupField in selectedField.lookup_field_options"
-                                                    :value="lookupField">{{
-                                                        lookupField }}</option>
-                                                <option value="custom" selected>custom</option>
-                                            </select>
-                                        </div>
-                                        <div v-if="customLookupField" class="input-group input-group-sm mb-2 mt-2">
-                                            <input ref="custom-lookup-field" class="form-control form-control-sm"
-                                                type="text" placeholder="Enter Custom Lookup Field"
-                                                aria-label="Custom Lookup Field"
-                                                v-model="selectedColumn.django_lookup_field_name">
-                                            <a v-if="selectedColumn.id" class="btn btn-primary"
-                                                :href="`/api/occurrence_report_bulk_import_schema_columns/${selectedColumn.id}/preview_foreign_key_values_xlsx/`"><i
-                                                    class="bi bi-filetype-xlsx" role="button"></i> Preview {{
-                                                        selectedColumn.filtered_foreign_key_count }} Choices</a>
-                                        </div>
-                                        <div>
-                                            <button type="button" class="btn btn-primary btn-sm mb-2"
-                                                @click.prevent="addLookupFilter()">
-                                                <i class="bi bi-plus-circle-fill me-2"></i>Add Lookup Filter</button>
-                                            <template
-                                                v-if="selectedColumn.lookup_filters && selectedColumn.lookup_filters.length > 0">
-                                                <div v-for="(lookupFilter, index) in selectedColumn.lookup_filters"
-                                                    class="input-group input-group-sm mb-2">
-                                                    <select class="form-select"
-                                                        v-model="selectedColumn.lookup_filters[index].filter_field_name"
-                                                        @change="lookupFilterFieldChanged(selectedColumn.lookup_filters[index])">
-                                                        <option value="" disabled>Select Field</option>
-                                                        <option v-for="field in selectedField.filter_field_options"
-                                                            :value="field">{{ field }}</option>
-                                                    </select>
-                                                    <select class="form-select"
-                                                        v-model="selectedColumn.lookup_filters[index].filter_type">
-                                                        <option v-for="lookupFilter in lookupSchematypes"
-                                                            :value="lookupFilter[0]">{{ lookupFilter[1] }}</option>
-                                                    </select>
-                                                    <input
-                                                        v-if="selectedColumn.lookup_filters[index].values && selectedColumn.lookup_filters[index].values.length > 0"
-                                                        type="text" class="form-control" placeholder="Enter Value"
-                                                        aria-label="Enter Value"
-                                                        v-model="selectedColumn.lookup_filters[index].values[0].filter_value"
-                                                        @change="lookupFilterValueChanged($event, selectedColumn.lookup_filters[index])">
-                                                    <input v-else type="text" class="form-control"
-                                                        placeholder="Select Field First" disabled>
+                                                        class="bi bi-filetype-xlsx" role="button"></i> Preview {{
+                                                            selectedColumn.filtered_foreign_key_count }} Choices</a>
+                                            </div>
+                                            <div>
+                                                <button type="button" class="btn btn-primary btn-sm mb-2"
+                                                    @click.prevent="addLookupFilter()">
+                                                    <i class="bi bi-plus-circle-fill me-2"></i>Add Lookup
+                                                    Filter</button>
+                                                <template
+                                                    v-if="selectedColumn.lookup_filters && selectedColumn.lookup_filters.length > 0">
+                                                    <div v-for="(lookupFilter, index) in selectedColumn.lookup_filters"
+                                                        class="input-group input-group-sm mb-2">
+                                                        <select class="form-select"
+                                                            v-model="selectedColumn.lookup_filters[index].filter_field_name"
+                                                            @change="lookupFilterFieldChanged(selectedColumn.lookup_filters[index])">
+                                                            <option value="" disabled>Select Field</option>
+                                                            <option v-for="field in selectedField.filter_field_options"
+                                                                :value="field">{{ field }}</option>
+                                                        </select>
+                                                        <select class="form-select"
+                                                            v-model="selectedColumn.lookup_filters[index].filter_type">
+                                                            <option v-for="lookupFilter in lookupSchematypes"
+                                                                :value="lookupFilter[0]">{{ lookupFilter[1] }}</option>
+                                                        </select>
+                                                        <input
+                                                            v-if="selectedColumn.lookup_filters[index].values && selectedColumn.lookup_filters[index].values.length > 0"
+                                                            type="text" class="form-control" placeholder="Enter Value"
+                                                            aria-label="Enter Value"
+                                                            v-model="selectedColumn.lookup_filters[index].values[0].filter_value"
+                                                            @change="lookupFilterValueChanged($event, selectedColumn.lookup_filters[index])">
+                                                        <input v-else type="text" class="form-control"
+                                                            placeholder="Select Field First" disabled>
 
-                                                    <button type="button" class="btn btn-danger"
-                                                        @click.prevent="removeLookupFilter(selectedColumn, index)">
-                                                        <i class="bi bi-x-circle-fill"></i>
-                                                    </button>
-                                                </div>
-                                            </template>
-                                        </div>
-                                    </fieldset>
+                                                        <button type="button" class="btn btn-danger"
+                                                            @click.prevent="removeLookupFilter(selectedColumn, index)">
+                                                            <i class="bi bi-x-circle-fill"></i>
+                                                        </button>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </fieldset>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="border-top pt-3 d-flex justify-content-end">
-                                <button class="btn btn-primary btn-sm me-2" @click.prevent="save()"><i
-                                        class="bi bi-floppy-fill me-1"></i>
-                                    Save
-                                    Column <template v-if="saving"><span class="spinner-border spinner-border-sm ms-2"
-                                            role="status" aria-hidden="true"></span>
-                                        <span class="visually-hidden">Loading...</span></template></button>
-                                <button class="btn btn-danger btn-sm" v-if="!selectedColumn.id"
-                                    @click.prevent="cancelAddingColumn(selectedColumn)"><i
-                                        class="bi bi-x-circle-fill me-1"></i>
-                                    Cancel
-                                    Adding
-                                    Column</button>
-                                <button v-else-if="selectedColumn.order != 0" class="btn btn-danger btn-sm"
-                                    @click.prevent="removeColumn(selectedColumn)"><i class="bi bi-trash3-fill me-1"></i>
-                                    Delete
-                                    Column</button>
-                            </div>
+                                <div v-if="schema.can_user_edit && selectedColumn.is_editable_by_user" class="border-top pt-3 d-flex justify-content-end">
+                                    <button class="btn btn-primary btn-sm me-2" @click.prevent="save()"><i
+                                            class="bi bi-floppy-fill me-1"></i>
+                                        Save
+                                        Column <template v-if="saving"><span
+                                                class="spinner-border spinner-border-sm ms-2" role="status"
+                                                aria-hidden="true"></span>
+                                            <span class="visually-hidden">Loading...</span></template></button>
+                                    <button class="btn btn-danger btn-sm" v-if="!selectedColumn.id"
+                                        @click.prevent="cancelAddingColumn(selectedColumn)"><i
+                                            class="bi bi-x-circle-fill me-1"></i>
+                                        Cancel
+                                        Adding
+                                        Column</button>
+                                    <button v-else-if="selectedColumn.order != 0" class="btn btn-danger btn-sm"
+                                        @click.prevent="removeColumn(selectedColumn)"><i
+                                            class="bi bi-trash3-fill me-1"></i>
+                                        Delete
+                                        Column</button>
+                                </div>
+                            </fieldset>
                         </form>
                     </div>
                 </div>
@@ -438,7 +478,7 @@
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div v-if="schema" class="row">
             <div class="navbar fixed-bottom" style="background-color: rgb(245, 245, 245);">
                 <div class="container">
                     <div class="col-md-6">
@@ -446,8 +486,8 @@
                                 href="/internal/occurrence_report/bulk_import_schema/">Return to Dashboard </a>
                         </div>
                     </div>
-                    <div class="col-md-6 text-end"><button class="btn btn-primary me-2 float-end"
-                            @click.prevent="save()">Save
+                    <div v-if="schema.can_user_edit" class="col-md-6 text-end"><button
+                            class="btn btn-primary me-2 float-end" @click.prevent="save()">Save
                             and
                             Continue <template v-if="saving"><span class="spinner-border spinner-border-sm ms-2"
                                     role="status" aria-hidden="true"></span>
@@ -486,7 +526,7 @@
                                                         choice[1] }}</template>
                                                 <template v-else>{{
                                                     choice[0]
-                                                }}</template>
+                                                    }}</template>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -560,21 +600,25 @@ export default {
                 .then(response => {
                     this.schema = response.data
                     this.$nextTick(() => {
-                        var el = document.querySelector('.columns')
-                        this.sortable = Sortable.create(
-                            el, {
-                            animation: 150,
-                            handle: '.bi-arrow-down-up',
-                            onEnd: (event) => {
-                                let column = this.schema.columns.splice(event.oldIndex, 1)[0]
-                                this.schema.columns.splice(event.newIndex, 0, column)
-                                // Update the order of the columns
-                                this.schema.columns.forEach((column, index) => {
-                                    column.order = index
-                                })
-                                this.save()
-                            }
-                        })
+                        if (!this.schema.can_user_edit) {
+                            this.disableFieldsets();
+                        } else {
+                            var el = document.querySelector('.columns')
+                            this.sortable = Sortable.create(
+                                el, {
+                                animation: 150,
+                                handle: '.bi-arrow-down-up',
+                                onEnd: (event) => {
+                                    let column = this.schema.columns.splice(event.oldIndex, 1)[0]
+                                    this.schema.columns.splice(event.newIndex, 0, column)
+                                    // Update the order of the columns
+                                    this.schema.columns.forEach((column, index) => {
+                                        column.order = index
+                                    })
+                                    this.save()
+                                }
+                            })
+                        }
                     })
                 })
                 .catch(error => {
@@ -678,7 +722,8 @@ export default {
                 default_value: null,
                 import_validations: [],
                 order: this.schema.columns.length,
-                lookup_filters: []
+                lookup_filters: [],
+                is_editable_by_user: true
             }
         },
         addSingleColumn() {
@@ -988,6 +1033,11 @@ export default {
         },
         lookupFilterValueChanged() {
             this.save()
+        },
+        disableFieldsets() {
+            document.querySelectorAll('fieldset.disabled input').forEach(input => {
+                input.disabled = true
+            })
         }
     },
     created() {
