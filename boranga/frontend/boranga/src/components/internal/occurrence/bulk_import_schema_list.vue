@@ -42,9 +42,9 @@
                                 </tr>
                             </thead>
                             <tbody class="text-muted">
-                                <tr v-for="schema in bulkSchemas" class="">
-                                    <td>{{ schema.version }}</td>
-                                    <td class="text-truncate text-align-end" style="max-width: 300px;"
+                                <tr v-for="schema in bulkSchemas" :class="schema.is_master ? 'master-schema' : ''">
+                                    <td>{{ schema.version }}<i class="bi bi-lock-fill text-warning fs-5 ps-2" v-if="schema.is_master"></i></td>
+                                    <td class="text-truncate text-align-end" style="max-width: 285px;"
                                         :title="schema.name">{{
                                             schema.name }}</td>
                                     <td class="text-truncate"><span class="badge bg-info fs-6 me-2"
@@ -63,7 +63,8 @@
                                     <td>
                                         <a class="btn btn-sm btn-primary my-0 me-2" role="button"
                                             :href="`/internal/occurrence_report/bulk_import_schema/${schema.id}`"><i
-                                                class="bi bi-pencil-fill me-2"></i> Edit</a>
+                                                class="bi me-2" :class="schema.can_user_edit ? 'bi-pencil-fill' : 'bi-eye-fill'"></i> <template v-if="schema.can_user_edit">Edit</template><template v-else>View</template></a>
+
                                         <button class="btn btn-sm btn-primary my-0"
                                             @click.prevent="copySchema(schema.id)"><i class="bi bi-copy me-2"></i>
                                             Create a Copy</button>
@@ -194,3 +195,8 @@ export default {
     }
 }
 </script>
+<style scoped>
+.master-schema {
+    background-color: rgba(255, 193, 7, 0.3);
+}
+</style>
