@@ -6386,7 +6386,9 @@ class OccurrenceReportBulkImportSchemaViewSet(
         group_type = GroupType.objects.get(name=group_type)
 
         schema = OccurrenceReportBulkImportSchema.objects.filter(group_type=group_type)
-        serializer = OccurrenceReportBulkImportSchemaListSerializer(schema, many=True)
+        serializer = OccurrenceReportBulkImportSchemaListSerializer(
+            schema, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)
