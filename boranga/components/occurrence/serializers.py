@@ -3882,11 +3882,19 @@ class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
     lookup_filters = SchemaColumnLookupFilterNestedSerializer(
         many=True, allow_null=True, required=False
     )
+    is_editable_by_user = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReportBulkImportSchemaColumn
         fields = "__all__"
         validators = []  # Validation is done in the parent serializer
+
+    def get_is_editable_by_user(self, obj):
+        request = self.context.get("request")
+        if obj.is_editable:
+            return True
+
+        return request.user.is_superuser or is_django_admin(request)
 
 
 class OccurrenceReportBulkImportSchemaListSerializer(serializers.ModelSerializer):
@@ -3927,7 +3935,7 @@ class OccurrenceReportBulkImportSchemaListSerializer(serializers.ModelSerializer
 
 
 class OccurrenceReportBulkImportSchemaSerializer(
-    TaggitSerializer, serializers.ModelSerializer
+    TaggitSerializer, OccurrenceReportBulkImportSchemaListSerializer
 ):
     columns = OccurrenceReportBulkImportSchemaColumnNestedSerializer(
         many=True, allow_null=True, required=False
@@ -3935,14 +3943,27 @@ class OccurrenceReportBulkImportSchemaSerializer(
     tags = TagListSerializerField(allow_null=True, required=False)
     group_type_display = serializers.CharField(source="group_type.name", read_only=True)
     version = serializers.CharField(read_only=True)
+    can_user_edit = serializers.SerializerMethodField(read_only=True)
+    can_user_toggle_master = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReportBulkImportSchema
         fields = "__all__"
         read_only_fields = ("id",)
 
+    def get_can_user_toggle_master(self, obj):
+        request = self.context.get("request")
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        return is_django_admin(request)
+
     @transaction.atomic
     def update(self, instance, validated_data):
+        request = self.context.get("request")
         columns_data = validated_data.pop("columns", None)
         if not columns_data or len(columns_data) == 0:
             return super().update(instance, validated_data)
@@ -3953,6 +3974,8 @@ class OccurrenceReportBulkImportSchemaSerializer(
         ]
         instance.columns.exclude(id__in=ids_to_keep).delete()
         for column_data in columns_data:
+            if not is_django_admin(request):
+                column_data.pop("is_editable", None)
             lookup_filters_data = column_data.pop("lookup_filters", None)
             column, created = (
                 OccurrenceReportBulkImportSchemaColumn.objects.update_or_create(
@@ -3993,6 +4016,17 @@ class OccurrenceReportBulkImportSchemaSerializer(
                 )
 
         return super().update(instance, validated_data)
+
+
+class OccurrenceReportBulkImportSchemaOccurrenceApproverSerializer(
+    OccurrenceReportBulkImportSchemaSerializer
+):
+    is_master = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = OccurrenceReportBulkImportSchema
+        fields = "__all__"
+        read_only_fields = ("id",)
 
 
 class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):

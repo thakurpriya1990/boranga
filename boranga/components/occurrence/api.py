@@ -144,6 +144,7 @@ from boranga.components.occurrence.serializers import (
     OccurrenceReportAmendmentRequestSerializer,
     OccurrenceReportBulkImportSchemaColumnSerializer,
     OccurrenceReportBulkImportSchemaListSerializer,
+    OccurrenceReportBulkImportSchemaOccurrenceApproverSerializer,
     OccurrenceReportBulkImportSchemaSerializer,
     OccurrenceReportBulkImportTaskSerializer,
     OccurrenceReportDocumentSerializer,
@@ -211,6 +212,7 @@ from boranga.components.species_and_communities.serializers import TaxonomySeria
 from boranga.helpers import (
     is_contributor,
     is_customer,
+    is_django_admin,
     is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
@@ -6346,6 +6348,8 @@ class OccurrenceReportBulkImportSchemaViewSet(
     def get_serializer_class(self):
         if self.action == "list":
             return OccurrenceReportBulkImportSchemaListSerializer
+        if not is_django_admin(self.request):
+            return OccurrenceReportBulkImportSchemaOccurrenceApproverSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
