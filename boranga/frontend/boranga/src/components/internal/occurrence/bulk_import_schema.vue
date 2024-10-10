@@ -16,7 +16,7 @@
         <div v-if="schema" class="row mb-3">
             <div class="col">
                 <form>
-                    <fieldset :class="!schema.can_user_edit ? 'disabled' : ''">
+                    <fieldset id="main-schema-fieldset" :class="!schema.can_user_edit ? 'disabled' : ''">
                         <div class="card">
                             <div class="card-body">
                                 <div class="border-bottom pb-3 mb-3">
@@ -61,11 +61,11 @@
                                 </div>
                                 <div class="pb-0 mb-0">
                                     <div class="row align-items-center">
-                                        <template v-if="schema.can_user_toggle_master">
+                                        <template>
                                             <label for="schema-name" class="col-sm-2 col-form-label">Master Schema<i
-                                                    class="bi bi-lock-fill text-warning ms-2 fs-5"
+                                                    class="bi bi-lock-fill text-warning ms-2 fs-5" title="This is a Master Schema. When copied by an Occurrence Approver, any columns from the master will be locked."
                                                     v-if="schema.is_master"></i></label>
-                                            <div class="col-sm-1">
+                                            <div v-if="schema.can_user_toggle_master" class="col-sm-1">
                                                 <div class="form-check form-switch form-switch-lg"
                                                     style="transform: scale(1.3);">
                                                     <input class="form-check-input" type="checkbox"
@@ -139,7 +139,7 @@
                                                 :class="schema.can_user_edit && column.is_editable_by_user && (index == 0 || schema.columns.length <= 2 || !column.id) ? 'me-4' : 'me-2'"></i>
                                             <i v-if="schema.can_user_edit && column.is_editable_by_user && (!index == 0 && schema.columns.length > 2 && column.id)"
                                                 class="bi bi-arrow-down-up" role="button" style="cursor:move;"></i>
-                                            <i v-if="!column.is_editable_by_user" class="bi bi-lock-fill"></i>
+                                            <i v-if="!column.is_editable_by_user" class="bi bi-lock-fill" :title="`Column ${column.xlsx_column_header_name} is locked as it was copied from a master schema`"></i>
                                         </td>
                                     </tr>
                                     <tr v-if="schema.can_user_edit" class="border-bottom-0"
@@ -439,7 +439,14 @@
                                         </fieldset>
                                     </div>
                                 </div>
-                                <div v-if="schema.can_user_edit && selectedColumn.is_editable_by_user" class="border-top pt-3 d-flex justify-content-end">
+                            </fieldset>
+
+                            <div
+                                class="border-top pt-3 d-flex justify-content-end">
+                                <button class="btn btn-primary btn-sm me-2" @click.prevent="selectedColumn = null">
+                                    <i class="bi bi-x-square me-1"></i> Unselect Column
+                                </button>
+                                <template v-if="schema.can_user_edit && selectedColumn.is_editable_by_user">
                                     <button class="btn btn-primary btn-sm me-2" @click.prevent="save()"><i
                                             class="bi bi-floppy-fill me-1"></i>
                                         Save
@@ -458,8 +465,8 @@
                                             class="bi bi-trash3-fill me-1"></i>
                                         Delete
                                         Column</button>
-                                </div>
-                            </fieldset>
+                                </template>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -601,8 +608,9 @@ export default {
                     this.schema = response.data
                     this.$nextTick(() => {
                         if (!this.schema.can_user_edit) {
-                            this.disableFieldsets();
+                            this.disableMainFieldsetInputs();
                         } else {
+                            this.enableMainFieldsetInputs();
                             var el = document.querySelector('.columns')
                             this.sortable = Sortable.create(
                                 el, {
@@ -1034,9 +1042,14 @@ export default {
         lookupFilterValueChanged() {
             this.save()
         },
-        disableFieldsets() {
-            document.querySelectorAll('fieldset.disabled input').forEach(input => {
+        disableMainFieldsetInputs() {
+            document.querySelectorAll('fieldset#main-schema-fieldset input').forEach(input => {
                 input.disabled = true
+            })
+        },
+        enableMainFieldsetInputs() {
+            document.querySelectorAll('fieldset#main-schema-fieldset input').forEach(input => {
+                input.disabled = false
             })
         }
     },
