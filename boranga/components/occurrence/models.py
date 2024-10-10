@@ -6485,11 +6485,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     continue
                 setattr(new_column, field.name, getattr(column, field.name))
             new_column.schema = new_schema
-            if self.is_master and not is_django_admin(request):
-                new_column.is_editable = False
             new_column.save()
-
-            logger.debug(f"New column is editable: {new_column.is_editable}")
 
             for lookup_filter in column.lookup_filters.all():
                 new_lookup_filter = SchemaColumnLookupFilter.objects.create(
@@ -6505,6 +6501,11 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     )
 
         new_schema.tags.add(*self.tags.all())
+
+        if self.is_master and not is_django_admin(request):
+            # Columns copied from a 'master' schema will not be editable
+            # for occurrence approvers (only by superusers and django admins)
+            new_schema.columns.all().update(is_editable=False)
 
         return new_schema
 
@@ -6535,6 +6536,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
     xlsx_data_validation_allow_blank = models.BooleanField(default=False)
 
     # Columns copied from a 'master' schema will not be editable
+    # by occurrence approvers (only by superusers and django admins)
     is_editable = models.BooleanField(default=True)
 
     order_with_respect_to = "schema"
