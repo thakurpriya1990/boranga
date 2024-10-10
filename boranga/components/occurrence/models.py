@@ -6033,6 +6033,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
     tags = TaggableManager(blank=True)
     datetime_created = models.DateTimeField(auto_now_add=True)
     datetime_updated = models.DateTimeField(default=datetime.now)
+    is_master = models.BooleanField(default=False)
 
     class Meta:
         app_label = "boranga"
@@ -6521,6 +6522,9 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
     # This field allows the user that is generating the schema the ability to
     # make non mandatory fields mandatory for a specific schema
     xlsx_data_validation_allow_blank = models.BooleanField(default=False)
+
+    # Columns copied from a 'master' schema will not be editable
+    is_editable = models.BooleanField(default=True)
 
     order_with_respect_to = "schema"
 
