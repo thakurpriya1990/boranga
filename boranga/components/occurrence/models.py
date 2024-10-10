@@ -89,6 +89,7 @@ from boranga.helpers import (
     get_display_field_for_model,
     get_mock_request,
     get_openpyxl_data_validation_type_for_django_field,
+    is_django_admin,
     is_occurrence_approver,
     is_occurrence_assessor,
     member_ids,
@@ -6439,7 +6440,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
         return errors
 
     @transaction.atomic
-    def copy(self):
+    def copy(self, request):
         if not self.pk:
             raise ValueError("Schema must be saved before it can be copied")
 
@@ -6451,10 +6452,16 @@ class OccurrenceReportBulkImportSchema(models.Model):
             ).aggregate(Max("version"))["version__max"]
         else:
             highest_version = 0
+
         new_schema = OccurrenceReportBulkImportSchema(
             group_type=self.group_type,
             version=highest_version + 1,
         )
+        # If the user copying the schema has elevated permissions, the new schema
+        # will also be a master schema otherwise it will be a regular schema
+        if self.is_master and is_django_admin(request):
+            new_schema.is_master = True
+
         if self.name:
             new_schema.name = f"{self.name} (Copy)"
         else:
@@ -6478,6 +6485,8 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     continue
                 setattr(new_column, field.name, getattr(column, field.name))
             new_column.schema = new_schema
+            if self.is_master and not is_django_admin(request):
+                new_column.is_editable = False
             new_column.save()
 
             for lookup_filter in column.lookup_filters.all():
@@ -7040,7 +7049,6 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 assigned_officer_email = row[
                     headers.index(assigned_officer_column.xlsx_column_header_name)
                 ]
-                logger.debug(f"Assigned officer email: {assigned_officer_email}")
                 assigned_officer_id = None
                 try:
                     assigned_officer_id = EmailUser.objects.get(
