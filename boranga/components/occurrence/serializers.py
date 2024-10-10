@@ -77,6 +77,7 @@ from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_contributor,
+    is_django_admin,
     is_internal,
     is_new_external_contributor,
     is_occurrence_approver,
@@ -3892,6 +3893,7 @@ class OccurrenceReportBulkImportSchemaListSerializer(serializers.ModelSerializer
     tags = TagListSerializerField(allow_null=True, required=False)
     group_type_display = serializers.CharField(source="group_type.name", read_only=True)
     version = serializers.CharField(read_only=True)
+    can_user_edit = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReportBulkImportSchema
@@ -3904,8 +3906,24 @@ class OccurrenceReportBulkImportSchemaListSerializer(serializers.ModelSerializer
             "group_type_display",
             "datetime_created",
             "datetime_updated",
+            "is_master",
+            "can_user_edit",
         ]
         read_only_fields = ("id",)
+
+    def get_can_user_edit(self, obj):
+        if not obj.is_master:
+            return True
+
+        request = self.context.get("request")
+
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        return is_django_admin(request)
 
 
 class OccurrenceReportBulkImportSchemaSerializer(
