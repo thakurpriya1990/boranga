@@ -34,11 +34,11 @@
                                                     placeholder="Add tag" @keydown="addTag" />
                                             </div>
                                             <div class="float-end">
-                                                <button id="copy-schema" class="btn btn-primary me-2" :disabled="false"
+                                                <button type="button" id="copy-schema" class="btn btn-primary me-2" :disabled="false"
                                                     @click.prevent="copySchema(schema.id)"><i
                                                         class="bi bi-copy me-2"></i>
                                                     Copy</button>
-                                                <button role="button" class="btn btn-primary me-2"
+                                                <button type="button" class="btn btn-primary me-2"
                                                     @click.prevent="validate()"><i
                                                         class="bi bi-card-checklist me-1"></i>
                                                     Validate</button>
@@ -198,15 +198,15 @@
                                     class="row d-flex align-items-start mb-2">
                                     <label for="inputEmail3" class="col-sm-4 col-form-label">Operation</label>
                                     <div class="col-sm-8 ">
-                                        <button class="btn btn-primary btn-sm d-block mb-2"
+                                        <button type="button" class="btn btn-primary btn-sm d-block mb-2"
                                             @click.prevent="addAllColumns(false)"><i
                                                 class="bi bi-plus-circle-fill me-1"></i>
                                             Add All Fields</button>
-                                        <button class="btn btn-primary btn-sm me-2 d-block mb-2"
+                                        <button type="button" class="btn btn-primary btn-sm me-2 d-block mb-2"
                                             @click.prevent="addAllColumns(true)"><i
                                                 class="bi bi-plus-circle-fill me-1"></i>
                                             Add All Mandatory Fields</button>
-                                        <button class="btn btn-primary btn-sm d-block"
+                                        <button type="button" class="btn btn-primary btn-sm d-block"
                                             @click.prevent="addSingleColumn()"><i
                                                 class="bi bi-plus-circle-fill me-1"></i>
                                             Add a Single Field</button>
@@ -315,7 +315,7 @@
                                                         HH:MM:SS</span>
                                                 </template>
                                                 <template v-if="selectedField.xlsx_validation_type == 'list'">
-                                                    <button
+                                                    <button  type="button"
                                                         v-if="selectedField.choices && selectedField.choices.length > 0"
                                                         class="btn btn-primary" data-bs-toggle="modal"
                                                         data-bs-target="#preview-choices"><i class="bi bi-search"
