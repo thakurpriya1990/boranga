@@ -6033,7 +6033,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     tags = TaggableManager(blank=True)
     datetime_created = models.DateTimeField(auto_now_add=True)
-    datetime_updated = models.DateTimeField(default=datetime.now)
+    datetime_updated = models.DateTimeField(auto_now=True)
     is_master = models.BooleanField(default=False)
 
     class Meta:
@@ -6488,6 +6488,8 @@ class OccurrenceReportBulkImportSchema(models.Model):
             if self.is_master and not is_django_admin(request):
                 new_column.is_editable = False
             new_column.save()
+
+            logger.debug(f"New column is editable: {new_column.is_editable}")
 
             for lookup_filter in column.lookup_filters.all():
                 new_lookup_filter = SchemaColumnLookupFilter.objects.create(
