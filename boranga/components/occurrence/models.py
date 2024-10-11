@@ -7287,7 +7287,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             associated_files_zip = zipfile.ZipFile(task._associated_files_zip, "r")
 
             # Check if the file exists in the zip
-            if cell_value in associated_files_zip.namelist():
+            if cell_value not in associated_files_zip.namelist():
                 error_message = f"File {cell_value} not found in associated files zip"
                 errors.append(
                     {
