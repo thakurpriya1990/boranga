@@ -1,10 +1,12 @@
 import hashlib
 import json
 import logging
+import mimetypes
 import os
 import random
 import string
 import traceback
+import zipfile
 import zoneinfo
 from abc import abstractmethod
 from datetime import datetime
@@ -5281,7 +5283,22 @@ def validate_bulk_import_file_extension(value):
         )
 
 
+def validate_bulk_import_associated_files_extension(value):
+    ext = os.path.splitext(value.name)[1]
+    valid_extensions = [".zip"]
+    if ext not in valid_extensions:
+        raise ValidationError(
+            "Only .zip files are supported by the bulk import facility!"
+        )
+
+
+# TODO: Would be nice to have the object id in the file path
+# bit tricky before the object has been saved..
 def get_occurrence_report_bulk_import_path(instance, filename):
+    return f"occurrence_report/bulk-imports/{timezone.now()}/{filename}"
+
+
+def get_occurrence_report_bulk_import_associated_files_path(instance, filename):
     return f"occurrence_report/bulk-imports/{timezone.now()}/{filename}"
 
 
@@ -5297,6 +5314,14 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         max_length=512,
         storage=private_storage,
         validators=[validate_bulk_import_file_extension],
+    )
+    _associated_files_zip = models.FileField(
+        upload_to=get_occurrence_report_bulk_import_associated_files_path,
+        max_length=512,
+        storage=private_storage,
+        validators=[validate_bulk_import_associated_files_extension],
+        null=True,
+        blank=True,
     )
     # A hash of the file to allow for duplicate detection
     file_hash = models.CharField(max_length=64, null=True, blank=True)
@@ -5580,7 +5605,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         )
 
         errors = []
-
+        ocr_migrated_from_ids = []
         # Process the rows
         for index, row in enumerate(rows):
             self.rows_processed = index + 1
@@ -5593,7 +5618,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
             self.save()
 
-            self.process_row(index, headers, row, errors)
+            self.process_row(ocr_migrated_from_ids, index, headers, row, errors)
 
         if errors and len(errors) > 0:
             # If a single thing went wrong roll back everything
@@ -5602,7 +5627,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
         return errors
 
-    def process_row(self, index, headers, row, errors):
+    def process_row(self, ocr_migrated_from_ids, index, headers, row, errors):
         row_hash = hashlib.sha256(str(row).encode()).hexdigest()
         if OccurrenceReport.objects.filter(import_hash=row_hash).exists():
             duplicate_ocr = OccurrenceReport.objects.get(import_hash=row_hash)
@@ -5620,9 +5645,20 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             )
             return
 
+        ocr_migrated_from_id = row[0]
         mode = "create"
-        if OccurrenceReport.objects.filter(migrated_from_id=row[0]).exists():
+        if (
+            ocr_migrated_from_id in ocr_migrated_from_ids
+            or OccurrenceReport.objects.filter(
+                migrated_from_id=ocr_migrated_from_id
+            ).exists()
+        ):
             mode = "update"
+
+        if ocr_migrated_from_id not in ocr_migrated_from_ids:
+            # Because this is happening in a transaction we need to keep track of
+            # the ocr_migrated_from_ids that have been processed in this transaction
+            ocr_migrated_from_ids.append(ocr_migrated_from_id)
 
         row_error_count = 0
         total_column_error_count = 0
@@ -5638,7 +5674,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             cell_value = row[column_index]
 
             cell_value, errors_added = column.validate(
-                cell_value, mode, index, headers, row, errors
+                self, cell_value, mode, index, headers, row, errors
             )
 
             model_class = apps.get_model(
@@ -6673,7 +6709,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         if issubclass(self.related_model, ArchivableModel):
             related_model_qs = self.related_model.objects.exclude(archived=True)
 
-        related_model_qs = related_model_qs.values_list(display_field, flat=True)
+        related_model_qs = related_model_qs.only(display_field)
 
         return related_model_qs
 
@@ -6976,7 +7012,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         return workbook
 
-    def validate(self, cell_value, mode, index, headers, row, errors):
+    def validate(self, task, cell_value, mode, index, headers, row, errors):
         from boranga.components.spatial.utils import get_geometry_array_from_geojson
 
         errors_added = 0
@@ -7015,6 +7051,11 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             return cell_value, errors_added
 
         field = model_class._meta.get_field(self.django_import_field_name)
+
+        if self.default_value:
+            if self.default_value == self.DEFAULT_VALUE_BULK_IMPORT_SUBMITTER:
+                cell_value = task.email_user
+            return cell_value, errors_added
 
         if (
             self.django_import_content_type
@@ -7163,8 +7204,6 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 # fields may be blank
                 return cell_value, errors_added
             try:
-                # TODO: Make sure to add something to return users that are member of OCR assessor group
-                # or OCR approver group for fields that require it
                 cell_value = EmailUser.objects.get(email=cell_value).id
             except EmailUser.DoesNotExist:
                 error_message = f"No ledger user found with email address: {cell_value}"
@@ -7229,6 +7268,62 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                             if choice[1] == display_value
                         ][0]
                     )
+            return cell_value, errors_added
+
+        if isinstance(field, models.FileField):
+            if not task._associated_files_zip:
+                error_message = "No associated files zip found"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            associated_files_zip = zipfile.ZipFile(task._associated_files_zip, "r")
+
+            # Check if the file exists in the zip
+            if cell_value in associated_files_zip.namelist():
+                error_message = f"File {cell_value} not found in associated files zip"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            # Get a reference to the file in memory
+            file_in_memory = associated_files_zip.open(cell_value)
+
+            extension = cell_value.split(".")[-1].lower()
+            # Get the content type of the file
+            try:
+                content_type = mimetypes.types_map["." + str(extension)]
+            except KeyError:
+                error_message = f"File extension {extension} not found in mimetypes"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            cell_value = InMemoryUploadedFile(
+                file_in_memory, field.name, cell_value, content_type, None, None
+            )
+
             return cell_value, errors_added
 
         if isinstance(field, gis_models.GeometryField):
@@ -7352,13 +7447,22 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         if isinstance(field, models.ForeignKey):
             related_model = field.related_model
-            related_model_qs = related_model.objects.all()
+            related_model_qs = self.related_model_qs
 
             # Check if the related model is Archivable
             if issubclass(related_model, ArchivableModel):
                 related_model_qs = related_model_qs.exclude(archived=True)
 
             if not related_model_qs.exists() or related_model_qs.count() == 0:
+                error_message = f"No records found for foreign key {field.related_model._meta.model_name}"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
                 return cell_value, errors_added
 
             # Use the django lookup field to find the value
@@ -7366,10 +7470,12 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 lookup_field = self.django_lookup_field_name
             else:
                 lookup_field = get_display_field_for_model(related_model)
+
             try:
                 related_model_instance = related_model_qs.get(
                     **{lookup_field: cell_value}
                 )
+
             except FieldError:
                 error_message = (
                     f"Can't find {self.django_import_field_name} record by looking up "
