@@ -45,7 +45,7 @@ def file_extension_valid(file, whitelist, model):
     if valid:
         compression = check.first().compressed
     else:
-        logger.warn(
+        logger.warning(
             "Uploaded File: " + file + " For Model: " + model + " to be Rejected"
         )
 
@@ -58,7 +58,7 @@ def tar_content_valid(file, whitelist, model):
     for i in tarFile.getnames():
         valid, compression = file_extension_valid(i, whitelist, model)
         if compression:
-            logger.warn(
+            logger.warning(
                 "Uploaded File: "
                 + str(file)
                 + " For Model: "
@@ -79,7 +79,7 @@ def sevenz_content_valid(file, whitelist, model):
     for i in sevenZipFile.getnames():
         valid, compression = file_extension_valid(i, whitelist, model)
         if compression:
-            logger.warn(
+            logger.warning(
                 "Uploaded File: "
                 + str(file)
                 + " For Model: "
@@ -100,7 +100,7 @@ def zip_content_valid(file, whitelist, model):
     for i in zipFile.filelist:
         valid, compression = file_extension_valid(i.filename, whitelist, model)
         if compression:
-            logger.warn(
+            logger.warning(
                 "Uploaded File: "
                 + str(file)
                 + " For Model: "

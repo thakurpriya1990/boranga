@@ -154,7 +154,7 @@ class VersionsFilterBackend(DatatablesFilterBackend):
                 )
                 queryset = queryset.filter(revision_id__in=remaining_revision_ids)
             except Exception as e:
-                logger.warn(f"Invalid search term: {e}")
+                logger.warning(f"Invalid search term: {e}")
 
         return queryset
 
@@ -268,7 +268,7 @@ class GetLookUpValues:
                 lookup_fields.append(i)
                 self.lookup_values[i] = lookup_value
             except Exception as e:
-                logger.warn(e)
+                logger.warning(e)
                 rejected_lookup_fields.append(i)
         self.lookup_fields = lookup_fields
 
