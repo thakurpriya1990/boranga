@@ -43,7 +43,7 @@
                                                         class="bi bi-card-checklist me-1"></i>
                                                     Validate</button>
                                                 <a role="button" class="btn btn-primary"
-                                                    :href="`http://internalhost:9060/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/`"><i
+                                                    :href="`/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/?updated=${schema.datetime_updated}`"><i
                                                         class="bi bi-filetype-xlsx me-1"></i> Preview</a>
 
                                             </div>
