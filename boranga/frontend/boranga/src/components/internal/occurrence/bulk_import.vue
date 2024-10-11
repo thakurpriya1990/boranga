@@ -56,18 +56,28 @@
                                         </table>
                                     </div>
                                     <div>
-                                        <a :href="`/api/occurrence_report_bulk_import_schemas/${selected_schema_version.id}/preview_import_file/`"
+                                        <a :href="`/api/occurrence_report_bulk_import_schemas/${selected_schema_version.id}/preview_import_file/?updated=${selected_schema_version.datetime_updated}`"
                                             class="btn btn-primary" target="_blank"><i class="bi bi-filetype-xlsx"></i>
                                             Download Preview Bulk Import File</a>
                                     </div>
                                 </div>
                                 <div v-if="selected_schema_version" class="border-top w-75 mb-3 pt-2">
                                     <label for="bulk-import-file" class="form-label"><span class="fw-bold">Step 3:
+                                        </span> Select the .zip file containing any associated documents (Optional)</label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control text-secondary"
+                                            id="bulk-import-associated-files-zip"
+                                            ref="bulk-import-associated-files-zip"
+                                            accept=".zip">
+                                    </div>
+                                </div>
+                                <div v-if="selected_schema_version" class="border-top w-75 mb-3 pt-2">
+                                    <label for="bulk-import-file" class="form-label"><span class="fw-bold">Step 4:
                                         </span> Select the bulk import file (.xlsx)</label>
                                     <div class="input-group">
                                         <input type="file" class="form-control text-secondary"
                                             :class="importFileErrors ? 'is-invalid' : ''" id="bulk-import-file"
-                                            ref="bulk-import-file" aria-describedby="bulk-import-button"
+                                            ref="bulk-import-file"
                                             @change="bulkImportFileSelected"
                                             accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
                                         <div v-if="importFileErrors" class="invalid-feedback mt-3">
@@ -347,6 +357,10 @@ export default {
             const file = event.target.files[0];
             const formData = new FormData();
             formData.append('_file', file);
+            const associated_files = this.$refs['bulk-import-associated-files-zip'].files;
+            if(associated_files.length > 0) {
+                formData.append('_associated_files_zip', associated_files[0]);
+            }
             formData.append('schema_id', this.selected_schema_version.id);
 
             this.$http.post(api_endpoints.occurrence_report_bulk_imports, formData).then((response) => {
@@ -355,6 +369,7 @@ export default {
                     this.importFileErrors = null;
                     this.form.classList.remove('was-validated');
                     this.$refs['bulk-import-file'].value = '';
+                    this.$refs['bulk-import-associated-files-zip'].value = '';
                     swal.fire({
                         title: 'Bulk Import Added to Queue',
                         text: 'The bulk import of occurrence reports has been added to the queue for processing',
@@ -368,12 +383,14 @@ export default {
                 } else {
                     this.importFileErrors = response.body;
                     event.target.value = '';
+                    this.$refs['bulk-import-associated-files-zip'].value = '';
                     this.$refs['bulk-import-file'].setCustomValidity('Invalid field');
                     this.form.classList.add('was-validated');
                 }
             }, (error) => {
                 this.importFileErrors = error.body;
                 event.target.value = '';
+                this.$refs['bulk-import-associated-files-zip'].value = '';
                 this.$refs['bulk-import-file'].setCustomValidity('Invalid field');
                 this.form.classList.add('was-validated');
                 console.log(error.body);
