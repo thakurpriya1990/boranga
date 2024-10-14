@@ -5278,18 +5278,14 @@ def validate_bulk_import_file_extension(value):
     ext = os.path.splitext(value.name)[1]
     valid_extensions = [".xlsx"]
     if ext not in valid_extensions:
-        raise ValidationError(
-            "Only .xlsx files are supported by the bulk import facility!"
-        )
+        raise ValidationError("The bulk import file must be a .xlsx file")
 
 
 def validate_bulk_import_associated_files_extension(value):
     ext = os.path.splitext(value.name)[1]
     valid_extensions = [".zip"]
     if ext not in valid_extensions:
-        raise ValidationError(
-            "Only .zip files are supported by the bulk import facility!"
-        )
+        raise ValidationError("The associated documents file must be a .zip file")
 
 
 # TODO: Would be nice to have the object id in the file path
