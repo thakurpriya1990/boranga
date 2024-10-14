@@ -74,6 +74,7 @@ from boranga.components.species_and_communities.models import (
 )
 from boranga.components.users.serializers import SubmitterInformationSerializer
 from boranga.helpers import (
+    check_file,
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_contributor,
@@ -4063,6 +4064,14 @@ class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         _file = attrs["_file"]
+        check_file(_file, OccurrenceReportBulkImportTask._meta.model_name)
+
+        _associated_files_zip = attrs.get("_associated_files_zip", None)
+        if _associated_files_zip:
+            check_file(
+                _associated_files_zip, OccurrenceReportBulkImportTask._meta.model_name
+            )
+
         try:
             schema = OccurrenceReportBulkImportSchema.objects.get(id=attrs["schema_id"])
         except OccurrenceReportBulkImportSchema.DoesNotExist:
