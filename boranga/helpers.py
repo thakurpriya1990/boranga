@@ -536,25 +536,18 @@ def get_display_field_for_model(model: models.Model) -> str:
     Returns the field name to display for a model in the admin list display.
     """
     # Find the best field to use for a display value
-    display_field = None
     field_names = [field.name for field in model._meta.get_fields()]
+    logger.debug(f"Field names for {model}: {field_names}")
     for field_name in settings.OCR_BULK_IMPORT_LOOKUP_TABLE_DISPLAY_FIELDS:
         if field_name in field_names:
-            display_field = field_name
-            break
+            return field_name
 
-    if not display_field:
-        # If we can't find a display field, we'll just use the first CharField we find
-        for field in field_names:
-            if isinstance(field, models.fields.CharField):
-                display_field = field.name
-                break
+    # If we can't find a display field, we'll just use the first CharField we find
+    for field_name in field_names:
+        if isinstance(model._meta.get_field(field_name), models.fields.CharField):
+            return field_name
 
-    if not display_field:
-        # Fall back to the id
-        display_field = "id"
-
-    return display_field
+    return "id"
 
 
 def get_choices_for_field(
