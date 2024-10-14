@@ -141,6 +141,7 @@ class ContentTypeSerializer(serializers.ModelSerializer):
         def filter_fields(field):
             return (
                 field.name not in exclude_fields
+                and field.name != "occurrence_report"
                 and not field.auto_created
                 and not (
                     field.is_relation
