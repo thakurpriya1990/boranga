@@ -29,6 +29,28 @@ from boranga.settings import (
 logger = logging.getLogger(__name__)
 
 
+def check_file(file, model_name):
+    from boranga.components.main.models import FileExtensionWhitelist
+
+    # check if extension in whitelist
+    cache_key = settings.CACHE_KEY_FILE_EXTENSION_WHITELIST
+    whitelist = cache.get(cache_key)
+    if whitelist is None:
+        whitelist = FileExtensionWhitelist.objects.all()
+        cache.set(cache_key, whitelist, settings.CACHE_TIMEOUT_2_HOURS)
+
+    valid, compression = file_extension_valid(str(file), whitelist, model_name)
+
+    if not valid:
+        raise ValidationError("File type/extension not supported")
+
+    if compression:
+        # supported compression check
+        valid = compressed_content_valid(file, whitelist, model_name)
+        if not valid:
+            raise ValidationError("Unsupported type/extension in compressed file")
+
+
 def file_extension_valid(file, whitelist, model):
 
     logger.info("Uploaded File: " + file + " For Model: " + model)
@@ -100,16 +122,19 @@ def zip_content_valid(file, whitelist, model):
     for i in zipFile.filelist:
         valid, compression = file_extension_valid(i.filename, whitelist, model)
         if compression:
-            logger.warning(
-                "Uploaded File: "
-                + str(file)
-                + " For Model: "
-                + model
-                + " to be Rejected"
-            )
-            raise ValidationError(
-                "Compressed files not supported within compressed files"
-            )
+            if not i.filename.endswith(".zip"):
+                logger.warning(
+                    "Uploaded File: "
+                    + str(file)
+                    + " For Model: "
+                    + model
+                    + " to be Rejected"
+                )
+                raise ValidationError(
+                    "The only compressed format allowed in a .zip file is .zip"
+                )
+            valid = zip_content_valid(zipFile.open(i.filename), whitelist, model)
+
         if not valid:
             return False
 
