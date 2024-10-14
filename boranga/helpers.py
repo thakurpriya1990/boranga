@@ -537,7 +537,6 @@ def get_display_field_for_model(model: models.Model) -> str:
     """
     # Find the best field to use for a display value
     field_names = [field.name for field in model._meta.get_fields()]
-    logger.debug(f"Field names for {model}: {field_names}")
     for field_name in settings.OCR_BULK_IMPORT_LOOKUP_TABLE_DISPLAY_FIELDS:
         if field_name in field_names:
             return field_name
