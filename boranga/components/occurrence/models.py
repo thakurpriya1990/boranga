@@ -6705,8 +6705,6 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         if issubclass(self.related_model, ArchivableModel):
             related_model_qs = self.related_model.objects.exclude(archived=True)
 
-        related_model_qs = related_model_qs.only(display_field)
-
         return related_model_qs
 
     @property
