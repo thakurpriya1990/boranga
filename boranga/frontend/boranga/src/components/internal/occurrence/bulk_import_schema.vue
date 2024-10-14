@@ -118,7 +118,7 @@
                                         role="button" :key="column.id">
                                         <td style="width:5%" class="text-center fw-bold"
                                             :class="selectedColumn == column ? 'text-light' : ''">{{ index +
-                                                1 }}
+                                                1 }} {{ column.order }}
                                         </td>
                                         <td class="ps-3 fw-bold" style="font-size:0.9em; width:40%"
                                             :class="selectedColumn == column ? 'py-1' : ''">
@@ -447,7 +447,7 @@
                                     <i class="bi bi-x-square me-1"></i> Unselect Column
                                 </button>
                                 <template v-if="schema.can_user_edit && selectedColumn.is_editable_by_user">
-                                    <button class="btn btn-primary btn-sm me-2" @click.prevent="save()"><i
+                                    <button v-if="selectedColumn.django_import_content_type && selectedColumn.django_import_field_name" class="btn btn-primary btn-sm me-2" @click.prevent="save()"><i
                                             class="bi bi-floppy-fill me-1"></i>
                                         Save
                                         Column <template v-if="saving"><span
@@ -680,8 +680,19 @@ export default {
                 modelField => !this.schema.columns.some(column => column.django_import_field_name == modelField.name &&
                     column.django_import_content_type == modelField.content_type)
             )
+            // If there are already other columns with the same django content type
+            // then move the selected column to the end of the list of those columns
+            if (this.schema.columns.some(column => column.django_import_content_type == this.selectedColumn.django_import_content_type)) {
+                let lastColumnIndex = this.schema.columns.filter(column => column.django_import_content_type == this.selectedColumn.django_import_content_type).length - 1
+                this.schema.columns.splice(this.selectedColumnIndex, 1)
+                this.schema.columns.splice(lastColumnIndex, 0, this.selectedColumn)
+                this.selectedColumnIndex = lastColumnIndex
+                // Update the order of the columns to reflect the new order
+                this.applyOrderToColumns()
+            }
             this.$nextTick(() => {
                 this.enablePopovers();
+                this.selectedColumn.model_name = this.selectedContentType.model_verbose_name
             })
         },
         selectDjangoImportField() {
@@ -801,7 +812,11 @@ export default {
                     }
                 }
             })
-
+        },
+        applyOrderToColumns() {
+            this.schema.columns.forEach((column, index) => {
+                column.order = index
+            })
         },
         selectColumn(column) {
             if (column.django_import_content_type) {
@@ -857,7 +872,7 @@ export default {
                     this.schema.columns = this.schema.columns.filter(column => column !== this.selectedColumn)
                     this.selectedColumn = null
                     this.addEditMode = false
-
+                    this.applyOrderToColumns()
                     if (column.id) {
                         this.save()
                     }
