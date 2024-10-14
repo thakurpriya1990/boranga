@@ -34,8 +34,8 @@
                                                     placeholder="Add tag" @keydown="addTag" />
                                             </div>
                                             <div class="float-end">
-                                                <button type="button" id="copy-schema" class="btn btn-primary me-2" :disabled="false"
-                                                    @click.prevent="copySchema(schema.id)"><i
+                                                <button type="button" id="copy-schema" class="btn btn-primary me-2"
+                                                    :disabled="false" @click.prevent="copySchema(schema.id)"><i
                                                         class="bi bi-copy me-2"></i>
                                                     Copy</button>
                                                 <button type="button" class="btn btn-primary me-2"
@@ -63,7 +63,8 @@
                                     <div class="row align-items-center">
                                         <template>
                                             <label for="schema-name" class="col-sm-2 col-form-label">Master Schema<i
-                                                    class="bi bi-lock-fill text-warning ms-2 fs-5" title="This is a Master Schema. When copied by an Occurrence Approver, any columns from the master will be locked."
+                                                    class="bi bi-lock-fill text-warning ms-2"
+                                                    title="This is a Master Schema. When copied by an Occurrence Approver, any columns from the master will be locked."
                                                     v-if="schema.is_master"></i></label>
                                             <div v-if="schema.can_user_toggle_master" class="col-sm-1">
                                                 <div class="form-check form-switch form-switch-lg"
@@ -118,7 +119,7 @@
                                         role="button" :key="column.id">
                                         <td style="width:5%" class="text-center fw-bold"
                                             :class="selectedColumn == column ? 'text-light' : ''">{{ index +
-                                                1 }} {{ column.order }}
+                                                1 }}
                                         </td>
                                         <td class="ps-3 fw-bold" style="font-size:0.9em; width:40%"
                                             :class="selectedColumn == column ? 'py-1' : ''">
@@ -139,7 +140,8 @@
                                                 :class="schema.can_user_edit && column.is_editable_by_user && (index == 0 || schema.columns.length <= 2 || !column.id) ? 'me-4' : 'me-2'"></i>
                                             <i v-if="schema.can_user_edit && column.is_editable_by_user && (!index == 0 && schema.columns.length > 2 && column.id)"
                                                 class="bi bi-arrow-down-up" role="button" style="cursor:move;"></i>
-                                            <i v-if="!column.is_editable_by_user" class="bi bi-lock-fill" :title="`Column ${column.xlsx_column_header_name} is locked as it was copied from a master schema`"></i>
+                                            <i v-if="column.id && !column.is_editable_by_user" class="bi bi-lock-fill"
+                                                :title="`Column ${column.xlsx_column_header_name} is locked as it was copied from a master schema`"></i>
                                         </td>
                                     </tr>
                                     <tr v-if="schema.can_user_edit" class="border-bottom-0"
@@ -315,7 +317,7 @@
                                                         HH:MM:SS</span>
                                                 </template>
                                                 <template v-if="selectedField.xlsx_validation_type == 'list'">
-                                                    <button  type="button"
+                                                    <button type="button"
                                                         v-if="selectedField.choices && selectedField.choices.length > 0"
                                                         class="btn btn-primary" data-bs-toggle="modal"
                                                         data-bs-target="#preview-choices"><i class="bi bi-search"
@@ -441,13 +443,14 @@
                                 </div>
                             </fieldset>
 
-                            <div
-                                class="border-top pt-3 d-flex justify-content-end">
+                            <div class="border-top pt-3 d-flex justify-content-end">
                                 <button class="btn btn-primary btn-sm me-2" @click.prevent="selectedColumn = null">
                                     <i class="bi bi-x-square me-1"></i> Unselect Column
                                 </button>
                                 <template v-if="schema.can_user_edit && selectedColumn.is_editable_by_user">
-                                    <button v-if="selectedColumn.django_import_content_type && selectedColumn.django_import_field_name" class="btn btn-primary btn-sm me-2" @click.prevent="save()"><i
+                                    <button
+                                        v-if="selectedColumn.django_import_content_type && selectedColumn.django_import_field_name"
+                                        class="btn btn-primary btn-sm me-2" @click.prevent="save()"><i
                                             class="bi bi-floppy-fill me-1"></i>
                                         Save
                                         Column <template v-if="saving"><span
@@ -606,6 +609,7 @@ export default {
             this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.$route.params.bulk_import_schema_id}/`)
                 .then(response => {
                     this.schema = response.data
+                    this.fetchContentTypes()
                     this.$nextTick(() => {
                         if (!this.schema.can_user_edit) {
                             this.disableMainFieldsetInputs();
@@ -682,8 +686,11 @@ export default {
             )
             // If there are already other columns with the same django content type
             // then move the selected column to the end of the list of those columns
-            if (this.schema.columns.some(column => column.django_import_content_type == this.selectedColumn.django_import_content_type)) {
-                let lastColumnIndex = this.schema.columns.filter(column => column.django_import_content_type == this.selectedColumn.django_import_content_type).length - 1
+            if (this.schema.columns.filter(column => column.django_import_content_type == this.selectedColumn.django_import_content_type).length > 1) {
+                let lastColumn = this.schema.columns.findLast(
+                    column => column.django_import_content_type == this.selectedColumn.django_import_content_type
+                        && column.django_import_field_name != this.selectedColumn.django_import_field_name)
+                let lastColumnIndex = this.schema.columns.indexOf(lastColumn) + 1
                 this.schema.columns.splice(this.selectedColumnIndex, 1)
                 this.schema.columns.splice(lastColumnIndex, 0, this.selectedColumn)
                 this.selectedColumnIndex = lastColumnIndex
@@ -693,6 +700,7 @@ export default {
             this.$nextTick(() => {
                 this.enablePopovers();
                 this.selectedColumn.model_name = this.selectedContentType.model_verbose_name
+                document.querySelector('tr.active').scrollIntoView();
             })
         },
         selectDjangoImportField() {
@@ -732,6 +740,7 @@ export default {
         getNewColumnData() {
             return {
                 id: null,
+                order: this.schema.columns.length,
                 schema: this.schema.id,
                 django_import_content_type: '',
                 django_import_field_name: '',
@@ -740,7 +749,6 @@ export default {
                 xlsx_data_validation_allow_blank: true,
                 default_value: null,
                 import_validations: [],
-                order: this.schema.columns.length,
                 lookup_filters: [],
                 is_editable_by_user: true
             }
@@ -795,15 +803,54 @@ export default {
                     })
                     // Remove columns that are already in the schema
                     newColumns = newColumns.filter(newColumn => !this.schema.columns.some(column => column.django_import_field_name == newColumn.django_import_field_name))
+
+                    if(newColumns.length == 0) {
+                        swal.fire({
+                            title: 'No New Columns Added',
+                            text: 'All fields from the selected model are already in the schema',
+                            icon: 'info',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'btn btn-primary'
+                            }
+                        })
+                        return
+                    }
+
                     if (onlyMandatory) {
                         newColumns = newColumns.filter(column => !column.xlsx_data_validation_allow_blank)
                     }
-                    let order = this.schema.columns.length
-                    newColumns.forEach(column => {
-                        column.order = order
-                        order++
-                    })
-                    this.schema.columns.push(...newColumns)
+
+                    if(newColumns.length == 0) {
+                        swal.fire({
+                            title: 'No New Columns Added',
+                            text: 'There are no mandatory fields from the selected model that are not already in the schema',
+                            icon: 'info',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'btn btn-primary'
+                            }
+                        })
+                        return
+                    }
+
+                    let selectedContentType = this.selectedColumn.django_import_content_type;
+                    this.schema.columns.splice(this.selectedColumnIndex, 1)
+                    this.selectedColumn = null
+                    this.newColumn = null
+                    this.addEditMode = false
+
+                    let lastColumnIndex = this.schema.columns.length;
+                    if(this.schema.columns.filter(column => column.django_import_content_type == selectedContentType).length > 0) {
+                        let lastColumn = this.schema.columns.findLast(column => column.django_import_content_type == selectedContentType)
+                        lastColumnIndex = this.schema.columns.indexOf(lastColumn) + 1
+                    }
+
+                    for (let i = 0; i < newColumns.length; i++) {
+                        this.schema.columns.splice(lastColumnIndex + i, 0, newColumns[i])
+                    }
+                    this.applyOrderToColumns()
+
                     this.save()
                     this.addEditMode = false
                 } else {
@@ -935,6 +982,9 @@ export default {
             // If there is a column with no django_import_content_type or django_import_field_name, remove it
             if (this.schema.columns.some(column => !column.django_import_content_type || !column.django_import_field_name)) {
                 this.schema.columns = this.schema.columns.filter(column => column.django_import_content_type && column.django_import_field_name)
+                this.selectedColumn = null
+                this.selectedColumnIndex = null
+                this.addEditMode = false
             }
             // If there is a lookup filter with no filter_field_name, remove it
             this.schema.columns.forEach(column => {
@@ -942,6 +992,7 @@ export default {
                     column.lookup_filters = column.lookup_filters.filter(filter => filter.filter_field_name)
                 }
             })
+
             this.saving = true;
             this.errors = null;
             this.$http.put(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/`, this.schema)
@@ -1070,13 +1121,11 @@ export default {
     },
     created() {
         this.fetchBulkImportSchema()
-        this.fetchContentTypes()
         this.fetchDefaultValueChoices()
         this.fetchLookupSchematypes()
     },
     onRouteEnter() {
         this.fetchBulkImportSchema()
-        this.fetchContentTypes()
     }
 }
 </script>
