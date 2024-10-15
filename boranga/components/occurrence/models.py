@@ -6454,8 +6454,10 @@ class OccurrenceReportBulkImportSchema(models.Model):
             )
         )[0]
 
+        ocr_migrated_from_ids = []
+
         try:
-            import_task.process_row(0, headers, row, errors)
+            import_task.process_row(ocr_migrated_from_ids, 0, headers, row, errors)
         except Exception as e:
             logger.error(f"Error processing sample row: {e}")
             logger.error(traceback.format_exc())
@@ -6882,7 +6884,18 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         if isinstance(field, models.IntegerField):
             if self.is_emailuser_column:
-                user = EmailUser.objects.filter(is_active=True).order_by("?").first()
+                user_qs = EmailUser.objects.filter(is_active=True)
+                if field.name == "assigned_officer":
+                    ocr_officer_ids = member_ids(
+                        settings.GROUP_NAME_OCCURRENCE_ASSESSOR
+                    )
+                    user_qs = user_qs.filter(id__in=ocr_officer_ids)
+                if field.name == "assigned_approver":
+                    ocr_approver_ids = member_ids(
+                        settings.GROUP_NAME_OCCURRENCE_APPROVER
+                    )
+                    user_qs = user_qs.filter(id__in=ocr_approver_ids)
+                user = user_qs.order_by("?").first()
                 return user.email
             else:
                 min_value = field.min_value if hasattr(field, "min_value") else 0
