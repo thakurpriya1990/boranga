@@ -23,7 +23,7 @@
                             </form>
                             <div>
                                 <button v-if="groupType" class="btn btn-primary float" @click="createNewVersion"><i
-                                        class="bi bi-plus-circle-fill"></i> Create New Version</button>
+                                        class="bi bi-plus-circle-fill me-2"></i>Create New Version</button>
                             </div>
                         </div>
                     </div>
