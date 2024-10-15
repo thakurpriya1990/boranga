@@ -80,7 +80,6 @@ DATABASE_URL="postgis://test:my_passwd@localhost:5432/boranga_dev"
 LEDGER_DATABASE_URL='postgis://test:my_passwd@localhost:5432/boranga_dev'
 LEDGER_API_URL="http://localhost:8000"
 LEDGER_API_KEY="ledger_api_key__from__ledger_api_admin"
-SYSTEM_GROUPS=['Boranga Admin']
 SITE_PREFIX='boranga-dev'
 SITE_DOMAIN='dbca.wa.gov.au'
 SECRET_KEY='SECRET_KEY_YO'
@@ -94,7 +93,6 @@ DJANGO_HTTPS=True
 DEFAULT_FROM_EMAIL='no-reply@dbca.wa.gov.au'
 ALLOWED_HOSTS=['*']
 DEV_APP_BUILD_URL="http://localhost:8080/app.js"
-CONSOLE_EMAIL_BACKEND=True
 
 ```
 
