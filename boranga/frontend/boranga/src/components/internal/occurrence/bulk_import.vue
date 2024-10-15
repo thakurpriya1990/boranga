@@ -496,7 +496,7 @@ export default {
                         this.completedImports = this.completedImports.results.filter((completedImport) => {
                             return completedImport.id !== bulkImportTaskId;
                         });
-                        this.fetchQueuedImports();
+                        this.fetchCompletedImports();
                     }, (error) => {
                         console.log(error);
                     });
