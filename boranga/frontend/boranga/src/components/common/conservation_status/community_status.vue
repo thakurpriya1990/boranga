@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="communityStatus">
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
-            <form @change="$emit('saveConservationStatus')">
+            <form @change="saveConservationStatus($event)">
                 <template v-if="!is_external && !conservation_status_obj.can_user_edit">
                     <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments"
                         :collapsed="false">
@@ -76,7 +76,7 @@
                         <label for="change_code" class="col-sm-4 col-form-label fw-bold">Change Type <span
                                 class="text-danger">*</span></label>
                         <div class="col-sm-8">
-                            <template v-if="!isReadOnly && 'Unlocked' != conservation_status_obj.processing_status">
+                            <template v-if="!isReadOnly">
                                 <template
                                     v-if="change_codes && change_codes.length > 0 && conservation_status_obj.change_code_id && !change_codes.map((d) => d.id).includes(conservation_status_obj.change_code_id)">
                                     <input type="text" v-if="conservation_status_obj.change_code"
@@ -87,6 +87,7 @@
                                     </div>
                                 </template>
                                 <select class="form-select" v-model="conservation_status_obj.change_code_id">
+                                    <option :value="null">Select the appropriate Change type</option>
                                     <option v-for="change_code in change_codes" :value="change_code.id"
                                         v-bind:key="change_code.id">
                                         {{ change_code.code }}
@@ -117,14 +118,14 @@
                             <label for="effective_from" class="col-sm-3 col-form-label">Effective From:</label>
                             <div class="col-sm-3">
                                 <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="effective_from"
-                                    v-model="conservation_status_obj.effective_from" :disabled="true" />
+                                    v-model="conservation_status_obj.effective_from" :disabled="isReadOnly" />
                             </div>
                         </template>
                         <template v-if="conservation_status_obj.effective_to">
                             <label for="effective_to" class="col-sm-3 col-form-label">Effective to:</label>
                             <div class="col-sm-3">
-                                <input type="date" readonly placeholder="DD/MM/YYYY" class="form-control"
-                                    id="effective_to" v-model="conservation_status_obj.effective_to" :disabled="true" />
+                                <input type="date" placeholder="DD/MM/YYYY" class="form-control"
+                                    id="effective_to" v-model="conservation_status_obj.effective_to" :disabled="isReadOnly" />
                             </div>
                         </template>
                     </div>
@@ -174,8 +175,8 @@
                                 </select>
                             </template>
                             <template v-else>
-                                <input class="form-control" type="text" :disabled="isReadOnly"
-                                    v-model="conservation_status_obj.wa_legislative_list" />
+                                <input class="form-control" type="text" :disabled="true"
+                                :value="conservation_status_obj.wa_legislative_list ? conservation_status_obj.wa_legislative_list : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -206,8 +207,8 @@
                                 </select>
                             </template>
                             <template v-else>
-                                <input class="form-control" type="text" :disabled="isReadOnly"
-                                    v-model="conservation_status_obj.wa_legislative_category" />
+                                <input class="form-control" type="text" :disabled="true"
+                                :value="conservation_status_obj.wa_legislative_category ? conservation_status_obj.wa_legislative_category : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -237,8 +238,8 @@
                                 </select>
                             </template>
                             <template v-else>
-                                <input class="form-control" type="text" :disabled="isReadOnly"
-                                    v-model="conservation_status_obj.wa_priority_list" />
+                                <input class="form-control" type="text" :disabled="true"
+                                :value="conservation_status_obj.wa_priority_list ? conservation_status_obj.wa_priority_list : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -268,8 +269,8 @@
                                 </select>
                             </template>
                             <template v-else>
-                                <input class="form-control" type="text" :disabled="isReadOnly"
-                                    v-model="conservation_status_obj.wa_priority_category" />
+                                <input class="form-control" type="text" :disabled="true"
+                                :value="conservation_status_obj.wa_priority_category ? conservation_status_obj.wa_priority_category : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -302,8 +303,8 @@
                                 </select>
                             </template>
                             <template v-else>
-                                <input class="form-control" type="text" :disabled="isReadOnly"
-                                    v-model="conservation_status_obj.commonwealth_conservation_list" />
+                                <input class="form-control" type="text" :disabled="true"
+                                :value="conservation_status_obj.commonwealth_conservation_list ? conservation_status_obj.commonwealth_conservation_list : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -313,7 +314,7 @@
                         <div class="col-sm-8">
                             <input :disabled="isReadOnly" type="text" class="form-control"
                                 id="proposed_international_conservation"
-                                placeholder="Enter International Conservation Details if Applicable"
+                                :placeholder="isReadOnly ? 'N/A' : 'Enter International Conservation Details if Applicable'"
                                 v-model="conservation_status_obj.international_conservation" />
                         </div>
                     </div>
@@ -323,7 +324,7 @@
                         <div class="col-sm-8">
                             <input :disabled="isReadOnly" type="text" class="form-control"
                                 id="proposed_conservation_criteria"
-                                placeholder="Enter Conservation Criteria if Applicable"
+                                :placeholder="isReadOnly ? 'N/A' : 'Enter Conservation Criteria if Applicable'"
                                 v-model="conservation_status_obj.conservation_criteria" />
                         </div>
                     </div>
@@ -537,7 +538,6 @@ export default {
             change_codes: [],
             filtered_wa_legislative_categories: [],
             filtered_wa_priority_categories: [],
-            filtered_recommended_wa_legislative_categories: [],
             referral_comments_boxes: [],
             community_display: '',
         }
@@ -562,7 +562,7 @@ export default {
                 this.conservation_status_obj.processing_status == "With Assessor";
         },
         listing_and_review_due_date_disabled: function () {
-            return this.isReadOnly || this.conservation_status_obj.processing_status != "With Assessor"
+            return this.isReadOnly || !["With Assessor", "Unlocked"].includes(this.conservation_status_obj.processing_status)
         },
         approval_level_disabled: function () {
             return this.isReadOnly || !['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status);
@@ -607,7 +607,7 @@ export default {
             ) {
                 return true;
             } else {
-                if (this.conservation_status_obj.processing_status == "Ready For Agenda") {
+                if (["Ready For Agenda", "Approved", "Closed", "DeListed", "Discarded"].includes(this.conservation_status_obj.processing_status)) {
                     return true;
                 }
                 if (
@@ -635,7 +635,7 @@ export default {
             }
         },
         conservation_list_proposed: function () {
-            return !(this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed")
+            return !(['Approved', 'DeListed', 'Declined', 'Closed', 'Unlocked'].includes(this.conservation_status_obj.processing_status))
         },
         canViewCurrentList: function () {
             return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? false : true;
@@ -688,6 +688,7 @@ export default {
                     let data = e.params.data.id;
                     vm.conservation_status_obj.community_id = data
                     vm.community_display = e.params.data.text;
+                    vm.$emit('saveConservationStatus');
                 }).
                 on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
@@ -738,28 +739,6 @@ export default {
                 });
             });
         },
-        filterRecommendedWALegislativeCategories: function (event) {
-            this.$nextTick(() => {
-                if (event) {
-                    this.conservation_status_obj.recommended_wa_legislative_category_id = null;
-                }
-
-                this.filtered_recommended_wa_legislative_categories = this.wa_priority_categories.filter((choice) => {
-                    return choice.list_ids.includes(this.conservation_status_obj.recommended_wa_legislative_list_id);
-                });
-            });
-        },
-        filterRecommendedWAPriorityCategories: function (event) {
-            this.$nextTick(() => {
-                if (event) {
-                    this.conservation_status_obj.recommended_wa_priority_category_id = null;
-                }
-
-                this.filtered_recommended_wa_priority_categories = this.wa_priority_categories.filter((choice) => {
-                    return choice.list_ids.includes(this.conservation_status_obj.recommended_wa_priority_list_id);
-                });
-            });
-        },
         generateReferralCommentBoxes: function () {
             var box_visibility = this.conservation_status_obj.assessor_mode.assessor_box_view
             var assessor_mode = this.conservation_status_obj.assessor_mode.assessor_level
@@ -785,6 +764,16 @@ export default {
         toggleComment: function (updatedShowComment) {
             this.isShowComment = updatedShowComment;
         },
+        saveConservationStatus: function (e) {
+            if(e.target.classList.contains('input.select2-search__field')){
+                // We will emit this save from the select 2 event instead
+                // as it requires some time to populate the selected value
+                // and we don't want to save the conservation status before the
+                // select2 value is populated
+                return;
+            }
+            this.$emit('saveConservationStatus');
+        },
     },
     created: async function () {
         let vm = this;
@@ -802,8 +791,6 @@ export default {
             this.getCommunityDisplay();
             this.filterWALegislativeCategories();
             this.filterWAPriorityCategories();
-            this.filterRecommendedWALegislativeCategories();
-            this.filterRecommendedWAPriorityCategories();
             if (!vm.is_external) {
                 this.generateReferralCommentBoxes();
             }

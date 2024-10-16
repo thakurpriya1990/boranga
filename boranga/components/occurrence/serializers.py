@@ -64,6 +64,8 @@ from boranga.components.occurrence.models import (
     OCRObserverDetail,
     OCRPlantCount,
     OCRVegetationStructure,
+    SchemaColumnLookupFilter,
+    SchemaColumnLookupFilterValue,
 )
 from boranga.components.spatial.utils import wkb_to_geojson
 from boranga.components.species_and_communities.models import (
@@ -72,9 +74,11 @@ from boranga.components.species_and_communities.models import (
 )
 from boranga.components.users.serializers import SubmitterInformationSerializer
 from boranga.helpers import (
+    check_file,
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_contributor,
+    is_django_admin,
     is_internal,
     is_new_external_contributor,
     is_occurrence_approver,
@@ -805,20 +809,6 @@ class OCRLocationSerializer(serializers.ModelSerializer):
             .filter(geom_type="POINT")
             .exists()
         )
-
-    # def get_geojson_point(self,obj):
-    #     if(obj.geojson_point):
-    #         coordinates = GEOSGeometry(obj.geojson_point).coords
-    #         return coordinates
-    #     else:
-    #         return None
-
-    # def get_geojson_polygon(self,obj):
-    #     if(obj.geojson_polygon):
-    #         coordinates = GEOSGeometry(obj.geojson_polygon).coords
-    #         return coordinates
-    #     else:
-    #         return None
 
 
 class BaseTypeSerializer(serializers.Serializer):
@@ -2358,9 +2348,7 @@ class OccurrenceReportAmendmentRequestSerializer(serializers.ModelSerializer):
             "reason",
             "reason_text",
             "amendment_request_documents",
-            "subject",
             "text",
-            "officer",
             "status",
             "occurrence_report",
         ]
@@ -3843,8 +3831,33 @@ class SiteGeometrySerializer(GeoFeatureModelSerializer):
         return None
 
 
-class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializer):
+class SchemaColumnLookupFilterValueNestedSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(allow_null=True, required=False)
+    filter_value = serializers.CharField(
+        allow_null=True, allow_blank=True, required=False
+    )
 
+    class Meta:
+        model = SchemaColumnLookupFilterValue
+        fields = ["id", "filter_value"]
+        read_only_fields = ("id",)
+        validators = []  # Validation is done in the top parent serializer
+
+
+class SchemaColumnLookupFilterNestedSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(allow_null=True, required=False)
+    values = SchemaColumnLookupFilterValueNestedSerializer(
+        many=True, allow_null=True, required=False
+    )
+
+    class Meta:
+        model = SchemaColumnLookupFilter
+        fields = "__all__"
+        read_only_fields = ("id",)
+        validators = []  # Validation is done in the top parent serializer
+
+
+class OccurrenceReportBulkImportSchemaColumnSerializer(serializers.ModelSerializer):
     class Meta:
         model = OccurrenceReportBulkImportSchemaColumn
         fields = "__all__"
@@ -3856,15 +3869,74 @@ class OccurrenceReportBulkImportSchemaColumnNestedSerializer(
 ):
     id = serializers.IntegerField(allow_null=True, required=False)
     order = serializers.IntegerField()
+    foreign_key_count = serializers.IntegerField(read_only=True)
+    requires_lookup_field = serializers.BooleanField(read_only=True)
+    model_name = serializers.CharField(read_only=True)
+    field_type = serializers.CharField(read_only=True)
+    xlsx_validation_type = serializers.CharField(read_only=True)
+    text_length = serializers.IntegerField(read_only=True)
+    choices = serializers.ListField(child=serializers.ListField(), read_only=True)
+    # Must keep both the full foreign key count and filtered as if the foreign_key_count
+    # fluctuates when filters are added it will cause issues with the frontend
+    foreign_key_count = serializers.IntegerField(read_only=True)
+    filtered_foreign_key_count = serializers.IntegerField(read_only=True)
+    lookup_filters = SchemaColumnLookupFilterNestedSerializer(
+        many=True, allow_null=True, required=False
+    )
+    is_editable_by_user = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReportBulkImportSchemaColumn
         fields = "__all__"
         validators = []  # Validation is done in the parent serializer
 
+    def get_is_editable_by_user(self, obj):
+        request = self.context.get("request")
+        if obj.is_editable:
+            return True
+
+        return request.user.is_superuser or is_django_admin(request)
+
+
+class OccurrenceReportBulkImportSchemaListSerializer(serializers.ModelSerializer):
+    tags = TagListSerializerField(allow_null=True, required=False)
+    group_type_display = serializers.CharField(source="group_type.name", read_only=True)
+    version = serializers.CharField(read_only=True)
+    can_user_edit = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = OccurrenceReportBulkImportSchema
+        fields = [
+            "id",
+            "version",
+            "name",
+            "tags",
+            "group_type",
+            "group_type_display",
+            "datetime_created",
+            "datetime_updated",
+            "is_master",
+            "can_user_edit",
+        ]
+        read_only_fields = ("id",)
+
+    def get_can_user_edit(self, obj):
+        if not obj.is_master:
+            return True
+
+        request = self.context.get("request")
+
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        return is_django_admin(request)
+
 
 class OccurrenceReportBulkImportSchemaSerializer(
-    TaggitSerializer, serializers.ModelSerializer
+    TaggitSerializer, OccurrenceReportBulkImportSchemaListSerializer
 ):
     columns = OccurrenceReportBulkImportSchemaColumnNestedSerializer(
         many=True, allow_null=True, required=False
@@ -3872,14 +3944,27 @@ class OccurrenceReportBulkImportSchemaSerializer(
     tags = TagListSerializerField(allow_null=True, required=False)
     group_type_display = serializers.CharField(source="group_type.name", read_only=True)
     version = serializers.CharField(read_only=True)
+    can_user_edit = serializers.SerializerMethodField(read_only=True)
+    can_user_toggle_master = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReportBulkImportSchema
         fields = "__all__"
         read_only_fields = ("id",)
 
+    def get_can_user_toggle_master(self, obj):
+        request = self.context.get("request")
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        return is_django_admin(request)
+
     @transaction.atomic
     def update(self, instance, validated_data):
+        request = self.context.get("request")
         columns_data = validated_data.pop("columns", None)
         if not columns_data or len(columns_data) == 0:
             return super().update(instance, validated_data)
@@ -3890,10 +3975,59 @@ class OccurrenceReportBulkImportSchemaSerializer(
         ]
         instance.columns.exclude(id__in=ids_to_keep).delete()
         for column_data in columns_data:
-            OccurrenceReportBulkImportSchemaColumn.objects.update_or_create(
-                pk=column_data.get("id"), defaults=column_data
+            if not is_django_admin(request):
+                column_data.pop("is_editable", None)
+            lookup_filters_data = column_data.pop("lookup_filters", None)
+            column, created = (
+                OccurrenceReportBulkImportSchemaColumn.objects.update_or_create(
+                    pk=column_data.get("id"), defaults=column_data
+                )
             )
+
+            if not lookup_filters_data:
+                column.lookup_filters.all().delete()
+                continue
+
+            ids_to_keep = [
+                lookup_filter["id"]
+                for lookup_filter in lookup_filters_data
+                if "id" in lookup_filter
+            ]
+            column.lookup_filters.exclude(id__in=ids_to_keep).delete()
+
+            for lookup_filter in lookup_filters_data:
+                values_data = lookup_filter.pop("values", None)
+                lookup, created = SchemaColumnLookupFilter.objects.update_or_create(
+                    pk=lookup_filter.get("id"),
+                    schema_column=column,
+                    defaults=lookup_filter,
+                )
+                if not values_data:
+                    continue
+
+                # For now not supporting multiple values
+                filter_value = values_data.pop(0)
+
+                filter_value, created = (
+                    SchemaColumnLookupFilterValue.objects.update_or_create(
+                        pk=filter_value.get("id"),
+                        lookup_filter=lookup,
+                        defaults=filter_value,
+                    )
+                )
+
         return super().update(instance, validated_data)
+
+
+class OccurrenceReportBulkImportSchemaOccurrenceApproverSerializer(
+    OccurrenceReportBulkImportSchemaSerializer
+):
+    is_master = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = OccurrenceReportBulkImportSchema
+        fields = "__all__"
+        read_only_fields = ("id",)
 
 
 class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
@@ -3903,6 +4037,9 @@ class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
     file_name = serializers.CharField(read_only=True)
     percentage_complete = serializers.CharField(read_only=True)
     schema_id = serializers.IntegerField(write_only=True)
+    group_type_name = serializers.CharField(
+        source="schema__group_type__name", read_only=True
+    )
 
     class Meta:
         model = OccurrenceReportBulkImportTask
@@ -3922,10 +4059,19 @@ class OccurrenceReportBulkImportTaskSerializer(serializers.ModelSerializer):
             "estimated_processing_time_human_readable",
             "total_time_taken_human_readable",
             "percentage_complete",
+            "group_type_name",
         )
 
     def validate(self, attrs):
         _file = attrs["_file"]
+        check_file(_file, OccurrenceReportBulkImportTask._meta.model_name)
+
+        _associated_files_zip = attrs.get("_associated_files_zip", None)
+        if _associated_files_zip:
+            check_file(
+                _associated_files_zip, OccurrenceReportBulkImportTask._meta.model_name
+            )
+
         try:
             schema = OccurrenceReportBulkImportSchema.objects.get(id=attrs["schema_id"])
         except OccurrenceReportBulkImportSchema.DoesNotExist:

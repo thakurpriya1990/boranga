@@ -470,12 +470,18 @@ def send_approver_approve_email_notification(request, conservation_status):
     return msg
 
 
-def send_assessor_ready_for_agenda_email_notification(request, conservation_status):
+def send_assessor_ready_for_agenda_email_notification(
+    request, conservation_status, assessor_comment
+):
     """Recipient: Always internal users"""
 
     email = AssessorReadyForAgendaSendNotificationEmail()
     url = request.build_absolute_uri(reverse("internal-meeting-dashboard", kwargs={}))
-    context = {"cs_proposal": conservation_status, "url": url}
+    context = {
+        "cs_proposal": conservation_status,
+        "url": url,
+        "assessor_comment": assessor_comment,
+    }
 
     msg = email.send(conservation_status.assessor_recipients, context=context)
 

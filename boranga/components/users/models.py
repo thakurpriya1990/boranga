@@ -12,6 +12,7 @@ from boranga.components.main.models import (
     Document,
     UserAction,
 )
+from boranga.helpers import no_commas_validator
 from boranga.ledger_api_utils import retrieve_email_user
 
 private_storage = FileSystemStorage(
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class SubmitterCategory(ArchivableModel):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, validators=[no_commas_validator])
     USER_TYPE_CHOICE_EXTERNAL = "external"
     USER_TYPE_CHOICE_INTERNAL = "internal"
     USER_TYPE_CHOICES = [

@@ -13,7 +13,7 @@ import requests
 import shapely.geometry as shp
 from django.apps import apps
 from django.contrib.contenttypes import models as ct_models
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
@@ -28,6 +28,7 @@ from wagov_utils.components.proxy.views import proxy_view
 from boranga import settings
 from boranga.components.occurrence.models import (
     BufferGeometry,
+    GeometryBase,
     OccurrenceGeometry,
     OccurrenceTenure,
 )
@@ -75,7 +76,7 @@ def intersect_geometry_with_layer(
         # though both forms are (topologically) valid by OGC definition, the jts (java topology suite) library only
         # seems to except singleton lists
         # (https://www.tsusiatsoftware.net/jts/javadoc/com/vividsolutions/jts/io/WKTReader.html)
-        logger.warn(
+        logger.warning(
             f"Converting MultiPoint geometry {test_geom} to double-bracket notation"
         )
         test_geom_wkt = (
@@ -149,7 +150,7 @@ def populate_occurrence_tenure_data(geometry_instance, features, request):
         tenure_area_ewkb = feature_json_to_geosgeometry(feature).ewkb
 
         if not feature_id:
-            logger.warn(f"Feature does not have an ID: {feature}")
+            logger.warning(f"Feature does not have an ID: {feature}")
             continue
         # Check if an occurrence tenure entry already exists for this feature ID
         occurrence_tenure_before = OccurrenceTenure.objects.filter(
@@ -260,7 +261,7 @@ def save_geometry(
     instance_model_name = instance._meta.model.__name__
 
     if not geometry_data:
-        logger.warn(f"No {instance_model_name} geometry to save")
+        logger.warning(f"No {instance_model_name} geometry to save")
         return {}
 
     InstanceGeometry = apps.get_model(
@@ -283,7 +284,9 @@ def save_geometry(
         == InstanceGeometry.objects.filter(**{instance_fk_field_name: instance}).count()
     ):
         # No feature to save and no feature to delete
-        logger.warn(f"{instance_model_name} geometry has no features to save or delete")
+        logger.warning(
+            f"{instance_model_name} geometry has no features to save or delete"
+        )
         return {}
 
     action = request.data.get("action", None)
@@ -295,7 +298,7 @@ def save_geometry(
         geometry_type = feature.get("geometry").get("type")
         # Check if feature is of a supported type, continue if not
         if geometry_type not in supported_geometry_types:
-            logger.warn(
+            logger.warning(
                 f"{instance_model_name}: {instance} contains a feature that is not a "
                 f"{' or '.join(supported_geometry_types)}: {feature}"
             )
@@ -387,7 +390,7 @@ def save_geometry(
                     logger.info("No tenure intersects query layer specified")
                     intersect_layer = None
                 except TileLayer.MultipleObjectsReturned:
-                    logger.warn("Multiple tenure intersects query layers found")
+                    logger.warning("Multiple tenure intersects query layers found")
                     intersect_layer = None
                 else:
                     plausibility_geometries = PlausibilityGeometry.objects.filter(
@@ -452,7 +455,7 @@ def save_geometry(
                 try:
                     geometry = InstanceGeometry.objects.get(id=feature.get("id"))
                 except InstanceGeometry.DoesNotExist:
-                    logger.warn(
+                    logger.warning(
                         f"{instance_model_name} geometry does not exist: {feature.get('id')}"
                     )
                     continue
@@ -1001,3 +1004,63 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
             "Access Denied", content_type="text/html", status=401
         )
         return http_response
+
+
+def get_geometry_array_from_geojson(
+    geojson: dict,
+    cell_value: any,
+    index: int,
+    column_name: str,
+    errors: list,
+    errors_added: int,
+) -> list:
+    """
+    Extracts the geometry array from a GeoJSON object.
+    """
+    if not geojson:
+        return None
+
+    features = geojson.get("features")
+
+    geoms = []
+    bbox = Polygon.from_bbox(GeometryBase.EXTENT)
+
+    for feature in features:
+        geom = feature.get("geometry")
+
+        if not geom:
+            error_message = (
+                f"Geometry not defined in {cell_value} for column {column_name}"
+            )
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "column",
+                    "data": cell_value,
+                    "error_message": error_message,
+                }
+            )
+            errors_added += 1
+            continue
+
+        geom = GEOSGeometry(json.dumps(geom))
+
+        if not geom.within(bbox):
+            error_message = (
+                f"Geomtry defined in {cell_value} for column {column_name} "
+                "is not within Western Australia"
+            )
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "column",
+                    "data": cell_value,
+                    "error_message": error_message,
+                }
+            )
+            errors_added += 1
+            continue
+
+        geoms.append(geom)
+
+    return geoms

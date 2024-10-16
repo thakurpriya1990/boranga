@@ -372,9 +372,6 @@ export default {
                     blank_fields.push('Please select at least two committee members who will be attending');
                 }
             }
-            if (vm.$refs.cs_queue.$refs.cs_queue_datatable.vmDataTable.rows().count() == 0) {
-                blank_fields.push(' Please add at least one Agenda record')
-            }
             if (vm.meeting_obj.location_id == null || vm.meeting_obj.location_id == '') {
                 blank_fields.push(' Please select Location')
             }

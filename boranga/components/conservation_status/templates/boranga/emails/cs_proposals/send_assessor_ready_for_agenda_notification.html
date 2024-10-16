@@ -6,8 +6,16 @@
     </p>
 
     <p>
-        You can schedule a meeting for this Proposal using the following link:
+        Assessor Recommended Action / Comments:
     </p>
 
-    <a href="{{url}}">Schedule Meeting</a>
+    <p>
+        {{ assessor_comment }}
+    </p>
+
+    <p>
+        You can action this Proposal using the following link:
+    </p>
+
+    <a href="{{url}}">Conservation Status Proposal {{ cs_proposal.conservation_status_number }}</a>
 {%  endblock %}

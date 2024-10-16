@@ -23,7 +23,7 @@
                             </form>
                             <div>
                                 <button v-if="groupType" class="btn btn-primary float" @click="createNewVersion"><i
-                                        class="bi bi-plus-circle-fill"></i> Create New Version</button>
+                                        class="bi bi-plus-circle-fill me-2"></i>Create New Version</button>
                             </div>
                         </div>
                     </div>
@@ -42,16 +42,17 @@
                                 </tr>
                             </thead>
                             <tbody class="text-muted">
-                                <tr v-for="schema in bulkSchemas" class="">
-                                    <td>{{ schema.version }}</td>
-                                    <td class="text-truncate text-align-end" style="max-width: 300px;"
+                                <tr v-for="schema in bulkSchemas" :class="schema.is_master ? 'master-schema' : ''">
+                                    <td>{{ schema.version }}<i class="bi bi-lock-fill text-warning fs-5 ps-2" v-if="schema.is_master"></i></td>
+                                    <td class="text-truncate text-align-end" style="max-width: 285px;"
                                         :title="schema.name">{{
                                             schema.name }}</td>
                                     <td class="text-truncate"><span class="badge bg-info fs-6 me-2"
-                                            v-for="(tag, index) in schema.tags.slice(0, 3)" :key="tag">{{ tag }}</span>
-                                        <span v-if="schema.tags.length > 3"
+                                            v-for="(tag, index) in tags_to_show(schema.tags)" :key="tag">{{ tag
+                                            }}</span>
+                                        <span v-if="schema.tags.length > tags_to_show(schema.tags).length"
                                             :title="String(schema.tags).replace(/,/g, ', ')" @click.prevent="">+{{
-                                            schema.tags.length - 3 }}</span>
+                                                schema.tags.length - tags_to_show(schema.tags).length }}</span>
                                     </td>
                                     <td>{{ new
                                         Date(schema.datetime_created).toLocaleDateString() }} {{ new
@@ -62,7 +63,8 @@
                                     <td>
                                         <a class="btn btn-sm btn-primary my-0 me-2" role="button"
                                             :href="`/internal/occurrence_report/bulk_import_schema/${schema.id}`"><i
-                                                class="bi bi-pencil-fill me-2"></i> Edit</a>
+                                                class="bi me-2" :class="schema.can_user_edit ? 'bi-pencil-fill' : 'bi-eye-fill'"></i> <template v-if="schema.can_user_edit">Edit</template><template v-else>View</template></a>
+
                                         <button class="btn btn-sm btn-primary my-0"
                                             @click.prevent="copySchema(schema.id)"><i class="bi bi-copy me-2"></i>
                                             Create a Copy</button>
@@ -70,6 +72,11 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div v-else-if="loadingSchemas" class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -89,6 +96,7 @@ export default {
             groupTypes: null,
             groupType: null,
             bulkSchemas: null,
+            loadingSchemas: false
         }
     },
     components: {
@@ -110,6 +118,7 @@ export default {
                 return
             }
             localStorage.setItem('ocr-bulk-import-group-type', this.groupType)
+            this.loadingSchemas = true
             this.$http.get(api_endpoints.occurrence_report_bulk_import_schemas, {
                 params: {
                     group_type: this.groupType
@@ -120,6 +129,9 @@ export default {
                 })
                 .catch(error => {
                     console.error(error)
+                })
+                .finally(() => {
+                    this.loadingSchemas = false
                 })
         },
         copySchema(id) {
@@ -159,6 +171,19 @@ export default {
                 .catch(error => {
                     console.error(error)
                 })
+        },
+        tags_to_show(tags) {
+            let total_chars = tags.length * 2;
+            let tags_to_show = [];
+            for (let i = 0; i < tags.length; i++) {
+                total_chars += tags[i].length;
+                if (total_chars <= 30) {
+                    tags_to_show.push(tags[i]);
+                } else {
+                    break;
+                }
+            }
+            return tags_to_show;
         }
     },
     created() {
@@ -170,3 +195,8 @@ export default {
     }
 }
 </script>
+<style scoped>
+.master-schema {
+    background-color: rgba(255, 193, 7, 0.3);
+}
+</style>

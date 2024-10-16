@@ -7,10 +7,12 @@ import py7zr
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
+from multiselectfield import MultiSelectField
 
 from boranga.settings import (
     DJANGO_ADMIN_GROUP,
@@ -25,6 +27,28 @@ from boranga.settings import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def check_file(file, model_name):
+    from boranga.components.main.models import FileExtensionWhitelist
+
+    # check if extension in whitelist
+    cache_key = settings.CACHE_KEY_FILE_EXTENSION_WHITELIST
+    whitelist = cache.get(cache_key)
+    if whitelist is None:
+        whitelist = FileExtensionWhitelist.objects.all()
+        cache.set(cache_key, whitelist, settings.CACHE_TIMEOUT_2_HOURS)
+
+    valid, compression = file_extension_valid(str(file), whitelist, model_name)
+
+    if not valid:
+        raise ValidationError("File type/extension not supported")
+
+    if compression:
+        # supported compression check
+        valid = compressed_content_valid(file, whitelist, model_name)
+        if not valid:
+            raise ValidationError("Unsupported type/extension in compressed file")
 
 
 def file_extension_valid(file, whitelist, model):
@@ -43,7 +67,7 @@ def file_extension_valid(file, whitelist, model):
     if valid:
         compression = check.first().compressed
     else:
-        logger.warn(
+        logger.warning(
             "Uploaded File: " + file + " For Model: " + model + " to be Rejected"
         )
 
@@ -56,7 +80,7 @@ def tar_content_valid(file, whitelist, model):
     for i in tarFile.getnames():
         valid, compression = file_extension_valid(i, whitelist, model)
         if compression:
-            logger.warn(
+            logger.warning(
                 "Uploaded File: "
                 + str(file)
                 + " For Model: "
@@ -77,7 +101,7 @@ def sevenz_content_valid(file, whitelist, model):
     for i in sevenZipFile.getnames():
         valid, compression = file_extension_valid(i, whitelist, model)
         if compression:
-            logger.warn(
+            logger.warning(
                 "Uploaded File: "
                 + str(file)
                 + " For Model: "
@@ -98,16 +122,19 @@ def zip_content_valid(file, whitelist, model):
     for i in zipFile.filelist:
         valid, compression = file_extension_valid(i.filename, whitelist, model)
         if compression:
-            logger.warn(
-                "Uploaded File: "
-                + str(file)
-                + " For Model: "
-                + model
-                + " to be Rejected"
-            )
-            raise ValidationError(
-                "Compressed files not supported within compressed files"
-            )
+            if not i.filename.endswith(".zip"):
+                logger.warning(
+                    "Uploaded File: "
+                    + str(file)
+                    + " For Model: "
+                    + model
+                    + " to be Rejected"
+                )
+                raise ValidationError(
+                    "The only compressed format allowed in a .zip file is .zip"
+                )
+            valid = zip_content_valid(zipFile.open(i.filename), whitelist, model)
+
         if not valid:
             return False
 
@@ -401,8 +428,12 @@ def get_instance_identifier(instance):
     )
 
 
-def get_openpyxl_data_validation_type_for_django_field(field):
+def get_openpyxl_data_validation_type_for_django_field(field, column=None):
     from openpyxl.worksheet.datavalidation import DataValidation
+
+    if field in ["species", "community"]:
+        # There are always lookup tables (never embedded validation)
+        return None
 
     dv_types = dict(zip(DataValidation.type.values, DataValidation.type.values))
 
@@ -411,12 +442,21 @@ def get_openpyxl_data_validation_type_for_django_field(field):
         models.IntegerField: "whole",
         models.DecimalField: "decimal",
         models.BooleanField: "list",
+        models.ForeignKey: "list",
         models.DateField: "date",
         models.DateTimeField: "date",
     }
 
-    if isinstance(field, models.CharField) and field.choices:
+    if isinstance(field, MultiSelectField) or (
+        isinstance(field, models.CharField) and field.choices
+    ):
         return dv_types["list"]
+
+    if column:
+        if isinstance(field, models.IntegerField) and column.is_emailuser_column:
+            # No embedded validation for email user columns because
+            # validating emails in Excel is a pain
+            return None
 
     for django_field, dv_type in field_type_map.items():
         if isinstance(field, django_field):
@@ -496,22 +536,99 @@ def get_display_field_for_model(model: models.Model) -> str:
     Returns the field name to display for a model in the admin list display.
     """
     # Find the best field to use for a display value
-    display_field = None
-    fields = model._meta.get_fields()
-    for field in fields:
-        if field.name in settings.OCR_BULK_IMPORT_LOOKUP_TABLE_DISPLAY_FIELDS:
-            display_field = field.name
-            break
+    field_names = [field.name for field in model._meta.get_fields()]
+    for field_name in settings.OCR_BULK_IMPORT_LOOKUP_TABLE_DISPLAY_FIELDS:
+        if field_name in field_names:
+            return field_name
 
-    if not display_field:
-        # If we can't find a display field, we'll just use the first CharField we find
-        for field in fields:
-            if isinstance(field, models.fields.CharField):
-                display_field = field.name
-                break
+    # If we can't find a display field, we'll just use the first CharField we find
+    for field_name in field_names:
+        if isinstance(model._meta.get_field(field_name), models.fields.CharField):
+            return field_name
 
-    if not display_field:
-        # Fall back to the id
-        display_field = "id"
+    return "id"
 
-    return display_field
+
+def get_choices_for_field(
+    model_class: models.base.ModelBase, field: models.Field
+) -> list | None:
+    from boranga.components.main.models import ArchivableModel
+    from boranga.components.occurrence.models import OccurrenceReport
+
+    if model_class is OccurrenceReport and field.name == "processing_status":
+        # Only certain statuses are valid for OCR bulk import processing
+        return OccurrenceReport.VALID_BULK_IMPORT_PROCESSING_STATUSES
+
+    choices = field.choices if hasattr(field, "choices") else None
+
+    if isinstance(field, MultiSelectField):
+        # Have to create an instance for the choices to be populated :-(
+        # as for some reason they are populated in the __init__ method
+        instance = model_class()
+        multi_select_field = instance._meta.get_field(field.name)
+        choices = multi_select_field.choices
+    elif isinstance(field, (models.ForeignKey, models.ManyToManyField)):
+        related_model = field.related_model
+        related_model_qs = related_model.objects.all()
+
+        if issubclass(related_model, ArchivableModel):
+            related_model_qs = related_model_qs.filter(archived=False)
+
+        related_model_count = related_model_qs.count()
+
+        if (
+            related_model_count == 0
+            or field.name in ["species", "community"]
+            or related_model_count > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
+        ):
+            choices = None
+        else:
+            display_field = get_display_field_for_model(related_model)
+            choices = list(related_model_qs.values_list("id", display_field))
+
+    return choices
+
+
+def get_lookup_field_options_for_field(field: models.Field) -> list | None:
+    lookup_field_options = None
+
+    if isinstance(field, (models.ForeignKey, models.ManyToManyField)):
+        related_model = field.related_model
+        lookup_field_options = [
+            field.verbose_name.lower()
+            for field in related_model._meta.get_fields()
+            if not field.related_model
+            and (hasattr(field, "unique") and field.unique)
+            and not field.name.endswith("_number")
+        ]
+
+    return lookup_field_options
+
+
+def get_filter_field_options_for_field(field: models.Field) -> list:
+    if not isinstance(field, (models.ForeignKey, models.ManyToManyField)):
+        return []
+
+    return [
+        field.name
+        for field in field.related_model._meta.get_fields()
+        if not field.related_model
+    ]
+
+
+def get_mock_request(emailuser: EmailUser):
+    request = type("Request", (), {})()
+    request.user = type("User", (), {})()
+    request.user.id = emailuser.id
+    return request
+
+
+# Because the OCR Bulk Importer uses commas to embed list validation in the .xlsx
+# import files, we need to ensure that the display field for the lookup table
+# does not contain commas.
+no_commas_validator = RegexValidator(
+    "[,]",
+    code="comma_not_allowed",
+    message="Commas not allowed in the display field for a django lookup.",
+    inverse_match=True,
+)

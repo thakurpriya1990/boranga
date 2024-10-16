@@ -39,7 +39,8 @@
             </div>
             <ProposalConservationStatus v-if="conservation_status_obj"
                 :conservation_status_obj="conservation_status_obj" id="ConservationStatusStart"
-                :canEditStatus="canEditStatus" :is_external="true" ref="conservation_status">
+                :canEditStatus="canEditStatus" :is_external="true" ref="conservation_status"
+                @saveConservationStatus="save_wo_confirm">
             </ProposalConservationStatus>
             <div>
                 <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
@@ -60,20 +61,25 @@
                                     </div>
                                     <div class="col-md-6 text-end" style="margin-top:5px">
                                         <button v-if="savingCSProposal" type="button" class="btn btn-primary me-2"
-                                            disabled>Save and Continue <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            disabled>Save and
+                                            Continue <span class="spinner-border spinner-border-sm" role="status"
+                                                aria-hidden="true"></span>
                                             <span class="visually-hidden">Loading...</span></button>
                                         <input v-else type="button" @click.prevent="save" class="btn btn-primary me-2"
                                             value="Save and Continue" :disabled="saveExitCSProposal || paySubmitting" />
 
                                         <button v-if="saveExitCSProposal" type="button" class="btn btn-primary me-2"
-                                            disabled>Save and Exit <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            disabled>Save
+                                            and Exit <span class="spinner-border spinner-border-sm" role="status"
+                                                aria-hidden="true"></span>
                                             <span class="visually-hidden">Loading...</span></button>
                                         <input v-else type="button" @click.prevent="save_exit"
                                             class="btn btn-primary me-2" value="Save and Exit"
                                             :disabled="savingCSProposal || paySubmitting" />
 
                                         <button v-if="paySubmitting" type="button" class="btn btn-primary"
-                                            disabled>Submit <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            disabled>Submit <span class="spinner-border spinner-border-sm" role="status"
+                                                aria-hidden="true"></span>
                                             <span class="visually-hidden">Loading...</span></button>
                                         <input v-else type="button" @click.prevent="submit" class="btn btn-primary"
                                             :value="'Submit'" :disabled="saveExitCSProposal || savingCSProposal" />
@@ -83,10 +89,10 @@
                                 </div>
                                 <div v-else class="container">
                                     <p class="pull-right" style="margin-top:5px;">
-                                            <router-link class="btn btn-primary"
-                                                :to="{ name: 'external-conservation_status-dash' }">Back to
-                                                Dashboard</router-link>
-                                        </p>
+                                        <router-link class="btn btn-primary"
+                                            :to="{ name: 'external-conservation_status-dash' }">Back to
+                                            Dashboard</router-link>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -122,7 +128,6 @@ export default {
             savingCSProposal: false,
             paySubmitting: false,
             newText: "",
-            pBody: 'pBody',
             missing_fields: [],
             proposal_parks: null,
             isSaved: false,
@@ -139,30 +144,8 @@ export default {
         cs_proposal_form_url: function () {
             return (this.conservation_status_obj) ? `/api/conservation_status/${this.conservation_status_obj.id}/draft.json` : '';
         },
-        application_fee_url: function () {
-            return (this.proposal) ? `/application_fee/${this.proposal.id}/` : '';
-        },
-        proposal_submit_url: function () {
-            return (this.proposal) ? `/api/proposal/${this.proposal.id}/submit.json` : '';
-            //return this.submit();
-        },
-        canEditActivities: function () {
-            return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit : 'false';
-        },
         canEditStatus: function () {
             return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit : 'false';
-        },
-        canEditPeriod: function () {
-            return this.proposal ? this.conservation_status_obj.can_user_edit : 'false';
-        },
-        application_type_tclass: function () {
-            return api_endpoints.t_class;
-        },
-        application_type_filming: function () {
-            return api_endpoints.filming;
-        },
-        application_type_event: function () {
-            return api_endpoints.event;
         },
         display_group_type: function () {
             let group_type_string = this.conservation_status_obj.group_type
@@ -251,11 +234,12 @@ export default {
                 }
             });
         },
-        save_wo_confirm: function (e) {
-            let vm = this;
-            let formData = vm.set_formData()
+        save_wo_confirm: function () {
+            this.$http.post(this.cs_proposal_form_url, this.conservation_status_obj).then(res => {
 
-            vm.$http.post(vm.cs_proposal_form_url, formData);
+            }, err => {
+                console.log(err);
+            });
         },
         save_before_submit: async function (e) {
             let vm = this;

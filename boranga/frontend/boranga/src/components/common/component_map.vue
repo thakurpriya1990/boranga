@@ -4580,6 +4580,15 @@ export default {
                 layer_name = this.defaultQueryLayerName;
             }
             const format = new GeoJSON();
+            if (!this.layerSources[layer_name]) {
+                // Just adding this to cover the case of the user quickly
+                // pressing save and exit button before the map is fully loaded
+                // and the layer sources are not yet available
+                console.error(
+                    `Layer source ${layer_name} not found. Cannot get features.`
+                );
+                return;
+            }
             const layerFeatures = this.layerSources[layer_name].getFeatures();
 
             const features = [];

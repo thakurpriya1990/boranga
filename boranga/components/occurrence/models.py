@@ -1,12 +1,19 @@
 import hashlib
 import json
 import logging
+import mimetypes
 import os
+import random
+import string
+import traceback
+import zipfile
+import zoneinfo
 from abc import abstractmethod
 from datetime import datetime
+from datetime import timezone as dt_timezone
 from decimal import Decimal
+from io import BytesIO
 
-import dateutil
 import openpyxl
 import pyproj
 import reversion
@@ -19,13 +26,15 @@ from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.db.models.functions import Area
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
+from django.core.exceptions import FieldDoesNotExist, FieldError, ValidationError
 from django.core.files.storage import FileSystemStorage
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import IntegrityError, models, transaction
-from django.db.models import CharField, Count, Func, Max, Q
-from django.db.models.functions import Cast
+from django.db.models import CharField, Count, Func, ManyToManyField, Max, Q
+from django.db.models.functions import Cast, Length
 from django.utils import timezone
+from django.utils.functional import cached_property
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
@@ -33,7 +42,7 @@ from openpyxl.styles import NamedStyle
 from openpyxl.styles.fonts import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
-from ordered_model.models import OrderedModel
+from ordered_model.models import OrderedModel, OrderedModelManager
 from taggit.managers import TaggableManager
 
 from boranga import exceptions
@@ -77,11 +86,17 @@ from boranga.components.users.models import (
     SubmitterInformationModelMixin,
 )
 from boranga.helpers import (
+    belongs_to_by_user_id,
     clone_model,
+    get_choices_for_field,
     get_display_field_for_model,
+    get_mock_request,
+    get_openpyxl_data_validation_type_for_django_field,
+    is_django_admin,
     is_occurrence_approver,
     is_occurrence_assessor,
     member_ids,
+    no_commas_validator,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import (
@@ -201,6 +216,12 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_CLOSED, "DeListed"),
     )
 
+    VALID_BULK_IMPORT_PROCESSING_STATUSES = [
+        (PROCESSING_STATUS_WITH_ASSESSOR, "With Assessor"),
+        (PROCESSING_STATUS_WITH_APPROVER, "With Approver"),
+        (PROCESSING_STATUS_APPROVED, "Approved"),
+    ]
+
     FINALISED_STATUSES = [
         PROCESSING_STATUS_APPROVED,
         PROCESSING_STATUS_DECLINED,
@@ -269,7 +290,9 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     occurrence_report_number = models.CharField(max_length=9, blank=True, default="")
 
     # Field to use when importing data from the legacy system
-    migrated_from_id = models.CharField(max_length=50, blank=True, default="")
+    migrated_from_id = models.CharField(
+        max_length=50, blank=True, null=True, unique=True
+    )
 
     observation_date = models.DateTimeField(null=True, blank=True)
     reported_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
@@ -470,8 +493,8 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     def has_assessor_mode(self, request):
         status_with_assessor = [
-            "with_assessor",
-            "with_referral",
+            OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+            OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
         ]
         if self.processing_status not in status_with_assessor:
             return False
@@ -1092,6 +1115,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                 "The user you want to send the referral to does not exist in the ledger database"
             )
 
+        # Don't allow the user to refer to themselves
+        if referee.id == request.user.id:
+            raise ValidationError("You cannot refer to yourself")
+
+        # Don't allow the user to refer to the submitter
+        if referee.id == self.submitter:
+            raise ValidationError("You cannot refer to the submitter")
+
         # Check if the referral has already been sent to this user
         if OccurrenceReportReferral.objects.filter(
             referral=referee.id, occurrence_report=self
@@ -1444,9 +1475,7 @@ def update_occurrence_report_referral_doc_filename(instance, filename):
 
 class OccurrenceReportProposalRequest(models.Model):
     occurrence_report = models.ForeignKey(OccurrenceReport, on_delete=models.CASCADE)
-    subject = models.CharField(max_length=200, blank=True)
     text = models.TextField(blank=True)
-    officer = models.IntegerField(null=True)  # EmailUserRO
 
     class Meta:
         app_label = "boranga"
@@ -1827,7 +1856,13 @@ class CoordinateSource(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -1849,7 +1884,13 @@ class LocationAccuracy(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -1887,8 +1928,6 @@ class OCRLocation(models.Model):
     location_accuracy = models.ForeignKey(
         LocationAccuracy, on_delete=models.SET_NULL, null=True, blank=True
     )
-    geojson_point = gis_models.PointField(srid=4326, blank=True, null=True)
-    geojson_polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
 
     region = models.ForeignKey(
         Region, default=None, on_delete=models.CASCADE, null=True, blank=True
@@ -2154,7 +2193,13 @@ class LandForm(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2175,7 +2220,13 @@ class RockType(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2196,7 +2247,13 @@ class SoilType(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2217,7 +2274,13 @@ class SoilColour(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2238,7 +2301,13 @@ class Drainage(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2259,7 +2328,13 @@ class SoilCondition(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2287,6 +2362,8 @@ class OCRHabitatComposition(models.Model):
         null=True,
         related_name="habitat_composition",
     )
+    # TODO: Consider fixing these to use a function that returns the choices
+    # as setting them in the __init__ method creates issues in other parts of the application
     land_form = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
     rock_type = models.ForeignKey(
         RockType, on_delete=models.SET_NULL, null=True, blank=True
@@ -2421,7 +2498,13 @@ class Intensity(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2498,7 +2581,13 @@ class ObservationMethod(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2548,7 +2637,13 @@ class PlantCountMethod(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2569,7 +2664,13 @@ class PlantCountAccuracy(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2590,7 +2691,13 @@ class CountedSubject(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2611,7 +2718,13 @@ class PlantCondition(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2707,7 +2820,13 @@ class PrimaryDetectionMethod(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2727,7 +2846,13 @@ class ReproductiveState(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2748,7 +2873,13 @@ class AnimalHealth(models.Model):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2769,7 +2900,13 @@ class DeathReason(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2789,7 +2926,13 @@ class SecondarySign(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2899,7 +3042,13 @@ class IdentificationCertainty(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2920,7 +3069,9 @@ class SampleType(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False)
+    name = models.CharField(
+        max_length=250, blank=False, null=False, validators=[no_commas_validator]
+    )
     group_type = models.ForeignKey(
         GroupType, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -2942,7 +3093,9 @@ class SampleDestination(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False)
+    name = models.CharField(
+        max_length=250, blank=False, null=False, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"
@@ -2961,7 +3114,9 @@ class PermitType(ArchivableModel):
 
     """
 
-    name = models.CharField(max_length=250, blank=False, null=False)
+    name = models.CharField(
+        max_length=250, blank=False, null=False, validators=[no_commas_validator]
+    )
     group_type = models.ForeignKey(
         GroupType, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -3197,7 +3352,13 @@ class OCRConservationThreat(RevisionedMixin):
 
 
 class WildStatus(ArchivableModel):
-    name = models.CharField(max_length=250, blank=False, null=False, unique=True)
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
 
     class Meta:
         app_label = "boranga"
@@ -3245,7 +3406,9 @@ class Occurrence(RevisionedMixin):
     occurrence_number = models.CharField(max_length=9, blank=True, default="")
 
     # Field to use when importing data from the legacy system
-    migrated_from_id = models.CharField(max_length=50, blank=True, default="")
+    migrated_from_id = models.CharField(
+        max_length=50, blank=True, null=True, unique=True
+    )
 
     occurrence_name = models.CharField(
         max_length=250, blank=True, null=True, unique=True
@@ -4188,8 +4351,6 @@ class OCCLocation(models.Model):
     location_accuracy = models.ForeignKey(
         LocationAccuracy, on_delete=models.SET_NULL, null=True, blank=True
     )
-    geojson_point = gis_models.PointField(srid=4326, blank=True, null=True)
-    geojson_polygon = gis_models.PolygonField(srid=4326, blank=True, null=True)
 
     region = models.ForeignKey(
         Region, default=None, on_delete=models.CASCADE, null=True, blank=True
@@ -4846,8 +5007,12 @@ class OCRExternalRefereeInvite(models.Model):
 
 
 class OccurrenceTenurePurpose(ArchivableModel):
-    label = models.CharField(max_length=100, blank=True, null=True)
-    code = models.CharField(max_length=20, blank=True, null=True)
+    label = models.CharField(
+        max_length=100, blank=True, null=True, validators=[no_commas_validator]
+    )
+    code = models.CharField(
+        max_length=20, blank=True, null=True, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"
@@ -4859,8 +5024,12 @@ class OccurrenceTenurePurpose(ArchivableModel):
 
 
 class OccurrenceTenureVesting(models.Model):
-    label = models.CharField(max_length=100, blank=True, null=True)
-    code = models.CharField(max_length=20, blank=True, null=True)
+    label = models.CharField(
+        max_length=100, blank=True, null=True, validators=[no_commas_validator]
+    )
+    code = models.CharField(
+        max_length=20, blank=True, null=True, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"
@@ -5110,12 +5279,23 @@ def validate_bulk_import_file_extension(value):
     ext = os.path.splitext(value.name)[1]
     valid_extensions = [".xlsx"]
     if ext not in valid_extensions:
-        raise ValidationError(
-            "Only .xlsx files are supported by the bulk import facility!"
-        )
+        raise ValidationError("The bulk import file must be a .xlsx file")
 
 
+def validate_bulk_import_associated_files_extension(value):
+    ext = os.path.splitext(value.name)[1]
+    valid_extensions = [".zip"]
+    if ext not in valid_extensions:
+        raise ValidationError("The associated documents file must be a .zip file")
+
+
+# TODO: Would be nice to have the object id in the file path
+# bit tricky before the object has been saved..
 def get_occurrence_report_bulk_import_path(instance, filename):
+    return f"occurrence_report/bulk-imports/{timezone.now()}/{filename}"
+
+
+def get_occurrence_report_bulk_import_associated_files_path(instance, filename):
     return f"occurrence_report/bulk-imports/{timezone.now()}/{filename}"
 
 
@@ -5131,6 +5311,14 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         max_length=512,
         storage=private_storage,
         validators=[validate_bulk_import_file_extension],
+    )
+    _associated_files_zip = models.FileField(
+        upload_to=get_occurrence_report_bulk_import_associated_files_path,
+        max_length=512,
+        storage=private_storage,
+        validators=[validate_bulk_import_associated_files_extension],
+        null=True,
+        blank=True,
     )
     # A hash of the file to allow for duplicate detection
     file_hash = models.CharField(max_length=64, null=True, blank=True)
@@ -5330,9 +5518,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         try:
             workbook = openpyxl.load_workbook(_file, read_only=True)
         except Exception as e:
-            logger.error(f"Error opening bulk import file {_file.name}: {e}")
-            logger.error("Unable to validate headers.")
-            return
+            raise ValidationError(f"Error opening bulk import file {_file}: {e}")
 
         sheet = workbook.active
 
@@ -5362,6 +5548,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             error_string += f" The file has the following headers that are not part of the schema: {extra_headers}"
         raise ValidationError(error_string)
 
+    @transaction.atomic
     def process(self):
         if self.processing_status == self.PROCESSING_STATUS_COMPLETED:
             logger.info(f"Bulk import task {self.id} has already been processed")
@@ -5401,6 +5588,9 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         # Get the first sheet
         sheet = workbook.active
 
+        # headers
+        headers = [cell.value for cell in sheet[1] if cell.value is not None]
+
         # Get the rows
         rows = list(
             sheet.iter_rows(
@@ -5412,7 +5602,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         )
 
         errors = []
-
+        ocr_migrated_from_ids = []
         # Process the rows
         for index, row in enumerate(rows):
             self.rows_processed = index + 1
@@ -5425,34 +5615,22 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
             self.save()
 
-            self.process_row(index, row, errors)
+            self.process_row(ocr_migrated_from_ids, index, headers, row, errors)
 
-        if errors:
-            self.processing_status = (
-                OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
-            )
-            self.datetime_error = timezone.now()
-            self.error_message = "Errors occurred during processing:\n"
-            for error in errors:
-                self.error_message += error["error_message"] + "\n"
-        else:
-            # Set the task to completed
-            self.processing_status = (
-                OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
-            )
-            self.datetime_completed = timezone.now()
-        self.save()
+        if errors and len(errors) > 0:
+            # If a single thing went wrong roll back everything
+            # Imports either work completely or fail completely
+            transaction.set_rollback(True)
 
         return errors
 
-    def process_row(self, index, row, errors):
-        logger.debug(f"Processing row: Index {index}, Data: {row}")
+    def process_row(self, ocr_migrated_from_ids, index, headers, row, errors):
         row_hash = hashlib.sha256(str(row).encode()).hexdigest()
         if OccurrenceReport.objects.filter(import_hash=row_hash).exists():
             duplicate_ocr = OccurrenceReport.objects.get(import_hash=row_hash)
             error_message = (
                 f"Row {index} has the exact same data as "
-                f"Occurrence Report {duplicate_ocr.occurrence_report_number}"
+                f"Occurrence Report {duplicate_ocr.occurrence_report_number} did when it was imported."
             )
             errors.append(
                 {
@@ -5464,28 +5642,78 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             )
             return
 
+        ocr_migrated_from_id = row[0]
+        mode = "create"
+        if (
+            ocr_migrated_from_id in ocr_migrated_from_ids
+            or OccurrenceReport.objects.filter(
+                migrated_from_id=ocr_migrated_from_id
+            ).exists()
+        ):
+            mode = "update"
+
+        if ocr_migrated_from_id not in ocr_migrated_from_ids:
+            # Because this is happening in a transaction we need to keep track of
+            # the ocr_migrated_from_ids that have been processed in this transaction
+            ocr_migrated_from_ids.append(ocr_migrated_from_id)
+
         row_error_count = 0
         total_column_error_count = 0
 
         models = {}
+        geometries = {}
+        many_to_many_fields = {}
 
         # Validate each cell
-        for index, column in enumerate(self.schema.columns.all()):
-            # logger.debug(f"  Processing column: {column}")
-
-            # logger.debug(f"  Cell value: {row[index]}")
+        for column_index, column in enumerate(self.schema.columns.all()):
             column_error_count = 0
 
-            cell_value = row[index]
+            cell_value = row[column_index]
 
-            cell_value, errors_added = column.validate(cell_value, index, errors)
+            cell_value, errors_added = column.validate(
+                self, cell_value, mode, index, headers, row, errors
+            )
+
+            model_class = apps.get_model(
+                "boranga", column.django_import_content_type.model
+            )
+            field = model_class._meta.get_field(column.django_import_field_name)
+
+            # Special case: geojson feature collection
+            # TODO: Consider modifying this so that it can support multiple geometry fields
+            # in the same model like the m2m one does below
+            if (
+                type(field) is gis_models.GeometryField
+                and type(cell_value) is list
+                and len(cell_value) > 0
+            ):
+                # Store every feature / geometry in the geometries dict
+                geometries[model_class._meta.model_name] = cell_value
+
+                # Set the first geometry as the cell value so that it is
+                # created with the main model instance
+                cell_value = geometries[model_class._meta.model_name][0]
+
+            # Special case: Many to many fields
+            if type(field) is ManyToManyField:
+                # Store the many to many field in the many_to_many_fields dict
+                # As you can't assign a list of models directly to a many to many field
+                # via model_data
+                if model_class._meta.model_name not in many_to_many_fields:
+                    many_to_many_fields[model_class._meta.model_name] = []
+                many_to_many_fields[model_class._meta.model_name].append(
+                    {"field": column.django_import_field_name, "value": cell_value}
+                )
+
+                # Continue to the next column without adding the cell value to the model data
+                continue
 
             column_error_count += errors_added
 
             row_error_count += column_error_count
             total_column_error_count += column_error_count
 
-            if column_error_count:
+            if column_error_count > 0:
                 continue
 
             model_name = column.django_import_content_type.model
@@ -5501,16 +5729,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
         model_instances = {}
         for current_model_name in models:
-            logger.debug(f"Processing model: {current_model_name}")
-            mode = "create"
-
-            # If we are at the top level model, check if we are creating a new instance or updating an existing one
-            if (
-                current_model_name == OccurrenceReport._meta.model_name
-                and OccurrenceReport.objects.filter(migrated_from_id=row[0]).exists()
-            ):
-                mode = "update"
-
             model_data = dict(
                 zip(
                     models[current_model_name]["field_names"],
@@ -5523,34 +5741,153 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 "boranga",
                 current_model_name,
             )
-            current_model_instance = model_class(**model_data)
 
-            logger.debug(
-                f"{current_model_name}.__dict__: {current_model_instance.__dict__}"
-            )
+            if mode == "update":
+                # Remove empty values from the model data
+                model_data = {k: v for k, v in model_data.items() if v is not None}
+
+                if current_model_name == OccurrenceReport._meta.model_name:
+                    # Remove the migrated_from_id field as we don't want to update it
+                    model_data.pop("migrated_from_id", None)
 
             # For OccurrenceReport check if we are creating or updating
             # and set appropriate fields if so
             if current_model_name == OccurrenceReport._meta.model_name:
                 if mode == "create":
+                    current_model_instance = OccurrenceReport(**model_data)
                     current_model_instance.bulk_import_task_id = self.pk
                     current_model_instance.import_hash = row_hash
                     current_model_instance.group_type_id = self.schema.group_type_id
+                    current_model_instance.submitter = self.email_user
+                    current_model_instance.lodgement_date = timezone.now()
                 else:
-                    current_model_instance.pk = OccurrenceReport.objects.get(
+                    current_model_instance = OccurrenceReport.objects.get(
                         migrated_from_id=row[0]
-                    ).pk
+                    )
+                    for field, value in model_data.items():
+                        setattr(current_model_instance, field, value)
+            elif current_model_name == Occurrence._meta.model_name:
+                occ_migrated_from_id = model_data.pop("migrated_from_id", None)
+                occurrence_number = model_data.pop("occurrence_number", None)
+
+                if occ_migrated_from_id and occurrence_number:
+                    error_message = (
+                        "Both migrated_from_id and occurrence_number were provided. "
+                        "Please provide only one of these fields."
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "ambiguous_occurrence_idenfitier",
+                            "data": model_data,
+                            "error_message": error_message,
+                        }
+                    )
+                    return
+
+                if occurrence_number:
+                    try:
+                        current_model_instance = Occurrence.objects.get(
+                            occurrence_number=occurrence_number
+                        )
+                    except Occurrence.DoesNotExist:
+                        error_message = "The occurrence number provided does not exist in the database"
+                        errors.append(
+                            {
+                                "row_index": index,
+                                "error_type": "invalid_occurrence_number",
+                                "data": model_data,
+                                "error_message": error_message,
+                            }
+                        )
+                        return
+                else:
+                    if not occ_migrated_from_id:
+                        if not model_data.get("group_type"):
+                            model_data["group_type"] = self.schema.group_type
+                        current_model_instance = Occurrence(**model_data)
+                    else:
+                        if Occurrence.objects.filter(
+                            migrated_from_id=occ_migrated_from_id
+                        ).exists():
+                            current_model_instance = Occurrence.objects.get(
+                                migrated_from_id=occ_migrated_from_id
+                            )
+                        else:
+                            current_model_instance = Occurrence.objects.create(
+                                migrated_from_id=occ_migrated_from_id,
+                                group_type=self.schema.group_type,
+                                species=model_instances[
+                                    OccurrenceReport._meta.model_name
+                                ].species,
+                            )
+
+                        if (
+                            not current_model_instance.group_type
+                            == self.schema.group_type
+                        ):
+                            error_message = (
+                                "The group type of the occurrence does not "
+                                "match the group type of the schema"
+                            )
+                            errors.append(
+                                {
+                                    "row_index": index,
+                                    "error_type": "invalid_occurrence_group_type",
+                                    "data": model_data,
+                                    "error_message": error_message,
+                                }
+                            )
+                            return
+
+                        occurrence_report = model_instances[
+                            OccurrenceReport._meta.model_name
+                        ]
+                        if (
+                            not current_model_instance.species
+                            == occurrence_report.species
+                        ):
+                            error_message = (
+                                "The species of the occurrence does not match "
+                                "the species of the occurrence report"
+                            )
+                            errors.append(
+                                {
+                                    "row_index": index,
+                                    "error_type": "invalid_occurrence_species",
+                                    "data": model_data,
+                                    "error_message": error_message,
+                                }
+                            )
+                            return
+
+                        for field, value in model_data.items():
+                            setattr(current_model_instance, field, value)
+
+            elif current_model_name == SubmitterInformation._meta.model_name:
+                # Submitter information is created automatically when an OccurrenceReport is created
+                occurrence_report = model_instances[OccurrenceReport._meta.model_name]
+                current_model_instance = occurrence_report.submitter_information
+                for field, value in model_data.items():
+                    setattr(current_model_instance, field, value)
+            else:
+                current_model_instance = model_class(**model_data)
 
             # If we are at the top level model (OccurrenceReport) we don't need to relate it to anything
-            if not current_model_name == OccurrenceReport._meta.model_name:
+            # We also don't need to relate the Occurrence model to anything here as it is dealt with
+            # as a special case further down
+            # TODO: Optimize this relationships finder to minimise looping and move to a separate function
+            if current_model_name not in [
+                OccurrenceReport._meta.model_name,
+                Occurrence._meta.model_name,
+                SubmitterInformation._meta.model_name,
+            ]:
                 # Relate this model to it's parent instance
 
                 related_to_parent = False
+                # Look through all the model instances that have already been saved
+                for potential_parent_model_key in [m for m in model_instances]:
 
-                # Look through all the models being imported except for the current model
-                for potential_parent_model_key in [
-                    m for m in models if m != current_model_name
-                ]:
                     # Check if this model has a relationship with the current model
                     potential_parent_instance = model_instances[
                         potential_parent_model_key
@@ -5561,8 +5898,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     # to the parent model
                     for field in current_model_instance._meta.get_fields():
                         if field.related_model == potential_parent_instance.__class__:
-                            logger.debug(f" ---> {field} is a relationship")
-
                             # If it does, set the relationship
                             setattr(
                                 current_model_instance,
@@ -5571,15 +5906,10 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                             )
                             related_to_parent = True
                             break
-
-                    if related_to_parent:
-                        break
 
                     # If we didn't find a relationship in the current model, search the parent model
                     for field in potential_parent_instance.__class__._meta.get_fields():
                         if field.related_model == current_model_instance:
-                            logger.debug(f" ---> {field} is a relationship")
-
                             # If it does, set the relationship
                             setattr(
                                 current_model_instance,
@@ -5588,9 +5918,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                             )
                             related_to_parent = True
                             break
-
-                    if related_to_parent:
-                        break
 
                 if not related_to_parent:
                     error_message = (
@@ -5608,11 +5935,49 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     return
 
             try:
-                current_model_instance.save()
+                if mode == "create" or (mode == "update" and len(model_data.keys())):
+                    current_model_instance.save()
+
+                self.ocr_bulk_import_generate_action_logs(mode, current_model_instance)
+
                 model_instances[current_model_instance._meta.model_name] = (
                     current_model_instance
                 )
-                logger.debug(f"Model instance created: {current_model_instance}")
+                logger.info(f"Model instance saved: {current_model_instance}")
+
+                # Deal with special case of relating Occurrence to OccurrenceReport
+                if (
+                    current_model_instance._meta.model_name
+                    == Occurrence._meta.model_name
+                ):
+                    current_model_instance.occurrence_reports.add(
+                        model_instances[OccurrenceReport._meta.model_name]
+                    )
+
+                # Deal with special case of creating mutliple geometries based on the
+                # geojson text from the column
+                if current_model_instance._meta.model_name in geometries:
+                    logger.info(
+                        f"Creating multiple geometries for {current_model_instance}"
+                    )
+                    for geometry in geometries[current_model_instance._meta.model_name][
+                        1:
+                    ]:
+                        current_model_instance.pk = None
+                        current_model_instance.geometry = geometry
+                        current_model_instance.save()
+
+                # Deal with special case of many to many fields
+                if current_model_instance._meta.model_name in many_to_many_fields:
+                    logger.info(
+                        f"Adding many to many fields for {current_model_instance}"
+                    )
+                    for m2m_field in many_to_many_fields[
+                        current_model_instance._meta.model_name
+                    ]:
+                        field = getattr(current_model_instance, m2m_field["field"])
+                        field.set(m2m_field["value"])
+
             except IntegrityError as e:
                 logger.error(f"Error creating model instance: {e}")
                 errors.append(
@@ -5626,6 +5991,57 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
         return
 
+    def ocr_bulk_import_generate_action_logs(self, mode, model_instance):
+        if not model_instance._meta.model_name == OccurrenceReport._meta.model_name:
+            return
+
+        log_suffix = " (via bulk importer)"
+        bulk_importer = EmailUser.objects.get(id=self.email_user)
+        request = get_mock_request(bulk_importer)
+        if mode == "create":
+            model_instance.log_user_action(
+                OccurrenceReportUserAction.ACTION_LODGE_PROPOSAL.format(
+                    model_instance.occurrence_report_number
+                )
+                + log_suffix,
+                request,
+            )
+            if model_instance.processing_status in [
+                OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+                OccurrenceReport.PROCESSING_STATUS_APPROVED,
+            ]:
+                assessor = EmailUser.objects.get(id=model_instance.assigned_officer)
+                request = get_mock_request(assessor)
+                model_instance.log_user_action(
+                    OccurrenceReportUserAction.ACTION_PROPOSED_APPROVAL.format(
+                        model_instance.occurrence_report_number
+                    )
+                    + log_suffix,
+                    request,
+                )
+            if (
+                model_instance.processing_status
+                == OccurrenceReport.PROCESSING_STATUS_APPROVED
+            ):
+                approver = EmailUser.objects.get(id=model_instance.assigned_approver)
+                request = get_mock_request(approver)
+                model_instance.log_user_action(
+                    OccurrenceReportUserAction.ACTION_APPROVE.format(
+                        model_instance.occurrence_report_number,
+                        approver.get_full_name(),
+                    )
+                    + log_suffix,
+                    request,
+                )
+        elif mode == "update":
+            model_instance.log_user_action(
+                OccurrenceReportUserAction.ACTION_EDIT_APPLICATION.format(
+                    model_instance.occurrence_report_number
+                )
+                + log_suffix,
+                request,
+            )
+
     def retry(self):
         self.processing_status = self.PROCESSING_STATUS_QUEUED
         self.datetime_started = None
@@ -5636,8 +6052,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         self.save()
 
     def revert(self):
-        # TODO: Using delete here due to the sheer number of records that could be created
-        # Still need to consider if we want to archive them
+        # Note: Using delete here due to the sheer number of records that could be created
         OccurrenceReport.objects.filter(bulk_import_task=self).delete()
 
         self.processing_status = self.PROCESSING_STATUS_ARCHIVED
@@ -5653,7 +6068,8 @@ class OccurrenceReportBulkImportSchema(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     tags = TaggableManager(blank=True)
     datetime_created = models.DateTimeField(auto_now_add=True)
-    datetime_updated = models.DateTimeField(default=datetime.now)
+    datetime_updated = models.DateTimeField(auto_now=True)
+    is_master = models.BooleanField(default=False)
 
     class Meta:
         app_label = "boranga"
@@ -5690,6 +6106,23 @@ class OccurrenceReportBulkImportSchema(models.Model):
             )
 
     @property
+    def mandatory_fields(self):
+        if self.group_type.name == "community":
+            return [
+                "migrated_from_id",
+                "community",
+                "processing_status",
+                "assigned_officer",
+            ]
+
+        return [
+            "migrated_from_id",
+            "species",
+            "processing_status",
+            "assigned_officer",
+        ]
+
+    @property
     def preview_import_file(self):
         workbook = openpyxl.Workbook()
         worksheet = workbook.active
@@ -5719,25 +6152,45 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     f"Model {model_class} does not have field {column.django_import_field_name}"
                 )
             model_field = model_class._meta.get_field(column.django_import_field_name)
-            logger.debug(f"model_field_type: {type(model_field)}")
+
+            allow_blank = model_field.null
+            if allow_blank and column.xlsx_data_validation_allow_blank is False:
+                allow_blank = False
+
             dv = None
             if column.default_value is not None:
                 dv = DataValidation(
                     type=dv_types["list"],
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     formula1=column.default_value,
                     error=f"This field may only contain the value '{column.default_value}'",
                     errorTitle="Invalid value for column with default value",
                     prompt="Either leave the field blank or enter the default value",
                     promptTitle="Value",
                 )
+            elif isinstance(
+                model_field, MultiSelectField
+            ):  # MultiSelectField is a custom field, not a standard Django field
+                # Unfortunately there is no easy way to embed validation in .xlsx
+                # for a comma separated list of values so this will be validated
+                # during the import process
+                continue
             elif (
                 isinstance(model_field, models.fields.CharField) and model_field.choices
             ):
+                choices = [c[0] for c in model_field.choices]
+                if (
+                    model_class is OccurrenceReport
+                    and model_field.name == "processing_status"
+                ):
+                    choices = [
+                        c[0]
+                        for c in OccurrenceReport.VALID_BULK_IMPORT_PROCESSING_STATUSES
+                    ]
                 dv = DataValidation(
                     type=dv_types["list"],
-                    allow_blank=model_field.null,
-                    formula1=",".join([c[0] for c in model_field.choices]),
+                    allow_blank=allow_blank,
+                    formula1=",".join(choices),
                     error="Please select a valid option from the list",
                     errorTitle="Invalid selection",
                     prompt="Select a value from the list",
@@ -5746,7 +6199,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
             elif isinstance(model_field, models.fields.CharField):
                 dv = DataValidation(
                     type=dv_types["textLength"],
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     operator=dv_operators["lessThanOrEqual"],
                     formula1=f"{model_field.max_length}",
                     error="Text must be less than or equal to {model_field.max_length} characters",
@@ -5761,7 +6214,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     type=dv_types["date"],
                     operator=dv_operators["greaterThanOrEqual"],
                     formula1="1900-01-01",
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     error="Please enter a valid date",
                     errorTitle="Invalid date",
                     prompt="Enter a date",
@@ -5773,12 +6226,15 @@ class OccurrenceReportBulkImportSchema(models.Model):
                     )
                     for cell in worksheet[column_letter]:
                         cell.style = date_style
-            elif isinstance(model_field, models.fields.IntegerField):
+            elif (
+                isinstance(model_field, models.fields.IntegerField)
+                and column.is_emailuser_column is False
+            ):
                 dv = DataValidation(
                     type=dv_types["whole"],
                     operator=dv_operators["greaterThanOrEqual"],
                     formula1="0",
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     error="Please enter a whole number",
                     errorTitle="Invalid number",
                     prompt="Enter a whole number",
@@ -5787,7 +6243,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
             elif isinstance(model_field, models.fields.DecimalField):
                 dv = DataValidation(
                     type=dv_types["decimal"],
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     error="Please enter a decimal number",
                     errorTitle="Invalid number",
                     prompt="Enter a decimal number",
@@ -5796,7 +6252,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
             elif isinstance(model_field, models.fields.BooleanField):
                 dv = DataValidation(
                     type=dv_types["list"],
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     formula1='"True,False"',
                     error="Please select True or False",
                     errorTitle="Invalid selection",
@@ -5817,6 +6273,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
                 if (
                     not related_model_qs.exists()
                     or related_model_qs.count() == 0
+                    or related_model._meta.model_name in ["species", "community"]
                     or related_model_qs.count()
                     > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
                 ):
@@ -5828,7 +6285,7 @@ class OccurrenceReportBulkImportSchema(models.Model):
 
                 dv = DataValidation(
                     type=dv_types["list"],
-                    allow_blank=model_field.null,
+                    allow_blank=allow_blank,
                     formula1=f'"{",".join([str(getattr(obj, display_field)) for obj in related_model_qs])}"',
                     error="Please select a valid option from the list",
                     errorTitle="Invalid selection",
@@ -5863,7 +6320,188 @@ class OccurrenceReportBulkImportSchema(models.Model):
         return workbook
 
     @transaction.atomic
-    def copy(self):
+    def validate(self, request_user_id: int):
+        # Tries adding valid sample data to each column and then saving to the database
+        # Returns any errors that occur
+        # Rolls back the transaction regardless of success or failure
+
+        errors = []
+
+        columns = self.columns.all()
+        if not columns.exists() or columns.count() == 0:
+            errors.append(
+                {
+                    "error_type": "no_columns",
+                    "error_message": "No columns found in the schema",
+                }
+            )
+            return errors
+
+        for field in self.mandatory_fields:
+            if not columns.filter(
+                django_import_content_type=ct_models.ContentType.objects.get_for_model(
+                    OccurrenceReport
+                ),
+                django_import_field_name=field,
+            ).exists():
+                errors.append(
+                    {
+                        "error_type": "missing_mandatory_column",
+                        "error_message": f"Missing mandatory occurrence report column for django field: {field}",
+                    }
+                )
+                return errors
+
+        # Create a sample row of data
+        sample_row = []
+
+        # Special case where only a migrated_from_id or occurrence_number
+        # Should be provided when both columns are present otherwise validation will fail
+        row_contains_occ_migrated_from_id = (
+            columns.filter(
+                django_import_content_type=ct_models.ContentType.objects.get_for_model(
+                    Occurrence
+                ),
+                django_import_field_name="migrated_from_id",
+            ).exists()
+            and columns.filter(
+                django_import_content_type=ct_models.ContentType.objects.get_for_model(
+                    Occurrence
+                ),
+                django_import_field_name="occurrence_number",
+            ).exists()
+        )
+        species_or_community_identifier = None
+        for column in columns:
+            sample_value = column.get_sample_value(
+                errors, species_or_community_identifier
+            )
+            if (
+                column.django_import_content_type.model == Occurrence._meta.model_name
+                and column.django_import_field_name == "species"
+            ):
+                species_or_community_identifier = Species.objects.get(
+                    taxonomy__scientific_name=sample_value
+                )
+
+            if (
+                column.django_import_content_type.model == Occurrence._meta.model_name
+                and column.django_import_field_name == "community"
+            ):
+                species_or_community_identifier = Community.objects.get(
+                    taxonomy__community_migrated_id=sample_value
+                )
+
+            if (
+                column.django_import_content_type.model == Occurrence._meta.model_name
+                and column.django_import_field_name == "migrated_from_id"
+                and row_contains_occ_migrated_from_id
+            ):
+                sample_value = ""
+            sample_row.append(sample_value)
+
+        logger.info(f"Sample row: {sample_row}")
+
+        preview_import_file = self.preview_import_file
+
+        # Write the sample row to the file
+        sheet = preview_import_file.active
+        sheet.append(sample_row)
+
+        # Convert the import file to a Django File object
+        import_file_name = f"sample_{self.group_type.name}_{self.version}.xlsx"
+        import_file = InMemoryUploadedFile(
+            preview_import_file,
+            "_file",
+            import_file_name,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            None,
+            None,
+        )
+        sample_associated_file = InMemoryUploadedFile(
+            BytesIO(b"I am a test file"),
+            "file",
+            "sample_file.txt",
+            "text/plain",
+            0,
+            None,
+        )
+        # Create a .zip file to house the sample associated file
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+            zip_file.writestr(
+                sample_associated_file.name, sample_associated_file.read()
+            )
+        zip_file_name = f"sample_{self.group_type.name}_{self.version}.zip"
+        zip_file = InMemoryUploadedFile(
+            zip_buffer,
+            "file",
+            zip_file_name,
+            "application/zip",
+            0,
+            None,
+        )
+
+        import_task = OccurrenceReportBulkImportTask(
+            schema=self,
+            _file=import_file,
+            _associated_files_zip=zip_file,
+            rows=1,
+            email_user=request_user_id,
+        )
+
+        # Convert the file to bytes
+        buffer = BytesIO()
+        preview_import_file.save(buffer)
+        buffer.seek(0)
+
+        try:
+            import_task.validate_headers(buffer, self)
+        except ValidationError as e:
+            logger.error(f"Error validating headers: {e}")
+            logger.error(traceback.format_exc())
+            errors.append(
+                {
+                    "error_type": "header_validation",
+                    "error_message": e.message,
+                }
+            )
+            transaction.set_rollback(True)
+            return errors
+
+        headers = [cell.value for cell in sheet[1] if cell.value is not None]
+
+        # Get the rows
+        row = list(
+            sheet.iter_rows(
+                min_row=2,
+                max_row=2,
+                max_col=self.columns.count(),
+                values_only=True,
+            )
+        )[0]
+
+        ocr_migrated_from_ids = []
+
+        try:
+            import_task.process_row(ocr_migrated_from_ids, 0, headers, row, errors)
+        except Exception as e:
+            logger.error(f"Error processing sample row: {e}")
+            logger.error(traceback.format_exc())
+            errors.append(
+                {
+                    "error_type": "row_validation",
+                    "error_message": f"Error processing sample row: {e}",
+                }
+            )
+            transaction.set_rollback(True)
+            return errors
+
+        transaction.set_rollback(True)
+        return errors
+
+    @transaction.atomic
+    def copy(self, request):
         if not self.pk:
             raise ValueError("Schema must be saved before it can be copied")
 
@@ -5875,10 +6513,16 @@ class OccurrenceReportBulkImportSchema(models.Model):
             ).aggregate(Max("version"))["version__max"]
         else:
             highest_version = 0
+
         new_schema = OccurrenceReportBulkImportSchema(
             group_type=self.group_type,
             version=highest_version + 1,
         )
+        # If the user copying the schema has elevated permissions, the new schema
+        # will also be a master schema otherwise it will be a regular schema
+        if self.is_master and is_django_admin(request):
+            new_schema.is_master = True
+
         if self.name:
             new_schema.name = f"{self.name} (Copy)"
         else:
@@ -5892,19 +6536,48 @@ class OccurrenceReportBulkImportSchema(models.Model):
             django_import_content_type=django_import_content_type,
             django_import_field_name="migrated_from_id",
         ):
-            new_column = OccurrenceReportBulkImportSchemaColumn.objects.get(
-                pk=column.pk
-            )
-            new_column.pk = None
+            # Note: Due to an issue in django-ordered-model you can't use the
+            # method of cloning objects here where to make a copy of the object
+            # you set the pk to None and save it (that will mess up the ordering of
+            # the original schema's columns) Strange bug but can't be bothered looking into it further
+            new_column = OccurrenceReportBulkImportSchemaColumn()
+            for field in column._meta.fields:
+                if field.name == "id":
+                    continue
+                setattr(new_column, field.name, getattr(column, field.name))
             new_column.schema = new_schema
             new_column.save()
 
+            for lookup_filter in column.lookup_filters.all():
+                new_lookup_filter = SchemaColumnLookupFilter.objects.create(
+                    schema_column=new_column,
+                    filter_field_name=lookup_filter.filter_field_name,
+                    filter_type=lookup_filter.filter_type,
+                )
+
+                for value in lookup_filter.values.all():
+                    SchemaColumnLookupFilterValue.objects.create(
+                        lookup_filter=new_lookup_filter,
+                        filter_value=value.filter_value,
+                    )
+
         new_schema.tags.add(*self.tags.all())
+
+        if self.is_master and not is_django_admin(request):
+            # Columns copied from a 'master' schema will not be editable
+            # for occurrence approvers (only by superusers and django admins)
+            new_schema.columns.all().update(is_editable=False)
 
         return new_schema
 
 
+class OccurrenceReportBulkImportSchemaColumnManager(OrderedModelManager):
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("lookup_filters")
+
+
 class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
+    objects = OccurrenceReportBulkImportSchemaColumnManager()
     schema = models.ForeignKey(
         OccurrenceReportBulkImportSchema,
         related_name="columns",
@@ -5920,51 +6593,30 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         related_name="import_columns",
     )
     django_import_field_name = models.CharField(max_length=50, blank=False, null=False)
-    django_lookup_field_name = models.CharField(
-        max_length=50, default="id", blank=True, null=True
-    )
+    django_lookup_field_name = models.CharField(max_length=50, blank=True, null=True)
 
     # The name of the column header in the .xlsx file
     xlsx_column_header_name = models.CharField(max_length=50, blank=False, null=False)
 
-    # The following fields are used to embed data validation in the .xlsx file
-    # so that the users can do a quick check before uploading
-    xlsx_data_validation_type = models.CharField(
-        max_length=20,
-        choices=sorted(
-            [(x, x) for x in DataValidation.type.values],
-            key=lambda x: (x[0] is None, x),
-        ),
-        null=True,
-        blank=True,
-    )
+    # This field allows the user that is generating the schema the ability to
+    # make non mandatory fields mandatory for a specific schema
     xlsx_data_validation_allow_blank = models.BooleanField(default=False)
-    xlsx_data_validation_operator = models.CharField(
-        max_length=20,
-        choices=sorted(
-            [(x, x) for x in DataValidation.operator.values],
-            key=lambda x: (x[0] is None, x),
-        ),
-        null=True,
-        blank=True,
-    )
-    xlsx_data_validation_formula1 = models.CharField(
-        max_length=50, blank=True, null=True
-    )
-    xlsx_data_validation_formula2 = models.CharField(
-        max_length=50, blank=True, null=True
-    )
+
+    # Columns copied from a 'master' schema will not be editable
+    # by occurrence approvers (only by superusers and django admins)
+    is_editable = models.BooleanField(default=True)
 
     order_with_respect_to = "schema"
 
-    DEFAULT_VALUE_REQUEST_USER_ID = "request_user_id"
-    DEFAULT_VALUE_CHOICES = ((DEFAULT_VALUE_REQUEST_USER_ID, "Request User ID"),)
+    DEFAULT_VALUE_BULK_IMPORT_SUBMITTER = "bulk_import_submitter"
+    DEFAULT_VALUE_CHOICES = (
+        (DEFAULT_VALUE_BULK_IMPORT_SUBMITTER, "Bulk Import Submitter"),
+    )
 
     default_value = models.CharField(
         max_length=255, choices=DEFAULT_VALUE_CHOICES, blank=True, null=True
     )
-
-    # TODO: How are we going to do the list lookup validation for much larger datasets (mostly for species)
+    is_emailuser_column = models.BooleanField(default=False)
 
     class Meta(OrderedModel.Meta):
         app_label = "boranga"
@@ -5996,9 +6648,611 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
     def __str__(self):
         return f"{self.xlsx_column_header_name} - {self.schema}"
 
-    def validate(self, cell_value, index, errors):
+    @property
+    def model_name(self):
+        if not self.django_import_content_type:
+            return None
+
+        model = self.django_import_content_type.model_class()
+        return model._meta.verbose_name
+
+    @property
+    def field(self):
+        if not self.django_import_content_type or not self.django_import_field_name:
+            return None
+
+        return self.django_import_content_type.model_class()._meta.get_field(
+            self.django_import_field_name
+        )
+
+    @property
+    def field_type(self):
+        if not self.field:
+            return None
+
+        return self.field.get_internal_type()
+
+    @property
+    def xlsx_validation_type(self):
+        if not self.field:
+            return None
+
+        return get_openpyxl_data_validation_type_for_django_field(
+            self.field, column=self
+        )
+
+    @property
+    def text_length(self):
+        if not self.field:
+            return None
+
+        if not isinstance(self.field, models.CharField):
+            return 32767
+
+        return self.field.max_length
+
+    @property
+    def choices(self):
+        if not self.field:
+            return None
+
+        model_class = self.django_import_content_type.model_class()
+
+        return get_choices_for_field(model_class, self.field)
+
+    @cached_property
+    def related_model(self):
+        if not self.django_import_content_type or not self.django_import_field_name:
+            return None
+
+        field = self.django_import_content_type.model_class()._meta.get_field(
+            self.django_import_field_name
+        )
+        if not isinstance(field, (models.ForeignKey, models.ManyToManyField)):
+            return None
+
+        return field.related_model
+
+    @cached_property
+    def display_field(self):
+        related_model = self.related_model
+
+        if not related_model:
+            return None
+
+        if self.django_lookup_field_name:
+            display_field = self.django_lookup_field_name
+        else:
+            display_field = get_display_field_for_model(related_model)
+
+        return display_field
+
+    @cached_property
+    def related_model_qs(self):
+        display_field = self.display_field
+
+        filter_dict = {f"{display_field}__isnull": False}
+        related_model_qs = self.related_model.objects.filter(**filter_dict)
+
+        if issubclass(self.related_model, ArchivableModel):
+            related_model_qs = self.related_model.objects.exclude(archived=True)
+
+        if hasattr(self.related_model, "group_type"):
+            related_model_qs = related_model_qs.only(display_field, "group_type")
+        else:
+            related_model_qs = related_model_qs.only(display_field)
+
+        return related_model_qs.order_by(display_field)
+
+    @cached_property
+    def filtered_related_model_qs(self):
+        if not self.related_model_qs:
+            return None
+
+        if not self.lookup_filters.exists():
+            return self.related_model_qs
+
+        related_model_qs = self.related_model_qs
+
+        related_model = self.related_model
+
+        # If the related model has a group_type field, filter by the schema's group type
+        # (i.e. flora, fauna or community)
+        if hasattr(related_model, "group_type"):
+            related_model_qs = related_model_qs.filter(
+                group_type=self.schema.group_type
+            )
+
+        # Apply any lookup filters if they exist
+        for lookup_filter in self.lookup_filters.all():
+            lookup_filter.filter_field_name + "__" + lookup_filter.filter_type
+            lookup_filter_value = lookup_filter.values.first().filter_value
+            if lookup_filter.values.count() > 1:
+                lookup_filter_value = lookup_filter.values.values_list(
+                    "filter_value", flat=True
+                )
+            if lookup_filter.filter_type == "in" and not isinstance(
+                lookup_filter_value, list
+            ):
+                lookup_filter_value = [lookup_filter_value]
+
+            related_model_qs = related_model_qs.filter(
+                **{
+                    lookup_filter.filter_field_name
+                    + "__"
+                    + lookup_filter.filter_type: lookup_filter_value
+                }
+            )
+
+        return related_model_qs
+
+    @cached_property
+    def foreign_key_count(self):
+        if not self.related_model_qs:
+            return 0
+
+        # Don't return the filtered count here as if we add filters on the front end
+        # the count will change which will then result in the advanced lookup interface
+        # No longer being shown
+        return self.related_model_qs.count()
+
+    @cached_property
+    def requires_lookup_field(self):
+        if not self.django_import_content_type or not self.django_import_field_name:
+            return False
+
+        if (
+            self.django_import_content_type
+            == ct_models.ContentType.objects.get_for_model(OccurrenceReport)
+            and self.django_import_field_name in ["species", "community"]
+        ):
+            return True
+
+        return (
+            self.foreign_key_count > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
+        )
+
+    @cached_property
+    def filtered_foreign_key_count(self):
+        if not self.filtered_related_model_qs:
+            return 0
+
+        return self.filtered_related_model_qs.count()
+
+    def get_sample_value(self, errors, species_or_community_identifier=None):
+        if not self.django_import_content_type:
+            errors.append(
+                {
+                    "error_type": "no_import_content_type",
+                    "error_message": f"No import content type set for column {self}",
+                }
+            )
+            return None
+
+        if not self.django_import_field_name:
+            errors.append(
+                {
+                    "error_type": "no_import_field_name",
+                    "error_message": f"No import field name set for column {self}",
+                }
+            )
+            return None
+
+        try:
+            field = self.django_import_content_type.model_class()._meta.get_field(
+                self.django_import_field_name
+            )
+        except FieldDoesNotExist:
+            error_message = (
+                f"Field {self.django_import_field_name} not found in model "
+                f"{self.django_import_content_type.model_class()}"
+            )
+            errors.append(
+                {
+                    "error_type": "field_not_found",
+                    "error_message": error_message,
+                }
+            )
+            return None
+
+        if (
+            self.django_import_content_type
+            == ct_models.ContentType.objects.get_for_model(OccurrenceReport)
+            and self.django_import_field_name == "processing_status"
+        ):
+            # Special case as there are only 3 processing statuses allow for OCR
+            return random.choice(
+                [
+                    OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
+                    OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+                    OccurrenceReport.PROCESSING_STATUS_APPROVED,
+                ]
+            )
+
+        if isinstance(field, models.ForeignKey):
+            related_model_qs = self.filtered_related_model_qs
+
+            if not related_model_qs.exists():
+                errors.append(
+                    {
+                        "error_type": "no_records",
+                        "error_message": f"No records found for foreign key {field.related_model._meta.model_name}",
+                    }
+                )
+
+            display_field = self.display_field
+
+            random_value = (
+                related_model_qs.order_by("?")
+                .values_list(display_field, flat=True)
+                .first()
+            )
+
+            return random_value
+
+        if isinstance(field, models.ManyToManyField):
+            related_model_qs = self.filtered_related_model_qs
+
+            if not related_model_qs.exists():
+                error_message = f"No records found for many to many field {field.related_model._meta.model_name}"
+                errors.append(
+                    {
+                        "error_type": "no_records",
+                        "error_message": error_message,
+                    }
+                )
+
+            display_field = self.display_field
+
+            random_values = list(
+                related_model_qs.order_by("?")
+                .values_list(display_field, flat=True)
+                .distinct()[: random.randint(1, 3)]
+            )
+
+            return ",".join(random_values)
+
+        if isinstance(field, MultiSelectField):
+            model_class = self.django_import_content_type.model_class()
+            # Unfortunatly have to have an actual model instance to get the choices
+            # as they are defined in __init__
+            model_instance = model_class()
+            choices = model_instance._meta.get_field(
+                self.django_import_field_name
+            ).choices
+            if not choices or len(choices) == 0:
+                errors.append(
+                    {
+                        "error_type": "no_choices",
+                        "error_message": f"No choices found for column {self.xlsx_column_header_name}",
+                    }
+                )
+                return None
+            return random.choice([choice[1] for choice in choices])
+
+        if isinstance(field, models.BooleanField):
+            return random.choice([True, False])
+
+        if isinstance(field, models.DecimalField):
+            decimal_places = field.decimal_places if field.decimal_places else 2
+            max_digits = field.max_digits if field.max_digits else 5
+            max_value = 10 ** (max_digits - decimal_places - 1)
+            return round(random.uniform(0, max_value), decimal_places)
+
+        if isinstance(field, models.IntegerField):
+            if self.is_emailuser_column:
+                user_qs = EmailUser.objects.filter(is_active=True)
+                if field.name == "assigned_officer":
+                    ocr_officer_ids = member_ids(
+                        settings.GROUP_NAME_OCCURRENCE_ASSESSOR
+                    )
+                    user_qs = user_qs.filter(id__in=ocr_officer_ids)
+                if field.name == "assigned_approver":
+                    ocr_approver_ids = member_ids(
+                        settings.GROUP_NAME_OCCURRENCE_APPROVER
+                    )
+                    user_qs = user_qs.filter(id__in=ocr_approver_ids)
+                user = user_qs.order_by("?").first()
+                return user.email
+            else:
+                min_value = field.min_value if hasattr(field, "min_value") else 0
+                max_value = field.max_value if hasattr(field, "max_value") else 10000
+                return random.randint(min_value, max_value)
+
+        if isinstance(field, models.DateField):
+            start = datetime(1900, 1, 1, 0, 0, 0, tzinfo=dt_timezone.utc).date()
+            end = timezone.now().date()
+            random_date = start + (end - start) * random.random()
+            return random_date.strftime("%d/%m/%Y")
+
+        if isinstance(field, models.DateTimeField):
+            start = datetime(1900, 1, 1, 0, 0, 0, tzinfo=dt_timezone.utc)
+            end = timezone.now()
+            random_datetime = start + (end - start) * random.random()
+            return random_datetime.strftime("%d/%m/%Y %H:%M:%S")
+
+        if isinstance(field, (models.CharField, models.TextField)):
+            if (
+                self.django_import_content_type.model_class() == Occurrence
+                and self.django_import_field_name == "occurrence_number"
+            ):
+                # Special case for occurrence number (Make sure that the occurrence is of the same
+                # group type as the schema and same species or community name as the sample data)
+                group_type = self.schema.group_type
+                random_occurrence = Occurrence.objects.filter(group_type=group_type)
+                filter_field = {
+                    "species__taxonomy__scientific_name": species_or_community_identifier
+                }
+                if group_type.name == "community":
+                    filter_field = {
+                        "community__taxonomy__community_migrated_id": species_or_community_identifier
+                    }
+                return (
+                    random_occurrence.filter(**filter_field)
+                    .order_by("?")
+                    .first()
+                    .occurrence_number
+                )
+
+            if hasattr(field, "max_length") and field.max_length:
+                random_length = random.randint(1, field.max_length)
+            else:
+                random_length = random.randint(1, 1000)
+            return "".join(
+                random.choices(
+                    string.ascii_letters + string.digits + " ", k=random_length
+                )
+            )
+
+        if isinstance(field, gis_models.GeometryField):
+            # Generate a random point and polygon that falls within Western Australia
+            # In this case the dbca building in Kensington
+            return json.dumps(
+                {
+                    "type": "FeatureCollection",
+                    "features": [
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [115.8840195356077, -31.99563118840819],
+                            },
+                        },
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Polygon",
+                                "coordinates": [
+                                    [
+                                        [115.88337912139104, -31.995016820738698],
+                                        [115.88337912139104, -31.99586499034117],
+                                        [115.88434603648648, -31.99586499034117],
+                                        [115.88434603648648, -31.995016820738698],
+                                        [115.88337912139104, -31.995016820738698],
+                                    ]
+                                ],
+                            },
+                        },
+                    ],
+                }
+            )
+
+        if isinstance(field, models.FileField):
+            return "sample_file.txt"
+
+        raise ValueError(
+            f"Not able to generate sample data for field {field} of type {type(field)}"
+        )
+
+    @property
+    def preview_foreign_key_values_xlsx(self):
+        related_model_qs = self.filtered_related_model_qs
+
+        if not related_model_qs:
+            raise ValueError("No related model queryset found")
+
+        workbook = openpyxl.Workbook()
+        worksheet = workbook.active
+
+        display_field = self.display_field
+
+        # Query the max character length of the display field
+        max_length = related_model_qs.aggregate(
+            max_length=Max(Length(Cast(display_field, output_field=CharField())))
+        )["max_length"]
+
+        if len(self.xlsx_column_header_name) > max_length:
+            max_length = len(self.xlsx_column_header_name)
+
+        headers = [self.xlsx_column_header_name]
+        worksheet.append(headers)
+        for cell_value in related_model_qs.order_by(display_field).values_list(
+            display_field, flat=True
+        ):
+            worksheet.append([cell_value])
+
+        # Make the headers bold
+        worksheet["A1"].font = Font(bold=True)
+
+        # Make the column widths appropriate
+        worksheet.column_dimensions["A"].width = max_length + 2
+
+        return workbook
+
+    def validate(self, task, cell_value, mode, index, headers, row, errors):
+        from boranga.components.spatial.utils import get_geometry_array_from_geojson
+
         errors_added = 0
-        if not self.xlsx_data_validation_allow_blank and not cell_value:
+
+        if mode == "update" and (cell_value is None or cell_value == ""):
+            # When updating an OCR many of the columns may be blank
+            # So we don't need to validate them if they don't have a value
+            return cell_value, errors_added
+
+        try:
+            model_class = apps.get_model(
+                "boranga", self.django_import_content_type.model
+            )
+        except LookupError:
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "column",
+                    "data": cell_value,
+                    "error_message": f"Model class {self.django_import_content_type.model} not found",
+                }
+            )
+            errors_added += 1
+            return cell_value, errors_added
+
+        if not hasattr(model_class, self.django_import_field_name):
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "column",
+                    "data": cell_value,
+                    "error_message": f"Field {self.django_import_field_name} not found in model {model_class}",
+                }
+            )
+            errors_added += 1
+            return cell_value, errors_added
+
+        field = model_class._meta.get_field(self.django_import_field_name)
+
+        if self.default_value:
+            if self.default_value == self.DEFAULT_VALUE_BULK_IMPORT_SUBMITTER:
+                cell_value = task.email_user
+            return cell_value, errors_added
+
+        if (
+            self.django_import_content_type
+            == ct_models.ContentType.objects.get_for_model(OccurrenceReport)
+            and self.django_import_field_name == "processing_status"
+        ):
+            if cell_value not in [
+                c[0] for c in OccurrenceReport.VALID_BULK_IMPORT_PROCESSING_STATUSES
+            ]:
+                error_message = (
+                    f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                    f"is not a valid processing status (must be one of "
+                    f"{str([c[0] for c in OccurrenceReport.VALID_BULK_IMPORT_PROCESSING_STATUSES])})"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            if cell_value in [
+                OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER,
+                OccurrenceReport.PROCESSING_STATUS_APPROVED,
+            ]:
+                assigned_officer_column = self.schema.columns.filter(
+                    django_import_content_type=ct_models.ContentType.objects.get_for_model(
+                        OccurrenceReport
+                    ),
+                    django_import_field_name="assigned_officer",
+                ).first()
+                assigned_officer_email = row[
+                    headers.index(assigned_officer_column.xlsx_column_header_name)
+                ]
+                assigned_officer_id = None
+                try:
+                    assigned_officer_id = EmailUser.objects.get(
+                        email=assigned_officer_email
+                    ).id
+                except EmailUser.DoesNotExist:
+                    error_message = (
+                        "No ledger user found for assigned_officer with "
+                        f"email address: {assigned_officer_email}"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": assigned_officer_email,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+                    return cell_value, errors_added
+
+                if not belongs_to_by_user_id(
+                    assigned_officer_id, settings.GROUP_NAME_OCCURRENCE_ASSESSOR
+                ):
+                    error_message = (
+                        f"User with email {assigned_officer_email} "
+                        f"(Ledger Emailuser ID: {assigned_officer_id}) is not a member"
+                        " of the occurrence assessor group"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": assigned_officer_email,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+            if cell_value == OccurrenceReport.PROCESSING_STATUS_APPROVED:
+                assigned_approver_column = self.schema.columns.filter(
+                    django_import_content_type=ct_models.ContentType.objects.get_for_model(
+                        OccurrenceReport
+                    ),
+                    django_import_field_name="assigned_approver",
+                ).first()
+                assigned_approver_email = row[
+                    headers.index(assigned_approver_column.xlsx_column_header_name)
+                ]
+                assigned_approver_id = None
+                try:
+                    assigned_approver_id = EmailUser.objects.get(
+                        email=assigned_approver_email
+                    ).id
+                except EmailUser.DoesNotExist:
+                    error_message = (
+                        "No ledger user found for assigned_approver with "
+                        f"email address: {assigned_approver_email}"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": assigned_approver_email,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+                    return cell_value, errors_added
+
+                if not belongs_to_by_user_id(
+                    assigned_approver_id, settings.GROUP_NAME_OCCURRENCE_APPROVER
+                ):
+                    error_message = (
+                        f"User with email {assigned_approver_email} "
+                        f"(Ledger Emailuser ID: {assigned_approver_id}) is not a member"
+                        " of the occurrence approver group"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": assigned_approver_email,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+
+            return cell_value, errors_added
+
+        if not self.xlsx_data_validation_allow_blank and (
+            cell_value is None or cell_value == ""
+        ):
             errors.append(
                 {
                     "row_index": index,
@@ -6009,8 +7263,185 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             )
             errors_added += 1
 
-        if self.xlsx_data_validation_type == "textLength":
-            if len(cell_value) > int(self.xlsx_data_validation_formula1):
+        xlsx_data_validation_type = self.xlsx_validation_type
+
+        if self.is_emailuser_column:
+            if not cell_value:
+                # Depending on the status of the OCR the assigned_officer and / or assigned_approver
+                # fields may be blank
+                return cell_value, errors_added
+            try:
+                cell_value = EmailUser.objects.get(email=cell_value).id
+            except EmailUser.DoesNotExist:
+                error_message = f"No ledger user found with email address: {cell_value}"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+            return cell_value, errors_added
+
+        if isinstance(field, MultiSelectField):
+            if not cell_value:
+                return cell_value, errors_added
+
+            if not isinstance(cell_value, str):
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": f"Value {cell_value} in column {self.xlsx_column_header_name} is not a string",
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            # Unfortunatly have to have an actual model instance to get the choices
+            # as they are defined in __init__
+            model_instance = model_class()
+            choices = model_instance._meta.get_field(
+                self.django_import_field_name
+            ).choices
+
+            display_values = cell_value.split(",")
+            cell_value = []
+            for display_value in [
+                display_value.strip() for display_value in display_values
+            ]:
+                if display_value not in [choice[1] for choice in choices]:
+                    error_message = (
+                        f"Value '{display_value}' in column {self.xlsx_column_header_name} "
+                        "is not in the list"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": cell_value,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+                else:
+                    cell_value.append(
+                        [
+                            choice[0]
+                            for choice in field.choices
+                            if choice[1] == display_value
+                        ][0]
+                    )
+            return cell_value, errors_added
+
+        if isinstance(field, models.FileField):
+            if not task._associated_files_zip:
+                error_message = "No associated files zip found"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            associated_files_zip = zipfile.ZipFile(task._associated_files_zip, "r")
+
+            # Check if the file exists in the zip
+            if cell_value not in associated_files_zip.namelist():
+                error_message = f"File {cell_value} not found in associated files zip"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            # Get a reference to the file in memory
+            file_in_memory = associated_files_zip.open(cell_value)
+
+            extension = cell_value.split(".")[-1].lower()
+            # Get the content type of the file
+            try:
+                content_type = mimetypes.types_map["." + str(extension)]
+            except KeyError:
+                error_message = f"File extension {extension} not found in mimetypes"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            cell_value = InMemoryUploadedFile(
+                file_in_memory, field.name, cell_value, content_type, None, None
+            )
+
+            return cell_value, errors_added
+
+        if isinstance(field, gis_models.GeometryField):
+            try:
+                geom_json = json.loads(cell_value)
+            except json.JSONDecodeError:
+                error_message = f"Value {cell_value} in column {self.xlsx_column_header_name} is not a valid JSON"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            cell_value = []
+
+            geojson_type = geom_json.get("type", None)
+            if not geojson_type or geojson_type != "FeatureCollection":
+                error_message = (
+                    f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                    "does not contain a valid FeatureCollection"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+
+                return cell_value, errors_added
+
+            cell_value = get_geometry_array_from_geojson(
+                geom_json,
+                cell_value,
+                index,
+                self.xlsx_column_header_name,
+                errors,
+                errors_added,
+            )
+
+            return cell_value, errors_added
+
+        if xlsx_data_validation_type == "textLength" and field.max_length:
+            if len(str(cell_value)) > field.max_length:
                 error_message = f"Value {cell_value} in column {self.xlsx_column_header_name} has too many characters"
                 errors.append(
                     {
@@ -6022,123 +7453,49 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 )
                 errors_added += 1
 
-        if self.xlsx_data_validation_type == "whole":
+        if xlsx_data_validation_type == "whole":
             if not isinstance(cell_value, int):
+                errors_message = f"Value {cell_value} in column {self.xlsx_column_header_name} is not an integer"
                 errors.append(
                     {
                         "row_index": index,
                         "error_type": "column",
                         "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not an integer",
+                        "error_message": errors_message,
                     }
                 )
                 errors_added += 1
 
-        if self.xlsx_data_validation_type == "decimal":
+        if xlsx_data_validation_type == "decimal":
             try:
                 cell_value = Decimal(cell_value)
             except Exception:
+                error_message = f"Value {cell_value} in column {self.xlsx_column_header_name} is not a decimal"
                 errors.append(
                     {
                         "row_index": index,
                         "error_type": "column",
                         "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not a decimal",
+                        "error_message": error_message,
                     }
                 )
                 errors_added += 1
 
-        if self.xlsx_data_validation_type == "date":
-            try:
-                cell_value = dateutil.parser.parse(cell_value)
-            except Exception:
-                errors.append(
-                    {
-                        "row_index": index,
-                        "error_type": "column",
-                        "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not a date",
-                    }
-                )
-                errors_added += 1
-
-        if self.xlsx_data_validation_type == "time":
-            try:
-                cell_value = dateutil.parser.parse(cell_value)
-            except Exception:
-                errors.append(
-                    {
-                        "row_index": index,
-                        "error_type": "column",
-                        "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not a time",
-                    }
-                )
-                errors_added += 1
-
-        if self.xlsx_data_validation_type == "list":
-            if cell_value not in self.xlsx_data_validation_formula1:
-                errors.append(
-                    {
-                        "row_index": index,
-                        "error_type": "column",
-                        "data": cell_value,
-                        "error_message": f"Value {cell_value} in column {self.column_header_name} is not in the list",
-                    }
-                )
-                errors_added += 1
-
-        model_class = apps.get_model("boranga", self.django_import_content_type.model)
-        if hasattr(model_class, self.django_import_field_name):
-            field = model_class._meta.get_field(self.django_import_field_name)
-            if isinstance(field, models.ForeignKey):
-                related_model = field.related_model
-                related_model_qs = related_model.objects.all()
-
-                # Check if the related model is Archivable
-                if issubclass(related_model, ArchivableModel):
-                    related_model_qs = related_model_qs.exclude(archived=True)
-
-                if not related_model_qs.exists() or related_model_qs.count() == 0:
-                    return cell_value, errors_added
-
-                if (
-                    related_model_qs.count()
-                    > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
-                ):
-                    # Use the django lookup field to find the value
-                    lookup_field = self.django_lookup_field_name
-                    try:
-                        related_model_instance = related_model_qs.get(
-                            **{lookup_field: cell_value}
-                        )
-                    except related_model.DoesNotExist:
-                        error_message = (
-                            f"Can't find {self.django_import_field_name} record by looking up "
-                            f"{self.django_lookup_field_name} with value {cell_value} "
-                            f"for column {self.column_header_name}"
-                        )
-                        errors.append(
-                            {
-                                "row_index": index,
-                                "error_type": "column",
-                                "data": cell_value,
-                                "error_message": error_message,
-                            }
-                        )
-                        errors_added += 1
-                        return cell_value, errors_added
-
-                    # Replace the lookup cell_value with the actual instance to assigned
-                    cell_value = related_model_instance
-                    return cell_value, errors_added
-
-                display_field = get_display_field_for_model(related_model)
-
-                if cell_value not in related_model_qs.values_list(
-                    display_field, flat=True
-                ):
-                    error_message = f"Value {cell_value} in column {self.column_header_name} is not in the lookup table"
+        if xlsx_data_validation_type in ["date", "time"]:
+            # The cell_value should already be a datetime object since openpyxl
+            # converts cells formatted as dates to datetime objects automatically
+            # but when validating the schema
+            if not isinstance(cell_value, datetime):
+                try:
+                    if xlsx_data_validation_type == "date":
+                        cell_value = datetime.strptime(cell_value, "%d/%m/%Y")
+                    elif xlsx_data_validation_type == "time":
+                        cell_value = datetime.strptime(cell_value, "%d/%m/%Y %H:%M:%S")
+                except ValueError:
+                    error_message = (
+                        f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                        "was not able to be converted to a datetime object"
+                    )
                     errors.append(
                         {
                             "row_index": index,
@@ -6148,8 +7505,269 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                         }
                     )
                     errors_added += 1
+                    return cell_value, errors_added
+
+            # Make the datetime object timezone aware
+            cell_value = cell_value.replace(
+                tzinfo=zoneinfo.ZoneInfo(settings.TIME_ZONE)
+            )
+
+            return cell_value, errors_added
+
+        if isinstance(field, models.ForeignKey):
+            related_model = field.related_model
+            related_model_qs = self.related_model_qs
+
+            # Check if the related model is Archivable
+            if issubclass(related_model, ArchivableModel):
+                related_model_qs = related_model_qs.exclude(archived=True)
+
+            if not related_model_qs.exists() or related_model_qs.count() == 0:
+                error_message = f"No records found for foreign key {field.related_model._meta.model_name}"
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                return cell_value, errors_added
+
+            # Use the django lookup field to find the value
+            if self.django_lookup_field_name:
+                lookup_field = self.django_lookup_field_name
+            else:
+                lookup_field = get_display_field_for_model(related_model)
+
+            try:
+                related_model_instance = related_model_qs.get(
+                    **{lookup_field: cell_value}
+                )
+
+            except FieldError:
+                error_message = (
+                    f"Can't find {self.django_import_field_name} record by looking up "
+                    f"{lookup_field} with value {cell_value} "
+                    f"for column {self.xlsx_column_header_name} "
+                    f" no field {lookup_field} found in {related_model}"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+            except related_model.DoesNotExist:
+                error_message = (
+                    f"Can't find {self.django_import_field_name} record by looking up "
+                    f"{self.django_lookup_field_name} with value {cell_value} "
+                    f"for column {self.xlsx_column_header_name}"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            # Replace the lookup cell_value with the actual instance to be assigned
+            cell_value = related_model_instance
+            return cell_value, errors_added
+
+        if isinstance(field, models.ManyToManyField):
+            related_model = field.related_model
+            related_model_qs = related_model.objects.all()
+
+            # Check if the related model is Archivable
+            if issubclass(related_model, ArchivableModel):
+                related_model_qs = related_model_qs.exclude(archived=True)
+
+            if not related_model_qs.exists() or related_model_qs.count() == 0:
+                return cell_value, errors_added
+
+            # Use the django lookup field to find the value
+            if self.django_lookup_field_name:
+                lookup_field = self.django_lookup_field_name
+            else:
+                lookup_field = get_display_field_for_model(related_model)
+
+            lookup_field += "__in"
+
+            cell_value = [
+                c.strip()
+                for c in cell_value.split(settings.OCR_BULK_IMPORT_M2M_DELIMITER)
+            ]
+
+            try:
+                related_model_instances = related_model_qs.filter(
+                    **{lookup_field: cell_value}
+                )
+            except FieldError:
+                error_message = (
+                    f"Can't find {self.django_import_field_name} record by looking up "
+                    f"{lookup_field} with value {cell_value} "
+                    f"for column {self.xlsx_column_header_name} "
+                    f" no field {lookup_field} found in {related_model}"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+            except related_model.DoesNotExist:
+                error_message = (
+                    f"Can't find {self.django_import_field_name} record by looking up "
+                    f"{self.django_lookup_field_name} with value {cell_value} "
+                    f"for column {self.xlsx_column_header_name}"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            # Replace the lookup cell_value with a list of model instances to be assigned
+            cell_value = list(related_model_instances)
+            return cell_value, errors_added
+
+        if isinstance(field, models.BooleanField):
+            if cell_value is None or cell_value == "":
+                if not field.null:
+                    error_message = (
+                        f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                        "is required to be a boolean"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": cell_value,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+                return cell_value, errors_added
+
+            if cell_value not in [True, False]:
+                error_message = (
+                    f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                    "is not a valid boolean"
+                )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+            return cell_value, errors_added
 
         return cell_value, errors_added
+
+
+class SchemaColumnLookupFilter(models.Model):
+    schema_column = models.ForeignKey(
+        OccurrenceReportBulkImportSchemaColumn,
+        related_name="lookup_filters",
+        on_delete=models.CASCADE,
+    )
+
+    LOOKUP_FILTER_TYPE_EXACT = "exact"
+    LOOKUP_FILTER_TYPE_IEXACT = "iexact"
+    LOOKUP_FILTER_TYPE_CONTAINS = "contains"
+    LOOKUP_FILTER_TYPE_ICONTAINS = "icontains"
+    LOOKUP_FILTER_TYPE_STARTSWITH = "startswith"
+    LOOKUP_FILTER_TYPE_ISTARTSWITH = "istartswith"
+    LOOKUP_FILTER_TYPE_ENDSWITH = "endswith"
+    LOOKUP_FILTER_TYPE_IENDSWITH = "iendswith"
+    LOOKUP_FILTER_TYPE_GT = "gt"
+    LOOKUP_FILTER_TYPE_GTE = "gte"
+    LOOKUP_FILTER_TYPE_LT = "lt"
+    LOOKUP_FILTER_TYPE_LTE = "lte"
+    # Only supporting a single value per lookup filter at this stage
+    # LOOKUP_FILTER_TYPE_IN = "in"
+
+    LOOKUP_FILTER_TYPES = (
+        (LOOKUP_FILTER_TYPE_EXACT, "Exact"),
+        (LOOKUP_FILTER_TYPE_IEXACT, "Case-insensitive Exact"),
+        (LOOKUP_FILTER_TYPE_CONTAINS, "Contains"),
+        (LOOKUP_FILTER_TYPE_ICONTAINS, "Case-insensitive Contains"),
+        (LOOKUP_FILTER_TYPE_STARTSWITH, "Starts with"),
+        (LOOKUP_FILTER_TYPE_ISTARTSWITH, "Case-insensitive Starts with"),
+        (LOOKUP_FILTER_TYPE_ENDSWITH, "Ends with"),
+        (LOOKUP_FILTER_TYPE_IENDSWITH, "Case-insensitive Ends with"),
+        (LOOKUP_FILTER_TYPE_GT, "Greater than"),
+        (LOOKUP_FILTER_TYPE_GTE, "Greater than or equal to"),
+        (LOOKUP_FILTER_TYPE_LT, "Less than"),
+        (LOOKUP_FILTER_TYPE_LTE, "Less than or equal to"),
+        # (LOOKUP_FILTER_TYPE_IN, "In"),
+    )
+
+    filter_field_name = models.CharField(max_length=50, blank=False, null=False)
+    filter_type = models.CharField(
+        max_length=50,
+        choices=LOOKUP_FILTER_TYPES,
+        default=LOOKUP_FILTER_TYPE_EXACT,
+        blank=False,
+        null=False,
+    )
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Schema Column Lookup Filter"
+        verbose_name_plural = "Schema Column Lookup Filters"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["schema_column", "filter_field_name", "filter_type"],
+                name="unique_schema_column_lookup_field",
+                violation_error_message=(
+                    "A lookup filter with the same name and type "
+                    "already exists for this schema column"
+                ),
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.schema_column} - {self.filter_field_name}"
+
+
+class SchemaColumnLookupFilterValue(models.Model):
+    lookup_filter = models.ForeignKey(
+        SchemaColumnLookupFilter,
+        related_name="values",
+        on_delete=models.CASCADE,
+    )
+
+    filter_value = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        app_label = "boranga"
+        verbose_name = "Schema Column Lookup Filter Value"
+        verbose_name_plural = "Schema Column Lookup Filter Values"
+
+    def __str__(self):
+        return f"{self.lookup_filter} - {self.filter_value}"
 
 
 # Occurrence Report Document

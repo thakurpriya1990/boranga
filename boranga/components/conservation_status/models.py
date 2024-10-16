@@ -49,6 +49,7 @@ from boranga.helpers import (
     is_external_contributor,
     is_internal_contributor,
     member_ids,
+    no_commas_validator,
 )
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import (
@@ -414,15 +415,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_DELISTED, "DeListed"),
         (PROCESSING_STATUS_CLOSED, "Closed"),
     )
-    # This status is used as a front end filter but shouldn't be in most cases
+    # This status is used as a front end filter but shouldn't be used in most cases
     # So it is deliberately not included in PROCESSING_STATUS_CHOICES
     PROCESSING_STATUS_DISCARDED_BY_ME = "discarded_by_me"
-    REVIEW_STATUS_CHOICES = (
-        ("not_reviewed", "Not Reviewed"),
-        ("awaiting_amendments", "Awaiting Amendments"),
-        ("amended", "Amended"),
-        ("accepted", "Accepted"),
-    )
     customer_status = models.CharField(
         "Customer Status",
         max_length=40,
@@ -430,11 +425,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         default=CUSTOMER_STATUS_CHOICES[0][0],
     )
 
-    RECURRENCE_PATTERNS = [(1, "Month"), (2, "Year")]
     change_code = models.ForeignKey(
         ConservationChangeCode, on_delete=models.SET_NULL, blank=True, null=True
     )
-    change_date = models.DateField(null=True, blank=True)
 
     APPLICATION_TYPE_CHOICES = (
         ("new_proposal", "New Application"),
@@ -531,44 +524,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     international_conservation = models.CharField(max_length=100, blank=True, null=True)
     conservation_criteria = models.CharField(max_length=100, blank=True, null=True)
 
-    # Conservation Lists and Categories (from a meeting)
-    recommended_wa_priority_list = models.ForeignKey(
-        WAPriorityList,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-    )
-    recommended_wa_priority_category = models.ForeignKey(
-        WAPriorityCategory,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-    )
-    recommended_wa_legislative_list = models.ForeignKey(
-        WALegislativeList,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-    )
-    recommended_wa_legislative_category = models.ForeignKey(
-        WALegislativeCategory,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-    )
-    recommended_commonwealth_conservation_list = models.ForeignKey(
-        CommonwealthConservationList,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-    )
-    recommended_international_conservation = models.CharField(
-        max_length=100, blank=True, null=True
-    )
-    recommended_conservation_criteria = models.CharField(
-        max_length=100, blank=True, null=True
-    )
-
     APPROVAL_LEVEL_IMMEDIATE = "immediate"
     APPROVAL_LEVEL_MINISTER = "minister"
     APPROVAL_LEVEL_CHOICES = (
@@ -584,11 +539,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     comment = models.CharField(max_length=512, blank=True, null=True)
     review_due_date = models.DateField(null=True, blank=True)
-    reviewed_by = models.IntegerField(null=True)  # EmailUserRO
-    recurrence_pattern = models.SmallIntegerField(
-        choices=RECURRENCE_PATTERNS, default=1
-    )
-    recurrence_schedule = models.IntegerField(null=True, blank=True)
     effective_from = models.DateField(null=True, blank=True)
     effective_to = models.DateField(null=True, blank=True)
     submitter = models.IntegerField(null=True)  # EmailUserRO
@@ -613,15 +563,12 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     # Currently prev_processing_status is only used to keep track of status prior to unlock
     # so that when locked the record returns to the correct status
     prev_processing_status = models.CharField(max_length=30, blank=True, null=True)
-    review_status = models.CharField(
-        "Review Status",
-        max_length=30,
-        choices=REVIEW_STATUS_CHOICES,
-        default=REVIEW_STATUS_CHOICES[0][0],
-    )
     proposed_decline_status = models.BooleanField(default=False)
     deficiency_data = models.TextField(null=True, blank=True)  # deficiency comment
     assessor_data = models.TextField(null=True, blank=True)  # assessor comment
+
+    # When the CS proposal is sent back to the assessor this comment is used
+    # in the email
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
 
@@ -968,19 +915,20 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_CLOSED,
             ConservationStatus.PROCESSING_STATUS_DECLINED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
             ConservationStatus.PROCESSING_STATUS_DRAFT,
         ]
         if self.processing_status in status_without_assessor:
-            if self.processing_status in [
-                ConservationStatus.PROCESSING_STATUS_UNLOCKED,
-            ]:
-                return is_conservation_status_approver(request)
-
             return False
-        elif self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
-            return is_conservation_status_assessor(
-                request
-            ) or is_conservation_status_approver(request)
+
+        if self.processing_status == ConservationStatus.PROCESSING_STATUS_APPROVED:
+            # Edge case that allows assessors to propose to delist without being assigned
+            # to the conservation status. This is due to the fact we only show either
+            # the assigned to dropdown for the approver or assessor and not both.
+            return is_conservation_status_assessor(request)
+
+        elif self.processing_status == ConservationStatus.PROCESSING_STATUS_UNLOCKED:
+            return is_conservation_status_approver(request)
         else:
             if not self.assigned_officer:
                 return False
@@ -989,21 +937,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 return False
 
             return is_conservation_status_assessor(request)
-
-    def can_edit_recommended(self, request):
-        recommended_edit_status = [
-            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
-        ]
-        if self.processing_status not in recommended_edit_status:
-            return False
-
-        if not self.assigned_officer:
-            return False
-
-        if not self.assigned_officer == request.user.id:
-            return False
-
-        return is_conservation_status_assessor(request)
 
     @transaction.atomic
     def assign_officer(self, request, officer):
@@ -1141,39 +1074,47 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         ]:
             raise exceptions.ConservationStatusReferralCannotBeSent()
 
-        self.processing_status = ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
-        self.save()
-        referral = None
-
         # Check if the user is in ledger
         try:
-            user = EmailUser.objects.get(email__icontains=referral_email)
+            referee = EmailUser.objects.get(email__iexact=referral_email.strip())
         except EmailUser.DoesNotExist:
             raise ValidationError(
                 f"There is no user with email {referral_email} in the ledger system. "
                 "Please check the email and try again."
             )
 
+        # Don't allow users to refer to themselves
+        if referee.id == request.user.id:
+            raise ValidationError("You cannot refer to yourself")
+
+        # Don't allow users to refer to the submitter
+        if referee.id == self.submitter:
+            raise ValidationError("You cannot refer to the submitter")
+
+        referral = None
         try:
             ConservationStatusReferral.objects.get(
-                referral=user.id, conservation_status=self
+                referral=referee.id, conservation_status=self
             )
             raise ValidationError("A referral has already been sent to this user")
         except ConservationStatusReferral.DoesNotExist:
             referral = ConservationStatusReferral.objects.create(
                 conservation_status=self,
-                referral=user.id,
+                referral=referee.id,
                 sent_by=request.user.id,
                 text=referral_text,
                 assigned_officer=request.user.id,
             )
+
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
+        self.save()
 
         # Create a log entry for the proposal
         self.log_user_action(
             ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
                 referral.id,
                 self.conservation_status_number,
-                f"{user.get_full_name()}({user.email})",
+                f"{referee.get_full_name()}({referee.email})",
             ),
             request,
         )
@@ -1183,7 +1124,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatusUserAction.ACTION_SEND_REFERRAL_TO.format(
                 referral.id,
                 self.conservation_status_number,
-                f"{user.get_full_name()}({user.email})",
+                f"{referee.get_full_name()}({referee.email})",
             ),
             request,
         )
@@ -1216,12 +1157,16 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         if self.processing_status == status:
             return
 
-        if self.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_APPROVER:
+        if (
+            self.processing_status
+            == ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
+        ):
             self.approver_comment = ""
             if approver_comment:
                 self.approver_comment = approver_comment
                 self.save()
                 send_proposal_approver_sendback_email_notification(request, self)
+
         previous_status = self.processing_status
         self.processing_status = status
         self.save()
@@ -1558,10 +1503,12 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         self.customer_status = ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
         self.save()
 
+        assessor_comment = request.data.get("assessor_comment")
+
         # Log proposal action
         self.log_user_action(
             ConservationStatusUserAction.ACTION_PROPOSED_READY_FOR_AGENDA.format(
-                self.conservation_status_number
+                self.conservation_status_number, assessor_comment
             ),
             request,
         )
@@ -1569,12 +1516,14 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         # Create a log entry for the user
         request.user.log_user_action(
             ConservationStatusUserAction.ACTION_PROPOSED_READY_FOR_AGENDA.format(
-                self.conservation_status_number,
+                self.conservation_status_number, assessor_comment
             ),
             request,
         )
 
-        send_assessor_ready_for_agenda_email_notification(request, self)
+        send_assessor_ready_for_agenda_email_notification(
+            request, self, assessor_comment
+        )
 
     @transaction.atomic
     def discard(self, request):
@@ -1971,6 +1920,10 @@ class ConservationStatusUserAction(UserAction):
     ACTION_PROPOSE_DELIST_PROPOSAL = (
         "Propose discard conservation status proposal {}. Reason: {}"
     )
+    ACTION_PROPOSED_READY_FOR_AGENDA = (
+        "Propose conservation status proposal {} "
+        "is ready for agenda. Assessor Comment: {}"
+    )
     ACTION_DELIST_PROPOSAL = "Delist conservation status proposal {}"
     ACTION_DISCARD_PROPOSAL_INTERNALLY = (
         "Discard conservation status proposal internally {}"
@@ -1986,9 +1939,6 @@ class ConservationStatusUserAction(UserAction):
     # Assessors
     ACTION_SAVE_ASSESSMENT_ = "Save assessment {}"
     ACTION_CONCLUDE_ASSESSMENT_ = "Conclude assessment {}"
-    ACTION_PROPOSED_READY_FOR_AGENDA = (
-        "Conservation status proposal {} has been proposed for ready for agenda"
-    )
     ACTION_PROPOSED_APPROVAL = (
         "Conservation status proposal {} has been proposed for approval"
     )
@@ -2134,36 +2084,7 @@ class ConservationStatusIssuanceApprovalDetails(models.Model):
         app_label = "boranga"
 
 
-class ConservationStatusReferralDocument(Document):
-    referral = models.ForeignKey(
-        "ConservationStatusReferral",
-        related_name="referral_documents",
-        on_delete=models.CASCADE,
-    )
-    _file = models.FileField(
-        upload_to=update_referral_doc_filename, max_length=512, storage=private_storage
-    )
-    input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-
-    def delete(self):
-        if self.can_delete:
-            return self.can_delete
-        logger.info(
-            "Cannot delete existing document object after proposal has been submitted "
-            "(including document submitted before proposal pushback to status Draft): {}".format(
-                self.name
-            )
-        )
-
-    class Meta:
-        app_label = "boranga"
-
-
 class ConservationStatusReferral(models.Model):
-    SENT_CHOICES = ((1, "Sent From Assessor"), (2, "Sent From Referral"))
     PROCESSING_STATUS_WITH_REFERRAL = "with_referral"
     PROCESSING_STATUS_RECALLED = "recalled"
     PROCESSING_STATUS_COMPLETED = "completed"
@@ -2179,9 +2100,6 @@ class ConservationStatusReferral(models.Model):
     sent_by = models.IntegerField()  # EmailUserRO
     referral = models.IntegerField()  # EmailUserRO
     linked = models.BooleanField(default=False)
-    sent_from = models.SmallIntegerField(
-        choices=SENT_CHOICES, default=SENT_CHOICES[0][0]
-    )
     processing_status = models.CharField(
         "Processing Status",
         max_length=30,
@@ -2189,17 +2107,7 @@ class ConservationStatusReferral(models.Model):
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
     text = models.TextField(blank=True)  # Assessor text when send_referral
-    referral_text = models.TextField(
-        blank=True
-    )  # used in other projects for complete referral comment but not used in boranga
     referral_comment = models.TextField(blank=True, null=True)  # Referral Comment
-    document = models.ForeignKey(
-        ConservationStatusReferralDocument,
-        blank=True,
-        null=True,
-        related_name="referral_document",
-        on_delete=models.SET_NULL,
-    )
     assigned_officer = models.IntegerField(null=True)  # EmailUserRO
     is_external = models.BooleanField(default=False)
 
@@ -2306,7 +2214,6 @@ class ConservationStatusReferral(models.Model):
         )
         self.conservation_status.save()
 
-        self.sent_from = 1
         self.save()
 
         # Create a log entry for the conservation status
@@ -2341,10 +2248,14 @@ class ConservationStatusReferral(models.Model):
         ):
             raise exceptions.ConservationStatusReferralCannotBeSent()
 
-        if request.user.id != self.referral:
-            raise exceptions.ReferralNotAuthorized()
-        if self.sent_from != 1:
-            raise exceptions.ReferralCanNotSend()
+        # Don't allow users to refer to themselves
+        if request.user.id == self.referral:
+            raise ValidationError("You cannot refer to yourself")
+
+        # Don't allow users to refer to the submitter
+        if request.user.id == self.conservation_status.submitter:
+            raise ValidationError("You cannot refer to the submitter")
+
         self.conservation_status.processing_status = (
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL
         )
@@ -2377,7 +2288,6 @@ class ConservationStatusReferral(models.Model):
                 conservation_status=self.conservation_status,
                 referral=referee.id,
                 sent_by=request.user.id,
-                sent_from=2,
                 text=referral_text,
             )
 
@@ -2461,16 +2371,16 @@ class ConservationStatusProposalRequest(models.Model):
     conservation_status = models.ForeignKey(
         ConservationStatus, on_delete=models.CASCADE
     )
-    subject = models.CharField(max_length=200, blank=True)
     text = models.TextField(blank=True)
-    officer = models.IntegerField(null=True)  # EmailUserRO
 
     class Meta:
         app_label = "boranga"
 
 
 class ProposalAmendmentReason(ArchivableModel):
-    reason = models.CharField("Reason", max_length=125)
+    reason = models.CharField(
+        "Reason", max_length=125, validators=[no_commas_validator]
+    )
 
     class Meta:
         app_label = "boranga"

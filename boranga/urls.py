@@ -160,6 +160,11 @@ router.register(
     occurrence_api.OccurrenceReportBulkImportSchemaViewSet,
     "occurrence_report_bulk_import_schemas",
 )
+router.register(
+    r"occurrence_report_bulk_import_schema_columns",
+    occurrence_api.OccurrenceReportBulkImportSchemaColumnViewSet,
+    "occurrence_report_bulk_import_schema_columns",
+)
 router.register(r"observer_detail", occurrence_api.ObserverDetailViewSet)
 router.register(r"contact_detail", occurrence_api.ContactDetailViewSet)
 router.register(r"occurrence_sites", occurrence_api.OccurrenceSiteViewSet)
@@ -170,7 +175,6 @@ router.register(r"ocr_threat", occurrence_api.OCRConservationThreatViewSet)
 router.register(r"occ_threat", occurrence_api.OCCConservationThreatViewSet)
 
 router.register(r"users", users_api.UserViewSet)
-router.register(r"global_settings", main_api.GlobalSettingsViewSet)
 
 router.register(r"tile_layer", spatial_api.TileLayerViewSet, "tile_layer")
 router.register(r"regions", species_communities_api.RegionViewSet, "regions")

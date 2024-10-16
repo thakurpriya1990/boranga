@@ -11,6 +11,29 @@ class RelatedItem:
         self.status = status
         self.action_url = action_url
 
+    def __hash__(self):
+        return hash(
+            (
+                self.model_name,
+                self.identifier,
+                self.descriptor,
+                self.status,
+                self.action_url,
+            )
+        )
+
+    def __eq__(self, other):
+        return (
+            self.identifier == other.identifier
+            and self.model_name == other.model_name
+            and self.descriptor == other.descriptor
+            and self.status == other.status
+            and self.action_url == other.action_url
+        )
+
+    def __str__(self):
+        return f"{self.identifier}"
+
 
 class RelatedItemsSerializer(serializers.Serializer):
     model_name = serializers.CharField()

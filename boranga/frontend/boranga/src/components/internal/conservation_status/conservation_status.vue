@@ -27,7 +27,8 @@
                                     <div class="form-group">
                                         <template
                                             v-if="['Ready For Agenda', 'With Approver', 'Unlocked', 'Approved', 'Closed', 'DeListed'].includes(conservation_status_obj.processing_status)">
-                                            <select ref="assigned_officer" :disabled="!canAction || canLock" class="form-control"
+                                            <select ref="assigned_officer" :disabled="!canAction || canLock"
+                                                class="form-control"
                                                 v-model="conservation_status_obj.assigned_approver">
                                                 <option v-for="member in conservation_status_obj.allowed_assessors"
                                                     :value="member.id">{{ member.first_name }} {{ member.last_name }}
@@ -198,7 +199,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <div v-if="show_finalised_actions" class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12 top-buffer-s">
@@ -272,34 +272,12 @@
                                             </div>
                                         </div>
                                     </template>
-                                    <template v-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
-                                        <div class="row" v-if="conservation_status_obj.approval_level == 'minister'">
-                                            <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="declineProposal()">Decline</button><br />
-                                            </div>
-                                        </div>
-                                        <div class="row" v-if="conservation_status_obj.approval_level == 'minister'">
-                                            <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="issueProposal()">Approve</button><br />
-                                            </div>
-                                        </div>
-                                    </template>
                                     <template
-                                        v-else-if="conservation_status_obj.processing_status == 'Ready For Agenda'">
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <label class="control-label pull-left" for="Name">Approver
-                                                    Comments</label>
-                                                <textarea class="form-control" name="name"
-                                                    v-model="approver_comment"></textarea><br>
-                                            </div>
-                                        </div>
+                                        v-if="conservation_status_obj.processing_status == 'Ready For Agenda' && conservation_status_obj.approval_level == 'minister'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary"
-                                                    @click.prevent="switchStatus('with_assessor')">Back To
+                                                    @click.prevent="backToAssessor">Back To
                                                     Assessor</button><br />
                                             </div>
                                         </div>
@@ -422,6 +400,10 @@
         </div>
         <AmendmentRequest ref="amendment_request" :conservation_status_id="conservation_status_obj.id"
             @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
+        <BackToAssessor ref="back_to_assessor_modal" :conservation_status_id="conservation_status_obj.id"
+            @refreshFromResponse="refreshFromResponse"></BackToAssessor>
+        <ProposeReadyForAgenda ref="propose_ready_for_agenda_modal" :conservation_status_id="conservation_status_obj.id"
+            @refreshFromResponse="refreshFromResponse"></ProposeReadyForAgenda>
         <ProposedDecline ref="proposed_decline" :processing_status="conservation_status_obj.processing_status"
             :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse">
         </ProposedDecline>
@@ -441,6 +423,8 @@ import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import AmendmentRequest from './amendment_request.vue'
+import BackToAssessor from './back_to_assessor.vue'
+import ProposeReadyForAgenda from './propose_ready_for_agenda.vue'
 import ProposedDecline from './proposal_proposed_decline'
 import ProposeDelist from './proposal_propose_delist'
 import ProposedApproval from './proposed_issuance.vue'
@@ -473,7 +457,6 @@ export default {
             approver_comment: '',
             sendingReferral: false,
             changingStatus: false,
-            proposeReadyForAgenda: false,
             external_referee_email: '',
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             comms_url: helpers.add_endpoint_json(api_endpoints.conservation_status, vm.$route.params.conservation_status_id + '/comms_log'),
@@ -490,6 +473,8 @@ export default {
         Submission,
         ProposalConservationStatus,
         AmendmentRequest,
+        BackToAssessor,
+        ProposeReadyForAgenda,
         CSMoreReferrals,
         ProposedDecline,
         ProposeDelist,
@@ -723,19 +708,10 @@ export default {
             this.$refs.amendment_request.isModalOpen = true;
         },
         proposedReadyForAgenda: function () {
-            let vm = this;
             if (!this.validateConservationStatus()) {
                 return;
             }
-            vm.proposeReadyForAgenda = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/proposed_ready_for_agenda')).then((response) => {
-                vm.proposeReadyForAgenda = false;
-                vm.$router.push({ path: '/internal/conservation-status/' }); //Navigate to dashboard page after Propose issue.
-            }, (error) => {
-                vm.errors = true;
-                vm.proposeReadyForAgenda = false;
-                vm.errorString = helpers.apiVueResourceError(error);
-            });
+            this.$refs.propose_ready_for_agenda_modal.isModalOpen = true;
         },
         proposeDelist: function () {
             this.$refs.propose_delist.isModalOpen = true;
@@ -1035,8 +1011,8 @@ export default {
             vm.original_conservation_status_obj = helpers.copyObject(response.body);
             vm.conservation_status_obj = helpers.copyObject(response.body);
             vm.$nextTick(() => {
-                vm.initialiseAssignedOfficerSelect(true);
-                vm.updateAssignedOfficerSelect();
+                vm.initialisedSelects = false;
+                vm.initialiseSelects();
             });
         },
         assignTo: function () {
@@ -1425,6 +1401,9 @@ export default {
                         },
                     });
                 });
+        },
+        backToAssessor: function () {
+            this.$refs.back_to_assessor_modal.isModalOpen = true;
         },
         switchStatus: function (status) {
             let vm = this;

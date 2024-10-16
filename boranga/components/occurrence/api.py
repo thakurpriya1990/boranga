@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 from datetime import datetime, time
 from io import BytesIO
 
@@ -104,6 +105,7 @@ from boranga.components.occurrence.models import (
     RockType,
     SampleDestination,
     SampleType,
+    SchemaColumnLookupFilter,
     SecondarySign,
     SiteType,
     SoilColour,
@@ -141,6 +143,8 @@ from boranga.components.occurrence.serializers import (
     OccurrenceLogEntrySerializer,
     OccurrenceReportAmendmentRequestSerializer,
     OccurrenceReportBulkImportSchemaColumnSerializer,
+    OccurrenceReportBulkImportSchemaListSerializer,
+    OccurrenceReportBulkImportSchemaOccurrenceApproverSerializer,
     OccurrenceReportBulkImportSchemaSerializer,
     OccurrenceReportBulkImportTaskSerializer,
     OccurrenceReportDocumentSerializer,
@@ -208,6 +212,7 @@ from boranga.components.species_and_communities.serializers import TaxonomySeria
 from boranga.helpers import (
     is_contributor,
     is_customer,
+    is_django_admin,
     is_internal,
     is_occurrence_approver,
     is_occurrence_assessor,
@@ -6278,7 +6283,7 @@ class OccurrenceReportBulkImportTaskViewSet(
     permission_classes = [OccurrenceReportBulkImportPermission]
     serializer_class = OccurrenceReportBulkImportTaskSerializer
     filter_backends = [OrderingFilter, filters.DjangoFilterBackend]
-    filterset_fields = ["processing_status"]
+    filterset_fields = ["processing_status", "schema__group_type__name"]
     ordering_fields = ["datetime_queued", "datetime_started", "datetime_completed"]
     pagination_class = LimitOffsetPagination
 
@@ -6292,20 +6297,27 @@ class OccurrenceReportBulkImportTaskViewSet(
                         OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
                     )
                     instance.datetime_error = timezone.now()
+                    error_message = ""
+                    for error in errors:
+                        error_message += f"Row: {error['row_index'] + 1}. Error: {error['error_message']}\n"
+                    instance.error_message = error_message
                 else:
                     instance.processing_status = (
                         OccurrenceReportBulkImportTask.PROCESSING_STATUS_COMPLETED
                     )
                     instance.datetime_completed = timezone.now()
-                instance.save()
+
             except Exception as e:
                 logger.error(
                     f"Error processing bulk import task {instance.id}: {str(e)}"
                 )
+                logger.error(traceback.format_exc())
                 instance.processing_status = (
                     OccurrenceReportBulkImportTask.PROCESSING_STATUS_FAILED
                 )
                 instance.datetime_error = timezone.now()
+                instance.error_message = str(e)
+            instance.save()
 
     @detail_route(methods=["patch"], detail=True)
     def retry(self, request, *args, **kwargs):
@@ -6332,6 +6344,13 @@ class OccurrenceReportBulkImportSchemaViewSet(
     permission_classes = [OccurrenceReportBulkImportPermission]
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ["group_type"]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return OccurrenceReportBulkImportSchemaListSerializer
+        if not is_django_admin(self.request):
+            return OccurrenceReportBulkImportSchemaOccurrenceApproverSerializer
+        return super().get_serializer_class()
 
     def get_queryset(self):
         qs = self.queryset
@@ -6367,7 +6386,9 @@ class OccurrenceReportBulkImportSchemaViewSet(
         group_type = GroupType.objects.get(name=group_type)
 
         schema = OccurrenceReportBulkImportSchema.objects.filter(group_type=group_type)
-        serializer = OccurrenceReportBulkImportSchemaSerializer(schema, many=True)
+        serializer = OccurrenceReportBulkImportSchemaListSerializer(
+            schema, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @detail_route(methods=["get"], detail=True)
@@ -6383,26 +6404,21 @@ class OccurrenceReportBulkImportSchemaViewSet(
         buffer.close()
         return response
 
+    @detail_route(methods=["get"], detail=True)
+    def validate(self, request, *args, **kwargs):
+        instance = self.get_object()
+        errors = instance.validate(request.user.id)
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_200_OK)
+
     @detail_route(methods=["post"], detail=True)
     def copy(self, request, *args, **kwargs):
         instance = self.get_object()
-        new_instance = instance.copy()
-        serializer = OccurrenceReportBulkImportSchemaSerializer(new_instance)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    @detail_route(methods=["put"], detail=True)
-    def save_column(self, request, *args, **kwargs):
-        instance = self.get_object()
-        column_data = request.data.get("column_data", None)
-        if not column_data:
-            raise serializers.ValidationError("Column data is required")
-        serializer = OccurrenceReportBulkImportSchemaColumnSerializer(
-            instance, data=column_data
+        new_instance = instance.copy(request)
+        serializer = OccurrenceReportBulkImportSchemaSerializer(
+            new_instance, context={"request": request}
         )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        serializer = OccurrenceReportBulkImportSchemaSerializer(instance)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @detail_route(methods=["get"], detail=False)
@@ -6412,31 +6428,43 @@ class OccurrenceReportBulkImportSchemaViewSet(
         )
         return Response(default_value_field.choices, status=status.HTTP_200_OK)
 
-    @detail_route(methods=["patch"], detail=True)
-    def reorder_column(self, request, *args, **kwargs):
+
+class OccurrenceReportBulkImportSchemaColumnViewSet(
+    viewsets.GenericViewSet,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+):
+    queryset = OccurrenceReportBulkImportSchemaColumn.objects.all()
+    serializer_class = OccurrenceReportBulkImportSchemaColumnSerializer
+    permission_classes = [OccurrenceReportBulkImportPermission]
+
+    @detail_route(methods=["get"], detail=True)
+    def preview_foreign_key_values_xlsx(self, request, *args, **kwargs):
         instance = self.get_object()
 
-        # Don't order columns that haven't been saved
-        pk = request.data.get("id", None)
-        if not pk:
-            raise serializers.ValidationError(
-                "column must have id field to be reordered (i.e. record must be saved first)"
+        buffer = BytesIO()
+        workbook = instance.preview_foreign_key_values_xlsx
+        if not workbook:
+            return Response(
+                {"message": "No foreign key values to preview"},
+                status=status.HTTP_404_NOT_FOUND,
             )
+        workbook.save(buffer)
+        buffer.seek(0)
+        filename = (
+            f"{instance.django_import_content_type.model}-{instance.django_import_field_name}"
+            f"-foreign-key-list-values.xlsx"
+        )
+        response = HttpResponse(buffer.read(), content_type="application/vnd.ms-excel")
+        response["Content-Disposition"] = f"attachment; filename={filename}"
+        buffer.close()
+        return response
 
-        order = request.data.get("order", None)
-        if order is None:
-            raise serializers.ValidationError("order field is missing from column")
-
-        try:
-            column = instance.columns.get(pk=pk)
-        except OccurrenceReportBulkImportSchemaColumn.DoesNotExist:
-            raise serializers.ValidationError(
-                f"Column with id {pk} not found in schema"
-            )
-
-        column.to(order)
-
-        # instance.refresh_from_db()
-
-        serializer = OccurrenceReportBulkImportSchemaSerializer(instance)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    @list_route(methods=["get"], detail=False)
+    def get_lookup_filter_types(self, request, *args, **kwargs):
+        return Response(
+            SchemaColumnLookupFilter.LOOKUP_FILTER_TYPES,
+            status=status.HTTP_200_OK,
+        )

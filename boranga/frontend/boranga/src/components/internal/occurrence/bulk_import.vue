@@ -15,50 +15,69 @@
                     <div class="card">
                         <div class="card-body">
                             <form id="bulk-import-form" class="needs-validation" no-validate>
-                                <div class="mb-3">
+                                <div v-if="schema_versions" class="mb-3">
                                     <label for="schema-version" class="form-label"><span class="fw-bold">Step 1:
                                         </span>Select the bulk import schema version to use:</label>
                                     <select class="form-select text-secondary w-50" id="schema-version"
-                                        ref="schema-version" v-model="selected_schema_version"
+                                        ref="schema-version" v-model="selected_schema"
                                         aria-label="Select Schema Version" @change="resetFileField">
                                         <option :value="null" selected>Select Bulk Import Schema Version</option>
                                         <option v-for="schema_version in schema_versions" :value="schema_version">{{
                                             getSchemaVersionText(schema_version) }}</option>
                                     </select>
                                 </div>
+                                <div v-else class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
                                 <div v-if="selected_schema_version" class="border-top mb-3 pt-2">
                                     <label for="schema-version" class="form-label"><span class="fw-bold">Step 2:
                                         </span>Make sure your import file matches the schema:</label>
-                                    <div>
-                                        <table class="table table-sm table-bordered">
+                                    <div class="table-responsive mb-2">
+                                        <table class="table table-sm table-bordered custom-table">
                                             <thead>
                                                 <tr>
                                                     <th v-for="column in selected_schema_version.columns" scope="col">{{
-                                                        column.xlsx_column_header_name }}</th>
+                                                        column.xlsx_column_header_name }} <span class="text-danger"
+                                                            title="Mandatory Column"
+                                                            v-if="column.xlsx_data_validation_allow_blank == false">*</span>
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr>
-                                                    <td v-for="column in selected_schema_version.columns">{{
-                                                        column.xlsx_data_validation_type ?
-                                                            column.xlsx_data_validation_type : 'None' }}</td>
+                                                    <td v-for="column in selected_schema_version.columns">
+                                                        <i class="bi bi-info-circle-fill text-primary" role="button"
+                                                            data-bs-toggle="popover" data-bs-placement="bottom"
+                                                            title="Column Information" :data-bs-html="true"
+                                                            :data-bs-content="columnInformation(column)"></i>
+                                                    </td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                     <div>
-                                        <a :href="`/api/occurrence_report_bulk_import_schemas/${selected_schema_version.id}/preview_import_file/`"
+                                        <a :href="`/api/occurrence_report_bulk_import_schemas/${selected_schema_version.id}/preview_import_file/?updated=${selected_schema_version.datetime_updated}`"
                                             class="btn btn-primary" target="_blank"><i class="bi bi-filetype-xlsx"></i>
                                             Download Preview Bulk Import File</a>
                                     </div>
                                 </div>
                                 <div v-if="selected_schema_version" class="border-top w-75 mb-3 pt-2">
                                     <label for="bulk-import-file" class="form-label"><span class="fw-bold">Step 3:
+                                        </span> Select the .zip file containing any associated documents (Optional)</label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control text-secondary"
+                                            id="bulk-import-associated-files-zip"
+                                            ref="bulk-import-associated-files-zip"
+                                            accept=".zip">
+                                    </div>
+                                </div>
+                                <div v-if="selected_schema_version" class="border-top w-75 mb-3 pt-2">
+                                    <label for="bulk-import-file" class="form-label"><span class="fw-bold">Step 4:
                                         </span> Select the bulk import file (.xlsx)</label>
                                     <div class="input-group">
                                         <input type="file" class="form-control text-secondary"
                                             :class="importFileErrors ? 'is-invalid' : ''" id="bulk-import-file"
-                                            ref="bulk-import-file" aria-describedby="bulk-import-button"
+                                            ref="bulk-import-file"
                                             @change="bulkImportFileSelected"
                                             accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
                                         <div v-if="importFileErrors" class="invalid-feedback mt-3">
@@ -93,10 +112,12 @@
                                     <tbody class="text-muted">
                                         <tr v-for="queuedImport in queuedImports" class="">
                                             <td>{{ new Date(queuedImport.datetime_queued).toLocaleString() }}</td>
-                                            <td class="text-truncate" style="max-width: 350px;">{{
-                                                queuedImport.file_name }}</td>
+                                            <td class="text-truncate" style="max-width: 350px;"
+                                                :title="queuedImport.file_name">{{
+                                                    queuedImport.file_name }}</td>
                                             <td>{{ queuedImport.file_size_megabytes }} MB</td>
-                                            <td class="text-end pe-3">{{ queuedImport.rows ? queuedImport.rows : 'Not Counted' }}</td>
+                                            <td class="text-end pe-3">{{ queuedImport.rows ? queuedImport.rows : 'Not
+                                                Counted' }}</td>
                                             <td>{{ queuedImport.estimated_processing_time_human_readable }}</td>
                                         </tr>
                                     </tbody>
@@ -130,7 +151,9 @@
                                         <tr v-for="currentlyRunningImport in currentlyRunningImports" class="">
                                             <td>{{ new Date(currentlyRunningImport.datetime_started).toLocaleString() }}
                                             </td>
-                                            <td>{{ currentlyRunningImport.file_name }}</td>
+                                            <td class="text-truncate" style="max-width: 350px;"
+                                                :title="currentlyRunningImport.file_name">{{
+                                                    currentlyRunningImport.file_name }}</td>
                                             <td>{{ currentlyRunningImport.file_size_megabytes }} MB</td>
                                             <td style="min-width: 200px;">
                                                 <div class="progress">
@@ -170,8 +193,9 @@
                                         <tr v-for="failedImport in failedImports.results"
                                             :id="`failed-import-${failedImport.id}`" class="">
                                             <td>{{ new Date(failedImport.datetime_started).toLocaleString() }}</td>
-                                            <td class="text-truncate" style="max-width: 350px;">{{
-                                                failedImport.file_name }}</td>
+                                            <td class="text-truncate" style="max-width: 350px;"
+                                                :title="failedImport.file_name">{{
+                                                    failedImport.file_name }}</td>
                                             <td>{{ failedImport.file_size_megabytes }} MB</td>
                                             <td class="">{{ failedImport.rows ? failedImport.rows :
                                                 'Not Counted' }}</td>
@@ -226,7 +250,7 @@
                                                 Completed</th>
                                             <th scope="col"><i class="bi bi-filetype-xlsx text-success"></i> File Name
                                             </th>
-                                            <th scope="col"><i class="bi bi-list-ol text-success"></i> Records Imported
+                                            <th scope="col"><i class="bi bi-list-ol text-success"></i> Rows Processed
                                             </th>
                                             <th scope="col"><i class="bi bi-hourglass-bottom text-success"></i> Total
                                                 Time Taken</th>
@@ -237,8 +261,9 @@
                                         <tr v-for="completedImport in completedImports.results" class="">
                                             <td>{{ new Date(completedImport.datetime_completed).toLocaleString() }}
                                             </td>
-                                            <td class="text-truncate" style="max-width: 350px;">{{
-                                                completedImport.file_name }}</td>
+                                            <td class="text-truncate" style="max-width: 350px;"
+                                                :title="completedImport.file_name">{{
+                                                    completedImport.file_name }}</td>
                                             <td class="">{{ completedImport.rows_processed
                                                 }}</td>
                                             <td>{{ completedImport.total_time_taken_human_readable }}</td>
@@ -283,7 +308,8 @@ export default {
             timer: null,
             currentlyRunningTimer: null,
             selectedErrors: '',
-            schema_versions: [],
+            schema_versions: null,
+            selected_schema: null,
             selected_schema_version: null,
             importFileErrors: null
         }
@@ -298,12 +324,29 @@ export default {
     },
     methods: {
         getSchemaVersionText(schema_version) {
-            return `Version: ${schema_version.version} (Created: ${new Date(schema_version.datetime_created).toLocaleDateString()} ${new Date(schema_version.datetime_created).toLocaleTimeString()}, Updated: ${new Date(schema_version.datetime_updated).toLocaleDateString()} ${new Date(schema_version.datetime_updated).toLocaleTimeString()})`;
+            return `Version: ${schema_version.version} - ${schema_version.name ? schema_version.name : 'No Name'}`;
         },
         resetFileField() {
-            this.$nextTick(() => {
-                this.importFileErrors = null;
-                this.form.classList.remove('was-validated');
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.selected_schema.id}/`).then((response) => {
+                this.selected_schema_version = response.body;
+                this.$nextTick(() => {
+                    this.importFileErrors = null;
+                    this.form.classList.remove('was-validated');
+                    // Enable all bootstrap 5 popovers
+                    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+                    var myDefaultAllowList = bootstrap.Tooltip.Default.allowList
+                    myDefaultAllowList.table = []
+                    myDefaultAllowList.tr = []
+                    myDefaultAllowList.td = []
+                    myDefaultAllowList.th = []
+                    myDefaultAllowList.thead = []
+                    myDefaultAllowList.tbody = []
+                    popoverTriggerList.map(function (popoverTriggerEl) {
+                        return bootstrap.Popover.getOrCreateInstance(popoverTriggerEl)
+                    });
+                });
+            }, (error) => {
+                console.log(error);
             });
         },
         bulkImportFileSelected(event) {
@@ -314,6 +357,10 @@ export default {
             const file = event.target.files[0];
             const formData = new FormData();
             formData.append('_file', file);
+            const associated_files = this.$refs['bulk-import-associated-files-zip'].files;
+            if(associated_files.length > 0) {
+                formData.append('_associated_files_zip', associated_files[0]);
+            }
             formData.append('schema_id', this.selected_schema_version.id);
 
             this.$http.post(api_endpoints.occurrence_report_bulk_imports, formData).then((response) => {
@@ -322,6 +369,7 @@ export default {
                     this.importFileErrors = null;
                     this.form.classList.remove('was-validated');
                     this.$refs['bulk-import-file'].value = '';
+                    this.$refs['bulk-import-associated-files-zip'].value = '';
                     swal.fire({
                         title: 'Bulk Import Added to Queue',
                         text: 'The bulk import of occurrence reports has been added to the queue for processing',
@@ -335,12 +383,14 @@ export default {
                 } else {
                     this.importFileErrors = response.body;
                     event.target.value = '';
+                    this.$refs['bulk-import-associated-files-zip'].value = '';
                     this.$refs['bulk-import-file'].setCustomValidity('Invalid field');
                     this.form.classList.add('was-validated');
                 }
             }, (error) => {
                 this.importFileErrors = error.body;
                 event.target.value = '';
+                this.$refs['bulk-import-associated-files-zip'].value = '';
                 this.$refs['bulk-import-file'].setCustomValidity('Invalid field');
                 this.form.classList.add('was-validated');
                 console.log(error.body);
@@ -372,22 +422,25 @@ export default {
                 console.log(error);
             });
         },
+        async fetchSchema() {
+
+        },
         fetchQueuedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=queued`).then((response) => {
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=queued&schema__group_type__name=${this.$route.query.group_type}`).then((response) => {
                 this.queuedImports = response.body.results;
             }, (error) => {
                 console.log(error);
             });
         },
         fetchCurrentlyRunningImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=started`).then((response) => {
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=started&schema__group_type__name=${this.$route.query.group_type}`).then((response) => {
                 this.currentlyRunningImports = response.body.results;
             }, (error) => {
                 console.log(error);
             });
         },
         fetchFailedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=failed&limit=${this.failedImportsLimit}&ordering=-datetime_started`).then((response) => {
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=failed&schema__group_type__name=${this.$route.query.group_type}&limit=${this.failedImportsLimit}&ordering=-datetime_started`).then((response) => {
                 this.failedImports = response.body;
             }, (error) => {
                 console.log(error);
@@ -398,7 +451,7 @@ export default {
             this.fetchFailedImports();
         },
         fetchCompletedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=completed&limit=${this.completedImportsLimit}`).then((response) => {
+            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=completed&schema__group_type__name=${this.$route.query.group_type}&limit=${this.completedImportsLimit}&ordering=-datetime_completed`).then((response) => {
                 this.completedImports = response.body;
             }, (error) => {
                 console.log(error);
@@ -443,7 +496,7 @@ export default {
                         this.completedImports = this.completedImports.results.filter((completedImport) => {
                             return completedImport.id !== bulkImportTaskId;
                         });
-                        this.fetchQueuedImports();
+                        this.fetchCompletedImports();
                     }, (error) => {
                         console.log(error);
                     });
@@ -455,6 +508,43 @@ export default {
             this.fetchQueuedImports();
             this.fetchFailedImports();
             this.fetchCompletedImports();
+        },
+        columnInformation(column) {
+            let html = '<table class="table table-sm table-striped">'
+            html += `<tr><th>Column Name</th><td>${column.xlsx_column_header_name}</td></tr>`
+            html += `<tr><th>Django Model Name</th><td class="text-capitalize">${column.model_name}</td></tr>`
+            html += `<tr><th>Django Field Name</th><td>${column.django_import_field_name}</td></tr>`
+            html += `<tr><th>Django Field Type</th><td>${column.field_type}</td></tr>`
+            html += `<tr><th>Allow Blank</th><td>${column.xlsx_data_validation_allow_blank ? 'Yes' : 'No'}</td></tr>`
+            if ('textLength' == column.xlsx_validation_type) {
+                html += `<tr><th>Maximum Text Length</th><td>${column.text_length}</td></tr>`
+            }
+            if (column.xlsx_validation_type) {
+                html += `<tr><th>Validation Type${column.requires_lookup_field ? ' (Django)' : ` (.xlsx)`}</th><td>${column.xlsx_validation_type}</td></tr>`
+            }
+            if ('list' == column.xlsx_validation_type) {
+                if (column.choices && column.choices.length > 0) {
+                    html += '<tr><th class="align-top">Choices</th><td>';
+                    for (let choice of column.choices) {
+                        html += `${choice[1]}<br>`
+                    }
+                    html += '</td></tr>';
+                } else {
+                    if (column.requires_lookup_field) {
+                        html += `<tr><th>Lookup Field</th><td>${column.django_lookup_field_name}</td></tr>`
+                        if (column.lookup_filters && column.lookup_filters.length > 0) {
+                            html += `<tr><th>Lookup Filters</th><td>`
+                            for (let lookupFilter of column.lookup_filters) {
+                                html += `<div>Field: ${lookupFilter.filter_field_name}, Filter Type: ${lookupFilter.filter_type}, Value: ${lookupFilter.values[0].filter_value}</div>`
+                            }
+                            html += '</td></tr>'
+                        }
+                        html += `<tr><th>Preview Choices (.xlsx)</th><td><a class="ms-0 ps-0" href="/api/occurrence_report_bulk_import_schema_columns/${column.id}/preview_foreign_key_values_xlsx/">Preview ${column.filtered_foreign_key_count} Choices</a></td></tr>`
+                    }
+                }
+            }
+            html += '</table>'
+            return html;
         }
     },
     created() {
@@ -478,6 +568,11 @@ export default {
 }
 </script>
 <style scoped>
+table.custom-table th,
+td {
+    white-space: nowrap;
+}
+
 div.currently-running {
     border-color: rgba(34, 111, 187, 1);
     animation: border-pulsate 1s infinite;

@@ -14,6 +14,7 @@ from boranga.helpers import (
     is_conservation_status_approver,
     is_conservation_status_assessor,
     is_contributor,
+    is_django_admin,
     is_occurrence_approver,
     is_occurrence_assessor,
     is_occurrence_report_referee,
@@ -433,7 +434,23 @@ class OccurrenceReportBulkImportPermission(BasePermission):
         if request.user.is_superuser:
             return True
 
-        return is_occurrence_assessor(request)
+        return is_django_admin(request) or is_occurrence_approver(request)
+
+    def has_object_permission(self, request, view, obj):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        if (
+            view.action != "copy"
+            and request.method not in permissions.SAFE_METHODS
+            and obj.is_master
+        ):
+            return is_django_admin(request)
+
+        return is_django_admin(request) or is_occurrence_approver(request)
 
 
 class OccurrencePermission(BasePermission):

@@ -1,17 +1,17 @@
 import logging
 
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db.models.fields.related import ForeignKey, OneToOneField
+from django.db.models.fields.related import ForeignKey, ManyToManyField, OneToOneField
 from ledger_api_client.ledger_models import EmailUserRO
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from rest_framework import serializers
 
-from boranga.components.main.models import (
-    CommunicationsLogEntry,
-    GlobalSettings,
-    HelpTextEntry,
-)
+from boranga.components.main.models import CommunicationsLogEntry, HelpTextEntry
 from boranga.helpers import (
+    get_choices_for_field,
+    get_filter_field_options_for_field,
+    get_lookup_field_options_for_field,
     get_openpyxl_data_validation_type_for_django_field,
     is_django_admin,
 )
@@ -43,12 +43,6 @@ class CommunicationLogEntrySerializer(serializers.ModelSerializer):
 
     def get_documents(self, obj):
         return [[d.name, d._file.url] for d in obj.documents.all()]
-
-
-class GlobalSettingsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GlobalSettings
-        fields = ("key", "value")
 
 
 class EmailUserROSerializerForReferral(serializers.ModelSerializer):
@@ -136,6 +130,9 @@ class ContentTypeSerializer(serializers.ModelSerializer):
     def get_model_fields(self, obj):
         if not obj.model_class():
             return []
+
+        content_type = ContentType.objects.get_for_model(obj.model_class()).id
+
         fields = obj.model_class()._meta.get_fields()
         exclude_fields = []
         if hasattr(obj.model_class(), "BULK_IMPORT_EXCLUDE_FIELDS"):
@@ -144,6 +141,7 @@ class ContentTypeSerializer(serializers.ModelSerializer):
         def filter_fields(field):
             return (
                 field.name not in exclude_fields
+                and field.name != "occurrence_report"
                 and not field.auto_created
                 and not (
                     field.is_relation
@@ -151,6 +149,7 @@ class ContentTypeSerializer(serializers.ModelSerializer):
                     not in [
                         ForeignKey,
                         OneToOneField,
+                        ManyToManyField,
                     ]
                 )
             )
@@ -164,33 +163,30 @@ class ContentTypeSerializer(serializers.ModelSerializer):
                 else field.name
             )
             field_type = str(type(field)).split(".")[-1].replace("'>", "")
-            choices = field.choices if hasattr(field, "choices") else None
             allow_null = field.null if hasattr(field, "null") else None
             max_length = field.max_length if hasattr(field, "max_length") else None
             xlsx_validation_type = get_openpyxl_data_validation_type_for_django_field(
                 field
             )
-            lookup_field_options = None
-            if hasattr(field, "related_model") and field.related_model:
-                related_model = field.related_model
-                fields = related_model._meta.get_fields()
-                lookup_field_options = [
-                    field.verbose_name.lower()
-                    for field in related_model._meta.get_fields()
-                    if not field.related_model
-                    and field.unique
-                    and not field.name.endswith("_number")
-                ]
+
+            if isinstance(field, GenericForeignKey):
+                continue
+
+            choices = get_choices_for_field(obj.model_class(), field)
+            lookup_field_options = get_lookup_field_options_for_field(field)
+            filter_field_options = get_filter_field_options_for_field(field)
             model_fields.append(
                 {
                     "name": field.name,
                     "display_name": display_name,
+                    "content_type": content_type,
                     "type": field_type,
-                    "choices": choices,
                     "allow_null": allow_null,
                     "max_length": max_length,
                     "xlsx_validation_type": xlsx_validation_type,
+                    "choices": choices,
                     "lookup_field_options": lookup_field_options,
+                    "filter_field_options": filter_field_options,
                 }
             )
         return model_fields

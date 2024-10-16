@@ -58,8 +58,6 @@ export default {
                         title: 'Referral',
                         data: 'referral',
                         render: function (data, type, full) {
-                            console.log(data);
-
                             return `<span>${data.first_name} ${data.last_name}</span>`;
                         }
                     },
@@ -88,7 +86,6 @@ export default {
                     {
                         title: 'Referral Comments',
                         data: 'referral_comment',
-
                         'render': function (value) {
                             var ellipsis = '...',
                                 truncated = _.truncate(value, {
@@ -233,11 +230,16 @@ export default {
 
                 // activate popover when table is drawn.
                 vm.table.on('draw.dt', function () {
-                    var $tablePopover = $(this).find('[data-bs-toggle="popover"]');
-                    if ($tablePopover.length > 0) {
-                        $tablePopover.popover();
+                    var tablePopover = $(this).find('[data-bs-toggle="popover"]');
+                    if (tablePopover.length > 0) {
+                        new bootstrap.Popover(tablePopover, {
+                            html: true,
+                            trigger: 'hover',
+                            placement: 'bottom',
+                            container: 'body',
+                        });
                         // the next line prevents from scrolling up to the top after clicking on the popover.
-                        $($tablePopover).on('click', function (e) {
+                        $(tablePopover).on('click', function (e) {
                             e.preventDefault();
                             return true;
                         });
