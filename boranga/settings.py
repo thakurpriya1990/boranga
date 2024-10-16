@@ -235,6 +235,8 @@ if NOTIFICATION_EMAIL:
 CRON_CLASSES = [
     "appmonitor_client.cron.CronJobAppMonitorClient",
     "boranga.cron.CronJobFetchNomosTaxonDataDaily",
+    "boranga.cron.CronJobOCRPreProcessBulkImportTasks",
+    "boranga.cron.CronJobOCRProcessBulkImportQueue",
 ]
 
 
