@@ -960,9 +960,15 @@ export default {
                     })
                 })
                 .catch(error => {
-                    let errors = error.data
-                    let error_message = ''
+                    let errors = null;
+                    if (Object.hasOwn(error, 'data')) {
+                        errors = error.data
+                    } else if (Object.hasOwn(error, 'body')) {
+                        errors = error.body
+                    }
+                    let error_message = 'Something went wrong :-('
                     if (errors instanceof Array) {
+                        error_message = ''
                         for (let i = 0; i < errors.length; i++) {
                             error_message += `<li class="mb-2">${errors[i].error_message}</li>`
                         }
