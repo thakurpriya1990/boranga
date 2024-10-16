@@ -754,7 +754,8 @@ export default {
                 default_value: null,
                 import_validations: [],
                 lookup_filters: [],
-                is_editable_by_user: true
+                is_editable_by_user: true,
+                is_emailuser_column: false
             }
         },
         addSingleColumn() {
