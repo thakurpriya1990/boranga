@@ -34,6 +34,7 @@ from django.db import IntegrityError, models, transaction
 from django.db.models import CharField, Count, Func, ManyToManyField, Max, Q
 from django.db.models.functions import Cast, Length
 from django.utils import timezone
+from django.utils.functional import cached_property
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
@@ -41,7 +42,7 @@ from openpyxl.styles import NamedStyle
 from openpyxl.styles.fonts import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
-from ordered_model.models import OrderedModel
+from ordered_model.models import OrderedModel, OrderedModelManager
 from taggit.managers import TaggableManager
 
 from boranga import exceptions
@@ -5758,6 +5759,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     current_model_instance.import_hash = row_hash
                     current_model_instance.group_type_id = self.schema.group_type_id
                     current_model_instance.submitter = self.email_user
+                    current_model_instance.lodgement_date = timezone.now()
                 else:
                     current_model_instance = OccurrenceReport.objects.get(
                         migrated_from_id=row[0]
@@ -5801,6 +5803,8 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                         return
                 else:
                     if not occ_migrated_from_id:
+                        if not model_data.get("group_type"):
+                            model_data["group_type"] = self.schema.group_type
                         current_model_instance = Occurrence(**model_data)
                     else:
                         if Occurrence.objects.filter(
@@ -5876,15 +5880,14 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             if current_model_name not in [
                 OccurrenceReport._meta.model_name,
                 Occurrence._meta.model_name,
+                SubmitterInformation._meta.model_name,
             ]:
                 # Relate this model to it's parent instance
 
                 related_to_parent = False
+                # Look through all the model instances that have already been saved
+                for potential_parent_model_key in [m for m in model_instances]:
 
-                # Look through all the models being imported except for the current model
-                for potential_parent_model_key in [
-                    m for m in models if m != current_model_name
-                ]:
                     # Check if this model has a relationship with the current model
                     potential_parent_instance = model_instances[
                         potential_parent_model_key
@@ -6415,10 +6418,34 @@ class OccurrenceReportBulkImportSchema(models.Model):
             None,
             None,
         )
+        sample_associated_file = InMemoryUploadedFile(
+            BytesIO(b"I am a test file"),
+            "file",
+            "sample_file.txt",
+            "text/plain",
+            0,
+            None,
+        )
+        # Create a .zip file to house the sample associated file
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+            zip_file.writestr(
+                sample_associated_file.name, sample_associated_file.read()
+            )
+        zip_file_name = f"sample_{self.group_type.name}_{self.version}.zip"
+        zip_file = InMemoryUploadedFile(
+            zip_buffer,
+            "file",
+            zip_file_name,
+            "application/zip",
+            0,
+            None,
+        )
 
         import_task = OccurrenceReportBulkImportTask(
             schema=self,
             _file=import_file,
+            _associated_files_zip=zip_file,
             rows=1,
             email_user=request_user_id,
         )
@@ -6544,7 +6571,13 @@ class OccurrenceReportBulkImportSchema(models.Model):
         return new_schema
 
 
+class OccurrenceReportBulkImportSchemaColumnManager(OrderedModelManager):
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("lookup_filters")
+
+
 class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
+    objects = OccurrenceReportBulkImportSchemaColumnManager()
     schema = models.ForeignKey(
         OccurrenceReportBulkImportSchema,
         related_name="columns",
@@ -6667,7 +6700,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         return get_choices_for_field(model_class, self.field)
 
-    @property
+    @cached_property
     def related_model(self):
         if not self.django_import_content_type or not self.django_import_field_name:
             return None
@@ -6680,7 +6713,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         return field.related_model
 
-    @property
+    @cached_property
     def display_field(self):
         related_model = self.related_model
 
@@ -6694,12 +6727,9 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         return display_field
 
-    @property
+    @cached_property
     def related_model_qs(self):
         display_field = self.display_field
-
-        if not display_field:
-            return None
 
         filter_dict = {f"{display_field}__isnull": False}
         related_model_qs = self.related_model.objects.filter(**filter_dict)
@@ -6707,9 +6737,14 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         if issubclass(self.related_model, ArchivableModel):
             related_model_qs = self.related_model.objects.exclude(archived=True)
 
-        return related_model_qs
+        if hasattr(self.related_model, "group_type"):
+            related_model_qs = related_model_qs.only(display_field, "group_type")
+        else:
+            related_model_qs = related_model_qs.only(display_field)
 
-    @property
+        return related_model_qs.order_by(display_field)
+
+    @cached_property
     def filtered_related_model_qs(self):
         if not self.related_model_qs:
             return None
@@ -6751,7 +6786,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
 
         return related_model_qs
 
-    @property
+    @cached_property
     def foreign_key_count(self):
         if not self.related_model_qs:
             return 0
@@ -6761,7 +6796,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         # No longer being shown
         return self.related_model_qs.count()
 
-    @property
+    @cached_property
     def requires_lookup_field(self):
         if not self.django_import_content_type or not self.django_import_field_name:
             return False
@@ -6777,7 +6812,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             self.foreign_key_count > settings.OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT
         )
 
-    @property
+    @cached_property
     def filtered_foreign_key_count(self):
         if not self.filtered_related_model_qs:
             return 0
@@ -6854,6 +6889,28 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
             )
 
             return random_value
+
+        if isinstance(field, models.ManyToManyField):
+            related_model_qs = self.filtered_related_model_qs
+
+            if not related_model_qs.exists():
+                error_message = f"No records found for many to many field {field.related_model._meta.model_name}"
+                errors.append(
+                    {
+                        "error_type": "no_records",
+                        "error_message": error_message,
+                    }
+                )
+
+            display_field = self.display_field
+
+            random_values = list(
+                related_model_qs.order_by("?")
+                .values_list(display_field, flat=True)
+                .distinct()[: random.randint(1, 3)]
+            )
+
+            return ",".join(random_values)
 
         if isinstance(field, MultiSelectField):
             model_class = self.django_import_content_type.model_class()
@@ -6979,6 +7036,9 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     ],
                 }
             )
+
+        if isinstance(field, models.FileField):
+            return "sample_file.txt"
 
         raise ValueError(
             f"Not able to generate sample data for field {field} of type {type(field)}"
@@ -7448,7 +7508,9 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     return cell_value, errors_added
 
             # Make the datetime object timezone aware
-            cell_value.replace(tzinfo=zoneinfo.ZoneInfo(settings.TIME_ZONE))
+            cell_value = cell_value.replace(
+                tzinfo=zoneinfo.ZoneInfo(settings.TIME_ZONE)
+            )
 
             return cell_value, errors_added
 
