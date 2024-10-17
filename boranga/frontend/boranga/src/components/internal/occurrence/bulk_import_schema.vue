@@ -972,16 +972,21 @@ export default {
                     } else if (Object.hasOwn(error, 'body')) {
                         errors = error.body
                     }
-                    let error_message = 'Something went wrong :-('
-                    if (errors instanceof Array) {
-                        error_message = ''
+                    let error_message_string = 'Something went wrong :-('
+                    if (errors instanceof Object) {
+                        error_message_string = ''
                         for (let i = 0; i < errors.length; i++) {
-                            error_message += `<li class="mb-2">${errors[i].error_message}</li>`
+                            let error_message = errors[i].error_message ? errors[i].error_message : errors[i]
+                            error_message_string += `<li class="mb-2">${error_message}</li>`
                         }
+                        console.log(error_message_string)
+                    } else if (typeof errors === 'string') {
+                        error_message_string = errors
                     }
+                    console.error(error_message_string)
                     swal.fire({
                         title: 'Schema Validation Failed',
-                        html: error_message,
+                        html: error_message_string,
                         icon: 'error',
                         confirmButtonText: 'OK',
                         customClass: {
