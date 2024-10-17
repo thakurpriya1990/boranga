@@ -52,6 +52,8 @@ class SubmitterCategory(ArchivableModel):
 
 
 class SubmitterInformation(models.Model):
+    BULK_IMPORT_ABBREVIATION = "ocrsub"
+
     email_user = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     contact_details = models.TextField(blank=True, null=True)

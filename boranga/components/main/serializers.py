@@ -117,6 +117,7 @@ class HelpTextEntrySerializer(serializers.ModelSerializer):
 class ContentTypeSerializer(serializers.ModelSerializer):
     model_fields = serializers.SerializerMethodField()
     model_verbose_name = serializers.SerializerMethodField()
+    model_abbreviation = serializers.SerializerMethodField()
 
     class Meta:
         model = ContentType
@@ -126,6 +127,11 @@ class ContentTypeSerializer(serializers.ModelSerializer):
         if not obj.model_class():
             return None
         return obj.model_class()._meta.verbose_name.title()
+
+    def get_model_abbreviation(self, obj):
+        if not obj.model_class():
+            return None
+        return obj.model_class().BULK_IMPORT_ABBREVIATION
 
     def get_model_fields(self, obj):
         if not obj.model_class():

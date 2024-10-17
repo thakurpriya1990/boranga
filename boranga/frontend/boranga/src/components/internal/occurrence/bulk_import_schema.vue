@@ -728,7 +728,7 @@ export default {
             )[0]
             this.$nextTick(() => {
                 this.enablePopovers();
-                this.selectedColumn.xlsx_column_header_name = this.selectedField.display_name
+                this.selectedColumn.xlsx_column_header_name = `${this.selectedContentType.model_abbreviation.toUpperCase()} ${this.selectedField.display_name}`
                 if (!this.selectedColumn.id) {
                     this.selectedColumn.xlsx_data_validation_allow_blank = this.selectedField.allow_null
                 }

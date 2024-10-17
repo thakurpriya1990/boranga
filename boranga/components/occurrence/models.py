@@ -159,6 +159,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     objects = OccurrenceReportManager()
 
+    BULK_IMPORT_ABBREVIATION = "ocr"
     BULK_IMPORT_EXCLUDE_FIELDS = ["occurrence_report_number", "import_hash"]
 
     CUSTOMER_STATUS_DRAFT = "draft"
@@ -1340,6 +1341,8 @@ class OccurrenceReportDeclinedDetails(models.Model):
 
 
 class OccurrenceReportApprovalDetails(models.Model):
+    BULK_IMPORT_ABBREVIATION = "ocrapp"
+
     occurrence_report = models.OneToOneField(
         OccurrenceReport, on_delete=models.CASCADE, related_name="approval_details"
     )
@@ -1913,6 +1916,8 @@ class LocationAccuracy(ArchivableModel):
 
 # NOTE: this and OCCLocation have a number of unused fields that should be removed
 class OCRLocation(models.Model):
+    BULK_IMPORT_ABBREVIATION = "ocrloc"
+
     """
     Location data  for occurrence report
 
@@ -2134,6 +2139,8 @@ class DrawnByGeometry(models.Model):
 
 
 class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry):
+    BULK_IMPORT_ABBREVIATION = "ocrgeo"
+
     occurrence_report = models.ForeignKey(
         OccurrenceReport,
         on_delete=models.CASCADE,
@@ -2163,6 +2170,8 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry):
 
 
 class OCRObserverDetail(RevisionedMixin):
+    BULK_IMPORT_ABBREVIATION = "ocrcon"
+
     """
     Observer data  for occurrence report
 
@@ -2356,6 +2365,7 @@ class SoilCondition(ArchivableModel):
 
 
 class OCRHabitatComposition(models.Model):
+    BULK_IMPORT_ABBREVIATION = "ocrhab"
     """
     Habitat data  for occurrence report
 
@@ -2409,6 +2419,7 @@ class OCRHabitatComposition(models.Model):
 
 
 class OCRHabitatCondition(models.Model):
+    BULK_IMPORT_ABBREVIATION = "ocrhq"
     """
     Habitat Condition data for occurrence report
 
@@ -2470,6 +2481,8 @@ class OCRHabitatCondition(models.Model):
 
 
 class OCRVegetationStructure(models.Model):
+    BULK_IMPORT_ABBREVIATION = "ocrveg"
+
     """
     Vegetation Structure data for occurrence report
 
@@ -2526,6 +2539,8 @@ class Intensity(ArchivableModel):
 
 
 class OCRFireHistory(models.Model):
+    BULK_IMPORT_ABBREVIATION = "ocrfh"
+
     """
     Fire History data for occurrence report
 
@@ -2555,6 +2570,8 @@ class OCRFireHistory(models.Model):
 
 
 class OCRAssociatedSpecies(models.Model):
+    BULK_IMPORT_ABBREVIATION = "ocrspe"
+
     """
     Associated Species data for occurrence report
 
@@ -2609,6 +2626,8 @@ class ObservationMethod(ArchivableModel):
 
 
 class OCRObservationDetail(models.Model):
+    BULK_IMPORT_ABBREVIATION = "ocrobs"
+
     """
     Observation Details data for occurrence report
 
@@ -2746,6 +2765,8 @@ class PlantCondition(ArchivableModel):
 
 
 class OCRPlantCount(models.Model):
+    BULK_IMPORT_ABBREVIATION = "ocrnum"
+
     """
     Plant Count data for occurrence report
 
@@ -2952,6 +2973,8 @@ class SecondarySign(ArchivableModel):
 
 
 class OCRAnimalObservation(models.Model):
+    BULK_IMPORT_ABBREVIATION = "ocrnum"
+
     """
     Animal Observation data for occurrence report
 
@@ -3139,6 +3162,8 @@ class PermitType(ArchivableModel):
 
 
 class OCRIdentification(models.Model):
+    BULK_IMPORT_ABBREVIATION = "ocrid"
+
     """
     Identification data for occurrence report
 
@@ -3180,6 +3205,8 @@ class OCRIdentification(models.Model):
 
 
 class OccurrenceReportDocument(Document):
+    BULK_IMPORT_ABBREVIATION = "ocrdoc"
+
     document_number = models.CharField(max_length=9, blank=True, default="")
     occurrence_report = models.ForeignKey(
         "OccurrenceReport", related_name="documents", on_delete=models.CASCADE
@@ -3293,6 +3320,7 @@ class OccurrenceReportShapefileDocument(Document):
 
 
 class OCRConservationThreat(RevisionedMixin):
+    BULK_IMPORT_ABBREVIATION = "ocrthr"
     """
     Threat for a occurrence_report in a particular location.
 
@@ -3390,6 +3418,7 @@ class OccurrenceManager(models.Manager):
 
 
 class Occurrence(RevisionedMixin):
+    BULK_IMPORT_ABBREVIATION = "occ"
 
     REVIEW_STATUS_CHOICES = (
         ("not_reviewed", "Not Reviewed"),
