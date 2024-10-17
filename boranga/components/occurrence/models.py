@@ -6921,7 +6921,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 related_model_qs = related_model_qs.annotate(
                     occurrence_count=Subquery(
                         Occurrence.objects.filter(community__pk=OuterRef("pk"))
-                        .values("species")
+                        .values("community")
                         .annotate(count=Count("id"))
                         .values("count")
                     )
