@@ -6775,11 +6775,6 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         if issubclass(self.related_model, ArchivableModel):
             related_model_qs = self.related_model.objects.exclude(archived=True)
 
-        if hasattr(self.related_model, "group_type"):
-            related_model_qs = related_model_qs.only(display_field, "group_type")
-        else:
-            related_model_qs = related_model_qs.only(display_field)
-
         return related_model_qs.order_by(display_field)
 
     @cached_property
@@ -6926,7 +6921,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 related_model_qs = related_model_qs.annotate(
                     occurrence_count=Subquery(
                         Occurrence.objects.filter(community__pk=OuterRef("pk"))
-                        .values("species")
+                        .values("community")
                         .annotate(count=Count("id"))
                         .values("count")
                     )
@@ -7048,7 +7043,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     filter_field = {
                         "community__taxonomy__community_migrated_id": species_or_community_identifier
                     }
-                if not random_occurrence.exists():
+                if not random_occurrence.filter(**filter_field).exists():
                     error_message = (
                         f"No occurrences found where species or community identifier = "
                         f"{species_or_community_identifier}"
