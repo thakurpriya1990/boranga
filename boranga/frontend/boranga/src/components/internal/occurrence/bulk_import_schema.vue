@@ -44,7 +44,8 @@
                                                         class="spinner-border spinner-border-sm me-1" role="status"
                                                         aria-hidden="true"></span><i v-else
                                                         class="bi bi-card-checklist me-1"></i>
-                                                    Validat<template v-if="validatingSchema">ing</template><template v-else>e</template></button>
+                                                    Validat<template v-if="validatingSchema">ing</template><template
+                                                        v-else>e</template></button>
                                                 <a role="button" class="btn btn-primary"
                                                     :href="`/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/?updated=${schema.datetime_updated}`"><i
                                                         class="bi bi-filetype-xlsx me-1"></i> Preview</a>
@@ -453,8 +454,8 @@
                                 <template v-if="schema.can_user_edit && selectedColumn.is_editable_by_user">
                                     <button
                                         v-if="selectedColumn.django_import_content_type && selectedColumn.django_import_field_name"
-                                        class="btn btn-primary btn-sm me-2" @click.prevent="save()" :disabled="saving"><i
-                                            class="bi bi-floppy-fill me-1"></i>
+                                        class="btn btn-primary btn-sm me-2" @click.prevent="save()"
+                                        :disabled="saving"><i class="bi bi-floppy-fill me-1"></i>
                                         Save
                                         Column <template v-if="saving"><span
                                                 class="spinner-border spinner-border-sm ms-2" role="status"
@@ -491,6 +492,13 @@
                 </div>
             </div>
         </div>
+        <div v-else>
+            <div class="d-flex justify-content-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
         <div v-if="schema" class="row">
             <div class="navbar fixed-bottom" style="background-color: rgb(245, 245, 245);">
                 <div class="container">
@@ -505,7 +513,9 @@
                             Continue <template v-if="saving"><span class="spinner-border spinner-border-sm ms-2"
                                     role="status" aria-hidden="true"></span>
                                 <span class="visually-hidden">Loading...</span></template></button><button
-                            class="btn btn-primary me-2 float-end" @click.prevent="saveAndExit()" :disabled="saving">Save and Exit
+                            class="btn btn-primary me-2 float-end" @click.prevent="saveAndExit()"
+                            :disabled="saving">Save
+                            and Exit
                             <template v-if="saving"><span class="spinner-border spinner-border-sm ms-2" role="status"
                                     aria-hidden="true"></span>
                                 <span class="visually-hidden">Loading...</span>
@@ -754,7 +764,8 @@ export default {
                 default_value: null,
                 import_validations: [],
                 lookup_filters: [],
-                is_editable_by_user: true
+                is_editable_by_user: true,
+                is_emailuser_column: false
             }
         },
         addSingleColumn() {
@@ -971,16 +982,21 @@ export default {
                     } else if (Object.hasOwn(error, 'body')) {
                         errors = error.body
                     }
-                    let error_message = 'Something went wrong :-('
-                    if (errors instanceof Array) {
-                        error_message = ''
+                    let error_message_string = 'Something went wrong :-('
+                    if (errors instanceof Object) {
+                        error_message_string = ''
                         for (let i = 0; i < errors.length; i++) {
-                            error_message += `<li class="mb-2">${errors[i].error_message}</li>`
+                            let error_message = errors[i].error_message ? errors[i].error_message : errors[i]
+                            error_message_string += `<li class="mb-2">${error_message}</li>`
                         }
+                        console.log(error_message_string)
+                    } else if (typeof errors === 'string') {
+                        error_message_string = errors
                     }
+                    console.error(error_message_string)
                     swal.fire({
                         title: 'Schema Validation Failed',
-                        html: error_message,
+                        html: error_message_string,
                         icon: 'error',
                         confirmButtonText: 'OK',
                         customClass: {

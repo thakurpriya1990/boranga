@@ -31,7 +31,16 @@ from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import IntegrityError, models, transaction
-from django.db.models import CharField, Count, Func, ManyToManyField, Max, Q
+from django.db.models import (
+    CharField,
+    Count,
+    Func,
+    ManyToManyField,
+    Max,
+    OuterRef,
+    Q,
+    Subquery,
+)
 from django.db.models.functions import Cast, Length
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -6872,11 +6881,34 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         if isinstance(field, models.ForeignKey):
             related_model_qs = self.filtered_related_model_qs
 
+            # Special case for species or community
+            # Ensure only species or communities that have occurrences are selected
+            # in case the schema includes the occurrence model (quite likely)
+            if field.name == "species":
+                related_model_qs = related_model_qs.annotate(
+                    occurrence_count=Subquery(
+                        Occurrence.objects.filter(species__pk=OuterRef("pk"))
+                        .values("species")
+                        .annotate(count=Count("id"))
+                        .values("count")
+                    )
+                ).filter(occurrence_count__gt=0)
+            if field.name == "community":
+                related_model_qs = related_model_qs.annotate(
+                    occurrence_count=Subquery(
+                        Occurrence.objects.filter(community__pk=OuterRef("pk"))
+                        .values("species")
+                        .annotate(count=Count("id"))
+                        .values("count")
+                    )
+                ).filter(occurrence_count__gt=0)
+
             if not related_model_qs.exists():
+                error_message = f"No records found for foreign key field {field.related_model._meta.model_name}"
                 errors.append(
                     {
                         "error_type": "no_records",
-                        "error_message": f"No records found for foreign key {field.related_model._meta.model_name}",
+                        "error_message": error_message,
                     }
                 )
 
@@ -6987,6 +7019,18 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     filter_field = {
                         "community__taxonomy__community_migrated_id": species_or_community_identifier
                     }
+                if not random_occurrence.exists():
+                    error_message = (
+                        f"No occurrences found where species or community identifier = "
+                        f"{species_or_community_identifier}"
+                    )
+                    errors.append(
+                        {
+                            "error_type": "no_occurrences",
+                            "error_message": error_message,
+                        }
+                    )
+                    return None
                 return (
                     random_occurrence.filter(**filter_field)
                     .order_by("?")
