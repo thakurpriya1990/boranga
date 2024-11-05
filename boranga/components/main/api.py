@@ -54,13 +54,29 @@ class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
     )
     def ocr_bulk_import_content_types(self, request):
         """Returns a list of content types that are allowed to be imported in the ocr bulk importer"""
-        content_types = ContentType.objects.filter(
-            app_label="boranga",
-        ).filter(
-            Q(model__startswith="occurrencereport")
-            | Q(model__startswith="ocr")
-            | Q(model__iexact="occurrence")
-            | Q(model__iexact="submitterinformation")
+        content_types = (
+            ContentType.objects.filter(
+                app_label="boranga",
+            )
+            .filter(
+                Q(model__startswith="occurrencereport")
+                | Q(model__startswith="ocr")
+                | Q(model__iexact="occurrence")
+                | Q(model__iexact="submitterinformation")
+            )
+            .exclude(
+                model__in=[
+                    "occurrencereportproposalrequest",
+                    "occurrencereportdeclineddetails",
+                    "occurrencereportshapefiledocument",
+                ]
+            )
+            .exclude(model__icontains="amendment")
+            .exclude(model__icontains="bulkimport")
+            .exclude(model__icontains="referral")
+            .exclude(model__icontains="referee")
+            .exclude(model__icontains="occurrencereportlog")
+            .exclude(model__icontains="useraction")
         )
         serializer = self.get_serializer(content_types, many=True)
         return Response(serializer.data)

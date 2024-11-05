@@ -39,9 +39,13 @@
                                                         class="bi bi-copy me-2"></i>
                                                     Copy</button>
                                                 <button type="button" class="btn btn-primary me-2"
-                                                    @click.prevent="validate()"><i
+                                                    :disabled="validatingSchema" @click.prevent="validate()"><span
+                                                        v-if="validatingSchema"
+                                                        class="spinner-border spinner-border-sm me-1" role="status"
+                                                        aria-hidden="true"></span><i v-else
                                                         class="bi bi-card-checklist me-1"></i>
-                                                    Validate</button>
+                                                    Validat<template v-if="validatingSchema">ing</template><template
+                                                        v-else>e</template></button>
                                                 <a role="button" class="btn btn-primary"
                                                     :href="`/api/occurrence_report_bulk_import_schemas/${schema.id}/preview_import_file/?updated=${schema.datetime_updated}`"><i
                                                         class="bi bi-filetype-xlsx me-1"></i> Preview</a>
@@ -450,21 +454,21 @@
                                 <template v-if="schema.can_user_edit && selectedColumn.is_editable_by_user">
                                     <button
                                         v-if="selectedColumn.django_import_content_type && selectedColumn.django_import_field_name"
-                                        class="btn btn-primary btn-sm me-2" @click.prevent="save()"><i
-                                            class="bi bi-floppy-fill me-1"></i>
+                                        class="btn btn-primary btn-sm me-2" @click.prevent="save()"
+                                        :disabled="saving"><i class="bi bi-floppy-fill me-1"></i>
                                         Save
                                         Column <template v-if="saving"><span
                                                 class="spinner-border spinner-border-sm ms-2" role="status"
                                                 aria-hidden="true"></span>
                                             <span class="visually-hidden">Loading...</span></template></button>
                                     <button class="btn btn-danger btn-sm" v-if="!selectedColumn.id"
-                                        @click.prevent="cancelAddingColumn(selectedColumn)"><i
+                                        @click.prevent="cancelAddingColumn(selectedColumn)" :disabled="saving"><i
                                             class="bi bi-x-circle-fill me-1"></i>
                                         Cancel
                                         Adding
                                         Column</button>
                                     <button v-else-if="selectedColumn.order != 0" class="btn btn-danger btn-sm"
-                                        @click.prevent="removeColumn(selectedColumn)"><i
+                                        @click.prevent="removeColumn(selectedColumn)" :disabled="saving"><i
                                             class="bi bi-trash3-fill me-1"></i>
                                         Delete
                                         Column</button>
@@ -488,6 +492,13 @@
                 </div>
             </div>
         </div>
+        <div v-else>
+            <div class="d-flex justify-content-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
         <div v-if="schema" class="row">
             <div class="navbar fixed-bottom" style="background-color: rgb(245, 245, 245);">
                 <div class="container">
@@ -497,12 +508,14 @@
                         </div>
                     </div>
                     <div v-if="schema.can_user_edit" class="col-md-6 text-end"><button
-                            class="btn btn-primary me-2 float-end" @click.prevent="save()">Save
+                            class="btn btn-primary me-2 float-end" @click.prevent="save()" :disabled="saving">Save
                             and
                             Continue <template v-if="saving"><span class="spinner-border spinner-border-sm ms-2"
                                     role="status" aria-hidden="true"></span>
                                 <span class="visually-hidden">Loading...</span></template></button><button
-                            class="btn btn-primary me-2 float-end" @click.prevent="saveAndExit()">Save and Exit
+                            class="btn btn-primary me-2 float-end" @click.prevent="saveAndExit()"
+                            :disabled="saving">Save
+                            and Exit
                             <template v-if="saving"><span class="spinner-border spinner-border-sm ms-2" role="status"
                                     aria-hidden="true"></span>
                                 <span class="visually-hidden">Loading...</span>
@@ -536,7 +549,7 @@
                                                         choice[1] }}</template>
                                                 <template v-else>{{
                                                     choice[0]
-                                                    }}</template>
+                                                }}</template>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -580,6 +593,7 @@ export default {
             showDjangoImportFieldSelect: false,
             newColumn: null,
             saving: false,
+            validatingSchema: false,
             errors: null
         }
     },
@@ -714,7 +728,7 @@ export default {
             )[0]
             this.$nextTick(() => {
                 this.enablePopovers();
-                this.selectedColumn.xlsx_column_header_name = this.selectedField.display_name
+                this.selectedColumn.xlsx_column_header_name = `${this.selectedContentType.model_abbreviation.toUpperCase()} ${this.selectedField.display_name}`
                 if (!this.selectedColumn.id) {
                     this.selectedColumn.xlsx_data_validation_allow_blank = this.selectedField.allow_null
                 }
@@ -750,7 +764,8 @@ export default {
                 default_value: null,
                 import_validations: [],
                 lookup_filters: [],
-                is_editable_by_user: true
+                is_editable_by_user: true,
+                is_emailuser_column: false
             }
         },
         addSingleColumn() {
@@ -804,7 +819,7 @@ export default {
                     // Remove columns that are already in the schema
                     newColumns = newColumns.filter(newColumn => !this.schema.columns.some(column => column.django_import_field_name == newColumn.django_import_field_name))
 
-                    if(newColumns.length == 0) {
+                    if (newColumns.length == 0) {
                         swal.fire({
                             title: 'No New Columns Added',
                             text: 'All fields from the selected model are already in the schema',
@@ -821,7 +836,7 @@ export default {
                         newColumns = newColumns.filter(column => !column.xlsx_data_validation_allow_blank)
                     }
 
-                    if(newColumns.length == 0) {
+                    if (newColumns.length == 0) {
                         swal.fire({
                             title: 'No New Columns Added',
                             text: 'There are no mandatory fields from the selected model that are not already in the schema',
@@ -841,7 +856,7 @@ export default {
                     this.addEditMode = false
 
                     let lastColumnIndex = this.schema.columns.length;
-                    if(this.schema.columns.filter(column => column.django_import_content_type == selectedContentType).length > 0) {
+                    if (this.schema.columns.filter(column => column.django_import_content_type == selectedContentType).length > 0) {
                         let lastColumn = this.schema.columns.findLast(column => column.django_import_content_type == selectedContentType)
                         lastColumnIndex = this.schema.columns.indexOf(lastColumn) + 1
                     }
@@ -947,6 +962,7 @@ export default {
             this.save();
         },
         validate() {
+            this.validatingSchema = true;
             this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/validate/`)
                 .then(response => {
                     swal.fire({
@@ -966,22 +982,30 @@ export default {
                     } else if (Object.hasOwn(error, 'body')) {
                         errors = error.body
                     }
-                    let error_message = 'Something went wrong :-('
-                    if (errors instanceof Array) {
-                        error_message = ''
+                    let error_message_string = 'Something went wrong :-('
+                    if (errors instanceof Object) {
+                        error_message_string = ''
                         for (let i = 0; i < errors.length; i++) {
-                            error_message += `<li class="mb-2">${errors[i].error_message}</li>`
+                            let error_message = errors[i].error_message ? errors[i].error_message : errors[i]
+                            error_message_string += `<li class="mb-2">${error_message}</li>`
                         }
+                        console.log(error_message_string)
+                    } else if (typeof errors === 'string') {
+                        error_message_string = errors
                     }
+                    console.error(error_message_string)
                     swal.fire({
                         title: 'Schema Validation Failed',
-                        html: error_message,
+                        html: error_message_string,
                         icon: 'error',
                         confirmButtonText: 'OK',
                         customClass: {
                             confirmButton: 'btn btn-primary'
                         }
                     })
+                })
+                .finally(() => {
+                    this.validatingSchema = false;
                 })
         },
         save() {
