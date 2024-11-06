@@ -93,6 +93,35 @@
                                 :disabled="listing_and_review_due_date_disabled" />
                         </div>
                     </div>
+                    <div v-if="conservation_status_obj.approval_level == 'minister'" class="row mb-3 border-top pt-3">
+                        <label for="listing_date" class="col-sm-3 col-form-label">CAM MOU:</label>
+                        <div class="col-sm-3 d-flex align-items-center">
+                            <div class="form-check form-check-inline">
+                                Yes <input :disabled="listing_and_review_due_date_disabled" type="radio"
+                                    id="cam_mou_yes" class="form-check-input" name="cam_mou"
+                                    v-model="conservation_status_obj.cam_mou" :value="true" />
+                            </div>
+                            <div class="form-check form-check-inline">
+                                No <input :disabled="listing_and_review_due_date_disabled" type="radio"
+                                    id="conservation_status_under_review_no" class="form-check-input" name="cam_mou"
+                                    v-model="conservation_status_obj.cam_mou" :value="false" />
+                            </div>
+                            <div class="form-check form-check-inline">
+                                N/A <input :disabled="listing_and_review_due_date_disabled" type="radio"
+                                    id="conservation_status_under_review_no" class="form-check-input" name="cam_mou"
+                                    v-model="conservation_status_obj.cam_mou" :value="null" />
+                            </div>
+                        </div>
+                        <template v-if="conservation_status_obj.cam_mou">
+                            <label for="review_due_date" class="col-sm-3 col-form-label">Date Sent:</label>
+                            <div class="col-sm-3">
+                                <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="cam_mou_date_sent"
+                                    v-model="conservation_status_obj.cam_mou_date_sent"
+                                    :disabled="listing_and_review_due_date_disabled"
+                                    :max="new Date().toISOString().split('T')[0]" />
+                            </div>
+                        </template>
+                    </div>
                 </template>
                 <template v-if="show_proposed_conservation_status">
                     <div class="row mb-3 border-top pt-3">

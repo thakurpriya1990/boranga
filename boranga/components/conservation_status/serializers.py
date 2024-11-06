@@ -868,6 +868,8 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "is_submitter",
             "can_add_log",
             "can_user_assign_to_self",
+            "cam_mou",
+            "cam_mou_date_sent",
         )
 
     def get_submitter(self, obj):
@@ -1086,6 +1088,8 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
             "assessor_data",
             "change_code_id",
             "approval_level",
+            "cam_mou",
+            "cam_mou_date_sent",
         )
         read_only_fields = ("id",)
 
@@ -1230,6 +1234,8 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
             "assessor_data",
             "change_code_id",
             "approval_level",
+            "cam_mou",
+            "cam_mou_date_sent",
         )
         read_only_fields = ("id",)
 

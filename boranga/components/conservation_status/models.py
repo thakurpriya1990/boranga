@@ -521,6 +521,8 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     )
     international_conservation = models.CharField(max_length=100, blank=True, null=True)
     conservation_criteria = models.CharField(max_length=100, blank=True, null=True)
+    cam_mou = models.BooleanField(null=True, blank=True)
+    cam_mou_date_sent = models.DateField(null=True, blank=True)
 
     APPROVAL_LEVEL_IMMEDIATE = "immediate"
     APPROVAL_LEVEL_MINISTER = "minister"
