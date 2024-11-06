@@ -16,8 +16,6 @@ from boranga.components.conservation_status.email import (
     send_approver_propose_delist_email_notification,
     send_assessor_ready_for_agenda_email_notification,
     send_conservation_status_amendment_email_notification,
-    send_conservation_status_approval_email_notification,
-    send_conservation_status_decline_email_notification,
     send_conservation_status_referral_complete_email_notification,
     send_conservation_status_referral_email_notification,
     send_conservation_status_referral_recall_email_notification,
@@ -1279,10 +1277,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
-        send_conservation_status_decline_email_notification(
-            self, conservation_status_decline
-        )
-
     @transaction.atomic
     def proposed_approval(self, request, details):
         if not self.can_assess(request):
@@ -1482,9 +1476,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 ),
                 request,
             )
-
-        # send Proposal approval email with attachment
-        send_conservation_status_approval_email_notification(self)
 
         self.save()
         self.documents.all().update(can_delete=False)
