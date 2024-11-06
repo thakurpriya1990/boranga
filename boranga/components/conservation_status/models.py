@@ -403,7 +403,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_DRAFT, "Draft"),
         (PROCESSING_STATUS_WITH_ASSESSOR, "With Assessor"),
         (PROCESSING_STATUS_WITH_REFERRAL, "With Referral"),
-        (PROCESSING_STATUS_WITH_APPROVER, "With Approver"),
+        (PROCESSING_STATUS_WITH_APPROVER, "Proposed DeListed"),
         (PROCESSING_STATUS_READY_FOR_AGENDA, "Ready For Agenda"),
         (PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE, "Awaiting Applicant Response"),
         (PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE, "Awaiting Assessor Response"),

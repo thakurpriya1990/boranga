@@ -106,13 +106,6 @@ export default {
             this.errors = false;
             $('.has-error').removeClass('has-error');
         },
-        check_status: function () {
-            let vm = this;
-            if (vm.processing_status == 'With Approver')
-                return true;
-            else
-                return false;
-        },
         sendData: function () {
             let vm = this;
             vm.errors = false;

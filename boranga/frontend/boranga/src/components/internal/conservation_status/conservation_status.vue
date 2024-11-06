@@ -26,7 +26,7 @@
                                     <strong>Currently assigned to</strong><br />
                                     <div class="form-group">
                                         <template
-                                            v-if="['Ready For Agenda', 'With Approver', 'Unlocked', 'Approved', 'Closed', 'DeListed'].includes(conservation_status_obj.processing_status)">
+                                            v-if="['Ready For Agenda', 'Proposed DeListed', 'Unlocked', 'Approved', 'Closed', 'DeListed'].includes(conservation_status_obj.processing_status)">
                                             <select ref="assigned_officer" :disabled="!canAction || canLock"
                                                 class="form-control"
                                                 v-model="conservation_status_obj.assigned_approver">
@@ -292,7 +292,7 @@
                                             </div>
                                         </div>
                                     </template>
-                                    <template v-else-if="conservation_status_obj.processing_status == 'With Approver'">
+                                    <template v-else-if="conservation_status_obj.processing_status == 'Proposed DeListed'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary"
@@ -553,7 +553,7 @@ export default {
                     && (
                         this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver)
             }
-            else if (['Ready For Agenda', 'With Approver', 'Unlocked'].includes(this.conservation_status_obj.processing_status)) {
+            else if (['Ready For Agenda', 'Proposed DeListed', 'Unlocked'].includes(this.conservation_status_obj.processing_status)) {
                 return this.conservation_status_obj
                     && (
                         this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver)
@@ -1019,7 +1019,7 @@ export default {
             let vm = this;
             let unassign = true;
             let data = {};
-            if (['With Approver', 'Ready For Agenda', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
+            if (['Proposed DeListed', 'Ready For Agenda', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                 unassign = vm.conservation_status_obj.assigned_approver != null && vm.conservation_status_obj.assigned_approver != 'undefined' ? false : true;
                 data = { 'assessor_id': vm.conservation_status_obj.assigned_approver };
             }
@@ -1070,7 +1070,7 @@ export default {
         },
         updateAssignedOfficerSelect: function () {
             let vm = this;
-            if (['With Approver', 'Ready For Agenda', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
+            if (['Proposed DeListed', 'Ready For Agenda', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                 $(vm.$refs.assigned_officer).val(vm.conservation_status_obj.assigned_approver);
                 $(vm.$refs.assigned_officer).trigger('change');
             }
@@ -1116,7 +1116,7 @@ export default {
             }).
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);
-                    if (['Ready For Agenda', 'With Approver', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
+                    if (['Ready For Agenda', 'Proposed DeListed', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                         vm.conservation_status_obj.assigned_approver = selected.val();
                     }
                     else {
@@ -1130,7 +1130,7 @@ export default {
                     }, 0);
                 }).on("select2:unselect", function (e) {
                     var selected = $(e.currentTarget);
-                    if (['Ready For Agenda', 'With Approver', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
+                    if (['Ready For Agenda', 'Proposed DeListed', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
                         vm.conservation_status_obj.assigned_approver = null;
                     }
                     else {
@@ -1407,7 +1407,7 @@ export default {
         },
         switchStatus: function (status) {
             let vm = this;
-            if (vm.conservation_status_obj.processing_status == 'With Approver' && status == 'with_assessor') {
+            if (vm.conservation_status_obj.processing_status == 'Proposed DeListed' && status == 'with_assessor') {
                 let data = { 'status': status, 'approver_comment': vm.approver_comment }
                 vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/switch_status')), JSON.stringify(data), {
                     emulateJSON: true,

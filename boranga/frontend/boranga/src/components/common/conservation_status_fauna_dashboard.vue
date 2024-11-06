@@ -439,7 +439,7 @@ export default {
             internal_status: [
                 { value: 'draft', name: 'Draft' },
                 { value: 'with_assessor', name: 'With Assessor' },
-                { value: 'with_approver', name: 'With Approver' },
+                { value: 'with_approver', name: 'Proposed DeListed' },
                 { value: 'ready_for_agenda', name: 'Ready For Agenda' },
                 { value: 'closed', name: 'Closed' },
                 { value: 'delisted', name: 'DeListed' },
