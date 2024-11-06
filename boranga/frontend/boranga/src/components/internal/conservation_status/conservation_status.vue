@@ -2,7 +2,9 @@
     <div v-if="conservation_status_obj" class="container" id="internalConservationStatus">
         <div class="row" style="padding-bottom: 50px;">
             <h3><span class="text-capitalize">{{ conservation_status_obj.group_type }}</span> {{
-                conservation_status_obj.conservation_status_number }}</h3>
+                conservation_status_obj.conservation_status_number }} <span class="text-capitalize" v-if="identifier"> - {{ identifier
+                    }}</span>
+            </h3>
             <div class="col-md-3">
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
                     :disable_add_entry="!conservation_status_obj.can_add_log" />
@@ -292,7 +294,8 @@
                                             </div>
                                         </div>
                                     </template>
-                                    <template v-else-if="conservation_status_obj.processing_status == 'Proposed DeListed'">
+                                    <template
+                                        v-else-if="conservation_status_obj.processing_status == 'Proposed DeListed'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary"
@@ -441,9 +444,9 @@ export default {
     data: function () {
         let vm = this;
         return {
-            "conservation_status_obj": null,
-            "original_conservation_status_obj": null,
-            "loading": [],
+            conservation_status_obj: null,
+            original_conservation_status_obj: null,
+            loading: [],
             form: null,
             savingConservationStatus: false,
             saveExitConservationStatus: false,
@@ -487,6 +490,17 @@ export default {
         }
     },
     computed: {
+        identifier: function () {
+            if (this.conservation_status_obj) {
+                if (this.conservation_status_obj.group_type == 'community') {
+                    return this.conservation_status_obj.community_name ? this.conservation_status_obj.community_name : '';
+                } else {
+                    return this.conservation_status_obj.scientific_name ? this.conservation_status_obj.scientific_name : '';
+                }
+            }
+
+            return '';
+        },
         csrf_token: function () {
             return helpers.getCookie('csrftoken')
         },

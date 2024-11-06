@@ -805,6 +805,12 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     )
     can_add_log = serializers.SerializerMethodField(read_only=True)
     can_user_assign_to_self = serializers.SerializerMethodField(read_only=True)
+    scientific_name = serializers.CharField(
+        source="species_taxonomy.scientific_name", allow_null=True
+    )
+    community_name = serializers.CharField(
+        source="community.taxonomy.community_name", allow_null=True
+    )
 
     class Meta:
         model = ConservationStatus
@@ -813,8 +819,10 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "group_type",
             "group_type_id",
             "species_taxonomy_id",
+            "scientific_name",
             "species_id",
             "community_id",
+            "community_name",
             "conservation_status_number",
             "wa_legislative_list_id",
             "wa_legislative_list",
