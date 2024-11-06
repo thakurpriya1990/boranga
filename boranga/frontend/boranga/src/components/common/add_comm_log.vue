@@ -155,9 +155,6 @@ export default {
             var vm = this;
             return vm.errors;
         },
-        title: function () {
-            return this.processing_status == 'With Approver' ? 'Issue Comms' : 'Propose to issue approval';
-        }
     },
     watch: {
         isModalOpen: function (val) {
