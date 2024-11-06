@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="ocr_documents">
         <FormSection :formCollapse="false" label="Documents" Index="documents">
-            <alert type="warning">Do not upload Management or Recovery Plans here</alert>
+            <alert type="warning"><i class="bi bi-ban fs-6 fw-bold me-2"></i>Do not upload Management or Recovery Plans here</alert>
             <form class="form-horizontal" action="index.html" method="post">
                 <div v-if="!isReadOnly" class="col-sm-12">
                     <div class="text-end">
