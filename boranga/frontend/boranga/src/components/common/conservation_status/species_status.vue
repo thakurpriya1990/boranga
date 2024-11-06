@@ -2,66 +2,13 @@
     <div id="speciesStatus">
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
             <form @change="saveConservationStatus($event)">
-                <template v-if="!is_external && !conservation_status_obj.can_user_edit">
-                    <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments"
-                        :collapsed="false">
-                        <div class="row">
-                            <div class="col rounded">
-                                <div class="row" v-if="deficiencyVisibility">
-                                    <div class="col">
-                                        <div class="form-floating m-3">
-                                            <textarea :disabled="deficiency_readonly" class="form-control"
-                                                id="assessor_deficiencies" placeholder="Deficiency Comments"
-                                                v-model="conservation_status_obj.deficiency_data" />
-                                            <label for="assessor_deficiencies" class="form-label">Deficiency
-                                                Comments</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row" v-if="assessorCommentVisibility">
-                                    <div class="col">
-                                        <div class="form-floating m-3 mt-1">
-                                            <textarea :disabled="assessor_comment_readonly" class="form-control"
-                                                rows="3" id="assessor_comment" placeholder="Assessor Comments"
-                                                v-model="conservation_status_obj.assessor_data" />
-                                            <label for="" class="col-sm-4 col-form-label">Assessor Comments</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div v-if="referral_comments_boxes.length > 0">
-                                    <div>
-                                        <div class="row mt-2">
-                                            <div class="col ms-3">
-                                                <h6 class="text-muted">Referral Comments</h6>
-                                            </div>
-                                        </div>
-                                        <div v-for="ref in referral_comments_boxes" class="row mb-3"
-                                            v-if="ref.box_view">
-                                            <div class="col">
-                                                <div class="form-floating m-3 mt-1">
-                                                    <textarea v-if='!ref.readonly' :disabled="true" :id="ref.name"
-                                                        :name="ref.name" class="form-control referral-comment-box"
-                                                        :placeholder="ref.label" v-model="referral.referral_comment" />
-                                                    <textarea v-else :disabled="ref.readonly" :name="ref.name"
-                                                        :value="ref.value || ''"
-                                                        class="form-control referral-comment-box"
-                                                        :placeholder="ref.label" />
-                                                    <label :for="ref.name" class="form-label">{{ ref.label }}</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </CollapsibleComponent>
-                </template>
                 <div class="row mb-3">
                     <label :for="scientific_name_lookup" class="col-sm-4 col-form-label fw-bold">Scientific Name: <span
                             class="text-danger">*</span></label>
                     <div class="col-sm-8" :id="select_scientific_name">
-                        <select :disabled="isReadOnly || 'Unlocked' == conservation_status_obj.processing_status" :id="scientific_name_lookup" :name="scientific_name_lookup"
-                            :ref="scientific_name_lookup" class="form-control" />
+                        <select :disabled="isReadOnly || 'Unlocked' == conservation_status_obj.processing_status"
+                            :id="scientific_name_lookup" :name="scientific_name_lookup" :ref="scientific_name_lookup"
+                            class="form-control" />
                     </div>
                 </div>
                 <div v-if="species_display" class="row mb-3">
@@ -132,8 +79,8 @@
                         <template v-if="conservation_status_obj.effective_to">
                             <label for="effective_to" class="col-sm-3 col-form-label">Effective to:</label>
                             <div class="col-sm-3">
-                                <input type="date" placeholder="DD/MM/YYYY" class="form-control"
-                                    id="effective_to" v-model="conservation_status_obj.effective_to" :disabled="isReadOnly" />
+                                <input type="date" placeholder="DD/MM/YYYY" class="form-control" id="effective_to"
+                                    v-model="conservation_status_obj.effective_to" :disabled="isReadOnly" />
                             </div>
                         </template>
                     </div>
@@ -216,7 +163,7 @@
                             </template>
                             <template v-else>
                                 <input class="form-control" type="text" :disabled="true"
-                                :value="conservation_status_obj.wa_legislative_category ? conservation_status_obj.wa_legislative_category : 'N/A'" />
+                                    :value="conservation_status_obj.wa_legislative_category ? conservation_status_obj.wa_legislative_category : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -278,7 +225,7 @@
                             </template>
                             <template v-else>
                                 <input class="form-control" type="text" :disabled="true"
-                                :value="conservation_status_obj.wa_priority_category ? conservation_status_obj.wa_priority_category : 'N/A'" />
+                                    :value="conservation_status_obj.wa_priority_category ? conservation_status_obj.wa_priority_category : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -312,7 +259,7 @@
                             </template>
                             <template v-else>
                                 <input class="form-control" type="text" :disabled="true"
-                                :value="conservation_status_obj.commonwealth_conservation_list ? conservation_status_obj.commonwealth_conservation_list : 'N/A'" />
+                                    :value="conservation_status_obj.commonwealth_conservation_list ? conservation_status_obj.commonwealth_conservation_list : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -480,7 +427,7 @@
                     </div>
                 </template>
                 <template v-if="!is_external && isStatusApproved">
-                    <div class="row border-top pt-3">
+                    <div class="row border-top pt-3 pb-3">
                         <label for="" class="col-sm-4 col-form-label">Approval document:</label>
                         <div class="col-sm-8">
                             <p class="col-form-label">
@@ -493,6 +440,64 @@
                                 <template v-else>No approval document uploaded</template>
                             </p>
                         </div>
+                    </div>
+                </template>
+                <template v-if="!is_external && !conservation_status_obj.can_user_edit">
+                    <div class="row border-top pt-3 pb-0 mb-0">
+                        <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments"
+                            :collapsed="true" style="margin-bottom: 0">
+                            <div class="row mb-0 pb-0">
+                                <div class="col rounded">
+                                    <div class="row" v-if="deficiencyVisibility">
+                                        <div class="col">
+                                            <div class="form-floating m-3">
+                                                <textarea :disabled="deficiency_readonly" class="form-control"
+                                                    id="assessor_deficiencies" placeholder="Deficiency Comments"
+                                                    v-model="conservation_status_obj.deficiency_data" />
+                                                <label for="assessor_deficiencies" class="form-label">Deficiency
+                                                    Comments</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row" v-if="assessorCommentVisibility">
+                                        <div class="col">
+                                            <div class="form-floating m-3 mt-1">
+                                                <textarea :disabled="assessor_comment_readonly" class="form-control"
+                                                    rows="3" id="assessor_comment" placeholder="Assessor Comments"
+                                                    v-model="conservation_status_obj.assessor_data" />
+                                                <label for="" class="col-sm-4 col-form-label">Assessor Comments</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-if="referral_comments_boxes.length > 0">
+                                        <div>
+                                            <div class="row mt-2">
+                                                <div class="col ms-3">
+                                                    <h6 class="text-muted">Referral Comments</h6>
+                                                </div>
+                                            </div>
+                                            <div v-for="ref in referral_comments_boxes" class="row mb-3"
+                                                v-if="ref.box_view">
+                                                <div class="col">
+                                                    <div class="form-floating m-3 mt-1">
+                                                        <textarea v-if='!ref.readonly' :disabled="true" :id="ref.name"
+                                                            :name="ref.name" class="form-control referral-comment-box"
+                                                            :placeholder="ref.label"
+                                                            v-model="referral.referral_comment" />
+                                                        <textarea v-else :disabled="ref.readonly" :name="ref.name"
+                                                            :value="ref.value || ''"
+                                                            class="form-control referral-comment-box"
+                                                            :placeholder="ref.label" />
+                                                        <label :for="ref.name" class="form-label">{{ ref.label
+                                                            }}</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </CollapsibleComponent>
                     </div>
                 </template>
             </form>
@@ -763,7 +768,7 @@ export default {
             this.isShowComment = updatedShowComment;
         },
         saveConservationStatus: function (e) {
-            if(e.target.classList.contains('input.select2-search__field')){
+            if (e.target.classList.contains('input.select2-search__field')) {
                 // We will emit this save from the select 2 event instead
                 // as it requires some time to populate the selected value
                 // and we don't want to save the conservation status before the
