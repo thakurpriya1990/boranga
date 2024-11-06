@@ -234,7 +234,7 @@ export default {
     },
     computed: {
         show_document_actions: function () {
-            return (!this.is_internal && this.conservation_status_obj.can_user_edit) || (
+            return this.conservation_status_obj.can_user_edit || (
                 this.is_internal &&
                 this.conservation_status_obj.assessor_mode &&
                 this.conservation_status_obj.assessor_mode.assessor_can_assess &&
