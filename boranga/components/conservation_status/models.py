@@ -1397,6 +1397,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         self.processing_status = ConservationStatus.PROCESSING_STATUS_APPROVED
         self.customer_status = ConservationStatus.CUSTOMER_STATUS_APPROVED
         self.assigned_officer = None
+        self.approved_by = request.user.id
 
         if effective_from:
             self.effective_from = effective_from

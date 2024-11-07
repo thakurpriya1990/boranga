@@ -990,6 +990,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED
         self.customer_status = OccurrenceReport.CUSTOMER_STATUS_APPROVED
+        self.approved_by = request.user.id
 
         if self.approval_details.occurrence:
             occurrence = self.approval_details.occurrence
