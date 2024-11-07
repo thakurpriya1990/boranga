@@ -61,6 +61,40 @@
                             </select>
                         </div>
                     </div>
+                    <div class="row mb-3 border-top pt-3">
+                        <label for="listing_date" class="col-sm-3 col-form-label">Public Consultation:</label>
+                        <div class="col-sm-9 d-flex align-items-center">
+                            <div class="form-check form-check-inline">
+                                Yes <input :disabled="listing_and_review_due_date_disabled" type="radio"
+                                    id="public_consultation_yes" class="form-check-input" name="public_consultation"
+                                    v-model="conservation_status_obj.public_consultation" :value="true" />
+                            </div>
+                            <div class="form-check form-check-inline">
+                                No <input :disabled="listing_and_review_due_date_disabled" type="radio"
+                                    id="public_consultation_no" class="form-check-input" name="public_consultation"
+                                    v-model="conservation_status_obj.public_consultation" :value="false" />
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="conservation_status_obj.public_consultation" class="row mb-3 pt-1">
+                        <label for="review_due_date" class="col-sm-3 col-form-label">Start Date:</label>
+                        <div class="col-sm-3">
+                            <input type="date" placeholder="DD/MM/YYYY" class="form-control"
+                                id="public_consultation_start_date"
+                                v-model="conservation_status_obj.public_consultation_start_date"
+                                :disabled="listing_and_review_due_date_disabled" />
+                        </div>
+                        <template v-if="conservation_status_obj.public_consultation_start_date">
+                            <label for="review_due_date" class="col-sm-3 col-form-label">End Date:</label>
+                            <div class="col-sm-3">
+                                <input type="date" placeholder="DD/MM/YYYY" class="form-control"
+                                    id="public_consultation_end_date"
+                                    v-model="conservation_status_obj.public_consultation_end_date"
+                                    :disabled="listing_and_review_due_date_disabled"
+                                    :min="conservation_status_obj.public_consultation_start_date ? new Date(conservation_status_obj.public_consultation_start_date).toISOString().split('T')[0] : null" />
+                            </div>
+                        </template>
+                    </div>
                     <div v-if="conservation_status_obj.effective_from || conservation_status_obj.effective_to"
                         class="row mb-3 border-top pt-3">
                         <template v-if="conservation_status_obj.effective_from">

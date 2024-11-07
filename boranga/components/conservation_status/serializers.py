@@ -878,6 +878,9 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "can_user_assign_to_self",
             "cam_mou",
             "cam_mou_date_sent",
+            "public_consultation",
+            "public_consultation_start_date",
+            "public_consultation_end_date",
         )
 
     def get_submitter(self, obj):
@@ -1098,6 +1101,9 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
             "approval_level",
             "cam_mou",
             "cam_mou_date_sent",
+            "public_consultation",
+            "public_consultation_start_date",
+            "public_consultation_end_date",
         )
         read_only_fields = ("id",)
 
@@ -1244,6 +1250,9 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
             "approval_level",
             "cam_mou",
             "cam_mou_date_sent",
+            "public_consultation",
+            "public_consultation_start_date",
+            "public_consultation_end_date",
         )
         read_only_fields = ("id",)
 
