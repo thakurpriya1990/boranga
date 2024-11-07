@@ -523,6 +523,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     conservation_criteria = models.CharField(max_length=100, blank=True, null=True)
     cam_mou = models.BooleanField(null=True, blank=True)
     cam_mou_date_sent = models.DateField(null=True, blank=True)
+    public_consultation = models.BooleanField(default=False, blank=True)
+    public_consultation_start_date = models.DateField(null=True, blank=True)
+    public_consultation_end_date = models.DateField(null=True, blank=True)
 
     APPROVAL_LEVEL_IMMEDIATE = "immediate"
     APPROVAL_LEVEL_MINISTER = "minister"
