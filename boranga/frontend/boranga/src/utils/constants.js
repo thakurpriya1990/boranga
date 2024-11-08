@@ -6,7 +6,7 @@ module.exports = {
         WITH_REFERRAL: { ID: 'with_referral', TEXT: 'With Referral' },
         DEFERRED: { ID: 'deferred', TEXT: 'Deferred' },
         PROPOSED_FOR_AGENDA: { ID: 'proposed_for_agenda', TEXT: 'Proposed for Agenda' },
-        READY_FOR_AGENDA: { ID: 'ready_for_agenda', TEXT: 'Ready for Agenda' },
+        READY_FOR_AGENDA: { ID: 'ready_for_agenda', TEXT: 'Ready For Agenda' },
         ON_AGENDA: { ID: 'on_agenda', TEXT: 'On Agenda' },
         WITH_APPROVER: { ID: 'with_approver', TEXT: 'Proposed DeListed' },
         APPROVED: { ID: 'approved', TEXT: 'Approved' },
