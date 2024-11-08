@@ -421,7 +421,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         PROCESSING_STATUS_DEFERRED,
     )
 
-    PROCESSING_STATUSES_AWAITING_APPROVER_ = (
+    PROCESSING_STATUSES_AWAITING_APPROVER_ACTION = (
         PROCESSING_STATUS_PROPOSED_FOR_AGENDA,
         PROCESSING_STATUS_READY_FOR_AGENDA,
         PROCESSING_STATUS_ON_AGENDA,
@@ -435,9 +435,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         PROCESSING_STATUS_DELISTED,
     )
 
-    # This status is used as a front end filter but shouldn't be used in most cases
+    # These statuses are used as front end filters but shouldn't be used in most cases
     # So it is deliberately not included in PROCESSING_STATUS_CHOICES
     PROCESSING_STATUS_DISCARDED_BY_ME = "discarded_by_me"
+    PROCESSING_STATUS_AWAITING_ASSESSOR_ACTION = "awaiting_assessor_action"
+    PROCESSING_STATUS_AWAITING_APPROVER_ACTION = "awaiting_approver_action"
+    PROCESSING_STATUS_INACTIVE = "inactive"
+
     customer_status = models.CharField(
         "Customer Status",
         max_length=40,
