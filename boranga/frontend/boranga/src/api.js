@@ -170,6 +170,9 @@ module.exports = {
     reinstate_cs_proposal: function (id) {
         return `/api/conservation_status/${id}/reinstate/`;
     },
+    defer_cs_proposal: function (id) {
+        return `/api/conservation_status/${id}/defer/`;
+    },
     delist_cs_proposal: function (id) {
         return `/api/conservation_status/${id}/delist/`;
     },
