@@ -43,8 +43,8 @@
                     </div>
                 </div>
                 <div class="row mb-3" v-if="conservation_status.international_conservation">
-                    <label for="international_conservation" class="col-sm-4 col-form-label">International
-                        Conservation</label>
+                    <label for="international_conservation" class="col-sm-4 col-form-label">Other
+                        Conservation Assessment</label>
                     <div class="col-sm-8">
                         <input class="form-control" id="international_conservation"
                             :value="conservation_status.international_conservation" />
