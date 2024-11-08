@@ -2,7 +2,8 @@
     <div v-if="conservation_status_obj" class="container" id="internalConservationStatus">
         <div class="row" style="padding-bottom: 50px;">
             <h3><span class="text-capitalize">{{ conservation_status_obj.group_type }}</span> {{
-                conservation_status_obj.conservation_status_number }} <span class="text-capitalize" v-if="identifier"> - {{ identifier
+                conservation_status_obj.conservation_status_number }} <span class="text-capitalize" v-if="identifier"> -
+                    {{ identifier
                     }}</span>
             </h3>
             <div class="col-md-3">
@@ -275,7 +276,7 @@
                                         </div>
                                     </template>
                                     <template
-                                        v-if="conservation_status_obj.processing_status == 'Ready For Agenda' && conservation_status_obj.approval_level == 'minister'">
+                                        v-if="canSendBackToAssessor">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary"
@@ -436,6 +437,7 @@ import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals
 import ProposalConservationStatus from '@/components/form_conservation_status.vue'
 import {
     api_endpoints,
+    constants,
     helpers
 }
     from '@/utils/hooks'
@@ -596,6 +598,25 @@ export default {
             return this.conservation_status_obj &&
                 this.conservation_status_obj.assessor_mode.assessor_can_assess ||
                 this.conservation_status_obj.approver_process;
+        },
+        canSendBackToAssessor: function () {
+            console.log([
+                    constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
+                    constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
+                    constants.PROPOSAL_STATUS.DEFERRED.TEXT,
+                ].includes(this.conservation_status_obj.processing_status))
+            return this.conservation_status_obj &&
+                this.conservation_status_obj.approval_level == 'minister' &&
+                [
+                    constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
+                    constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
+                    constants.PROPOSAL_STATUS.DEFERRED.TEXT,
+                ].includes(this.conservation_status_obj.processing_status) &&
+                this.conservation_status_obj.assessor_mode.assessor_can_assess &&
+                (
+                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer ||
+                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
+                );
         },
         hasAssessorMode: function () {
             return this.conservation_status_obj && (
