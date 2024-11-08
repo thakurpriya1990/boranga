@@ -1,0 +1,13 @@
+{%  extends 'boranga/emails/base_email.txt' %}
+
+{%  block content %}
+	    The Conservation Status Proposal {{ cs_proposal.conservation_status_number }} has been deferred.
+
+        Reason:
+
+        {{ reason }}
+
+        You can action this Proposal using the following link:
+
+        {{url}}
+{%  endblock %}
