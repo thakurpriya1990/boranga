@@ -118,6 +118,12 @@ class ApproverSendBackNotificationEmail(TemplateEmailBase):
     txt_template = "boranga/emails/cs_proposals/send_approver_sendback_notification.txt"
 
 
+class ConservationStatusDeferNotificationEmail(TemplateEmailBase):
+    subject = "A Proposal has been deferred."
+    html_template = "boranga/emails/cs_proposals/send_defer_notification.html"
+    txt_template = "boranga/emails/cs_proposals/send_defer_notification.txt"
+
+
 class ConservationStatusDeclineSendNotificationEmail(TemplateEmailBase):
     subject = "Your Proposal has been declined."
     html_template = "boranga/emails/cs_proposals/send_decline_notification.html"
@@ -512,6 +518,32 @@ def send_proposal_approver_sendback_email_notification(request, conservation_sta
         "cs_proposal": conservation_status,
         "url": url,
         "approver_comment": approver_comment,
+    }
+
+    msg = email.send(conservation_status.assessor_recipients, context=context)
+
+    sender = get_sender_user()
+
+    _log_conservation_status_email(msg, conservation_status, sender=sender)
+
+    return msg
+
+
+def send_approver_defer_email_notification(request, conservation_status, reason):
+    """Recipient: Always internal users"""
+
+    email = ConservationStatusDeferNotificationEmail()
+    url = request.build_absolute_uri(
+        reverse(
+            "internal-conservation-status-detail",
+            kwargs={"cs_proposal_pk": conservation_status.id},
+        )
+    )
+
+    context = {
+        "cs_proposal": conservation_status,
+        "url": url,
+        "reason": reason,
     }
 
     msg = email.send(conservation_status.assessor_recipients, context=context)
