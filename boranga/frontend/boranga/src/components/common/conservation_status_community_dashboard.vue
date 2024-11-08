@@ -83,7 +83,7 @@
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSCommunityApplicationStatus">
                             <option value="all">All</option>
-                            <option v-for="status in processing_statuses" :value="status.value">{{ status.name }}
+                            <option v-for="status in processing_statuses" :value="status.value" :class="status.className"><template v-if="status.className == 'optionChild'">&nbsp;&nbsp;</template>{{ status.name }}
                             </option>
                         </select>
                     </div>
@@ -385,19 +385,26 @@ export default {
             wa_legislative_categories: [],
             wa_priority_categories: [],
 
-            internal_status: [
-                { value: 'draft', name: 'Draft' },
-                { value: 'with_assessor', name: 'With Assessor' },
-                { value: 'with_approver', name: 'Proposed DeListed' },
-                { value: 'ready_for_agenda', name: 'Ready For Agenda' },
-                { value: 'closed', name: 'Closed' },
-                { value: 'delisted', name: 'DeListed' },
-                { value: 'with_referral', name: 'With Referral' },
-                { value: 'approved', name: 'Approved' },
-                { value: 'declined', name: 'Declined' },
-                { value: 'discarded', name: 'Discarded' },
+            processing_statuses: [
+            { value: 'draft', name: 'Draft', className: '' },
+                { value: 'discarded', name: 'Discarded', className: '' },
+                { value: 'awaiting_assessor_action', name: 'Awaiting Assessor Action', className: 'optionGroup' },
+                { value: 'with_assessor', name: 'With Assessor', className: 'optionChild' },
+                { value: 'with_referral', name: 'With Referral', className: 'optionChild' },
+                { value: 'deferred', name: 'Deferred', className: 'optionChild' },
+                { value: 'awaiting_approver_action', name: 'Awaiting Approver Action', className: 'optionGroup' },
+                { value: 'proposed_for_agenda', name: 'Proposed For Agenda', className: 'optionChild' },
+                { value: 'ready_for_agenda', name: 'Ready For Agenda', className: 'optionChild' },
+                { value: 'on_agenda', name: 'On Agenda', className: 'optionChild' },
+                { value: 'deferred', name: 'Deferred', className: 'optionChild' },
+                { value: 'with_approver', name: 'Proposed DeListed', className: 'optionChild' },
+                { value: 'inactive', name: 'Inactive', className: 'optionGroup' },
+                { value: 'declined', name: 'Declined', className: 'optionChild' },
+                { value: 'closed', name: 'Closed', className: 'optionChild' },
+                { value: 'delisted', name: 'DeListed', className: 'optionChild' },
+                { value: 'approved', name: 'Approved', className: '' },
+
             ],
-            processing_statuses: [],
         }
     },
     components: {
@@ -1121,9 +1128,6 @@ export default {
                 vm.wa_legislative_categories = vm.filterListsCommunities.wa_legislative_categories;
                 vm.wa_priority_lists = vm.filterListsCommunities.wa_priority_lists;
                 vm.wa_priority_categories = vm.filterListsCommunities.wa_priority_categories;
-                vm.processing_statuses = vm.internal_status.slice().sort((a, b) => {
-                    return a.name.trim().localeCompare(b.name.trim());
-                });
                 vm.change_codes = vm.filterListsCommunities.change_codes;
                 vm.submitter_categories = vm.filterListsCommunities.submitter_categories;
             }, (error) => {
@@ -1504,7 +1508,7 @@ export default {
     mounted: function () {
         let vm = this;
         if (vm.profile && vm.profile.groups && vm.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS)) {
-            vm.internal_status.push({ value: 'discarded_by_me', name: 'Discarded By Me' },);
+            vm.processing_statuses.push({ value: 'discarded_by_me', name: 'Discarded By Me' },);
         }
         vm.fetchFilterLists();
         $('a[data-toggle="collapse"]').on('click', function () {
