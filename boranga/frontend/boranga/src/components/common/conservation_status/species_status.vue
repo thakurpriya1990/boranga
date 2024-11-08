@@ -329,12 +329,12 @@
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="proposed_international_conservation" class="col-sm-4 col-form-label">International
-                            Conservation:</label>
+                        <label for="proposed_international_conservation" class="col-sm-4 col-form-label">Other
+                            Conservation Assessment:</label>
                         <div class="col-sm-8">
                             <input :disabled="isReadOnly" type="text" class="form-control"
                                 id="proposed_international_conservation"
-                                :placeholder="isReadOnly ? 'N/A' : 'Enter International Conservation Details if Applicable'"
+                                :placeholder="isReadOnly ? 'N/A' : 'Enter Other Conservation Assessment Details if Applicable'"
                                 v-model="conservation_status_obj.international_conservation" />
                         </div>
                     </div>
@@ -473,8 +473,8 @@
                     </div>
                     <div v-if="conservation_status_obj.current_conservation_status.international_conservation"
                         class="row mb-3">
-                        <label for="current_international_conservation" class="col-sm-4 col-form-label">International
-                            Conservation:</label>
+                        <label for="current_international_conservation" class="col-sm-4 col-form-label">Other
+                            Conservation Assessment:</label>
                         <div class="col-sm-8">
                             <input :disabled="true" type="text" class="form-control"
                                 id="current_international_conservation"
