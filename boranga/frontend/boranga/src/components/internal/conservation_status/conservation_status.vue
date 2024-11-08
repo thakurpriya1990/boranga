@@ -275,15 +275,17 @@
                                             </div>
                                         </div>
                                     </template>
-                                    <template
-                                        v-if="canSendBackToAssessor">
+                                    <template v-if="canSendBackToAssessor">
                                         <div class="row">
                                             <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary"
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="backToAssessor">Back To
                                                     Assessor</button><br />
                                             </div>
                                         </div>
+                                    </template>
+                                    <template
+                                        v-if="conservation_status_obj.processing_status == 'Ready For Agenda' && conservation_status_obj.approval_level == 'minister'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
@@ -292,6 +294,14 @@
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="declineProposal()">Decline</button><br />
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template v-if="canDefer">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                    @click.prevent="deferProposal()">Defer</button><br />
                                             </div>
                                         </div>
                                     </template>
@@ -406,6 +416,8 @@
             @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
         <BackToAssessor ref="back_to_assessor_modal" :conservation_status_id="conservation_status_obj.id"
             @refreshFromResponse="refreshFromResponse"></BackToAssessor>
+        <Defer ref="defer_modal" :conservation_status_id="conservation_status_obj.id"
+            @refreshFromResponse="refreshFromResponse"></Defer>
         <ProposeReadyForAgenda ref="propose_ready_for_agenda_modal" :conservation_status_id="conservation_status_obj.id"
             @refreshFromResponse="refreshFromResponse"></ProposeReadyForAgenda>
         <ProposedDecline ref="proposed_decline" :processing_status="conservation_status_obj.processing_status"
@@ -428,6 +440,7 @@ import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
 import AmendmentRequest from './amendment_request.vue'
 import BackToAssessor from './back_to_assessor.vue'
+import Defer from './defer.vue'
 import ProposeReadyForAgenda from './propose_ready_for_agenda.vue'
 import ProposedDecline from './proposal_proposed_decline'
 import ProposeDelist from './proposal_propose_delist'
@@ -475,6 +488,7 @@ export default {
     components: {
         datatable,
         CommsLogs,
+        Defer,
         Submission,
         ProposalConservationStatus,
         AmendmentRequest,
@@ -601,16 +615,29 @@ export default {
         },
         canSendBackToAssessor: function () {
             console.log([
-                    constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
-                    constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
-                    constants.PROPOSAL_STATUS.DEFERRED.TEXT,
-                ].includes(this.conservation_status_obj.processing_status))
+                constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
+                constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
+                constants.PROPOSAL_STATUS.DEFERRED.TEXT,
+            ].includes(this.conservation_status_obj.processing_status))
             return this.conservation_status_obj &&
                 this.conservation_status_obj.approval_level == 'minister' &&
                 [
                     constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
                     constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
                     constants.PROPOSAL_STATUS.DEFERRED.TEXT,
+                ].includes(this.conservation_status_obj.processing_status) &&
+                this.conservation_status_obj.assessor_mode.assessor_can_assess &&
+                (
+                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer ||
+                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
+                );
+        },
+        canDefer: function () {
+            return this.conservation_status_obj &&
+                [
+                    constants.PROPOSAL_STATUS.WITH_ASSESSOR.TEXT,
+                    constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
+                    constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
                 ].includes(this.conservation_status_obj.processing_status) &&
                 this.conservation_status_obj.assessor_mode.assessor_can_assess &&
                 (
@@ -1411,7 +1438,6 @@ export default {
         },
         resendReferral: function (r) {
             let vm = this;
-
             vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/resend')).then(response => {
                 vm.original_conservation_status_obj = helpers.copyObject(response.body);
                 vm.conservation_status_obj = response.body;
@@ -1436,6 +1462,9 @@ export default {
                         },
                     });
                 });
+        },
+        deferProposal: function () {
+            this.$refs.defer_modal.isModalOpen = true;
         },
         backToAssessor: function () {
             this.$refs.back_to_assessor_modal.isModalOpen = true;
