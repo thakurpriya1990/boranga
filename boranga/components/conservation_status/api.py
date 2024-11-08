@@ -2054,6 +2054,17 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
+    @detail_route(methods=["patch"], detail=True)
+    def defer(self, request, *args, **kwargs):
+        instance = self.get_object()
+        reason = request.data.get("reason")
+        if not reason:
+            raise serializers.ValidationError("Reason is required")
+        instance.defer(request, reason)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
+
     @detail_route(
         methods=["patch"],
         detail=True,
