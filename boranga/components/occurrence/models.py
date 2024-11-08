@@ -198,14 +198,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         "closed",
     ]
 
-    PROCESSING_STATUS_TEMP = "temp"
     PROCESSING_STATUS_DRAFT = "draft"
     PROCESSING_STATUS_WITH_ASSESSOR = "with_assessor"
     PROCESSING_STATUS_WITH_REFERRAL = "with_referral"
     PROCESSING_STATUS_WITH_APPROVER = "with_approver"
-    PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE = "awaiting_applicant_respone"
-    PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE = "awaiting_assessor_response"
-    PROCESSING_STATUS_AWAITING_RESPONSES = "awaiting_responses"
     PROCESSING_STATUS_APPROVED = "approved"
     PROCESSING_STATUS_DECLINED = "declined"
     PROCESSING_STATUS_UNLOCKED = "unlocked"
@@ -216,9 +212,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_WITH_ASSESSOR, "With Assessor"),
         (PROCESSING_STATUS_WITH_REFERRAL, "With Referral"),
         (PROCESSING_STATUS_WITH_APPROVER, "With Approver"),
-        (PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE, "Awaiting Applicant Response"),
-        (PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE, "Awaiting Assessor Response"),
-        (PROCESSING_STATUS_AWAITING_RESPONSES, "Awaiting Responses"),
         (PROCESSING_STATUS_APPROVED, "Approved"),
         (PROCESSING_STATUS_DECLINED, "Declined"),
         (PROCESSING_STATUS_UNLOCKED, "Unlocked"),
