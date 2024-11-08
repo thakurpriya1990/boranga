@@ -1,13 +1,19 @@
 module.exports = {
     PROPOSAL_STATUS: {
         DRAFT: { ID: 'draft', TEXT: 'Draft' },
-        AMENDMENT_REQUIRED: { ID: 'amendment_required', TEXT: 'Amendment Required' },
+        DISCARDED: { ID: 'discarded', TEXT: 'Discarded' },
         WITH_ASSESSOR: { ID: 'with_assessor', TEXT: 'With Assessor' },
-        WITH_APPROVER: { ID: 'with_approver', TEXT: 'Proposed DeListed' },
         WITH_REFERRAL: { ID: 'with_referral', TEXT: 'With Referral' },
+        DEFERRED: { ID: 'deferred', TEXT: 'Deferred' },
+        WITH_APPROVER: { ID: 'proposed_for_agenda', TEXT: 'Proposed for Agenda' },
+        WITH_APPROVER: { ID: 'ready_for_agenda', TEXT: 'Ready for Agenda' },
+        WITH_APPROVER: { ID: 'on_agenda', TEXT: 'On Agenda' },
+        WITH_APPROVER: { ID: 'with_approver', TEXT: 'Proposed DeListed' },
         APPROVED: { ID: 'approved', TEXT: 'Approved' },
         DECLINED: { ID: 'declined', TEXT: 'Declined' },
-        DISCARDED: { ID: 'discarded', TEXT: 'Discarded' },
+        DELISTED: { ID: 'delisted', TEXT: 'DeListed' },
+        CLOSED: { ID: 'closed', TEXT: 'Closed' },
+        UNLOCKED: { ID: 'unlocked', TEXT: 'Unlocked' },
     },
     GROUPS: {
         CONSERVATION_STATUS_ASSESSORS: 'Conservation Status Assessors',
