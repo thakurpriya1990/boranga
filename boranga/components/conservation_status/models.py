@@ -349,7 +349,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     CUSTOMER_STATUS_DRAFT = "draft"
     CUSTOMER_STATUS_WITH_ASSESSOR = "with_assessor"
     CUSTOMER_STATUS_READY_FOR_AGENDA = "ready_for_agenda"
-    CUSTOMER_STATUS_AMENDMENT_REQUIRED = "amendment_required"
     CUSTOMER_STATUS_APPROVED = "approved"
     CUSTOMER_STATUS_DECLINED = "declined"
     CUSTOMER_STATUS_DISCARDED = "discarded"
@@ -358,7 +357,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         (CUSTOMER_STATUS_DRAFT, "Draft"),
         (CUSTOMER_STATUS_WITH_ASSESSOR, "Under Review"),
         (CUSTOMER_STATUS_READY_FOR_AGENDA, "In Meeting"),
-        (CUSTOMER_STATUS_AMENDMENT_REQUIRED, "Amendment Required"),
         (CUSTOMER_STATUS_APPROVED, "Approved"),
         (CUSTOMER_STATUS_DECLINED, "Declined"),
         (CUSTOMER_STATUS_DISCARDED, "Discarded"),
