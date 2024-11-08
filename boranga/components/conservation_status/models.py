@@ -13,6 +13,7 @@ from boranga import exceptions
 from boranga.components.conservation_status.email import (
     send_approver_approve_email_notification,
     send_approver_decline_email_notification,
+    send_approver_defer_email_notification,
     send_approver_propose_delist_email_notification,
     send_assessor_ready_for_agenda_email_notification,
     send_conservation_status_amendment_email_notification,
@@ -1715,6 +1716,48 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             request,
         )
 
+    @transaction.atomic
+    def defer(self, request, reason):
+        if self.processing_status not in [
+            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
+            ConservationStatus.PROCESSING_STATUS_PROPOSED_FOR_AGENDA,
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+        ]:
+            raise ValidationError(
+                "You cannot defer a conservation status when the "
+                f"processing status is {self.get_processing_status_display}"
+            )
+
+        if not is_conservation_status_assessor(
+            request
+        ) and not is_conservation_status_approver(request):
+            raise ValidationError(
+                "You cannot defer a conservation status unless you are a member "
+                "of the conservation status assessor or approver group"
+            )
+
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_DEFERRED
+        self.save()
+
+        # Log proposal action
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_DEFER_PROPOSAL.format(
+                self.conservation_status_number, reason
+            ),
+            request,
+        )
+
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_DEFER_PROPOSAL.format(
+                self.conservation_status_number, reason
+            ),
+            request,
+        )
+
+        send_approver_defer_email_notification(request, self, reason)
+
     def get_related_items(self, filter_type, **kwargs):
         return_list = []
         if filter_type == "all":
@@ -1945,6 +1988,7 @@ class ConservationStatusUserAction(UserAction):
         "is ready for agenda. Assessor Comment: {}"
     )
     ACTION_DELIST_PROPOSAL = "Delist conservation status proposal {}"
+    ACTION_DEFER_PROPOSAL = "Defer conservation status proposal {}. Reason: {}"
     ACTION_DISCARD_PROPOSAL_INTERNALLY = (
         "Discard conservation status proposal internally {}"
     )
