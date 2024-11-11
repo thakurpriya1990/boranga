@@ -1982,9 +1982,9 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         detail=True,
         permission_classes=[ConservationStatusPermission],
     )
-    def proposed_ready_for_agenda(self, request, *args, **kwargs):
+    def proposed_for_agenda(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.proposed_ready_for_agenda(request)
+        instance.proposed_for_agenda(request)
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
