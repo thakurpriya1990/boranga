@@ -1717,7 +1717,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         )
 
     @transaction.atomic
-    def defer(self, request, reason):
+    def defer(self, request, reason, review_due_date):
         if self.processing_status not in [
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
@@ -1738,6 +1738,8 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             )
 
         self.processing_status = ConservationStatus.PROCESSING_STATUS_DEFERRED
+        if review_due_date:
+            self.review_due_date = datetime.strptime(review_due_date, "%Y-%m-%d").date()
         self.save()
 
         # Log proposal action

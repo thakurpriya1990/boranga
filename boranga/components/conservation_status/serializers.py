@@ -1072,6 +1072,11 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
         required=False, allow_null=True, write_only=True
     )
 
+    def to_internal_value(self, data):
+        if data.get("review_due_date") == "":
+            data["review_due_date"] = None
+        return super().to_internal_value(data)
+
     class Meta:
         model = ConservationStatus
         fields = (
@@ -1238,6 +1243,8 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
             "conservation_criteria",
             "comment",
             "lodgement_date",
+            "listing_date",
+            "review_due_date",
             "applicant_type",
             "submitter",
             "readonly",

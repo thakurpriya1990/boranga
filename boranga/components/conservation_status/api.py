@@ -2058,9 +2058,10 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     def defer(self, request, *args, **kwargs):
         instance = self.get_object()
         reason = request.data.get("reason")
+        review_due_date = request.data.get("review_due_date", None)
         if not reason:
             raise serializers.ValidationError("Reason is required")
-        instance.defer(request, reason)
+        instance.defer(request, reason, review_due_date)
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)

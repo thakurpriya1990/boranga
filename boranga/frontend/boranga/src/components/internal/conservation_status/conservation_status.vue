@@ -416,7 +416,7 @@
             @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
         <BackToAssessor ref="back_to_assessor_modal" :conservation_status_id="conservation_status_obj.id"
             @refreshFromResponse="refreshFromResponse"></BackToAssessor>
-        <Defer ref="defer_modal" :conservation_status_id="conservation_status_obj.id"
+        <Defer ref="defer_modal" :conservation_status="conservation_status_obj"
             @refreshFromResponse="refreshFromResponse"></Defer>
         <ProposeReadyForAgenda ref="propose_ready_for_agenda_modal" :conservation_status_id="conservation_status_obj.id"
             @refreshFromResponse="refreshFromResponse"></ProposeReadyForAgenda>

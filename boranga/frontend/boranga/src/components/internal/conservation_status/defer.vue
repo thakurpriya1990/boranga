@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="internal-conservation-status-proposal-defer">
         <modal id="defer-cs-modal" transition="modal fade" @ok="ok()" @cancel="close()"
-            :title="`Defer CS${conservation_status_id} `" okText="Defer" large>
+            :title="`Defer CS${conservation_status.id} `" okText="Defer" large>
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal needs-validation" id="defer-form" name="defer-form" novalidate>
@@ -10,12 +10,30 @@
                             <div class="row mb-3">
                                 <div class="col">
                                     <div class="form-group">
-                                        <label class="control-label mb-3" for="Name">Reason / Comments</label>
-                                        <textarea class="form-control" name="reason" ref="reason" required
+                                        <label class="control-label mb-3" for="reason">Reason / Comments</label>
+                                        <textarea class="form-control" id="reason" name="reason" ref="reason" required
                                             v-model="reason"></textarea>
                                         <div class="invalid-feedback">
                                             Please enter the reason for deferring the Conservation Status Proposal.
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <alert type="warning">
+                                        Entering a review date is not mandatory but is
+                                        highly recommended
+                                        to ensure that the Conservation Status Proposal is reviewed in a timely manner.
+                                    </alert>
+                                </div>
+                            </div>
+                            <div class=" row mb-3">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label class="control-label mb-3" for="review-due-date">Review Due Date</label>
+                                        <input type="date" class="form-control" id="review-due-date" name="review-due-date"
+                                            ref="review-due-date" v-model="reviewDueDate" />
                                     </div>
                                 </div>
                             </div>
@@ -39,13 +57,14 @@ export default {
         alert,
     },
     props: {
-        conservation_status_id: {
-            type: Number,
+        conservation_status: {
+            type: Object,
         },
     },
     data: function () {
         return {
             reason: null,
+            reviewDueDate: null,
             isModalOpen: false,
             errors: null,
         }
@@ -56,6 +75,7 @@ export default {
             if (val) {
                 this.$nextTick(() => {
                     $(this.$refs.reason).focus();
+                    this.reviewDueDate = this.conservation_status.review_due_date;
                 });
             }
         }
@@ -80,8 +100,8 @@ export default {
         defer: function () {
             let vm = this;
             vm.errors = null;
-            let data = { 'reason': vm.reason }
-            vm.$http.patch(api_endpoints.defer_cs_proposal(vm.conservation_status_id), JSON.stringify(data), {
+            let data = { 'review_due_date': vm.reviewDueDate, 'reason': vm.reason }
+            vm.$http.patch(api_endpoints.defer_cs_proposal(vm.conservation_status.id), JSON.stringify(data), {
                 emulateJSON: true,
             })
                 .then((response) => {
