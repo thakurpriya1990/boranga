@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="internal-conservation-status-proposal-propose-ready-for-agenda">
         <modal id="myModal" transition="modal fade" @ok="ok()" @cancel="close()"
-            :title="`Propose CS${conservation_status_id} Ready for Agenda`" okText="Ready for Agenda" large>
+            :title="`Propose CS${conservation_status_id} for Agenda`" okText="Propose for Agenda" large>
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal needs-validation" id="propose-ready-for-agenda-form"
