@@ -449,6 +449,8 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 id=request_data["conservation_status_id"]
             )
             instance.agenda_items.create(conservation_status=cs)
+            cs.processing_status = ConservationStatus.PROCESSING_STATUS_ON_AGENDA
+            cs.save()
         agenda_items = [cs.conservation_status_id for cs in instance.agenda_items.all()]
         return Response(agenda_items)
 
@@ -467,6 +469,8 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 meeting=instance, conservation_status=cs
             )
             agenda_item.delete()
+            cs.processing_status = ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
+            cs.save()
         agenda_items = [cs.conservation_status_id for cs in instance.agenda_items.all()]
         return Response(agenda_items)
 
