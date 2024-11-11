@@ -15,6 +15,7 @@ from boranga.components.conservation_status.email import (
     send_approver_decline_email_notification,
     send_approver_defer_email_notification,
     send_approver_propose_delist_email_notification,
+    send_approver_proposed_for_agenda_email_notification,
     send_assessor_ready_for_agenda_email_notification,
     send_conservation_status_amendment_email_notification,
     send_conservation_status_referral_complete_email_notification,
@@ -755,6 +756,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     def allowed_assessors(self):
         group_ids = None
         if self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_PROPOSED_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
@@ -869,12 +871,15 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_DEFERRED,
         ]:
             return is_conservation_status_assessor(request)
         elif self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_PROPOSED_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_UNLOCKED,
+            ConservationStatus.PROCESSING_STATUS_DEFERRED,
         ]:
             return is_conservation_status_approver(request)
 
@@ -918,6 +923,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         if self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
+            ConservationStatus.PROCESSING_STATUS_DEFERRED,
         ]:
             return (
                 self.assigned_officer != request.user.id
@@ -925,12 +931,14 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             )
 
         if self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_PROPOSED_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
             ConservationStatus.PROCESSING_STATUS_CLOSED,
             ConservationStatus.PROCESSING_STATUS_DECLINED,
             ConservationStatus.PROCESSING_STATUS_DELISTED,
+            ConservationStatus.PROCESSING_STATUS_DEFERRED,
         ]:
             return (
                 self.assigned_approver != request.user.id
@@ -976,6 +984,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
         if is_conservation_status_approver(request):
             allowed_statuses = [
+                ConservationStatus.PROCESSING_STATUS_PROPOSED_FOR_AGENDA,
                 ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
                 ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
                 ConservationStatus.PROCESSING_STATUS_APPROVED,
@@ -1044,6 +1053,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     @transaction.atomic
     def unassign(self, request):
         if self.processing_status in [
+            ConservationStatus.PROCESSING_STATUS_PROPOSED_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
             ConservationStatus.PROCESSING_STATUS_APPROVED,
@@ -1511,7 +1521,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         self.documents.all().update(can_delete=False)
 
     @transaction.atomic
-    def proposed_ready_for_agenda(self, request):
+    def proposed_for_agenda(self, request):
         if not self.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
@@ -1520,15 +1530,16 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 "You cannot propose for ready for agenda if it is not with assessor"
             )
 
-        self.processing_status = ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
-        self.customer_status = ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
+        self.processing_status = (
+            ConservationStatus.PROCESSING_STATUS_PROPOSED_FOR_AGENDA
+        )
         self.save()
 
         assessor_comment = request.data.get("assessor_comment")
 
         # Log proposal action
         self.log_user_action(
-            ConservationStatusUserAction.ACTION_PROPOSED_READY_FOR_AGENDA.format(
+            ConservationStatusUserAction.ACTION_PROPOSED_FOR_AGENDA.format(
                 self.conservation_status_number, assessor_comment
             ),
             request,
@@ -1536,7 +1547,46 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
         # Create a log entry for the user
         request.user.log_user_action(
-            ConservationStatusUserAction.ACTION_PROPOSED_READY_FOR_AGENDA.format(
+            ConservationStatusUserAction.ACTION_PROPOSED_FOR_AGENDA.format(
+                self.conservation_status_number, assessor_comment
+            ),
+            request,
+        )
+
+        send_approver_proposed_for_agenda_email_notification(
+            request, self, assessor_comment
+        )
+
+    @transaction.atomic
+    def ready_for_agenda(self, request):
+        if not self.can_assess(request):
+            raise exceptions.ProposalNotAuthorized()
+
+        if (
+            self.processing_status
+            != ConservationStatus.PROCESSING_STATUS_PROPOSED_FOR_AGENDA
+        ):
+            raise ValidationError(
+                "You cannot change the processing status to 'Ready for Agenda'"
+                "unless it is currently 'Proposed for Agenda'"
+            )
+
+        self.processing_status = ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
+        self.save()
+
+        assessor_comment = request.data.get("assessor_comment")
+
+        # Log proposal action
+        self.log_user_action(
+            ConservationStatusUserAction.ACTION_READY_FOR_AGENDA.format(
+                self.conservation_status_number, assessor_comment
+            ),
+            request,
+        )
+
+        # Create a log entry for the user
+        request.user.log_user_action(
+            ConservationStatusUserAction.ACTION_READY_FOR_AGENDA.format(
                 self.conservation_status_number, assessor_comment
             ),
             request,
@@ -1985,9 +2035,12 @@ class ConservationStatusUserAction(UserAction):
     ACTION_PROPOSE_DELIST_PROPOSAL = (
         "Propose discard conservation status proposal {}. Reason: {}"
     )
-    ACTION_PROPOSED_READY_FOR_AGENDA = (
-        "Propose conservation status proposal {} "
-        "is ready for agenda. Assessor Comment: {}"
+    ACTION_PROPOSED_FOR_AGENDA = (
+        "Conservation status proposal {} "
+        "has bee proposed for agenda. Assessor Comment: {}"
+    )
+    ACTION_READY_FOR_AGENDA = (
+        "Conservation status proposal {} " "is ready for agenda. Assessor Comment: {}"
     )
     ACTION_DELIST_PROPOSAL = "Delist conservation status proposal {}"
     ACTION_DEFER_PROPOSAL = "Defer conservation status proposal {}. Reason: {}"
