@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="internal-ocr-amendment-request">
-        <modal id="myModal" transition="modal fade" @ok="ok()" @cancel="cancel()" title="Amendment Request" large>
+        <modal id="amendment-request-modal" transition="modal fade" @ok="ok()" @cancel="cancel()" title="Amendment Request" large>
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="amendForm">

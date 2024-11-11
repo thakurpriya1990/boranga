@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="internal-ocr-decline-request">
-        <modal id="myModal" transition="modal fade" @ok="ok()" ok-text="Decline" @cancel="close()"
+        <modal id="ocr-decline-modal" transition="modal fade" @ok="ok()" ok-text="Decline" @cancel="close()"
             :title="`Decline ${occurrence_report_number}`" large>
             <div class="container-fluid">
                 <div class="row">

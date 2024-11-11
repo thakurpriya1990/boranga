@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="makePublic">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large id="myModal">
+        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large id="make-public-modal">
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="makePublicForm">

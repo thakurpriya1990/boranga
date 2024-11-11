@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="internal-ocr-propose-approve-request">
-        <modal id="myModal" transition="modal fade" @ok="ok()" ok-text="Propose Approve" @cancel="close()"
+        <modal id="ocr-propose-approve-modal" transition="modal fade" @ok="ok()" ok-text="Propose Approve" @cancel="close()"
             :title="`Propose Approve ${occurrence_report_number}`" large>
             <div class="container">
                 <form id="propose-approve-form">
