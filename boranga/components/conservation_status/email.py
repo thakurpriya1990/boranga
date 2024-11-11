@@ -104,9 +104,9 @@ class ApproverApproveSendNotificationEmail(TemplateEmailBase):
 
 class ApproverProposedForAgendaSendNotificationEmail(TemplateEmailBase):
     subject = "A conservation status proposal has been proposed for agenda."
-    html_template = "boranga/emails/cs_proposals/send_assessor_proposed_for_agenda_notification.html"
+    html_template = "boranga/emails/cs_proposals/send_approver_proposed_for_agenda_notification.html"
     txt_template = (
-        "boranga/emails/cs_proposals/send_assessor_proposed_for_agenda_notification.txt"
+        "boranga/emails/cs_proposals/send_approver_proposed_for_agenda_notification.txt"
     )
 
 
