@@ -33,6 +33,10 @@ class WAPriorityCategoryAdmin(ArchivableModelAdminMixin, AbstractCategoryAdmin):
     filter_horizontal = ("wa_priority_lists",)
 
 
+class IUCNVersionAdmin(ArchivableModelAdminMixin, AbstractListAdmin):
+    pass
+
+
 class WALegislativeListAdmin(ArchivableModelAdminMixin, AbstractListAdmin):
     pass
 
@@ -53,6 +57,7 @@ admin.site.register(models.WAPriorityList, WAPriorityListAdmin)
 admin.site.register(models.WAPriorityCategory, WAPriorityCategoryAdmin)
 admin.site.register(models.WALegislativeList, WALegislativeListAdmin)
 admin.site.register(models.WALegislativeCategory, WALegislativeCategoryAdmin)
+admin.site.register(models.IUCNVersion, IUCNVersionAdmin)
 admin.site.register(
     models.CommonwealthConservationList, CommonwealthConservationListAdmin
 )
