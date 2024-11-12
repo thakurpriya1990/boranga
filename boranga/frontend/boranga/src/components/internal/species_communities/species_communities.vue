@@ -152,7 +152,7 @@
                                         </div>
                                     </div>
                                     <div v-if="canDiscard">
-                                        <div class="row">
+                                        <div class="row mb-2">
                                             <div class="col-sm-12">
                                                 <strong>Action</strong><br />
                                             </div>
