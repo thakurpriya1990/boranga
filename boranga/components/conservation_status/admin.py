@@ -12,7 +12,13 @@ class ProposalAmendmentReasonAdmin(
 
 
 class AbstractListAdmin(DeleteProtectedModelAdmin):
-    list_display = ["code", "label", "applies_to_species", "applies_to_communities"]
+    list_display = [
+        "code",
+        "label",
+        "applies_to_flora",
+        "applies_to_fauna",
+        "applies_to_communities",
+    ]
 
 
 class AbstractCategoryAdmin(DeleteProtectedModelAdmin):

@@ -98,7 +98,8 @@ def update_conservation_status_doc_filename(instance, filename):
 class AbstractConservationList(ArchivableModel):
     code = models.CharField(max_length=64)
     label = models.CharField(max_length=512)
-    applies_to_species = models.BooleanField(default=False)
+    applies_to_flora = models.BooleanField(default=False)
+    applies_to_fauna = models.BooleanField(default=False)
     applies_to_communities = models.BooleanField(default=False)
 
     class Meta:
@@ -132,9 +133,12 @@ class AbstractConservationList(ArchivableModel):
             lists = lists.filter(applies_to_communities=True)
         elif group_type and group_type.name in [
             GroupType.GROUP_TYPE_FLORA,
+        ]:
+            lists = lists.filter(applies_to_flora=True)
+        elif group_type and group_type.name in [
             GroupType.GROUP_TYPE_FAUNA,
         ]:
-            lists = lists.filter(applies_to_species=True)
+            lists = lists.filter(applies_to_fauna=True)
         return list(lists)
 
     def __str__(self):
@@ -203,10 +207,15 @@ class WAPriorityCategory(AbstractConservationCategory):
             )
         elif group_type and group_type.name in [
             GroupType.GROUP_TYPE_FLORA,
+        ]:
+            wa_priority_categories_qs = wa_priority_categories_qs.filter(
+                wa_priority_lists__applies_to_flora=True
+            )
+        elif group_type and group_type.name in [
             GroupType.GROUP_TYPE_FAUNA,
         ]:
             wa_priority_categories_qs = wa_priority_categories_qs.filter(
-                wa_priority_lists__applies_to_species=True
+                wa_priority_lists__applies_to_fauna=True
             )
         for wa_priority_category in wa_priority_categories_qs.distinct():
             list_ids = list(
@@ -274,10 +283,15 @@ class WALegislativeCategory(AbstractConservationCategory):
             )
         elif group_type and group_type.name in [
             GroupType.GROUP_TYPE_FLORA,
+        ]:
+            wa_legislative_categories_qs = wa_legislative_categories_qs.filter(
+                wa_legislative_lists__applies_to_flora=True
+            )
+        elif group_type and group_type.name in [
             GroupType.GROUP_TYPE_FAUNA,
         ]:
             wa_legislative_categories_qs = wa_legislative_categories_qs.filter(
-                wa_legislative_lists__applies_to_species=True
+                wa_legislative_lists__applies_to_fauna=True
             )
         for wa_legislative_category in wa_legislative_categories_qs.distinct():
             list_ids = list(
@@ -770,6 +784,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         elif self.processing_status in [
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
+            ConservationStatus.PROCESSING_STATUS_DEFERRED,
         ]:
             group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_ASSESSOR)
 
@@ -984,74 +999,85 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 f"Officer with id {officer} is not authorised to be assigned to this conservation status"
             )
 
-        if is_conservation_status_approver(request):
-            allowed_statuses = [
-                ConservationStatus.PROCESSING_STATUS_PROPOSED_FOR_AGENDA,
-                ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
-                ConservationStatus.PROCESSING_STATUS_ON_AGENDA,
-                ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
-                ConservationStatus.PROCESSING_STATUS_APPROVED,
-                ConservationStatus.PROCESSING_STATUS_CLOSED,
-                ConservationStatus.PROCESSING_STATUS_DELISTED,
-                ConservationStatus.PROCESSING_STATUS_DECLINED,
-                ConservationStatus.PROCESSING_STATUS_UNLOCKED,
-            ]
+        approver_statuses = [
+            ConservationStatus.PROCESSING_STATUS_PROPOSED_FOR_AGENDA,
+            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+            ConservationStatus.PROCESSING_STATUS_ON_AGENDA,
+            ConservationStatus.PROCESSING_STATUS_WITH_APPROVER,
+            ConservationStatus.PROCESSING_STATUS_APPROVED,
+            ConservationStatus.PROCESSING_STATUS_CLOSED,
+            ConservationStatus.PROCESSING_STATUS_DELISTED,
+            ConservationStatus.PROCESSING_STATUS_DECLINED,
+            ConservationStatus.PROCESSING_STATUS_UNLOCKED,
+        ]
 
-            if self.processing_status in allowed_statuses:
-                if officer == self.assigned_approver:
-                    return
-
-                self.assigned_approver = officer.id
-                self.save()
-
-                # Create a log entry for the conservation status
-                self.log_user_action(
-                    ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(
-                        self.conservation_status_number,
-                        f"{officer.get_full_name()}({officer.email})",
-                    ),
-                    request,
+        if (
+            self.processing_status in approver_statuses
+            and is_conservation_status_approver(request)
+        ):
+            if officer == self.assigned_approver:
+                logger.warning(
+                    "Approver is already assigned to this conservation status"
                 )
+                return
 
-                # Create a log entry for the user
-                request.user.log_user_action(
-                    ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(
-                        self.conservation_status_number,
-                        f"{officer.get_full_name()}({officer.email})",
-                    ),
-                    request,
+            self.assigned_approver = officer.id
+            self.save()
+
+            # Create a log entry for the conservation status
+            self.log_user_action(
+                ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(
+                    self.conservation_status_number,
+                    f"{officer.get_full_name()}({officer.email})",
+                ),
+                request,
+            )
+
+            # Create a log entry for the user
+            request.user.log_user_action(
+                ConservationStatusUserAction.ACTION_ASSIGN_TO_APPROVER.format(
+                    self.conservation_status_number,
+                    f"{officer.get_full_name()}({officer.email})",
+                ),
+                request,
+            )
+
+        assessor_statuses = [
+            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
+            ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
+            ConservationStatus.PROCESSING_STATUS_DEFERRED,
+        ]
+
+        if (
+            self.processing_status in assessor_statuses
+            and is_conservation_status_assessor(request)
+        ):
+            if officer == self.assigned_officer:
+                logger.warning(
+                    "Assessor is already assigned to this conservation status"
                 )
+                return
 
-        if is_conservation_status_assessor(request):
-            allowed_statuses = [
-                ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
-                ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
-            ]
+            self.assigned_officer = officer.id
+            self.save()
 
-            if self.processing_status in allowed_statuses:
-                if officer == self.assigned_officer:
-                    return
+            # Create a log entry for the conservation status
+            self.log_user_action(
+                ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
+                    self.conservation_status_number,
+                    f"{officer.get_full_name()}({officer.email})",
+                ),
+                request,
+            )
 
-                self.assigned_officer = officer.id
-                self.save()
-
-                # Create a log entry for the conservation status
-                self.log_user_action(
-                    ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
-                        self.conservation_status_number,
-                        f"{officer.get_full_name()}({officer.email})",
-                    ),
-                    request,
-                )
-
-                # Create a log entry for the user
-                request.user.log_user_action(
-                    ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
-                        self.conservation_status_number,
-                        f"{officer.get_full_name()}({officer.email})",
-                    ),
-                    request,
-                )
+            # Create a log entry for the user
+            request.user.log_user_action(
+                ConservationStatusUserAction.ACTION_ASSIGN_TO_ASSESSOR.format(
+                    self.conservation_status_number,
+                    f"{officer.get_full_name()}({officer.email})",
+                ),
+                request,
+            )
 
     @transaction.atomic
     def unassign(self, request):
