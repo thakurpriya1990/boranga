@@ -36,7 +36,7 @@
                                     </div>
                                 </template>
                                 <select class="form-select" v-model="conservation_status_obj.change_code_id">
-                                    <option :value="null">Select the appropriate Change type</option>
+                                    <option :value="null">Select Appropriate Change Type</option>
                                     <option v-for="change_code in change_codes" :value="change_code.id"
                                         v-bind:key="change_code.id">
                                         {{ change_code.code }}
@@ -45,7 +45,7 @@
                             </template>
                             <template v-else>
                                 <input class="form-control" type="text" disabled
-                                    v-model="conservation_status_obj.change_code" />
+                                    :value="conservation_status_obj.change_code ? conservation_status_obj.change_code : 'Select Appropriate Change Type'" />
                             </template>
                         </div>
                     </div>
@@ -223,6 +223,35 @@
                             <template v-else>
                                 <input class="form-control" type="text" :disabled="true"
                                     :value="conservation_status_obj.wa_legislative_category ? conservation_status_obj.wa_legislative_category : 'N/A'" />
+                            </template>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="proposed_iucnversion" class="col-sm-4 col-form-label">IUCN Version</label>
+                        <div class="col-sm-8">
+                            <template v-if="!isReadOnly">
+                                <template
+                                    v-if="iucn_version && iucn_version.length > 0 && conservation_status_obj.iucn_version_id && !iucn_versions.map((d) => d.id).includes(conservation_status_obj.iucn_version_id)">
+                                    <input type="text" v-if="conservation_status_obj.iucn_version"
+                                        class="form-control mb-3"
+                                        :value="conservation_status_obj.iucn_version + ' (Now Archived)'"
+                                        disabled />
+                                    <div class="mb-3 text-muted">
+                                        Change iucn version to:
+                                    </div>
+                                </template>
+                                <select :disabled="isReadOnly" class="form-select"
+                                    v-model="conservation_status_obj.iucn_version_id" id="proposed_iucnversion">
+                                    <option :value="null" disabled>Select the appropriate IUCN Version</option>
+                                    <option v-for="option in iucn_versions" :value="option.id"
+                                        v-bind:key="option.id">
+                                        {{ option.code }} - {{ option.label }}
+                                    </option>
+                                </select>
+                            </template>
+                            <template v-else>
+                                <input class="form-control" type="text" :disabled="true"
+                                    :value="conservation_status_obj.iucn_version ? conservation_status_obj.iucn_version : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -417,6 +446,20 @@
                                 v-model="conservation_status_obj.current_conservation_status.wa_legislative_category_id"
                                 id="current_wa_legislative_category">
                                 <option v-for="option in wa_legislative_categories" :value="option.id"
+                                    v-bind:key="option.id">
+                                    {{ option.code }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div v-if="conservation_status_obj.current_conservation_status.iucn_version_id"
+                        class="row mb-3">
+                        <label for="current_iucn_version" class="col-sm-4 col-form-label">IUCN Version:</label>
+                        <div class="col-sm-8">
+                            <select :disabled="true" class="form-select"
+                                v-model="conservation_status_obj.current_conservation_status.iucn_version_id"
+                                id="current_iucn_version">
+                                <option v-for="option in iucn_versions" :value="option.id"
                                     v-bind:key="option.id">
                                     {{ option.code }}
                                 </option>
@@ -854,6 +897,7 @@ export default {
             vm.cs_profile_dict = response.body;
             vm.wa_legislative_lists = vm.cs_profile_dict.wa_legislative_lists;
             vm.wa_legislative_categories = vm.cs_profile_dict.wa_legislative_categories;
+            vm.iucn_versions = vm.cs_profile_dict.iucn_versions;
             vm.wa_priority_lists = vm.cs_profile_dict.wa_priority_lists;
             vm.wa_priority_categories = vm.cs_profile_dict.wa_priority_categories;
             vm.commonwealth_conservation_lists = vm.cs_profile_dict.commonwealth_conservation_lists;
