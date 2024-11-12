@@ -559,6 +559,13 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         null=True,
         related_name="curr_wa_legislative_category",
     )
+    iucn_version = models.ForeignKey(
+        IUCNVersion,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="curr_iucn_version",
+    )
     commonwealth_conservation_list = models.ForeignKey(
         CommonwealthConservationList,
         on_delete=models.PROTECT,
