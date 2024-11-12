@@ -314,7 +314,7 @@ class IUCNVersion(AbstractConservationList):
     class Meta:
         ordering = ["code"]
         app_label = "boranga"
-        verbose_name = "IU"
+        verbose_name = "IUCN Version"
 
 
 class CommonwealthConservationList(AbstractConservationList):
