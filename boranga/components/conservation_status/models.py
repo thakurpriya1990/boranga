@@ -310,6 +310,13 @@ class WALegislativeCategory(AbstractConservationCategory):
         return wa_legislative_categories
 
 
+class IUCNVersion(AbstractConservationList):
+    class Meta:
+        ordering = ["code"]
+        app_label = "boranga"
+        verbose_name = "IU"
+
+
 class CommonwealthConservationList(AbstractConservationList):
 
     class Meta:
