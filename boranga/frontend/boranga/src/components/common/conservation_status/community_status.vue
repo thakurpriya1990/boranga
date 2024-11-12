@@ -621,7 +621,7 @@ export default {
         show_administrative_information: function () {
             return !this.is_external &&
                 this.conservation_status_obj.community_id &&
-                this.conservation_status_obj.processing_status != "Draft";
+                this.conservation_status_obj.processing_status != 'Draft';
         },
         show_proposed_conservation_status: function () {
             return this.conservation_status_obj.community_id;
@@ -629,10 +629,10 @@ export default {
         show_listing_and_review_due_date: function () {
             return this.conservation_status_obj.listing_date ||
                 this.conservation_status_obj.review_due_date ||
-                this.conservation_status_obj.processing_status == "With Assessor";
+                this.conservation_status_obj.processing_status == 'With Assessor';
         },
         listing_and_review_due_date_disabled: function () {
-            return this.isReadOnly || !["With Assessor", "Unlocked"].includes(this.conservation_status_obj.processing_status)
+            return this.isReadOnly || !['With Assessor', 'Deferred', 'Unlocked'].includes(this.conservation_status_obj.processing_status)
         },
         approval_level_disabled: function () {
             return this.isReadOnly || !['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status);
@@ -655,10 +655,10 @@ export default {
             return has_value;
         },
         isStatusApproved: function () {
-            return this.conservation_status_obj.processing_status == "Approved" ? true : false;
+            return this.conservation_status_obj.processing_status == 'Approved' ? true : false;
         },
         isAssignedOfficer: function () {
-            if (['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status)) {
+            if (['With Assessor', 'With Referral', 'Deferred'].includes(this.conservation_status_obj.processing_status)) {
                 return Boolean(this.conservation_status_obj.assigned_officer) &&
                     this.conservation_status_obj.assigned_officer == this.conservation_status_obj.current_assessor.id;
             }
@@ -672,12 +672,12 @@ export default {
             if (this.is_external) {
                 return !this.conservation_status_obj.can_user_edit;
             } else if (
-                this.conservation_status_obj.processing_status == "With Referral" &&
+                this.conservation_status_obj.processing_status == 'With Referral' &&
                 this.referral
             ) {
                 return true;
             } else {
-                if (["Ready For Agenda", "Approved", "Closed", "DeListed", "Discarded"].includes(this.conservation_status_obj.processing_status)) {
+                if (['Ready For Agenda', 'Approved', 'Closed', 'DeListed', 'Discarded'].includes(this.conservation_status_obj.processing_status)) {
                     return true;
                 }
                 if (
@@ -692,15 +692,15 @@ export default {
             return true;
         },
         conservation_criteria_label: function () {
-            if (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") {
-                return "Conservation Criteria";
+            if (this.conservation_status_obj.processing_status == 'Approved' || this.conservation_status_obj.processing_status == 'DeListed') {
+                return 'Conservation Criteria';
             }
             else {
-                if (this.conservation_status_obj.processing_status == "Draft") {
-                    return "Propose Conservation Criteria";
+                if (this.conservation_status_obj.processing_status == 'Draft') {
+                    return 'Propose Conservation Criteria';
                 }
                 else {
-                    return "Proposed Conservation Criteria";
+                    return 'Proposed Conservation Criteria';
                 }
             }
         },
@@ -708,7 +708,7 @@ export default {
             return !(['Approved', 'DeListed', 'Declined', 'Closed', 'Unlocked'].includes(this.conservation_status_obj.processing_status))
         },
         canViewCurrentList: function () {
-            return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? false : true;
+            return (this.conservation_status_obj.processing_status == 'Approved' || this.conservation_status_obj.processing_status == 'DeListed') ? false : true;
         },
         isConservationStatusUnderReview: function () {
             return Boolean(this.conservation_status_obj.conservation_status_under_review);
@@ -736,10 +736,10 @@ export default {
             let vm = this;
             $(vm.$refs[vm.community_name_lookup]).select2({
                 minimumInputLength: 2,
-                dropdownParent: $("#" + vm.select_community_name),
-                "theme": "bootstrap-5",
+                dropdownParent: $('#' + vm.select_community_name),
+                'theme': 'bootstrap-5',
                 allowClear: true,
-                placeholder: "Select Community Name",
+                placeholder: 'Select Community Name',
                 ajax: {
                     url: api_endpoints.community_name_lookup,
                     dataType: 'json',
@@ -753,19 +753,19 @@ export default {
                     },
                 },
             }).
-                on("select2:select", function (e) {
+                on('select2:select', function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.conservation_status_obj.community_id = data
                     vm.community_display = e.params.data.text;
                     vm.$emit('saveConservationStatus');
                 }).
-                on("select2:unselect", function (e) {
+                on('select2:unselect', function (e) {
                     var selected = $(e.currentTarget);
                     vm.conservation_status_obj.community_id = null
                     vm.community_display = '';
                 }).
-                on("select2:open", function (e) {
+                on('select2:open', function (e) {
                     const searchField = $('[aria-controls="select2-' + vm.community_name_lookup + '-results"]')
                     searchField[0].focus();
                 });
@@ -778,7 +778,7 @@ export default {
             let vm = this;
             if (vm.conservation_status_obj?.community_id) {
                 let community_display_url = api_endpoints.community_display +
-                    "?community_id=" + vm.conservation_status_obj.community_id
+                    '?community_id=' + vm.conservation_status_obj.community_id
                 vm.$http.get(community_display_url).then(
                     (response) => {
                         var newOption = new Option(response.body.name, response.body.id, false, true);
@@ -821,11 +821,11 @@ export default {
                     var referral_comment_val = `${v.referral_comment}`;
                     this.referral_comments_boxes.push(
                         {
-                            "box_view": box_visibility,
-                            "name": referral_name,
-                            "label": referral_label,
-                            "readonly": referral_visibility,
-                            "value": referral_comment_val,
+                            'box_view': box_visibility,
+                            'name': referral_name,
+                            'label': referral_label,
+                            'readonly': referral_visibility,
+                            'value': referral_comment_val,
                         }
                     )
                 });
@@ -848,7 +848,7 @@ export default {
     created: async function () {
         let vm = this;
         let action = this.$route.query.action;
-        let dict_url = action == "view" ? api_endpoints.cs_profile_dict + '?group_type=' + vm.conservation_status_obj.group_type + '&action=' + action :
+        let dict_url = action == 'view' ? api_endpoints.cs_profile_dict + '?group_type=' + vm.conservation_status_obj.group_type + '&action=' + action :
             api_endpoints.cs_profile_dict + '?group_type=' + vm.conservation_status_obj.group_type
         vm.$http.get(dict_url).then((response) => {
             vm.cs_profile_dict = response.body;

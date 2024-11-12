@@ -1,6 +1,7 @@
 <template lang="html">
     <div id="speciesStatus">
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
+            {{ conservation_status_obj.assessor_mode.assessor_can_assess }}
             <form @change="saveConservationStatus($event)">
                 <div class="row mb-3">
                     <label :for="scientific_name_lookup" class="col-sm-4 col-form-label fw-bold">Scientific Name: <span
@@ -603,9 +604,9 @@ export default {
         let vm = this;
         return {
             scientific_name_lookup: 'scientific_name_lookup' + vm.conservation_status_obj.id,
-            select_scientific_name: "select_scientific_name" + vm.conservation_status_obj.id,
+            select_scientific_name: 'select_scientific_name' + vm.conservation_status_obj.id,
             isShowComment: false,
-            isFauna: vm.conservation_status_obj.group_type === "fauna" ? true : false,
+            isFauna: vm.conservation_status_obj.group_type === 'fauna' ? true : false,
             cs_profile_dict: {},
             wa_legislative_lists: [],
             wa_legislative_categories: [],
@@ -628,7 +629,7 @@ export default {
         show_administrative_information: function () {
             return !this.is_external &&
                 this.conservation_status_obj.species_taxonomy_id &&
-                this.conservation_status_obj.processing_status != "Draft";
+                this.conservation_status_obj.processing_status != 'Draft';
         },
         show_proposed_conservation_status: function () {
             return this.conservation_status_obj.species_taxonomy_id;
@@ -636,10 +637,10 @@ export default {
         show_listing_and_review_due_date: function () {
             return this.conservation_status_obj.listing_date ||
                 this.conservation_status_obj.review_due_date ||
-                this.conservation_status_obj.processing_status == "With Assessor";
+                this.conservation_status_obj.processing_status == 'With Assessor';
         },
         listing_and_review_due_date_disabled: function () {
-            return this.isReadOnly || !["With Assessor", "Unlocked"].includes(this.conservation_status_obj.processing_status)
+            return this.isReadOnly || !['With Assessor', 'Deferred', 'Unlocked'].includes(this.conservation_status_obj.processing_status)
         },
         approval_level_disabled: function () {
             return this.isReadOnly || !['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status);
@@ -662,10 +663,10 @@ export default {
             return has_value;
         },
         isStatusApproved: function () {
-            return this.conservation_status_obj.processing_status == "Approved" ? true : false;
+            return this.conservation_status_obj.processing_status == 'Approved' ? true : false;
         },
         isAssignedOfficer: function () {
-            if (['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status)) {
+            if (['With Assessor', 'With Referral', 'Deferred'].includes(this.conservation_status_obj.processing_status)) {
                 return Boolean(this.conservation_status_obj.assigned_officer) &&
                     this.conservation_status_obj.assigned_officer == this.conservation_status_obj.current_assessor.id;
             }
@@ -679,12 +680,12 @@ export default {
             if (this.is_external) {
                 return !this.conservation_status_obj.can_user_edit;
             } else if (
-                this.conservation_status_obj.processing_status == "With Referral" &&
+                this.conservation_status_obj.processing_status == 'With Referral' &&
                 this.referral
             ) {
                 return true;
             } else {
-                if (["Ready For Agenda", "Approved", "Closed", "DeListed", "Discarded"].includes(this.conservation_status_obj.processing_status)) {
+                if (['Ready For Agenda', 'Approved', 'Closed', 'DeListed', 'Discarded'].includes(this.conservation_status_obj.processing_status)) {
                     return true;
                 }
                 if (
@@ -701,7 +702,7 @@ export default {
             return !(['Approved', 'DeListed', 'Declined', 'Closed', 'Unlocked'].includes(this.conservation_status_obj.processing_status))
         },
         canViewCurrentList: function () {
-            return (this.conservation_status_obj.processing_status == "Approved" || this.conservation_status_obj.processing_status == "DeListed") ? false : true;
+            return (this.conservation_status_obj.processing_status == 'Approved' || this.conservation_status_obj.processing_status == 'DeListed') ? false : true;
         },
         isConservationStatusUnderReview: function () {
             return Boolean(this.conservation_status_obj.conservation_status_under_review);
@@ -729,10 +730,10 @@ export default {
             let vm = this;
             $(vm.$refs[vm.scientific_name_lookup]).select2({
                 minimumInputLength: 2,
-                dropdownParent: $("#" + vm.select_scientific_name),
-                "theme": "bootstrap-5",
+                dropdownParent: $('#' + vm.select_scientific_name),
+                'theme': 'bootstrap-5',
                 allowClear: true,
-                placeholder: "Search for the Scientific Name of the Species",
+                placeholder: 'Search for the Scientific Name of the Species',
                 ajax: {
                     url: api_endpoints.scientific_name_lookup,
                     dataType: 'json',
@@ -746,20 +747,20 @@ export default {
                     },
                 },
             }).
-                on("select2:select", function (e) {
+                on('select2:select', function (e) {
                     let data = e.params.data;
                     vm.conservation_status_obj.species_taxonomy_id = data.id
                     vm.species_display = data.text;
                     vm.taxon_previous_name = data.taxon_previous_name;
                     vm.$emit('saveConservationStatus');
                 }).
-                on("select2:unselect", function (e) {
+                on('select2:unselect', function (e) {
                     var selected = $(e.currentTarget);
                     vm.conservation_status_obj.species_taxonomy_id = null
                     vm.species_display = '';
                     vm.taxon_previous_name = '';
                 }).
-                on("select2:open", function (e) {
+                on('select2:open', function (e) {
                     const searchField = $('[aria-controls="select2-' + vm.scientific_name_lookup + '-results"]')
                     // move focus to select2 field
                     searchField[0].focus();
@@ -773,7 +774,7 @@ export default {
         getSpeciesDisplay: function () {
             let vm = this;
             if (vm.conservation_status_obj.species_taxonomy_id != null) {
-                let species_display_url = api_endpoints.species_display + "?taxon_id=" + vm.conservation_status_obj.species_taxonomy_id
+                let species_display_url = api_endpoints.species_display + '?taxon_id=' + vm.conservation_status_obj.species_taxonomy_id
                 vm.$http.get(species_display_url).then(
                     (response) => {
                         var newOption = new Option(response.body.name, response.body.id, false, true);
@@ -819,11 +820,11 @@ export default {
                     var referral_comment_val = `${v.referral_comment}`;
                     this.referral_comments_boxes.push(
                         {
-                            "box_view": box_visibility,
-                            "name": referral_name,
-                            "label": referral_label,
-                            "readonly": referral_visibility,
-                            "value": referral_comment_val,
+                            'box_view': box_visibility,
+                            'name': referral_name,
+                            'label': referral_label,
+                            'readonly': referral_visibility,
+                            'value': referral_comment_val,
                         }
                     )
                 });
@@ -846,7 +847,7 @@ export default {
     created: async function () {
         let vm = this;
         let action = this.$route.query.action;
-        let dict_url = action == "view" ? api_endpoints.cs_profile_dict + '?group_type=' + vm.conservation_status_obj.group_type + '&action=' + action :
+        let dict_url = action == 'view' ? api_endpoints.cs_profile_dict + '?group_type=' + vm.conservation_status_obj.group_type + '&action=' + action :
             api_endpoints.cs_profile_dict + '?group_type=' + vm.conservation_status_obj.group_type
         vm.$http.get(dict_url).then((response) => {
             vm.cs_profile_dict = response.body;
