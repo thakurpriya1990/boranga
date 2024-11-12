@@ -29,7 +29,7 @@
                                     <strong>Currently assigned to</strong><br />
                                     <div class="form-group">
                                         <template
-                                            v-if="['Ready For Agenda', 'Proposed DeListed', 'Unlocked', 'Approved', 'Closed', 'DeListed'].includes(conservation_status_obj.processing_status)">
+                                            v-if="['Proposed For Agenda', 'Ready For Agenda', 'On Agenda', 'Proposed DeListed', 'Unlocked', 'Approved', 'Closed', 'DeListed'].includes(conservation_status_obj.processing_status)">
                                             <select ref="assigned_officer" :disabled="!canAction || canLock"
                                                 class="form-control"
                                                 v-model="conservation_status_obj.assigned_approver">
@@ -42,7 +42,7 @@
                                                 to me</a>
                                         </template>
                                         <template
-                                            v-else-if="['With Assessor', 'With Referral'].includes(conservation_status_obj.processing_status)">
+                                            v-else-if="['With Assessor', 'With Referral', 'Deferred'].includes(conservation_status_obj.processing_status)">
                                             <select ref="assigned_officer" :disabled="!canAction" class="form-control"
                                                 v-model="conservation_status_obj.assigned_officer">
                                                 <option v-for="member in conservation_status_obj.allowed_assessors"
@@ -258,7 +258,7 @@
                                             v-if="conservation_status_obj.approval_level == 'minister' && conservation_status_obj.processing_status == 'With Assessor'">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="proposedReadyForAgenda()">Propose Ready for
+                                                    @click.prevent="proposedReadyForAgenda()">Propose for
                                                     Agenda</button><br />
                                             </div>
                                         </div>
@@ -275,17 +275,18 @@
                                             </div>
                                         </div>
                                     </template>
-                                    <template v-if="canSendBackToAssessor">
+                                    <template
+                                        v-if="conservation_status_obj.processing_status == 'Proposed For Agenda' && conservation_status_obj.approval_level == 'minister'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="backToAssessor">Back To
-                                                    Assessor</button><br />
+                                                    @click.prevent="readyForAgenda">Confirm Ready for
+                                                    Agenda</button><br />
                                             </div>
                                         </div>
                                     </template>
                                     <template
-                                        v-if="conservation_status_obj.processing_status == 'Ready For Agenda' && conservation_status_obj.approval_level == 'minister'">
+                                        v-if="conservation_status_obj.processing_status == 'On Agenda' && conservation_status_obj.approval_level == 'minister'">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
@@ -294,14 +295,6 @@
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary top-buffer-s"
                                                     @click.prevent="declineProposal()">Decline</button><br />
-                                            </div>
-                                        </div>
-                                    </template>
-                                    <template v-if="canDefer">
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="deferProposal()">Defer</button><br />
                                             </div>
                                         </div>
                                     </template>
@@ -322,6 +315,23 @@
                                         </div>
                                     </template>
                                 </div>
+                                <template v-if="canSendBackToAssessor">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                @click.prevent="backToAssessor">Back To
+                                                Assessor</button><br />
+                                        </div>
+                                    </div>
+                                </template>
+                                <template v-if="canDefer">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                @click.prevent="deferProposal()">Defer</button><br />
+                                        </div>
+                                    </div>
+                                </template>
                                 <template v-if="canDiscard">
                                     <div class="row">
                                         <div class="col-sm-12">
@@ -417,9 +427,12 @@
         <BackToAssessor ref="back_to_assessor_modal" :conservation_status_id="conservation_status_obj.id"
             @refreshFromResponse="refreshFromResponse"></BackToAssessor>
         <Defer ref="defer_modal" :conservation_status="conservation_status_obj"
-            @refreshFromResponse="refreshFromResponse"></Defer>
-        <ProposeReadyForAgenda ref="propose_ready_for_agenda_modal" :conservation_status_id="conservation_status_obj.id"
-            @refreshFromResponse="refreshFromResponse"></ProposeReadyForAgenda>
+            @refreshFromResponse="refreshFromResponse">
+        </Defer>
+        <ProposeForAgenda ref="propose_for_agenda" :conservation_status_id="conservation_status_obj.id"
+            @refreshFromResponse="refreshFromResponse"></ProposeForAgenda>
+        <ReadyForAgenda ref="ready_for_agenda" :conservation_status_id="conservation_status_obj.id"
+            @refreshFromResponse="refreshFromResponse"></ReadyForAgenda>
         <ProposedDecline ref="proposed_decline" :processing_status="conservation_status_obj.processing_status"
             :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse">
         </ProposedDecline>
@@ -441,7 +454,8 @@ import Submission from '@common-utils/submission.vue'
 import AmendmentRequest from './amendment_request.vue'
 import BackToAssessor from './back_to_assessor.vue'
 import Defer from './defer.vue'
-import ProposeReadyForAgenda from './propose_ready_for_agenda.vue'
+import ProposeForAgenda from './propose_for_agenda.vue'
+import ReadyForAgenda from './ready_for_agenda.vue'
 import ProposedDecline from './proposal_proposed_decline'
 import ProposeDelist from './proposal_propose_delist'
 import ProposedApproval from './proposed_issuance.vue'
@@ -493,11 +507,12 @@ export default {
         ProposalConservationStatus,
         AmendmentRequest,
         BackToAssessor,
-        ProposeReadyForAgenda,
+        ProposeForAgenda,
         CSMoreReferrals,
         ProposedDecline,
         ProposeDelist,
         ProposedApproval,
+        ReadyForAgenda,
         InviteExternalReferee
     },
     filters: {
@@ -576,25 +591,27 @@ export default {
                 && this.conservation_status_obj.assessor_mode.assessor_can_assess;
         },
         canAction: function () {
-            // NOTE: Completely redo the permissions for actions on this page
-            // It was a mess before and now it's even worse =D
-            if (this.isFinalised) {
-                return this.conservation_status_obj
-                    && (
-                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver)
+            if (!this.conservation_status_obj) {
+                return false;
             }
-            else if (['Ready For Agenda', 'Proposed DeListed', 'Unlocked'].includes(this.conservation_status_obj.processing_status)) {
-                return this.conservation_status_obj
-                    && (
-                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver)
+            if (this.isFinalised) {
+                return this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver;
+            }
+            else if (['Proposed For Agenda', 'Ready For Agenda', 'On Agenda', 'Proposed DeListed', 'Unlocked'].includes(this.conservation_status_obj.processing_status)) {
+                return this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess;
             }
             else if (['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status)) {
-                return this.conservation_status_obj
-                    && (
-                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer)
+                return this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess;
-            } else {
+            }
+            else if (this.conservation_status_obj.processing_status == 'Deferred') {
+                return this.conservation_status_obj.assessor_mode.assessor_can_assess &&
+                    (
+                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
+                    );
+            }
+            else {
                 return this.conservation_status_obj
                     && this.conservation_status_obj.processing_status == 'Draft'
                     && this.conservation_status_obj.internal_application
@@ -614,30 +631,23 @@ export default {
                 this.conservation_status_obj.approver_process;
         },
         canSendBackToAssessor: function () {
-            console.log([
-                constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
-                constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
-                constants.PROPOSAL_STATUS.DEFERRED.TEXT,
-            ].includes(this.conservation_status_obj.processing_status))
             return this.conservation_status_obj &&
                 this.conservation_status_obj.approval_level == 'minister' &&
                 [
                     constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
-                    constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
                     constants.PROPOSAL_STATUS.DEFERRED.TEXT,
                 ].includes(this.conservation_status_obj.processing_status) &&
                 this.conservation_status_obj.assessor_mode.assessor_can_assess &&
                 (
-                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer ||
-                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
+                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
                 );
         },
         canDefer: function () {
             return this.conservation_status_obj &&
                 [
                     constants.PROPOSAL_STATUS.WITH_ASSESSOR.TEXT,
-                    constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
                     constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
+                    constants.PROPOSAL_STATUS.ON_AGENDA.TEXT,
                 ].includes(this.conservation_status_obj.processing_status) &&
                 this.conservation_status_obj.assessor_mode.assessor_can_assess &&
                 (
@@ -773,7 +783,10 @@ export default {
             if (!this.validateConservationStatus()) {
                 return;
             }
-            this.$refs.propose_ready_for_agenda_modal.isModalOpen = true;
+            this.$refs.propose_for_agenda.isModalOpen = true;
+        },
+        readyForAgenda: function () {
+            this.$refs.ready_for_agenda.isModalOpen = true;
         },
         proposeDelist: function () {
             this.$refs.propose_delist.isModalOpen = true;
