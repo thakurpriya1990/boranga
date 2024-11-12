@@ -323,13 +323,13 @@
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="proposed_international_conservation" class="col-sm-4 col-form-label">Other
+                        <label for="proposed_other_conservation_assessment" class="col-sm-4 col-form-label">Other
                             Conservation Assessment:</label>
                         <div class="col-sm-8">
                             <input :disabled="isReadOnly" type="text" class="form-control"
-                                id="proposed_international_conservation"
+                                id="proposed_other_conservation_assessment"
                                 :placeholder="isReadOnly ? 'N/A' : 'Enter Other Conservation Assessment Details if Applicable'"
-                                v-model="conservation_status_obj.international_conservation" />
+                                v-model="conservation_status_obj.other_conservation_assessment" />
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -466,14 +466,14 @@
                             </select>
                         </div>
                     </div>
-                    <div v-if="conservation_status_obj.current_conservation_status.international_conservation"
+                    <div v-if="conservation_status_obj.current_conservation_status.other_conservation_assessment"
                         class="row mb-3">
-                        <label for="current_international_conservation" class="col-sm-4 col-form-label">Other
+                        <label for="current_other_conservation_assessment" class="col-sm-4 col-form-label">Other
                             Conservation Assessment:</label>
                         <div class="col-sm-8">
                             <input :disabled="true" type="text" class="form-control"
-                                id="current_international_conservation"
-                                v-model="conservation_status_obj.current_conservation_status.international_conservation" />
+                                id="current_other_conservation_assessment"
+                                v-model="conservation_status_obj.current_conservation_status.other_conservation_assessment" />
                         </div>
                     </div>
                     <div v-if="conservation_status_obj.current_conservation_status.conservation_criteria"

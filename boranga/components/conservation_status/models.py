@@ -559,7 +559,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         null=True,
         related_name="curr_commonwealth_conservation_list",
     )
-    international_conservation = models.CharField(max_length=100, blank=True, null=True)
+    other_conservation_assessment = models.CharField(
+        max_length=100, blank=True, null=True
+    )
     conservation_criteria = models.CharField(max_length=100, blank=True, null=True)
     cam_mou = models.BooleanField(null=True, blank=True)
     cam_mou_date_sent = models.DateField(null=True, blank=True)

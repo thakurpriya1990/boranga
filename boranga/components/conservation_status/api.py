@@ -326,10 +326,10 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         )
         if filter_international_relevance == "true":
             if queryset.model is ConservationStatus:
-                queryset = queryset.exclude(international_conservation__isnull=True)
+                queryset = queryset.exclude(other_conservation_assessment__isnull=True)
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.exclude(
-                    conservation_status__international_conservation__isnull=True
+                    conservation_status__other_conservation_assessment__isnull=True
                 )
 
         filter_from_effective_from_date = request.POST.get(
@@ -934,10 +934,10 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
         )
         if filter_international_relevance == "true":
             if queryset.model is ConservationStatus:
-                queryset = queryset.exclude(international_conservation__isnull=True)
+                queryset = queryset.exclude(other_conservation_assessment__isnull=True)
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.exclude(
-                    conservation_status__international_conservation__isnull=True
+                    conservation_status__other_conservation_assessment__isnull=True
                 )
 
         filter_from_effective_from_date = request.POST.get(

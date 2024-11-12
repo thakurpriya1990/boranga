@@ -42,12 +42,12 @@
                             :value="conservation_status.commonwealth_conservation_list" />
                     </div>
                 </div>
-                <div class="row mb-3" v-if="conservation_status.international_conservation">
-                    <label for="international_conservation" class="col-sm-4 col-form-label">Other
+                <div class="row mb-3" v-if="conservation_status.other_conservation_assessment">
+                    <label for="other_conservation_assessment" class="col-sm-4 col-form-label">Other
                         Conservation Assessment</label>
                     <div class="col-sm-8">
-                        <input class="form-control" id="international_conservation"
-                            :value="conservation_status.international_conservation" />
+                        <input class="form-control" id="other_conservation_assessment"
+                            :value="conservation_status.other_conservation_assessment" />
                     </div>
                 </div>
                 <div class="row pb-3 mb-3 border-bottom" v-if="conservation_status.conservation_criteria">

@@ -780,14 +780,14 @@ export default {
                 name: "commonwealth_conservation_list",
             }
         },
-        column_international_conservation:
+        column_other_conservation_assessment:
             function () {
                 return {
-                    data: "international_conservation",
+                    data: "other_conservation_assessment",
                     orderable: true,
                     searchable: true,
                     visible: true,
-                    name: "international_conservation",
+                    name: "other_conservation_assessment",
                 }
             },
         column_conservation_criteria: function () {
@@ -960,7 +960,7 @@ export default {
                 vm.column_wa_legislative_list,
                 vm.column_wa_legislative_category,
                 vm.column_commonwealth_conservation_list,
-                vm.column_international_conservation,
+                vm.column_other_conservation_assessment,
                 vm.column_conservation_criteria,
                 vm.column_submitter_name,
                 vm.column_submitter_category,
