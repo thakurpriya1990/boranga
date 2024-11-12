@@ -28,7 +28,7 @@
                         <div class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <div class="col-sm-12 top-buffer-s">
+                                    <div class="col-sm-12">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <strong>Action</strong><br />
@@ -36,24 +36,24 @@
                                         </div>
                                         <div class="row" v-if="userCanSchedule">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:80%;" class="btn btn-primary"
                                                     @click.prevent="scheduleMeeting()">Schedule</button><br />
                                             </div>
                                             <div class="col-sm-12">&nbsp;</div>
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:80%;" class="btn btn-primary"
                                                     @click.prevent="discardMeeting()">Discard</button><br />
                                             </div>
                                         </div>
                                         <div class="row" v-if="userCanComplete">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:80%;" class="btn btn-primary"
                                                     @click.prevent="completeMeeting()">Complete</button><br />
                                             </div>
                                         </div>
                                         <div class="row" v-if="userCanReinstate">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:80%;" class="btn btn-primary"
                                                     @click.prevent="reinstateMeeting()">Reinstate</button><br />
                                             </div>
                                         </div>

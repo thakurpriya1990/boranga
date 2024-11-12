@@ -152,24 +152,6 @@ export default {
 }
 </script>
 <style scoped>
-.top-buffer-s {
-    margin-top: 10px;
-}
-
-.actionBtn {
-    cursor: pointer;
-}
-
-.hidePopover {
-    display: none;
-}
-
-.separator {
-    border: 1px solid;
-    margin-top: 15px;
-    margin-bottom: 10px;
-    width: 100%;
-}
 
 @keyframes placeHolderShimmer {
     0% {

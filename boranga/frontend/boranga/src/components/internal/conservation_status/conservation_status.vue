@@ -25,7 +25,7 @@
                         </div>
                         <div v-if="conservation_status_obj.processing_status != 'Draft'" class="card-body border-top">
                             <div class="row">
-                                <div class="col-sm-12 top-buffer-s">
+                                <div class="col-sm-12">
                                     <strong>Currently assigned to</strong><br />
                                     <div class="form-group">
                                         <template
@@ -38,7 +38,8 @@
                                                 </option>
                                             </select>
                                             <a v-if="conservation_status_obj.can_user_assign_to_self"
-                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
+                                                @click.prevent="assignRequestUser()" class="float-end"
+                                                role="button">Assign
                                                 to me</a>
                                         </template>
                                         <template
@@ -50,7 +51,8 @@
                                                 </option>
                                             </select>
                                             <a v-if="canAssess && conservation_status_obj.assigned_officer != conservation_status_obj.current_assessor.id"
-                                                @click.prevent="assignRequestUser()" class="actionBtn float-end">Assign
+                                                @click.prevent="assignRequestUser()" class="float-end"
+                                                role="button">Assign
                                                 to me</a>
                                         </template>
                                     </div>
@@ -59,7 +61,7 @@
                         </div>
                         <div v-if="canRefer" class="card-body border-top">
                             <div class="row">
-                                <div class="col-sm-12 top-buffer-s">
+                                <div class="col-sm-12">
                                     <strong>Referrals</strong><br />
                                     <div class="form-group mb-3">
                                         <select :disabled="!canLimitedAction" ref="referees" class="form-control">
@@ -70,12 +72,12 @@
                                                 <textarea class="form-control" name="referral_text" ref="referral_text"
                                                     v-model="referral_text"></textarea>
                                                 <a v-if="canLimitedAction" @click.prevent="sendReferral()"
-                                                    class="actionBtn float-end">Send</a>
+                                                    class="float-end" role="button">Send</a>
                                             </template>
                                         </template>
                                         <template v-else>
                                             <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled
-                                                class="actionBtn text-primary float-end">
+                                                class="text-primary float-end" role="button">
                                                 Sending Referral <span class="spinner-border spinner-border-sm"
                                                     role="status" aria-hidden="true"></span>
                                                 <span class="visually-hidden">Loading...</span>
@@ -204,33 +206,33 @@
                         </div>
                         <div v-if="show_finalised_actions" class="card-body border-top">
                             <div class="row">
-                                <div class="col-sm-12 top-buffer-s">
-                                    <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <strong>Action</strong><br />
                                         </div>
                                     </div>
                                     <template
                                         v-if="hasAssessorMode && conservation_status_obj.processing_status == 'Approved'">
-                                        <div class="row">
+                                        <div class="row mb-2">
                                             <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="proposeDelist()">Propose Delist</button><br />
                                             </div>
                                         </div>
                                     </template>
                                     <template v-if="canAction && canUnlock">
-                                        <div class="row">
+                                        <div class="row mb-2">
                                             <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="unlockConservationStatus()">Unlock</button><br />
                                             </div>
                                         </div>
                                     </template>
                                     <template v-if="canAction && canLock">
-                                        <div class="row">
+                                        <div class="row mb-2">
                                             <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="lockConservationStatus()">Lock</button><br />
                                             </div>
                                         </div>
@@ -240,46 +242,48 @@
                         </div>
                         <div v-if="!isFinalised && canAction" class="card-body border-top">
                             <div class="row">
-                                <div class="col-sm-12 top-buffer-s">
-                                    <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <strong>Action</strong><br />
                                         </div>
                                     </div>
                                     <template v-if="conservation_status_obj.processing_status == 'With Assessor'">
-                                        <div class="row">
+                                        <div class="row mb-2">
                                             <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="amendmentRequest()">Request
                                                     Amendment</button><br />
                                             </div>
                                         </div>
-                                        <div class="row"
+                                        <div class="row mb-2"
                                             v-if="conservation_status_obj.approval_level == 'minister' && conservation_status_obj.processing_status == 'With Assessor'">
                                             <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="proposedReadyForAgenda()">Propose for
                                                     Agenda</button><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="conservation_status_obj.approval_level == 'immediate'">
+                                        <div class="row mb-2"
+                                            v-if="conservation_status_obj.approval_level == 'immediate'">
                                             <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="declineProposal()">Decline</button><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="conservation_status_obj.approval_level == 'immediate'">
+                                        <div class="row mb-2"
+                                            v-if="conservation_status_obj.approval_level == 'immediate'">
                                             <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="issueProposal()">Approve</button><br />
                                             </div>
                                         </div>
                                     </template>
                                     <template
                                         v-if="conservation_status_obj.processing_status == 'Proposed For Agenda' && conservation_status_obj.approval_level == 'minister'">
-                                        <div class="row">
+                                        <div class="row mb-2">
                                             <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="readyForAgenda">Confirm Ready for
                                                     Agenda</button><br />
                                             </div>
@@ -287,13 +291,13 @@
                                     </template>
                                     <template
                                         v-if="conservation_status_obj.processing_status == 'On Agenda' && conservation_status_obj.approval_level == 'minister'">
-                                        <div class="row">
+                                        <div class="row mb-2">
                                             <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="issueProposal()">Approve</button><br />
                                             </div>
                                             <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="declineProposal()">Decline</button><br />
                                             </div>
                                         </div>
@@ -309,37 +313,37 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-12">
-                                                <button style="width:90%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="delistProposal()">Confirm Delisting</button><br />
                                             </div>
                                         </div>
                                     </template>
+                                    <template v-if="canSendBackToAssessor">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <button style="width:90%;" class="btn btn-primary"
+                                                    @click.prevent="backToAssessor">Back To
+                                                    Assessor</button><br />
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template v-if="canDefer">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <button style="width:90%;" class="btn btn-primary"
+                                                    @click.prevent="deferProposal()">Defer</button><br />
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template v-if="canDiscard">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <button style="width:90%;" class="btn btn-primary"
+                                                    @click.prevent="discardCSProposal()">Discard</button><br />
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
-                                <template v-if="canSendBackToAssessor">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary top-buffer-s"
-                                                @click.prevent="backToAssessor">Back To
-                                                Assessor</button><br />
-                                        </div>
-                                    </div>
-                                </template>
-                                <template v-if="canDefer">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary top-buffer-s"
-                                                @click.prevent="deferProposal()">Defer</button><br />
-                                        </div>
-                                    </div>
-                                </template>
-                                <template v-if="canDiscard">
-                                    <div class="row">
-                                        <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary top-buffer-s"
-                                                @click.prevent="discardCSProposal()">Discard</button><br />
-                                        </div>
-                                    </div>
-                                </template>
                             </div>
                         </div>
                     </div>
@@ -1586,23 +1590,3 @@ export default {
     },
 }
 </script>
-<style scoped>
-.top-buffer-s {
-    margin-top: 10px;
-}
-
-.actionBtn {
-    cursor: pointer;
-}
-
-.hidePopover {
-    display: none;
-}
-
-.separator {
-    border: 1px solid;
-    margin-top: 15px;
-    margin-bottom: 10px;
-    width: 100%;
-}
-</style>
