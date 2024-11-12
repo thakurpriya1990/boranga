@@ -447,7 +447,6 @@ export default {
                 { value: 'proposed_for_agenda', name: 'Proposed For Agenda', className: 'optionChild' },
                 { value: 'ready_for_agenda', name: 'Ready For Agenda', className: 'optionChild' },
                 { value: 'on_agenda', name: 'On Agenda', className: 'optionChild' },
-                { value: 'deferred', name: 'Deferred', className: 'optionChild' },
                 { value: 'with_approver', name: 'Proposed DeListed', className: 'optionChild' },
                 { value: 'inactive', name: 'Inactive', className: 'optionGroup' },
                 { value: 'declined', name: 'Declined', className: 'optionChild' },
