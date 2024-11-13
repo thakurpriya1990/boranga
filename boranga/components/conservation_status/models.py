@@ -1820,10 +1820,11 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             ConservationStatus.PROCESSING_STATUS_WITH_REFERRAL,
             ConservationStatus.PROCESSING_STATUS_PROPOSED_FOR_AGENDA,
             ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
+            ConservationStatus.PROCESSING_STATUS_ON_AGENDA,
         ]:
             raise ValidationError(
                 "You cannot defer a conservation status when the "
-                f"processing status is {self.get_processing_status_display}"
+                f"processing status is {self.get_processing_status_display()}"
             )
 
         if not is_conservation_status_assessor(
