@@ -590,8 +590,8 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "genus",
             "phylogenetic_group",
             "processing_status",
-            "effective_from_date",
-            "effective_to_date",
+            "effective_from",
+            "effective_to",
             "conservation_status_number",
         ]
 
@@ -599,12 +599,14 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             qs, context={"request": request}, many=True
         )
         serialized_data = serializer.data
-
         filtered_data = []
         for obj in serialized_data:
             filtered_obj = {
                 key: value for key, value in obj.items() if key in allowed_fields
             }
+            for key, value in obj.items():
+                if key == "phylogenetic_group":
+                    filtered_obj[key] = ", ".join(value)
             filtered_data.append(filtered_obj)
 
         def flatten_dict(d, parent_key="", sep="_"):
@@ -626,7 +628,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Common Name",
             "Family",
             "Genera",
-            "Phylo Group",
+            "Phylo Group(s)",
             "Processing Status",
             "Effective From Date",
             "Effective To Date",
@@ -641,6 +643,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Effective To Date",
             "Family",
             "Genera",
+            "Phylo Group(s)",
             "Processing Status",
         ]
         df = df[column_order]
@@ -1193,11 +1196,9 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             "community_number",
             "community_migrated_id",
             "community_name",
-            "region",
-            "district",
             "processing_status",
-            "effective_from_date",
-            "effective_to_date",
+            "effective_from",
+            "effective_to",
         ]
 
         serializer = ListCommunityConservationStatusSerializer(
@@ -1211,6 +1212,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
                 key: value for key, value in obj.items() if key in allowed_fields
             }
             filtered_data.append(filtered_obj)
+        logger.debug(filtered_data)
 
         def flatten_dict(d, parent_key="", sep="_"):
             flattened_dict = {}
@@ -1229,8 +1231,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             "Community",
             "Community Id",
             "Community Name",
-            "Region",
-            "District",
             "Processing Status",
             "Effective From Date",
             "Effective To Date",
@@ -1241,8 +1241,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             "Community",
             "Community Id",
             "Community Name",
-            "Region",
-            "District",
             "Effective From Date",
             "Effective To Date",
             "Processing Status",
