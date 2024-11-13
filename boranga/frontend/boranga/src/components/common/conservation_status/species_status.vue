@@ -238,7 +238,7 @@
                         <div class="col-sm-7">
                             <template v-if="!isReadOnly">
                                 <template
-                                    v-if="iucn_version && iucn_version.length > 0 && conservation_status_obj.iucn_version_id && !iucn_versions.map((d) => d.id).includes(conservation_status_obj.iucn_version_id)">
+                                    v-if="iucn_versions && iucn_versions.length > 0 && conservation_status_obj.iucn_version_id && !iucn_versions.map((d) => d.id).includes(conservation_status_obj.iucn_version_id)">
                                     <input type="text" v-if="conservation_status_obj.iucn_version"
                                         class="form-control mb-3"
                                         :value="conservation_status_obj.iucn_version + ' (Now Archived)'"
@@ -661,6 +661,7 @@ export default {
             cs_profile_dict: {},
             wa_legislative_lists: [],
             wa_legislative_categories: [],
+            iucn_versions: [],
             wa_priority_lists: [],
             wa_priority_categories: [],
             commonwealth_conservation_lists: [],
