@@ -296,6 +296,8 @@
                                                 <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="issueProposal()">Approve</button><br />
                                             </div>
+                                        </div>
+                                        <div class="row mb-2">
                                             <div class="col-sm-12">
                                                 <button style="width:90%;" class="btn btn-primary"
                                                     @click.prevent="declineProposal()">Decline</button><br />
