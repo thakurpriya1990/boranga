@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timedelta
 
 import reversion
+from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
@@ -1220,6 +1221,21 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     def amendment_requests(self):
         qs = ConservationStatusAmendmentRequest.objects.filter(conservation_status=self)
         return qs
+
+    @property
+    def most_recent_meeting_completed(self):
+        Meeting = apps.get_model("boranga", "Meeting")
+        meetings = Meeting.objects.exclude(lodgement_date__isnull=True).filter(
+            agenda_items__conservation_status_id=self.id
+        )
+        if not meetings.exists():
+            return False
+
+        most_recent_meeting = meetings.first()
+
+        return (
+            most_recent_meeting.processing_status == Meeting.PROCESSING_STATUS_COMPLETED
+        )
 
     def move_to_status(self, request, status, approver_comment):
         if not self.can_assess(request):
