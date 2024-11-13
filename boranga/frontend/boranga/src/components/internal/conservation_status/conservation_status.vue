@@ -678,6 +678,15 @@ export default {
             return (this.hasAssessorMode && this.conservation_status_obj.processing_status == 'Approved') || this.canAction && (this.canUnlock || this.canLock);
         }
     },
+    watch: {
+        canRefer: function (newVal, oldVal) {
+            // Had to add this hack as the select2 was not being removed when the parent div was removed
+            // from the DOM when the CS was approved
+            if (!newVal && Object.hasOwn(this.$refs, 'referees')) {
+                $(this.$refs.referees).select2('destroy');
+            }
+        },
+    },
     methods: {
         commaToNewline(s) {
             return s.replace(/[,;]/g, '\n');
