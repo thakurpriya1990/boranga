@@ -288,7 +288,7 @@ class Meeting(models.Model):
 
         self.processing_status = self.PROCESSING_STATUS_SCHEDULED
         self.submitter = request.user.id
-        # self.lodgement_date = timezone.now()
+        self.lodgement_date = timezone.now()
 
         # Create a log entry for the meeting
         self.log_user_action(
@@ -313,7 +313,6 @@ class Meeting(models.Model):
 
         self.processing_status = self.PROCESSING_STATUS_COMPLETED
         self.submitter = request.user.id
-        # self.lodgement_date = timezone.now()
 
         # Create a log entry for the meeting
         self.log_user_action(
