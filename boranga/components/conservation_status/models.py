@@ -1223,15 +1223,24 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         return qs
 
     @property
-    def most_recent_meeting_completed(self):
+    def most_recent_meeting(self):
         Meeting = apps.get_model("boranga", "Meeting")
-        meetings = Meeting.objects.exclude(lodgement_date__isnull=True).filter(
+        meetings = Meeting.objects.order_by("-datetime_updated").filter(
             agenda_items__conservation_status_id=self.id
         )
         if not meetings.exists():
-            return False
+            return None
 
         most_recent_meeting = meetings.first()
+        return most_recent_meeting
+
+    @property
+    def most_recent_meeting_completed(self):
+        Meeting = apps.get_model("boranga", "Meeting")
+        most_recent_meeting = self.most_recent_meeting
+
+        if not most_recent_meeting:
+            return False
 
         return (
             most_recent_meeting.processing_status == Meeting.PROCESSING_STATUS_COMPLETED
