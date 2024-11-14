@@ -18,6 +18,7 @@ from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
 )
+from boranga.components.meetings.serializers import MeetingSerializer
 from boranga.components.species_and_communities.models import CommunityTaxonomy
 from boranga.components.users.serializers import SubmitterInformationSerializer
 from boranga.helpers import (
@@ -824,6 +825,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     community_name = serializers.CharField(
         source="community.taxonomy.community_name", allow_null=True
     )
+    most_recent_meeting = MeetingSerializer(read_only=True, allow_null=True)
 
     class Meta:
         model = ConservationStatus
@@ -896,6 +898,8 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "public_consultation",
             "public_consultation_start_date",
             "public_consultation_end_date",
+            "most_recent_meeting",
+            "most_recent_meeting_completed",
         )
 
     def get_submitter(self, obj):
