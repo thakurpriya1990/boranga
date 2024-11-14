@@ -19,7 +19,7 @@
             {{ datetime_scheduled | formatDateDay }} <span class="fw-light">at</span> {{ datetime_scheduled | formatDateTime }}
         </div>
         <div v-if="datetime_completed" class="card-body border-top py-2">
-            <strong>Completed on</strong><br />
+            <strong>Marked as Completed on</strong><br />
             {{ datetime_completed | formatDateDay }} <span class="fw-light">at</span> {{ datetime_completed | formatDateTime }}
         </div>
         <div v-if="enableHistory" class="card-body border-top py-2">
