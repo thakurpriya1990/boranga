@@ -27,7 +27,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body border-top">
+                        <div  v-if="showActions" class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12">
                                     <div class="col-sm-12">
@@ -228,7 +228,7 @@ export default {
             }
         },
         canSeeSidePanel: function () {
-            return this.meeting_obj && this.meeting_obj.datetime_scheduled
+            return this.meeting_obj && this.meeting_obj.submitter
         },
         userCanEdit: function () {
             return this.meeting_obj.can_user_edit;
@@ -242,6 +242,9 @@ export default {
         userCanReinstate: function () {
             return this.meeting_obj.can_user_reinstate;
         },
+        showActions: function () {
+            return this.userCanSchedule || this.userCanComplete || this.userCanReinstate;
+        }
     },
     methods: {
         commaToNewline(s) {
@@ -372,6 +375,10 @@ export default {
                 if(vm.meeting_obj.selected_committee_members  == null || vm.meeting_obj.selected_committee_members  == '' || vm.meeting_obj.selected_committee_members.length<2  ) {
                     //  to also check the start and end date of meeting validation befor saving
                     blank_fields.push('Please select at least two committee members who will be attending');
+                }
+            } else {
+                if (vm.meeting_obj.attendees == null || vm.meeting_obj.attendees == '') {
+                    blank_fields.push(' Please enter some attendees')
                 }
             }
             if (vm.meeting_obj.location_id == null || vm.meeting_obj.location_id == '') {
