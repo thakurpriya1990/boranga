@@ -251,7 +251,7 @@ export default {
             let vm = this;
             swal.fire({
                 title: "Remove Agenda Item",
-                html: "<p>Are you sure?</p><p>This action will change the CS status back to 'Ready For Agenda'. If you wish to Defer or send it Back to the Assessor, you can do so from the CS form (which will open in a new tab for you).</p>",
+                html: "<p>Are you sure?</p><p>This action will change the CS status back to 'Ready For Agenda'.</p><p>If you wish to Defer the CS and send it Back to the Assessor, you can do so from the CS details page at any time.</p>",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Agenda Item',
