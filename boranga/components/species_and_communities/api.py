@@ -418,7 +418,7 @@ class GetSpeciesFilterDict(views.APIView):
             "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
                 group_type
             ),
-            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+            "commonwealth_conservation_categories": CommonwealthConservationList.get_lists_dict(
                 group_type
             ),
             "change_codes": ConservationChangeCode.get_filter_list(),
@@ -443,7 +443,7 @@ class GetCommunityFilterDict(views.APIView):
             "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
                 group_type
             ),
-            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+            "commonwealth_conservation_categories": CommonwealthConservationList.get_lists_dict(
                 group_type
             ),
             "change_codes": ConservationChangeCode.get_filter_list(),
@@ -665,7 +665,9 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         if filter_commonwealth_relevance == "true":
             queryset = queryset.filter(
                 conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-            ).exclude(conservation_status__commonwealth_conservation_list__isnull=True)
+            ).exclude(
+                conservation_status__commonwealth_conservation_category__isnull=True
+            )
 
         filter_international_relevance = request.POST.get(
             "filter_international_relevance"
@@ -925,7 +927,9 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         if filter_commonwealth_relevance == "true":
             queryset = queryset.filter(
                 conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-            ).exclude(conservation_status__commonwealth_conservation_list__isnull=True)
+            ).exclude(
+                conservation_status__commonwealth_conservation_category__isnull=True
+            )
 
         filter_international_relevance = request.GET.get(
             "filter_international_relevance"

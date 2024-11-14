@@ -33,13 +33,13 @@
                             :value="conservation_status.wa_priority_category" />
                     </div>
                 </div>
-                <div class="row mb-3" v-if="conservation_status.commonwealth_conservation_list">
-                    <label for="commonwealth_conservation_list" class="col-sm-4 col-form-label">Commonwealth
+                <div class="row mb-3" v-if="conservation_status.commonwealth_conservation_category">
+                    <label for="commonwealth_conservation_category" class="col-sm-4 col-form-label">Commonwealth
                         Conservation
                         List</label>
                     <div class="col-sm-8">
-                        <input class="form-control" id="commonwealth_conservation_list"
-                            :value="conservation_status.commonwealth_conservation_list" />
+                        <input class="form-control" id="commonwealth_conservation_category"
+                            :value="conservation_status.commonwealth_conservation_category" />
                     </div>
                 </div>
                 <div class="row mb-3" v-if="conservation_status.other_conservation_assessment">

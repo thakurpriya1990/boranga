@@ -61,7 +61,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     wa_legislative_list = serializers.SerializerMethodField()
     wa_legislative_category = serializers.SerializerMethodField()
     wa_priority_category = serializers.SerializerMethodField()
-    commonwealth_conservation_list = serializers.SerializerMethodField()
+    commonwealth_conservation_category = serializers.SerializerMethodField()
     other_conservation_assessment = serializers.SerializerMethodField()
     conservation_criteria = serializers.SerializerMethodField()
 
@@ -87,7 +87,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "wa_legislative_list",
             "wa_legislative_category",
             "wa_priority_category",
-            "commonwealth_conservation_list",
+            "commonwealth_conservation_category",
             "other_conservation_assessment",
             "conservation_criteria",
         )
@@ -111,7 +111,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "wa_legislative_list",
             "wa_legislative_category",
             "wa_priority_category",
-            "commonwealth_conservation_list",
+            "commonwealth_conservation_category",
             "other_conservation_assessment",
             "conservation_criteria",
         )
@@ -197,10 +197,13 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             return conservation_status.wa_priority_category.code
         return ""
 
-    def get_commonwealth_conservation_list(self, obj):
+    def get_commonwealth_conservation_category(self, obj):
         conservation_status = obj.approved_conservation_status
-        if conservation_status and conservation_status.commonwealth_conservation_list:
-            return conservation_status.commonwealth_conservation_list.code
+        if (
+            conservation_status
+            and conservation_status.commonwealth_conservation_category
+        ):
+            return conservation_status.commonwealth_conservation_category.code
         return ""
 
     def get_other_conservation_assessment(self, obj):
@@ -229,7 +232,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
     wa_legislative_list = serializers.SerializerMethodField()
     wa_legislative_category = serializers.SerializerMethodField()
     wa_priority_category = serializers.SerializerMethodField()
-    commonwealth_conservation_list = serializers.SerializerMethodField()
+    commonwealth_conservation_category = serializers.SerializerMethodField()
     other_conservation_assessment = serializers.SerializerMethodField()
     conservation_criteria = serializers.SerializerMethodField()
 
@@ -252,7 +255,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "wa_legislative_list",
             "wa_legislative_category",
             "wa_priority_category",
-            "commonwealth_conservation_list",
+            "commonwealth_conservation_category",
             "other_conservation_assessment",
             "conservation_criteria",
         )
@@ -273,7 +276,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "wa_legislative_list",
             "wa_legislative_category",
             "wa_priority_category",
-            "commonwealth_conservation_list",
+            "commonwealth_conservation_category",
             "other_conservation_assessment",
             "conservation_criteria",
         )
@@ -339,10 +342,13 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             return conservation_status.wa_priority_category.code
         return ""
 
-    def get_commonwealth_conservation_list(self, obj):
+    def get_commonwealth_conservation_category(self, obj):
         conservation_status = obj.approved_conservation_status
-        if conservation_status and conservation_status.commonwealth_conservation_list:
-            return conservation_status.commonwealth_conservation_list.code
+        if (
+            conservation_status
+            and conservation_status.commonwealth_conservation_category
+        ):
+            return conservation_status.commonwealth_conservation_category.code
         return ""
 
     def get_other_conservation_assessment(self, obj):

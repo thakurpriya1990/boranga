@@ -318,28 +318,28 @@
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="proposed_commonwealth_conservation_list"
+                        <label for="proposed_commonwealth_conservation_category"
                             class="col-sm-5 col-form-label">Commonwealth
                             Conservation
                             Category:</label>
                         <div class="col-sm-7">
                             <template v-if="!isReadOnly">
                                 <template
-                                    v-if="commonwealth_conservation_lists && commonwealth_conservation_lists.length > 0 && conservation_status_obj.commonwealth_conservation_list_id && !commonwealth_conservation_lists.map((d) => d.id).includes(conservation_status_obj.commonwealth_conservation_list_id)">
-                                    <input type="text" v-if="conservation_status_obj.commonwealth_conservation_list"
+                                    v-if="commonwealth_conservation_categories && commonwealth_conservation_categories.length > 0 && conservation_status_obj.commonwealth_conservation_category_id && !commonwealth_conservation_categories.map((d) => d.id).includes(conservation_status_obj.commonwealth_conservation_category_id)">
+                                    <input type="text" v-if="conservation_status_obj.commonwealth_conservation_category"
                                         class="form-control mb-3"
-                                        :value="conservation_status_obj.commonwealth_conservation_list + ' (Now Archived)'"
+                                        :value="conservation_status_obj.commonwealth_conservation_category + ' (Now Archived)'"
                                         disabled />
                                     <div class="mb-3 text-muted">
                                         Change commonwealth conservation list to:
                                     </div>
                                 </template>
                                 <select :disabled="isReadOnly" class="form-select"
-                                    v-model="conservation_status_obj.commonwealth_conservation_list_id"
-                                    id="proposed_commonwealth_conservation_list">
-                                    <option :value="null" disabled>Select the appropriate Commonwealth Conservation List
+                                    v-model="conservation_status_obj.commonwealth_conservation_category_id"
+                                    id="proposed_commonwealth_conservation_category">
+                                    <option :value="null" disabled>Select the appropriate Commonwealth Conservation Category
                                     </option>
-                                    <option v-for="option in commonwealth_conservation_lists" :value="option.id"
+                                    <option v-for="option in commonwealth_conservation_categories" :value="option.id"
                                         v-bind:key="option.id">
                                         {{ option.code }} - {{ option.label }}
                                     </option>
@@ -347,7 +347,7 @@
                             </template>
                             <template v-else>
                                 <input class="form-control" type="text" :disabled="true"
-                                    :value="conservation_status_obj.commonwealth_conservation_list ? conservation_status_obj.commonwealth_conservation_list : 'N/A'" />
+                                    :value="conservation_status_obj.commonwealth_conservation_category ? conservation_status_obj.commonwealth_conservation_category : 'N/A'" />
                             </template>
                         </div>
                     </div>
@@ -494,15 +494,15 @@
                             </select>
                         </div>
                     </div>
-                    <div v-if="conservation_status_obj.current_conservation_status.commonwealth_conservation_list_id"
+                    <div v-if="conservation_status_obj.current_conservation_status.commonwealth_conservation_category_id"
                         class="row mb-3">
                         <label for="current_commonwealth_conservation_category" class="col-sm-5 col-form-label">Commonwealth
                             Conservation Category:</label>
                         <div class="col-sm-7">
                             <select :disabled="true" class="form-select"
-                                v-model="conservation_status_obj.current_conservation_status.commonwealth_conservation_list_id"
+                                v-model="conservation_status_obj.current_conservation_status.commonwealth_conservation_category_id"
                                 id="current_commonwealth_conservation_category">
-                                <option v-for="option in commonwealth_conservation_lists" :value="option.id"
+                                <option v-for="option in commonwealth_conservation_categories" :value="option.id"
                                     v-bind:key="option.id">
                                     {{ option.code }}
                                 </option>
@@ -655,7 +655,7 @@ export default {
             iucn_versions: [],
             wa_priority_lists: [],
             wa_priority_categories: [],
-            commonwealth_conservation_lists: [],
+            commonwealth_conservation_categories: [],
             change_codes: [],
             filtered_wa_legislative_categories: [],
             filtered_wa_priority_categories: [],
@@ -908,7 +908,7 @@ export default {
             vm.iucn_versions = vm.cs_profile_dict.iucn_versions;
             vm.wa_priority_lists = vm.cs_profile_dict.wa_priority_lists;
             vm.wa_priority_categories = vm.cs_profile_dict.wa_priority_categories;
-            vm.commonwealth_conservation_lists = vm.cs_profile_dict.commonwealth_conservation_lists;
+            vm.commonwealth_conservation_categories = vm.cs_profile_dict.commonwealth_conservation_categories;
             vm.change_codes = vm.cs_profile_dict.active_change_codes;
             this.getCommunityDisplay();
             this.filterWALegislativeCategories();

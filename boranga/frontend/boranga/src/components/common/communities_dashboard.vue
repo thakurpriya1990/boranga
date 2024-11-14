@@ -387,12 +387,12 @@ export default {
         datatable_headers: function () {
             if (this.is_external) {
                 return ['Id', 'Number', 'Community Id', 'Community Name', 'Regions', 'Districts',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation Category',
                     'International Conservation', 'Conservation Criteria', 'Action']
             }
             if (this.is_internal) {
                 return ['Id', 'Number', 'Community Id', 'Community Name', 'Regions', 'Districts',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation Category',
                     'International Conservation', 'Conservation Criteria', 'Status', 'Action']
             }
         },
@@ -522,9 +522,9 @@ export default {
                 visible: true,
             }
         },
-        column_commonwealth_conservation_list: function () {
+        column_commonwealth_conservation_category: function () {
             return {
-                data: "commonwealth_conservation_list",
+                data: "commonwealth_conservation_category",
                 orderable: false,
                 searchable: false,
                 visible: true,
@@ -614,7 +614,7 @@ export default {
                     vm.column_wa_priority_category,
                     vm.column_wa_legislative_list,
                     vm.column_wa_legislative_category,
-                    vm.column_commonwealth_conservation_list,
+                    vm.column_commonwealth_conservation_category,
                     vm.column_other_conservation_assessment,
                     vm.column_conservation_criteria,
                     vm.column_action,
@@ -632,7 +632,7 @@ export default {
                     vm.column_wa_priority_category,
                     vm.column_wa_legislative_list,
                     vm.column_wa_legislative_category,
-                    vm.column_commonwealth_conservation_list,
+                    vm.column_commonwealth_conservation_category,
                     vm.column_other_conservation_assessment,
                     vm.column_conservation_criteria,
                     vm.column_status,

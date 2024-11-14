@@ -173,7 +173,7 @@ class GetCSProfileDict(views.APIView):
                 group_type, active_only=True
             ),
             "iucn_versions": IUCNVersion.get_lists_dict(group_type, active_only=True),
-            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+            "commonwealth_conservation_categories": CommonwealthConservationList.get_lists_dict(
                 group_type, active_only=True
             ),
             "change_codes": ConservationChangeCode.get_filter_list(),
@@ -317,10 +317,12 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         )
         if filter_commonwealth_relevance == "true":
             if queryset.model is ConservationStatus:
-                queryset = queryset.exclude(commonwealth_conservation_list__isnull=True)
+                queryset = queryset.exclude(
+                    commonwealth_conservation_category__isnull=True
+                )
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.exclude(
-                    conservation_status__commonwealth_conservation_list__isnull=True
+                    conservation_status__commonwealth_conservation_category__isnull=True
                 )
 
         filter_international_relevance = request.POST.get(
@@ -709,10 +711,12 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
         )
         if filter_commonwealth_relevance == "true":
             if queryset.model is ConservationStatus:
-                queryset = queryset.exclude(commonwealth_conservation_list__isnull=True)
+                queryset = queryset.exclude(
+                    commonwealth_conservation_category__isnull=True
+                )
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.exclude(
-                    conservation_status__commonwealth_conservation_list__isnull=True
+                    conservation_status__commonwealth_conservation_category__isnull=True
                 )
 
         filter_international_relevance = request.POST.get(
@@ -2003,7 +2007,7 @@ class ConservationStatusReferralViewSet(
                 group_type
             ),
             "iucn_versions": IUCNVersion.get_lists_dict(group_type),
-            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+            "commonwealth_conservation_categories": CommonwealthConservationList.get_lists_dict(
                 group_type
             ),
             "processing_status_list": processing_status_list,
@@ -2067,7 +2071,7 @@ class ConservationStatusReferralViewSet(
                 group_type
             ),
             "iucn_versions": IUCNVersion.get_lists_dict(group_type),
-            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+            "commonwealth_conservation_categories": CommonwealthConservationList.get_lists_dict(
                 group_type
             ),
             "processing_status_list": processing_status_list,

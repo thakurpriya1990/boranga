@@ -323,7 +323,7 @@ class CommonwealthConservationList(AbstractConservationList):
     class Meta:
         ordering = ["code"]
         app_label = "boranga"
-        verbose_name = "Commonwealth Conservation List"
+        verbose_name = "Commonwealth Conservation Category"
 
 
 class ConservationChangeCode(ArchivableModel):
@@ -567,11 +567,14 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         null=True,
         related_name="curr_iucn_version",
     )
-    commonwealth_conservation_list = models.ForeignKey(
+    # Although this field is a relationship to CommonwealthConservationList
+    # the business requirements was that it should be called a "category"
+    commonwealth_conservation_category = models.ForeignKey(
         CommonwealthConservationList,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
+        # Leave the following as _list otherwise django has remove the field and create a new one
         related_name="curr_commonwealth_conservation_list",
     )
     other_conservation_assessment = models.CharField(
