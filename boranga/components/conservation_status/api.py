@@ -593,111 +593,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
         return self.paginator.get_paginated_response(serializer.data)
 
-    @list_route(
-        methods=[
-            "POST",
-        ],
-        detail=False,
-        permission_classes=[ConservationStatusPermission],
-    )
-    def species_cs_referrals_internal_export(self, request, *args, **kwargs):
-
-        self.serializer_class = ConservationStatusReferralSerializer
-        qs = (
-            ConservationStatusReferral.objects.filter(referral=request.user.id)
-            if is_internal(self.request)
-            else ConservationStatusReferral.objects.none()
-        )
-        qs = self.filter_queryset(qs)
-        export_format = request.POST.get("export_format")
-        allowed_fields = [
-            "species_number",
-            "scientific_name",
-            "common_name",
-            "family",
-            "genus",
-            "processing_status",
-            "conservation_status_number",
-        ]
-
-        serializer = DTConservationStatusReferralSerializer(
-            qs, context={"request": request}, many=True
-        )
-        serialized_data = serializer.data
-
-        filtered_data = []
-        for obj in serialized_data:
-            filtered_obj = {
-                key: value for key, value in obj.items() if key in allowed_fields
-            }
-            filtered_data.append(filtered_obj)
-
-        def flatten_dict(d, parent_key="", sep="_"):
-            flattened_dict = {}
-            for k, v in d.items():
-                new_key = parent_key + sep + k if parent_key else k
-                if isinstance(v, dict):
-                    flattened_dict.update(flatten_dict(v, new_key, sep))
-                else:
-                    flattened_dict[new_key] = v
-            return flattened_dict
-
-        flattened_data = [flatten_dict(item) for item in filtered_data]
-        df = pd.DataFrame(flattened_data)
-        new_headings = [
-            "Processing Status",
-            "Number",
-            "Species",
-            "Scientific Name",
-            "Common Name",
-        ]
-        df.columns = new_headings
-        column_order = [
-            "Number",
-            "Species",
-            "Scientific Name",
-            "Common Name",
-            "Processing Status",
-        ]
-        df = df[column_order]
-
-        if export_format is not None:
-            if export_format == "excel":
-                buffer = BytesIO()
-                workbook = Workbook()
-                sheet_name = "Sheet1"
-                sheet = workbook.active
-                sheet.title = sheet_name
-
-                for row in dataframe_to_rows(df, index=False, header=True):
-                    sheet.append(row)
-                for cell in sheet[1]:
-                    cell.font = Font(bold=True)
-
-                workbook.save(buffer)
-                buffer.seek(0)
-                response = HttpResponse(
-                    buffer.read(), content_type="application/vnd.ms-excel"
-                )
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_ConservationStatus_Species_Referrals.xlsx"
-                )
-                final_response = response
-                buffer.close()
-                return final_response
-
-            elif export_format == "csv":
-                csv_data = df.to_csv(index=False)
-                response = HttpResponse(content_type="text/csv")
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_ConservationStatus_Species_Referrals.csv"
-                )
-                response.write(csv_data)
-                return response
-
-            else:
-                return Response(status=400, data="Format not valid")
-
 
 class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
     def filter_queryset(self, request, queryset, view):
@@ -1085,15 +980,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             result_page, context={"request": request}, many=True
         )
         return self.paginator.get_paginated_response(serializer.data)
-
-    @list_route(
-        methods=[
-            "POST",
-        ],
-        detail=False,
-        permission_classes=[ConservationStatusReferralPermission],
-    )
-    def community_cs_referrals_internal_export(self, request, *args, **kwargs):
         qs = (
             ConservationStatusReferral.objects.filter(referral=request.user.id)
             if is_internal(self.request)
