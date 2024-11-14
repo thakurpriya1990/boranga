@@ -274,15 +274,6 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @detail_route(methods=["PUT"], detail=True)
     @renderer_classes((JSONRenderer,))
-    def submit(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.submit(request, self)
-        instance.save()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
-    @detail_route(methods=["PUT"], detail=True)
-    @renderer_classes((JSONRenderer,))
     def schedule_meeting(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.schedule_meeting(request, self)

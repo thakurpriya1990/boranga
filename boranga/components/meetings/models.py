@@ -143,7 +143,10 @@ class Meeting(models.Model):
         choices=PROCESSING_STATUS_CHOICES,
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
-    lodgement_date = models.DateTimeField(blank=True, null=True)
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    datetime_updated = models.DateTimeField(auto_now=True)
+    datetime_scheduled = models.DateTimeField(blank=True, null=True)
+    datetime_completed = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True)  # EmailUserRO
 
     class Meta:
@@ -259,36 +262,13 @@ class Meeting(models.Model):
         )
 
     @transaction.atomic
-    def submit(self, request, viewset):
-        if not self.can_user_edit:
-            raise ValidationError("You can't edit this meeting at this moment")
-
-        self.submitter = request.user.id
-        self.lodgement_date = timezone.now()
-
-        # Create a log entry for the meeting
-        self.log_user_action(
-            MeetingUserAction.ACTION_SUBMIT_MEETING.format(self.meeting_number), request
-        )
-
-        # Create a log entry for the submitter
-        request.user.log_user_action(
-            MeetingUserAction.ACTION_SUBMIT_MEETING.format(
-                self.meeting_number,
-            ),
-            request,
-        )
-
-        self.save()
-
-    @transaction.atomic
     def schedule_meeting(self, request, viewset):
         if not self.processing_status == self.PROCESSING_STATUS_DRAFT:
             raise ValidationError("You can't schedule this meeting at this moment")
 
         self.processing_status = self.PROCESSING_STATUS_SCHEDULED
         self.submitter = request.user.id
-        self.lodgement_date = timezone.now()
+        self.datetime_scheduled = timezone.now()
 
         # Create a log entry for the meeting
         self.log_user_action(
@@ -313,6 +293,7 @@ class Meeting(models.Model):
 
         self.processing_status = self.PROCESSING_STATUS_COMPLETED
         self.submitter = request.user.id
+        self.datetime_completed = timezone.now()
 
         # Create a log entry for the meeting
         self.log_user_action(
@@ -366,7 +347,6 @@ class MeetingLogEntry(CommunicationsLogEntry):
 class MeetingUserAction(UserAction):
     ACTION_CREATE_MEETING = "Create meeting {}"
     ACTION_SAVE_MEETING = "Save Meeting {}"
-    ACTION_SUBMIT_MEETING = "Submit Meeting {}"
     ACTION_SCHEDULE_MEETING = "Schedule Meeting {}"
     ACTION_COMPLETE_MEETING = "Complete Meeting {}"
     ACTION_DISCARD_MEETING = "Discard Meeting {}"
