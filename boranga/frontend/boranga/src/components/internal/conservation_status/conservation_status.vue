@@ -8,7 +8,7 @@
             </h3>
             <div class="col-md-3">
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                    :disable_add_entry="!conservation_status_obj.can_add_log" class="mb-3"/>
+                    :disable_add_entry="!conservation_status_obj.can_add_log" class="mb-3" />
 
                 <Submission :submitter_first_name="submitter_first_name" :submitter_last_name="submitter_last_name"
                     :lodgement_date="conservation_status_obj.lodgement_date"
@@ -21,6 +21,21 @@
                     <div class="card-body">
                         <strong>Status</strong><br />
                         {{ conservation_status_obj.processing_status }}
+                        <template
+                            v-if="conservation_status_obj.processing_status == 'On Agenda' && conservation_status_obj.most_recent_meeting">
+                            <p class="my-2">
+                                <strong>
+                                    <template v-if="conservation_status_obj.most_recent_meeting_completed">Meeting
+                                        Completed<i class="bi bi-check-circle-fill ms-2 text-success"></i></template>
+                                    <template v-else>Awaiting Meeting<i class="bi bi-hourglass-split ms-2 text-secondary"></i></template>
+                                </strong><br />
+                                <a :href="`/internal/meetings/${conservation_status_obj.most_recent_meeting.id}?action=edit`"
+                                    target="_blank">{{
+                                        conservation_status_obj.most_recent_meeting.title ?
+                                            conservation_status_obj.most_recent_meeting.title : 'Meeting
+                                    Draft' }}<i class="bi bi-box-arrow-up-right ms-2"></i></a>
+                            </p>
+                        </template>
                     </div>
                     <div v-if="conservation_status_obj.processing_status != 'Draft'" class="card-body border-top">
                         <div class="row">
@@ -105,20 +120,20 @@
                                                         data-bs-trigger="hover focus" :data-bs-content="'Send a reminder to ' +
                                                             external_referee_invite.full_name
                                                             " data-bs-placement="bottom" @click.prevent="
-                                                                    remindExternalReferee(
-                                                                        external_referee_invite
-                                                                    )
-                                                                    "><i class="fa fa-bell text-warning"
+                                                                remindExternalReferee(
+                                                                    external_referee_invite
+                                                                )
+                                                                "><i class="fa fa-bell text-warning"
                                                             aria-hidden="true"></i>
                                                     </a>
                                                     <a role="button" data-bs-toggle="popover"
                                                         data-bs-trigger="hover focus" :data-bs-content="'Retract the external referee invite sent to ' +
                                                             external_referee_invite.full_name
                                                             " data-bs-placement="bottom" @click.prevent="
-                                                                    retractExternalRefereeInvite(
-                                                                        external_referee_invite
-                                                                    )
-                                                                    "><i class="fa fa-times-circle text-danger"
+                                                                retractExternalRefereeInvite(
+                                                                    external_referee_invite
+                                                                )
+                                                                "><i class="fa fa-times-circle text-danger"
                                                             aria-hidden="true"></i>
                                                     </a>
                                                 </td>
@@ -283,8 +298,7 @@
                                         </div>
                                     </div>
                                 </template>
-                                <template
-                                    v-if="conservation_status_obj.processing_status == 'On Agenda' && conservation_status_obj.approval_level == 'minister'">
+                                <template v-if="canApproveOrDeclineOnAgendaCS">
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary"
@@ -595,7 +609,7 @@ export default {
             if (this.isFinalised) {
                 return this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver;
             }
-            else if (['Proposed For Agenda', 'Ready For Agenda', 'On Agenda', 'Proposed DeListed', 'Unlocked'].includes(this.conservation_status_obj.processing_status)) {
+            else if (['Proposed For Agenda', 'Ready For Agenda', 'Proposed DeListed', 'Unlocked'].includes(this.conservation_status_obj.processing_status)) {
                 return this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
                     && this.conservation_status_obj.assessor_mode.assessor_can_assess;
             }
@@ -609,9 +623,14 @@ export default {
                         this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
                     );
             }
+            else if (this.conservation_status_obj.processing_status == 'On Agenda') {
+                return this.conservation_status_obj.assessor_mode.assessor_can_assess && this.conservation_status_obj.most_recent_meeting_completed &&
+                    (
+                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
+                    );
+            }
             else {
-                return this.conservation_status_obj
-                    && this.conservation_status_obj.processing_status == 'Draft'
+                return this.conservation_status_obj.processing_status == 'Draft'
                     && this.conservation_status_obj.internal_application
                     && this.conservation_status_obj.internal_user_edit
             }
@@ -640,13 +659,26 @@ export default {
                     this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
                 );
         },
+        canApproveOrDeclineOnAgendaCS: function () {
+            return this.conservation_status_obj &&
+                this.conservation_status_obj.approval_level == 'minister' &&
+                this.conservation_status_obj.processing_status == 'On Agenda' &&
+                this.conservation_status_obj.most_recent_meeting_completed &&
+                this.conservation_status_obj.assessor_mode.assessor_can_assess &&
+                (
+                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
+                );
+        },
         canDefer: function () {
             return this.conservation_status_obj &&
                 [
                     constants.PROPOSAL_STATUS.WITH_ASSESSOR.TEXT,
                     constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
-                    constants.PROPOSAL_STATUS.ON_AGENDA.TEXT,
-                ].includes(this.conservation_status_obj.processing_status) &&
+                ].includes(this.conservation_status_obj.processing_status) ||
+                (
+                    this.conservation_status_obj.processing_status == constants.PROPOSAL_STATUS.ON_AGENDA.TEXT &&
+                    this.conservation_status_obj.most_recent_meeting_completed
+                ) &&
                 this.conservation_status_obj.assessor_mode.assessor_can_assess &&
                 (
                     this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer ||
