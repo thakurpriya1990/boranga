@@ -930,17 +930,21 @@ export default {
             let search = null
             let buttons = [
                 {
+                    extend: 'excel',
+                    title: 'Boranga CS Flora Excel Export',
                     text: '<i class="fa-solid fa-download"></i> Excel',
                     className: 'btn btn-primary me-2 rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("excel");
+                    exportOptions: {
+                        columns: ':not(.no-export)',
                     }
                 },
                 {
+                    extend: 'csv',
+                    title: ' Boranga CS Flora CSV Export',
                     text: '<i class="fa-solid fa-download"></i> CSV',
                     className: 'btn btn-primary rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("csv");
+                    exportOptions: {
+                        columns: ':not(.no-export)',
                     }
                 }
             ]
@@ -988,7 +992,7 @@ export default {
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 },
-                    { responsivePriority: 3, targets: -1 },
+                    { responsivePriority: 3, targets: -1, className: 'no-export' },
                     { responsivePriority: 2, targets: -2 }
                 ],
                 ajax: {
@@ -1469,222 +1473,6 @@ export default {
             vm.$refs.flora_cs_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                 helpers.enablePopovers();
             });
-        },
-        exportData: function (format) {
-            let vm = this;
-            const columns_new = {
-                "0": {
-                    "data": "conservation_status_number",
-                    "name": "conservation_status__id, conservation_status__conservation_status_number",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "false"
-                },
-                "1": {
-                    "data": "species_number",
-                    "name": "conservation_status__species__species_number",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "2": {
-                    "data": "scientific_name",
-                    "name": "conservation_status__species__taxonomy__scientific_name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "3": {
-                    "data": "conservation_list",
-                    "name": "conservation_status__conservation_list__code",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "4": {
-                    "data": "conservation_category",
-                    "name": "conservation_status__conservation_category__code",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "5": {
-                    "data": "family",
-                    "name": "species__taxonomy__family_name",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "6": {
-                    "data": "genus",
-                    "name": "species__taxonomy__genera_name",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "7": {
-                    "data": "processing_status",
-                    "name": "conservation_status__processing_status",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "8": {
-                    "data": "id",
-                    "name": "",
-                    "searchable": "false",
-                    "orderable": "false",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "9": {
-                    "data": "conservation_status",
-                    "name": "",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-            };
-
-            const object_load = {
-                columns: columns_new,
-                filter_group_type: vm.group_type_name,
-                filter_scientific_name: vm.filterCSFloraScientificName,
-                filter_common_name: vm.filterCSFloraCommonName,
-                filter_family: vm.filterCSFloraFamily,
-                filter_genus: vm.filterCSFloraGenus,
-                filter_change_code: vm.filterCSFloraChangeCode,
-                filter_wa_legislative_list: vm.filterCSFloraWALegislativeList,
-                filter_wa_legislative_category: vm.filterCSFloraWALegislativeCategory,
-                filter_wa_priority_category: vm.filterCSFloraWAPriorityCategory,
-                filter_commonwealth_relevance: vm.filterCSFloraCommonwealthRelevance,
-                filter_international_relevance: vm.filterCSFloraInternationalRelevance,
-                filter_application_status: vm.filterCSFloraApplicationStatus,
-                filter_assessor: vm.filterCSFloraAssessor,
-                filter_submitter: vm.filterCSFloraSubmitter,
-                filter_submitter_category: vm.filterCSFloraSubmitterCategory,
-                filter_from_effective_from_date: vm.filterCSFromFloraEffectiveFromDate,
-                filter_to_effective_from_date: vm.filterCSToFloraEffectiveFromDate,
-                filter_from_effective_to_date: vm.filterCSFromFloraEffectiveToDate,
-                filter_to_effective_to_date: vm.filterCSToFloraEffectiveToDate,
-                filter_from_review_due_date: vm.filterCSFromFloraReviewDueDate,
-                filter_to_review_due_date: vm.filterCSToFloraReviewDueDate,
-                export_format: format
-            };
-
-            const url = api_endpoints.species_cs_internal_export;
-            const keyValuePairs = [];
-
-            for (const key in object_load) {
-                if (object_load.hasOwnProperty(key)) {
-                    const encodedKey = encodeURIComponent(key);
-                    let encodedValue = '';
-
-                    if (typeof object_load[key] === 'object') {
-                        encodedValue = encodeURIComponent(JSON.stringify(object_load[key]));
-                    }
-                    else {
-                        encodedValue = encodeURIComponent(object_load[key]);
-                    }
-                    keyValuePairs.push(`${encodedKey}=${encodedValue}`);
-                }
-            }
-            const params = keyValuePairs.join('&');
-            const fullUrl = `${url}?${params}`;
-            try {
-                if (format === "excel") {
-                    $.ajax({
-                        type: "POST",
-                        headers: {
-                            'X-CSRFToken': helpers.getCookie('csrftoken'),
-                        },
-                        url: url + "/",
-                        data: object_load,
-                        //contentType: "application/vnd.ms-excel",
-                        dataType: "binary",
-                        xhrFields: {
-                            responseType: 'blob'
-                        },
-
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "application/vnd.ms-excel" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-                else if (format === "csv") {
-                    $.ajax({
-                        type: "POST",
-                        headers: {
-                            'X-CSRFToken': helpers.getCookie('csrftoken'),
-                        },
-                        url: url + "/",
-                        data: object_load,
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "text/csv" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-            }
-            catch (err) {
-                console.log(err);
-            }
         },
     },
     mounted: function () {
