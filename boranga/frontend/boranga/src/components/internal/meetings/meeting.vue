@@ -8,8 +8,10 @@
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
                     :disable_add_entry="!meeting_obj.can_add_log" />
 
-                <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
-                    :submitter_last_name="submitter_last_name" :lodgement_date="meeting_obj.lodgement_date"
+                <MeetingSidePanel v-if="canSeeSidePanel" :submitter_first_name="submitter_first_name"
+                    :submitter_last_name="submitter_last_name" :datetime_created="meeting_obj.datetime_created"
+                    :datetime_scheduled="meeting_obj.datetime_scheduled"
+                    :datetime_completed="meeting_obj.datetime_completed"
                     class="mt-3" />
 
                 <div class="mt-3">
@@ -140,7 +142,7 @@
 import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
-import Submission from '@common-utils/submission.vue'
+import MeetingSidePanel from '@common-utils/meeting_side_panel.vue'
 import MeetingSection from './meeting_section.vue'
 import Minutes from './minutes.vue'
 import CSQueue from './cs_queue.vue';
@@ -175,7 +177,7 @@ export default {
     components: {
         datatable,
         CommsLogs,
-        Submission,
+        MeetingSidePanel,
         MeetingSection,
         Minutes,
         CSQueue,
@@ -225,8 +227,8 @@ export default {
                 //return this.meeting_obj.applicant_obj.email
             }
         },
-        canSeeSubmission: function () {
-            return this.meeting_obj && this.meeting_obj.lodgement_date
+        canSeeSidePanel: function () {
+            return this.meeting_obj && this.meeting_obj.datetime_scheduled
         },
         userCanEdit: function () {
             return this.meeting_obj.can_user_edit;
