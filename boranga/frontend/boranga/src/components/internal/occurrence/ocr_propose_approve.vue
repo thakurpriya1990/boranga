@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="internal-ocr-propose-approve-request">
-        <modal id="ocr-propose-approve-modal" transition="modal fade" @ok="ok()" ok-text="Propose Approve" @cancel="close()"
-            :title="`Propose Approve ${occurrence_report_number}`" large>
+        <modal id="ocr-propose-approve-modal" transition="modal fade" @ok="ok()" ok-text="Propose Approve"
+            @cancel="close()" :title="`Propose Approve ${occurrence_report_number}`" large>
             <div class="container">
                 <form id="propose-approve-form">
                     <div v-if="errorString" class="row mb-3">
@@ -47,6 +47,13 @@
                                 <label class="form-label" for="details">Details for Approver</label>
                                 <textarea type="date" class="form-control" id="details" name="details"
                                     v-model="propose_approve.details" required></textarea>
+                            </div>
+                            <div class="mt-3">
+                                <div class="col-sm-12">
+                                    <label class="control-label" for="cc_email">CC email</label>
+                                    <input type="text" style="width: 70%;" class="form-control" name="cc_email"
+                                        v-model="propose_approve.cc_email" />
+                                </div>
                             </div>
                             <div class="mt-3">
                                 some blurb to let the user know to go through the report and add sections to the
@@ -95,6 +102,7 @@ export default {
                 create_new_occurrence: false,
                 new_occurrence_name: '',
                 details: '',
+                cc_email: '',
             },
             errorString: '',
         }
