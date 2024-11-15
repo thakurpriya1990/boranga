@@ -790,6 +790,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             defaults={
                 "officer": request.user.id,
                 "reason": reason,
+                "cc_email": details.get("cc_email", None),
             },
         )
 
@@ -936,6 +937,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                 "occurrence": occurrence,
                 "new_occurrence_name": new_occurrence_name,
                 "details": details,
+                "cc_email": validated_data.get("cc_email", None),
             },
         )
 
@@ -1344,6 +1346,7 @@ class OccurrenceReportApprovalDetails(models.Model):
     new_occurrence_name = models.CharField(max_length=200, null=True, blank=True)
     officer = models.IntegerField()  # EmailUserRO
     details = models.TextField(blank=True)
+    cc_email = models.TextField(null=True)
 
     class Meta:
         app_label = "boranga"
