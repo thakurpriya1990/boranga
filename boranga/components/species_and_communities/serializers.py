@@ -62,7 +62,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     wa_legislative_category = serializers.SerializerMethodField()
     wa_priority_category = serializers.SerializerMethodField()
     commonwealth_conservation_list = serializers.SerializerMethodField()
-    international_conservation = serializers.SerializerMethodField()
+    other_conservation_assessment = serializers.SerializerMethodField()
     conservation_criteria = serializers.SerializerMethodField()
 
     class Meta:
@@ -88,7 +88,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "wa_legislative_category",
             "wa_priority_category",
             "commonwealth_conservation_list",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
         )
         datatables_always_serialize = (
@@ -112,7 +112,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             "wa_legislative_category",
             "wa_priority_category",
             "commonwealth_conservation_list",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
         )
 
@@ -203,10 +203,10 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
             return conservation_status.commonwealth_conservation_list.code
         return ""
 
-    def get_international_conservation(self, obj):
+    def get_other_conservation_assessment(self, obj):
         conservation_status = obj.approved_conservation_status
-        if conservation_status and conservation_status.international_conservation:
-            return conservation_status.international_conservation
+        if conservation_status and conservation_status.other_conservation_assessment:
+            return conservation_status.other_conservation_assessment
         return ""
 
     def get_conservation_criteria(self, obj):
@@ -230,7 +230,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
     wa_legislative_category = serializers.SerializerMethodField()
     wa_priority_category = serializers.SerializerMethodField()
     commonwealth_conservation_list = serializers.SerializerMethodField()
-    international_conservation = serializers.SerializerMethodField()
+    other_conservation_assessment = serializers.SerializerMethodField()
     conservation_criteria = serializers.SerializerMethodField()
 
     class Meta:
@@ -253,7 +253,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "wa_legislative_category",
             "wa_priority_category",
             "commonwealth_conservation_list",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
         )
         datatables_always_serialize = (
@@ -274,7 +274,7 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             "wa_legislative_category",
             "wa_priority_category",
             "commonwealth_conservation_list",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
         )
 
@@ -345,10 +345,10 @@ class ListCommunitiesSerializer(serializers.ModelSerializer):
             return conservation_status.commonwealth_conservation_list.code
         return ""
 
-    def get_international_conservation(self, obj):
+    def get_other_conservation_assessment(self, obj):
         conservation_status = obj.approved_conservation_status
-        if conservation_status and conservation_status.international_conservation:
-            return conservation_status.international_conservation
+        if conservation_status and conservation_status.other_conservation_assessment:
+            return conservation_status.other_conservation_assessment
         return ""
 
     def get_conservation_criteria(self, obj):

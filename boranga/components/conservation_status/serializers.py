@@ -18,6 +18,7 @@ from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
 )
+from boranga.components.meetings.serializers import MeetingSerializer
 from boranga.components.species_and_communities.models import CommunityTaxonomy
 from boranga.components.users.serializers import SubmitterInformationSerializer
 from boranga.helpers import (
@@ -60,7 +61,7 @@ class BasicConservationStatusSerializer(serializers.ModelSerializer):
             "wa_legislative_category",
             "wa_priority_category",
             "commonwealth_conservation_list",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
             "under_review",
         )
@@ -202,7 +203,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "wa_legislative_list",
             "wa_legislative_category",
             "commonwealth_conservation_list",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
             "processing_status",
             "customer_status",
@@ -400,7 +401,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             "wa_legislative_list",
             "wa_legislative_category",
             "commonwealth_conservation_list",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
             "effective_from",
             "effective_to",
@@ -433,7 +434,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             "wa_legislative_list",
             "wa_legislative_category",
             "commonwealth_conservation_list",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
             "effective_from",
             "effective_to",
@@ -534,6 +535,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
     wa_legislative_category = serializers.SerializerMethodField(read_only=True)
     wa_priority_list = serializers.SerializerMethodField(read_only=True)
     wa_priority_category = serializers.SerializerMethodField(read_only=True)
+    iucn_version = serializers.SerializerMethodField(read_only=True)
     commonwealth_conservation_list = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -548,6 +550,8 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "conservation_status_number",
             "wa_legislative_list_id",
             "wa_legislative_list",
+            "iucn_version_id",
+            "iucn_version",
             "wa_legislative_category_id",
             "wa_legislative_category",
             "wa_priority_list_id",
@@ -556,7 +560,7 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "wa_priority_category",
             "commonwealth_conservation_list_id",
             "commonwealth_conservation_list",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
             "comment",
             "lodgement_date",
@@ -597,6 +601,15 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             return f"{obj.wa_legislative_category.code} - {obj.wa_legislative_category.label}"
 
         return obj.wa_legislative_category.code
+
+    def get_iucn_version(self, obj):
+        if not obj.iucn_version:
+            return None
+
+        if obj.iucn_version.code and obj.iucn_version.label:
+            return f"{obj.iucn_version.code} - {obj.iucn_version.label}"
+
+        return obj.iucn_version.code
 
     def get_wa_priority_list(self, obj):
         if not obj.wa_priority_list:
@@ -768,10 +781,11 @@ class CurrentConservationStatusSerializer(serializers.ModelSerializer):
             "conservation_status_number",
             "wa_legislative_list_id",
             "wa_legislative_category_id",
+            "iucn_version_id",
             "wa_priority_list_id",
             "wa_priority_category_id",
             "commonwealth_conservation_list_id",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
         ]
 
@@ -805,6 +819,13 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
     )
     can_add_log = serializers.SerializerMethodField(read_only=True)
     can_user_assign_to_self = serializers.SerializerMethodField(read_only=True)
+    scientific_name = serializers.CharField(
+        source="species_taxonomy.scientific_name", allow_null=True
+    )
+    community_name = serializers.CharField(
+        source="community.taxonomy.community_name", allow_null=True
+    )
+    most_recent_meeting = MeetingSerializer(read_only=True, allow_null=True)
 
     class Meta:
         model = ConservationStatus
@@ -813,11 +834,15 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "group_type",
             "group_type_id",
             "species_taxonomy_id",
+            "scientific_name",
             "species_id",
             "community_id",
+            "community_name",
             "conservation_status_number",
             "wa_legislative_list_id",
             "wa_legislative_list",
+            "iucn_version_id",
+            "iucn_version",
             "wa_legislative_category_id",
             "wa_legislative_category",
             "wa_priority_list_id",
@@ -826,7 +851,7 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "wa_priority_category",
             "commonwealth_conservation_list_id",
             "commonwealth_conservation_list",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
             "comment",
             "processing_status",
@@ -868,6 +893,13 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "is_submitter",
             "can_add_log",
             "can_user_assign_to_self",
+            "cam_mou",
+            "cam_mou_date_sent",
+            "public_consultation",
+            "public_consultation_start_date",
+            "public_consultation_end_date",
+            "most_recent_meeting",
+            "most_recent_meeting_completed",
         )
 
     def get_submitter(self, obj):
@@ -1046,6 +1078,9 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
     wa_legislative_category_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
+    iucn_version_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
     wa_priority_list_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
@@ -1059,6 +1094,11 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
         required=False, allow_null=True, write_only=True
     )
 
+    def to_internal_value(self, data):
+        if data.get("review_due_date") == "":
+            data["review_due_date"] = None
+        return super().to_internal_value(data)
+
     class Meta:
         model = ConservationStatus
         fields = (
@@ -1067,10 +1107,11 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
             "species_taxonomy_id",
             "wa_legislative_list_id",
             "wa_legislative_category_id",
+            "iucn_version_id",
             "wa_priority_list_id",
             "wa_priority_category_id",
             "commonwealth_conservation_list_id",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
             "comment",
             "lodgement_date",
@@ -1086,6 +1127,11 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
             "assessor_data",
             "change_code_id",
             "approval_level",
+            "cam_mou",
+            "cam_mou_date_sent",
+            "public_consultation",
+            "public_consultation_start_date",
+            "public_consultation_end_date",
         )
         read_only_fields = ("id",)
 
@@ -1185,11 +1231,13 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
     community_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
-
     wa_legislative_list_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
     wa_legislative_category_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    iucn_version_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
     wa_priority_list_id = serializers.IntegerField(
@@ -1213,13 +1261,16 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
             "community_id",
             "wa_legislative_list_id",
             "wa_legislative_category_id",
+            "iucn_version_id",
             "wa_priority_list_id",
             "wa_priority_category_id",
             "commonwealth_conservation_list_id",
-            "international_conservation",
+            "other_conservation_assessment",
             "conservation_criteria",
             "comment",
             "lodgement_date",
+            "listing_date",
+            "review_due_date",
             "applicant_type",
             "submitter",
             "readonly",
@@ -1230,6 +1281,11 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
             "assessor_data",
             "change_code_id",
             "approval_level",
+            "cam_mou",
+            "cam_mou_date_sent",
+            "public_consultation",
+            "public_consultation_start_date",
+            "public_consultation_end_date",
         )
         read_only_fields = ("id",)
 

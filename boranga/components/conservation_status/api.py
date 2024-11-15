@@ -35,6 +35,7 @@ from boranga.components.conservation_status.models import (
     ConservationStatusReferral,
     ConservationStatusUserAction,
     CSExternalRefereeInvite,
+    IUCNVersion,
     ProposalAmendmentReason,
     WALegislativeCategory,
     WALegislativeList,
@@ -171,6 +172,7 @@ class GetCSProfileDict(views.APIView):
             "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
                 group_type, active_only=True
             ),
+            "iucn_versions": IUCNVersion.get_lists_dict(group_type, active_only=True),
             "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
                 group_type, active_only=True
             ),
@@ -326,10 +328,10 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         )
         if filter_international_relevance == "true":
             if queryset.model is ConservationStatus:
-                queryset = queryset.exclude(international_conservation__isnull=True)
+                queryset = queryset.exclude(other_conservation_assessment__isnull=True)
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.exclude(
-                    conservation_status__international_conservation__isnull=True
+                    conservation_status__other_conservation_assessment__isnull=True
                 )
 
         filter_from_effective_from_date = request.POST.get(
@@ -413,6 +415,27 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
                     queryset = queryset.filter(
                         submitter=request.user.id,
                         processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED,
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_AWAITING_ASSESSOR_ACTION
+                ):
+                    queryset = queryset.filter(
+                        processing_status__in=ConservationStatus.PROCESSING_STATUSES_AWAITING_ASSESSOR_ACTION
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_AWAITING_APPROVER_ACTION
+                ):
+                    queryset = queryset.filter(
+                        processing_status__in=ConservationStatus.PROCESSING_STATUSES_AWAITING_APPROVER_ACTION
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_INACTIVE
+                ):
+                    queryset = queryset.filter(
+                        processing_status__in=ConservationStatus.PROCESSING_STATUSES_INACTIVE
                     )
                 else:
                     queryset = queryset.filter(
@@ -567,8 +590,8 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "genus",
             "phylogenetic_group",
             "processing_status",
-            "effective_from_date",
-            "effective_to_date",
+            "effective_from",
+            "effective_to",
             "conservation_status_number",
         ]
 
@@ -576,12 +599,14 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             qs, context={"request": request}, many=True
         )
         serialized_data = serializer.data
-
         filtered_data = []
         for obj in serialized_data:
             filtered_obj = {
                 key: value for key, value in obj.items() if key in allowed_fields
             }
+            for key, value in obj.items():
+                if key == "phylogenetic_group":
+                    filtered_obj[key] = ", ".join(value)
             filtered_data.append(filtered_obj)
 
         def flatten_dict(d, parent_key="", sep="_"):
@@ -603,7 +628,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Common Name",
             "Family",
             "Genera",
-            "Phylo Group",
+            "Phylo Group(s)",
             "Processing Status",
             "Effective From Date",
             "Effective To Date",
@@ -618,6 +643,7 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             "Effective To Date",
             "Family",
             "Genera",
+            "Phylo Group(s)",
             "Processing Status",
         ]
         df = df[column_order]
@@ -913,10 +939,10 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
         )
         if filter_international_relevance == "true":
             if queryset.model is ConservationStatus:
-                queryset = queryset.exclude(international_conservation__isnull=True)
+                queryset = queryset.exclude(other_conservation_assessment__isnull=True)
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.exclude(
-                    conservation_status__international_conservation__isnull=True
+                    conservation_status__other_conservation_assessment__isnull=True
                 )
 
         filter_from_effective_from_date = request.POST.get(
@@ -999,6 +1025,27 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
                     queryset = queryset.filter(
                         submitter=request.user.id,
                         processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED,
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_AWAITING_ASSESSOR_ACTION
+                ):
+                    queryset = queryset.filter(
+                        processing_status__in=ConservationStatus.PROCESSING_STATUSES_AWAITING_ASSESSOR_ACTION
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_AWAITING_APPROVER_ACTION
+                ):
+                    queryset = queryset.filter(
+                        processing_status__in=ConservationStatus.PROCESSING_STATUSES_AWAITING_APPROVER_ACTION
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_INACTIVE
+                ):
+                    queryset = queryset.filter(
+                        processing_status__in=ConservationStatus.PROCESSING_STATUSES_INACTIVE
                     )
                 else:
                     queryset = queryset.filter(
@@ -1149,11 +1196,9 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             "community_number",
             "community_migrated_id",
             "community_name",
-            "region",
-            "district",
             "processing_status",
-            "effective_from_date",
-            "effective_to_date",
+            "effective_from",
+            "effective_to",
         ]
 
         serializer = ListCommunityConservationStatusSerializer(
@@ -1167,6 +1212,7 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
                 key: value for key, value in obj.items() if key in allowed_fields
             }
             filtered_data.append(filtered_obj)
+        logger.debug(filtered_data)
 
         def flatten_dict(d, parent_key="", sep="_"):
             flattened_dict = {}
@@ -1185,8 +1231,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             "Community",
             "Community Id",
             "Community Name",
-            "Region",
-            "District",
             "Processing Status",
             "Effective From Date",
             "Effective To Date",
@@ -1197,8 +1241,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             "Community",
             "Community Id",
             "Community Name",
-            "Region",
-            "District",
             "Effective From Date",
             "Effective To Date",
             "Processing Status",
@@ -1935,14 +1977,28 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
     @detail_route(
         methods=[
-            "POST",
+            "PATCH",
         ],
         detail=True,
         permission_classes=[ConservationStatusPermission],
     )
-    def proposed_ready_for_agenda(self, request, *args, **kwargs):
+    def proposed_for_agenda(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.proposed_ready_for_agenda(request)
+        instance.proposed_for_agenda(request)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+        permission_classes=[ConservationStatusPermission],
+    )
+    def ready_for_agenda(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.ready_for_agenda(request)
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
@@ -2010,6 +2066,18 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         instance = self.get_object()
         instance.reinstate(request)
         serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(methods=["patch"], detail=True)
+    def defer(self, request, *args, **kwargs):
+        instance = self.get_object()
+        reason = request.data.get("reason")
+        review_due_date = request.data.get("review_due_date", None)
+        if not reason:
+            raise serializers.ValidationError("Reason is required")
+        instance.defer(request, reason, review_due_date)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
 
     @detail_route(
@@ -2267,6 +2335,7 @@ class ConservationStatusReferralViewSet(
             "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
                 group_type
             ),
+            "iucn_versions": IUCNVersion.get_lists_dict(group_type),
             "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
                 group_type
             ),
@@ -2330,6 +2399,7 @@ class ConservationStatusReferralViewSet(
             "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
                 group_type
             ),
+            "iucn_versions": IUCNVersion.get_lists_dict(group_type),
             "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
                 group_type
             ),

@@ -646,10 +646,10 @@ export default {
                 visible: true,
             }
         },
-        column_international_conservation:
+        column_other_conservation_assessment:
             function () {
                 return {
-                    data: "international_conservation",
+                    data: "other_conservation_assessment",
                     orderable: false,
                     searchable: false,
                     visible: true,
@@ -732,7 +732,7 @@ export default {
                     vm.column_wa_legislative_list,
                     vm.column_wa_legislative_category,
                     vm.column_commonwealth_conservation_list,
-                    vm.column_international_conservation,
+                    vm.column_other_conservation_assessment,
                     vm.column_conservation_criteria,
                     vm.column_action,
                 ]
@@ -753,7 +753,7 @@ export default {
                     vm.column_wa_legislative_list,
                     vm.column_wa_legislative_category,
                     vm.column_commonwealth_conservation_list,
-                    vm.column_international_conservation,
+                    vm.column_other_conservation_assessment,
                     vm.column_conservation_criteria,
                     vm.column_status,
                     vm.column_action,

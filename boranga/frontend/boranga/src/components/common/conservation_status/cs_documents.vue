@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="cs_documents">
         <FormSection :formCollapse="false" label="Documents" Index="documents">
-            <small style="color: red;"><br>(Do not upload Management or Recovery Plans here)</small>
+            <alert type="warning"><i class="bi bi-ban fs-6 fw-bold me-2"></i>Do not upload Management or Recovery Plans here</alert>
             <form class="form-horizontal" action="index.html" method="post">
                 <div v-if="show_document_actions" class="col-sm-12">
                     <div class="text-end">
@@ -30,6 +30,7 @@
 </template>
 <script>
 import Vue from 'vue'
+import alert from '@vue-utils/alert.vue';
 import datatable from '@vue-utils/datatable.vue';
 import ViewDocument from '@/components/common/view_document.vue'
 import DocumentDetail from '@/components/common/add_document.vue'
@@ -224,6 +225,7 @@ export default {
         }
     },
     components: {
+        alert,
         FormSection,
         datatable,
         DocumentDetail,
@@ -232,7 +234,7 @@ export default {
     },
     computed: {
         show_document_actions: function () {
-            return (!this.is_internal && this.conservation_status_obj.can_user_edit) || (
+            return this.conservation_status_obj.can_user_edit || (
                 this.is_internal &&
                 this.conservation_status_obj.assessor_mode &&
                 this.conservation_status_obj.assessor_mode.assessor_can_assess &&

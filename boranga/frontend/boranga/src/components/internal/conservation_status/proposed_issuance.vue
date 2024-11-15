@@ -164,7 +164,7 @@ export default {
             return `Approve Conservation Status CS${this.conservation_status_id}`;
         },
         can_preview: function () {
-            return (this.processing_status == 'With Approver' || 'With Assessor (Requirements)') && this.approval.effective_from_date && this.approval.effective_to_date ? true : false;
+            return (this.processing_status == 'Proposed DeListed' || 'With Assessor (Requirements)') && this.approval.effective_from_date && this.approval.effective_to_date ? true : false;
         },
     },
     methods: {

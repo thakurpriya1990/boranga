@@ -165,7 +165,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     CUSTOMER_STATUS_DRAFT = "draft"
     CUSTOMER_STATUS_WITH_ASSESSOR = "with_assessor"
     CUSTOMER_STATUS_WITH_APPROVER = "with_approver"
-    CUSTOMER_STATUS_AMENDMENT_REQUIRED = "amendment_required"
     CUSTOMER_STATUS_APPROVED = "approved"
     CUSTOMER_STATUS_DECLINED = "declined"
     CUSTOMER_STATUS_DISCARDED = "discarded"
@@ -174,7 +173,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         (CUSTOMER_STATUS_DRAFT, "Draft"),
         (CUSTOMER_STATUS_WITH_ASSESSOR, "Under Review"),
         (CUSTOMER_STATUS_WITH_APPROVER, "Under Review"),
-        (CUSTOMER_STATUS_AMENDMENT_REQUIRED, "Amendment Required"),
         (CUSTOMER_STATUS_APPROVED, "Approved"),
         (CUSTOMER_STATUS_DECLINED, "Declined"),
         (CUSTOMER_STATUS_DISCARDED, "Discarded"),
@@ -198,14 +196,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         "closed",
     ]
 
-    PROCESSING_STATUS_TEMP = "temp"
     PROCESSING_STATUS_DRAFT = "draft"
     PROCESSING_STATUS_WITH_ASSESSOR = "with_assessor"
     PROCESSING_STATUS_WITH_REFERRAL = "with_referral"
     PROCESSING_STATUS_WITH_APPROVER = "with_approver"
-    PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE = "awaiting_applicant_respone"
-    PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE = "awaiting_assessor_response"
-    PROCESSING_STATUS_AWAITING_RESPONSES = "awaiting_responses"
     PROCESSING_STATUS_APPROVED = "approved"
     PROCESSING_STATUS_DECLINED = "declined"
     PROCESSING_STATUS_UNLOCKED = "unlocked"
@@ -216,9 +210,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_WITH_ASSESSOR, "With Assessor"),
         (PROCESSING_STATUS_WITH_REFERRAL, "With Referral"),
         (PROCESSING_STATUS_WITH_APPROVER, "With Approver"),
-        (PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE, "Awaiting Applicant Response"),
-        (PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE, "Awaiting Assessor Response"),
-        (PROCESSING_STATUS_AWAITING_RESPONSES, "Awaiting Responses"),
         (PROCESSING_STATUS_APPROVED, "Approved"),
         (PROCESSING_STATUS_DECLINED, "Declined"),
         (PROCESSING_STATUS_UNLOCKED, "Unlocked"),
@@ -990,6 +981,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED
         self.customer_status = OccurrenceReport.CUSTOMER_STATUS_APPROVED
+        self.approved_by = request.user.id
 
         if self.approval_details.occurrence:
             occurrence = self.approval_details.occurrence

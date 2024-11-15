@@ -673,7 +673,7 @@ class SpeciesFilterBackend(DatatablesFilterBackend):
         if filter_international_relevance == "true":
             queryset = queryset.filter(
                 conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-            ).exclude(conservation_status__international_conservation__isnull=True)
+            ).exclude(conservation_status__other_conservation_assessment__isnull=True)
 
         filter_conservation_criteria = request.POST.get("filter_conservation_criteria")
         if filter_conservation_criteria:
@@ -933,7 +933,7 @@ class CommunitiesFilterBackend(DatatablesFilterBackend):
         if filter_international_relevance == "true":
             queryset = queryset.filter(
                 conservation_status__processing_status=ConservationStatus.PROCESSING_STATUS_APPROVED,
-            ).exclude(conservation_status__international_conservation__isnull=True)
+            ).exclude(conservation_status__other_conservation_assessment__isnull=True)
 
         filter_conservation_criteria = request.GET.get("filter_conservation_criteria")
         if filter_conservation_criteria:

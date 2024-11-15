@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="community_documents">
         <FormSection :formCollapse="false" label="Documents" Index="documents">
-            <small style="color: red;"><br>(Do not upload Management or Recovery Plans here)</small>
+            <alert type="warning"><i class="bi bi-ban fs-6 fw-bold me-2"></i>Do not upload Management or Recovery Plans here</alert>
             <form class="form-horizontal" action="index.html" method="post">
                 <div v-if="!species_community.readonly" class="col-sm-12">
                     <div class="text-end">
@@ -27,6 +27,7 @@
 </template>
 <script>
 import Vue from 'vue'
+import alert from '@vue-utils/alert.vue';
 import datatable from '@vue-utils/datatable.vue';
 import DocumentDetail from '../add_document.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
@@ -222,6 +223,7 @@ export default {
         }
     },
     components: {
+        alert,
         FormSection,
         datatable,
         DocumentDetail,

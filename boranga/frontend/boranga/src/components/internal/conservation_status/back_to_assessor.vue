@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="internal-conservation-status-proposal-back-to-assessor">
-        <modal id="myModal" transition="modal fade" @ok="ok()" @cancel="close()"
+        <modal id="back-to-assessor-modal" transition="modal fade" @ok="ok()" @cancel="close()"
             :title="`Send CS${conservation_status_id} Back to Assessor`" okText="Back to Assessor" large>
             <div class="container-fluid">
                 <div class="row">

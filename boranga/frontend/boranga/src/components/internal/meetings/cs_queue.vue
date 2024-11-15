@@ -251,7 +251,7 @@ export default {
             let vm = this;
             swal.fire({
                 title: "Remove Agenda Item",
-                text: "Are you sure you want to remove this agenda item?",
+                html: "<p>Are you sure?</p><p>This action will change the CS status back to 'Ready For Agenda'.</p><p>If you wish to Defer the CS and send it Back to the Assessor, you can do so from the CS details page at any time.</p>",
                 icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Agenda Item',
@@ -276,6 +276,10 @@ export default {
                             });
                             vm.meeting_obj.agenda_items_arr = res.body;
                             vm.$refs.cs_queue_datatable.vmDataTable.ajax.reload(vm.addTableListeners, false);
+                            // Open the CS details page in a new tab
+                            var new_window = window.open(`/internal/conservation_status/${conservation_status_id}?action=view`, '_blank');
+                            new_window.blur();
+                            window.focus();
                         }, (error) => {
                             console.log(error);
                         });
