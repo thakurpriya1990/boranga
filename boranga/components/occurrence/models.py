@@ -554,7 +554,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     @property
     def assessor_recipients(self):
         recipients = []
-        group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR)
+        group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR, include_superusers=False)
         for id in group_ids:
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
@@ -562,7 +562,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     @property
     def approver_recipients(self):
         recipients = []
-        group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER)
+        group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER, include_superusers=False)
         for id in group_ids:
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
