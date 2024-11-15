@@ -22,66 +22,63 @@
                             :submitter_last_name="submitter_last_name" :lodgement_date="occurrence.lodgement_date"
                             class="mb-3" />
 
-                        <div>
-                            <div class="card card-default">
-                                <div class="card-header">
-                                    Workflow
-                                </div>
-                                <div class="card-body card-collapse">
-                                    <strong>Status</strong><br />
-                                    {{ occurrence.processing_status }}
-                                </div>
-                                <div class="card-body border-top">
-                                    <div class="col-sm-12">
-                                        <template v-if="hasUserEditMode">
-                                            <div class="row mb-2">
-                                                <div class="col-sm-12">
-                                                    <strong>Action</strong><br />
-                                                </div>
+                        <div class="card card-default sticky-top">
+                            <div class="card-header">
+                                Workflow
+                            </div>
+                            <div class="card-body card-collapse">
+                                <strong>Status</strong><br />
+                                {{ occurrence.processing_status }}
+                            </div>
+                            <div class="card-body border-top">
+                                <div class="col-sm-12">
+                                    <template v-if="hasUserEditMode">
+                                        <div class="row mb-2">
+                                            <div class="col-sm-12">
+                                                <strong>Action</strong><br />
                                             </div>
-                                            <div v-if="isDraft" class="row">
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="activateOccurrence()">Activate</button><br />
-                                                </div>
-                                            </div>
-                                            <div v-else class="row">
-                                                <div v-if="canLock" class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="lockOccurrence()">Lock</button><br />
-                                                </div>
-                                                <div v-if="canClose" class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="splitOccurrence()">Split</button><br />
-                                                </div>
-                                                <div v-if="canClose" class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="combineOccurrence()">Combine</button><br />
-                                                </div>
-                                            </div>
-                                        </template>
-                                        <template v-else-if="canUnlock">
-                                            <div class="row mb-2">
-                                                <div class="col-sm-12">
-                                                    <strong>Action</strong><br />
-                                                </div>
-                                            </div>
+                                        </div>
+                                        <div v-if="isDraft" class="row">
                                             <div class="col-sm-12">
                                                 <button style="width:80%;" class="btn btn-primary mb-2"
-                                                    @click.prevent="unlockOccurrence()">Unlock</button><br />
+                                                    @click.prevent="activateOccurrence()">Activate</button><br />
                                             </div>
-                                        </template>
-                                        <template v-else-if="canReopen">
-                                            <div class="row mb-2">
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary mb-2"
-                                                        @click.prevent="reopenOccurrence()">Reopen</button><br />
-                                                </div>
+                                        </div>
+                                        <div v-else class="row">
+                                            <div v-if="canLock" class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary mb-2"
+                                                    @click.prevent="lockOccurrence()">Lock</button><br />
                                             </div>
-                                        </template>
-                                    </div>
+                                            <div v-if="canClose" class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary mb-2"
+                                                    @click.prevent="splitOccurrence()">Split</button><br />
+                                            </div>
+                                            <div v-if="canClose" class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary mb-2"
+                                                    @click.prevent="combineOccurrence()">Combine</button><br />
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template v-else-if="canUnlock">
+                                        <div class="row mb-2">
+                                            <div class="col-sm-12">
+                                                <strong>Action</strong><br />
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-12">
+                                            <button style="width:80%;" class="btn btn-primary mb-2"
+                                                @click.prevent="unlockOccurrence()">Unlock</button><br />
+                                        </div>
+                                    </template>
+                                    <template v-else-if="canReopen">
+                                        <div class="row mb-2">
+                                            <div class="col-sm-12">
+                                                <button style="width:80%;" class="btn btn-primary mb-2"
+                                                    @click.prevent="reopenOccurrence()">Reopen</button><br />
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
-
                             </div>
                         </div>
                     </div>
@@ -98,15 +95,17 @@
                                 <input type='hidden' name="occurrence_id" :value="1" />
                                 <div class="row" style="margin-bottom: 50px">
                                     <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                        <div  class="container">
+                                        <div class="container">
                                             <div class="col-md-6">
-                                                    <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
+                                                <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
                                                     @click.prevent="returnToDashboard">
-                                                        Return to Dashboard</button>
-                                                </div>
+                                                    Return to Dashboard</button>
+                                            </div>
                                             <div v-if="hasUserEditMode" class="col-md-6 text-end">
                                                 <button v-if="savingOccurrence" class="btn btn-primary pull-right"
-                                                    style="margin-top:5px;" disabled>Save Changes <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                    style="margin-top:5px;" disabled>Save Changes <span
+                                                        class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
                                                     <span class="visually-hidden">Loading...</span></button>
                                                 <button v-else class="btn btn-primary pull-right"
                                                     style="margin-top:5px;" @click.prevent="save()">Save
