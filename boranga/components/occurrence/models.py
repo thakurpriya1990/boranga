@@ -4047,7 +4047,7 @@ class Occurrence(RevisionedMixin):
                 for field_object in field_objects:
                     if field_object:
                         related_item = field_object.as_related_item
-                        if related_item in return_list:
+                        if related_item not in return_list:
                             return_list.append(related_item)
 
                 # Add parent species related items to the list (limited to one degree of separation)
