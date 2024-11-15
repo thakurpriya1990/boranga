@@ -735,7 +735,8 @@ class Species(RevisionedMixin):
                 for field_object in field_objects:
                     if field_object:
                         related_item = field_object.as_related_item
-                        return_list.append(related_item)
+                        if related_item not in return_list:
+                            return_list.append(related_item)
 
                 # Add parent species related items to the list (limited to one degree of separation)
                 if a_field.name == "parent_species":
@@ -752,6 +753,9 @@ class Species(RevisionedMixin):
                                     "all_except_parent_species"
                                 )
                             )
+
+        # Remove duplicates
+        return_list = list(set(return_list))
 
         return return_list
 
@@ -782,7 +786,7 @@ class Species(RevisionedMixin):
 
     @property
     def related_item_status(self):
-        return self.get_processing_status_display
+        return self.get_processing_status_display()
 
     @property
     def submitter_user(self):
@@ -1494,7 +1498,8 @@ class Community(RevisionedMixin):
                 for field_object in field_objects:
                     if field_object:
                         related_item = field_object.as_related_item
-                        return_list.append(related_item)
+                        if related_item not in return_list:
+                            return_list.append(related_item)
 
                 # Add renamed from related items to the list (limited to one degree of separation)
                 if a_field.name == "renamed_from" and self.renamed_from:

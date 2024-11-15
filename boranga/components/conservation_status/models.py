@@ -1921,7 +1921,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 for field_object in field_objects:
                     if field_object:
                         related_item = field_object.as_related_item
-                        return_list.append(related_item)
+                        if related_item not in return_list:
+                            return_list.append(related_item)
+
         species_filter = []
         if "occurrences" in related_field_names:
             species_filter.append("occurrences")
@@ -1931,12 +1933,15 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             if self.species:
                 species_occurences = self.species.get_related_items(occ_filter_type)
                 if species_occurences:
-                    # return_list.append(species_occurences)
                     return_list += species_occurences
             if self.community:
                 community_occurences = self.community.get_related_items(occ_filter_type)
                 if community_occurences:
                     return_list += community_occurences
+
+        # Remove duplicates
+        return_list = list(set(return_list))
+
         return return_list
 
     @property
@@ -1974,7 +1979,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     @property
     def related_item_status(self):
-        return self.get_processing_status_display
+        return self.get_processing_status_display()
 
     @property
     def is_finalised(self):
