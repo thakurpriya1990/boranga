@@ -59,7 +59,6 @@ module.exports = {
     // used in internal and external dashboards
     approvals_paginated_external: "/api/approval_paginated/approvals_external/?format=datatables",
     common_name_lookup: "/api/common_name_lookup",
-    communities_internal_export: "/api/communities_paginated/communities_internal_export",
     communities_lookup: "/api/communities_lookup",
     communities_paginated_external: "/api/communities_paginated/communities_external/?format=datatables",
     communities_paginated_internal: "/api/communities_paginated/communities_internal/?format=datatables",
@@ -67,8 +66,6 @@ module.exports = {
     community_conservation_plans_paginated_internal: "/api/community_conservation_plans_paginated/community_cp_internal/?format=datatables",
     community_conservation_status_paginated_internal: "/api/community_conservation_status_paginated/community_cs_internal/?format=datatables",
     community_conservation_status_referrals_paginated_internal: "/api/community_conservation_status_paginated/community_cs_referrals_internal/?format=datatables",
-    community_cs_internal_export: "/api/community_conservation_status_paginated/community_cs_internal_export",
-    community_cs_referrals_internal_export: "/api/community_conservation_status_paginated/community_cs_referrals_internal_export",
     community_filter_dict: "/api/community_filter_dict",
     community_id_lookup: "/api/community_id_lookup",
     community_name_lookup: "/api/community_name_lookup",
@@ -106,9 +103,6 @@ module.exports = {
     species_conservation_status_paginated_internal: "/api/species_conservation_status_paginated/species_cs_internal/?format=datatables",
     meeting_export: "/api/meeting_paginated/meeting_export",
     species_conservation_status_referrals_paginated_internal: "/api/species_conservation_status_paginated/species_cs_referrals_internal/?format=datatables",
-    species_cs_internal_export: "/api/species_conservation_status_paginated/species_cs_internal_export",
-    species_cs_referrals_internal_export: "/api/species_conservation_status_paginated/species_cs_referrals_internal_export",
-    species_internal_export: "/api/species_paginated/species_internal_export",
     species_lookup: "/api/species_lookup",
     species_paginated_external: "/api/species_paginated/species_external/?format=datatables",
     species_paginated_internal: "/api/species_paginated/species_internal/?format=datatables",
@@ -169,6 +163,9 @@ module.exports = {
     },
     reinstate_cs_proposal: function (id) {
         return `/api/conservation_status/${id}/reinstate/`;
+    },
+    defer_cs_proposal: function (id) {
+        return `/api/conservation_status/${id}/defer/`;
     },
     delist_cs_proposal: function (id) {
         return `/api/conservation_status/${id}/delist/`;

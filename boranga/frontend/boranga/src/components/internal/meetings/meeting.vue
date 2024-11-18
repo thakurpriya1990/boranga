@@ -8,8 +8,10 @@
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
                     :disable_add_entry="!meeting_obj.can_add_log" />
 
-                <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
-                    :submitter_last_name="submitter_last_name" :lodgement_date="meeting_obj.lodgement_date"
+                <MeetingSidePanel v-if="canSeeSidePanel" :submitter_first_name="submitter_first_name"
+                    :submitter_last_name="submitter_last_name" :datetime_created="meeting_obj.datetime_created"
+                    :datetime_scheduled="meeting_obj.datetime_scheduled"
+                    :datetime_completed="meeting_obj.datetime_completed"
                     class="mt-3" />
 
                 <div class="mt-3">
@@ -25,10 +27,10 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body border-top">
+                        <div  v-if="showActions" class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <div class="col-sm-12 top-buffer-s">
+                                    <div class="col-sm-12">
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <strong>Action</strong><br />
@@ -36,24 +38,24 @@
                                         </div>
                                         <div class="row" v-if="userCanSchedule">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:80%;" class="btn btn-primary"
                                                     @click.prevent="scheduleMeeting()">Schedule</button><br />
                                             </div>
                                             <div class="col-sm-12">&nbsp;</div>
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:80%;" class="btn btn-primary"
                                                     @click.prevent="discardMeeting()">Discard</button><br />
                                             </div>
                                         </div>
                                         <div class="row" v-if="userCanComplete">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:80%;" class="btn btn-primary"
                                                     @click.prevent="completeMeeting()">Complete</button><br />
                                             </div>
                                         </div>
                                         <div class="row" v-if="userCanReinstate">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                                <button style="width:80%;" class="btn btn-primary"
                                                     @click.prevent="reinstateMeeting()">Reinstate</button><br />
                                             </div>
                                         </div>
@@ -140,7 +142,7 @@
 import Vue from 'vue'
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
-import Submission from '@common-utils/submission.vue'
+import MeetingSidePanel from '@common-utils/meeting_side_panel.vue'
 import MeetingSection from './meeting_section.vue'
 import Minutes from './minutes.vue'
 import CSQueue from './cs_queue.vue';
@@ -175,7 +177,7 @@ export default {
     components: {
         datatable,
         CommsLogs,
-        Submission,
+        MeetingSidePanel,
         MeetingSection,
         Minutes,
         CSQueue,
@@ -225,8 +227,8 @@ export default {
                 //return this.meeting_obj.applicant_obj.email
             }
         },
-        canSeeSubmission: function () {
-            return this.meeting_obj && this.meeting_obj.lodgement_date
+        canSeeSidePanel: function () {
+            return this.meeting_obj && this.meeting_obj.submitter
         },
         userCanEdit: function () {
             return this.meeting_obj.can_user_edit;
@@ -240,6 +242,9 @@ export default {
         userCanReinstate: function () {
             return this.meeting_obj.can_user_reinstate;
         },
+        showActions: function () {
+            return this.userCanSchedule || this.userCanComplete || this.userCanReinstate;
+        }
     },
     methods: {
         commaToNewline(s) {
@@ -370,6 +375,10 @@ export default {
                 if(vm.meeting_obj.selected_committee_members  == null || vm.meeting_obj.selected_committee_members  == '' || vm.meeting_obj.selected_committee_members.length<2  ) {
                     //  to also check the start and end date of meeting validation befor saving
                     blank_fields.push('Please select at least two committee members who will be attending');
+                }
+            } else {
+                if (vm.meeting_obj.attendees == null || vm.meeting_obj.attendees == '') {
+                    blank_fields.push(' Please enter some attendees')
                 }
             }
             if (vm.meeting_obj.location_id == null || vm.meeting_obj.location_id == '') {

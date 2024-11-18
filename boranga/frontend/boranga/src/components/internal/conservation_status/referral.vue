@@ -47,7 +47,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
+                                    <button style="width:80%;" class="btn btn-primary"
                                         :disabled="conservation_status_obj.can_user_edit"
                                         @click.prevent="completeReferral">Complete Referral
                                         Task</button>

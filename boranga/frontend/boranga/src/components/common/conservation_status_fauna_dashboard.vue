@@ -101,7 +101,7 @@
                         <label for="">Status:</label>
                         <select class="form-select" v-model="filterCSFaunaApplicationStatus">
                             <option value="all">All</option>
-                            <option v-for="status in processing_statuses" :value="status.value">{{ status.name }}
+                            <option v-for="status in processing_statuses" :value="status.value" :class="status.className"><template v-if="status.className == 'optionChild'">&nbsp;&nbsp;</template>{{ status.name }}
                             </option>
                         </select>
                     </div>
@@ -436,20 +436,24 @@ export default {
                 { value: 'discarded', name: 'Discarded' },
                 { value: 'awaiting_payment', name: 'Awaiting Payment' },
             ],
-            internal_status: [
-                { value: 'draft', name: 'Draft' },
-                { value: 'with_assessor', name: 'With Assessor' },
-                { value: 'with_approver', name: 'With Approver' },
-                { value: 'ready_for_agenda', name: 'Ready For Agenda' },
-                { value: 'closed', name: 'Closed' },
-                { value: 'delisted', name: 'DeListed' },
-                { value: 'with_referral', name: 'With Referral' },
-                { value: 'approved', name: 'Approved' },
-                { value: 'declined', name: 'Declined' },
-                { value: 'discarded', name: 'Discarded' },
+            processing_statuses: [
+                { value: 'draft', name: 'Draft', className: '' },
+                { value: 'discarded', name: 'Discarded', className: '' },
+                { value: 'awaiting_assessor_action', name: 'Awaiting Assessor Action', className: 'optionGroup' },
+                { value: 'with_assessor', name: 'With Assessor', className: 'optionChild' },
+                { value: 'with_referral', name: 'With Referral', className: 'optionChild' },
+                { value: 'deferred', name: 'Deferred', className: 'optionChild' },
+                { value: 'awaiting_approver_action', name: 'Awaiting Approver Action', className: 'optionGroup' },
+                { value: 'proposed_for_agenda', name: 'Proposed For Agenda', className: 'optionChild' },
+                { value: 'ready_for_agenda', name: 'Ready For Agenda', className: 'optionChild' },
+                { value: 'on_agenda', name: 'On Agenda', className: 'optionChild' },
+                { value: 'with_approver', name: 'Proposed DeListed', className: 'optionChild' },
+                { value: 'inactive', name: 'Inactive', className: 'optionGroup' },
+                { value: 'declined', name: 'Declined', className: 'optionChild' },
+                { value: 'closed', name: 'Closed', className: 'optionChild' },
+                { value: 'delisted', name: 'DeListed', className: 'optionChild' },
+                { value: 'approved', name: 'Approved', className: '' },
             ],
-
-            processing_statuses: [],
         }
     },
     components: {
@@ -615,7 +619,7 @@ export default {
         },
         datatable_headers: function () {
             return ['Number', 'Species', 'Scientific Name', 'Common Name', 'Family', 'Genera', 'Phylo Group(s)', 'Change Type', 'WA Priority List',
-                'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
+                'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation Category', 'International Conservation',
                 'Conservation Criteria',
                 'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
                 'Status', 'Action']
@@ -776,23 +780,23 @@ export default {
                 name: "wa_legislative_category__code",
             }
         },
-        column_commonwealth_conservation_list: function () {
+        column_commonwealth_conservation_category: function () {
             return {
-                data: "commonwealth_conservation_list",
+                data: "commonwealth_conservation_category",
                 orderable: true,
                 searchable: false,
                 visible: true,
-                name: "commonwealth_conservation_list",
+                name: "commonwealth_conservation_category",
             }
         },
-        column_international_conservation:
+        column_other_conservation_assessment:
             function () {
                 return {
-                    data: "international_conservation",
+                    data: "other_conservation_assessment",
                     orderable: true,
                     searchable: true,
                     visible: true,
-                    name: "international_conservation",
+                    name: "other_conservation_assessment",
                 }
             },
         column_conservation_criteria: function () {
@@ -936,17 +940,21 @@ export default {
             let search = null
             let buttons = [
                 {
+                    extend: 'excel',
+                    title: 'Boranga CS Fauna Excel Export',
                     text: '<i class="fa-solid fa-download"></i> Excel',
                     className: 'btn btn-primary me-2 rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("excel");
+                    exportOptions: {
+                        columns: ':not(.no-export)',
                     }
                 },
                 {
+                    extend: 'csv',
+                    title: 'Boranga CS Fauna CSV Export',
                     text: '<i class="fa-solid fa-download"></i> CSV',
                     className: 'btn btn-primary rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("csv");
+                    exportOptions: {
+                        columns: ':not(.no-export)',
                     }
                 }
             ]
@@ -964,8 +972,8 @@ export default {
                 vm.column_wa_priority_category,
                 vm.column_wa_legislative_list,
                 vm.column_wa_legislative_category,
-                vm.column_commonwealth_conservation_list,
-                vm.column_international_conservation,
+                vm.column_commonwealth_conservation_category,
+                vm.column_other_conservation_assessment,
                 vm.column_conservation_criteria,
                 vm.column_submitter_name,
                 vm.column_submitter_category,
@@ -994,7 +1002,7 @@ export default {
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 },
-                    { responsivePriority: 3, targets: -1 },
+                    { responsivePriority: 3, targets: -1, className: 'no-export' },
                     { responsivePriority: 2, targets: -2 }
                 ],
                 ajax: {
@@ -1325,9 +1333,7 @@ export default {
                 vm.wa_legislative_categories = vm.filterListsSpecies.wa_legislative_categories;
                 vm.wa_priority_lists = vm.filterListsSpecies.wa_priority_lists;
                 vm.wa_priority_categories = vm.filterListsSpecies.wa_priority_categories;
-                vm.processing_statuses = vm.internal_status.slice().sort((a, b) => {
-                    return a.name.trim().localeCompare(b.name.trim());
-                });
+                vm.processing_statuses = vm.processing_statuses;
                 vm.change_codes = vm.filterListsSpecies.change_codes;
                 vm.submitter_categories = vm.filterListsSpecies.submitter_categories;
 
@@ -1480,227 +1486,11 @@ export default {
                 helpers.enablePopovers();
             });
         },
-        exportData: function (format) {
-            let vm = this;
-            const columns_new = {
-                "0": {
-                    "data": "conservation_status_number",
-                    "name": "conservation_status__id, conservation_status__conservation_status_number",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "false"
-                },
-                "1": {
-                    "data": "species_number",
-                    "name": "conservation_status__species__species_number",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "2": {
-                    "data": "scientific_name",
-                    "name": "conservation_status__species__taxonomy__scientific_name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "3": {
-                    "data": "conservation_list",
-                    "name": "conservation_status__conservation_list__code",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "4": {
-                    "data": "conservation_category",
-                    "name": "conservation_status__conservation_category__code",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "5": {
-                    "data": "family",
-                    "name": "species__taxonomy__family_name",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "6": {
-                    "data": "genus",
-                    "name": "species__taxonomy__genera_name",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "7": {
-                    "data": "processing_status",
-                    "name": "conservation_status__processing_status",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "8": {
-                    "data": "id",
-                    "name": "",
-                    "searchable": "false",
-                    "orderable": "false",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "9": {
-                    "data": "conservation_status",
-                    "name": "",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-            };
-
-            const object_load = {
-                columns: columns_new,
-                filter_group_type: vm.group_type_name,
-                filter_scientific_name: vm.filterCSFaunaScientificName,
-                filter_common_name: vm.filterCSFaunaCommonName,
-                filter_family: vm.filterCSFaunaFamily,
-                filter_phylogenetic_group: vm.filterCSFaunaPhylogeneticGroup,
-                filter_genus: vm.filterCSFaunaGenus,
-                filter_change_code: vm.filterCSFaunaChangeCode,
-                filter_wa_legislative_list: vm.filterCSFaunaWALegislativeList,
-                filter_wa_legislative_category: vm.filterCSFaunaWALegislativeCategory,
-                filter_wa_priority_category: vm.filterCSFaunaWAPriorityCategory,
-                filter_commonwealth_relevance: vm.filterCSFaunaCommonwealthRelevance,
-                filter_international_relevance: vm.filterCSFaunaInternationalRelevance,
-                filter_assessor: vm.filterCSFaunaAssessor,
-                filter_submitter: vm.filterCSFaunaSubmitter,
-                filter_submitter_category: vm.filterCSFaunaSubmitterCategory,
-                filter_application_status: vm.filterCSFaunaApplicationStatus,
-                filter_from_effective_from_date: vm.filterCSFromFaunaEffectiveFromDate,
-                filter_to_effective_from_date: vm.filterCSToFaunaEffectiveFromDate,
-                filter_effective_to_date: vm.filterCSFromFaunaEffectiveToDate,
-                filter_effective_to_date: vm.filterCSToFaunaEffectiveToDate,
-                filter_from_review_due_date: vm.filterCSFromFaunaReviewDueDate,
-                filter_to_review_due_date: vm.filterCSToFaunaReviewDueDate,
-                export_format: format
-            };
-
-            const url = api_endpoints.species_cs_internal_export;
-            const keyValuePairs = [];
-
-            for (const key in object_load) {
-                if (object_load.hasOwnProperty(key)) {
-                    const encodedKey = encodeURIComponent(key);
-                    let encodedValue = '';
-
-                    if (typeof object_load[key] === 'object') {
-                        encodedValue = encodeURIComponent(JSON.stringify(object_load[key]));
-                    }
-                    else {
-                        encodedValue = encodeURIComponent(object_load[key]);
-                    }
-                    keyValuePairs.push(`${encodedKey}=${encodedValue}`);
-                }
-            }
-            const params = keyValuePairs.join('&');
-            const fullUrl = `${url}?${params}`;
-            try {
-                if (format === "excel") {
-                    $.ajax({
-                        type: "POST",
-                        headers: {
-                            'X-CSRFToken': helpers.getCookie('csrftoken'),
-                        },
-                        url: url + "/",
-                        data: object_load,
-                        dataType: "binary",
-                        xhrFields: {
-                            responseType: 'blob'
-                        },
-
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "application/vnd.ms-excel" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-                else if (format === "csv") {
-                    $.ajax({
-                        type: "POST",
-                        headers: {
-                            'X-CSRFToken': helpers.getCookie('csrftoken'),
-                        },
-                        url: url + "/",
-                        data: object_load,
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "text/csv" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-            }
-            catch (err) {
-                console.log(err);
-            }
-        },
     },
     mounted: function () {
         let vm = this;
         if (vm.profile && vm.profile.groups && vm.profile.groups.includes(constants.GROUPS.INTERNAL_CONTRIBUTORS)) {
-            vm.internal_status.push({ value: 'discarded_by_me', name: 'Discarded By Me' },);
+            vm.processing_statuses.push({ value: 'discarded_by_me', name: 'Discarded By Me' },);
         }
         vm.fetchFilterLists();
         $('a[data-toggle="collapse"]').on('click', function () {

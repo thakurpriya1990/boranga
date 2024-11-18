@@ -165,7 +165,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     CUSTOMER_STATUS_DRAFT = "draft"
     CUSTOMER_STATUS_WITH_ASSESSOR = "with_assessor"
     CUSTOMER_STATUS_WITH_APPROVER = "with_approver"
-    CUSTOMER_STATUS_AMENDMENT_REQUIRED = "amendment_required"
     CUSTOMER_STATUS_APPROVED = "approved"
     CUSTOMER_STATUS_DECLINED = "declined"
     CUSTOMER_STATUS_DISCARDED = "discarded"
@@ -174,7 +173,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         (CUSTOMER_STATUS_DRAFT, "Draft"),
         (CUSTOMER_STATUS_WITH_ASSESSOR, "Under Review"),
         (CUSTOMER_STATUS_WITH_APPROVER, "Under Review"),
-        (CUSTOMER_STATUS_AMENDMENT_REQUIRED, "Amendment Required"),
         (CUSTOMER_STATUS_APPROVED, "Approved"),
         (CUSTOMER_STATUS_DECLINED, "Declined"),
         (CUSTOMER_STATUS_DISCARDED, "Discarded"),
@@ -198,14 +196,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         "closed",
     ]
 
-    PROCESSING_STATUS_TEMP = "temp"
     PROCESSING_STATUS_DRAFT = "draft"
     PROCESSING_STATUS_WITH_ASSESSOR = "with_assessor"
     PROCESSING_STATUS_WITH_REFERRAL = "with_referral"
     PROCESSING_STATUS_WITH_APPROVER = "with_approver"
-    PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE = "awaiting_applicant_respone"
-    PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE = "awaiting_assessor_response"
-    PROCESSING_STATUS_AWAITING_RESPONSES = "awaiting_responses"
     PROCESSING_STATUS_APPROVED = "approved"
     PROCESSING_STATUS_DECLINED = "declined"
     PROCESSING_STATUS_UNLOCKED = "unlocked"
@@ -216,9 +210,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         (PROCESSING_STATUS_WITH_ASSESSOR, "With Assessor"),
         (PROCESSING_STATUS_WITH_REFERRAL, "With Referral"),
         (PROCESSING_STATUS_WITH_APPROVER, "With Approver"),
-        (PROCESSING_STATUS_AWAITING_APPLICANT_RESPONSE, "Awaiting Applicant Response"),
-        (PROCESSING_STATUS_AWAITING_ASSESSOR_RESPONSE, "Awaiting Assessor Response"),
-        (PROCESSING_STATUS_AWAITING_RESPONSES, "Awaiting Responses"),
         (PROCESSING_STATUS_APPROVED, "Approved"),
         (PROCESSING_STATUS_DECLINED, "Declined"),
         (PROCESSING_STATUS_UNLOCKED, "Unlocked"),
@@ -334,6 +325,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
     site = models.TextField(null=True, blank=True)
+    # Allows the OCR submitter to hint the assessor to which occurrence to assign to
+    # without forcefully linking the occurrence to the OCR
+    ocr_for_occ_number = models.CharField(max_length=9, blank=True, default="")
+    ocr_for_occ_name = models.CharField(max_length=100, blank=True, default="")
 
     # If this OCR was created as part of a bulk import task, this field will be populated
     bulk_import_task = models.ForeignKey(
@@ -563,7 +558,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     @property
     def assessor_recipients(self):
         recipients = []
-        group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR)
+        group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR, include_superusers=False)
         for id in group_ids:
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
@@ -571,7 +566,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     @property
     def approver_recipients(self):
         recipients = []
-        group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER)
+        group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER, include_superusers=False)
         for id in group_ids:
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
@@ -589,7 +584,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     @property
     def related_item_status(self):
-        return self.get_processing_status_display
+        return self.get_processing_status_display()
 
     @property
     def as_related_item(self):
@@ -799,6 +794,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             defaults={
                 "officer": request.user.id,
                 "reason": reason,
+                "cc_email": details.get("cc_email", None),
             },
         )
 
@@ -945,6 +941,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                 "occurrence": occurrence,
                 "new_occurrence_name": new_occurrence_name,
                 "details": details,
+                "cc_email": validated_data.get("cc_email", None),
             },
         )
 
@@ -990,6 +987,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         self.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED
         self.customer_status = OccurrenceReport.CUSTOMER_STATUS_APPROVED
+        self.approved_by = request.user.id
 
         if self.approval_details.occurrence:
             occurrence = self.approval_details.occurrence
@@ -1352,6 +1350,7 @@ class OccurrenceReportApprovalDetails(models.Model):
     new_occurrence_name = models.CharField(max_length=200, null=True, blank=True)
     officer = models.IntegerField()  # EmailUserRO
     details = models.TextField(blank=True)
+    cc_email = models.TextField(null=True)
 
     class Meta:
         app_label = "boranga"
@@ -3566,7 +3565,7 @@ class Occurrence(RevisionedMixin):
 
     @property
     def related_item_status(self):
-        return self.get_processing_status_display
+        return self.get_processing_status_display()
 
     @property
     def as_related_item(self):
@@ -4055,7 +4054,8 @@ class Occurrence(RevisionedMixin):
                 for field_object in field_objects:
                     if field_object:
                         related_item = field_object.as_related_item
-                        return_list.append(related_item)
+                        if related_item not in return_list:
+                            return_list.append(related_item)
 
                 # Add parent species related items to the list (limited to one degree of separation)
                 if a_field.name == "species" and self.species:

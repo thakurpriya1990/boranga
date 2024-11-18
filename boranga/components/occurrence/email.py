@@ -427,7 +427,12 @@ def send_decline_email_notification(reason, occurrence_report):
 
     to_user = EmailUser.objects.get(id=occurrence_report.submitter)
 
-    msg = email.send(to_user.email, context=context)
+    cc_list = occurrence_report.declined_details.cc_email
+    all_ccs = []
+    if cc_list:
+        all_ccs = cc_list.split(",")
+
+    msg = email.send(to_user.email, context=context, cc=all_ccs)
 
     sender = get_sender_user()
 
@@ -449,7 +454,12 @@ def send_approve_email_notification(occurrence_report):
 
     to_user = EmailUser.objects.get(id=occurrence_report.submitter)
 
-    msg = email.send(to_user.email, context=context)
+    cc_list = occurrence_report.approval_details.cc_email
+    all_ccs = []
+    if cc_list:
+        all_ccs = cc_list.split(",")
+
+    msg = email.send(to_user.email, context=context, cc=all_ccs)
 
     sender = get_sender_user()
 

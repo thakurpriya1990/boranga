@@ -13,13 +13,11 @@ class RelatedItem:
 
     def __hash__(self):
         return hash(
-            (
-                self.model_name,
-                self.identifier,
-                self.descriptor,
-                self.status,
-                self.action_url,
-            )
+            self.model_name
+            + self.identifier
+            + self.descriptor
+            + self.status
+            + self.action_url
         )
 
     def __eq__(self, other):

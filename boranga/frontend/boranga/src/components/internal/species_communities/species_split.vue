@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="splitSpecies">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" extraLarge id="myModal">
+        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" extraLarge id="species-split-modal">
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="splitSpeciesForm">

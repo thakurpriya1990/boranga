@@ -521,18 +521,3 @@ export default {
     },
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-.top-buffer-s {
-    margin-top: 10px;
-}
-
-.actionBtn {
-    cursor: pointer;
-}
-
-.hidePopover {
-    display: none;
-}
-</style>

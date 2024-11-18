@@ -387,12 +387,12 @@ export default {
         datatable_headers: function () {
             if (this.is_external) {
                 return ['Id', 'Number', 'Community Id', 'Community Name', 'Regions', 'Districts',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation Category',
                     'International Conservation', 'Conservation Criteria', 'Action']
             }
             if (this.is_internal) {
                 return ['Id', 'Number', 'Community Id', 'Community Name', 'Regions', 'Districts',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation Category',
                     'International Conservation', 'Conservation Criteria', 'Status', 'Action']
             }
         },
@@ -522,18 +522,18 @@ export default {
                 visible: true,
             }
         },
-        column_commonwealth_conservation_list: function () {
+        column_commonwealth_conservation_category: function () {
             return {
-                data: "commonwealth_conservation_list",
+                data: "commonwealth_conservation_category",
                 orderable: false,
                 searchable: false,
                 visible: true,
             }
         },
-        column_international_conservation:
+        column_other_conservation_assessment:
             function () {
                 return {
-                    data: "international_conservation",
+                    data: "other_conservation_assessment",
                     orderable: false,
                     searchable: false,
                     visible: true,
@@ -589,17 +589,21 @@ export default {
             let search = null
             let buttons = [
                 {
+                    extend: 'excel',
+                    title: 'Boranga S&C Communities Excel Export',
                     text: '<i class="fa-solid fa-download"></i> Excel',
                     className: 'btn btn-primary me-2 rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("excel");
+                    exportOptions: {
+                        columns: ':not(.no-export)',
                     }
                 },
                 {
+                    extend: 'csv',
+                    title: 'Boranga S&C Communities CSV Export',
                     text: '<i class="fa-solid fa-download"></i> CSV',
                     className: 'btn btn-primary rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("csv");
+                    exportOptions: {
+                        columns: ':not(.no-export)',
                     }
                 }
             ]
@@ -614,8 +618,8 @@ export default {
                     vm.column_wa_priority_category,
                     vm.column_wa_legislative_list,
                     vm.column_wa_legislative_category,
-                    vm.column_commonwealth_conservation_list,
-                    vm.column_international_conservation,
+                    vm.column_commonwealth_conservation_category,
+                    vm.column_other_conservation_assessment,
                     vm.column_conservation_criteria,
                     vm.column_action,
                 ]
@@ -632,8 +636,8 @@ export default {
                     vm.column_wa_priority_category,
                     vm.column_wa_legislative_list,
                     vm.column_wa_legislative_category,
-                    vm.column_commonwealth_conservation_list,
-                    vm.column_international_conservation,
+                    vm.column_commonwealth_conservation_category,
+                    vm.column_other_conservation_assessment,
                     vm.column_conservation_criteria,
                     vm.column_status,
                     vm.column_action,
@@ -656,7 +660,7 @@ export default {
                 //  to show the "Action" column always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 },
-                    { responsivePriority: 3, targets: -1 },
+                    { responsivePriority: 3, targets: -1, className: 'no-export' },
                     { responsivePriority: 2, targets: -2 }
                 ],
                 ajax: {
@@ -943,189 +947,6 @@ export default {
             vm.$refs.communities_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                 helpers.enablePopovers();
             });
-        },
-        exportData: function (format) {
-            let vm = this;
-            const columns_new = {
-                "0": {
-                    "data": "id",
-                    "name": "id",
-                    "searchable": "false",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "1": {
-                    "data": "community_number",
-                    "name": "id",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "2": {
-                    "data": "community_migrated_id",
-                    "name": "taxonomy__community_migrated_id",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "3": {
-                    "data": "community_name",
-                    "name": "taxonomy__community_name",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "6": {
-                    "data": "region",
-                    "name": "region__name",
-                    "searchable": "false",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "7": {
-                    "data": "district",
-                    "name": "district__name",
-                    "searchable": "false",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "8": {
-                    "data": "processing_status",
-                    "name": "processing_status",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "9": {
-                    "data": "id",
-                    "name": "",
-                    "searchable": "false",
-                    "orderable": "false",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                }
-            };
-
-            const object_load = {
-                columns: columns_new,
-                filter_community_migrated_id: vm.filterCommunityMigratedId,
-                filter_group_type: vm.group_type_name,
-                filter_community_name: vm.filterCommunityName,
-                filter_application_status: vm.filterCommunityApplicationStatus,
-                filter_region: vm.filterCommunityRegion,
-                filter_district: vm.filterCommunityDistrict,
-                filter_wa_legislative_list: vm.filterCommunityWALegislativeList,
-                filter_wa_legislative_category: vm.filterCommunityWALegislativeCategory,
-                filter_wa_priority_category: vm.filterCommunityWAPriorityCategory,
-                filter_commonwealth_relevance: vm.filterCommunityCommonwealthRelevance,
-                filter_international_relevance: vm.filterCommunityInternationalRelevance,
-                filter_conservation_criteria: vm.filterCommunityConsevationCriteria,
-                is_internal: vm.is_internal,
-                export_format: format
-            };
-
-            const url = api_endpoints.communities_internal_export;
-            const keyValuePairs = [];
-
-            for (const key in object_load) {
-                if (object_load.hasOwnProperty(key)) {
-                    const encodedKey = encodeURIComponent(key);
-                    let encodedValue = '';
-
-                    if (typeof object_load[key] === 'object') {
-                        encodedValue = encodeURIComponent(JSON.stringify(object_load[key]));
-                    }
-                    else {
-                        encodedValue = encodeURIComponent(object_load[key]);
-                    }
-                    keyValuePairs.push(`${encodedKey}=${encodedValue}`);
-                }
-            }
-            const params = keyValuePairs.join('&');
-            const fullUrl = `${url}?${params}`;
-            try {
-                if (format === "excel") {
-                    $.ajax({
-                        type: "GET",
-                        url: fullUrl,
-                        contentType: "application/vnd.ms-excel",
-                        dataType: "binary",
-                        xhrFields: {
-                            responseType: 'blob'
-                        },
-
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "application/vnd.ms-excel" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-                else if (format === "csv") {
-                    $.ajax({
-                        type: "GET",
-                        url: fullUrl,
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "text/csv" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-            }
-            catch (err) {
-                console.log(err);
-                if (vm.is_internal) {
-                    return err;
-                }
-            }
         },
     },
     mounted: function () {

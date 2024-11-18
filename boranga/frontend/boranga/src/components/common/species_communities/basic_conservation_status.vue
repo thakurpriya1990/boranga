@@ -33,21 +33,21 @@
                             :value="conservation_status.wa_priority_category" />
                     </div>
                 </div>
-                <div class="row mb-3" v-if="conservation_status.commonwealth_conservation_list">
-                    <label for="commonwealth_conservation_list" class="col-sm-4 col-form-label">Commonwealth
+                <div class="row mb-3" v-if="conservation_status.commonwealth_conservation_category">
+                    <label for="commonwealth_conservation_category" class="col-sm-4 col-form-label">Commonwealth
                         Conservation
                         List</label>
                     <div class="col-sm-8">
-                        <input class="form-control" id="commonwealth_conservation_list"
-                            :value="conservation_status.commonwealth_conservation_list" />
+                        <input class="form-control" id="commonwealth_conservation_category"
+                            :value="conservation_status.commonwealth_conservation_category" />
                     </div>
                 </div>
-                <div class="row mb-3" v-if="conservation_status.international_conservation">
-                    <label for="international_conservation" class="col-sm-4 col-form-label">International
-                        Conservation</label>
+                <div class="row mb-3" v-if="conservation_status.other_conservation_assessment">
+                    <label for="other_conservation_assessment" class="col-sm-4 col-form-label">Other
+                        Conservation Assessment</label>
                     <div class="col-sm-8">
-                        <input class="form-control" id="international_conservation"
-                            :value="conservation_status.international_conservation" />
+                        <input class="form-control" id="other_conservation_assessment"
+                            :value="conservation_status.other_conservation_assessment" />
                     </div>
                 </div>
                 <div class="row pb-3 mb-3 border-bottom" v-if="conservation_status.conservation_criteria">

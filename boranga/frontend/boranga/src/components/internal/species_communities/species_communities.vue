@@ -84,92 +84,100 @@
                     :submitter_last_name="submitter_last_name" :lodgement_date="species_community.lodgement_date"
                     class="mb-3" />
 
-                <div class="top-buffer-s">
-                    <div class="card card-default">
-                        <div class="card-header">
-                            Workflow
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <strong>Status</strong><br />
-                                    {{ species_community.processing_status }} <span v-if="isActive"> -
-                                        {{ species_community.publishing_status.public_status }}</span>
-                                </div>
+                <div class="card card-default sticky-top">
+                    <div class="card-header">
+                        Workflow
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <strong>Status</strong><br />
+                                {{ species_community.processing_status }} <span v-if="isActive"> -
+                                    {{ species_community.publishing_status.public_status }}</span>
                             </div>
                         </div>
-                        <div v-if='hasUserEditMode' class="card-body border-top">
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <div class="col-sm-12 top-buffer-s">
-                                        <div class="row">
+                    </div>
+                    <div v-if='hasUserEditMode' class="card-body border-top">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="row mb-2">
+                                    <div class="col-sm-12">
+                                        <strong>Action</strong><br />
+                                    </div>
+                                </div>
+                                <div class="row" v-if="isActive">
+                                    <template v-if="!isCommunity">
+                                        <div class="row mb-2">
                                             <div class="col-sm-12">
-                                                <strong>Action</strong><br />
+                                                <button class="btn btn-primary w-100"
+                                                    @click.prevent="splitSpecies()">Split</button><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="isActive">
-                                            <template v-if="!isCommunity">
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="splitSpecies()">Split</button><br />
-                                                </div>
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="combineSpecies()">Combine</button><br />
-                                                </div>
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="renameSpecies()">Rename</button><br />
-                                                </div>
-                                            </template>
-                                            <template v-else>
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="renameCommunity()">Rename</button><br />
-                                                </div>
-                                            </template>
-                                        </div>
-                                        <div class="row" v-if="isActive">
-                                            <div class="col-sm-12" v-if="!isPublic">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="makePublic()">Make Public</button><br />
-                                            </div>
-                                            <div class="col-sm-12" v-else>
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="makePrivate()">Make Private</button><br />
+                                        <div class="row mb-2">
+                                            <div class="col-sm-12">
+                                                <button class="btn btn-primary w-100"
+                                                    @click.prevent="combineSpecies()">Combine</button><br />
                                             </div>
                                         </div>
-                                        <div v-if="canDiscard">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <strong>Action</strong><br />
-                                                </div>
+                                        <div class="row mb-2">
+                                            <div class="col-sm-12">
+                                                <button class="btn btn-primary w-100"
+                                                    @click.prevent="renameSpecies()">Rename</button><br />
                                             </div>
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                        @click.prevent="discardSpeciesProposal()">Discard</button><br />
-                                                </div>
+                                        </div>
+                                    </template>
+                                    <template v-else>
+                                        <div class="row mb-2">
+                                            <div class="col-sm-12">
+                                                <button class="btn btn-primary"
+                                                    @click.prevent="renameCommunity()">Rename</button><br />
                                             </div>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="row" v-if="isActive">
+                                    <div v-if="!isPublic" class="row mb-2">
+                                        <div class="col-sm-12">
+                                            <button class="btn btn-primary w-100" @click.prevent="makePublic()">Make
+                                                Public</button><br />
+                                        </div>
+                                    </div>
+                                    <div v-else class="row mb-2">
+                                        <div class="col-sm-12">
+                                            <button class="btn btn-primary w-100" @click.prevent="makePrivate()">Make
+                                                Private</button><br />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="canDiscard">
+                                    <div class="row mb-2">
+                                        <div class="col-sm-12">
+                                            <strong>Action</strong><br />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button class="btn btn-primary w-100"
+                                                @click.prevent="discardSpeciesProposal()">Discard</button><br />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div v-else-if='canReopen' class="card-body border-top">
-                            <div class="row">
+                    </div>
+                    <div v-else-if='canReopen' class="card-body border-top">
+                        <div class="row">
+                            <div class="col-sm-12">
                                 <div class="col-sm-12">
-                                    <div class="col-sm-12 top-buffer-s">
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <strong>Action</strong><br />
-                                            </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-12">
+                                            <strong>Action</strong><br />
                                         </div>
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary top-buffer-s"
-                                                    @click.prevent="reopen()">Reopen</button><br />
-                                            </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <button class="btn btn-primary"
+                                                @click.prevent="reopen()">Reopen</button><br />
                                         </div>
                                     </div>
                                 </div>
@@ -257,13 +265,15 @@
             </div>
         </div>
 
-        <SpeciesSplit v-if="species_community && !isCommunity" ref="species_split" :species_community="species_community" :is_internal="true"
+        <SpeciesSplit v-if="species_community && !isCommunity" ref="species_split"
+            :species_community="species_community" :is_internal="true" @refreshFromResponse="refreshFromResponse" />
+        <SpeciesCombine v-if="species_community && !isCommunity" ref="species_combine"
+            :species_community="species_community" :is_internal="true" @refreshFromResponse="refreshFromResponse" />
+        <SpeciesRename v-if="species_community && !isCommunity" ref="species_rename"
+            :species_community_original="species_community" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
-        <SpeciesCombine v-if="species_community && !isCommunity" ref="species_combine" :species_community="species_community" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" />
-        <SpeciesRename v-if="species_community && !isCommunity" ref="species_rename" :species_community_original="species_community" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" />
-        <CommunityRename v-if="species_community && isCommunity" ref="community_rename" :species_community_original="species_community" :is_internal="true"
+        <CommunityRename v-if="species_community && isCommunity" ref="community_rename"
+            :species_community_original="species_community" :is_internal="true"
             @refreshFromResponse="refreshFromResponse" />
 
         <MakePublic ref="make_public" :species_community="species_community"
@@ -1099,25 +1109,6 @@ export default {
 }
 </script>
 <style scoped>
-.top-buffer-s {
-    margin-top: 10px;
-}
-
-.actionBtn {
-    cursor: pointer;
-}
-
-.hidePopover {
-    display: none;
-}
-
-.separator {
-    border: 1px solid;
-    margin-top: 15px;
-    margin-bottom: 10px;
-    width: 100%;
-}
-
 @keyframes placeHolderShimmer {
     0% {
         background-position: -468px 0
