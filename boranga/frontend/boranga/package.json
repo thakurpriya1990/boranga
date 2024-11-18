@@ -45,7 +45,7 @@
         "shpjs": "^5.0.0",
         "sortablejs": "^1.15.3",
         "sweetalert2": "^11.7.27",
-        "vue": "^2.7.14",
+        "vue": "^2.7.16",
         "vue-resource": "^1.5.3",
         "vue-router": "^2.8.1",
         "vue-select": "^3.20.2",
