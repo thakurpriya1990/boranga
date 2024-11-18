@@ -109,7 +109,7 @@ export default {
         },
         column_sequence: function () {
             return {
-                
+
                 data: 'revision_sequence',
                 orderable: true,
                 searchable: false,
@@ -139,7 +139,7 @@ export default {
                 data: 'data.data.occurrencetenure.fields.id',
                 defaultContent: '',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.data.occurrencetenure.pk+'-'+full.revision_sequence;
@@ -149,10 +149,10 @@ export default {
         },
         column_revision_id: function () {
             return {
-                
+
                 data: 'revision_id',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     return full.revision_id;
@@ -162,10 +162,10 @@ export default {
         },
         column_revision_date: function () {
             return {
-                
+
                 data: 'date_created',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     return full.date_created;
@@ -175,10 +175,10 @@ export default {
         },
         column_revision_user: function () {
             return {
-                
+
                 data: 'revision_user',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.revision_user;
@@ -188,10 +188,10 @@ export default {
         },
         column_feature_id: function () {
             return {
-                data: 'data.data.occurrencetenure.fields.tenure_area_id', 
+                data: 'data.data.occurrencetenure.fields.tenure_area_id',
                 defaultContent: '',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occurrencetenure.fields.tenure_area_id
@@ -206,10 +206,10 @@ export default {
         },
         column_status: function () {
             return {
-                data: 'data.data.occurrencetenure.fields.status', 
+                data: 'data.data.occurrencetenure.fields.status',
                 defaultContent: '',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occurrencetenure.fields.status) {
@@ -226,7 +226,7 @@ export default {
                 data: 'data.data.occurrencetenure.fields.vesting.code',
                 defaultContent: '',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occurrencetenure.fields.vesting) {
@@ -243,7 +243,7 @@ export default {
                 data: 'data.data.occurrencetenure.fields.purpose.code',
                 defaultContent: '',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occurrencetenure.fields.purpose) {
@@ -257,10 +257,10 @@ export default {
         },
         column_significant: function () {
             return {
-                data: 'data.data.occurrencetenure.fields.significant_to_occurrence', 
+                data: 'data.data.occurrencetenure.fields.significant_to_occurrence',
                 defaultContent: '',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.data.occurrencetenure.fields.significant_to_occurrence;
@@ -270,10 +270,10 @@ export default {
         },
         column_comment: function () {
             return {
-                data: 'data.data.occurrencetenure.fields.comments', 
+                data: 'data.data.occurrencetenure.fields.comments',
                 defaultContent: '',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occurrencetenure.fields.comments) {
@@ -284,15 +284,15 @@ export default {
                         return ''
                     }
                 },
-                name: 'comments', 
+                name: 'comments',
             };
         },
         column_owner: function () {
             return {
-                data: 'data.data.occurrencetenure.fields.owner_name', 
+                data: 'data.data.occurrencetenure.fields.owner_name',
                 defaultContent: '',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occurrencetenure.fields.owner_name) {
@@ -324,7 +324,7 @@ export default {
                 vm.column_revision_date,
                 vm.column_revision_user,
                 vm.column_feature_id,
-                vm.column_status,                
+                vm.column_status,
                 vm.column_vesting,
                 vm.column_purpose,
                 vm.column_significant,
@@ -349,18 +349,20 @@ export default {
                 buttons: [
                     {
                         extend: 'excel',
+                        title: 'Boranga OCC Tenure History Excel Export',
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
-                            orthogonal: 'export' 
+                            orthogonal: 'export'
                         }
                     },
                     {
                         extend: 'csv',
+                        title: 'Boranga OCC Tenure History CSV Export',
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {
-                            orthogonal: 'export' 
+                            orthogonal: 'export'
                         }
                     },
                 ],
@@ -416,7 +418,7 @@ export default {
         isModalOpen() {
             let vm = this;
             if (this.isModalOpen) {
-                vm.$refs.history_datatable.vmDataTable.ajax.reload();            
+                vm.$refs.history_datatable.vmDataTable.ajax.reload();
             }
         }
     },
