@@ -28,6 +28,18 @@
                             </div>
                             <hr />
                             <div v-if="!propose_approve.create_new_occurrence" class="mt-3">
+                                <div v-if="occurrence_report.ocr_for_occ_number" class="form-group mb-3">
+                                    <label for="occurrence_report_is_for_occurrence_number">Proposed / Suggested OCC
+                                        Number:</label>
+                                    <input id="occurrence_report_is_for_occurrence_number" type="text" v-model="occurrence_report.ocr_for_occ_number
+                                        " :disabled="true" class="form-control" autocomplete="new-password" />
+                                </div>
+                                <div v-if="occurrence_report.ocr_for_occ_name" class="form-group mb-3">
+                                    <label for="occurrence_report_for_occurrence_name">Proposed / Suggested Occurrence
+                                        Name:</label>
+                                    <input id="occurrence_report_for_occurrence_name" type="text" v-model="occurrence_report.ocr_for_occ_name
+                                        " :disabled="true" class="form-control" autocomplete="new-password" />
+                                </div>
                                 <div class="form-group" id="occurrence_name_lookup_propose_approve_form_group_id">
                                     <label class="mb-3" for="occurrence_name_lookup_propose_approve">Existing
                                         Occurrence:</label>
