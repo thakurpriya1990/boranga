@@ -940,7 +940,7 @@ export default {
                 },
                 {
                     extend: 'csv',
-                    title: ' Boranga CS Flora CSV Export',
+                    title: 'Boranga CS Flora CSV Export',
                     text: '<i class="fa-solid fa-download"></i> CSV',
                     className: 'btn btn-primary rounded',
                     exportOptions: {
