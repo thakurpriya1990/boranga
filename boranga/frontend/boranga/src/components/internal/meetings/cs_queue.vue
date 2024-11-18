@@ -68,17 +68,21 @@ export default {
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: [
                     {
+                        extend: 'excel',
+                        title: 'Boranga Meeting Agenda Items Excel Export',
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
-                        action: function (e, dt, node, config) {
-                            vm.exportData("excel");
+                        exportOptions: {
+                            columns: ':not(.no-export)',
                         }
                     },
                     {
+                        extend: 'csv',
+                        title: 'Boranga Meeting Agenda Items CSV Export',
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
-                        action: function (e, dt, node, config) {
-                            vm.exportData("csv");
+                        exportOptions: {
+                            columns: ':not(.no-export)',
                         }
                     }
                 ],
@@ -152,10 +156,9 @@ export default {
                     },
                 ],
                 columnDefs: [
-                    {
-                        "orderable": false,
-                        "targets": 1 // target means the column no.
-                    },
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 3, targets: -1, className: 'no-export' },
+                    { responsivePriority: 2, targets: -2 }
                 ],
                 "order": [
                     [1, "desc"]
@@ -347,70 +350,6 @@ export default {
             $(vm.$refs.cs_queue_datatable.table).find('tr:last .dtMoveDown').remove();
             // to remove the up arroiw from first row
             $(vm.$refs.cs_queue_datatable.table).children('tbody').find('tr:first .dtMoveUp').remove();
-        },
-        exportData: function (format) {
-            let vm = this;
-
-            const url = api_endpoints.meeting + '/' + vm.meeting_obj.id + '/export_agenda_items?export_format=' + format;
-            try {
-                if (format === "excel") {
-                    $.ajax({
-                        type: "GET",
-                        url: url,
-                        contentType: "application/vnd.ms-excel",
-                        dataType: "binary",
-                        xhrFields: {
-                            responseType: 'blob'
-                        },
-
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "application/vnd.ms-excel" });
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-                else if (format === "csv") {
-                    $.ajax({
-                        type: "GET",
-                        url: url,
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "text/csv" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-            }
-            catch (err) {
-                console.log(err);
-                if (vm.is_internal) {
-                    return err;
-                }
-            }
         },
         hideOrderColumn: function () {
             // this method is used to hide the order colmn when processing_status is completed
