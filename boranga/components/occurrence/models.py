@@ -325,6 +325,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
     site = models.TextField(null=True, blank=True)
+    # Allows the OCR submitter to hint the assessor to which occurrence to assign to
+    # without forcefully linking the occurrence to the OCR
+    ocr_for_occ_number = models.CharField(max_length=9, blank=True, default="")
+    ocr_for_occ_name = models.CharField(max_length=100, blank=True, default="")
 
     # If this OCR was created as part of a bulk import task, this field will be populated
     bulk_import_task = models.ForeignKey(
