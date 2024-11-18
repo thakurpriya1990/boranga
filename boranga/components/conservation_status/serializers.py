@@ -47,8 +47,8 @@ class BasicConservationStatusSerializer(serializers.ModelSerializer):
     wa_priority_category = serializers.CharField(
         source="wa_priority_category.code", allow_null=True
     )
-    commonwealth_conservation_list = serializers.CharField(
-        source="commonwealth_conservation_list.code", allow_null=True
+    commonwealth_conservation_category = serializers.CharField(
+        source="commonwealth_conservation_category.code", allow_null=True
     )
     under_review = serializers.SerializerMethodField()
 
@@ -60,7 +60,7 @@ class BasicConservationStatusSerializer(serializers.ModelSerializer):
             "wa_legislative_list",
             "wa_legislative_category",
             "wa_priority_category",
-            "commonwealth_conservation_list",
+            "commonwealth_conservation_category",
             "other_conservation_assessment",
             "conservation_criteria",
             "under_review",
@@ -163,8 +163,8 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     wa_legislative_category = serializers.CharField(
         source="wa_legislative_category.code", allow_null=True
     )
-    commonwealth_conservation_list = serializers.CharField(
-        source="commonwealth_conservation_list.code", allow_null=True
+    commonwealth_conservation_category = serializers.CharField(
+        source="commonwealth_conservation_category.code", allow_null=True
     )
     processing_status = serializers.CharField(source="get_processing_status_display")
     assessor_process = serializers.SerializerMethodField(read_only=True)
@@ -202,7 +202,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "wa_priority_category",
             "wa_legislative_list",
             "wa_legislative_category",
-            "commonwealth_conservation_list",
+            "commonwealth_conservation_category",
             "other_conservation_assessment",
             "conservation_criteria",
             "processing_status",
@@ -239,7 +239,7 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
             "wa_priority_category",
             "wa_legislative_list",
             "wa_legislative_category",
-            "commonwealth_conservation_list",
+            "commonwealth_conservation_category",
             "processing_status",
             "customer_status",
             "can_user_edit",
@@ -360,8 +360,8 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     wa_legislative_category = serializers.CharField(
         source="wa_legislative_category.code", allow_null=True
     )
-    commonwealth_conservation_list = serializers.CharField(
-        source="commonwealth_conservation_list.code", allow_null=True
+    commonwealth_conservation_category = serializers.CharField(
+        source="commonwealth_conservation_category.code", allow_null=True
     )
     change_code = serializers.CharField(
         source="change_code.code", read_only=True, allow_null=True
@@ -400,7 +400,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             "wa_priority_category",
             "wa_legislative_list",
             "wa_legislative_category",
-            "commonwealth_conservation_list",
+            "commonwealth_conservation_category",
             "other_conservation_assessment",
             "conservation_criteria",
             "effective_from",
@@ -433,7 +433,7 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
             "wa_priority_category",
             "wa_legislative_list",
             "wa_legislative_category",
-            "commonwealth_conservation_list",
+            "commonwealth_conservation_category",
             "other_conservation_assessment",
             "conservation_criteria",
             "effective_from",
@@ -536,7 +536,9 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
     wa_priority_list = serializers.SerializerMethodField(read_only=True)
     wa_priority_category = serializers.SerializerMethodField(read_only=True)
     iucn_version = serializers.SerializerMethodField(read_only=True)
-    commonwealth_conservation_list = serializers.SerializerMethodField(read_only=True)
+    commonwealth_conservation_category = serializers.SerializerMethodField(
+        read_only=True
+    )
 
     class Meta:
         model = ConservationStatus
@@ -558,8 +560,8 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
             "wa_priority_list",
             "wa_priority_category_id",
             "wa_priority_category",
-            "commonwealth_conservation_list_id",
-            "commonwealth_conservation_list",
+            "commonwealth_conservation_category_id",
+            "commonwealth_conservation_category",
             "other_conservation_assessment",
             "conservation_criteria",
             "comment",
@@ -629,17 +631,17 @@ class BaseConservationStatusSerializer(serializers.ModelSerializer):
 
         return obj.wa_priority_category.code
 
-    def get_commonwealth_conservation_list(self, obj):
-        if not obj.commonwealth_conservation_list:
+    def get_commonwealth_conservation_category(self, obj):
+        if not obj.commonwealth_conservation_category:
             return None
 
         if (
-            obj.commonwealth_conservation_list.code
-            and obj.commonwealth_conservation_list.label
+            obj.commonwealth_conservation_category.code
+            and obj.commonwealth_conservation_category.label
         ):
-            return f"{obj.commonwealth_conservation_list.code} - {obj.commonwealth_conservation_list.label}"
+            return f"{obj.commonwealth_conservation_category.code} - {obj.commonwealth_conservation_category.label}"
 
-        return obj.commonwealth_conservation_list.code
+        return obj.commonwealth_conservation_category.code
 
     def get_readonly(self, obj):
         return False
@@ -784,7 +786,7 @@ class CurrentConservationStatusSerializer(serializers.ModelSerializer):
             "iucn_version_id",
             "wa_priority_list_id",
             "wa_priority_category_id",
-            "commonwealth_conservation_list_id",
+            "commonwealth_conservation_category_id",
             "other_conservation_assessment",
             "conservation_criteria",
         ]
@@ -849,8 +851,8 @@ class InternalConservationStatusSerializer(BaseConservationStatusSerializer):
             "wa_priority_list",
             "wa_priority_category_id",
             "wa_priority_category",
-            "commonwealth_conservation_list_id",
-            "commonwealth_conservation_list",
+            "commonwealth_conservation_category_id",
+            "commonwealth_conservation_category",
             "other_conservation_assessment",
             "conservation_criteria",
             "comment",
@@ -1087,7 +1089,7 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
     wa_priority_category_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
-    commonwealth_conservation_list_id = serializers.IntegerField(
+    commonwealth_conservation_category_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
     change_code_id = serializers.IntegerField(
@@ -1110,7 +1112,7 @@ class SaveSpeciesConservationStatusSerializer(BaseConservationStatusSerializer):
             "iucn_version_id",
             "wa_priority_list_id",
             "wa_priority_category_id",
-            "commonwealth_conservation_list_id",
+            "commonwealth_conservation_category_id",
             "other_conservation_assessment",
             "conservation_criteria",
             "comment",
@@ -1246,7 +1248,7 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
     wa_priority_category_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
-    commonwealth_conservation_list_id = serializers.IntegerField(
+    commonwealth_conservation_category_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
     change_code_id = serializers.IntegerField(
@@ -1264,7 +1266,7 @@ class SaveCommunityConservationStatusSerializer(BaseConservationStatusSerializer
             "iucn_version_id",
             "wa_priority_list_id",
             "wa_priority_category_id",
-            "commonwealth_conservation_list_id",
+            "commonwealth_conservation_category_id",
             "other_conservation_assessment",
             "conservation_criteria",
             "comment",

@@ -1,7 +1,7 @@
 <template lang="html">
     <div id="internal-ocr-propose-approve-request">
-        <modal id="ocr-propose-approve-modal" transition="modal fade" @ok="ok()" ok-text="Propose Approve" @cancel="close()"
-            :title="`Propose Approve ${occurrence_report_number}`" large>
+        <modal id="ocr-propose-approve-modal" transition="modal fade" @ok="ok()" ok-text="Propose Approve"
+            @cancel="close()" :title="`Propose Approve ${occurrence_report_number}`" large>
             <div class="container">
                 <form id="propose-approve-form">
                     <div v-if="errorString" class="row mb-3">
@@ -28,6 +28,18 @@
                             </div>
                             <hr />
                             <div v-if="!propose_approve.create_new_occurrence" class="mt-3">
+                                <div v-if="occurrence_report.ocr_for_occ_number" class="form-group mb-3">
+                                    <label for="occurrence_report_is_for_occurrence_number">Proposed / Suggested OCC
+                                        Number:</label>
+                                    <input id="occurrence_report_is_for_occurrence_number" type="text" v-model="occurrence_report.ocr_for_occ_number
+                                        " :disabled="true" class="form-control" autocomplete="new-password" />
+                                </div>
+                                <div v-if="occurrence_report.ocr_for_occ_name" class="form-group mb-3">
+                                    <label for="occurrence_report_for_occurrence_name">Proposed / Suggested Occurrence
+                                        Name:</label>
+                                    <input id="occurrence_report_for_occurrence_name" type="text" v-model="occurrence_report.ocr_for_occ_name
+                                        " :disabled="true" class="form-control" autocomplete="new-password" />
+                                </div>
                                 <div class="form-group" id="occurrence_name_lookup_propose_approve_form_group_id">
                                     <label class="mb-3" for="occurrence_name_lookup_propose_approve">Existing
                                         Occurrence:</label>
@@ -47,6 +59,13 @@
                                 <label class="form-label" for="details">Details for Approver</label>
                                 <textarea type="date" class="form-control" id="details" name="details"
                                     v-model="propose_approve.details" required></textarea>
+                            </div>
+                            <div class="mt-3">
+                                <div class="col-sm-12">
+                                    <label class="control-label" for="cc_email">CC email</label>
+                                    <input type="text" style="width: 70%;" class="form-control" name="cc_email"
+                                        v-model="propose_approve.cc_email" />
+                                </div>
                             </div>
                             <div class="mt-3">
                                 some blurb to let the user know to go through the report and add sections to the
@@ -95,6 +114,7 @@ export default {
                 create_new_occurrence: false,
                 new_occurrence_name: '',
                 details: '',
+                cc_email: '',
             },
             errorString: '',
         }

@@ -550,7 +550,7 @@ export default {
         },
         datatable_headers: function () {
             return ['Number', 'Community', 'Community Id', 'Community Name', 'Change Type', 'WA Priority List',
-                'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List', 'International Conservation',
+                'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation Category', 'International Conservation',
                 'Conservation Criteria',
                 'Submitter Name', 'Submitter Category', 'Submitter Organisation', 'Assessor Name', 'Effective From Date', 'Effective To Date', 'Review Due Date',
                 'Status', 'Action']
@@ -716,13 +716,13 @@ export default {
                 name: "wa_legislative_category__code",
             }
         },
-        column_commonwealth_conservation_list: function () {
+        column_commonwealth_conservation_category: function () {
             return {
-                data: "commonwealth_conservation_list",
+                data: "commonwealth_conservation_category",
                 orderable: true,
                 searchable: false,
                 visible: true,
-                name: "commonwealth_conservation_list",
+                name: "commonwealth_conservation_category",
             }
         },
         column_other_conservation_assessment:
@@ -860,17 +860,21 @@ export default {
             let search = null
             let buttons = [
                 {
+                    extend: 'excel',
+                    title: 'Boranga CS Communities Excel Export',
                     text: '<i class="fa-solid fa-download"></i> Excel',
                     className: 'btn btn-primary me-2 rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("excel");
+                    exportOptions: {
+                        columns: ':not(.no-export)',
                     }
                 },
                 {
+                    extend: 'csv',
+                    title: 'Boranga CS Communities CSV Export',
                     text: '<i class="fa-solid fa-download"></i> CSV',
                     className: 'btn btn-primary rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("csv");
+                    exportOptions: {
+                        columns: ':not(.no-export)',
                     }
                 }
             ]
@@ -885,7 +889,7 @@ export default {
                 vm.column_wa_priority_category,
                 vm.column_wa_legislative_list,
                 vm.column_wa_legislative_category,
-                vm.column_commonwealth_conservation_list,
+                vm.column_commonwealth_conservation_category,
                 vm.column_other_conservation_assessment,
                 vm.column_conservation_criteria,
                 vm.column_submitter_name,
@@ -915,7 +919,7 @@ export default {
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 },
-                    { responsivePriority: 3, targets: -1 },
+                    { responsivePriority: 3, targets: -1, className: 'no-export' },
                     { responsivePriority: 2, targets: -2 }
                 ],
                 ajax: {
@@ -1277,231 +1281,6 @@ export default {
             vm.$refs.cs_communities_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
                 helpers.enablePopovers();
             });
-        },
-        exportData: function (format) {
-            let vm = this;
-            const columns_new = {
-                "0": {
-                    "data": "conservation_status_number",
-                    "name": "conservation_status__id, conservation_status__conservation_status_number",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "1": {
-                    "data": "community_number",
-                    "name": "conservation_status__community__community_number",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "2": {
-                    "data": "community_migrated_id",
-                    "name": "conservation_status__community__community_migrated_id",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "3": {
-                    "data": "community_name",
-                    "name": "conservation_status__community__community_name__name",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "4": {
-                    "data": "conservation_list",
-                    "name": "conservation_status__conservation_list__code",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "5": {
-                    "data": "conservation_category",
-                    "name": "conservation_status__conservation_category__code",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "6": {
-                    "data": "family",
-                    "name": "species__taxonomy__family__name",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "7": {
-                    "data": "genus",
-                    "name": "species__taxonomy__genus__name",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "8": {
-                    "data": "processing_status",
-                    "name": "conservation_status__processing_status",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "9": {
-                    "data": "id",
-                    "name": "",
-                    "searchable": "false",
-                    "orderable": "false",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-                "10": {
-                    "data": "conservation_status",
-                    "name": "",
-                    "searchable": "true",
-                    "orderable": "true",
-                    "search": {
-                        "value": "",
-                        "regex": "false"
-                    }
-                },
-            };
-
-            const object_load = {
-                columns: columns_new,
-                filter_community_migrated_id: vm.filterCSCommunityMigratedId,
-                filter_group_type: vm.group_type_name,
-                filter_community_name: vm.filterCSCommunityName,
-                filter_application_status: vm.filterCSCommunityApplicationStatus,
-                filter_change_code: vm.filterCSCommunityChangeCode,
-                filter_wa_legislative_list: vm.filterCSCommunityWALegislativeList,
-                filter_wa_legislative_category: vm.filterCSCommunityWALegislativeCategory,
-                filter_wa_priority_category: vm.filterCSCommunityWAPriorityCategory,
-                filter_commonwealth_relevance: vm.filterCSCommunityCommonwealthRelevance,
-                filter_international_relevance: vm.filterCSCommunityInternationalRelevance,
-                filter_application_status: vm.filterCSCommunityApplicationStatus,
-                filter_assessor: vm.filterCSCommunityAssessor,
-                filter_submitter: vm.filterCSCommunitySubmitter,
-                filter_submitter_category: vm.filterCSCommunitySubmitterCategory,
-                filter_from_effective_from_date: vm.filterCSFromCommunityEffectiveFromDate,
-                filter_to_effective_from_date: vm.filterCSToCommunityEffectiveFromDate,
-                filter_from_effective_to_date: vm.filterCSFromCommunityEffectiveToDate,
-                filter_to_effective_to_date: vm.filterCSToCommunityEffectiveToDate,
-                filter_from_review_due_date: vm.filterCSFromCommunityReviewDueDate,
-                filter_to_review_due_date: vm.filterCSToCommunityReviewDueDate,
-                export_format: format
-            };
-
-            const url = api_endpoints.community_cs_internal_export;
-            const keyValuePairs = [];
-
-            for (const key in object_load) {
-                if (object_load.hasOwnProperty(key)) {
-                    const encodedKey = encodeURIComponent(key);
-                    let encodedValue = '';
-
-                    if (typeof object_load[key] === 'object') {
-                        encodedValue = encodeURIComponent(JSON.stringify(object_load[key]));
-                    }
-                    else {
-                        encodedValue = encodeURIComponent(object_load[key]);
-                    }
-                    keyValuePairs.push(`${encodedKey}=${encodedValue}`);
-                }
-            }
-            const params = keyValuePairs.join('&');
-            const fullUrl = `${url}?${params}`;
-            try {
-                if (format === "excel") {
-                    $.ajax({
-                        type: "POST",
-                        headers: {
-                            'X-CSRFToken': helpers.getCookie('csrftoken'),
-                        },
-                        url: url + "/",
-                        data: object_load,
-                        //contentType: "application/vnd.ms-excel",
-                        dataType: "binary",
-                        xhrFields: {
-                            responseType: 'blob'
-                        },
-
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "application/vnd.ms-excel" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-                else if (format === "csv") {
-                    $.ajax({
-                        type: "POST",
-                        headers: {
-                            'X-CSRFToken': helpers.getCookie('csrftoken'),
-                        },
-                        url: url + "/",
-                        data: object_load,
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "text/csv" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-            }
-            catch (err) {
-                console.log(err);
-            }
         },
     },
     mounted: function () {

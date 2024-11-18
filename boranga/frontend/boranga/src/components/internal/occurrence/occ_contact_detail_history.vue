@@ -107,7 +107,7 @@ export default {
         },
         column_sequence: function () {
             return {
-                
+
                 data: 'revision_sequence',
                 orderable: true,
                 searchable: false,
@@ -137,7 +137,7 @@ export default {
                 data: 'data.data.occcontactdetail.fields.id',
                 defaultContent: '',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.data.occcontactdetail.fields.id+'-'+full.revision_sequence;
@@ -147,10 +147,10 @@ export default {
         },
         column_revision_id: function () {
             return {
-                
+
                 data: 'revision_id',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     return full.revision_id;
@@ -160,10 +160,10 @@ export default {
         },
         column_revision_date: function () {
             return {
-                
+
                 data: 'date_created',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     return full.date_created;
@@ -173,10 +173,10 @@ export default {
         },
         column_revision_user: function () {
             return {
-                
+
                 data: 'revision_user',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.revision_user;
@@ -186,10 +186,10 @@ export default {
         },
         column_contact_name: function () {
             return {
-                data: 'data.data.occcontactdetail.fields.contact_name', 
+                data: 'data.data.occcontactdetail.fields.contact_name',
                 defaultContent: '',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occcontactdetail.fields.contact_name) {
@@ -203,10 +203,10 @@ export default {
         },
         column_contact_role: function () {
             return {
-                data: 'data.data.occcontactdetail.fields.role', 
+                data: 'data.data.occcontactdetail.fields.role',
                 defaultContent: '',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occcontactdetail.fields.role) {
@@ -220,10 +220,10 @@ export default {
         },
         column_contact_details: function () {
             return {
-                data: 'data.data.occcontactdetail.fields.contact', 
+                data: 'data.data.occcontactdetail.fields.contact',
                 defaultContent: '',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occcontactdetail.fields.contact) {
@@ -239,10 +239,10 @@ export default {
         },
         column_organisation: function () {
             return {
-                data: 'data.data.occcontactdetail.fields.organisation', 
+                data: 'data.data.occcontactdetail.fields.organisation',
                 defaultContent: '',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occcontactdetail.fields.organisation) {
@@ -256,10 +256,10 @@ export default {
         },
         column_notes: function () {
             return {
-                data: 'data.data.occcontactdetail.fields.notes', 
+                data: 'data.data.occcontactdetail.fields.notes',
                 defaultContent: '',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occcontactdetail.fields.notes) {
@@ -316,10 +316,11 @@ export default {
                 buttons: [
                     {
                         extend: 'excel',
+                        title: 'Boranga OCC Contact Excel Export',
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
-                            orthogonal: 'export' 
+                            orthogonal: 'export'
                         }
                     },
                     {
@@ -327,7 +328,7 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {
-                            orthogonal: 'export' 
+                            orthogonal: 'export'
                         }
                     },
                 ],
@@ -383,7 +384,7 @@ export default {
         isModalOpen() {
             let vm = this;
             if (this.isModalOpen) {
-                vm.$refs.history_datatable.vmDataTable.ajax.reload();            
+                vm.$refs.history_datatable.vmDataTable.ajax.reload();
             }
         }
     },

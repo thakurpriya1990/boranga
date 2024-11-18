@@ -1,14 +1,25 @@
 <template lang="html">
     <div id="internal-ocr-propose-decline-request">
-        <modal id="ocr-propose-decline-modal" transition="modal fade" @ok="ok()" ok-text="Propose Decline" @cancel="close()"
-            :title="`Propose Decline ${occurrence_report_number}`" large>
+        <modal id="ocr-propose-decline-modal" transition="modal fade" @ok="ok()" ok-text="Propose Decline"
+            @cancel="close()" :title="`Propose Decline ${occurrence_report_number}`" large>
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="propose-decline-form">
                         <alert v-if="errorString" type="danger"><strong>{{ errorString }}</strong></alert>
-                        <label class="control-label mb-3" for="reason">Reason</label>
-                        <textarea class="form-control" name="reason" v-model="propose_decline.reason" id="reason"
-                            ref="reason" required></textarea>
+                        <div class="row mb-3">
+                            <div class="col-sm-12">
+                                <label class="control-label mb-3" for="reason">Reason</label>
+                                <textarea class="form-control" name="reason" v-model="propose_decline.reason"
+                                    id="reason" ref="reason" required></textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label class="control-label" for="cc_email">CC email</label>
+                                <input type="text" style="width: 70%;" class="form-control" name="cc_email"
+                                    v-model="propose_decline.cc_email" />
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -42,6 +53,7 @@ export default {
             form: null,
             propose_decline: {
                 reason: '',
+                cc_email: '',
             },
             errorString: '',
         }

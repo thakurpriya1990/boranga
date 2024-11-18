@@ -325,6 +325,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
     site = models.TextField(null=True, blank=True)
+    # Allows the OCR submitter to hint the assessor to which occurrence to assign to
+    # without forcefully linking the occurrence to the OCR
+    ocr_for_occ_number = models.CharField(max_length=9, blank=True, default="")
+    ocr_for_occ_name = models.CharField(max_length=100, blank=True, default="")
 
     # If this OCR was created as part of a bulk import task, this field will be populated
     bulk_import_task = models.ForeignKey(
@@ -554,7 +558,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     @property
     def assessor_recipients(self):
         recipients = []
-        group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR)
+        group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR, include_superusers=False)
         for id in group_ids:
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
@@ -562,7 +566,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     @property
     def approver_recipients(self):
         recipients = []
-        group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER)
+        group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER, include_superusers=False)
         for id in group_ids:
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
@@ -580,7 +584,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
     @property
     def related_item_status(self):
-        return self.get_processing_status_display
+        return self.get_processing_status_display()
 
     @property
     def as_related_item(self):
@@ -790,6 +794,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             defaults={
                 "officer": request.user.id,
                 "reason": reason,
+                "cc_email": details.get("cc_email", None),
             },
         )
 
@@ -936,6 +941,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                 "occurrence": occurrence,
                 "new_occurrence_name": new_occurrence_name,
                 "details": details,
+                "cc_email": validated_data.get("cc_email", None),
             },
         )
 
@@ -1344,6 +1350,7 @@ class OccurrenceReportApprovalDetails(models.Model):
     new_occurrence_name = models.CharField(max_length=200, null=True, blank=True)
     officer = models.IntegerField()  # EmailUserRO
     details = models.TextField(blank=True)
+    cc_email = models.TextField(null=True)
 
     class Meta:
         app_label = "boranga"
@@ -3558,7 +3565,7 @@ class Occurrence(RevisionedMixin):
 
     @property
     def related_item_status(self):
-        return self.get_processing_status_display
+        return self.get_processing_status_display()
 
     @property
     def as_related_item(self):
@@ -4047,7 +4054,8 @@ class Occurrence(RevisionedMixin):
                 for field_object in field_objects:
                     if field_object:
                         related_item = field_object.as_related_item
-                        return_list.append(related_item)
+                        if related_item not in return_list:
+                            return_list.append(related_item)
 
                 # Add parent species related items to the list (limited to one degree of separation)
                 if a_field.name == "species" and self.species:

@@ -110,7 +110,7 @@ export default {
         },
         column_sequence: function () {
             return {
-                
+
                 data: 'revision_sequence',
                 orderable: true,
                 searchable: false,
@@ -143,7 +143,7 @@ export default {
                 // 2. Number
                 data: 'data.data.occurrencereport.fields.occurrence_report_number',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.data.occurrencereport.fields.occurrence_report_number;
@@ -153,10 +153,10 @@ export default {
         },
         column_revision_id: function () {
             return {
-                
+
                 data: 'revision_id',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     return full.revision_id;
@@ -166,10 +166,10 @@ export default {
         },
         column_revision_date: function () {
             return {
-                
+
                 data: 'date_created',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     return full.date_created;
@@ -179,10 +179,10 @@ export default {
         },
         column_revision_user: function () {
             return {
-                
+
                 data: 'revision_user',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.revision_user;
@@ -192,10 +192,10 @@ export default {
         },
         column_scientific_name: function () {
             return {
-                data: 'data.data.taxonomy.fields.scientific_name', 
+                data: 'data.data.taxonomy.fields.scientific_name',
                 defaultContent: '',
                 orderable: false,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if (full.data.taxonomy !== undefined && full.data.taxonomy.fields !== undefined) {
@@ -212,7 +212,7 @@ export default {
         },
         /*column_non_current_name: function () {
             return {
-                data: 'data.data.taxonomy.fields.non_current_name', 
+                data: 'data.data.taxonomy.fields.non_current_name',
                 defaultContent: '',
                 orderable: false,
                 searchable: true,
@@ -243,7 +243,7 @@ export default {
                                     let result = helpers.dtPopover(value, 30, 'hover');
                                     return type=='export' ? value : result;
                                 }
-                            }                               
+                            }
                             return '';
                         }
                         return '';
@@ -256,7 +256,7 @@ export default {
         },
         column_common_name: function () {
             return {
-                data: 'data.data.taxonvernacular.fields.vernacular_name', 
+                data: 'data.data.taxonvernacular.fields.vernacular_name',
                 defaultContent: '',
                 orderable: false,
                 searchable: true,
@@ -272,7 +272,7 @@ export default {
                                 } else {
                                     combined_name += ","+full.data.taxonvernacular[i].fields.vernacular_name
                                 }
-                            }                               
+                            }
                             //return combined_name;
                             let value = combined_name;
                             let result = helpers.dtPopover(value, 30, 'hover');
@@ -291,11 +291,11 @@ export default {
         },*/
         column_occurrence: function () {
             return {
-                
+
                 data: 'data.data.occurrencereport.fields.occurrence',
                 defaultContent: '',
                 orderable: true,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     if (full.data.occurrencereport.fields.occurrence)
@@ -307,11 +307,11 @@ export default {
         },
         column_processing_status: function () {
             return {
-                
+
                 data: 'data.data.occurrencereport.fields.processing_status',
                 defaultContent: '',
                 orderable: true,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.data.occurrencereport.fields.processing_status;
@@ -362,18 +362,20 @@ export default {
                 buttons: [
                     {
                         extend: 'excel',
+                        title: 'Boranga OCR Species History Excel Export',
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
-                            orthogonal: 'export' 
+                            orthogonal: 'export'
                         }
                     },
                     {
                         extend: 'csv',
+                        title: 'Boranga OCR Species History CSV Export',
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {
-                            orthogonal: 'export' 
+                            orthogonal: 'export'
                         }
                     },
                 ],

@@ -1305,6 +1305,7 @@ class OccurrenceReportApprovalDetailsSerializer(serializers.ModelSerializer):
         source="occurrence.occurrence_name", allow_null=True
     )
     officer_name = serializers.CharField(read_only=True, allow_null=True)
+    cc_email = serializers.CharField(required=False, allow_null=True)
 
     class Meta:
         model = OccurrenceReportApprovalDetails
@@ -1436,6 +1437,8 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "is_new_contributor",
             "observation_date",
             "site",
+            "ocr_for_occ_number",
+            "ocr_for_occ_name",
             "submitter_information",
             "external_referral_invites",
             "number_of_observers",
@@ -2058,6 +2061,8 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
             "assessor_data",
             "site",
             "observation_date",
+            "ocr_for_occ_number",
+            "ocr_for_occ_name",
         )
         read_only_fields = ("id",)
 
@@ -2473,6 +2478,7 @@ class SaveOCCConservationThreatSerializer(serializers.ModelSerializer):
 
 class ProposeDeclineSerializer(serializers.Serializer):
     reason = serializers.CharField()
+    cc_email = serializers.CharField(required=False, allow_null=True)
 
 
 class BackToAssessorSerializer(serializers.Serializer):
@@ -2483,6 +2489,7 @@ class ProposeApproveSerializer(serializers.Serializer):
     occurrence_id = serializers.IntegerField(allow_null=True)
     new_occurrence_name = serializers.CharField(allow_blank=True)
     details = serializers.CharField()
+    cc_email = serializers.CharField(required=False, allow_null=True)
 
 
 class SaveOccurrenceSerializer(serializers.ModelSerializer):

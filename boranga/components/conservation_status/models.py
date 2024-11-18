@@ -323,7 +323,7 @@ class CommonwealthConservationList(AbstractConservationList):
     class Meta:
         ordering = ["code"]
         app_label = "boranga"
-        verbose_name = "Commonwealth Conservation List"
+        verbose_name = "Commonwealth Conservation Category"
 
 
 class ConservationChangeCode(ArchivableModel):
@@ -567,11 +567,14 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         null=True,
         related_name="curr_iucn_version",
     )
-    commonwealth_conservation_list = models.ForeignKey(
+    # Although this field is a relationship to CommonwealthConservationList
+    # the business requirements was that it should be called a "category"
+    commonwealth_conservation_category = models.ForeignKey(
         CommonwealthConservationList,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
+        # Leave the following as _list otherwise django has remove the field and create a new one
         related_name="curr_commonwealth_conservation_list",
     )
     other_conservation_assessment = models.CharField(
@@ -820,7 +823,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     @property
     def assessor_recipients(self):
         recipients = []
-        group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_ASSESSOR)
+        group_ids = member_ids(
+            GROUP_NAME_CONSERVATION_STATUS_ASSESSOR, include_superusers=False
+        )
         for id in group_ids:
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
@@ -1918,7 +1923,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
                 for field_object in field_objects:
                     if field_object:
                         related_item = field_object.as_related_item
-                        return_list.append(related_item)
+                        if related_item not in return_list:
+                            return_list.append(related_item)
+
         species_filter = []
         if "occurrences" in related_field_names:
             species_filter.append("occurrences")
@@ -1928,12 +1935,15 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             if self.species:
                 species_occurences = self.species.get_related_items(occ_filter_type)
                 if species_occurences:
-                    # return_list.append(species_occurences)
                     return_list += species_occurences
             if self.community:
                 community_occurences = self.community.get_related_items(occ_filter_type)
                 if community_occurences:
                     return_list += community_occurences
+
+        # Remove duplicates
+        return_list = list(set(return_list))
+
         return return_list
 
     @property
@@ -1971,7 +1981,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
     @property
     def related_item_status(self):
-        return self.get_processing_status_display
+        return self.get_processing_status_display()
 
     @property
     def is_finalised(self):

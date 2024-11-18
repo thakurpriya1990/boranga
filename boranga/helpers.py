@@ -227,14 +227,16 @@ def belongs_to_groups_by_user_id(user_id: int, group_names: list) -> bool:
     return False
 
 
-def member_ids(group_name):
+def member_ids(group_name, include_superusers=True):
     # Centralised member_ids method that includes all superusers (not totally sure we want this yet)
     system_group = SystemGroup.objects.filter(name=group_name).first()
     if not system_group:
         logger.warning(f"SystemGroup {group_name} not found")
         return []
-
-    return system_group.get_system_group_member_ids() + superuser_ids_list()
+    member_ids = system_group.get_system_group_member_ids()
+    if include_superusers:
+        member_ids += superuser_ids_list()
+    return member_ids
 
 
 def is_django_admin(request):

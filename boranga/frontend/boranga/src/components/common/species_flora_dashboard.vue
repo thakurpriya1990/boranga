@@ -483,13 +483,13 @@ export default {
             if (this.is_external) {
                 return ['Id', 'Number', 'Scientific Name', 'Common Name', 'Phylo Group(s)', 'Family', 'Genera',
                     'Region(s)', 'District(s)',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation Category',
                     'International Conservation', 'Conservation Criteria', 'Action']
             }
             if (this.is_internal) {
                 return ['Id', 'Number', 'Scientific Name', 'Common Name', 'Phylo Group(s)', 'Family', 'Genera',
                     'Region(s)', 'District(s)',
-                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation List',
+                    'WA Priority Category', 'WA Legislative List', 'WA Legislative Category', 'Commonwealth Conservation Category',
                     'International Conservation', 'Conservation Criteria', 'Status', 'Action']
             }
         },
@@ -611,9 +611,9 @@ export default {
                 visible: true,
             }
         },
-        column_commonwealth_conservation_list: function () {
+        column_commonwealth_conservation_category: function () {
             return {
-                data: "commonwealth_conservation_list",
+                data: "commonwealth_conservation_category",
                 orderable: false,
                 searchable: false,
                 visible: true,
@@ -715,17 +715,21 @@ export default {
             let search = null
             let buttons = [
                 {
+                    extend: 'excel',
+                    title: 'Boranga S&C Flora Excel Export',
                     text: '<i class="fa-solid fa-download"></i> Excel',
                     className: 'btn btn-primary me-2 rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("excel");
+                    exportOptions: {
+                        columns: ':not(.no-export)',
                     }
                 },
                 {
+                    extend: 'csv',
+                    title: 'Boranga S&C Flora CSV Export',
                     text: '<i class="fa-solid fa-download"></i> CSV',
                     className: 'btn btn-primary rounded',
-                    action: function (e, dt, node, config) {
-                        vm.exportData("csv");
+                    exportOptions: {
+                        columns: ':not(.no-export)',
                     }
                 }
             ]
@@ -743,7 +747,7 @@ export default {
                     vm.column_wa_priority_category,
                     vm.column_wa_legislative_list,
                     vm.column_wa_legislative_category,
-                    vm.column_commonwealth_conservation_list,
+                    vm.column_commonwealth_conservation_category,
                     vm.column_other_conservation_assessment,
                     vm.column_conservation_criteria,
                     vm.column_action,
@@ -764,7 +768,7 @@ export default {
                     vm.column_wa_priority_category,
                     vm.column_wa_legislative_list,
                     vm.column_wa_legislative_category,
-                    vm.column_commonwealth_conservation_list,
+                    vm.column_commonwealth_conservation_category,
                     vm.column_other_conservation_assessment,
                     vm.column_conservation_criteria,
                     vm.column_status,
@@ -788,7 +792,7 @@ export default {
                 //  to show the "Action" column always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 },
-                    { responsivePriority: 3, targets: -1 },
+                    { responsivePriority: 3, targets: -1, className: 'no-export' },
                     { responsivePriority: 2, targets: -2 }
                 ],
                 ajax: {
@@ -1106,243 +1110,6 @@ export default {
                     });
                 }
             });
-        },
-        exportData: function (format) {
-            let vm = this;
-            const columns_new = {
-                "0": {
-                    "data": "id",
-                    "name": "id",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "false"
-                },
-                "1": {
-                    "data": "species_number",
-                    "name": "id",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "10": {
-                    "data": "districts",
-                    "name": "districts__name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "false"
-                },
-                "11": {
-                    "data": "processing_status",
-                    "name": "processing_status",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "12": {
-                    "data": "id",
-                    "name": "",
-                    "orderable": "false",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "false"
-                },
-                "2": {
-                    "data": "scientific_name",
-                    "name": "taxonomy__scientific_name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "3": {
-                    "data": "common_name",
-                    "name": "taxonomy__vernaculars__vernacular_name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "4": {
-                    "data": "phylogenetic_group",
-                    "name": "taxonomy__phylogenetic_group__name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "5": {
-                    "data": "family",
-                    "name": "taxonomy__family_name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "6": {
-                    "data": "genus",
-                    "name": "taxonomy__genera_name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "7": {
-                    "data": "conservation_list",
-                    "name": "conservation_status__conservation_list__code",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "8": {
-                    "data": "conservation_category",
-                    "name": "conservation_status__conservation_category__code",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "true"
-                },
-                "9": {
-                    "data": "regions",
-                    "name": "regions__name",
-                    "orderable": "true",
-                    "search": {
-                        "regex": "false",
-                        "value": ""
-                    },
-                    "searchable": "false"
-                }
-            };
-
-            const object_load = {
-                columns: columns_new,
-                filter_group_type: vm.group_type_name,
-                filter_scientific_name: vm.filterFloraScientificName,
-                filter_common_name: vm.filterFloraCommonName,
-                filter_family: vm.filterFloraFamily,
-                filter_phylogenetic_group: vm.filterFloraPhylogeneticGroup,
-                filter_genus: vm.filterFloraGenus,
-                filter_name_status: vm.filterFloraNameStatus,
-                filter_application_status: vm.filterFloraApplicationStatus,
-                filter_region: vm.filterFloraRegion,
-                filter_district: vm.filterFloraDistrict,
-                filter_wa_legislative_list: vm.filterFloraWALegislativeList,
-                filter_wa_legislative_category: vm.filterFloraWALegislativeCategory,
-                filter_wa_priority_category: vm.filterFloraWAPriorityCategory,
-                filter_commonwealth_relevance: vm.filterFloraCommonwealthRelevance,
-                filter_international_relevance: vm.filterFloraInternationalRelevance,
-                filter_conservation_criteria: vm.filterFloraConsevationCriteria,
-                is_internal: vm.is_internal,
-                export_format: format
-            };
-
-            const url = api_endpoints.species_internal_export;
-            const keyValuePairs = [];
-
-            for (const key in object_load) {
-                if (object_load.hasOwnProperty(key)) {
-                    const encodedKey = encodeURIComponent(key);
-                    let encodedValue = '';
-
-                    if (typeof object_load[key] === 'object') {
-                        encodedValue = encodeURIComponent(JSON.stringify(object_load[key]));
-                    }
-                    else {
-                        encodedValue = encodeURIComponent(object_load[key]);
-                    }
-                    keyValuePairs.push(`${encodedKey}=${encodedValue}`);
-                }
-            }
-            const params = keyValuePairs.join('&');
-            const fullUrl = `${url}?${params}`;
-            try {
-                if (format === "excel") {
-                    $.ajax({
-                        type: "GET",
-                        url: fullUrl,
-                        contentType: "application/vnd.ms-excel",
-                        dataType: "binary",
-                        xhrFields: {
-                            responseType: 'blob'
-                        },
-
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "application/vnd.ms-excel" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-                else if (format === "csv") {
-                    $.ajax({
-                        type: "GET",
-                        url: fullUrl,
-                        success: function (response, status, request) {
-                            var contentDispositionHeader = request.getResponseHeader('Content-Disposition');
-                            var filename = contentDispositionHeader.split('filename=')[1];
-                            window.URL = window.URL || window.webkitURL;
-                            var blob = new Blob([response], { type: "text/csv" });
-
-                            var downloadUrl = window.URL.createObjectURL(blob);
-                            var a = document.createElement("a");
-                            a.href = downloadUrl;
-                            a.download = filename;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log(error);
-                        },
-                    });
-                }
-            }
-            catch (err) {
-                console.log(err);
-                if (vm.is_internal) {
-                    return err;
-                }
-            }
         },
         discardSpecies: function (species_id) {
             let vm = this;

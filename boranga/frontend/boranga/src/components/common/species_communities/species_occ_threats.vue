@@ -167,6 +167,7 @@ export default {
                     buttons:[
                         {
                             extend: 'excel',
+                            title: 'Boranga Species Occurrence Threats Excel Export',
                             text: '<i class="fa-solid fa-download"></i> Excel',
                             className: 'btn btn-primary me-2 rounded',
                             exportOptions: {
@@ -175,6 +176,7 @@ export default {
                         },
                         {
                             extend: 'csv',
+                            title: 'Boranga Species Occurrence Threats CSV Export',
                             text: '<i class="fa-solid fa-download"></i> CSV',
                             className: 'btn btn-primary rounded',
                             exportOptions: {
