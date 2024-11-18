@@ -1437,6 +1437,8 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "is_new_contributor",
             "observation_date",
             "site",
+            "ocr_for_occ_number",
+            "ocr_for_occ_name",
             "submitter_information",
             "external_referral_invites",
             "number_of_observers",
@@ -2059,6 +2061,8 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
             "assessor_data",
             "site",
             "observation_date",
+            "ocr_for_occ_number",
+            "ocr_for_occ_name",
         )
         read_only_fields = ("id",)
 
