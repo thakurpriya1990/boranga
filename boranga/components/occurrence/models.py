@@ -328,7 +328,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     # Allows the OCR submitter to hint the assessor to which occurrence to assign to
     # without forcefully linking the occurrence to the OCR
     ocr_for_occ_number = models.CharField(max_length=9, blank=True, default="")
-    ocr_for_occ_name = models.CharField(max_length=100, blank=True, default="")
+    ocr_for_occ_name = models.CharField(max_length=250, blank=True, default="")
 
     # If this OCR was created as part of a bulk import task, this field will be populated
     bulk_import_task = models.ForeignKey(
@@ -1405,6 +1405,9 @@ class OccurrenceReportLogDocument(Document):
     class Meta:
         app_label = "boranga"
 
+    def get_parent_instance(self) -> models.Model:
+        return self.log_entry
+
 
 class OccurrenceReportUserAction(UserAction):
     # OccurrenceReport Proposal
@@ -1560,7 +1563,6 @@ class OccurrenceReportAmendmentRequest(OccurrenceReportProposalRequest):
             )
             document.check_file(request.data.get("file-" + str(idx)))
             document.input_name = data["input_name"]
-            document.can_delete = True
             document.save()
 
         # end save documents
@@ -1585,16 +1587,9 @@ class OccurrenceReportAmendmentRequestDocument(Document):
         storage=private_storage,
     )
     input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-    visible = models.BooleanField(
-        default=True
-    )  # to prevent deletion on file system, hidden and still be available in history
 
-    def delete(self):
-        if self.can_delete:
-            return super().delete()
+    def get_parent_instance(self) -> models.Model:
+        return self.occurrence_report_amendment_request
 
 
 class OccurrenceReportReferral(models.Model):
@@ -3216,19 +3211,7 @@ class OccurrenceReportDocument(Document):
         storage=private_storage,
     )
     input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-    can_hide = models.BooleanField(
-        default=False
-    )  # after initial submit, document cannot be deleted but can be hidden
     can_submitter_access = models.BooleanField(default=False)
-    hidden = models.BooleanField(default=False)
-    # after initial submit prevent document from being deleted
-    # Priya alternatively used below visible field in boranga
-    visible = models.BooleanField(
-        default=True
-    )  # to prevent deletion on file system, hidden and still be available in history
     document_category = models.ForeignKey(
         DocumentCategory, null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -3252,6 +3235,9 @@ class OccurrenceReportDocument(Document):
         else:
             super().save(*args, **kwargs)
 
+    def get_parent_instance(self) -> models.Model:
+        return self.occurrence_report
+
     @transaction.atomic
     def add_documents(self, request, *args, **kwargs):
         # save the files
@@ -3265,7 +3251,6 @@ class OccurrenceReportDocument(Document):
             self._file = _file
             self.name = _file.name
             self.input_name = data["input_name"]
-            self.can_delete = True
             self.save(no_revision=True)
         # end save documents
         self.save(*args, **kwargs)
@@ -3293,26 +3278,6 @@ class OccurrenceReportShapefileDocument(Document):
         storage=private_storage,
     )
     input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-    can_hide = models.BooleanField(
-        default=False
-    )  # after initial submit, document cannot be deleted but can be hidden
-    hidden = models.BooleanField(
-        default=False
-    )  # after initial submit prevent document from being deleted
-
-    def delete(self):
-        if self.can_delete:
-            self._file.delete()
-            return super().delete()
-        logger.info(
-            "Cannot delete existing document object after Occurrence Report has been submitted "
-            "(including document submitted before Occurrence Report pushback to status Draft): {}".format(
-                self.name
-            )
-        )
 
     class Meta:
         app_label = "boranga"
@@ -4307,18 +4272,6 @@ class OccurrenceDocument(Document):
         storage=private_storage,
     )
     input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-    can_hide = models.BooleanField(
-        default=False
-    )  # after initial submit, document cannot be deleted but can be hidden
-    hidden = models.BooleanField(default=False)
-    # after initial submit prevent document from being deleted
-    # Priya alternatively used below visible field in boranga
-    visible = models.BooleanField(
-        default=True
-    )  # to prevent deletion on file system, hidden and still be available in history
     document_category = models.ForeignKey(
         DocumentCategory, null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -4355,7 +4308,6 @@ class OccurrenceDocument(Document):
             self._file = _file
             self.name = _file.name
             self.input_name = data["input_name"]
-            self.can_delete = True
             self.save(no_revision=True)
         # end save documents
         self.save(*args, **kwargs)
