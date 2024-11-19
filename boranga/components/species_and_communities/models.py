@@ -1081,6 +1081,9 @@ class SpeciesLogDocument(Document):
     class Meta:
         app_label = "boranga"
 
+    def get_parent_instance(self) -> models.Model:
+        return self.log_entry
+
 
 class SpeciesLogEntry(CommunicationsLogEntry):
     species = models.ForeignKey(
@@ -1934,6 +1937,9 @@ class CommunityLogDocument(Document):
     class Meta:
         app_label = "boranga"
 
+    def get_parent_instance(self) -> models.Model:
+        return self.log_entry
+
 
 class CommunityLogEntry(CommunicationsLogEntry):
     community = models.ForeignKey(
@@ -2158,6 +2164,9 @@ class SpeciesDocument(Document):
         else:
             super().save(*args, **kwargs)
 
+    def get_parent_instance(self) -> models.Model:
+        return self.species
+
     @transaction.atomic
     def add_documents(self, request, *args, **kwargs):
         # save the files
@@ -2226,6 +2235,9 @@ class CommunityDocument(Document):
             self.save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
+
+    def get_parent_instance(self) -> models.Model:
+        return self.community
 
     @transaction.atomic
     def add_documents(self, request, *args, **kwargs):

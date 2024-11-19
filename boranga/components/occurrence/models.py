@@ -3282,6 +3282,9 @@ class OccurrenceReportShapefileDocument(Document):
     class Meta:
         app_label = "boranga"
 
+    def get_parent_instance(self) -> models.Model:
+        return self.occurrence_report
+
 
 class OCRConservationThreat(RevisionedMixin):
     BULK_IMPORT_ABBREVIATION = "ocrthr"
@@ -4222,6 +4225,9 @@ class OccurrenceLogDocument(Document):
     class Meta:
         app_label = "boranga"
 
+    def get_parent_instance(self) -> models.Model:
+        return self.log_entry
+
 
 class OccurrenceUserAction(UserAction):
     ACTION_VIEW_OCCURRENCE = "View occurrence {}"
@@ -4294,6 +4300,9 @@ class OccurrenceDocument(Document):
             self.save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
+
+    def get_parent_instance(self) -> models.Model:
+        return self.occurrence
 
     @transaction.atomic
     def add_documents(self, request, *args, **kwargs):

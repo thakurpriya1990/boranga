@@ -2097,6 +2097,9 @@ class ConservationStatusLogDocument(Document):
     class Meta:
         app_label = "boranga"
 
+    def get_parent_instance(self) -> models.Model:
+        return self.log_entry
+
 
 class ConservationStatusUserAction(UserAction):
     # ConservationStatus Proposal

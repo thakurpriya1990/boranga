@@ -232,24 +232,6 @@ class Document(RevisionedMixin, metaclass=AbstractModelMeta):
             "Subclasses of Document must implement a get_parent_instance method"
         )
 
-    def activate(self):
-        if self.active:
-            return
-
-        self.active = True
-        self.save()
-
-    def deactivate(self):
-        if not self.active:
-            return
-
-        self.active = False
-        self.save()
-
-    def toggle_active(self):
-        self.active = not self.active
-        self.save()
-
     @property
     def path(self):
         # return self.file.path
