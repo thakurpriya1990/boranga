@@ -136,7 +136,7 @@ export default {
                             } else {
                                 let value = full.name;
                                 let result = helpers.dtPopover(value, 30, 'hover');
-                                links += '<s>' + type == 'export' ? value : result + '</s>';
+                                links += type == 'export' ? value : '<s>' + result + '</s>';
                             }
                             return links;
                         },
