@@ -490,7 +490,7 @@ class AgendaItem(OrderedModel):
 
     @property
     def related_item_status(self):
-        return self.meeting.get_processing_status_display
+        return self.meeting.get_processing_status_display()
 
 
 # Minutes
