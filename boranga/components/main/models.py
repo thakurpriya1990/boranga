@@ -198,10 +198,7 @@ class Document(RevisionedMixin, metaclass=AbstractModelMeta):
         # If the parent instance doesn't have a lodgement_date field
         # or it has a lodgement_date field and it is not None
         # then we do not allow the file to be removed from the file system
-        if (
-            not hasattr(parent_instance, "lodgement_date")
-            or parent_instance.lodgement_date
-        ):
+        if self.parent_submitted:
             self.deactivate()
             return
 
@@ -231,6 +228,16 @@ class Document(RevisionedMixin, metaclass=AbstractModelMeta):
         raise NotImplementedError(
             "Subclasses of Document must implement a get_parent_instance method"
         )
+
+    @property
+    def parent_submitted(self):
+        parent_instance = self.get_parent_instance()
+        if (
+            hasattr(parent_instance, "lodgement_date")
+            and parent_instance.lodgement_date
+        ):
+            return True
+        return False
 
     @property
     def path(self):
