@@ -112,22 +112,28 @@
                             " :disabled="isReadOnly" class="form-control" rows="1" placeholder="" />
                     </div>
                 </div>
-                <div class="row mb-3">
-                    <label for="occurrence_report_is_for_occurrence_number" class="col-sm-3 col-form-label">OCR is for OCC Number: <HelpText
-                        section_id="occurrence_report_is_for_occurrence_number" /></label>
-                    <div class="col-sm-9">
-                        <input id="occurrence_report_is_for_occurrence_number" type="text" v-model="occurrence_report_obj.ocr_for_occ_number
-                            " :disabled="isReadOnly" class="form-control" autocomplete="new-password" />
+                <template v-if="!is_external">
+                    <div class="row mb-3">
+                        <label for="occurrence_report_is_for_occurrence_number" class="col-sm-3 col-form-label">OCR is
+                            for OCC Number:
+                            <HelpText section_id="occurrence_report_is_for_occurrence_number" />
+                        </label>
+                        <div class="col-sm-9">
+                            <input id="occurrence_report_is_for_occurrence_number" type="text" v-model="occurrence_report_obj.ocr_for_occ_number
+                                " :disabled="isReadOnly" class="form-control" autocomplete="new-password" />
+                        </div>
                     </div>
-                </div>
-                <div class="row mb-3">
-                    <label for="occurrence_report_for_occurrence_name" class="col-sm-3 col-form-label">Occurrence Name: <HelpText
-                        section_id="occurrence_report_for_occurrence_name" /></label>
-                    <div class="col-sm-9">
-                        <input id="occurrence_report_for_occurrence_name" type="text" v-model="occurrence_report_obj.ocr_for_occ_name
-                            " :disabled="isReadOnly" class="form-control" autocomplete="new-password" />
+                    <div class="row mb-3">
+                        <label for="occurrence_report_for_occurrence_name" class="col-sm-3 col-form-label">Occurrence
+                            Name:
+                            <HelpText section_id="occurrence_report_for_occurrence_name" />
+                        </label>
+                        <div class="col-sm-9">
+                            <input id="occurrence_report_for_occurrence_name" type="text" v-model="occurrence_report_obj.ocr_for_occ_name
+                                " :disabled="isReadOnly" class="form-control" autocomplete="new-password" />
+                        </div>
                     </div>
-                </div>
+                </template>
                 <div class="row mb-3">
                     <label for="" class="col-sm-3 col-form-label fw-bold">Observation Date: <span
                             class="text-danger">*</span></label>
