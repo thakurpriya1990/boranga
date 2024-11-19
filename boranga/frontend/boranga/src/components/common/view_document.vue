@@ -29,8 +29,8 @@
                         at {{ new Date(document.uploaded_date).toLocaleTimeString() }}</div>
                 </div>
                 <div v-if="is_internal" class="row border-bottom mb-2 pb-2">
-                    <label for="" class="col-sm-3 col-form-label fw-bold">Visible</label>
-                    <div class="col form-control-plaintext">{{ document.visible ? 'Yes' : 'No' }}</div>
+                    <label for="" class="col-sm-3 col-form-label fw-bold">Active</label>
+                    <div class="col form-control-plaintext">{{ document.active ? 'Yes' : 'No' }}</div>
                 </div>
                 <div v-if="is_internal" class="row pb-3">
                     <label for="" class="col-sm-3 col-form-label fw-bold">Can Submitter Access</label>

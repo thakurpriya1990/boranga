@@ -114,7 +114,7 @@ export default {
                         orderable: true,
                         searchable: true,
                         mRender: function (data, type, full) {
-                            if (full.visible) {
+                            if (full.active) {
                                 return full.document_number;
                             }
                             else {
@@ -128,7 +128,7 @@ export default {
                         orderable: true,
                         searchable: true,
                         mRender: function (data, type, full) {
-                            if (full.visible) {
+                            if (full.active) {
                                 return full.document_category_name;
                             }
                             else {
@@ -142,7 +142,7 @@ export default {
                         orderable: true,
                         searchable: true,
                         mRender: function (data, type, full) {
-                            if (full.visible) {
+                            if (full.active) {
                                 return full.document_sub_category_name;
                             }
                             else {
@@ -157,14 +157,14 @@ export default {
                         searchable: true,
                         mRender: function (data, type, full) {
                             let links = '';
-                            if (full.visible) {
+                            if (full.active) {
                                 let value = full.name;
                                 let result = helpers.dtPopoverSplit(value, 30, 'hover');
                                 links += '<span><a href="' + full._file + '" target="_blank">' + result.text + '</a> ' + result.link + '</span>';
                             } else {
                                 let value = full.name;
                                 let result = helpers.dtPopover(value, 30, 'hover');
-                                links += '<s>' + type == 'export' ? value : result + '</s>';
+                                links += type == 'export' ? value : '<s>' + result + '</s>';
                             }
                             return links;
                         },
@@ -176,7 +176,7 @@ export default {
                         searchable: true,
                         'render': function (value, type, full) {
                             let result = helpers.dtPopover(value, 30, 'hover');
-                            if (full.visible) {
+                            if (full.active) {
                                 return type == 'export' ? value : result;
                             } else {
                                 return type == 'export' ? value : '<s>' + result + '</s>';
@@ -186,7 +186,7 @@ export default {
                     {
                         data: "uploaded_date",
                         mRender: function (data, type, full) {
-                            if (full.visible) {
+                            if (full.active) {
                                 return data != '' && data != null ? moment(data).format('DD/MM/YYYY HH:mm') : '';
                             } else {
                                 return data != '' && data != null ? '<s>' + moment(data).format('DD/MM/YYYY HH:mm') + '</s>' : '';
@@ -198,9 +198,9 @@ export default {
                         mRender: function (data, type, full) {
                             let links = '';
                             if (!vm.is_readonly) {
-                                if (full.visible) {
+                                if (full.active) {
                                     links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-document='${full.id}'>Remove</a><br>`;
+                                    links += `<a href='#' data-discard-document='${full.id}'>Discard</a><br>`;
                                 }
                                 else {
                                     links += `<a href='#' data-reinstate-document='${full.id}'>Reinstate</a><br>`;
@@ -281,11 +281,11 @@ export default {
         discardDocument: function (id) {
             let vm = this;
             swal.fire({
-                title: "Remove Document",
-                text: "Are you sure you want to remove this Document?",
+                title: "Discard Document",
+                text: "Are you sure you want to discard this Document?",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonText: 'Remove Document',
+                confirmButtonText: 'Discard Document',
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary'

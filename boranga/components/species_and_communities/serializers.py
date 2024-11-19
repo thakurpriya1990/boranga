@@ -1506,7 +1506,7 @@ class SpeciesDocumentSerializer(serializers.ModelSerializer):
             "document_category_name",
             "document_sub_category",
             "document_sub_category_name",
-            "visible",
+            "active",
         )
         read_only_fields = ("id", "document_number")
 
@@ -1571,7 +1571,7 @@ class CommunityDocumentSerializer(serializers.ModelSerializer):
             "document_category_name",
             "document_sub_category",
             "document_sub_category_name",
-            "visible",
+            "active",
         )
         read_only_fields = ("id", "document_number")
 

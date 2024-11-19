@@ -2111,7 +2111,7 @@ class OccurrenceReportDocumentSerializer(serializers.ModelSerializer):
             "document_category_name",
             "document_sub_category",
             "document_sub_category_name",
-            "visible",
+            "active",
             "can_submitter_access",
         )
         read_only_fields = ("id", "document_number")
@@ -2188,7 +2188,7 @@ class OccurrenceDocumentSerializer(serializers.ModelSerializer):
             "document_category_name",
             "document_sub_category",
             "document_sub_category_name",
-            "visible",
+            "active",
         )
         read_only_fields = ("id", "document_number")
 

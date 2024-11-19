@@ -1597,7 +1597,7 @@ class ConservationStatusDocumentSerializer(serializers.ModelSerializer):
             "document_category_name",
             "document_sub_category",
             "document_sub_category_name",
-            "visible",
+            "active",
             "can_submitter_access",
             "can_action",
         )

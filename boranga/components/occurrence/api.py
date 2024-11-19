@@ -1817,12 +1817,12 @@ class OccurrenceReportViewSet(
             if is_occurrence_report_referee(request, instance):
                 qs = qs.filter(
                     occurrence_report__referrals__referral=request.user.id,
-                    visible=True,
+                    active=True,
                 )
             elif is_contributor(request):
                 qs = qs.filter(
                     occurrence_report__submitter=self.request.user.id,
-                    visible=True,
+                    active=True,
                     can_submitter_access=True,
                 )
 
@@ -2440,7 +2440,7 @@ class OccurrenceReportDocumentViewSet(
         if is_contributor(self.request):
             return OccurrenceReportDocument.objects.filter(
                 occurrence_report__submitter=self.request.user.id,
-                visible=True,
+                active=True,
                 can_submitter_access=True,
             )
         return OccurrenceReportDocument.objects.none()
@@ -2453,8 +2453,10 @@ class OccurrenceReportDocumentViewSet(
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = False
-        instance.save(version_user=request.user)
+        # The delete method has been overridden to set the active flag to False
+        # If the parent object (ConservationStatus) has not yet been submitted
+        # the file will be deleted from the file system
+        instance.delete()
         instance.occurrence_report.log_user_action(
             OccurrenceReportUserAction.ACTION_DISCARD_DOCUMENT.format(
                 instance.document_number,
@@ -2485,7 +2487,7 @@ class OccurrenceReportDocumentViewSet(
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = True
+        instance.active = True
         instance.save(version_user=request.user)
         instance.occurrence_report.log_user_action(
             OccurrenceReportUserAction.ACTION_REINSTATE_DOCUMENT.format(
@@ -3320,8 +3322,7 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-
-        instance.visible = False
+        instance.active = False
         instance.save(version_user=request.user)
         instance.occurrence.log_user_action(
             OccurrenceUserAction.ACTION_DISCARD_DOCUMENT.format(
@@ -3348,7 +3349,7 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = True
+        instance.active = True
         instance.save(version_user=request.user)
         instance.occurrence.log_user_action(
             OccurrenceUserAction.ACTION_REINSTATE_DOCUMENT.format(
