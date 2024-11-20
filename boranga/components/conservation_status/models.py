@@ -1463,8 +1463,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
         if not self.can_be_approved:
             raise ValidationError(
-                "You cannot approve the proposal if it is not with an assessor with immediate approval level or"
-                "with an approver with ministerial approval level"
+                "You can only approve a Conservation Status Proposal "
+                "if the processing status is With Assessor AND it has immediate approval level or"
+                "the processing status is On Agenda AND it has ministerial approval level"
             )
 
         # For conservation statuses that require ministerial approval
