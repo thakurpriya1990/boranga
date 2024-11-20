@@ -1,5 +1,6 @@
 import logging
 import os
+from abc import ABCMeta, abstractmethod
 
 from django.apps import apps
 from django.conf import settings
@@ -13,8 +14,13 @@ from boranga.helpers import check_file
 private_storage = FileSystemStorage(
     location=settings.BASE_DIR + "/private-media/", base_url="/private-media/"
 )
+model_type = models.base.ModelBase
 
 logger = logging.getLogger(__name__)
+
+
+class AbstractModelMeta(ABCMeta, model_type):
+    pass
 
 
 class RevisionedMixin(models.Model):
@@ -152,16 +158,90 @@ class FileExtensionWhitelist(models.Model):
         cache.delete(settings.CACHE_KEY_FILE_EXTENSION_WHITELIST)
 
 
-class Document(RevisionedMixin):
+class DocumentQuerySet(models.QuerySet):
+    def delete(self) -> None:
+        self.update(active=False)
+
+
+class ActiveManager(models.Manager):
+    def active(self) -> models.QuerySet:
+        return self.model.objects.filter(active=True)
+
+    def get_queryset(self) -> models.QuerySet:
+        return DocumentQuerySet(self.model, using=self._db)
+
+
+class Document(RevisionedMixin, metaclass=AbstractModelMeta):
     name = models.CharField(
         max_length=255, blank=True, verbose_name="name", help_text=""
     )
     description = models.TextField(blank=True, verbose_name="description", help_text="")
     uploaded_date = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=True)
 
     class Meta:
         app_label = "boranga"
         abstract = True
+
+    def __str__(self):
+        return self.name or self.filename
+
+    def delete(self, *args, **kwargs):
+        # Users are allowed to remove documents from our file system
+        # if they are related to a proposal that has not yet been submitted
+        parent_instance = self.get_parent_instance()
+        if not parent_instance:
+            raise AttributeError(
+                "Document does not have an associated parent instance. Cannot delete."
+            )
+
+        # If the parent instance doesn't have a lodgement_date field
+        # or it has a lodgement_date field and it is not None
+        # then we do not allow the file to be removed from the file system
+        if self.parent_submitted:
+            self.deactivate()
+            return
+
+        # If the parent instance has a lodgement_date field and it is None
+        # then we allow the file to be removed from the file system as the
+        # parent instance has not yet been submitted
+        if (
+            hasattr(parent_instance, "lodgement_date")
+            and parent_instance.lodgement_date is None
+            and self._file
+        ):
+            if os.path.exists(self._file.path):
+                os.remove(self._file.path)
+            else:
+                logger.warning(
+                    "File not found on file system: %s (%s). Setting _file to None",
+                    self._file.path,
+                    self._file.name,
+                )
+            self._file = None
+
+        # Document records are never actually deleted, just marked as inactive
+        self.deactivate()
+
+    def deactivate(self):
+        self.active = False
+        self.save()
+
+    @abstractmethod
+    def get_parent_instance(self) -> models.Model:
+        raise NotImplementedError(
+            "Subclasses of Document must implement a get_parent_instance method"
+        )
+
+    @property
+    def parent_submitted(self):
+        parent_instance = self.get_parent_instance()
+        if (
+            hasattr(parent_instance, "lodgement_date")
+            and parent_instance.lodgement_date
+        ):
+            return True
+        return False
 
     @property
     def path(self):
@@ -177,9 +257,6 @@ class Document(RevisionedMixin):
     @property
     def filename(self):
         return os.path.basename(self.path)
-
-    def __str__(self):
-        return self.name or self.filename
 
     def check_file(self, file):
         return check_file(file, self._meta.model_name)

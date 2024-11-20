@@ -582,7 +582,7 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = False
+        instance.active = False
         instance.save(version_user=request.user)
         instance.meeting.log_user_action(
             MeetingUserAction.ACTION_DISCARD_MINUTE.format(
@@ -607,7 +607,7 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = True
+        instance.active = True
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
         instance.meeting.log_user_action(

@@ -184,7 +184,7 @@ export default {
                 swal.fire({
                     title: "Make Public",
                     text: "Are you sure you want to make this record public?",
-                    icon: "warning",
+                    icon: "question",
                     showCancelButton: true,
                     confirmButtonText: 'Make Public',
                     customClass: {

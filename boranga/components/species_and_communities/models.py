@@ -846,7 +846,6 @@ class Species(RevisionedMixin):
                 new_species_doc.species = self
                 new_species_doc.id = None
                 new_species_doc.document_number = ""
-                new_species_doc.can_delete = True
                 new_species_doc.save(version_user=request.user)
                 new_species_doc.species.log_user_action(
                     SpeciesUserAction.ACTION_ADD_DOCUMENT.format(
@@ -1081,6 +1080,9 @@ class SpeciesLogDocument(Document):
 
     class Meta:
         app_label = "boranga"
+
+    def get_parent_instance(self) -> models.Model:
+        return self.log_entry
 
 
 class SpeciesLogEntry(CommunicationsLogEntry):
@@ -1561,7 +1563,7 @@ class Community(RevisionedMixin):
 
     @property
     def related_item_status(self):
-        return self.processing_status
+        return self.get_processing_status_display()
 
     @cached_property
     def approved_conservation_status(self):
@@ -1846,7 +1848,6 @@ class Community(RevisionedMixin):
             new_doc_instance.community = new_community
             new_doc_instance.id = None
             new_doc_instance.document_number = ""
-            new_doc_instance.can_delete = True
             new_doc_instance.save(version_user=request.user)
             new_doc_instance.community.log_user_action(
                 SpeciesUserAction.ACTION_ADD_DOCUMENT.format(
@@ -1935,6 +1936,9 @@ class CommunityLogDocument(Document):
 
     class Meta:
         app_label = "boranga"
+
+    def get_parent_instance(self) -> models.Model:
+        return self.log_entry
 
 
 class CommunityLogEntry(CommunicationsLogEntry):
@@ -2131,12 +2135,6 @@ class SpeciesDocument(Document):
         storage=private_storage,
     )
     input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-    visible = models.BooleanField(
-        default=True
-    )  # to prevent deletion on file system, hidden and still be available in history
     document_category = models.ForeignKey(
         DocumentCategory, null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -2166,6 +2164,9 @@ class SpeciesDocument(Document):
         else:
             super().save(*args, **kwargs)
 
+    def get_parent_instance(self) -> models.Model:
+        return self.species
+
     @transaction.atomic
     def add_documents(self, request, *args, **kwargs):
         # save the files
@@ -2179,7 +2180,6 @@ class SpeciesDocument(Document):
             self._file = _file
             self.name = _file.name
             self.input_name = data["input_name"]
-            self.can_delete = True
             self.save(no_revision=True)  # no need to have multiple revisions
         # end save documents
         self.save(*args, **kwargs)
@@ -2207,12 +2207,6 @@ class CommunityDocument(Document):
         storage=private_storage,
     )
     input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-    visible = models.BooleanField(
-        default=True
-    )  # to prevent deletion on file system, hidden and still be available in history
     document_category = models.ForeignKey(
         DocumentCategory, null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -2242,6 +2236,9 @@ class CommunityDocument(Document):
         else:
             super().save(*args, **kwargs)
 
+    def get_parent_instance(self) -> models.Model:
+        return self.community
+
     @transaction.atomic
     def add_documents(self, request, *args, **kwargs):
         # save the files
@@ -2255,7 +2252,6 @@ class CommunityDocument(Document):
             self._file = _file
             self.name = _file.name
             self.input_name = data["input_name"]
-            self.can_delete = True
             self.save(no_revision=True)
         # end save documents
         self.save(*args, **kwargs)

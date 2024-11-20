@@ -351,7 +351,7 @@ class MinutesSerializer(serializers.ModelSerializer):
             "document_category_name",
             "document_sub_category",
             "document_sub_category_name",
-            "visible",
+            "active",
         )
         read_only_fields = ("id", "minutes_number")
 

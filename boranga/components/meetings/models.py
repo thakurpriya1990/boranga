@@ -325,6 +325,9 @@ class MeetingLogDocument(Document):
     class Meta:
         app_label = "boranga"
 
+    def get_parent_instance(self) -> models.Model:
+        return self.log_entry
+
 
 class MeetingLogEntry(CommunicationsLogEntry):
     meeting = models.ForeignKey(
@@ -395,12 +398,6 @@ class Minutes(Document):
         storage=private_storage,
     )
     input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-    visible = models.BooleanField(
-        default=True
-    )  # to prevent deletion on file system, hidden and still be available in history
     document_category = models.ForeignKey(
         DocumentCategory, null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -430,6 +427,9 @@ class Minutes(Document):
         else:
             super().save(*args, **kwargs)
 
+    def get_parent_instance(self) -> models.Model:
+        return self.meeting
+
     @transaction.atomic
     def add_documents(self, request, *args, **kwargs):
         # save the files
@@ -441,7 +441,6 @@ class Minutes(Document):
             self._file = _file
             self.name = _file.name
             self.input_name = data["input_name"]
-            self.can_delete = True
             self.save(no_revision=True)
 
         # end save documents
@@ -490,7 +489,7 @@ class AgendaItem(OrderedModel):
 
     @property
     def related_item_status(self):
-        return self.meeting.get_processing_status_display
+        return self.meeting.get_processing_status_display()
 
 
 # Minutes

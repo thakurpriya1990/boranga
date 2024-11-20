@@ -1698,7 +1698,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 qs = qs.filter(
                     Q(
                         conservation_status__submitter=self.request.user.id,
-                        visible=True,
+                        active=True,
                         can_submitter_access=True,
                     )
                     | Q(
@@ -1708,13 +1708,13 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             elif is_contributor(request):
                 qs = qs.filter(
                     conservation_status__submitter=self.request.user.id,
-                    visible=True,
+                    active=True,
                     can_submitter_access=True,
                 )
             elif is_conservation_status_referee(request, instance):
                 qs = qs.filter(
                     conservation_status__referrals__referral=self.request.user.id,
-                    visible=True,
+                    active=True,
                 )
             else:
                 qs = qs.none()
@@ -2286,18 +2286,18 @@ class ConservationStatusDocumentViewSet(
             return qs.filter(
                 Q(
                     conservation_status__submitter=self.request.user.id,
-                    visible=True,
+                    active=True,
                     can_submitter_access=True,
                 )
                 | Q(
                     conservation_status__referrals__referral=self.request.user.id,
-                    visible=True,
+                    active=True,
                 )
             )
         elif is_contributor(self.request):
             return qs.filter(
                 conservation_status__submitter=self.request.user.id,
-                visible=True,
+                active=True,
                 can_submitter_access=True,
             )
         elif is_conservation_status_referee(self.request):
@@ -2315,7 +2315,10 @@ class ConservationStatusDocumentViewSet(
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = False
+        # The delete method has been overridden to set the active flag to False
+        # If the parent object (ConservationStatus) has not yet been submitted
+        # the file will be deleted from the file system
+        instance.delete()
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -2328,7 +2331,7 @@ class ConservationStatusDocumentViewSet(
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = True
+        instance.active = True
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)

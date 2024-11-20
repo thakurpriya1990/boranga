@@ -833,7 +833,9 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
     @property
     def approver_recipients(self):
         recipients = []
-        group_ids = member_ids(GROUP_NAME_CONSERVATION_STATUS_APPROVER)
+        group_ids = member_ids(
+            GROUP_NAME_CONSERVATION_STATUS_APPROVER, include_superusers=False
+        )
         for id in group_ids:
             recipients.append(EmailUser.objects.get(id=id).email)
         return recipients
@@ -1595,7 +1597,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             )
 
         self.save()
-        self.documents.all().update(can_delete=False)
 
     @transaction.atomic
     def proposed_for_agenda(self, request):
@@ -2096,6 +2097,9 @@ class ConservationStatusLogDocument(Document):
     class Meta:
         app_label = "boranga"
 
+    def get_parent_instance(self) -> models.Model:
+        return self.log_entry
+
 
 class ConservationStatusUserAction(UserAction):
     # ConservationStatus Proposal
@@ -2197,22 +2201,7 @@ class ConservationStatusDocument(Document):
         storage=private_storage,
     )
     input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-    can_hide = models.BooleanField(
-        default=False
-    )  # after initial submit, document cannot be deleted but can be hidden
-    can_submitter_access = models.BooleanField(
-        default=False
-    )  # after initial submit, document cannot be deleted but can be hidden
-    hidden = models.BooleanField(
-        default=False
-    )  # after initial submit prevent document from being deleted
-    # Priya alternatively used below visible field in boranga
-    visible = models.BooleanField(
-        default=True
-    )  # to prevent deletion on file system, hidden and still be available in history
+    can_submitter_access = models.BooleanField(default=False)
     document_category = models.ForeignKey(
         DocumentCategory, null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -2223,6 +2212,9 @@ class ConservationStatusDocument(Document):
     class Meta:
         app_label = "boranga"
         verbose_name = "Conservation Status Document"
+
+    def get_parent_instance(self):
+        return self.conservation_status
 
     def save(self, *args, **kwargs):
         # Prefix "D" char to document_number.
@@ -2246,7 +2238,6 @@ class ConservationStatusDocument(Document):
             self._file = _file
             self.name = _file.name
             self.input_name = data["input_name"]
-            self.can_delete = True
             self.save(no_revision=True)
 
         # end save documents
@@ -2666,7 +2657,6 @@ class ConservationStatusAmendmentRequest(ConservationStatusProposalRequest):
                 )
                 document.check_file(request.data.get("file-" + str(idx)))
                 document.input_name = data["input_name"]
-                document.can_delete = True
                 document.save()
             # end save documents
             self.save()
@@ -2686,16 +2676,9 @@ class ConservationStatusAmendmentRequestDocument(Document):
         storage=private_storage,
     )
     input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-    visible = models.BooleanField(
-        default=True
-    )  # to prevent deletion on file system, hidden and still be available in history
 
-    def delete(self):
-        if self.can_delete:
-            return super().delete()
+    def get_parent_instance(self) -> models.Model:
+        return self.conservation_status_amendment_request
 
 
 class CSExternalRefereeInvite(models.Model):

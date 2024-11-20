@@ -1490,7 +1490,6 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             new_doc_instance.species = new_rename_instance
             new_doc_instance.id = None
             new_doc_instance.document_number = ""
-            new_doc_instance.can_delete = True
             new_doc_instance.save(version_user=request.user)
             new_doc_instance.species.log_user_action(
                 SpeciesUserAction.ACTION_ADD_DOCUMENT.format(
@@ -2419,8 +2418,7 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
         self.can_update_species(request, instance)
-
-        instance.visible = False
+        instance.active = False
         instance.save(version_user=request.user)
         instance.species.log_user_action(
             SpeciesUserAction.ACTION_DISCARD_DOCUMENT.format(
@@ -2446,7 +2444,7 @@ class SpeciesDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin)
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
         self.can_update_species(request, instance)
-        instance.visible = True
+        instance.active = True
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
         instance.species.log_user_action(
@@ -2560,7 +2558,7 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
         self.can_update_community(request, instance)
-        instance.visible = False
+        instance.active = False
         instance.save(version_user=request.user)
         instance.community.log_user_action(
             CommunityUserAction.ACTION_DISCARD_DOCUMENT.format(
@@ -2586,7 +2584,7 @@ class CommunityDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixi
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
         self.can_update_community(request, instance)
-        instance.visible = True
+        instance.active = True
         instance.save(version_user=request.user)
         instance.community.log_user_action(
             CommunityUserAction.ACTION_REINSTATE_DOCUMENT.format(

@@ -51,7 +51,6 @@ def species_form_submit(species_instance, request, split=False):
 
     if (settings.WORKING_FROM_HOME and settings.DEBUG) or ret1 and ret2:
         species_instance.processing_status = Species.PROCESSING_STATUS_ACTIVE
-        species_instance.species_documents.all().update(can_delete=False)
         # all functions that call this save after - otherwise we can parametise this if need be
         species_instance.save(no_revision=True)
     else:
@@ -90,7 +89,6 @@ def community_form_submit(community_instance, request):
 
     if (settings.WORKING_FROM_HOME and settings.DEBUG) or ret1 and ret2:
         community_instance.processing_status = Community.PROCESSING_STATUS_ACTIVE
-        community_instance.community_documents.all().update(can_delete=False)
         community_instance.save(no_revision=True)
     else:
         raise ValidationError(

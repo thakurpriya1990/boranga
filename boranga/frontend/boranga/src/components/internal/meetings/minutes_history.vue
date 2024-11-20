@@ -225,14 +225,14 @@ export default {
                 visible: true,
                 mRender: function (row, type, full) {
                     let links='';
-                    if(full.data.minutes.fields.visible){
+                    if(full.data.minutes.fields.active){
                         let value = full.data.minutes.fields.name;
                         let result = helpers.dtPopoverSplit(value, 30, 'hover');
                         links+='<span><a href="/private-media/'+ full.data.minutes.fields._file+'" target="_blank">' + result.text + '</a> ' + result.link + '</span>';
                     }else{
                         let value = full.data.minutes.fields.name;
                         let result = helpers.dtPopover(value, 30, 'hover');
-                        links+='<s>'+ type=='export' ? value : result +'</s>';
+                        links += type == 'export' ? value : '<s>' + result + '</s>';
                     }
                     return links;
                 },
