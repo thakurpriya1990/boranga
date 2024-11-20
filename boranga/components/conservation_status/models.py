@@ -1444,6 +1444,16 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
 
         send_approver_approve_email_notification(request, self)
 
+    @property
+    def can_be_approved(self):
+        return (
+            self.processing_status == ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
+            and self.approval_level == ConservationStatus.APPROVAL_LEVEL_IMMEDIATE
+        ) or (
+            self.processing_status == ConservationStatus.PROCESSING_STATUS_ON_AGENDA
+            and self.approval_level == ConservationStatus.APPROVAL_LEVEL_MINISTER
+        )
+
     @transaction.atomic
     def final_approval(self, request, details):
         self.proposed_decline_status = False
@@ -1451,12 +1461,11 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         if not self.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
-        if self.processing_status not in [
-            ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR,
-            ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA,
-        ]:
+        if not self.can_be_approved:
             raise ValidationError(
-                "This conservation status can not be approved if it is not with an assessor or ready for agenda"
+                "You can only approve a Conservation Status Proposal "
+                "if the processing status is With Assessor AND it has immediate approval level or"
+                "the processing status is On Agenda AND it has ministerial approval level"
             )
 
         # For conservation statuses that require ministerial approval
