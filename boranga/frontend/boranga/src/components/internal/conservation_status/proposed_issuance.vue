@@ -49,7 +49,7 @@
                                 </div>
                             </div>
                             <div class="form-group"
-                                v-if="processing_status == 'With Assessor' || processing_status == 'Ready For Agenda'">
+                                v-if="processing_status == 'With Assessor' || processing_status == 'On Agenda'">
                                 <div class="row mb-3">
                                     <div class="col-sm-4">
                                         <label class="control-label pull-left">Approval Document</label>
