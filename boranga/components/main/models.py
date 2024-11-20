@@ -223,6 +223,10 @@ class Document(RevisionedMixin, metaclass=AbstractModelMeta):
         # Document records are never actually deleted, just marked as inactive
         self.deactivate()
 
+    def deactivate(self):
+        self.active = False
+        self.save()
+
     @abstractmethod
     def get_parent_instance(self) -> models.Model:
         raise NotImplementedError(
