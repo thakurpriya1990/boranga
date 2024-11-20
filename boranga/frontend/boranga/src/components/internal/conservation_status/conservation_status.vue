@@ -666,7 +666,7 @@ export default {
                 this.conservation_status_obj.most_recent_meeting_completed &&
                 this.conservation_status_obj.assessor_mode.assessor_can_assess &&
                 (
-                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
+                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
                 );
         },
         canDefer: function () {
