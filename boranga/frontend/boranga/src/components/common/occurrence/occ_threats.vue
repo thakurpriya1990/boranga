@@ -531,7 +531,7 @@ export default {
             swal.fire({
                 title: "Remove Threat",
                 text: "Are you sure you want to remove this Threat?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Threat',
                 customClass: {

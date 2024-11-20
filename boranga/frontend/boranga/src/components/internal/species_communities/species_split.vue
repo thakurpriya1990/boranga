@@ -409,7 +409,7 @@ export default {
                 swal.fire({
                     title: 'Remove Species',
                     text: `Are you sure you want to remove species ${species_obj.species_number} from the split?`,
-                    icon: "warning",
+                    icon: "question",
                     showCancelButton: true,
                     confirmButtonText: 'Remove Species',
                     reverseButtons: true,

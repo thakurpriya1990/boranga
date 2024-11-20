@@ -511,7 +511,7 @@ export default {
             swal.fire({
                 title: "Discard Report",
                 text: "Are you sure you want to discard this report?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Report',
                 customClass: {
@@ -547,7 +547,7 @@ export default {
             swal.fire({
                 title: "Unlock Report",
                 text: "Are you sure you want to unlock this approved report?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Unlock Report',
                 customClass: {
@@ -581,7 +581,7 @@ export default {
             swal.fire({
                 title: "Lock Report",
                 text: "Are you sure you want to lock this approved report?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Lock Report',
                 customClass: {
