@@ -1,7 +1,6 @@
 <template lang="html">
     <div id="speciesStatus">
         <FormSection :formCollapse="false" label="Conservation Status" Index="conservation_status">
-            {{ conservation_status_obj.assessor_mode.assessor_can_assess }}
             <form @change="saveConservationStatus($event)">
                 <div class="row mb-3">
                     <label :for="scientific_name_lookup" class="col-sm-4 col-form-label fw-bold">Scientific Name: <span
