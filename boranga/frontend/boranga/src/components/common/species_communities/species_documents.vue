@@ -283,7 +283,7 @@ export default {
             swal.fire({
                 title: "Discard Document",
                 text: "Are you sure you want to discard this Document?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Discard Document',
                 customClass: {
