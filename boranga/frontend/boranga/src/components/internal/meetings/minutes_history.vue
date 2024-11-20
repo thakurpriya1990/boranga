@@ -225,7 +225,7 @@ export default {
                 visible: true,
                 mRender: function (row, type, full) {
                     let links='';
-                    if(full.data.minutes.fields.visible){
+                    if(full.data.minutes.fields.active){
                         let value = full.data.minutes.fields.name;
                         let result = helpers.dtPopoverSplit(value, 30, 'hover');
                         links+='<span><a href="/private-media/'+ full.data.minutes.fields._file+'" target="_blank">' + result.text + '</a> ' + result.link + '</span>';

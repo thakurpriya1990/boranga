@@ -89,7 +89,7 @@ export default {
                         orderable: true,
                         searchable: true,
                         mRender: function (data, type, full) {
-                            if (full.visible) {
+                            if (full.active) {
                                 return full.minutes_number;
                             }
                             else {
@@ -102,7 +102,7 @@ export default {
                         orderable: true,
                         searchable: true,
                         mRender: function (data, type, full) {
-                            if (full.visible) {
+                            if (full.active) {
                                 return full.document_category_name;
                             }
                             else {
@@ -115,7 +115,7 @@ export default {
                         orderable: true,
                         searchable: true,
                         mRender: function (data, type, full) {
-                            if (full.visible) {
+                            if (full.active) {
                                 return full.document_sub_category_name;
                             }
                             else {
@@ -129,7 +129,7 @@ export default {
                         searchable: true,
                         mRender: function (data, type, full) {
                             let links = '';
-                            if (full.visible) {
+                            if (full.active) {
                                 let value = full.name;
                                 let result = helpers.dtPopoverSplit(value, 30, 'hover');
                                 links += '<span><a href="' + full._file + '" target="_blank">' + result.text + '</a> ' + result.link + '</span>';
@@ -147,7 +147,7 @@ export default {
                         searchable: true,
                         'render': function (value, type, full) {
                             let result = helpers.dtPopover(value, 30, 'hover');
-                            if (full.visible) {
+                            if (full.active) {
                                 return type == 'export' ? value : result;
                             } else {
                                 return type == 'export' ? value : '<s>' + result + '</s>';
@@ -157,7 +157,7 @@ export default {
                     {
                         data: "uploaded_date",
                         mRender: function (data, type, full) {
-                            if (full.visible) {
+                            if (full.active) {
                                 return data != '' && data != null ? moment(data).format('DD/MM/YYYY HH:mm') : '';
                             } else {
                                 return data != '' && data != null ? '<s>' + moment(data).format('DD/MM/YYYY HH:mm') + '</s>' : '';
@@ -169,7 +169,7 @@ export default {
                         mRender: function (data, type, full) {
                             let links = '';
                             if (vm.meeting_obj.can_user_edit) {
-                                if (full.visible) {
+                                if (full.active) {
                                     links += `<a href='#${full.id}' data-edit-document='${full.id}'>Edit</a><br/>`;
                                     links += `<a href='#' data-discard-document='${full.id}'>Discard</a><br>`;
                                 }
