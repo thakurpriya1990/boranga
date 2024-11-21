@@ -810,7 +810,7 @@ export default {
                             schema: this.schema.id,
                             django_import_content_type: this.selectedContentType.id,
                             django_import_field_name: modelField.name,
-                            xlsx_column_header_name: modelField.display_name,
+                            xlsx_column_header_name: `${this.selectedContentType.model_abbreviation.toUpperCase()} ${modelField.display_name}`,
                             xlsx_data_validation_allow_blank: modelField.allow_null,
                             default_value: null,
                             import_validations: []
