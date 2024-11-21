@@ -313,14 +313,14 @@
                                     </div>
                                 </template>
                                 <template v-else-if="conservation_status_obj.processing_status == 'Proposed DeListed'">
-                                    <div class="row">
+                                    <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary"
                                                 @click.prevent="switchStatus('approved')">Revert To
                                                 Approved</button><br />
                                         </div>
                                     </div>
-                                    <div class="row">
+                                    <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary"
                                                 @click.prevent="delistProposal()">Confirm Delisting</button><br />
@@ -328,7 +328,7 @@
                                     </div>
                                 </template>
                                 <template v-if="canSendBackToAssessor">
-                                    <div class="row">
+                                    <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary"
                                                 @click.prevent="backToAssessor">Back To
@@ -337,7 +337,7 @@
                                     </div>
                                 </template>
                                 <template v-if="canDefer">
-                                    <div class="row">
+                                    <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary"
                                                 @click.prevent="deferProposal()">Defer</button><br />
@@ -345,7 +345,7 @@
                                     </div>
                                 </template>
                                 <template v-if="canDiscard">
-                                    <div class="row">
+                                    <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary"
                                                 @click.prevent="discardCSProposal()">Discard</button><br />
@@ -652,6 +652,7 @@ export default {
                 this.conservation_status_obj.approval_level == 'minister' &&
                 [
                     constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
+                    constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
                     constants.PROPOSAL_STATUS.DEFERRED.TEXT,
                 ].includes(this.conservation_status_obj.processing_status) &&
                 this.conservation_status_obj.assessor_mode.assessor_can_assess &&
