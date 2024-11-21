@@ -70,5 +70,29 @@
             "authenticated_users_only": true,
             "internal_users_only": true
         }
+    },
+    {
+        "model": "boranga.helptextentry",
+        "pk": 10,
+        "fields": {
+            "archived": false,
+            "section_id": "occurrence_report_is_for_occurrence_number",
+            "text": "The proposed or suggested occurrence number to link the occurence report to. For legacy OCRs the Population ID may be used.",
+            "icon_with_popover": true,
+            "authenticated_users_only": true,
+            "internal_users_only": true
+        }
+    },
+    {
+        "model": "boranga.helptextentry",
+        "pk": 11,
+        "fields": {
+            "archived": false,
+            "section_id": "occurrence_report_for_occurrence_name",
+            "text": "The occurrence name to the link the occurrence report to (or a suggested name if a new occurrence is to be created).",
+            "icon_with_popover": true,
+            "authenticated_users_only": true,
+            "internal_users_only": true
+        }
     }
 ]

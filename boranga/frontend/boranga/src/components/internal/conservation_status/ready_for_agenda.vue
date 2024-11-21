@@ -1,22 +1,21 @@
 <template lang="html">
-    <div id="internal-conservation-status-proposal-propose-ready-for-agenda">
-        <modal id="myModal" transition="modal fade" @ok="ok()" @cancel="close()"
-            :title="`Propose CS${conservation_status_id} Ready for Agenda`" okText="Ready for Agenda" large>
+    <div id="internal-conservation-status-proposal-ready-for-agenda">
+        <modal id="ready-for-agenda-modal" transition="modal fade" @ok="ok()" @cancel="close()"
+            :title="`CS${conservation_status_id} Ready for Agenda`" okText="Confirm Ready for Agenda" large>
             <div class="container-fluid">
                 <div class="row">
-                    <form class="form-horizontal needs-validation" id="propose-ready-for-agenda-form"
-                        name="propose-ready-for-agenda-form" novalidate>
+                    <form class="form-horizontal needs-validation" id="ready-for-agenda-form"
+                        name="ready-for-agenda-form" novalidate>
                         <alert v-if="errors" type="danger"><strong>{{ errors }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="row mb-3">
                                 <div class="col">
                                     <div class="form-group">
-                                        <label class="control-label mb-3" for="Name">Recommended Action (Decline or
-                                            Approve) / Comments</label>
+                                        <label class="control-label mb-3" for="Name">Approver Comments</label>
                                         <textarea class="form-control" name="assessor_comment" ref="assessor_comment"
                                             required v-model="assessor_comment"></textarea>
                                         <div class="invalid-feedback">
-                                            Please enter your recommended action and any other comments.
+                                            Please enter any relevant comments.
                                         </div>
                                     </div>
                                 </div>
@@ -35,7 +34,7 @@ import alert from '@vue-utils/alert.vue'
 import { helpers, api_endpoints } from "@/utils/hooks.js"
 
 export default {
-    name: 'ProposeReadyForAgenda',
+    name: 'ReadyForAgenda',
     components: {
         modal,
         alert,
@@ -65,12 +64,12 @@ export default {
     methods: {
         ok: function () {
             let vm = this;
-            var form = document.getElementById('propose-ready-for-agenda-form');
+            var form = document.getElementById('ready-for-agenda-form');
             if (form.checkValidity()) {
-                vm.proposeReadyForAgenda();
+                vm.readyForAgenda();
             } else {
                 form.classList.add('was-validated');
-                $('#propose-ready-for-agenda-form').find(':invalid').first().focus();
+                $('#ready-for-agenda-form').find(':invalid').first().focus();
             }
             return false;
         },
@@ -79,10 +78,10 @@ export default {
             this.errors = null;
             this.isModalOpen = false;
         },
-        proposeReadyForAgenda: function () {
+        readyForAgenda: function () {
             let vm = this;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/proposed_ready_for_agenda'), { 'assessor_comment': vm.assessor_comment }).then((response) => {
-                vm.$router.push({ path: '/internal/conservation-status/' }); //Navigate to dashboard page after Propose issue.
+            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/ready_for_agenda'), { 'assessor_comment': vm.assessor_comment }).then((response) => {
+                vm.$router.push({ path: '/internal/conservation-status/' });
             }, (error) => {
                 vm.errors = true;
                 vm.errorString = helpers.apiVueResourceError(error);

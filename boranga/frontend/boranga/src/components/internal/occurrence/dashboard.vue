@@ -29,7 +29,7 @@
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_url"
                         :profile="profile" />
                 </FormSection>
-                <FormSection :formCollapse="false" label="Occurrence Report - Flora Referred to Me"
+                <FormSection v-if="profile && profile.ocr_referral_count > 0" :formCollapse="false" label="Occurrence Report - Flora Referred to Me"
                     Index="occurrence-report-flora-referred-to-me">
                     <OccurrenceReportReferredToMeDashTable v-if="isFlora" ref="flora_referrals_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_referrals_url"
@@ -52,7 +52,7 @@
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_url"
                         :profile="profile" />
                 </FormSection>
-                <FormSection :formCollapse="false" label="Occurrence Report - Fauna Referred to Me"
+                <FormSection v-if="profile && profile.ocr_referral_count > 0" :formCollapse="false" label="Occurrence Report - Fauna Referred to Me"
                     Index="occurrence-report-fauna-referred-to-me">
                     <OccurrenceReportReferredToMeDashTable v-if="isFauna" ref="fauna_referrals_table" level="internal"
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="species_ocr_referrals_url"
@@ -75,7 +75,7 @@
                         :group_type_name="group_name" :group_type_id="getGroupId" :url="community_ocr_url"
                         :profile="profile" />
                 </FormSection>
-                <FormSection :formCollapse="false" label="Occurrence Report - Community Referred to Me"
+                <FormSection v-if="profile && profile.ocr_referral_count > 0" :formCollapse="false" label="Occurrence Report - Community Referred to Me"
                     Index="occurrence-report-community-referred-to-me">
                     <OccurrenceReportReferredToMeDashTable v-if="isCommunity" ref="community_referrals_table"
                         level="internal" :group_type_name="group_name" :group_type_id="getGroupId"

@@ -167,19 +167,6 @@ module.exports = {
             return {"text":result, link: ""}
         };
     },
-
-
-/*
-    dtPopoverCellFn: function(cell){
-        $(cell).find('[data-bs-toggle="popover"]')
-            .popover()
-            .on('click', function (e) {
-                e.preventDefault();
-                return true;
-            });
-    },
-*/
-
     processError: async function(err){
         console.log(err)
         let errorText = '';
@@ -233,18 +220,6 @@ module.exports = {
             let popover = new bootstrap.Popover(popoverTriggerEl)
         })
     },
- //   activateTab: function(){
- //       var triggerTabList = [].slice.call(document.querySelectorAll('#myTab a'))
- //       triggerTabList.forEach(function (triggerEl) {
- //         var tabTrigger = new bootstrap.Tab(triggerEl)
-
- //         triggerEl.addEventListener('click', function (event) {
- //           event.preventDefault()
- //           tabTrigger.show()
- //         })
- //       })
- //   },
-
     checkForChange: function(before, after) {
         //compare two objects, return true if the are the same
         console.log(before);

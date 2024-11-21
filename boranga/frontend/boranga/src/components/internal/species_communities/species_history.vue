@@ -110,7 +110,7 @@ export default {
         },
         column_sequence: function () {
             return {
-                
+
                 data: 'revision_sequence',
                 orderable: true,
                 searchable: false,
@@ -143,7 +143,7 @@ export default {
                 // 2. Number
                 data: 'data.data.species.fields.species_number',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.data.species.fields.species_number;
@@ -153,10 +153,10 @@ export default {
         },
         column_revision_id: function () {
             return {
-                
+
                 data: 'revision_id',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     return full.revision_id;
@@ -166,10 +166,10 @@ export default {
         },
         column_revision_date: function () {
             return {
-                
+
                 data: 'date_created',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     return full.date_created;
@@ -179,10 +179,10 @@ export default {
         },
         column_revision_user: function () {
             return {
-                
+
                 data: 'revision_user',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.revision_user;
@@ -192,10 +192,10 @@ export default {
         },
         column_scientific_name: function () {
             return {
-                data: 'data.data.taxonomy.fields.scientific_name', 
+                data: 'data.data.taxonomy.fields.scientific_name',
                 defaultContent: '',
                 orderable: false,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     if (full.data.taxonomy !== undefined && full.data.taxonomy.fields !== undefined) {
@@ -212,7 +212,7 @@ export default {
         },
         column_non_current_name: function () {
             return {
-                data: 'data.data.taxonpreviousname.fields.previous_scientific_name', 
+                data: 'data.data.taxonpreviousname.fields.previous_scientific_name',
                 defaultContent: '',
                 orderable: false,
                 searchable: true,
@@ -223,13 +223,13 @@ export default {
                         let result = helpers.dtPopover(value, 30, 'hover');
                         return type=='export' ? value : result;
                     }
-                    else if (full.data.taxonpreviousname !== undefined && 
+                    else if (full.data.taxonpreviousname !== undefined &&
                         full.data.taxonpreviousname.fields === undefined &&
-                        full.data.taxonpreviousname.length > 0) {                    
+                        full.data.taxonpreviousname.length > 0) {
                         let value = full.data.taxonpreviousname[0].fields.previous_scientific_name;
                         let result = helpers.dtPopover(value, 30, 'hover');
                         return type=='export' ? value : result;
-                    }                                   
+                    }
                     else {
                         return ''
                     }
@@ -239,7 +239,7 @@ export default {
         },
         column_common_name: function () {
             return {
-                data: 'data.data.taxonvernacular.fields.vernacular_name', 
+                data: 'data.data.taxonvernacular.fields.vernacular_name',
                 defaultContent: '',
                 orderable: false,
                 searchable: true,
@@ -255,7 +255,7 @@ export default {
                                 } else {
                                     combined_name += ","+full.data.taxonvernacular[i].fields.vernacular_name
                                 }
-                            }                               
+                            }
                             //return combined_name;
                             let value = combined_name;
                             let result = helpers.dtPopover(value, 30, 'hover');
@@ -274,16 +274,16 @@ export default {
         },
         column_processing_status: function () {
             return {
-                
+
                 data: 'data.data.species.fields.processing_status',
                 defaultContent: '',
                 orderable: true,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.speciespublishingstatus !== undefined && 
+                    if (full.data.speciespublishingstatus !== undefined &&
                         full.data.species.fields.processing_status === "active"
-                    ) 
+                    )
                     {
                         let public_status = full.data.speciespublishingstatus.fields.species_public ? "public" : "private";
                         return full.data.species.fields.processing_status + " - " + public_status;
@@ -299,7 +299,7 @@ export default {
                 data: 'data.data.species.fields.comment',
                 defaultContent: '',
                 orderable: false,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     //return full.data.species.fields.comment;
@@ -353,18 +353,20 @@ export default {
                 buttons: [
                     {
                         extend: 'excel',
+                        title: 'Boranga Species History Excel Export',
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
-                            orthogonal: 'export' 
+                            orthogonal: 'export'
                         }
                     },
                     {
                         extend: 'csv',
+                        title: 'Boranga Species History CSV Export',
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {
-                            orthogonal: 'export' 
+                            orthogonal: 'export'
                         }
                     },
                 ],

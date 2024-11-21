@@ -104,7 +104,7 @@ export default {
         },
         column_sequence: function () {
             return {
-                
+
                 data: 'revision_sequence',
                 orderable: true,
                 searchable: false,
@@ -138,7 +138,7 @@ export default {
                 data: 'data.data.occconservationthreat.fields.threat_number',
                 defaultContent: '',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.data.occconservationthreat.fields.threat_number+'-'+full.revision_sequence;
@@ -148,10 +148,10 @@ export default {
         },
         column_revision_id: function () {
             return {
-                
+
                 data: 'revision_id',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     return full.revision_id;
@@ -161,10 +161,10 @@ export default {
         },
         column_revision_date: function () {
             return {
-                
+
                 data: 'date_created',
                 orderable: true,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     return full.date_created;
@@ -174,10 +174,10 @@ export default {
         },
         column_revision_user: function () {
             return {
-                
+
                 data: 'revision_user',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     return full.revision_user;
@@ -187,10 +187,10 @@ export default {
         },
         column_category: function () {
             return {
-                data: 'data.data.occconservationthreat.fields.threat_category', 
+                data: 'data.data.occconservationthreat.fields.threat_category',
                 defaultContent: '',
                 orderable: false,
-                searchable: false, 
+                searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     if(full.data.occconservationthreat.fields.threat_category) {
@@ -208,7 +208,7 @@ export default {
                 data: 'data.data.occconservationthreat.fields.comment',
                 defaultContent: '',
                 orderable: false,
-                searchable: true, 
+                searchable: true,
                 visible: true,
                 render: function (row, type, full) {
                     let value = full.data.occconservationthreat.fields.comment;
@@ -259,18 +259,20 @@ export default {
                 buttons: [
                     {
                         extend: 'excel',
+                        title: 'Boranga OCC Conservation Threat History Excel Export',
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
-                            orthogonal: 'export' 
+                            orthogonal: 'export'
                         }
                     },
                     {
                         extend: 'csv',
+                        title: 'Boranga OCC Conservation Threat History CSV Export',
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {
-                            orthogonal: 'export' 
+                            orthogonal: 'export'
                         }
                     },
                 ],

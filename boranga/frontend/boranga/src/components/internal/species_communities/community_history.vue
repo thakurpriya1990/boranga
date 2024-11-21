@@ -289,6 +289,7 @@ export default {
                 buttons: [
                     {
                         extend: 'excel',
+                        title: 'Boranga Community History Excel Export',
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
@@ -297,6 +298,7 @@ export default {
                     },
                     {
                         extend: 'csv',
+                        title: 'Boranga Community History CSV Export',
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {

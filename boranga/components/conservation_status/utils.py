@@ -51,7 +51,6 @@ def cs_proposal_submit(cs_proposal, request):
             ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
         )
         cs_proposal.customer_status = ConservationStatus.PROCESSING_STATUS_WITH_ASSESSOR
-        cs_proposal.documents.all().update(can_delete=False)
         cs_proposal.save()
     else:
         raise ValidationError(

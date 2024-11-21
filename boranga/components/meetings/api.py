@@ -274,15 +274,6 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     @detail_route(methods=["PUT"], detail=True)
     @renderer_classes((JSONRenderer,))
-    def submit(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.submit(request, self)
-        instance.save()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
-    @detail_route(methods=["PUT"], detail=True)
-    @renderer_classes((JSONRenderer,))
     def schedule_meeting(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.schedule_meeting(request, self)
@@ -449,6 +440,8 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 id=request_data["conservation_status_id"]
             )
             instance.agenda_items.create(conservation_status=cs)
+            cs.processing_status = ConservationStatus.PROCESSING_STATUS_ON_AGENDA
+            cs.save()
         agenda_items = [cs.conservation_status_id for cs in instance.agenda_items.all()]
         return Response(agenda_items)
 
@@ -467,6 +460,8 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 meeting=instance, conservation_status=cs
             )
             agenda_item.delete()
+            cs.processing_status = ConservationStatus.PROCESSING_STATUS_READY_FOR_AGENDA
+            cs.save()
         agenda_items = [cs.conservation_status_id for cs in instance.agenda_items.all()]
         return Response(agenda_items)
 
@@ -587,7 +582,7 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = False
+        instance.active = False
         instance.save(version_user=request.user)
         instance.meeting.log_user_action(
             MeetingUserAction.ACTION_DISCARD_MINUTE.format(
@@ -612,7 +607,7 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = True
+        instance.active = True
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
         instance.meeting.log_user_action(

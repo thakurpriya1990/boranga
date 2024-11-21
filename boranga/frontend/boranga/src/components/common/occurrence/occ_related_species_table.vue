@@ -187,7 +187,7 @@ export default {
             swal.fire({
                 title: "Remove Related Species",
                 text: "Are you sure you want to remove this Related Species?",
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Related Species',
                 customClass: {

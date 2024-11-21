@@ -60,7 +60,7 @@
                 </template>
                 <div v-show="!isCommunity">
                     <div class="row mb-3">
-                        <label for="" class="col-sm-3 control-label fw-bold">Scientific Name: <span
+                        <label for="" class="col-sm-3 col-form-label fw-bold">Scientific Name: <span
                                 class="text-danger">*</span></label>
                         <div :id="select_scientific_name" class="col-sm-9">
                             <select :id="scientific_name_lookup" :ref="scientific_name_lookup" :disabled="isReadOnly"
@@ -68,14 +68,14 @@
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="" class="col-sm-3 control-label"></label>
+                        <label for="" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <textarea id="species_display" v-model="species_display" disabled class="form-control"
                                 rows="2" />
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="" class="col-sm-3 control-label">Previous Name:</label>
+                        <label for="" class="col-sm-3 col-form-label">Previous Name:</label>
                         <div class="col-sm-9">
                             <input id="previous_name" v-model="taxon_previous_name" readonly type="text"
                                 class="form-control" placeholder="" />
@@ -84,14 +84,14 @@
                 </div>
                 <div v-show="isCommunity">
                     <div class="row mb-3">
-                        <label for="" class="col-sm-3 control-label">Community Name:</label>
+                        <label for="" class="col-sm-3 col-form-label">Community Name:</label>
                         <div :id="select_community_name" class="col-sm-9">
                             <select :id="community_name_lookup" :ref="community_name_lookup" :disabled="isReadOnly"
                                 :name="community_name_lookup" class="form-control" />
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="" class="col-sm-3 control-label"></label>
+                        <label for="" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <textarea id="community_display" v-model="community_display" disabled class="form-control"
                                 rows="2" />
@@ -99,21 +99,43 @@
                     </div>
                 </div>
                 <div v-if="occurrence_report_obj.migrated_from_id" class="row mb-3">
-                    <label for="migrated_from_id" class="col-sm-3 control-label">Migrated From ID:</label>
+                    <label for="migrated_from_id" class="col-sm-3 col-form-label">Migrated From ID:</label>
                     <div class="col-sm-9">
                         <input id="migrated_from_id" :value="occurrence_report_obj.migrated_from_id" disabled
                             type="text" class="form-control" />
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="" class="col-sm-3 control-label">Site:</label>
+                    <label for="" class="col-sm-3 col-form-label">Site:</label>
                     <div class="col-sm-9">
                         <textarea id="site" v-model="occurrence_report_obj.site
                             " :disabled="isReadOnly" class="form-control" rows="1" placeholder="" />
                     </div>
                 </div>
+                <template v-if="!is_external">
+                    <div class="row mb-3">
+                        <label for="occurrence_report_is_for_occurrence_number" class="col-sm-3 col-form-label">OCR is
+                            for OCC Number:
+                            <HelpText section_id="occurrence_report_is_for_occurrence_number" />
+                        </label>
+                        <div class="col-sm-9">
+                            <input id="occurrence_report_is_for_occurrence_number" type="text" v-model="occurrence_report_obj.ocr_for_occ_number
+                                " :disabled="isReadOnly" class="form-control" autocomplete="new-password" />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="occurrence_report_for_occurrence_name" class="col-sm-3 col-form-label">Occurrence
+                            Name:
+                            <HelpText section_id="occurrence_report_for_occurrence_name" />
+                        </label>
+                        <div class="col-sm-9">
+                            <input id="occurrence_report_for_occurrence_name" type="text" v-model="occurrence_report_obj.ocr_for_occ_name
+                                " :disabled="isReadOnly" class="form-control" autocomplete="new-password" />
+                        </div>
+                    </div>
+                </template>
                 <div class="row mb-3">
-                    <label for="" class="col-sm-3 control-label fw-bold">Observation Date: <span
+                    <label for="" class="col-sm-3 col-form-label fw-bold">Observation Date: <span
                             class="text-danger">*</span></label>
                     <div class="col-sm-9">
                         <input v-model="occurrence_report_obj.observation_date
@@ -136,6 +158,7 @@ import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 import ObserverDatatable from './observer_datatable.vue';
 import CollapsibleComponent from '@/components/forms/collapsible_component.vue'
+import HelpText from '@/components/common/help_text.vue';
 
 import {
     api_endpoints,
@@ -188,6 +211,7 @@ export default {
     },
     components: {
         FormSection,
+        HelpText,
         ObserverDatatable,
         CollapsibleComponent
     },

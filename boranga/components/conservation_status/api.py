@@ -35,6 +35,7 @@ from boranga.components.conservation_status.models import (
     ConservationStatusReferral,
     ConservationStatusUserAction,
     CSExternalRefereeInvite,
+    IUCNVersion,
     ProposalAmendmentReason,
     WALegislativeCategory,
     WALegislativeList,
@@ -171,7 +172,8 @@ class GetCSProfileDict(views.APIView):
             "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
                 group_type, active_only=True
             ),
-            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+            "iucn_versions": IUCNVersion.get_lists_dict(group_type, active_only=True),
+            "commonwealth_conservation_categories": CommonwealthConservationList.get_lists_dict(
                 group_type, active_only=True
             ),
             "change_codes": ConservationChangeCode.get_filter_list(),
@@ -315,10 +317,12 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         )
         if filter_commonwealth_relevance == "true":
             if queryset.model is ConservationStatus:
-                queryset = queryset.exclude(commonwealth_conservation_list__isnull=True)
+                queryset = queryset.exclude(
+                    commonwealth_conservation_category__isnull=True
+                )
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.exclude(
-                    conservation_status__commonwealth_conservation_list__isnull=True
+                    conservation_status__commonwealth_conservation_category__isnull=True
                 )
 
         filter_international_relevance = request.POST.get(
@@ -326,10 +330,10 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
         )
         if filter_international_relevance == "true":
             if queryset.model is ConservationStatus:
-                queryset = queryset.exclude(international_conservation__isnull=True)
+                queryset = queryset.exclude(other_conservation_assessment__isnull=True)
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.exclude(
-                    conservation_status__international_conservation__isnull=True
+                    conservation_status__other_conservation_assessment__isnull=True
                 )
 
         filter_from_effective_from_date = request.POST.get(
@@ -413,6 +417,27 @@ class SpeciesConservationStatusFilterBackend(DatatablesFilterBackend):
                     queryset = queryset.filter(
                         submitter=request.user.id,
                         processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED,
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_AWAITING_ASSESSOR_ACTION
+                ):
+                    queryset = queryset.filter(
+                        processing_status__in=ConservationStatus.PROCESSING_STATUSES_AWAITING_ASSESSOR_ACTION
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_AWAITING_APPROVER_ACTION
+                ):
+                    queryset = queryset.filter(
+                        processing_status__in=ConservationStatus.PROCESSING_STATUSES_AWAITING_APPROVER_ACTION
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_INACTIVE
+                ):
+                    queryset = queryset.filter(
+                        processing_status__in=ConservationStatus.PROCESSING_STATUSES_INACTIVE
                     )
                 else:
                     queryset = queryset.filter(
@@ -550,117 +575,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
 
     @list_route(
         methods=[
-            "POST",
-        ],
-        detail=False,
-        permission_classes=[ConservationStatusPermission],
-    )
-    def species_cs_internal_export(self, request, *args, **kwargs):
-        qs = self.get_queryset()
-        qs = self.filter_queryset(qs)
-        export_format = request.POST.get("export_format")
-        allowed_fields = [
-            "species_number",
-            "scientific_name",
-            "common_name",
-            "family",
-            "genus",
-            "phylogenetic_group",
-            "processing_status",
-            "effective_from_date",
-            "effective_to_date",
-            "conservation_status_number",
-        ]
-
-        serializer = ListSpeciesConservationStatusSerializer(
-            qs, context={"request": request}, many=True
-        )
-        serialized_data = serializer.data
-
-        filtered_data = []
-        for obj in serialized_data:
-            filtered_obj = {
-                key: value for key, value in obj.items() if key in allowed_fields
-            }
-            filtered_data.append(filtered_obj)
-
-        def flatten_dict(d, parent_key="", sep="_"):
-            flattened_dict = {}
-            for k, v in d.items():
-                new_key = parent_key + sep + k if parent_key else k
-                if isinstance(v, dict):
-                    flattened_dict.update(flatten_dict(v, new_key, sep))
-                else:
-                    flattened_dict[new_key] = v
-            return flattened_dict
-
-        flattened_data = [flatten_dict(item) for item in filtered_data]
-        df = pd.DataFrame(flattened_data)
-        new_headings = [
-            "Number",
-            "Species",
-            "Scientific Name",
-            "Common Name",
-            "Family",
-            "Genera",
-            "Phylo Group",
-            "Processing Status",
-            "Effective From Date",
-            "Effective To Date",
-        ]
-        df.columns = new_headings
-        column_order = [
-            "Number",
-            "Species",
-            "Scientific Name",
-            "Common Name",
-            "Effective From Date",
-            "Effective To Date",
-            "Family",
-            "Genera",
-            "Processing Status",
-        ]
-        df = df[column_order]
-
-        if export_format is not None:
-            if export_format == "excel":
-                buffer = BytesIO()
-                workbook = Workbook()
-                sheet_name = "Sheet1"
-                sheet = workbook.active
-                sheet.title = sheet_name
-
-                for row in dataframe_to_rows(df, index=False, header=True):
-                    sheet.append(row)
-                for cell in sheet[1]:
-                    cell.font = Font(bold=True)
-
-                workbook.save(buffer)
-                buffer.seek(0)
-                response = HttpResponse(
-                    buffer.read(), content_type="application/vnd.ms-excel"
-                )
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_ConservationStatus_Species.xlsx"
-                )
-                final_response = response
-                buffer.close()
-                return final_response
-
-            elif export_format == "csv":
-                csv_data = df.to_csv(index=False)
-                response = HttpResponse(content_type="text/csv")
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_ConservationStatus_Species.csv"
-                )
-                response.write(csv_data)
-                return response
-
-            else:
-                return Response(status=400, data="Format not valid")
-
-    @list_route(
-        methods=[
             "GET",
             "POST",
         ],
@@ -680,111 +594,6 @@ class SpeciesConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
         return self.paginator.get_paginated_response(serializer.data)
-
-    @list_route(
-        methods=[
-            "POST",
-        ],
-        detail=False,
-        permission_classes=[ConservationStatusPermission],
-    )
-    def species_cs_referrals_internal_export(self, request, *args, **kwargs):
-
-        self.serializer_class = ConservationStatusReferralSerializer
-        qs = (
-            ConservationStatusReferral.objects.filter(referral=request.user.id)
-            if is_internal(self.request)
-            else ConservationStatusReferral.objects.none()
-        )
-        qs = self.filter_queryset(qs)
-        export_format = request.POST.get("export_format")
-        allowed_fields = [
-            "species_number",
-            "scientific_name",
-            "common_name",
-            "family",
-            "genus",
-            "processing_status",
-            "conservation_status_number",
-        ]
-
-        serializer = DTConservationStatusReferralSerializer(
-            qs, context={"request": request}, many=True
-        )
-        serialized_data = serializer.data
-
-        filtered_data = []
-        for obj in serialized_data:
-            filtered_obj = {
-                key: value for key, value in obj.items() if key in allowed_fields
-            }
-            filtered_data.append(filtered_obj)
-
-        def flatten_dict(d, parent_key="", sep="_"):
-            flattened_dict = {}
-            for k, v in d.items():
-                new_key = parent_key + sep + k if parent_key else k
-                if isinstance(v, dict):
-                    flattened_dict.update(flatten_dict(v, new_key, sep))
-                else:
-                    flattened_dict[new_key] = v
-            return flattened_dict
-
-        flattened_data = [flatten_dict(item) for item in filtered_data]
-        df = pd.DataFrame(flattened_data)
-        new_headings = [
-            "Processing Status",
-            "Number",
-            "Species",
-            "Scientific Name",
-            "Common Name",
-        ]
-        df.columns = new_headings
-        column_order = [
-            "Number",
-            "Species",
-            "Scientific Name",
-            "Common Name",
-            "Processing Status",
-        ]
-        df = df[column_order]
-
-        if export_format is not None:
-            if export_format == "excel":
-                buffer = BytesIO()
-                workbook = Workbook()
-                sheet_name = "Sheet1"
-                sheet = workbook.active
-                sheet.title = sheet_name
-
-                for row in dataframe_to_rows(df, index=False, header=True):
-                    sheet.append(row)
-                for cell in sheet[1]:
-                    cell.font = Font(bold=True)
-
-                workbook.save(buffer)
-                buffer.seek(0)
-                response = HttpResponse(
-                    buffer.read(), content_type="application/vnd.ms-excel"
-                )
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_ConservationStatus_Species_Referrals.xlsx"
-                )
-                final_response = response
-                buffer.close()
-                return final_response
-
-            elif export_format == "csv":
-                csv_data = df.to_csv(index=False)
-                response = HttpResponse(content_type="text/csv")
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_ConservationStatus_Species_Referrals.csv"
-                )
-                response.write(csv_data)
-                return response
-
-            else:
-                return Response(status=400, data="Format not valid")
 
 
 class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
@@ -902,10 +711,12 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
         )
         if filter_commonwealth_relevance == "true":
             if queryset.model is ConservationStatus:
-                queryset = queryset.exclude(commonwealth_conservation_list__isnull=True)
+                queryset = queryset.exclude(
+                    commonwealth_conservation_category__isnull=True
+                )
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.exclude(
-                    conservation_status__commonwealth_conservation_list__isnull=True
+                    conservation_status__commonwealth_conservation_category__isnull=True
                 )
 
         filter_international_relevance = request.POST.get(
@@ -913,10 +724,10 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
         )
         if filter_international_relevance == "true":
             if queryset.model is ConservationStatus:
-                queryset = queryset.exclude(international_conservation__isnull=True)
+                queryset = queryset.exclude(other_conservation_assessment__isnull=True)
             elif queryset.model is ConservationStatusReferral:
                 queryset = queryset.exclude(
-                    conservation_status__international_conservation__isnull=True
+                    conservation_status__other_conservation_assessment__isnull=True
                 )
 
         filter_from_effective_from_date = request.POST.get(
@@ -999,6 +810,27 @@ class CommunityConservationStatusFilterBackend(DatatablesFilterBackend):
                     queryset = queryset.filter(
                         submitter=request.user.id,
                         processing_status=ConservationStatus.PROCESSING_STATUS_DISCARDED,
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_AWAITING_ASSESSOR_ACTION
+                ):
+                    queryset = queryset.filter(
+                        processing_status__in=ConservationStatus.PROCESSING_STATUSES_AWAITING_ASSESSOR_ACTION
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_AWAITING_APPROVER_ACTION
+                ):
+                    queryset = queryset.filter(
+                        processing_status__in=ConservationStatus.PROCESSING_STATUSES_AWAITING_APPROVER_ACTION
+                    )
+                elif (
+                    filter_application_status
+                    == ConservationStatus.PROCESSING_STATUS_INACTIVE
+                ):
+                    queryset = queryset.filter(
+                        processing_status__in=ConservationStatus.PROCESSING_STATUSES_INACTIVE
                     )
                 else:
                     queryset = queryset.filter(
@@ -1134,116 +966,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
 
     @list_route(
         methods=[
-            "POST",
-        ],
-        detail=False,
-        permission_classes=[ConservationStatusPermission],
-    )
-    def community_cs_internal_export(self, request, *args, **kwargs):
-
-        qs = self.get_queryset()
-        qs = self.filter_queryset(qs)
-        export_format = request.POST.get("export_format")
-        allowed_fields = [
-            "conservation_status_number",
-            "community_number",
-            "community_migrated_id",
-            "community_name",
-            "region",
-            "district",
-            "processing_status",
-            "effective_from_date",
-            "effective_to_date",
-        ]
-
-        serializer = ListCommunityConservationStatusSerializer(
-            qs, context={"request": request}, many=True
-        )
-        serialized_data = serializer.data
-
-        filtered_data = []
-        for obj in serialized_data:
-            filtered_obj = {
-                key: value for key, value in obj.items() if key in allowed_fields
-            }
-            filtered_data.append(filtered_obj)
-
-        def flatten_dict(d, parent_key="", sep="_"):
-            flattened_dict = {}
-            for k, v in d.items():
-                new_key = parent_key + sep + k if parent_key else k
-                if isinstance(v, dict):
-                    flattened_dict.update(flatten_dict(v, new_key, sep))
-                else:
-                    flattened_dict[new_key] = v
-            return flattened_dict
-
-        flattened_data = [flatten_dict(item) for item in filtered_data]
-        df = pd.DataFrame(flattened_data)
-        new_headings = [
-            "Number",
-            "Community",
-            "Community Id",
-            "Community Name",
-            "Region",
-            "District",
-            "Processing Status",
-            "Effective From Date",
-            "Effective To Date",
-        ]
-        df.columns = new_headings
-        column_order = [
-            "Number",
-            "Community",
-            "Community Id",
-            "Community Name",
-            "Region",
-            "District",
-            "Effective From Date",
-            "Effective To Date",
-            "Processing Status",
-        ]
-        df = df[column_order]
-
-        if export_format is not None:
-            if export_format == "excel":
-                buffer = BytesIO()
-                workbook = Workbook()
-                sheet_name = "Sheet1"
-                sheet = workbook.active
-                sheet.title = sheet_name
-
-                for row in dataframe_to_rows(df, index=False, header=True):
-                    sheet.append(row)
-                for cell in sheet[1]:
-                    cell.font = Font(bold=True)
-
-                workbook.save(buffer)
-                buffer.seek(0)
-                response = HttpResponse(
-                    buffer.read(), content_type="application/vnd.ms-excel"
-                )
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_ConservationStatus_Communities.xlsx"
-                )
-                final_response = response
-                buffer.close()
-                return final_response
-
-            elif export_format == "csv":
-                csv_data = df.to_csv(index=False)
-                response = HttpResponse(content_type="text/csv")
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_ConservationStatus_Communities.csv"
-                )
-                response.write(csv_data)
-                return response
-
-            else:
-                return Response(status=400, data="Format not valid")
-
-    @list_route(
-        methods=[
             "GET",
             "POST",
         ],
@@ -1262,15 +984,6 @@ class CommunityConservationStatusPaginatedViewSet(viewsets.ReadOnlyModelViewSet)
             result_page, context={"request": request}, many=True
         )
         return self.paginator.get_paginated_response(serializer.data)
-
-    @list_route(
-        methods=[
-            "POST",
-        ],
-        detail=False,
-        permission_classes=[ConservationStatusReferralPermission],
-    )
-    def community_cs_referrals_internal_export(self, request, *args, **kwargs):
         qs = (
             ConservationStatusReferral.objects.filter(referral=request.user.id)
             if is_internal(self.request)
@@ -1935,14 +1648,28 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
 
     @detail_route(
         methods=[
-            "POST",
+            "PATCH",
         ],
         detail=True,
         permission_classes=[ConservationStatusPermission],
     )
-    def proposed_ready_for_agenda(self, request, *args, **kwargs):
+    def proposed_for_agenda(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.proposed_ready_for_agenda(request)
+        instance.proposed_for_agenda(request)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+        permission_classes=[ConservationStatusPermission],
+    )
+    def ready_for_agenda(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.ready_for_agenda(request)
         serializer_class = self.internal_serializer_class()
         serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
@@ -1971,7 +1698,7 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 qs = qs.filter(
                     Q(
                         conservation_status__submitter=self.request.user.id,
-                        visible=True,
+                        active=True,
                         can_submitter_access=True,
                     )
                     | Q(
@@ -1981,13 +1708,13 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
             elif is_contributor(request):
                 qs = qs.filter(
                     conservation_status__submitter=self.request.user.id,
-                    visible=True,
+                    active=True,
                     can_submitter_access=True,
                 )
             elif is_conservation_status_referee(request, instance):
                 qs = qs.filter(
                     conservation_status__referrals__referral=self.request.user.id,
-                    visible=True,
+                    active=True,
                 )
             else:
                 qs = qs.none()
@@ -2010,6 +1737,18 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         instance = self.get_object()
         instance.reinstate(request)
         serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(methods=["patch"], detail=True)
+    def defer(self, request, *args, **kwargs):
+        instance = self.get_object()
+        reason = request.data.get("reason")
+        review_due_date = request.data.get("review_due_date", None)
+        if not reason:
+            raise serializers.ValidationError("Reason is required")
+        instance.defer(request, reason, review_due_date)
+        serializer_class = self.internal_serializer_class()
+        serializer = serializer_class(instance, context={"request": request})
         return Response(serializer.data)
 
     @detail_route(
@@ -2267,7 +2006,8 @@ class ConservationStatusReferralViewSet(
             "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
                 group_type
             ),
-            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+            "iucn_versions": IUCNVersion.get_lists_dict(group_type),
+            "commonwealth_conservation_categories": CommonwealthConservationList.get_lists_dict(
                 group_type
             ),
             "processing_status_list": processing_status_list,
@@ -2330,7 +2070,8 @@ class ConservationStatusReferralViewSet(
             "wa_legislative_categories": WALegislativeCategory.get_categories_dict(
                 group_type
             ),
-            "commonwealth_conservation_lists": CommonwealthConservationList.get_lists_dict(
+            "iucn_versions": IUCNVersion.get_lists_dict(group_type),
+            "commonwealth_conservation_categories": CommonwealthConservationList.get_lists_dict(
                 group_type
             ),
             "processing_status_list": processing_status_list,
@@ -2545,18 +2286,18 @@ class ConservationStatusDocumentViewSet(
             return qs.filter(
                 Q(
                     conservation_status__submitter=self.request.user.id,
-                    visible=True,
+                    active=True,
                     can_submitter_access=True,
                 )
                 | Q(
                     conservation_status__referrals__referral=self.request.user.id,
-                    visible=True,
+                    active=True,
                 )
             )
         elif is_contributor(self.request):
             return qs.filter(
                 conservation_status__submitter=self.request.user.id,
-                visible=True,
+                active=True,
                 can_submitter_access=True,
             )
         elif is_conservation_status_referee(self.request):
@@ -2574,7 +2315,10 @@ class ConservationStatusDocumentViewSet(
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = False
+        # The delete method has been overridden to set the active flag to False
+        # If the parent object (ConservationStatus) has not yet been submitted
+        # the file will be deleted from the file system
+        instance.delete()
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
@@ -2587,7 +2331,7 @@ class ConservationStatusDocumentViewSet(
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = True
+        instance.active = True
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)

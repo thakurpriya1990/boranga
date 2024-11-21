@@ -174,7 +174,10 @@ class MeetingSerializer(serializers.ModelSerializer):
             "processing_status_display",
             "can_user_edit",
             "can_user_add_minutes",
-            "lodgement_date",
+            "datetime_created",
+            "datetime_updated",
+            "datetime_scheduled",
+            "datetime_completed",
             "submitter",
             "agenda_items_arr",
             "user_edit_mode",
@@ -348,7 +351,7 @@ class MinutesSerializer(serializers.ModelSerializer):
             "document_category_name",
             "document_sub_category",
             "document_sub_category_name",
-            "visible",
+            "active",
         )
         read_only_fields = ("id", "minutes_number")
 

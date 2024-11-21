@@ -49,7 +49,7 @@
                                 </div>
                             </div>
                             <div class="form-group"
-                                v-if="processing_status == 'With Assessor' || processing_status == 'Ready For Agenda'">
+                                v-if="processing_status == 'With Assessor' || processing_status == 'On Agenda'">
                                 <div class="row mb-3">
                                     <div class="col-sm-4">
                                         <label class="control-label pull-left">Approval Document</label>
@@ -164,7 +164,7 @@ export default {
             return `Approve Conservation Status CS${this.conservation_status_id}`;
         },
         can_preview: function () {
-            return (this.processing_status == 'With Approver' || 'With Assessor (Requirements)') && this.approval.effective_from_date && this.approval.effective_to_date ? true : false;
+            return (this.processing_status == 'Proposed DeListed' || 'With Assessor (Requirements)') && this.approval.effective_from_date && this.approval.effective_to_date ? true : false;
         },
     },
     methods: {

@@ -143,7 +143,10 @@ class Meeting(models.Model):
         choices=PROCESSING_STATUS_CHOICES,
         default=PROCESSING_STATUS_CHOICES[0][0],
     )
-    lodgement_date = models.DateTimeField(blank=True, null=True)
+    datetime_created = models.DateTimeField(auto_now_add=True)
+    datetime_updated = models.DateTimeField(auto_now=True)
+    datetime_scheduled = models.DateTimeField(blank=True, null=True)
+    datetime_completed = models.DateTimeField(blank=True, null=True)
     submitter = models.IntegerField(null=True)  # EmailUserRO
 
     class Meta:
@@ -259,36 +262,13 @@ class Meeting(models.Model):
         )
 
     @transaction.atomic
-    def submit(self, request, viewset):
-        if not self.can_user_edit:
-            raise ValidationError("You can't edit this meeting at this moment")
-
-        self.submitter = request.user.id
-        self.lodgement_date = timezone.now()
-
-        # Create a log entry for the meeting
-        self.log_user_action(
-            MeetingUserAction.ACTION_SUBMIT_MEETING.format(self.meeting_number), request
-        )
-
-        # Create a log entry for the submitter
-        request.user.log_user_action(
-            MeetingUserAction.ACTION_SUBMIT_MEETING.format(
-                self.meeting_number,
-            ),
-            request,
-        )
-
-        self.save()
-
-    @transaction.atomic
     def schedule_meeting(self, request, viewset):
         if not self.processing_status == self.PROCESSING_STATUS_DRAFT:
             raise ValidationError("You can't schedule this meeting at this moment")
 
         self.processing_status = self.PROCESSING_STATUS_SCHEDULED
         self.submitter = request.user.id
-        # self.lodgement_date = timezone.now()
+        self.datetime_scheduled = timezone.now()
 
         # Create a log entry for the meeting
         self.log_user_action(
@@ -313,7 +293,7 @@ class Meeting(models.Model):
 
         self.processing_status = self.PROCESSING_STATUS_COMPLETED
         self.submitter = request.user.id
-        # self.lodgement_date = timezone.now()
+        self.datetime_completed = timezone.now()
 
         # Create a log entry for the meeting
         self.log_user_action(
@@ -345,6 +325,9 @@ class MeetingLogDocument(Document):
     class Meta:
         app_label = "boranga"
 
+    def get_parent_instance(self) -> models.Model:
+        return self.log_entry
+
 
 class MeetingLogEntry(CommunicationsLogEntry):
     meeting = models.ForeignKey(
@@ -367,7 +350,6 @@ class MeetingLogEntry(CommunicationsLogEntry):
 class MeetingUserAction(UserAction):
     ACTION_CREATE_MEETING = "Create meeting {}"
     ACTION_SAVE_MEETING = "Save Meeting {}"
-    ACTION_SUBMIT_MEETING = "Submit Meeting {}"
     ACTION_SCHEDULE_MEETING = "Schedule Meeting {}"
     ACTION_COMPLETE_MEETING = "Complete Meeting {}"
     ACTION_DISCARD_MEETING = "Discard Meeting {}"
@@ -416,12 +398,6 @@ class Minutes(Document):
         storage=private_storage,
     )
     input_name = models.CharField(max_length=255, null=True, blank=True)
-    can_delete = models.BooleanField(
-        default=True
-    )  # after initial submit prevent document from being deleted
-    visible = models.BooleanField(
-        default=True
-    )  # to prevent deletion on file system, hidden and still be available in history
     document_category = models.ForeignKey(
         DocumentCategory, null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -451,6 +427,9 @@ class Minutes(Document):
         else:
             super().save(*args, **kwargs)
 
+    def get_parent_instance(self) -> models.Model:
+        return self.meeting
+
     @transaction.atomic
     def add_documents(self, request, *args, **kwargs):
         # save the files
@@ -462,7 +441,6 @@ class Minutes(Document):
             self._file = _file
             self.name = _file.name
             self.input_name = data["input_name"]
-            self.can_delete = True
             self.save(no_revision=True)
 
         # end save documents
@@ -511,7 +489,7 @@ class AgendaItem(OrderedModel):
 
     @property
     def related_item_status(self):
-        return self.meeting.get_processing_status_display
+        return self.meeting.get_processing_status_display()
 
 
 # Minutes

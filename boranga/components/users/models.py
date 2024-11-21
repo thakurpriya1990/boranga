@@ -191,6 +191,9 @@ class EmailUserLogDocument(Document):
     class Meta:
         app_label = "boranga"
 
+    def get_parent_instance(self) -> models.Model:
+        return self.log_entry
+
 
 class EmailUserAction(UserAction):
     email_user = models.IntegerField()

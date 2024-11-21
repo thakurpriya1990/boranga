@@ -341,7 +341,26 @@ export default {
 
             let columns = []
             let search = null
-            let buttons = []
+            let buttons = [
+                {
+                    extend: 'excel',
+                    title: 'Boranga Conservation Status Excel Export',
+                    text: '<i class="fa-solid fa-download"></i> Excel',
+                    className: 'btn btn-primary me-2 rounded',
+                    exportOptions: {
+                        columns: ':not(.no-export)',
+                    }
+                },
+                {
+                    extend: 'csv',
+                    title: 'Boranga Conservation Status CSV Export',
+                    text: '<i class="fa-solid fa-download"></i> CSV',
+                    className: 'btn btn-primary rounded',
+                    exportOptions: {
+                        columns: ':not(.no-export)',
+                    }
+                }
+            ]
             columns = [
                 vm.column_number,
                 vm.column_type,
@@ -351,7 +370,6 @@ export default {
                 vm.column_action,
             ]
             search = false
-            buttons = []
 
             return {
                 autoWidth: false,
@@ -367,7 +385,7 @@ export default {
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 },
-                    { responsivePriority: 3, targets: -1 },
+                    { responsivePriority: 3, targets: -1, className: 'no-export' },
                     { responsivePriority: 2, targets: -2 }
                 ],
                 ajax: {

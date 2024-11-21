@@ -1,6 +1,6 @@
 <template lang="html">
     <div id="internal-conservation-status-proposal-amend">
-        <modal id="myModal" transition="modal fade" @ok="ok()" @cancel="cancel()" title="Amendment Request" large>
+        <modal id="amendment-request-modal" transition="modal fade" @ok="ok()" @cancel="cancel()" title="Amendment Request" large>
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="amendForm">
@@ -221,7 +221,7 @@ export default {
                 "theme": "bootstrap-5",
                 allowClear: true,
                 placeholder: "Select Reason",
-                dropdownParent: $('#myModal .modal-body'),
+                dropdownParent: $('#amendment-request-modal .modal-body'),
             }).
                 on("select2:select", function (e) {
                     var selected = $(e.currentTarget);

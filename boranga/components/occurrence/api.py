@@ -4,7 +4,6 @@ import traceback
 from datetime import datetime, time
 from io import BytesIO
 
-import pandas as pd
 from django.contrib.gis.geos import GEOSGeometry
 from django.core.cache import cache
 from django.db import models, transaction
@@ -17,9 +16,6 @@ from django.utils import timezone
 from django_filters import rest_framework as filters
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from multiselectfield import MultiSelectField
-from openpyxl import Workbook
-from openpyxl.styles import Font
-from openpyxl.utils.dataframe import dataframe_to_rows
 from rest_framework import mixins, serializers, status, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
@@ -413,306 +409,6 @@ class OccurrenceReportPaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             result_page, context={"request": request}, many=True
         )
         return self.paginator.get_paginated_response(serializer.data)
-
-    @list_route(
-        methods=[
-            "GET",
-        ],
-        detail=False,
-        permission_classes=[
-            OccurrenceReportPermission | ExternalOccurrenceReportPermission
-        ],
-    )
-    def occurrence_report_external_export(self, request, *args, **kwargs):
-
-        qs = self.get_queryset()
-        qs = self.filter_queryset(qs)
-        export_format = request.GET.get("export_format")
-        allowed_fields = [
-            "group_type",
-            "scientific_name",
-            "community_name",
-            "customer_status",
-            "occurrence_report_number",
-        ]
-
-        serializer = ListOccurrenceReportSerializer(
-            qs, context={"request": request}, many=True
-        )
-        serialized_data = serializer.data
-
-        filtered_data = []
-        for obj in serialized_data:
-            filtered_obj = {
-                key: value for key, value in obj.items() if key in allowed_fields
-            }
-            filtered_data.append(filtered_obj)
-
-        def flatten_dict(d, parent_key="", sep="_"):
-            flattened_dict = {}
-            for k, v in d.items():
-                new_key = parent_key + sep + k if parent_key else k
-                if isinstance(v, dict):
-                    flattened_dict.update(flatten_dict(v, new_key, sep))
-                else:
-                    flattened_dict[new_key] = v
-            return flattened_dict
-
-        flattened_data = [flatten_dict(item) for item in filtered_data]
-        df = pd.DataFrame(flattened_data)
-        new_headings = [
-            "Number",
-            "Type",
-            "Scientific Name",
-            "Community Name",
-            "Status",
-        ]
-        df.columns = new_headings
-        column_order = [
-            "Number",
-            "Type",
-            "Scientific Name",
-            "Community Name",
-            "Status",
-        ]
-        df = df[column_order]
-
-        if export_format is not None:
-            if export_format == "excel":
-                buffer = BytesIO()
-                workbook = Workbook()
-                sheet_name = "Sheet1"
-                sheet = workbook.active
-                sheet.title = sheet_name
-
-                for row in dataframe_to_rows(df, index=False, header=True):
-                    sheet.append(row)
-                for cell in sheet[1]:
-                    cell.font = Font(bold=True)
-
-                workbook.save(buffer)
-                buffer.seek(0)
-                response = HttpResponse(
-                    buffer.read(), content_type="application/vnd.ms-excel"
-                )
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_ExternalOccurrenceReports.xlsx"
-                )
-                final_response = response
-                buffer.close()
-                return final_response
-
-            elif export_format == "csv":
-                csv_data = df.to_csv(index=False)
-                response = HttpResponse(content_type="text/csv")
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_ExternalOccurrenceReports.csv"
-                )
-                response.write(csv_data)
-                return response
-
-            else:
-                return Response(status=400, data="Format not valid")
-
-    @list_route(
-        methods=[
-            "GET",
-        ],
-        detail=False,
-    )
-    def occurrence_report_internal_export(self, request, *args, **kwargs):
-
-        qs = self.get_queryset()
-        qs = self.filter_queryset(qs)
-        export_format = request.GET.get("export_format")
-        allowed_fields = [
-            "scientific_name",
-            "reported_date",
-            "submitter",
-            "processing_status",
-            "occurrence_report_number",
-            "occurrence_name",
-        ]
-
-        serializer = ListInternalOccurrenceReportSerializer(
-            qs, context={"request": request}, many=True
-        )
-        serialized_data = serializer.data
-
-        filtered_data = []
-        for obj in serialized_data:
-            filtered_obj = {
-                key: value for key, value in obj.items() if key in allowed_fields
-            }
-            filtered_data.append(filtered_obj)
-
-        def flatten_dict(d, parent_key="", sep="_"):
-            flattened_dict = {}
-            for k, v in d.items():
-                new_key = parent_key + sep + k if parent_key else k
-                if isinstance(v, dict):
-                    flattened_dict.update(flatten_dict(v, new_key, sep))
-                else:
-                    flattened_dict[new_key] = v
-            return flattened_dict
-
-        flattened_data = [flatten_dict(item) for item in filtered_data]
-        df = pd.DataFrame(flattened_data)
-        new_headings = [
-            "Number",
-            "Scientific Name",
-            "Submission date/time",
-            "Submitter",
-            "Processing Status",
-            "Occurrence",
-        ]
-        df.columns = new_headings
-        column_order = [
-            "Number",
-            "Occurrence",
-            "Scientific Name",
-            "Submission date/time",
-            "Submitter",
-            "Processing Status",
-        ]
-        df = df[column_order]
-
-        if export_format is not None:
-            if export_format == "excel":
-                buffer = BytesIO()
-                workbook = Workbook()
-                sheet_name = "Sheet1"
-                sheet = workbook.active
-                sheet.title = sheet_name
-
-                for row in dataframe_to_rows(df, index=False, header=True):
-                    sheet.append(row)
-                for cell in sheet[1]:
-                    cell.font = Font(bold=True)
-
-                workbook.save(buffer)
-                buffer.seek(0)
-                response = HttpResponse(
-                    buffer.read(), content_type="application/vnd.ms-excel"
-                )
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_OccurrenceReport_Species.xlsx"
-                )
-                final_response = response
-                buffer.close()
-                return final_response
-
-            elif export_format == "csv":
-                csv_data = df.to_csv(index=False)
-                response = HttpResponse(content_type="text/csv")
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_OccurrenceReport_Species.csv"
-                )
-                response.write(csv_data)
-                return response
-
-            else:
-                return Response(status=400, data="Format not valid")
-
-    @list_route(
-        methods=[
-            "GET",
-        ],
-        detail=False,
-    )
-    def community_occurrence_report_internal_export(self, request, *args, **kwargs):
-
-        qs = self.get_queryset()
-        qs = self.filter_queryset(qs)
-        export_format = request.GET.get("export_format")
-        allowed_fields = [
-            "community_name",
-            "reported_date",
-            "submitter",
-            "processing_status",
-            "occurrence_report_number",
-            "occurrence_name",
-        ]
-
-        serializer = ListInternalOccurrenceReportSerializer(
-            qs, context={"request": request}, many=True
-        )
-        serialized_data = serializer.data
-
-        filtered_data = []
-        for obj in serialized_data:
-            filtered_obj = {
-                key: value for key, value in obj.items() if key in allowed_fields
-            }
-            filtered_data.append(filtered_obj)
-
-        def flatten_dict(d, parent_key="", sep="_"):
-            flattened_dict = {}
-            for k, v in d.items():
-                new_key = parent_key + sep + k if parent_key else k
-                if isinstance(v, dict):
-                    flattened_dict.update(flatten_dict(v, new_key, sep))
-                else:
-                    flattened_dict[new_key] = v
-            return flattened_dict
-
-        flattened_data = [flatten_dict(item) for item in filtered_data]
-        df = pd.DataFrame(flattened_data)
-        new_headings = [
-            "Number",
-            "Community Name",
-            "Submission date/time",
-            "Submitter",
-            "Processing Status",
-            "Occurrence",
-        ]
-        df.columns = new_headings
-        column_order = [
-            "Number",
-            "Occurrence",
-            "Community Name",
-            "Submission date/time",
-            "Submitter",
-            "Processing Status",
-        ]
-        df = df[column_order]
-
-        if export_format is not None:
-            if export_format == "excel":
-                buffer = BytesIO()
-                workbook = Workbook()
-                sheet_name = "Sheet1"
-                sheet = workbook.active
-                sheet.title = sheet_name
-
-                for row in dataframe_to_rows(df, index=False, header=True):
-                    sheet.append(row)
-                for cell in sheet[1]:
-                    cell.font = Font(bold=True)
-
-                workbook.save(buffer)
-                buffer.seek(0)
-                response = HttpResponse(
-                    buffer.read(), content_type="application/vnd.ms-excel"
-                )
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_OccurrenceReport_Community.xlsx"
-                )
-                final_response = response
-                buffer.close()
-                return final_response
-
-            elif export_format == "csv":
-                csv_data = df.to_csv(index=False)
-                response = HttpResponse(content_type="text/csv")
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_OccurrenceReport_Community.csv"
-                )
-                response.write(csv_data)
-                return response
-
-            else:
-                return Response(status=400, data="Format not valid")
 
     @list_route(
         methods=[
@@ -2121,12 +1817,12 @@ class OccurrenceReportViewSet(
             if is_occurrence_report_referee(request, instance):
                 qs = qs.filter(
                     occurrence_report__referrals__referral=request.user.id,
-                    visible=True,
+                    active=True,
                 )
             elif is_contributor(request):
                 qs = qs.filter(
                     occurrence_report__submitter=self.request.user.id,
-                    visible=True,
+                    active=True,
                     can_submitter_access=True,
                 )
 
@@ -2744,7 +2440,7 @@ class OccurrenceReportDocumentViewSet(
         if is_contributor(self.request):
             return OccurrenceReportDocument.objects.filter(
                 occurrence_report__submitter=self.request.user.id,
-                visible=True,
+                active=True,
                 can_submitter_access=True,
             )
         return OccurrenceReportDocument.objects.none()
@@ -2757,8 +2453,10 @@ class OccurrenceReportDocumentViewSet(
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = False
-        instance.save(version_user=request.user)
+        # The delete method has been overridden to set the active flag to False
+        # If the parent object (ConservationStatus) has not yet been submitted
+        # the file will be deleted from the file system
+        instance.delete()
         instance.occurrence_report.log_user_action(
             OccurrenceReportUserAction.ACTION_DISCARD_DOCUMENT.format(
                 instance.document_number,
@@ -2789,7 +2487,7 @@ class OccurrenceReportDocumentViewSet(
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = True
+        instance.active = True
         instance.save(version_user=request.user)
         instance.occurrence_report.log_user_action(
             OccurrenceReportUserAction.ACTION_REINSTATE_DOCUMENT.format(
@@ -3212,105 +2910,6 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         ],
         detail=False,
     )
-    def occurrence_internal_export(self, request, *args, **kwargs):
-        qs = self.get_queryset()
-        qs = self.filter_queryset(qs)
-        export_format = request.GET.get("export_format")
-        allowed_fields = [
-            "species",
-            "scientific_name",
-            "reported_date",
-            "submitter",
-            "processing_status",
-            "occurrence_report_number",
-        ]
-
-        serializer = ListInternalOccurrenceReportSerializer(
-            qs, context={"request": request}, many=True
-        )
-        serialized_data = serializer.data
-
-        filtered_data = []
-        for obj in serialized_data:
-            filtered_obj = {
-                key: value for key, value in obj.items() if key in allowed_fields
-            }
-            filtered_data.append(filtered_obj)
-
-        def flatten_dict(d, parent_key="", sep="_"):
-            flattened_dict = {}
-            for k, v in d.items():
-                new_key = parent_key + sep + k if parent_key else k
-                if isinstance(v, dict):
-                    flattened_dict.update(flatten_dict(v, new_key, sep))
-                else:
-                    flattened_dict[new_key] = v
-            return flattened_dict
-
-        flattened_data = [flatten_dict(item) for item in filtered_data]
-        df = pd.DataFrame(flattened_data)
-        new_headings = [
-            "Number",
-            "Occurrence",
-            "Scientific Name",
-            "Submission date/time",
-            "Submitter",
-            "Processing Status",
-        ]
-        df.columns = new_headings
-        column_order = [
-            "Number",
-            "Occurrence",
-            "Scientific Name",
-            "Submission date/time",
-            "Submitter",
-            "Processing Status",
-        ]
-        df = df[column_order]
-
-        if export_format is not None:
-            if export_format == "excel":
-                buffer = BytesIO()
-                workbook = Workbook()
-                sheet_name = "Sheet1"
-                sheet = workbook.active
-                sheet.title = sheet_name
-
-                for row in dataframe_to_rows(df, index=False, header=True):
-                    sheet.append(row)
-                for cell in sheet[1]:
-                    cell.font = Font(bold=True)
-
-                workbook.save(buffer)
-                buffer.seek(0)
-                response = HttpResponse(
-                    buffer.read(), content_type="application/vnd.ms-excel"
-                )
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_OccurrenceReport_Species.xlsx"
-                )
-                final_response = response
-                buffer.close()
-                return final_response
-
-            elif export_format == "csv":
-                csv_data = df.to_csv(index=False)
-                response = HttpResponse(content_type="text/csv")
-                response["Content-Disposition"] = (
-                    "attachment; filename=DBCA_OccurrenceReport_Species.csv"
-                )
-                response.write(csv_data)
-                return response
-
-            else:
-                return Response(status=400, data="Format not valid")
-
-    @list_route(
-        methods=[
-            "GET",
-        ],
-        detail=False,
-    )
     def occurrence_lookup(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         group_type_id = request.GET.get("group_type_id", None)
@@ -3723,8 +3322,7 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def discard(self, request, *args, **kwargs):
         instance = self.get_object()
-
-        instance.visible = False
+        instance.active = False
         instance.save(version_user=request.user)
         instance.occurrence.log_user_action(
             OccurrenceUserAction.ACTION_DISCARD_DOCUMENT.format(
@@ -3751,7 +3349,7 @@ class OccurrenceDocumentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
     )
     def reinstate(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.visible = True
+        instance.active = True
         instance.save(version_user=request.user)
         instance.occurrence.log_user_action(
             OccurrenceUserAction.ACTION_REINSTATE_DOCUMENT.format(

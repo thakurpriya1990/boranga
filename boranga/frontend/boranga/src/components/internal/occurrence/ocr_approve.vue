@@ -1,12 +1,12 @@
 <template lang="html">
     <div id="internal-ocr-approve-request">
-        <modal id="myModal" transition="modal fade" @ok="ok()" ok-text="Approve" @cancel="close()"
+        <modal id="ocr-approve-modal" transition="modal fade" @ok="ok()" ok-text="Approve" @cancel="close()"
             :title="`Approve ${occurrence_report_number}`" large>
             <div class="container">
                 <form id="approve-form">
 
-                    <div v-if="approval_details.occurrence" class="mb-3 row">
-                        <label for="occurrence" class="col-sm-4 col-form-label">Add to Existing
+                    <div v-if="approval_details.occurrence" class="row mb-3 border-bottom">
+                        <label for="occurrence" class="col-sm-4 col-form-label fw-bold">Add to Existing
                             Occurrence</label>
                         <div class="col-sm-8">
                             <span class="badge bg-primary fs-6 p-2">
@@ -16,29 +16,34 @@
                         </div>
                     </div>
                     <template v-else>
-                        <div class="mb-3 row">
-                            <label for="create_new_occurrence" class="col-sm-4 col-form-label">New Occurrence
+                        <div class="row mb-3 border-bottom">
+                            <label for="create_new_occurrence" class="col-sm-4 col-form-label fw-bold">New Occurrence
                                 Name</label>
-                            <div class="col-sm-8">
-                                <input type="text" readonly class="form-control-plaintext" id="proposed_by"
-                                    :value="approval_details.new_occurrence_name">
+                            <div class="col-sm-8 d-flex align-items-center">
+                                {{ approval_details.new_occurrence_name }}
                             </div>
                         </div>
                     </template>
 
-                    <div class="mb-3 row">
-                        <label for="proposed_by" class="col-sm-4 col-form-label">Proposed By</label>
-                        <div class="col-sm-8">
-                            <input type="text" readonly class="form-control-plaintext" id="proposed_by"
-                                :value="approval_details.officer_name">
+                    <div class="row mb-3 border-bottom">
+                        <label for="proposed_by" class="col-sm-4 col-form-label fw-bold">Proposed By</label>
+                        <div class="col-sm-8 d-flex align-items-center">
+                            {{ approval_details.officer_name }}
                         </div>
                     </div>
 
-                    <div class="mb-3 row">
-                        <label for="details_from_assessor" class="col-sm-4 col-form-label">Details from Assessor</label>
+                    <div class="row mb-3 border-bottom">
+                        <label for="details_from_assessor" class="col-sm-4 col-form-label fw-bold">Details from
+                            Assessor</label>
+                        <div class="col-sm-8 d-flex align-items-center">
+                            {{ approval_details.details }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <label class="col-sm-4 col-form-label fw-bold" for="cc_email">CC email</label>
                         <div class="col-sm-8">
-                            <input type="text" readonly class="form-control-plaintext" id="details_from_assessor"
-                                v-model="approval_details.details">
+                            {{ approval_details.cc_email }}
                         </div>
                     </div>
 

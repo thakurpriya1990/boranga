@@ -188,6 +188,7 @@ export default {
                 buttons: [
                     {
                         extend: 'excel',
+                        title: 'Boranga Community Threats Excel Export',
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
@@ -196,6 +197,7 @@ export default {
                     },
                     {
                         extend: 'csv',
+                        title: 'Boranga Community Threats CSV Export',
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {
@@ -319,12 +321,12 @@ export default {
                             if (vm.is_internal) {
                                 links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
                                 if (!vm.is_readonly) {
-                                    if (full.visible) {                                        
+                                    if (full.visible) {
                                         links += `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
                                         links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
                                     }
                                     else {
-                                        links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;                                    
+                                        links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
                                     }
                                 }
                                 links += `<a href='#' data-history-threat='${full.id}'>History</a><br>`;
@@ -503,7 +505,7 @@ export default {
             swal.fire({
                 title: "Remove Threat",
                 text: "Are you sure you want to remove this Threat?" + public_message,
-                icon: "warning",
+                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: 'Remove Threat',
                 customClass: {

@@ -1,0 +1,21 @@
+{%  extends 'boranga/emails/base_email.html' %}
+
+{%  block content %}
+    <p>
+	    The Conservation Status Proposal {{ cs_proposal.conservation_status_number }} has been 'Proposed for Agenda'.
+    </p>
+
+    <p>
+        Assessor Recommended Action / Comments:
+    </p>
+
+    <p>
+        {{ assessor_comment }}
+    </p>
+
+    <p>
+        You can action this Proposal using the following link:
+    </p>
+
+    <a href="{{url}}">Conservation Status Proposal {{ cs_proposal.conservation_status_number }}</a>
+{%  endblock %}

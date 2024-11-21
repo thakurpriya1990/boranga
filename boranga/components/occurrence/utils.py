@@ -64,7 +64,6 @@ def ocr_proposal_submit(ocr_proposal, request):
             OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
         )
         ocr_proposal.customer_status = OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR
-        ocr_proposal.documents.all().update(can_delete=False)
         ocr_proposal.save()
     else:
         raise ValidationError(
