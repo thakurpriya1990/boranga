@@ -5,7 +5,10 @@
         "fields": {
             "order": 0,
             "schema": 119,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "migrated_from_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Migrated From ID",
@@ -21,7 +24,10 @@
         "fields": {
             "order": 2,
             "schema": 119,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "submitter",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Submitter",
@@ -37,7 +43,10 @@
         "fields": {
             "order": 3,
             "schema": 119,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_officer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Officer",
@@ -53,7 +62,10 @@
         "fields": {
             "order": 4,
             "schema": 119,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_approver",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Approver",
@@ -69,7 +81,10 @@
         "fields": {
             "order": 5,
             "schema": 119,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "observation_date",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Observation Date",
@@ -85,7 +100,10 @@
         "fields": {
             "order": 6,
             "schema": 119,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "processing_status",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Processing Status",
@@ -101,7 +119,10 @@
         "fields": {
             "order": 7,
             "schema": 119,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "deficiency_data",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Deficiency Data",
@@ -117,7 +138,10 @@
         "fields": {
             "order": 8,
             "schema": 119,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assessor_data",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assessor Data",
@@ -133,7 +157,10 @@
         "fields": {
             "order": 9,
             "schema": 119,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "site",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Site",
@@ -149,7 +176,10 @@
         "fields": {
             "order": 10,
             "schema": 119,
-            "django_import_content_type": 219,
+            "django_import_content_type": [
+                "boranga",
+                "occurrence"
+            ],
             "django_import_field_name": "occurrence_number",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "Occurrence Number",
@@ -165,7 +195,10 @@
         "fields": {
             "order": 11,
             "schema": 119,
-            "django_import_content_type": 219,
+            "django_import_content_type": [
+                "boranga",
+                "occurrence"
+            ],
             "django_import_field_name": "migrated_from_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCC Migrated From Id",
@@ -181,7 +214,10 @@
         "fields": {
             "order": 12,
             "schema": 119,
-            "django_import_content_type": 219,
+            "django_import_content_type": [
+                "boranga",
+                "occurrence"
+            ],
             "django_import_field_name": "occurrence_name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "Occurrence Name",
@@ -197,7 +233,10 @@
         "fields": {
             "order": 13,
             "schema": 119,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "observer_name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Observer Name",
@@ -213,7 +252,10 @@
         "fields": {
             "order": 14,
             "schema": 119,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "role",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Role",
@@ -229,7 +271,10 @@
         "fields": {
             "order": 15,
             "schema": 119,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "contact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Contact",
@@ -245,7 +290,10 @@
         "fields": {
             "order": 16,
             "schema": 119,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "organisation",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Organisation",
@@ -261,7 +309,10 @@
         "fields": {
             "order": 17,
             "schema": 119,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "main_observer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Main Observer",
@@ -277,7 +328,10 @@
         "fields": {
             "order": 18,
             "schema": 119,
-            "django_import_content_type": 250,
+            "django_import_content_type": [
+                "boranga",
+                "submitterinformation"
+            ],
             "django_import_field_name": "submitter_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRSUB Submitter Category",
@@ -293,7 +347,10 @@
         "fields": {
             "order": 19,
             "schema": 119,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "location_description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Location Description",
@@ -309,7 +366,10 @@
         "fields": {
             "order": 20,
             "schema": 119,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "boundary_description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Boundary Description",
@@ -325,7 +385,10 @@
         "fields": {
             "order": 21,
             "schema": 119,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "mapped_boundary",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Mapped Boundary",
@@ -341,7 +404,10 @@
         "fields": {
             "order": 22,
             "schema": 119,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "coordinate_source",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Coordinate Source",
@@ -357,7 +423,10 @@
         "fields": {
             "order": 23,
             "schema": 119,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "location_accuracy",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Location Accuracy",
@@ -373,7 +442,10 @@
         "fields": {
             "order": 24,
             "schema": 119,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "region",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Region",
@@ -389,7 +461,10 @@
         "fields": {
             "order": 25,
             "schema": 119,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "district",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC District",
@@ -405,7 +480,10 @@
         "fields": {
             "order": 26,
             "schema": 119,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "locality",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Locality",
@@ -421,7 +499,10 @@
         "fields": {
             "order": 27,
             "schema": 119,
-            "django_import_content_type": 209,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportgeometry"
+            ],
             "django_import_field_name": "geometry",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRGEO Geometry",
@@ -437,7 +518,10 @@
         "fields": {
             "order": 28,
             "schema": 119,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "land_form",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Land Form",
@@ -453,7 +537,10 @@
         "fields": {
             "order": 29,
             "schema": 119,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "rock_type",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Rock Type",
@@ -469,7 +556,10 @@
         "fields": {
             "order": 30,
             "schema": 119,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "loose_rock_percent",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Loose Rock Percent",
@@ -485,7 +575,10 @@
         "fields": {
             "order": 31,
             "schema": 119,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "soil_type",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Soil Type",
@@ -501,7 +594,10 @@
         "fields": {
             "order": 32,
             "schema": 119,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "soil_colour",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Soil Colour",
@@ -517,7 +613,10 @@
         "fields": {
             "order": 33,
             "schema": 119,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "soil_condition",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Soil Condition",
@@ -533,7 +632,10 @@
         "fields": {
             "order": 34,
             "schema": 119,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "drainage",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Drainage",
@@ -549,7 +651,10 @@
         "fields": {
             "order": 35,
             "schema": 119,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "water_quality",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Water Quality",
@@ -565,7 +670,10 @@
         "fields": {
             "order": 36,
             "schema": 119,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "habitat_notes",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Habitat Notes",
@@ -581,7 +689,10 @@
         "fields": {
             "order": 37,
             "schema": 119,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "pristine",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Pristine",
@@ -597,7 +708,10 @@
         "fields": {
             "order": 38,
             "schema": 119,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "excellent",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Excellent",
@@ -613,7 +727,10 @@
         "fields": {
             "order": 39,
             "schema": 119,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "very_good",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Very Good",
@@ -629,7 +746,10 @@
         "fields": {
             "order": 40,
             "schema": 119,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "good",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Good",
@@ -645,7 +765,10 @@
         "fields": {
             "order": 41,
             "schema": 119,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "degraded",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Degraded",
@@ -661,7 +784,10 @@
         "fields": {
             "order": 42,
             "schema": 119,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "completely_degraded",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Completely Degraded",
@@ -677,7 +803,10 @@
         "fields": {
             "order": 43,
             "schema": 119,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "count_date",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Count Date",
@@ -693,7 +822,10 @@
         "fields": {
             "order": 44,
             "schema": 119,
-            "django_import_content_type": 263,
+            "django_import_content_type": [
+                "boranga",
+                "ocrvegetationstructure"
+            ],
             "django_import_field_name": "vegetation_structure_layer_one",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRVEG Vegetation Structure Layer One",
@@ -709,7 +841,10 @@
         "fields": {
             "order": 45,
             "schema": 119,
-            "django_import_content_type": 263,
+            "django_import_content_type": [
+                "boranga",
+                "ocrvegetationstructure"
+            ],
             "django_import_field_name": "vegetation_structure_layer_two",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRVEG Vegetation Structure Layer Two",
@@ -725,7 +860,10 @@
         "fields": {
             "order": 46,
             "schema": 119,
-            "django_import_content_type": 263,
+            "django_import_content_type": [
+                "boranga",
+                "ocrvegetationstructure"
+            ],
             "django_import_field_name": "vegetation_structure_layer_three",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRVEG Vegetation Structure Layer Three",
@@ -741,7 +879,10 @@
         "fields": {
             "order": 47,
             "schema": 119,
-            "django_import_content_type": 263,
+            "django_import_content_type": [
+                "boranga",
+                "ocrvegetationstructure"
+            ],
             "django_import_field_name": "vegetation_structure_layer_four",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRVEG Vegetation Structure Layer Four",
@@ -757,7 +898,10 @@
         "fields": {
             "order": 48,
             "schema": 119,
-            "django_import_content_type": 184,
+            "django_import_content_type": [
+                "boranga",
+                "ocrfirehistory"
+            ],
             "django_import_field_name": "last_fire_estimate",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRFH Last Fire Estimate",
@@ -773,7 +917,10 @@
         "fields": {
             "order": 49,
             "schema": 119,
-            "django_import_content_type": 184,
+            "django_import_content_type": [
+                "boranga",
+                "ocrfirehistory"
+            ],
             "django_import_field_name": "intensity",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRFH Intensity",
@@ -789,7 +936,10 @@
         "fields": {
             "order": 50,
             "schema": 119,
-            "django_import_content_type": 184,
+            "django_import_content_type": [
+                "boranga",
+                "ocrfirehistory"
+            ],
             "django_import_field_name": "comment",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRFH Comment",
@@ -805,7 +955,10 @@
         "fields": {
             "order": 51,
             "schema": 119,
-            "django_import_content_type": 188,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobservationdetail"
+            ],
             "django_import_field_name": "observation_method",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCROBS Observation Method",
@@ -821,7 +974,10 @@
         "fields": {
             "order": 52,
             "schema": 119,
-            "django_import_content_type": 188,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobservationdetail"
+            ],
             "django_import_field_name": "area_surveyed",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCROBS Area Surveyed",
@@ -837,7 +993,10 @@
         "fields": {
             "order": 53,
             "schema": 119,
-            "django_import_content_type": 188,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobservationdetail"
+            ],
             "django_import_field_name": "survey_duration",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCROBS Survey Duration",
@@ -853,7 +1012,10 @@
         "fields": {
             "order": 54,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "plant_count_method",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Plant Count Method",
@@ -869,7 +1031,10 @@
         "fields": {
             "order": 55,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "plant_count_accuracy",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Plant Count Accuracy",
@@ -885,7 +1050,10 @@
         "fields": {
             "order": 56,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "counted_subject",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Counted Subject",
@@ -901,7 +1069,10 @@
         "fields": {
             "order": 57,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "plant_condition",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Plant Condition",
@@ -917,7 +1088,10 @@
         "fields": {
             "order": 58,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "estimated_population_area",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Estimated Population Area",
@@ -933,7 +1107,10 @@
         "fields": {
             "order": 59,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "counted",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Counted",
@@ -949,7 +1126,10 @@
         "fields": {
             "order": 60,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "detailed_alive_mature",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Detailed Alive Mature",
@@ -965,7 +1145,10 @@
         "fields": {
             "order": 61,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "detailed_dead_mature",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Detailed Dead Mature",
@@ -981,7 +1164,10 @@
         "fields": {
             "order": 62,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "detailed_alive_juvenile",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Detailed Alive Juvenile",
@@ -997,7 +1183,10 @@
         "fields": {
             "order": 63,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "detailed_dead_juvenile",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Detailed Dead Juvenile",
@@ -1013,7 +1202,10 @@
         "fields": {
             "order": 64,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "detailed_alive_seedling",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Detailed Alive Seedling",
@@ -1029,7 +1221,10 @@
         "fields": {
             "order": 65,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "detailed_dead_seedling",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Detailed Dead Seedling",
@@ -1045,7 +1240,10 @@
         "fields": {
             "order": 66,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "detailed_alive_unknown",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Detailed Alive Unknown",
@@ -1061,7 +1259,10 @@
         "fields": {
             "order": 67,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "detailed_dead_unknown",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Detailed Dead Unknown",
@@ -1077,7 +1278,10 @@
         "fields": {
             "order": 68,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "simple_alive",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Simple Alive",
@@ -1093,7 +1297,10 @@
         "fields": {
             "order": 69,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "simple_dead",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Simple Dead",
@@ -1109,7 +1316,10 @@
         "fields": {
             "order": 70,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "quadrats_present",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Quadrats Present",
@@ -1125,7 +1335,10 @@
         "fields": {
             "order": 71,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "quadrats_data_attached",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Quadrats Data Attached",
@@ -1141,7 +1354,10 @@
         "fields": {
             "order": 72,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "quadrats_surveyed",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Quadrats Surveyed",
@@ -1157,7 +1373,10 @@
         "fields": {
             "order": 73,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "individual_quadrat_area",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Individual Quadrat Area",
@@ -1173,7 +1392,10 @@
         "fields": {
             "order": 74,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "total_quadrat_area",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Total Quadrat Area",
@@ -1189,7 +1411,10 @@
         "fields": {
             "order": 75,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "flowering_plants_per",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Flowering Plants Per",
@@ -1205,7 +1430,10 @@
         "fields": {
             "order": 76,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "clonal_reproduction_present",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Clonal Reproduction Present",
@@ -1221,7 +1449,10 @@
         "fields": {
             "order": 77,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "vegetative_state_present",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Vegetative State Present",
@@ -1237,7 +1468,10 @@
         "fields": {
             "order": 78,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "flower_bud_present",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Flower Bud Present",
@@ -1253,7 +1487,10 @@
         "fields": {
             "order": 79,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "flower_present",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Flower Present",
@@ -1269,7 +1506,10 @@
         "fields": {
             "order": 80,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "immature_fruit_present",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Immature Fruit Present",
@@ -1285,7 +1525,10 @@
         "fields": {
             "order": 81,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "ripe_fruit_present",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Ripe Fruit Present",
@@ -1301,7 +1544,10 @@
         "fields": {
             "order": 82,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "dehisced_fruit_present",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Dehisced Fruit Present",
@@ -1317,7 +1563,10 @@
         "fields": {
             "order": 83,
             "schema": 119,
-            "django_import_content_type": 190,
+            "django_import_content_type": [
+                "boranga",
+                "ocrplantcount"
+            ],
             "django_import_field_name": "pollinator_observation",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Pollinator Observation",
@@ -1333,7 +1582,10 @@
         "fields": {
             "order": 84,
             "schema": 119,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "id_confirmed_by",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Id Confirmed By",
@@ -1349,7 +1601,10 @@
         "fields": {
             "order": 85,
             "schema": 119,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "identification_certainty",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Identification Certainty",
@@ -1365,7 +1620,10 @@
         "fields": {
             "order": 86,
             "schema": 119,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "sample_type",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Sample Type",
@@ -1381,7 +1639,10 @@
         "fields": {
             "order": 87,
             "schema": 119,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "sample_destination",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Sample Destination",
@@ -1397,7 +1658,10 @@
         "fields": {
             "order": 88,
             "schema": 119,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "permit_type",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Permit Type",
@@ -1413,7 +1677,10 @@
         "fields": {
             "order": 89,
             "schema": 119,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "permit_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Permit Id",
@@ -1429,7 +1696,10 @@
         "fields": {
             "order": 90,
             "schema": 119,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "collector_number",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Collector Number",
@@ -1445,7 +1715,10 @@
         "fields": {
             "order": 91,
             "schema": 119,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "barcode_number",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Barcode Number",
@@ -1461,7 +1734,10 @@
         "fields": {
             "order": 92,
             "schema": 119,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "identification_comment",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Identification Comment",
@@ -1477,7 +1753,10 @@
         "fields": {
             "order": 93,
             "schema": 119,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Name",
@@ -1493,7 +1772,10 @@
         "fields": {
             "order": 94,
             "schema": 119,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Description",
@@ -1509,7 +1791,10 @@
         "fields": {
             "order": 95,
             "schema": 119,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "_file",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC File",
@@ -1525,7 +1810,10 @@
         "fields": {
             "order": 96,
             "schema": 119,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "can_submitter_access",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Can Submitter Access",
@@ -1541,7 +1829,10 @@
         "fields": {
             "order": 97,
             "schema": 119,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "document_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Document Category",
@@ -1557,7 +1848,10 @@
         "fields": {
             "order": 98,
             "schema": 119,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "document_sub_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Document Sub Category",
@@ -1573,7 +1867,10 @@
         "fields": {
             "order": 99,
             "schema": 119,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "uploaded_by",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Uploaded By",
@@ -1589,7 +1886,10 @@
         "fields": {
             "order": 100,
             "schema": 119,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "threat_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Threat Category",
@@ -1605,7 +1905,10 @@
         "fields": {
             "order": 101,
             "schema": 119,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "threat_agent",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Threat Agent",
@@ -1621,7 +1924,10 @@
         "fields": {
             "order": 102,
             "schema": 119,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "current_impact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Current Impact",
@@ -1637,7 +1943,10 @@
         "fields": {
             "order": 103,
             "schema": 119,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "potential_impact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Potential Impact",
@@ -1653,7 +1962,10 @@
         "fields": {
             "order": 104,
             "schema": 119,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "potential_threat_onset",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Potential Threat Onset",
@@ -1669,7 +1981,10 @@
         "fields": {
             "order": 105,
             "schema": 119,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "date_observed",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Date Observed",
@@ -1685,7 +2000,10 @@
         "fields": {
             "order": 106,
             "schema": 119,
-            "django_import_content_type": 185,
+            "django_import_content_type": [
+                "boranga",
+                "ocrassociatedspecies"
+            ],
             "django_import_field_name": "related_species",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRSPE Related Species",
@@ -1701,7 +2019,10 @@
         "fields": {
             "order": 0,
             "schema": 120,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "migrated_from_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Migrated From ID",
@@ -1717,7 +2038,10 @@
         "fields": {
             "order": 1,
             "schema": 120,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "species",
             "django_lookup_field_name": "taxonomy__scientific_name",
             "xlsx_column_header_name": "OCR Species",
@@ -1733,7 +2057,10 @@
         "fields": {
             "order": 2,
             "schema": 120,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "processing_status",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Processing Status",
@@ -1749,7 +2076,10 @@
         "fields": {
             "order": 5,
             "schema": 120,
-            "django_import_content_type": 250,
+            "django_import_content_type": [
+                "boranga",
+                "submitterinformation"
+            ],
             "django_import_field_name": "submitter_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRSUB Submitter Category",
@@ -1765,7 +2095,10 @@
         "fields": {
             "order": 3,
             "schema": 120,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "observation_date",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Observation Date",
@@ -1781,7 +2114,10 @@
         "fields": {
             "order": 6,
             "schema": 120,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "observer_name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Observer Name",
@@ -1797,7 +2133,10 @@
         "fields": {
             "order": 7,
             "schema": 120,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "role",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Role",
@@ -1813,7 +2152,10 @@
         "fields": {
             "order": 8,
             "schema": 120,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "contact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Contact",
@@ -1829,7 +2171,10 @@
         "fields": {
             "order": 9,
             "schema": 120,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "organisation",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Organisation",
@@ -1845,7 +2190,10 @@
         "fields": {
             "order": 10,
             "schema": 120,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "main_observer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Main Observer",
@@ -1861,7 +2209,10 @@
         "fields": {
             "order": 11,
             "schema": 120,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "location_description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Location Description",
@@ -1877,7 +2228,10 @@
         "fields": {
             "order": 12,
             "schema": 120,
-            "django_import_content_type": 209,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportgeometry"
+            ],
             "django_import_field_name": "geometry",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRGEO Geometry",
@@ -1893,7 +2247,10 @@
         "fields": {
             "order": 4,
             "schema": 120,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_officer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Officer",
@@ -1909,7 +2266,10 @@
         "fields": {
             "order": 0,
             "schema": 123,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "migrated_from_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Migrated From ID",
@@ -1925,7 +2285,10 @@
         "fields": {
             "order": 1,
             "schema": 123,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "species",
             "django_lookup_field_name": "taxonomy__scientific_name",
             "xlsx_column_header_name": "OCR Species",
@@ -1941,7 +2304,10 @@
         "fields": {
             "order": 2,
             "schema": 123,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "processing_status",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Processing Status",
@@ -1957,7 +2323,10 @@
         "fields": {
             "order": 3,
             "schema": 123,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "observation_date",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Observation Date",
@@ -1973,7 +2342,10 @@
         "fields": {
             "order": 4,
             "schema": 123,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_officer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Officer",
@@ -1989,7 +2361,10 @@
         "fields": {
             "order": 6,
             "schema": 123,
-            "django_import_content_type": 250,
+            "django_import_content_type": [
+                "boranga",
+                "submitterinformation"
+            ],
             "django_import_field_name": "submitter_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRSUB Submitter Category",
@@ -2005,7 +2380,10 @@
         "fields": {
             "order": 7,
             "schema": 123,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "observer_name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Observer Name",
@@ -2021,7 +2399,10 @@
         "fields": {
             "order": 8,
             "schema": 123,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "role",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Role",
@@ -2037,7 +2418,10 @@
         "fields": {
             "order": 9,
             "schema": 123,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "contact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Contact",
@@ -2053,7 +2437,10 @@
         "fields": {
             "order": 10,
             "schema": 123,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "organisation",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Organisation",
@@ -2069,7 +2456,10 @@
         "fields": {
             "order": 11,
             "schema": 123,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "main_observer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Main Observer",
@@ -2085,7 +2475,10 @@
         "fields": {
             "order": 12,
             "schema": 123,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "location_description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Location Description",
@@ -2101,7 +2494,10 @@
         "fields": {
             "order": 13,
             "schema": 123,
-            "django_import_content_type": 209,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportgeometry"
+            ],
             "django_import_field_name": "geometry",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRGEO Geometry",
@@ -2117,7 +2513,10 @@
         "fields": {
             "order": 5,
             "schema": 123,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_approver",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Approver",
@@ -2133,7 +2532,10 @@
         "fields": {
             "order": 0,
             "schema": 125,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "migrated_from_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Migrated From ID",
@@ -2149,7 +2551,10 @@
         "fields": {
             "order": 1,
             "schema": 125,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "species",
             "django_lookup_field_name": "taxonomy__scientific_name",
             "xlsx_column_header_name": "OCR Species",
@@ -2165,7 +2570,10 @@
         "fields": {
             "order": 2,
             "schema": 125,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "processing_status",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Processing Status",
@@ -2181,7 +2589,10 @@
         "fields": {
             "order": 3,
             "schema": 125,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "observation_date",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Observation Date",
@@ -2197,7 +2608,10 @@
         "fields": {
             "order": 4,
             "schema": 125,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_officer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Officer",
@@ -2213,7 +2627,10 @@
         "fields": {
             "order": 5,
             "schema": 125,
-            "django_import_content_type": 250,
+            "django_import_content_type": [
+                "boranga",
+                "submitterinformation"
+            ],
             "django_import_field_name": "submitter_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRSUB Submitter Category",
@@ -2229,7 +2646,10 @@
         "fields": {
             "order": 6,
             "schema": 125,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "observer_name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Observer Name",
@@ -2245,7 +2665,10 @@
         "fields": {
             "order": 7,
             "schema": 125,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "role",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Role",
@@ -2261,7 +2684,10 @@
         "fields": {
             "order": 8,
             "schema": 125,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "contact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Contact",
@@ -2277,7 +2703,10 @@
         "fields": {
             "order": 9,
             "schema": 125,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "organisation",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Organisation",
@@ -2293,7 +2722,10 @@
         "fields": {
             "order": 10,
             "schema": 125,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "main_observer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Main Observer",
@@ -2309,7 +2741,10 @@
         "fields": {
             "order": 11,
             "schema": 125,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "location_description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Location Description",
@@ -2325,7 +2760,10 @@
         "fields": {
             "order": 12,
             "schema": 125,
-            "django_import_content_type": 209,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportgeometry"
+            ],
             "django_import_field_name": "geometry",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRGEO Geometry",
@@ -2341,7 +2779,10 @@
         "fields": {
             "order": 0,
             "schema": 126,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "migrated_from_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Migrated From ID",
@@ -2357,7 +2798,10 @@
         "fields": {
             "order": 1,
             "schema": 126,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "species",
             "django_lookup_field_name": "taxonomy__scientific_name",
             "xlsx_column_header_name": "OCR Species",
@@ -2373,7 +2817,10 @@
         "fields": {
             "order": 2,
             "schema": 126,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "processing_status",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Processing Status",
@@ -2389,7 +2836,10 @@
         "fields": {
             "order": 3,
             "schema": 126,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "observation_date",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Observation Date",
@@ -2405,7 +2855,10 @@
         "fields": {
             "order": 4,
             "schema": 126,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_officer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Officer",
@@ -2421,7 +2874,10 @@
         "fields": {
             "order": 5,
             "schema": 126,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_approver",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Approver",
@@ -2437,7 +2893,10 @@
         "fields": {
             "order": 6,
             "schema": 126,
-            "django_import_content_type": 250,
+            "django_import_content_type": [
+                "boranga",
+                "submitterinformation"
+            ],
             "django_import_field_name": "submitter_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRSUB Submitter Category",
@@ -2453,7 +2912,10 @@
         "fields": {
             "order": 7,
             "schema": 126,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "observer_name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Observer Name",
@@ -2469,7 +2931,10 @@
         "fields": {
             "order": 8,
             "schema": 126,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "role",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Role",
@@ -2485,7 +2950,10 @@
         "fields": {
             "order": 9,
             "schema": 126,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "contact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Contact",
@@ -2501,7 +2969,10 @@
         "fields": {
             "order": 10,
             "schema": 126,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "organisation",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Organisation",
@@ -2517,7 +2988,10 @@
         "fields": {
             "order": 11,
             "schema": 126,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "main_observer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Main Observer",
@@ -2533,7 +3007,10 @@
         "fields": {
             "order": 12,
             "schema": 126,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "location_description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Location Description",
@@ -2549,7 +3026,10 @@
         "fields": {
             "order": 13,
             "schema": 126,
-            "django_import_content_type": 209,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportgeometry"
+            ],
             "django_import_field_name": "geometry",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRGEO Geometry",
@@ -2565,7 +3045,10 @@
         "fields": {
             "order": 0,
             "schema": 127,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "migrated_from_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Migrated From ID",
@@ -2581,7 +3064,10 @@
         "fields": {
             "order": 1,
             "schema": 127,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "species",
             "django_lookup_field_name": "taxonomy__scientific_name",
             "xlsx_column_header_name": "OCR Species",
@@ -2597,7 +3083,10 @@
         "fields": {
             "order": 2,
             "schema": 127,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "submitter",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Submitter",
@@ -2613,7 +3102,10 @@
         "fields": {
             "order": 3,
             "schema": 127,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_officer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Officer",
@@ -2629,7 +3121,10 @@
         "fields": {
             "order": 4,
             "schema": 127,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_approver",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Approver",
@@ -2645,7 +3140,10 @@
         "fields": {
             "order": 5,
             "schema": 127,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "observation_date",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Observation Date",
@@ -2661,7 +3159,10 @@
         "fields": {
             "order": 6,
             "schema": 127,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "processing_status",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Processing Status",
@@ -2677,7 +3178,10 @@
         "fields": {
             "order": 7,
             "schema": 127,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "deficiency_data",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Deficiency Data",
@@ -2693,7 +3197,10 @@
         "fields": {
             "order": 8,
             "schema": 127,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assessor_data",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assessor Data",
@@ -2709,7 +3216,10 @@
         "fields": {
             "order": 9,
             "schema": 127,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "site",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Site",
@@ -2725,7 +3235,10 @@
         "fields": {
             "order": 10,
             "schema": 127,
-            "django_import_content_type": 219,
+            "django_import_content_type": [
+                "boranga",
+                "occurrence"
+            ],
             "django_import_field_name": "occurrence_number",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "Occurrence Number",
@@ -2741,7 +3254,10 @@
         "fields": {
             "order": 11,
             "schema": 127,
-            "django_import_content_type": 219,
+            "django_import_content_type": [
+                "boranga",
+                "occurrence"
+            ],
             "django_import_field_name": "migrated_from_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCC Migrated From Id",
@@ -2757,7 +3273,10 @@
         "fields": {
             "order": 12,
             "schema": 127,
-            "django_import_content_type": 219,
+            "django_import_content_type": [
+                "boranga",
+                "occurrence"
+            ],
             "django_import_field_name": "occurrence_name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "Occurrence Name",
@@ -2773,7 +3292,10 @@
         "fields": {
             "order": 13,
             "schema": 127,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "observer_name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Observer Name",
@@ -2789,7 +3311,10 @@
         "fields": {
             "order": 14,
             "schema": 127,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "role",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Role",
@@ -2805,7 +3330,10 @@
         "fields": {
             "order": 15,
             "schema": 127,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "contact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Contact",
@@ -2821,7 +3349,10 @@
         "fields": {
             "order": 16,
             "schema": 127,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "organisation",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Organisation",
@@ -2837,7 +3368,10 @@
         "fields": {
             "order": 17,
             "schema": 127,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "main_observer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Main Observer",
@@ -2853,7 +3387,10 @@
         "fields": {
             "order": 18,
             "schema": 127,
-            "django_import_content_type": 250,
+            "django_import_content_type": [
+                "boranga",
+                "submitterinformation"
+            ],
             "django_import_field_name": "submitter_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRSUB Submitter Category",
@@ -2869,7 +3406,10 @@
         "fields": {
             "order": 19,
             "schema": 127,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "location_description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Location Description",
@@ -2885,7 +3425,10 @@
         "fields": {
             "order": 20,
             "schema": 127,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "boundary_description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Boundary Description",
@@ -2901,7 +3444,10 @@
         "fields": {
             "order": 21,
             "schema": 127,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "mapped_boundary",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Mapped Boundary",
@@ -2917,7 +3463,10 @@
         "fields": {
             "order": 22,
             "schema": 127,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "coordinate_source",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Coordinate Source",
@@ -2933,7 +3482,10 @@
         "fields": {
             "order": 23,
             "schema": 127,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "location_accuracy",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Location Accuracy",
@@ -2949,7 +3501,10 @@
         "fields": {
             "order": 24,
             "schema": 127,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "region",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Region",
@@ -2965,7 +3520,10 @@
         "fields": {
             "order": 25,
             "schema": 127,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "district",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC District",
@@ -2981,7 +3539,10 @@
         "fields": {
             "order": 26,
             "schema": 127,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "locality",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Locality",
@@ -2997,7 +3558,10 @@
         "fields": {
             "order": 27,
             "schema": 127,
-            "django_import_content_type": 209,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportgeometry"
+            ],
             "django_import_field_name": "geometry",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRGEO Geometry",
@@ -3013,7 +3577,10 @@
         "fields": {
             "order": 28,
             "schema": 127,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "land_form",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Land Form",
@@ -3029,7 +3596,10 @@
         "fields": {
             "order": 29,
             "schema": 127,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "rock_type",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Rock Type",
@@ -3045,7 +3615,10 @@
         "fields": {
             "order": 30,
             "schema": 127,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "loose_rock_percent",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Loose Rock Percent",
@@ -3061,7 +3634,10 @@
         "fields": {
             "order": 31,
             "schema": 127,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "soil_type",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Soil Type",
@@ -3077,7 +3653,10 @@
         "fields": {
             "order": 32,
             "schema": 127,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "soil_colour",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Soil Colour",
@@ -3093,7 +3672,10 @@
         "fields": {
             "order": 33,
             "schema": 127,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "soil_condition",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Soil Condition",
@@ -3109,7 +3691,10 @@
         "fields": {
             "order": 34,
             "schema": 127,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "drainage",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Drainage",
@@ -3125,7 +3710,10 @@
         "fields": {
             "order": 35,
             "schema": 127,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "water_quality",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Water Quality",
@@ -3141,7 +3729,10 @@
         "fields": {
             "order": 36,
             "schema": 127,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "habitat_notes",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Habitat Notes",
@@ -3157,7 +3748,10 @@
         "fields": {
             "order": 37,
             "schema": 127,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "pristine",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Pristine",
@@ -3173,7 +3767,10 @@
         "fields": {
             "order": 38,
             "schema": 127,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "excellent",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Excellent",
@@ -3189,7 +3786,10 @@
         "fields": {
             "order": 39,
             "schema": 127,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "very_good",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Very Good",
@@ -3205,7 +3805,10 @@
         "fields": {
             "order": 40,
             "schema": 127,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "good",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Good",
@@ -3221,7 +3824,10 @@
         "fields": {
             "order": 41,
             "schema": 127,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "degraded",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Degraded",
@@ -3237,7 +3843,10 @@
         "fields": {
             "order": 42,
             "schema": 127,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "completely_degraded",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Completely Degraded",
@@ -3253,7 +3862,10 @@
         "fields": {
             "order": 43,
             "schema": 127,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "count_date",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Count Date",
@@ -3269,7 +3881,10 @@
         "fields": {
             "order": 44,
             "schema": 127,
-            "django_import_content_type": 263,
+            "django_import_content_type": [
+                "boranga",
+                "ocrvegetationstructure"
+            ],
             "django_import_field_name": "vegetation_structure_layer_one",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRVEG Vegetation Structure Layer One",
@@ -3285,7 +3900,10 @@
         "fields": {
             "order": 45,
             "schema": 127,
-            "django_import_content_type": 263,
+            "django_import_content_type": [
+                "boranga",
+                "ocrvegetationstructure"
+            ],
             "django_import_field_name": "vegetation_structure_layer_two",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRVEG Vegetation Structure Layer Two",
@@ -3301,7 +3919,10 @@
         "fields": {
             "order": 46,
             "schema": 127,
-            "django_import_content_type": 263,
+            "django_import_content_type": [
+                "boranga",
+                "ocrvegetationstructure"
+            ],
             "django_import_field_name": "vegetation_structure_layer_three",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRVEG Vegetation Structure Layer Three",
@@ -3317,7 +3938,10 @@
         "fields": {
             "order": 47,
             "schema": 127,
-            "django_import_content_type": 263,
+            "django_import_content_type": [
+                "boranga",
+                "ocrvegetationstructure"
+            ],
             "django_import_field_name": "vegetation_structure_layer_four",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRVEG Vegetation Structure Layer Four",
@@ -3333,7 +3957,10 @@
         "fields": {
             "order": 48,
             "schema": 127,
-            "django_import_content_type": 184,
+            "django_import_content_type": [
+                "boranga",
+                "ocrfirehistory"
+            ],
             "django_import_field_name": "last_fire_estimate",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRFH Last Fire Estimate",
@@ -3349,7 +3976,10 @@
         "fields": {
             "order": 49,
             "schema": 127,
-            "django_import_content_type": 184,
+            "django_import_content_type": [
+                "boranga",
+                "ocrfirehistory"
+            ],
             "django_import_field_name": "intensity",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRFH Intensity",
@@ -3365,7 +3995,10 @@
         "fields": {
             "order": 50,
             "schema": 127,
-            "django_import_content_type": 184,
+            "django_import_content_type": [
+                "boranga",
+                "ocrfirehistory"
+            ],
             "django_import_field_name": "comment",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRFH Comment",
@@ -3381,7 +4014,10 @@
         "fields": {
             "order": 51,
             "schema": 127,
-            "django_import_content_type": 188,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobservationdetail"
+            ],
             "django_import_field_name": "observation_method",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCROBS Observation Method",
@@ -3397,7 +4033,10 @@
         "fields": {
             "order": 52,
             "schema": 127,
-            "django_import_content_type": 188,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobservationdetail"
+            ],
             "django_import_field_name": "area_surveyed",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCROBS Area Surveyed",
@@ -3413,7 +4052,10 @@
         "fields": {
             "order": 53,
             "schema": 127,
-            "django_import_content_type": 188,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobservationdetail"
+            ],
             "django_import_field_name": "survey_duration",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCROBS Survey Duration",
@@ -3429,7 +4071,10 @@
         "fields": {
             "order": 54,
             "schema": 127,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "id_confirmed_by",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Id Confirmed By",
@@ -3445,7 +4090,10 @@
         "fields": {
             "order": 55,
             "schema": 127,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "identification_certainty",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Identification Certainty",
@@ -3461,7 +4109,10 @@
         "fields": {
             "order": 57,
             "schema": 127,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "sample_type",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Sample Type",
@@ -3477,7 +4128,10 @@
         "fields": {
             "order": 56,
             "schema": 127,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "sample_destination",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Sample Destination",
@@ -3493,7 +4147,10 @@
         "fields": {
             "order": 59,
             "schema": 127,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "permit_type",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Permit Type",
@@ -3509,7 +4166,10 @@
         "fields": {
             "order": 58,
             "schema": 127,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "permit_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Permit Id",
@@ -3525,7 +4185,10 @@
         "fields": {
             "order": 61,
             "schema": 127,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "collector_number",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Collector Number",
@@ -3541,7 +4204,10 @@
         "fields": {
             "order": 60,
             "schema": 127,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "barcode_number",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Barcode Number",
@@ -3557,7 +4223,10 @@
         "fields": {
             "order": 62,
             "schema": 127,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "identification_comment",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Identification Comment",
@@ -3573,7 +4242,10 @@
         "fields": {
             "order": 63,
             "schema": 127,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Name",
@@ -3589,7 +4261,10 @@
         "fields": {
             "order": 64,
             "schema": 127,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Description",
@@ -3605,7 +4280,10 @@
         "fields": {
             "order": 65,
             "schema": 127,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "_file",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC File",
@@ -3621,7 +4299,10 @@
         "fields": {
             "order": 67,
             "schema": 127,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "can_submitter_access",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Can Submitter Access",
@@ -3637,7 +4318,10 @@
         "fields": {
             "order": 66,
             "schema": 127,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "document_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Document Category",
@@ -3653,7 +4337,10 @@
         "fields": {
             "order": 69,
             "schema": 127,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "document_sub_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Document Sub Category",
@@ -3669,7 +4356,10 @@
         "fields": {
             "order": 68,
             "schema": 127,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "uploaded_by",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Uploaded By",
@@ -3685,7 +4375,10 @@
         "fields": {
             "order": 71,
             "schema": 127,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "threat_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Threat Category",
@@ -3701,7 +4394,10 @@
         "fields": {
             "order": 70,
             "schema": 127,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "threat_agent",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Threat Agent",
@@ -3717,7 +4413,10 @@
         "fields": {
             "order": 73,
             "schema": 127,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "current_impact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Current Impact",
@@ -3733,7 +4432,10 @@
         "fields": {
             "order": 72,
             "schema": 127,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "potential_impact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Potential Impact",
@@ -3749,7 +4451,10 @@
         "fields": {
             "order": 75,
             "schema": 127,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "potential_threat_onset",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Potential Threat Onset",
@@ -3765,7 +4470,10 @@
         "fields": {
             "order": 74,
             "schema": 127,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "date_observed",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Date Observed",
@@ -3781,7 +4489,10 @@
         "fields": {
             "order": 103,
             "schema": 127,
-            "django_import_content_type": 185,
+            "django_import_content_type": [
+                "boranga",
+                "ocrassociatedspecies"
+            ],
             "django_import_field_name": "related_species",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRSPE Related Species",
@@ -3797,7 +4508,10 @@
         "fields": {
             "order": 76,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "primary_detection_method",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Primary Detection Method",
@@ -3813,7 +4527,10 @@
         "fields": {
             "order": 77,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "reproductive_state",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Reproductive State",
@@ -3829,7 +4546,10 @@
         "fields": {
             "order": 78,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "animal_health",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Animal Health",
@@ -3845,7 +4565,10 @@
         "fields": {
             "order": 79,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "death_reason",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Death Reason",
@@ -3861,7 +4584,10 @@
         "fields": {
             "order": 80,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "secondary_sign",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Secondary Sign",
@@ -3877,7 +4603,10 @@
         "fields": {
             "order": 81,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "distinctive_feature",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Distinctive Feature",
@@ -3893,7 +4622,10 @@
         "fields": {
             "order": 82,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "action_taken",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Action Taken",
@@ -3909,7 +4641,10 @@
         "fields": {
             "order": 83,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "action_required",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Action Required",
@@ -3925,7 +4660,10 @@
         "fields": {
             "order": 84,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "observation_detail_comment",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Observation Detail Comment",
@@ -3941,7 +4679,10 @@
         "fields": {
             "order": 85,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "alive_adult_male",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Alive Adult Male",
@@ -3957,7 +4698,10 @@
         "fields": {
             "order": 86,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "dead_adult_male",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Dead Adult Male",
@@ -3973,7 +4717,10 @@
         "fields": {
             "order": 87,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "alive_adult_female",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Alive Adult Female",
@@ -3989,7 +4736,10 @@
         "fields": {
             "order": 88,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "dead_adult_female",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Dead Adult Female",
@@ -4005,7 +4755,10 @@
         "fields": {
             "order": 89,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "alive_adult_unknown",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Alive Adult Unknown",
@@ -4021,7 +4774,10 @@
         "fields": {
             "order": 90,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "dead_adult_unknown",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Dead Adult Unknown",
@@ -4037,7 +4793,10 @@
         "fields": {
             "order": 91,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "alive_juvenile_male",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Alive Juvenile Male",
@@ -4053,7 +4812,10 @@
         "fields": {
             "order": 92,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "dead_juvenile_male",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Dead Juvenile Male",
@@ -4069,7 +4831,10 @@
         "fields": {
             "order": 93,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "alive_juvenile_female",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Alive Juvenile Female",
@@ -4085,7 +4850,10 @@
         "fields": {
             "order": 94,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "dead_juvenile_female",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Dead Juvenile Female",
@@ -4101,7 +4869,10 @@
         "fields": {
             "order": 95,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "alive_juvenile_unknown",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Alive Juvenile Unknown",
@@ -4117,7 +4888,10 @@
         "fields": {
             "order": 96,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "dead_juvenile_unknown",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Dead Juvenile Unknown",
@@ -4133,7 +4907,10 @@
         "fields": {
             "order": 97,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "alive_unsure_male",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Alive Unsure Male",
@@ -4149,7 +4926,10 @@
         "fields": {
             "order": 98,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "dead_unsure_male",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Dead Unsure Male",
@@ -4165,7 +4945,10 @@
         "fields": {
             "order": 99,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "alive_unsure_female",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Alive Unsure Female",
@@ -4181,7 +4964,10 @@
         "fields": {
             "order": 100,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "dead_unsure_female",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Dead Unsure Female",
@@ -4197,7 +4983,10 @@
         "fields": {
             "order": 101,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "alive_unsure_unknown",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Alive Unsure Unknown",
@@ -4213,7 +5002,10 @@
         "fields": {
             "order": 102,
             "schema": 127,
-            "django_import_content_type": 198,
+            "django_import_content_type": [
+                "boranga",
+                "ocranimalobservation"
+            ],
             "django_import_field_name": "dead_unsure_unknown",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRNUM Dead Unsure Unknown",
@@ -4229,7 +5021,10 @@
         "fields": {
             "order": 0,
             "schema": 128,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "migrated_from_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Migrated From ID",
@@ -4245,7 +5040,10 @@
         "fields": {
             "order": 2,
             "schema": 128,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "submitter",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Submitter",
@@ -4261,7 +5059,10 @@
         "fields": {
             "order": 3,
             "schema": 128,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_officer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Officer",
@@ -4277,7 +5078,10 @@
         "fields": {
             "order": 4,
             "schema": 128,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_approver",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Approver",
@@ -4293,7 +5097,10 @@
         "fields": {
             "order": 5,
             "schema": 128,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "observation_date",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Observation Date",
@@ -4309,7 +5116,10 @@
         "fields": {
             "order": 6,
             "schema": 128,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "processing_status",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Processing Status",
@@ -4325,7 +5135,10 @@
         "fields": {
             "order": 7,
             "schema": 128,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "deficiency_data",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Deficiency Data",
@@ -4341,7 +5154,10 @@
         "fields": {
             "order": 8,
             "schema": 128,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assessor_data",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assessor Data",
@@ -4357,7 +5173,10 @@
         "fields": {
             "order": 9,
             "schema": 128,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "site",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Site",
@@ -4373,7 +5192,10 @@
         "fields": {
             "order": 10,
             "schema": 128,
-            "django_import_content_type": 219,
+            "django_import_content_type": [
+                "boranga",
+                "occurrence"
+            ],
             "django_import_field_name": "occurrence_number",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "Occurrence Number",
@@ -4389,7 +5211,10 @@
         "fields": {
             "order": 11,
             "schema": 128,
-            "django_import_content_type": 219,
+            "django_import_content_type": [
+                "boranga",
+                "occurrence"
+            ],
             "django_import_field_name": "migrated_from_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCC Migrated From Id",
@@ -4405,7 +5230,10 @@
         "fields": {
             "order": 12,
             "schema": 128,
-            "django_import_content_type": 219,
+            "django_import_content_type": [
+                "boranga",
+                "occurrence"
+            ],
             "django_import_field_name": "occurrence_name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "Occurrence Name",
@@ -4421,7 +5249,10 @@
         "fields": {
             "order": 13,
             "schema": 128,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "observer_name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Observer Name",
@@ -4437,7 +5268,10 @@
         "fields": {
             "order": 14,
             "schema": 128,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "role",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Role",
@@ -4453,7 +5287,10 @@
         "fields": {
             "order": 15,
             "schema": 128,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "contact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Contact",
@@ -4469,7 +5306,10 @@
         "fields": {
             "order": 16,
             "schema": 128,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "organisation",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Organisation",
@@ -4485,7 +5325,10 @@
         "fields": {
             "order": 17,
             "schema": 128,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "main_observer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Main Observer",
@@ -4501,7 +5344,10 @@
         "fields": {
             "order": 18,
             "schema": 128,
-            "django_import_content_type": 250,
+            "django_import_content_type": [
+                "boranga",
+                "submitterinformation"
+            ],
             "django_import_field_name": "submitter_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRSUB Submitter Category",
@@ -4517,7 +5363,10 @@
         "fields": {
             "order": 19,
             "schema": 128,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "location_description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Location Description",
@@ -4533,7 +5382,10 @@
         "fields": {
             "order": 20,
             "schema": 128,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "boundary_description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Boundary Description",
@@ -4549,7 +5401,10 @@
         "fields": {
             "order": 21,
             "schema": 128,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "mapped_boundary",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Mapped Boundary",
@@ -4565,7 +5420,10 @@
         "fields": {
             "order": 22,
             "schema": 128,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "coordinate_source",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Coordinate Source",
@@ -4581,7 +5439,10 @@
         "fields": {
             "order": 23,
             "schema": 128,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "location_accuracy",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Location Accuracy",
@@ -4597,7 +5458,10 @@
         "fields": {
             "order": 24,
             "schema": 128,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "region",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Region",
@@ -4613,7 +5477,10 @@
         "fields": {
             "order": 25,
             "schema": 128,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "district",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC District",
@@ -4629,7 +5496,10 @@
         "fields": {
             "order": 26,
             "schema": 128,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "locality",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Locality",
@@ -4645,7 +5515,10 @@
         "fields": {
             "order": 27,
             "schema": 128,
-            "django_import_content_type": 209,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportgeometry"
+            ],
             "django_import_field_name": "geometry",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRGEO Geometry",
@@ -4661,7 +5534,10 @@
         "fields": {
             "order": 28,
             "schema": 128,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "land_form",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Land Form",
@@ -4677,7 +5553,10 @@
         "fields": {
             "order": 29,
             "schema": 128,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "rock_type",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Rock Type",
@@ -4693,7 +5572,10 @@
         "fields": {
             "order": 30,
             "schema": 128,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "loose_rock_percent",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Loose Rock Percent",
@@ -4709,7 +5591,10 @@
         "fields": {
             "order": 31,
             "schema": 128,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "soil_type",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Soil Type",
@@ -4725,7 +5610,10 @@
         "fields": {
             "order": 32,
             "schema": 128,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "soil_colour",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Soil Colour",
@@ -4741,7 +5629,10 @@
         "fields": {
             "order": 33,
             "schema": 128,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "soil_condition",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Soil Condition",
@@ -4757,7 +5648,10 @@
         "fields": {
             "order": 34,
             "schema": 128,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "drainage",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Drainage",
@@ -4773,7 +5667,10 @@
         "fields": {
             "order": 35,
             "schema": 128,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "water_quality",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Water Quality",
@@ -4789,7 +5686,10 @@
         "fields": {
             "order": 36,
             "schema": 128,
-            "django_import_content_type": 183,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcomposition"
+            ],
             "django_import_field_name": "habitat_notes",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHAB Habitat Notes",
@@ -4805,7 +5705,10 @@
         "fields": {
             "order": 37,
             "schema": 128,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "pristine",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Pristine",
@@ -4821,7 +5724,10 @@
         "fields": {
             "order": 38,
             "schema": 128,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "excellent",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Excellent",
@@ -4837,7 +5743,10 @@
         "fields": {
             "order": 39,
             "schema": 128,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "very_good",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Very Good",
@@ -4853,7 +5762,10 @@
         "fields": {
             "order": 40,
             "schema": 128,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "good",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Good",
@@ -4869,7 +5781,10 @@
         "fields": {
             "order": 41,
             "schema": 128,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "degraded",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Degraded",
@@ -4885,7 +5800,10 @@
         "fields": {
             "order": 42,
             "schema": 128,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "completely_degraded",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Completely Degraded",
@@ -4901,7 +5819,10 @@
         "fields": {
             "order": 43,
             "schema": 128,
-            "django_import_content_type": 182,
+            "django_import_content_type": [
+                "boranga",
+                "ocrhabitatcondition"
+            ],
             "django_import_field_name": "count_date",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRHQ Count Date",
@@ -4917,7 +5838,10 @@
         "fields": {
             "order": 44,
             "schema": 128,
-            "django_import_content_type": 263,
+            "django_import_content_type": [
+                "boranga",
+                "ocrvegetationstructure"
+            ],
             "django_import_field_name": "vegetation_structure_layer_one",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRVEG Vegetation Structure Layer One",
@@ -4933,7 +5857,10 @@
         "fields": {
             "order": 45,
             "schema": 128,
-            "django_import_content_type": 263,
+            "django_import_content_type": [
+                "boranga",
+                "ocrvegetationstructure"
+            ],
             "django_import_field_name": "vegetation_structure_layer_two",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRVEG Vegetation Structure Layer Two",
@@ -4949,7 +5876,10 @@
         "fields": {
             "order": 46,
             "schema": 128,
-            "django_import_content_type": 263,
+            "django_import_content_type": [
+                "boranga",
+                "ocrvegetationstructure"
+            ],
             "django_import_field_name": "vegetation_structure_layer_three",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRVEG Vegetation Structure Layer Three",
@@ -4965,7 +5895,10 @@
         "fields": {
             "order": 47,
             "schema": 128,
-            "django_import_content_type": 263,
+            "django_import_content_type": [
+                "boranga",
+                "ocrvegetationstructure"
+            ],
             "django_import_field_name": "vegetation_structure_layer_four",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRVEG Vegetation Structure Layer Four",
@@ -4981,7 +5914,10 @@
         "fields": {
             "order": 48,
             "schema": 128,
-            "django_import_content_type": 184,
+            "django_import_content_type": [
+                "boranga",
+                "ocrfirehistory"
+            ],
             "django_import_field_name": "last_fire_estimate",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRFH Last Fire Estimate",
@@ -4997,7 +5933,10 @@
         "fields": {
             "order": 49,
             "schema": 128,
-            "django_import_content_type": 184,
+            "django_import_content_type": [
+                "boranga",
+                "ocrfirehistory"
+            ],
             "django_import_field_name": "intensity",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRFH Intensity",
@@ -5013,7 +5952,10 @@
         "fields": {
             "order": 50,
             "schema": 128,
-            "django_import_content_type": 184,
+            "django_import_content_type": [
+                "boranga",
+                "ocrfirehistory"
+            ],
             "django_import_field_name": "comment",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRFH Comment",
@@ -5029,7 +5971,10 @@
         "fields": {
             "order": 51,
             "schema": 128,
-            "django_import_content_type": 188,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobservationdetail"
+            ],
             "django_import_field_name": "observation_method",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCROBS Observation Method",
@@ -5045,7 +5990,10 @@
         "fields": {
             "order": 52,
             "schema": 128,
-            "django_import_content_type": 188,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobservationdetail"
+            ],
             "django_import_field_name": "area_surveyed",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCROBS Area Surveyed",
@@ -5061,7 +6009,10 @@
         "fields": {
             "order": 53,
             "schema": 128,
-            "django_import_content_type": 188,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobservationdetail"
+            ],
             "django_import_field_name": "survey_duration",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCROBS Survey Duration",
@@ -5077,7 +6028,10 @@
         "fields": {
             "order": 54,
             "schema": 128,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "id_confirmed_by",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Id Confirmed By",
@@ -5093,7 +6047,10 @@
         "fields": {
             "order": 55,
             "schema": 128,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "identification_certainty",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Identification Certainty",
@@ -5109,7 +6066,10 @@
         "fields": {
             "order": 56,
             "schema": 128,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "sample_destination",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Sample Destination",
@@ -5125,7 +6085,10 @@
         "fields": {
             "order": 57,
             "schema": 128,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "sample_type",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Sample Type",
@@ -5141,7 +6104,10 @@
         "fields": {
             "order": 58,
             "schema": 128,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "permit_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Permit Id",
@@ -5157,7 +6123,10 @@
         "fields": {
             "order": 59,
             "schema": 128,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "permit_type",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Permit Type",
@@ -5173,7 +6142,10 @@
         "fields": {
             "order": 60,
             "schema": 128,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "barcode_number",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Barcode Number",
@@ -5189,7 +6161,10 @@
         "fields": {
             "order": 61,
             "schema": 128,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "collector_number",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Collector Number",
@@ -5205,7 +6180,10 @@
         "fields": {
             "order": 62,
             "schema": 128,
-            "django_import_content_type": 203,
+            "django_import_content_type": [
+                "boranga",
+                "ocridentification"
+            ],
             "django_import_field_name": "identification_comment",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRID Identification Comment",
@@ -5221,7 +6199,10 @@
         "fields": {
             "order": 63,
             "schema": 128,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Name",
@@ -5237,7 +6218,10 @@
         "fields": {
             "order": 64,
             "schema": 128,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Description",
@@ -5253,7 +6237,10 @@
         "fields": {
             "order": 65,
             "schema": 128,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "_file",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC File",
@@ -5269,7 +6256,10 @@
         "fields": {
             "order": 66,
             "schema": 128,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "document_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Document Category",
@@ -5285,7 +6275,10 @@
         "fields": {
             "order": 67,
             "schema": 128,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "can_submitter_access",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Can Submitter Access",
@@ -5301,7 +6294,10 @@
         "fields": {
             "order": 68,
             "schema": 128,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "uploaded_by",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Uploaded By",
@@ -5317,7 +6313,10 @@
         "fields": {
             "order": 69,
             "schema": 128,
-            "django_import_content_type": 213,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportdocument"
+            ],
             "django_import_field_name": "document_sub_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRDOC Document Sub Category",
@@ -5333,7 +6332,10 @@
         "fields": {
             "order": 70,
             "schema": 128,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "threat_agent",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Threat Agent",
@@ -5349,7 +6351,10 @@
         "fields": {
             "order": 71,
             "schema": 128,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "threat_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Threat Category",
@@ -5365,7 +6370,10 @@
         "fields": {
             "order": 72,
             "schema": 128,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "potential_impact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Potential Impact",
@@ -5381,7 +6389,10 @@
         "fields": {
             "order": 73,
             "schema": 128,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "current_impact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Current Impact",
@@ -5397,7 +6408,10 @@
         "fields": {
             "order": 74,
             "schema": 128,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "date_observed",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Date Observed",
@@ -5413,7 +6427,10 @@
         "fields": {
             "order": 75,
             "schema": 128,
-            "django_import_content_type": 214,
+            "django_import_content_type": [
+                "boranga",
+                "ocrconservationthreat"
+            ],
             "django_import_field_name": "potential_threat_onset",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRTHR Potential Threat Onset",
@@ -5429,7 +6446,10 @@
         "fields": {
             "order": 89,
             "schema": 128,
-            "django_import_content_type": 185,
+            "django_import_content_type": [
+                "boranga",
+                "ocrassociatedspecies"
+            ],
             "django_import_field_name": "related_species",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRSPE Related Species",
@@ -5445,7 +6465,10 @@
         "fields": {
             "order": 0,
             "schema": 129,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "migrated_from_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Migrated From ID",
@@ -5461,7 +6484,10 @@
         "fields": {
             "order": 2,
             "schema": 129,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "processing_status",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Processing Status",
@@ -5477,7 +6503,10 @@
         "fields": {
             "order": 3,
             "schema": 129,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "observation_date",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Observation Date",
@@ -5493,7 +6522,10 @@
         "fields": {
             "order": 4,
             "schema": 129,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_officer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Officer",
@@ -5509,7 +6541,10 @@
         "fields": {
             "order": 5,
             "schema": 129,
-            "django_import_content_type": 250,
+            "django_import_content_type": [
+                "boranga",
+                "submitterinformation"
+            ],
             "django_import_field_name": "submitter_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRSUB Submitter Category",
@@ -5525,7 +6560,10 @@
         "fields": {
             "order": 6,
             "schema": 129,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "observer_name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Observer Name",
@@ -5541,7 +6579,10 @@
         "fields": {
             "order": 7,
             "schema": 129,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "role",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Role",
@@ -5557,7 +6598,10 @@
         "fields": {
             "order": 8,
             "schema": 129,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "contact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Contact",
@@ -5573,7 +6617,10 @@
         "fields": {
             "order": 9,
             "schema": 129,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "organisation",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Organisation",
@@ -5589,7 +6636,10 @@
         "fields": {
             "order": 10,
             "schema": 129,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "main_observer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Main Observer",
@@ -5605,7 +6655,10 @@
         "fields": {
             "order": 11,
             "schema": 129,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "location_description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Location Description",
@@ -5621,7 +6674,10 @@
         "fields": {
             "order": 12,
             "schema": 129,
-            "django_import_content_type": 209,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportgeometry"
+            ],
             "django_import_field_name": "geometry",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRGEO Geometry",
@@ -5637,7 +6693,10 @@
         "fields": {
             "order": 0,
             "schema": 130,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "migrated_from_id",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Migrated From ID",
@@ -5653,7 +6712,10 @@
         "fields": {
             "order": 2,
             "schema": 130,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "processing_status",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Processing Status",
@@ -5669,7 +6731,10 @@
         "fields": {
             "order": 3,
             "schema": 130,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "observation_date",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Observation Date",
@@ -5685,7 +6750,10 @@
         "fields": {
             "order": 4,
             "schema": 130,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_officer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Officer",
@@ -5701,7 +6769,10 @@
         "fields": {
             "order": 5,
             "schema": 130,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "assigned_approver",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCR Assigned Approver",
@@ -5717,7 +6788,10 @@
         "fields": {
             "order": 6,
             "schema": 130,
-            "django_import_content_type": 250,
+            "django_import_content_type": [
+                "boranga",
+                "submitterinformation"
+            ],
             "django_import_field_name": "submitter_category",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRSUB Submitter Category",
@@ -5733,7 +6807,10 @@
         "fields": {
             "order": 7,
             "schema": 130,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "observer_name",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Observer Name",
@@ -5749,7 +6826,10 @@
         "fields": {
             "order": 8,
             "schema": 130,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "role",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Role",
@@ -5765,7 +6845,10 @@
         "fields": {
             "order": 9,
             "schema": 130,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "contact",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Contact",
@@ -5781,7 +6864,10 @@
         "fields": {
             "order": 10,
             "schema": 130,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "organisation",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Organisation",
@@ -5797,7 +6883,10 @@
         "fields": {
             "order": 11,
             "schema": 130,
-            "django_import_content_type": 207,
+            "django_import_content_type": [
+                "boranga",
+                "ocrobserverdetail"
+            ],
             "django_import_field_name": "main_observer",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRCON Main Observer",
@@ -5813,7 +6902,10 @@
         "fields": {
             "order": 12,
             "schema": 130,
-            "django_import_content_type": 208,
+            "django_import_content_type": [
+                "boranga",
+                "ocrlocation"
+            ],
             "django_import_field_name": "location_description",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRLOC Location Description",
@@ -5829,7 +6921,10 @@
         "fields": {
             "order": 13,
             "schema": 130,
-            "django_import_content_type": 209,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereportgeometry"
+            ],
             "django_import_field_name": "geometry",
             "django_lookup_field_name": null,
             "xlsx_column_header_name": "OCRGEO Geometry",
@@ -5845,7 +6940,10 @@
         "fields": {
             "order": 1,
             "schema": 128,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "community",
             "django_lookup_field_name": "taxonomy__community_migrated_id",
             "xlsx_column_header_name": "OCR Community",
@@ -5861,7 +6959,10 @@
         "fields": {
             "order": 1,
             "schema": 119,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "species",
             "django_lookup_field_name": "taxonomy__scientific_name",
             "xlsx_column_header_name": "OCR Species",
@@ -5877,7 +6978,10 @@
         "fields": {
             "order": 1,
             "schema": 129,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "community",
             "django_lookup_field_name": "taxonomy__community_migrated_id",
             "xlsx_column_header_name": "OCR Community",
@@ -5893,7 +6997,10 @@
         "fields": {
             "order": 1,
             "schema": 130,
-            "django_import_content_type": 181,
+            "django_import_content_type": [
+                "boranga",
+                "occurrencereport"
+            ],
             "django_import_field_name": "community",
             "django_lookup_field_name": "taxonomy__community_migrated_id",
             "xlsx_column_header_name": "OCR Community",
