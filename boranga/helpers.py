@@ -464,8 +464,10 @@ def get_openpyxl_data_validation_type_for_django_field(field, column=None):
         if isinstance(field, django_field):
             return dv_types[dv_type]
 
-    # Mainly covers TextField and other fields not explicitly handled
-    return None
+    # Return textLength as a default so that we can still use the allow
+    # blank validation in the Excel sheet for things such as TextField with
+    # no max_length and other fields such as ForeignKey or M2M fields
+    return dv_types["textLength"]
 
 
 def clone_model(
