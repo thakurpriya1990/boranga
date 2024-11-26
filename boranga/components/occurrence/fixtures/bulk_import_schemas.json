@@ -1,0 +1,110 @@
+[
+    {
+        "model": "boranga.occurrencereportbulkimportschema",
+        "pk": 119,
+        "fields": {
+            "group_type": 1,
+            "version": 1,
+            "name": "Flora Master Schema Whole",
+            "datetime_created": "2024-10-15T03:12:10.384Z",
+            "datetime_updated": "2024-11-26T02:25:44.307Z",
+            "is_master": true
+        }
+    },
+    {
+        "model": "boranga.occurrencereportbulkimportschema",
+        "pk": 120,
+        "fields": {
+            "group_type": 1,
+            "version": 2,
+            "name": "Flora Master Schema Mandatory Submit",
+            "datetime_created": "2024-10-16T08:22:50.841Z",
+            "datetime_updated": "2024-11-26T04:30:07.038Z",
+            "is_master": true
+        }
+    },
+    {
+        "model": "boranga.occurrencereportbulkimportschema",
+        "pk": 123,
+        "fields": {
+            "group_type": 1,
+            "version": 3,
+            "name": "Flora Master Schema Mandatory Approved",
+            "datetime_created": "2024-11-21T07:47:51.771Z",
+            "datetime_updated": "2024-11-26T01:50:24.468Z",
+            "is_master": true
+        }
+    },
+    {
+        "model": "boranga.occurrencereportbulkimportschema",
+        "pk": 125,
+        "fields": {
+            "group_type": 2,
+            "version": 2,
+            "name": "Fauna Master Schema Mandatory Submit",
+            "datetime_created": "2024-11-26T01:48:43.464Z",
+            "datetime_updated": "2024-11-26T01:53:59.232Z",
+            "is_master": true
+        }
+    },
+    {
+        "model": "boranga.occurrencereportbulkimportschema",
+        "pk": 126,
+        "fields": {
+            "group_type": 2,
+            "version": 3,
+            "name": "Fauna Master Schema Mandatory Approved",
+            "datetime_created": "2024-11-26T01:50:31.853Z",
+            "datetime_updated": "2024-11-26T01:53:33.431Z",
+            "is_master": true
+        }
+    },
+    {
+        "model": "boranga.occurrencereportbulkimportschema",
+        "pk": 127,
+        "fields": {
+            "group_type": 2,
+            "version": 1,
+            "name": "Fauna Master Schema Whole",
+            "datetime_created": "2024-11-26T01:54:13.215Z",
+            "datetime_updated": "2024-11-26T02:01:06.348Z",
+            "is_master": true
+        }
+    },
+    {
+        "model": "boranga.occurrencereportbulkimportschema",
+        "pk": 128,
+        "fields": {
+            "group_type": 3,
+            "version": 1,
+            "name": "Communities Master Schema Whole",
+            "datetime_created": "2024-11-26T02:01:41.113Z",
+            "datetime_updated": "2024-11-26T02:25:00.303Z",
+            "is_master": true
+        }
+    },
+    {
+        "model": "boranga.occurrencereportbulkimportschema",
+        "pk": 129,
+        "fields": {
+            "group_type": 3,
+            "version": 2,
+            "name": "Communities Master Schema Mandatory Submit",
+            "datetime_created": "2024-11-26T02:04:43.739Z",
+            "datetime_updated": "2024-11-26T03:51:23.009Z",
+            "is_master": true
+        }
+    },
+    {
+        "model": "boranga.occurrencereportbulkimportschema",
+        "pk": 130,
+        "fields": {
+            "group_type": 3,
+            "version": 3,
+            "name": "Communities Master Schema Mandatory Approved",
+            "datetime_created": "2024-11-26T02:10:37.074Z",
+            "datetime_updated": "2024-11-26T03:51:14.281Z",
+            "is_master": true
+        }
+    }
+]
