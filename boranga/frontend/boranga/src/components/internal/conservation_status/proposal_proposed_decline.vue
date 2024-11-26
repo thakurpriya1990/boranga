@@ -111,7 +111,7 @@ export default {
             vm.errors = false;
             let decline = JSON.parse(JSON.stringify(vm.decline));
             vm.decliningProposal = true;
-            if (vm.processing_status == 'With Assessor' || vm.processing_status == 'Ready For Agenda') {
+            if (vm.processing_status == 'With Assessor' || vm.processing_status == 'On Agenda') {
                 vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/final_decline'), JSON.stringify(decline), {
                     emulateJSON: true,
                 }).then((response) => {

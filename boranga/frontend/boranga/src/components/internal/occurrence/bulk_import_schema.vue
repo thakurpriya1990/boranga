@@ -128,8 +128,8 @@
                                         <td class="ps-3 fw-bold" style="font-size:0.9em; width:40%"
                                             :class="selectedColumn == column ? 'py-1' : ''">
                                             <span class="text-truncate pe-1"
-                                                :class="selectedColumn == column ? 'text-light' : ''">{{
-                                                    column.xlsx_column_header_name }}</span>
+                                                :class="selectedColumn == column ? 'text-light' : ''" :title="column.xlsx_column_header_name">{{
+                                                    column.xlsx_column_header_name.length < 34 ? column.xlsx_column_header_name : column.xlsx_column_header_name.substr(0, 31) + '...' }}</span>
                                             <span class="text-danger" title="Mandatory Column"
                                                 v-if="column.xlsx_data_validation_allow_blank == false">*</span>
                                             <small class="d-block text-capitalize mb-0"
@@ -810,7 +810,7 @@ export default {
                             schema: this.schema.id,
                             django_import_content_type: this.selectedContentType.id,
                             django_import_field_name: modelField.name,
-                            xlsx_column_header_name: modelField.display_name,
+                            xlsx_column_header_name: `${this.selectedContentType.model_abbreviation.toUpperCase()} ${modelField.display_name}`,
                             xlsx_data_validation_allow_blank: modelField.allow_null,
                             default_value: null,
                             import_validations: []
