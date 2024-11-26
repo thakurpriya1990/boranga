@@ -767,7 +767,7 @@ class Species(RevisionedMixin):
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
-                f'<a href="/internal/species_communities/{self.id}'
+                f'<a href="/internal/species-communities/{self.id}'
                 f'?group_type_name={self.group_type.name}" target="_blank">View '
                 '<i class="bi bi-box-arrow-up-right"></i></a>'
             ),
@@ -1546,7 +1546,7 @@ class Community(RevisionedMixin):
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
-                f'<a href="/internal/species_communities/{self.id}'
+                f'<a href="/internal/species-communities/{self.id}'
                 f'?group_type_name={self.group_type.name}" target="_blank">View '
                 '<i class="bi bi-box-arrow-up-right"></i></a>'
             ),

@@ -119,7 +119,7 @@ export default
                 ]
             },
             {
-                path: 'species_communities',
+                path: 'species-communities',
                 component: {
                     render(c) {
                         return c('router-view')

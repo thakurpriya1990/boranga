@@ -369,7 +369,7 @@ urlpatterns = [
         name="species-communities",
     ),
     re_path(
-        r"^external/species_communities/(?P<species_proposal_pk>\d+)",
+        r"^external/species-communities/(?P<species_proposal_pk>\d+)",
         views.SpeciesView.as_view(),
         name="external-species-detail",
     ),
@@ -407,12 +407,12 @@ urlpatterns = [
         name="external-conservation-status-referral-detail",
     ),
     re_path(
-        r"^internal/species_communities/(?P<species_proposal_pk>\d+)/$",
+        r"^internal/species-communities/(?P<species_proposal_pk>\d+)/$",
         views.InternalSpeciesView.as_view(),
         name="internal-species-detail",
     ),
     re_path(
-        r"^internal/species_communities/(?P<community_proposal_pk>\d+)/$",
+        r"^internal/species-communities/(?P<community_proposal_pk>\d+)/$",
         views.InternalCommunityView.as_view(),
         name="internal-community-detail",
     ),
