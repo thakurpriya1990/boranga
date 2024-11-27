@@ -13,7 +13,6 @@ from django.db import models, transaction
 from django.db.models import Sum
 from django.db.models.functions import Cast
 from django.utils.functional import cached_property
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
 from pyproj import Geod
@@ -26,11 +25,7 @@ from boranga.components.main.models import (
     UserAction,
 )
 from boranga.components.main.related_item import RelatedItem
-from boranga.helpers import (
-    is_species_communities_approver,
-    member_ids,
-    no_commas_validator,
-)
+from boranga.helpers import is_species_communities_approver, no_commas_validator
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import GROUP_NAME_SPECIES_COMMUNITIES_APPROVER
 
@@ -585,14 +580,6 @@ class Species(RevisionedMixin):
 
     def get_approver_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
-
-    @property
-    def approver_recipients(self):
-        recipients = []
-        group_ids = member_ids(GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
-        for id in group_ids:
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
 
     @property
     def status_without_assessor(self):
@@ -1400,14 +1387,6 @@ class Community(RevisionedMixin):
 
     def get_approver_group(self):
         return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
-
-    @property
-    def approver_recipients(self):
-        recipients = []
-        group_ids = member_ids(GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
-        for id in group_ids:
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
 
     @property
     def status_without_assessor(self):
