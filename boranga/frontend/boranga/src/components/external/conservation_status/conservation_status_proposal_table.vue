@@ -322,11 +322,11 @@ export default {
                 'render': function (data, type, full) {
                     let links = "";
                     if (full.can_user_edit) {
-                        links += `<a href='/external/conservation_status/${full.id}'>Continue</a><br/>`;
+                        links += `<a href='/external/conservation-status/${full.id}'>Continue</a><br/>`;
                         links += `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
                     }
                     else if (full.can_user_view) {
-                        links += `<a href='/external/conservation_status/${full.id}'>View</a>`;
+                        links += `<a href='/external/conservation-status/${full.id}'>View</a>`;
                     }
                     else if (full.processing_status == 'discarded') {
                         links += `<a <a href='#${full.id}' data-reinstate-cs-proposal='${full.id}'>Reinstate</a>`;

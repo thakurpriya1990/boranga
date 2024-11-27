@@ -382,12 +382,12 @@ urlpatterns = [
     re_path(r"^private-media/", views.getPrivateFile, name="view_private_file"),
     # following url is defined so that to include url path when sending Proposal amendment request to user.
     re_path(
-        r"^external/conservation_status/(?P<cs_proposal_pk>\d+)/$",
+        r"^external/conservation-status/(?P<cs_proposal_pk>\d+)/$",
         views.ExternalConservationStatusView.as_view(),
         name="external-conservation-status-detail",
     ),
     re_path(
-        r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/$",
+        r"^internal/conservation-status/(?P<cs_proposal_pk>\d+)/$",
         views.InternalConservationStatusView.as_view(),
         name="internal-conservation-status-detail",
     ),
@@ -397,12 +397,12 @@ urlpatterns = [
         name="internal-conservation-status-dashboard",
     ),
     re_path(
-        r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
+        r"^internal/conservation-status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.ConservationStatusReferralView.as_view(),
         name="internal-conservation-status-referral-detail",
     ),
     re_path(
-        r"^external/conservation_status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
+        r"^external/conservation-status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.ConservationStatusReferralView.as_view(),
         name="external-conservation-status-referral-detail",
     ),

@@ -378,7 +378,7 @@
                                                 <div class="col-md-6">
                                                     <p class="pull-right" style="margin-top:5px;">
                                                         <router-link class="btn btn-primary"
-                                                            :to="{ name: 'internal-conservation_status-dash' }">Back to
+                                                            :to="{ name: 'internal-conservation-status-dash' }">Back to
                                                             Dashboard</router-link>
                                                     </p>
                                                 </div>
@@ -805,7 +805,7 @@ export default {
                                 },
                             });
                             vm.$router.push({
-                                name: 'internal-conservation_status-dash'
+                                name: 'internal-conservation-status-dash'
                             });
                         }, (error) => {
                             console.log(error);
@@ -857,7 +857,7 @@ export default {
                                 },
                             });
                             vm.$router.push({
-                                name: 'internal-conservation_status-dash'
+                                name: 'internal-conservation-status-dash'
                             });
                         }, (error) => {
                             console.log(error);
@@ -981,7 +981,7 @@ export default {
             await this.save(e).then(() => {
                 if (vm.isSaved === true) {
                     vm.$router.push({
-                        name: 'internal-conservation_status-dash'
+                        name: 'internal-conservation-status-dash'
                     });
                 } else {
                     vm.saveExitConservationStatus = false;
@@ -1093,7 +1093,7 @@ export default {
                         vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/submit'), payload).then(res => {
                             vm.conservation_status_obj = res.body;
                             vm.$router.push({
-                                name: 'internal-conservation_status-dash'
+                                name: 'internal-conservation-status-dash'
                             });
                         }, err => {
                             swal.fire({

@@ -89,7 +89,7 @@ export default
                 name: "external-conservation_status-dash"
             },
             {
-                path: 'conservation_status',
+                path: 'conservation-status',
                 component: {
                     render(c) {
                         return c('router-view')
