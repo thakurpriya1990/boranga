@@ -10,6 +10,7 @@ from django.utils.encoding import smart_str
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from boranga.components.emails.emails import TemplateEmailBase
+from boranga.components.species_and_communities.models import SystemEmailGroup
 from boranga.components.users.email import _log_user_email
 from boranga.helpers import (
     convert_external_url_to_internal_url,
@@ -157,9 +158,14 @@ def send_submit_email_notification(request, cs_proposal):
     )
     url = convert_external_url_to_internal_url(url)
 
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=cs_proposal.group_type,
+        area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
+    )
+
     context = {"cs_proposal": cs_proposal, "url": url}
 
-    msg = email.send(cs_proposal.assessor_recipients, context=context)
+    msg = email.send(recipients, context=context)
 
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
 
@@ -427,7 +433,12 @@ def send_approver_decline_email_notification(reason, request, conservation_statu
     )
     context = {"cs_proposal": conservation_status, "reason": reason, "url": url}
 
-    msg = email.send(conservation_status.approver_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=conservation_status.group_type,
+        area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
+    )
+
+    msg = email.send(recipients, context=context)
 
     sender = get_sender_user()
 
@@ -450,7 +461,12 @@ def send_approver_propose_delist_email_notification(
     )
     context = {"cs_proposal": conservation_status, "reason": reason, "url": url}
 
-    msg = email.send(conservation_status.approver_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=conservation_status.group_type,
+        area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
+    )
+
+    msg = email.send(recipients, context=context)
 
     sender = get_sender_user()
 
@@ -477,7 +493,12 @@ def send_approver_approve_email_notification(request, conservation_status):
         "url": url,
     }
 
-    msg = email.send(conservation_status.approver_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=conservation_status.group_type,
+        area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
+    )
+
+    msg = email.send(recipients, context=context)
 
     sender = get_sender_user()
 
@@ -499,7 +520,12 @@ def send_approver_proposed_for_agenda_email_notification(
         "assessor_comment": assessor_comment,
     }
 
-    msg = email.send(conservation_status.approver_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=conservation_status.group_type,
+        area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
+    )
+
+    msg = email.send(recipients, context=context)
 
     sender = get_sender_user()
 
@@ -521,7 +547,12 @@ def send_assessor_ready_for_agenda_email_notification(
         "assessor_comment": assessor_comment,
     }
 
-    msg = email.send(conservation_status.assessor_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=conservation_status.group_type,
+        area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
+    )
+
+    msg = email.send(recipients, context=context)
 
     sender = get_sender_user()
 
@@ -552,7 +583,12 @@ def send_proposal_approver_sendback_email_notification(request, conservation_sta
         "approver_comment": approver_comment,
     }
 
-    msg = email.send(conservation_status.assessor_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=conservation_status.group_type,
+        area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
+    )
+
+    msg = email.send(recipients, context=context)
 
     sender = get_sender_user()
 
@@ -578,7 +614,12 @@ def send_approver_defer_email_notification(request, conservation_status, reason)
         "reason": reason,
     }
 
-    msg = email.send(conservation_status.assessor_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=conservation_status.group_type,
+        area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
+    )
+
+    msg = email.send(recipients, context=context)
 
     sender = get_sender_user()
 

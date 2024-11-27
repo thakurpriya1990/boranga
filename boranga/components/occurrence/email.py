@@ -8,6 +8,7 @@ from django.utils.encoding import smart_str
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
 from boranga.components.emails.emails import TemplateEmailBase
+from boranga.components.species_and_communities.models import SystemEmailGroup
 from boranga.components.users.email import _log_user_email
 from boranga.helpers import (
     convert_external_url_to_internal_url,
@@ -129,7 +130,12 @@ def send_submit_email_notification(request, occurrence_report):
 
     context = {"occurrence_report": occurrence_report, "url": url}
 
-    msg = email.send(occurrence_report.assessor_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=occurrence_report.group_type,
+        area=SystemEmailGroup.AREA_OCCURRENCE,
+    )
+
+    msg = email.send(recipients, context=context)
 
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
 
@@ -407,7 +413,12 @@ def send_approver_decline_email_notification(reason, request, occurrence_report)
     )
     context = {"occurrence_report": occurrence_report, "reason": reason, "url": url}
 
-    msg = email.send(occurrence_report.approver_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=occurrence_report.group_type,
+        area=SystemEmailGroup.AREA_OCCURRENCE,
+    )
+
+    msg = email.send(recipients, context=context)
 
     sender = get_sender_user()
 
@@ -489,7 +500,12 @@ def send_approver_approve_email_notification(request, occurrence_report):
         "url": url,
     }
 
-    msg = email.send(occurrence_report.approver_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=occurrence_report.group_type,
+        area=SystemEmailGroup.AREA_OCCURRENCE,
+    )
+
+    msg = email.send(recipients, context=context)
 
     sender = get_sender_user()
 
@@ -517,7 +533,12 @@ def send_approver_back_to_assessor_email_notification(
         "url": url,
     }
 
-    msg = email.send(occurrence_report.assessor_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=occurrence_report.group_type,
+        area=SystemEmailGroup.AREA_OCCURRENCE,
+    )
+
+    msg = email.send(recipients, context=context)
 
     sender = get_sender_user()
 

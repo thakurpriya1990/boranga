@@ -99,7 +99,11 @@ def send_species_create_email_notification(request, species_proposal):
 
     context = {"species_community_proposal": species_proposal, "url": url}
 
-    msg = email.send(species_proposal.approver_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=species_proposal.group_type,
+    )
+
+    msg = email.send(recipients, context=context)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
 
     _log_species_email(msg, species_proposal, sender=sender)
@@ -450,7 +454,11 @@ def send_community_create_email_notification(request, community_proposal):
 
     context = {"species_community_proposal": community_proposal, "url": url}
 
-    msg = email.send(community_proposal.approver_recipients, context=context)
+    recipients = SystemEmailGroup.emails_by_group_and_area(
+        group_type=community_proposal.group_type,
+    )
+
+    msg = email.send(recipients, context=context)
     sender = request.user if request else settings.DEFAULT_FROM_EMAIL
 
     _log_community_email(msg, community_proposal, sender=sender)
