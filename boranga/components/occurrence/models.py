@@ -594,7 +594,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
-                f'<a href="/internal/occurrence_report/{self.id}'
+                f'<a href="/internal/occurrence-report/{self.id}'
                 f'?action=view" target="_blank">View '
                 '<i class="bi bi-box-arrow-up-right"></i></a>'
             ),

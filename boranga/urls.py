@@ -432,17 +432,17 @@ urlpatterns = [
         name="external-occurrence-report-detail",
     ),
     re_path(
-        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/$",
+        r"^internal/occurrence-report/(?P<occurrence_report_pk>\d+)/$",
         views.InternalOccurrenceReportView.as_view(),
         name="internal-occurrence-report-detail",
     ),
     re_path(
-        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
+        r"^internal/occurrence-report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.InternalOccurrenceReportReferralView.as_view(),
         name="internal-occurrence-report-referral-detail",
     ),
     re_path(
-        r"^external/occurrence_report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
+        r"^external/occurrence-report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.InternalOccurrenceReportReferralView.as_view(),
         name="external-occurrence-report-referral-detail",
     ),

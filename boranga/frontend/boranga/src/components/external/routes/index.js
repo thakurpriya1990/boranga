@@ -56,10 +56,10 @@ export default
             {
                 path: 'occurrence-report',
                 component: ExternalOccurrenceReportDash,
-                name: "external-occurrence_report-dash"
+                name: "external-occurrence-report-dash"
             },
             {
-                path: 'occurrence_report',
+                path: 'occurrence-report',
                 component: {
                     render(c) {
                         return c('router-view')

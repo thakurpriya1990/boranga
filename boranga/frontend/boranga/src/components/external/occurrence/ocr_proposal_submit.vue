@@ -28,11 +28,11 @@
                         </table>
                         <br/>
                         <label>You will receive a notification email if there is any incomplete information or documents missing from the proposal.</label>
-                        <router-link :to="{name:'external-occurrence_report-dash'}" style="margin-top:15px;" class="btn btn-primary">Back to home</router-link>
+                        <router-link :to="{name:'external-occurrence-report-dash'}" style="margin-top:15px;" class="btn btn-primary">Back to home</router-link>
                     </div>
                     <div v-else class="col-sm-offset-3 col-sm-6 borderDecoration">
                         <strong>Sorry it looks like there isn't any application currently in your session.</strong>
-                        <br /><router-link :to="{name:'external-occurrence_report-dash'}" style="margin-top:15px;" class="btn btn-primary">Back to home</router-link>
+                        <br /><router-link :to="{name:'external-occurrence-report-dash'}" style="margin-top:15px;" class="btn btn-primary">Back to home</router-link>
                     </div>
                 </div>
             </div>

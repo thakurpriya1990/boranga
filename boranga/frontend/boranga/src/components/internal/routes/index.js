@@ -59,7 +59,7 @@ export default
                 name: "internal-occurrence-detail"
             },
             {
-                path: 'occurrence_report',
+                path: 'occurrence-report',
                 component: {
                     render(c) {
                         return c('router-view')
