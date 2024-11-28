@@ -158,8 +158,14 @@ def send_submit_email_notification(request, cs_proposal):
     )
     url = convert_external_url_to_internal_url(url)
 
+    group_type = (
+        cs_proposal.species.group_type
+        if cs_proposal.species
+        else cs_proposal.community.group_type
+    )
+
     recipients = SystemEmailGroup.emails_by_group_and_area(
-        group_type=cs_proposal.group_type,
+        group_type=group_type,
         area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
     )
 
@@ -433,8 +439,14 @@ def send_approver_decline_email_notification(reason, request, conservation_statu
     )
     context = {"cs_proposal": conservation_status, "reason": reason, "url": url}
 
+    group_type = (
+        conservation_status.species.group_type
+        if conservation_status.species
+        else conservation_status.community.group_type
+    )
+
     recipients = SystemEmailGroup.emails_by_group_and_area(
-        group_type=conservation_status.group_type,
+        group_type=group_type,
         area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
     )
 
@@ -461,8 +473,14 @@ def send_approver_propose_delist_email_notification(
     )
     context = {"cs_proposal": conservation_status, "reason": reason, "url": url}
 
+    group_type = (
+        conservation_status.species.group_type
+        if conservation_status.species
+        else conservation_status.community.group_type
+    )
+
     recipients = SystemEmailGroup.emails_by_group_and_area(
-        group_type=conservation_status.group_type,
+        group_type=group_type,
         area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
     )
 
@@ -493,8 +511,14 @@ def send_approver_approve_email_notification(request, conservation_status):
         "url": url,
     }
 
+    group_type = (
+        conservation_status.species.group_type
+        if conservation_status.species
+        else conservation_status.community.group_type
+    )
+
     recipients = SystemEmailGroup.emails_by_group_and_area(
-        group_type=conservation_status.group_type,
+        group_type=group_type,
         area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
     )
 
@@ -520,8 +544,14 @@ def send_approver_proposed_for_agenda_email_notification(
         "assessor_comment": assessor_comment,
     }
 
+    group_type = (
+        conservation_status.species.group_type
+        if conservation_status.species
+        else conservation_status.community.group_type
+    )
+
     recipients = SystemEmailGroup.emails_by_group_and_area(
-        group_type=conservation_status.group_type,
+        group_type=group_type,
         area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
     )
 
@@ -547,8 +577,14 @@ def send_assessor_ready_for_agenda_email_notification(
         "assessor_comment": assessor_comment,
     }
 
+    group_type = (
+        conservation_status.species.group_type
+        if conservation_status.species
+        else conservation_status.community.group_type
+    )
+
     recipients = SystemEmailGroup.emails_by_group_and_area(
-        group_type=conservation_status.group_type,
+        group_type=group_type,
         area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
     )
 
@@ -583,8 +619,14 @@ def send_proposal_approver_sendback_email_notification(request, conservation_sta
         "approver_comment": approver_comment,
     }
 
+    group_type = (
+        conservation_status.species.group_type
+        if conservation_status.species
+        else conservation_status.community.group_type
+    )
+
     recipients = SystemEmailGroup.emails_by_group_and_area(
-        group_type=conservation_status.group_type,
+        group_type=group_type,
         area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
     )
 
@@ -614,8 +656,14 @@ def send_approver_defer_email_notification(request, conservation_status, reason)
         "reason": reason,
     }
 
+    group_type = (
+        conservation_status.species.group_type
+        if conservation_status.species
+        else conservation_status.community.group_type
+    )
+
     recipients = SystemEmailGroup.emails_by_group_and_area(
-        group_type=conservation_status.group_type,
+        group_type=group_type,
         area=SystemEmailGroup.AREA_CONSERVATION_STATUS,
     )
 
