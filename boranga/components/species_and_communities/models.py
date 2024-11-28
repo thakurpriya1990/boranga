@@ -2745,10 +2745,18 @@ class SystemEmailGroup(models.Model):
         return ", ".join(self.email_address_list)
 
     @classmethod
-    def emails_by_group_and_area(cls, group_type, area=None):
+    def emails_by_group_and_area(
+        cls, group_type: GroupType, area: str | None = None
+    ) -> list[str]:
+        if not group_type:
+            logger.warning("No group_type provided. Returning empty list.")
+            return []
         try:
             group = cls.objects.get(group_type=group_type, area=area)
         except cls.DoesNotExist:
+            logger.warning(
+                f"No SystemEmailGroup found for group_type {group_type} and area {area}. Returning empty list."
+            )
             return []
         return group.email_address_list
 
