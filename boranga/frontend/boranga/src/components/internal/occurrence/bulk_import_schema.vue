@@ -343,7 +343,7 @@
                                                 <span class="input-group-text" id="allow-blank-label">Allow
                                                     Blank</span>
                                                 <select class="form-select w-50" aria-label="Allow Blank"
-                                                    :disabled="!selectedField.allow_null"
+                                                    :disabled="!selectedField.allow_null && selectedField.name != 'occurrence_number'"
                                                     v-model="selectedColumn.xlsx_data_validation_allow_blank">
                                                     <option :value="true">Yes</option>
                                                     <option :value="false">No</option>
