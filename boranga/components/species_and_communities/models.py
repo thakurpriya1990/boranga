@@ -13,7 +13,6 @@ from django.db import models, transaction
 from django.db.models import Sum
 from django.db.models.functions import Cast
 from django.utils.functional import cached_property
-from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
 from pyproj import Geod
@@ -26,11 +25,7 @@ from boranga.components.main.models import (
     UserAction,
 )
 from boranga.components.main.related_item import RelatedItem
-from boranga.helpers import (
-    is_species_communities_approver,
-    member_ids,
-    no_commas_validator,
-)
+from boranga.helpers import is_species_communities_approver, no_commas_validator
 from boranga.ledger_api_utils import retrieve_email_user
 from boranga.settings import GROUP_NAME_SPECIES_COMMUNITIES_APPROVER
 
@@ -587,14 +582,6 @@ class Species(RevisionedMixin):
         return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
 
     @property
-    def approver_recipients(self):
-        recipients = []
-        group_ids = member_ids(GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
-        for id in group_ids:
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
     def status_without_assessor(self):
         status_without_assessor = [
             "with_approver",
@@ -767,7 +754,7 @@ class Species(RevisionedMixin):
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
-                f'<a href="/internal/species_communities/{self.id}'
+                f'<a href="/internal/species-communities/{self.id}'
                 f'?group_type_name={self.group_type.name}" target="_blank">View '
                 '<i class="bi bi-box-arrow-up-right"></i></a>'
             ),
@@ -1402,14 +1389,6 @@ class Community(RevisionedMixin):
         return SystemGroup.objects.get(name=GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
 
     @property
-    def approver_recipients(self):
-        recipients = []
-        group_ids = member_ids(GROUP_NAME_SPECIES_COMMUNITIES_APPROVER)
-        for id in group_ids:
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
     def status_without_assessor(self):
         status_without_assessor = [
             "with_approver",
@@ -1546,7 +1525,7 @@ class Community(RevisionedMixin):
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
-                f'<a href="/internal/species_communities/{self.id}'
+                f'<a href="/internal/species-communities/{self.id}'
                 f'?group_type_name={self.group_type.name}" target="_blank">View '
                 '<i class="bi bi-box-arrow-up-right"></i></a>'
             ),
@@ -2766,11 +2745,30 @@ class SystemEmailGroup(models.Model):
         return ", ".join(self.email_address_list)
 
     @classmethod
-    def emails_by_group_and_area(cls, group_type, area=None):
+    def emails_by_group_and_area(
+        cls, group_type: GroupType, area: str | None = None
+    ) -> list[str]:
+        if not group_type:
+            logger.warning(
+                "No group_type provided. Returning value from NOTIFICATION_EMAIL env instead."
+            )
+            return settings.NOTIFICATION_EMAIL.split(",")
         try:
             group = cls.objects.get(group_type=group_type, area=area)
         except cls.DoesNotExist:
-            return []
+            logger.warning(
+                f"No SystemEmailGroup found for group_type {group_type} and area {area}. "
+                "Returning value from NOTIFICATION_EMAIL env instead."
+            )
+            return settings.NOTIFICATION_EMAIL.split(",")
+
+        if len(group.email_address_list) == 0:
+            logger.warning(
+                f"No SystemEmailGroup email addresses found for group_type {group_type} and area {area}. "
+                "Returning value from NOTIFICATION_EMAIL env instead."
+            )
+            return settings.NOTIFICATION_EMAIL.split(",")
+
         return group.email_address_list
 
 

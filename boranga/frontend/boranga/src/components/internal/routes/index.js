@@ -36,7 +36,7 @@ export default
             {
                 path: 'conservation-status',
                 component: ConservationStatusDash,
-                name: "internal-conservation_status-dash"
+                name: "internal-conservation-status-dash"
             },
             {
                 path: 'meetings',
@@ -59,7 +59,7 @@ export default
                 name: "internal-occurrence-detail"
             },
             {
-                path: 'occurrence_report',
+                path: 'occurrence-report',
                 component: {
                     render(c) {
                         return c('router-view')
@@ -119,7 +119,7 @@ export default
                 ]
             },
             {
-                path: 'species_communities',
+                path: 'species-communities',
                 component: {
                     render(c) {
                         return c('router-view')
@@ -134,7 +134,7 @@ export default
                 ]
             },
             {
-                path: 'conservation_status',
+                path: 'conservation-status',
                 component: {
                     render(c) {
                         return c('router-view')
@@ -152,12 +152,12 @@ export default
                             {
                                 path: '/',
                                 component: ConservationStatus,
-                                name: "internal-conservation_status"
+                                name: "internal-conservation-status"
                             },
                             {
                                 path: 'referral/:referral_id',
                                 component: ConservationStatusReferral,
-                                name: "internal-conservation_status-referral"
+                                name: "internal-conservation-status-referral"
                             }
                         ]
                     },

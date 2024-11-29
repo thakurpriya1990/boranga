@@ -275,7 +275,7 @@ export default {
                 visible: true,
                 'render': function (data, type, full) {
                     let links = '';
-                    links += full.can_user_process ? `<a href='/internal/conservation_status/${full.conservation_status}/referral/${full.id}'>Process</a><br/>` : `<a href='/internal/conservation_status/${full.conservation_status}/referral/${full.id}'>View</a><br/>`;
+                    links += full.can_user_process ? `<a href='/internal/conservation-status/${full.conservation_status}/referral/${full.id}'>Process</a><br/>` : `<a href='/internal/conservation-status/${full.conservation_status}/referral/${full.id}'>View</a><br/>`;
                     return links;
                 },
             }

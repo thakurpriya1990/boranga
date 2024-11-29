@@ -5,7 +5,7 @@
                 <label for="conservation_status_number" class="col-sm-4 col-form-label">Conservation Status
                     Number:</label>
                 <div class="col-sm-8">
-                    <a :href="`/internal/conservation_status/${conservation_status.id}`" target="_blank"
+                    <a :href="`/internal/conservation-status/${conservation_status.id}`" target="_blank"
                         class="btn btn-primary">{{
                             conservation_status.conservation_status_number }}<i
                             class="bi bi-box-arrow-up-right ps-2"></i></a>

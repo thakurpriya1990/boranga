@@ -206,7 +206,7 @@ export default {
                 visible: true,
                 'render': function (data, type, full) {
                     let links = '';
-                    links += full.can_be_processed ? `<a href='/external/occurrence_report/${full.occurrence_report_id}/referral/${full.id}'>Process</a><br/>` : `<a href='/external/occurrence_report/${full.occurrence_report_id}/referral/${full.id}'>View</a><br/>`;
+                    links += full.can_be_processed ? `<a href='/external/occurrence-report/${full.occurrence_report_id}/referral/${full.id}'>Process</a><br/>` : `<a href='/external/occurrence-report/${full.occurrence_report_id}/referral/${full.id}'>View</a><br/>`;
                     return links;
                 },
             }

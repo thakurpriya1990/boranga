@@ -19,7 +19,7 @@
                         <template v-if="isCommunity">
                             <template v-if="occurrence_report.community_id">
                                 Community: {{ occurrence_report.community_number }}<small><a
-                                        :href="`/internal/species_communities/${occurrence_report.community_id}?group_type_name=${occurrence_report.group_type}&action=view`"
+                                        :href="`/internal/species-communities/${occurrence_report.community_id}?group_type_name=${occurrence_report.group_type}&action=view`"
                                         target="_blank"><i class="bi bi-box-arrow-up-right ms-2"></i></a></small>
                             </template>
                             <template v-else>
@@ -29,7 +29,7 @@
                         <template v-else>
                             <template v-if="occurrence_report.species_id">
                                 Species: {{ occurrence_report.species_number }}<small><a
-                                        :href="`/internal/species_communities/${occurrence_report.species_id}?group_type_name=${occurrence_report.group_type}&action=view`"
+                                        :href="`/internal/species-communities/${occurrence_report.species_id}?group_type_name=${occurrence_report.group_type}&action=view`"
                                         target="_blank"><i class="bi bi-box-arrow-up-right ms-2"></i></a></small>
                             </template>
                             <template v-else>

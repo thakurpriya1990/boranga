@@ -56,7 +56,7 @@
                                     <div class="col-md-6" style="margin-top:5px">
                                         <p class="pull-right" style="margin-top:5px;">
                                             <router-link class="btn btn-primary"
-                                                :to="{ name: 'external-occurrence_report-dash' }">Back
+                                                :to="{ name: 'external-occurrence-report-dash' }">Back
                                                 to
                                                 Dashboard</router-link>
                                         </p>
@@ -275,7 +275,7 @@ export default {
             await this.save().then(() => {
                 if (vm.isSaved === true) {
                     vm.$router.push({
-                        name: 'external-occurrence_report-dash',
+                        name: 'external-occurrence-report-dash',
                     });
                 } else {
                     this.saveExitOCRProposal = false;

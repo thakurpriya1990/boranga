@@ -556,22 +556,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
 
     @property
-    def assessor_recipients(self):
-        recipients = []
-        group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR, include_superusers=False)
-        for id in group_ids:
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
-    def approver_recipients(self):
-        recipients = []
-        group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER, include_superusers=False)
-        for id in group_ids:
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
     def related_item_identifier(self):
         return self.occurrence_report_number
 
@@ -594,7 +578,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
-                f'<a href="/internal/occurrence_report/{self.id}'
+                f'<a href="/internal/occurrence-report/{self.id}'
                 f'?action=view" target="_blank">View '
                 '<i class="bi bi-box-arrow-up-right"></i></a>'
             ),

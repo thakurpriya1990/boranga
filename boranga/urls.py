@@ -369,7 +369,7 @@ urlpatterns = [
         name="species-communities",
     ),
     re_path(
-        r"^external/species_communities/(?P<species_proposal_pk>\d+)",
+        r"^external/species-communities/(?P<species_proposal_pk>\d+)",
         views.SpeciesView.as_view(),
         name="external-species-detail",
     ),
@@ -382,12 +382,12 @@ urlpatterns = [
     re_path(r"^private-media/", views.getPrivateFile, name="view_private_file"),
     # following url is defined so that to include url path when sending Proposal amendment request to user.
     re_path(
-        r"^external/conservation_status/(?P<cs_proposal_pk>\d+)/$",
+        r"^external/conservation-status/(?P<cs_proposal_pk>\d+)/$",
         views.ExternalConservationStatusView.as_view(),
         name="external-conservation-status-detail",
     ),
     re_path(
-        r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/$",
+        r"^internal/conservation-status/(?P<cs_proposal_pk>\d+)/$",
         views.InternalConservationStatusView.as_view(),
         name="internal-conservation-status-detail",
     ),
@@ -397,22 +397,22 @@ urlpatterns = [
         name="internal-conservation-status-dashboard",
     ),
     re_path(
-        r"^internal/conservation_status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
+        r"^internal/conservation-status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.ConservationStatusReferralView.as_view(),
         name="internal-conservation-status-referral-detail",
     ),
     re_path(
-        r"^external/conservation_status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
+        r"^external/conservation-status/(?P<cs_proposal_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.ConservationStatusReferralView.as_view(),
         name="external-conservation-status-referral-detail",
     ),
     re_path(
-        r"^internal/species_communities/(?P<species_proposal_pk>\d+)/$",
+        r"^internal/species-communities/(?P<species_proposal_pk>\d+)/$",
         views.InternalSpeciesView.as_view(),
         name="internal-species-detail",
     ),
     re_path(
-        r"^internal/species_communities/(?P<community_proposal_pk>\d+)/$",
+        r"^internal/species-communities/(?P<community_proposal_pk>\d+)/$",
         views.InternalCommunityView.as_view(),
         name="internal-community-detail",
     ),
@@ -432,17 +432,17 @@ urlpatterns = [
         name="external-occurrence-report-detail",
     ),
     re_path(
-        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/$",
+        r"^internal/occurrence-report/(?P<occurrence_report_pk>\d+)/$",
         views.InternalOccurrenceReportView.as_view(),
         name="internal-occurrence-report-detail",
     ),
     re_path(
-        r"^internal/occurrence_report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
+        r"^internal/occurrence-report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.InternalOccurrenceReportReferralView.as_view(),
         name="internal-occurrence-report-referral-detail",
     ),
     re_path(
-        r"^external/occurrence_report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
+        r"^external/occurrence-report/(?P<occurrence_report_pk>\d+)/referral/(?P<referral_pk>\d+)/$",
         views.InternalOccurrenceReportReferralView.as_view(),
         name="external-occurrence-report-referral-detail",
     ),

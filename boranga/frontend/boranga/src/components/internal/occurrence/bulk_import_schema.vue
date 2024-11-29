@@ -504,7 +504,7 @@
                 <div class="container">
                     <div class="col-md-6">
                         <div class="col-md-6"><a role="button" class="btn btn-primary me-2 float-start"
-                                href="/internal/occurrence_report/bulk_import_schema/">Return to Dashboard </a>
+                                href="/internal/occurrence-report/bulk_import_schema/">Return to Dashboard </a>
                         </div>
                     </div>
                     <div v-if="schema.can_user_edit" class="col-md-6 text-end"><button
@@ -1041,7 +1041,7 @@ export default {
         },
         saveAndExit() {
             this.save()
-            this.$router.push(`/internal/occurrence_report/bulk_import_schema/`)
+            this.$router.push(`/internal/occurrence-report/bulk_import_schema/`)
         },
         copySchema(id) {
             this.$http.post(`${api_endpoints.occurrence_report_bulk_import_schemas}${id}/copy/`)
@@ -1054,7 +1054,7 @@ export default {
                             showConfirmButton: false,
                             timer: 1500
                         })
-                        this.$router.push(`/internal/occurrence_report/bulk_import_schema/${response.data.id}`)
+                        this.$router.push(`/internal/occurrence-report/bulk_import_schema/${response.data.id}`)
                         this.fetchBulkImportSchema()
                     }
                 })

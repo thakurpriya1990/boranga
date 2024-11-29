@@ -398,7 +398,7 @@
                                 v-if="conservation_status_obj.conservation_status_under_review &&
                                     conservation_status_obj.id != conservation_status_obj.conservation_status_under_review.id">
                                 <div>
-                                    <a :href="`/internal/conservation_status/${conservation_status_obj.conservation_status_under_review.id}`"
+                                    <a :href="`/internal/conservation-status/${conservation_status_obj.conservation_status_under_review.id}`"
                                         target="_blank" class="btn btn-primary">{{
                                             conservation_status_obj.conservation_status_under_review.conservation_status_number
                                         }}<i class="bi bi-box-arrow-up-right ps-2"></i></a>
@@ -416,7 +416,7 @@
                         <label for="conservation_status_number" class="col-sm-5 col-form-label">Conservation Status
                             Number:</label>
                         <div class="col-sm-7">
-                            <a :href="`/internal/conservation_status/${conservation_status_obj.current_conservation_status.id}`"
+                            <a :href="`/internal/conservation-status/${conservation_status_obj.current_conservation_status.id}`"
                                 target="_blank" class="btn btn-primary">{{
                                     conservation_status_obj.current_conservation_status.conservation_status_number }}<i
                                     class="bi bi-box-arrow-up-right ps-2"></i></a>

@@ -286,7 +286,7 @@ class GetPaginatedVersionsView(InternalAuthorizationView):
 
         Example:
 
-        api/history/boranga/species_communities/SpeciesDocument/729
+        api/history/boranga/species-communities/SpeciesDocument/729
         """
         super().get(request, model_name)
 

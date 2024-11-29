@@ -146,7 +146,7 @@ export default {
                 searchable: false,
                 visible: true,
             }
-        },     
+        },
         column_action: function(){
             return {
                 //name: 'action',
@@ -156,7 +156,7 @@ export default {
                 visible: true,
                 'render': function(row, type, full){
                     let links = '';
-                    links += `<a href='/internal/occurrence_report/${full.id}' target="_blank">View</a><br>`;
+                    links += `<a href='/internal/occurrence-report/${full.id}' target="_blank">View</a><br>`;
                     return links;
                 }
             }
@@ -298,7 +298,7 @@ export default {
             },
             err => {
                 console.log(err);
-            });  
+            });
         },
         copySection:function (id,merge) {
             let vm = this;
@@ -312,7 +312,7 @@ export default {
             vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence,vm.occurrence_obj.id+"/copy_ocr_section"), formData, {
                     emulateJSON: true,
                 }).then((response) => {
-                    vm.$refs.related_ocr_datatable.vmDataTable.ajax.reload();                    
+                    vm.$refs.related_ocr_datatable.vmDataTable.ajax.reload();
                     vm.$emit('copyUpdate', response.body, vm.section_type);
                 },
                 (error) => {

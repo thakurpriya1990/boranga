@@ -148,7 +148,7 @@ export default {
                             if (!vm.isReadOnly) {
                                 links += `<a href='#${full.conservation_status_id}' data-remove-agenda-item='${full.conservation_status_id}'>Remove</a><br/>`
                             }
-                            links += `<a target="_blank" href='/internal/conservation_status/${full.conservation_status_id}?action=view'>View <i class="bi bi-arrow-up-right-square"></i></a><br/>`;
+                            links += `<a target="_blank" href='/internal/conservation-status/${full.conservation_status_id}?action=view'>View <i class="bi bi-arrow-up-right-square"></i></a><br/>`;
                             return links;
 
                         },
@@ -280,7 +280,7 @@ export default {
                             vm.meeting_obj.agenda_items_arr = res.body;
                             vm.$refs.cs_queue_datatable.vmDataTable.ajax.reload(vm.addTableListeners, false);
                             // Open the CS details page in a new tab
-                            var new_window = window.open(`/internal/conservation_status/${conservation_status_id}?action=view`, '_blank');
+                            var new_window = window.open(`/internal/conservation-status/${conservation_status_id}?action=view`, '_blank');
                             new_window.blur();
                             window.focus();
                         }, (error) => {
