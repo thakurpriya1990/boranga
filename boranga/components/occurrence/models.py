@@ -5629,7 +5629,7 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
 
         # If the migrated from id is None then complain and return
         if not ocr_migrated_from_id:
-            error_message = "Row does not have a migrated from id"
+            error_message = "Row does not have an Occurrence Report migrated from id"
             errors.append(
                 {
                     "row_index": index,
@@ -5799,10 +5799,42 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                         )
                         return
                 else:
+                    if (
+                        model_data.get("occurrence_name", None)
+                        and Occurrence.objects.filter(
+                            occurrence_name=model_data["occurrence_name"]
+                        ).exists()
+                    ):
+                        error_message = (
+                            f"An occurrence with the name '{model_data['occurrence_name']}' "
+                            "already exists in the database. Please populate the Occurrence "
+                            "Number or OCC Occurrence Migrated From ID field instead."
+                        )
+                        errors.append(
+                            {
+                                "row_index": index,
+                                "error_type": "duplicate_occurrence_name",
+                                "data": model_data,
+                                "error_message": error_message,
+                            }
+                        )
+                        return
+
                     if not occ_migrated_from_id:
                         if not model_data.get("group_type"):
                             model_data["group_type"] = self.schema.group_type
+
                         current_model_instance = Occurrence(**model_data)
+                        current_model_instance.occurrence_source = (
+                            Occurrence.OCCURRENCE_CHOICE_OCR
+                        )
+                        ocr_instance = model_instances[
+                            OccurrenceReport._meta.model_name
+                        ]
+                        if ocr_instance.species:
+                            current_model_instance.species = ocr_instance.species
+                        else:
+                            current_model_instance.community = ocr_instance.community
                     else:
                         if Occurrence.objects.filter(
                             migrated_from_id=occ_migrated_from_id
@@ -5814,11 +5846,17 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                             current_model_instance = Occurrence.objects.create(
                                 migrated_from_id=occ_migrated_from_id,
                                 group_type=self.schema.group_type,
-                                species=model_instances[
-                                    OccurrenceReport._meta.model_name
-                                ].species,
+                                occurrence_source=Occurrence.OCCURRENCE_CHOICE_OCR,
                             )
-
+                            ocr_instance = model_instances[
+                                OccurrenceReport._meta.model_name
+                            ]
+                            if ocr_instance.species:
+                                current_model_instance.species = ocr_instance.species
+                            else:
+                                current_model_instance.community = (
+                                    ocr_instance.community
+                                )
                         if (
                             not current_model_instance.group_type
                             == self.schema.group_type
