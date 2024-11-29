@@ -5626,6 +5626,20 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             return
 
         ocr_migrated_from_id = row[0]
+
+        # If the migrated from id is None then complain and return
+        if not ocr_migrated_from_id:
+            error_message = "Row does not have a migrated from id"
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "missing_migrated_from_id",
+                    "data": row,
+                    "error_message": error_message,
+                }
+            )
+            return
+
         mode = "create"
         if (
             ocr_migrated_from_id in ocr_migrated_from_ids
