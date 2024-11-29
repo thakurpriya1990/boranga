@@ -7680,6 +7680,33 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     errors_added += 1
                 return cell_value, errors_added
 
+            # Convert the cell value to a boolean as the application that was used
+            # to create the xlsx may have stored it as a string. For example, it often
+            # automatically formats cells with a text value of 'TRUE' or 'FALSE' as a boolean
+            # then when the file is saved the value in the cell will be converted to '=TRUE()' or '=FALSE()'
+            if isinstance(cell_value, str):
+                cell_value = cell_value.lower()
+                if cell_value in ["=true()", "true", "1", "yes", "y"]:
+                    cell_value = True
+                elif cell_value in ["=false()", "false", "0", "no", "n"]:
+                    cell_value = False
+                else:
+                    error_message = (
+                        f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                        "is not a valid boolean. The bulk importer is able to convert "
+                        "the following values to booleans: 'True', '1', 'yes', 'y', "
+                        "'=TRUE()', 'False', '0', 'no', 'n', '=False()'"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": cell_value,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
+
             if cell_value not in [True, False]:
                 error_message = (
                     f"Value {cell_value} in column {self.xlsx_column_header_name} "
