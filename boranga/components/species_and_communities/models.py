@@ -2749,15 +2749,26 @@ class SystemEmailGroup(models.Model):
         cls, group_type: GroupType, area: str | None = None
     ) -> list[str]:
         if not group_type:
-            logger.warning("No group_type provided. Returning empty list.")
-            return []
+            logger.warning(
+                "No group_type provided. Returning value from NOTIFICATION_EMAIL env instead."
+            )
+            return settings.NOTIFICATION_EMAIL.split(",")
         try:
             group = cls.objects.get(group_type=group_type, area=area)
         except cls.DoesNotExist:
             logger.warning(
-                f"No SystemEmailGroup found for group_type {group_type} and area {area}. Returning empty list."
+                f"No SystemEmailGroup found for group_type {group_type} and area {area}. "
+                "Returning value from NOTIFICATION_EMAIL env instead."
             )
-            return []
+            return settings.NOTIFICATION_EMAIL.split(",")
+
+        if len(group.email_address_list) == 0:
+            logger.warning(
+                f"No SystemEmailGroup email addresses found for group_type {group_type} and area {area}. "
+                "Returning value from NOTIFICATION_EMAIL env instead."
+            )
+            return settings.NOTIFICATION_EMAIL.split(",")
+
         return group.email_address_list
 
 
