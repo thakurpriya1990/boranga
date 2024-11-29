@@ -7425,7 +7425,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         if isinstance(field, gis_models.GeometryField):
             try:
                 geom_json = json.loads(cell_value)
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, TypeError):
                 error_message = f"Value {cell_value} in column {self.xlsx_column_header_name} is not a valid JSON"
                 errors.append(
                     {
