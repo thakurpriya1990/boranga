@@ -18,7 +18,7 @@
                 </div>
                 <div class="col-sm-2">
                     <a class="btn btn-primary" role="button" target="_blank"
-                        :href="`/internal/species_communities/${species_community.renamed_from.id}?group_type_name=${species_community.group_type}`">
+                        :href="`/internal/species-communities/${species_community.renamed_from.id}?group_type_name=${species_community.group_type}`">
                         <i class="bi bi-box-arrow-up-right"></i> {{ species_community.renamed_from.community_number }}
                     </a>
                 </div>

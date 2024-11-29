@@ -62,7 +62,7 @@
                                             Date(schema.datetime_updated).toLocaleTimeString() }}</td>
                                     <td>
                                         <a class="btn btn-sm btn-primary my-0 me-2" role="button"
-                                            :href="`/internal/occurrence_report/bulk_import_schema/${schema.id}`"><i
+                                            :href="`/internal/occurrence-report/bulk_import_schema/${schema.id}`"><i
                                                 class="bi me-2" :class="schema.can_user_edit ? 'bi-pencil-fill' : 'bi-eye-fill'"></i> <template v-if="schema.can_user_edit">Edit</template><template v-else>View</template></a>
 
                                         <button class="btn btn-sm btn-primary my-0"
@@ -145,7 +145,7 @@ export default {
                             showConfirmButton: false,
                             timer: 1500
                         })
-                        this.$router.push(`/internal/occurrence_report/bulk_import_schema/${response.data.id}`)
+                        this.$router.push(`/internal/occurrence-report/bulk_import_schema/${response.data.id}`)
                     }
                 })
                 .catch(error => {
@@ -165,7 +165,7 @@ export default {
                             showConfirmButton: false,
                             timer: 1500
                         })
-                        this.$router.push(`/internal/occurrence_report/bulk_import_schema/${response.data.id}`)
+                        this.$router.push(`/internal/occurrence-report/bulk_import_schema/${response.data.id}`)
                     }
                 })
                 .catch(error => {

@@ -60,7 +60,7 @@
 
         <div v-if="addCommunityOCRVisibility" class="col-md-12">
             <div class="text-end">
-                <a type="button" role="button" class="btn btn-primary mb-2 me-2" :href="`/internal/occurrence_report/bulk_import/?group_type=community`"><i
+                <a type="button" role="button" class="btn btn-primary mb-2 me-2" :href="`/internal/occurrence-report/bulk_import/?group_type=community`"><i
                     class="bi bi-download pe-2"></i>Bulk Import</a>
                 <button type="button" class="btn btn-primary mb-2 " @click.prevent="createCommunityOccurrenceReport"><i
                         class="fa-solid fa-circle-plus"></i> Add Community Occurrence Report</button>
@@ -425,17 +425,17 @@ export default {
                         if (full.processing_status == 'discarded') {
                             links += `<a href='#${full.id}' data-reinstate-ocr-proposal='${full.id}'>Reinstate</a><br/>`;
                         } else {
-                            links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Continue</a><br/>`;
+                            links += `<a href='/internal/occurrence-report/${full.id}?action=edit'>Continue</a><br/>`;
                             links += `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
                             links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
                         }
                     }
                     else {
                         if (full.can_user_assess || full.can_user_approve) {
-                            links += `<a href='/internal/occurrence_report/${full.id}?action=edit'>Process</a><br/>`;
+                            links += `<a href='/internal/occurrence-report/${full.id}?action=edit'>Process</a><br/>`;
                         }
                         else {
-                            links += `<a href='/internal/occurrence_report/${full.id}?action=view'>View</a><br/>`;
+                            links += `<a href='/internal/occurrence-report/${full.id}?action=view'>View</a><br/>`;
                         }
                         links += `<a href='#' data-history-occurrence-report='${full.id}'>History</a><br>`;
                     }

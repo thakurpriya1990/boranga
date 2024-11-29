@@ -689,20 +689,20 @@ export default {
                             if (full.processing_status == 'Discarded') {
                                 links += `<a href='#${full.id}' data-reinstate-species-proposal='${full.id}'>Reinstate</a><br/>`;
                             } else {
-                                links += `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
+                                links += `<a href='/internal/species-communities/${full.id}?group_type_name=${full.group_type}'>Continue</a><br/>`;
                                 links += `<a href='#${full.id}' data-discard-species-proposal='${full.id}'>Discard</a><br/>`;
                                 links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                             }
                         }
                         else {
                             if (full.user_process) {
-                                links += `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;
+                                links += `<a href='/internal/species-communities/${full.id}?group_type_name=${full.group_type}&action=edit'>Edit</a><br/>`;
                             }
-                            links += `<a href='/internal/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
+                            links += `<a href='/internal/species-communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
                             links += `<a href='#' data-history-species='${full.id}'>History</a><br>`;
                         }
                     } else {
-                        links += `<a href='/external/species_communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
+                        links += `<a href='/external/species-communities/${full.id}?group_type_name=${full.group_type}&action=view'>View</a><br/>`;
                     }
                     return links;
                 }

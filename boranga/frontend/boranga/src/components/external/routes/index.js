@@ -29,7 +29,7 @@ export default
                 name: "external-species-communities-dash"
             },
             {
-                path: 'species_communities',
+                path: 'species-communities',
                 component: {
                     render(c) {
                         return c('router-view')
@@ -56,10 +56,10 @@ export default
             {
                 path: 'occurrence-report',
                 component: ExternalOccurrenceReportDash,
-                name: "external-occurrence_report-dash"
+                name: "external-occurrence-report-dash"
             },
             {
-                path: 'occurrence_report',
+                path: 'occurrence-report',
                 component: {
                     render(c) {
                         return c('router-view')
@@ -89,7 +89,7 @@ export default
                 name: "external-conservation_status-dash"
             },
             {
-                path: 'conservation_status',
+                path: 'conservation-status',
                 component: {
                     render(c) {
                         return c('router-view')

@@ -303,7 +303,7 @@ export default {
                 visible: true,
                 'render': function (data, type, full) {
                     let links = '';
-                    links += full.can_be_processed ? `<a href='/internal/conservation_status/${full.conservation_status_id}/referral/${full.id}'>Process</a><br/>` : `<a href='/internal/conservation_status/${full.conservation_status_id}/referral/${full.id}'>View</a><br/>`;
+                    links += full.can_be_processed ? `<a href='/internal/conservation-status/${full.conservation_status_id}/referral/${full.id}'>Process</a><br/>` : `<a href='/internal/conservation-status/${full.conservation_status_id}/referral/${full.id}'>View</a><br/>`;
                     return links;
                 },
             }

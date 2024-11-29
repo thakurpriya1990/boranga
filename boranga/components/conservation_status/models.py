@@ -821,26 +821,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         return users
 
     @property
-    def assessor_recipients(self):
-        recipients = []
-        group_ids = member_ids(
-            GROUP_NAME_CONSERVATION_STATUS_ASSESSOR, include_superusers=False
-        )
-        for id in group_ids:
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
-    def approver_recipients(self):
-        recipients = []
-        group_ids = member_ids(
-            GROUP_NAME_CONSERVATION_STATUS_APPROVER, include_superusers=False
-        )
-        for id in group_ids:
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
     def current_conservation_status(self):
         if self.species:
             current_conservation_statuses = ConservationStatus.objects.filter(
@@ -1357,9 +1337,11 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         if not self.can_assess(request):
             raise exceptions.ProposalNotAuthorized()
 
-        if self.processing_status not in ("with_assessor", "ready_for_agenda"):
+        if not self.can_be_declined:
             raise ValidationError(
-                "You cannot decline the proposal if it is not with an assessor"
+                "You can only decline a Conservation Status Proposal "
+                "if the processing status is With Assessor AND it has immediate approval level or"
+                "the processing status is On Agenda AND it has ministerial approval level"
             )
 
         conservation_status_decline, created = (
@@ -1373,7 +1355,6 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             )
         )
         self.proposed_decline_status = True
-
         self.processing_status = ConservationStatus.PROCESSING_STATUS_DECLINED
         self.customer_status = ConservationStatus.CUSTOMER_STATUS_DECLINED
 
@@ -1453,6 +1434,10 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             self.processing_status == ConservationStatus.PROCESSING_STATUS_ON_AGENDA
             and self.approval_level == ConservationStatus.APPROVAL_LEVEL_MINISTER
         )
+
+    @property
+    def can_be_declined(self):
+        return self.can_be_approved
 
     @transaction.atomic
     def final_approval(self, request, details):

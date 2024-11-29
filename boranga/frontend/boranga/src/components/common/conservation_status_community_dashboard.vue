@@ -817,7 +817,7 @@ export default {
                     let links = "";
                     if (vm.is_for_agenda == false) {
                         if (full.internal_user_edit) {
-                            links += `<a href='/internal/conservation_status/${full.id}'>Continue</a><br/>`;
+                            links += `<a href='/internal/conservation-status/${full.id}'>Continue</a><br/>`;
                             links += `<a href='#${full.id}' data-discard-cs-proposal='${full.id}'>Discard</a><br/>`;
                             links += `<a href='#' data-history-conservation-status-community='${full.id}'
                             data-history-community='${full.community_number}'
@@ -825,7 +825,7 @@ export default {
                         }
                         else {
                             if (full.assessor_process || full.approver_process) {
-                                links += `<a href='/internal/conservation_status/${full.id}'>Process</a><br/>`;
+                                links += `<a href='/internal/conservation-status/${full.id}'>Process</a><br/>`;
                                 links += `<a href='#' data-history-conservation-status-community='${full.id}'
                                     data-history-community='${full.community_number}'
                                     data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
@@ -834,7 +834,7 @@ export default {
                                 if (full.processing_status == constants.PROPOSAL_STATUS.DISCARDED.TEXT) {
                                     links += `<a href='#' data-reinstate-conservation-status-community='${full.id}'>Reinstate</a><br/>`;
                                 }
-                                links += `<a href='/internal/conservation_status/${full.id}?action=view'>View</a><br/>`;
+                                links += `<a href='/internal/conservation-status/${full.id}?action=view'>View</a><br/>`;
                                 links += `<a href='#' data-history-conservation-status-community='${full.id}'
                                 data-history-community='${full.community_number}'
                                 data-history-conservation-list='${full.conservation_list}'>History</a><br>`;
@@ -1166,7 +1166,7 @@ export default {
                         console.log(err);
                     }
                     this.$router.push({
-                        name: 'internal-conservation_status',
+                        name: 'internal-conservation-status',
                         params: { conservation_status_id: newCommunityCSId },
                     });
                 }

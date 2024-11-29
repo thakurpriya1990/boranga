@@ -313,14 +313,14 @@
                                     </div>
                                 </template>
                                 <template v-else-if="conservation_status_obj.processing_status == 'Proposed DeListed'">
-                                    <div class="row">
+                                    <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary"
                                                 @click.prevent="switchStatus('approved')">Revert To
                                                 Approved</button><br />
                                         </div>
                                     </div>
-                                    <div class="row">
+                                    <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary"
                                                 @click.prevent="delistProposal()">Confirm Delisting</button><br />
@@ -328,7 +328,7 @@
                                     </div>
                                 </template>
                                 <template v-if="canSendBackToAssessor">
-                                    <div class="row">
+                                    <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary"
                                                 @click.prevent="backToAssessor">Back To
@@ -337,7 +337,7 @@
                                     </div>
                                 </template>
                                 <template v-if="canDefer">
-                                    <div class="row">
+                                    <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary"
                                                 @click.prevent="deferProposal()">Defer</button><br />
@@ -345,7 +345,7 @@
                                     </div>
                                 </template>
                                 <template v-if="canDiscard">
-                                    <div class="row">
+                                    <div class="row mb-2">
                                         <div class="col-sm-12">
                                             <button style="width:90%;" class="btn btn-primary"
                                                 @click.prevent="discardCSProposal()">Discard</button><br />
@@ -378,7 +378,7 @@
                                                 <div class="col-md-6">
                                                     <p class="pull-right" style="margin-top:5px;">
                                                         <router-link class="btn btn-primary"
-                                                            :to="{ name: 'internal-conservation_status-dash' }">Back to
+                                                            :to="{ name: 'internal-conservation-status-dash' }">Back to
                                                             Dashboard</router-link>
                                                     </p>
                                                 </div>
@@ -652,6 +652,7 @@ export default {
                 this.conservation_status_obj.approval_level == 'minister' &&
                 [
                     constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
+                    constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
                     constants.PROPOSAL_STATUS.DEFERRED.TEXT,
                 ].includes(this.conservation_status_obj.processing_status) &&
                 this.conservation_status_obj.assessor_mode.assessor_can_assess &&
@@ -804,7 +805,7 @@ export default {
                                 },
                             });
                             vm.$router.push({
-                                name: 'internal-conservation_status-dash'
+                                name: 'internal-conservation-status-dash'
                             });
                         }, (error) => {
                             console.log(error);
@@ -856,7 +857,7 @@ export default {
                                 },
                             });
                             vm.$router.push({
-                                name: 'internal-conservation_status-dash'
+                                name: 'internal-conservation-status-dash'
                             });
                         }, (error) => {
                             console.log(error);
@@ -980,7 +981,7 @@ export default {
             await this.save(e).then(() => {
                 if (vm.isSaved === true) {
                     vm.$router.push({
-                        name: 'internal-conservation_status-dash'
+                        name: 'internal-conservation-status-dash'
                     });
                 } else {
                     vm.saveExitConservationStatus = false;
@@ -1092,7 +1093,7 @@ export default {
                         vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/submit'), payload).then(res => {
                             vm.conservation_status_obj = res.body;
                             vm.$router.push({
-                                name: 'internal-conservation_status-dash'
+                                name: 'internal-conservation-status-dash'
                             });
                         }, err => {
                             swal.fire({

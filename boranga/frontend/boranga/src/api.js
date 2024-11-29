@@ -210,16 +210,16 @@ module.exports = {
         return `/api/observer_detail/${id}.json`;
     },
     lookup_history_species_document: function (id) {
-      return `/api/history/boranga/species_communities/SpeciesDocument/${id}/`;
+      return `/api/history/boranga/species-communities/SpeciesDocument/${id}/`;
     },
     lookup_history_species: function (id) {
-      return `/api/history/boranga/species_communities/Species/${id}/`;
+      return `/api/history/boranga/species-communities/Species/${id}/`;
     },
     lookup_history_community_document: function (id) {
-      return `/api/history/boranga/species_communities/CommunityDocument/${id}/`;
+      return `/api/history/boranga/species-communities/CommunityDocument/${id}/`;
     },
     lookup_history_community: function (id) {
-      return `/api/history/boranga/species_communities/Community/${id}/`;
+      return `/api/history/boranga/species-communities/Community/${id}/`;
     },
 
     lookup_history_conservation_status_document: function (id) {
@@ -248,7 +248,7 @@ module.exports = {
     },
 
     lookup_history_conservation_threat: function (id) {
-      return `/api/history/boranga/species_communities/ConservationThreat/${id}/`;
+      return `/api/history/boranga/species-communities/ConservationThreat/${id}/`;
     },
 
     lookup_history_ocr_conservation_threat: function (id) {
