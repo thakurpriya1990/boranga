@@ -2455,7 +2455,7 @@ class OCRHabitatCondition(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCRHabitat Condition: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 class OCRVegetationStructure(models.Model):
@@ -2486,7 +2486,7 @@ class OCRVegetationStructure(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Vegetation Structure: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 class Intensity(ArchivableModel):
@@ -2544,7 +2544,7 @@ class OCRFireHistory(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Fire History: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 class OCRAssociatedSpecies(models.Model):
@@ -2573,7 +2573,7 @@ class OCRAssociatedSpecies(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Associated Species {self.id} for Occurrence Report {self.occurrence_report}"
 
 
 class ObservationMethod(ArchivableModel):
@@ -2631,7 +2631,7 @@ class OCRObservationDetail(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Observation Detail: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 class PlantCountMethod(ArchivableModel):
@@ -2815,7 +2815,7 @@ class OCRPlantCount(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Plant Count: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 # used for Animal Observation(MultipleSelect)
@@ -3019,7 +3019,7 @@ class OCRAnimalObservation(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Animal Observation: {self.id} for Occurrence Report: {self.occurrence_report}"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -3179,7 +3179,7 @@ class OCRIdentification(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Identification: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 class OccurrenceReportDocument(Document):
@@ -5702,9 +5702,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     {"field": column.django_import_field_name, "value": cell_value}
                 )
 
-                # Continue to the next column without adding the cell value to the model data
-                continue
-
             column_error_count += errors_added
 
             row_error_count += column_error_count
@@ -5719,6 +5716,12 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 models[model_name] = {"field_names": [], "values": []}
 
             models[model_name]["field_names"].append(column.django_import_field_name)
+
+            # Attempting to assign the cell value directly to the m2m field
+            # will raise an error, so we skip it here and handle it later
+            if type(field) is ManyToManyField:
+                continue
+
             models[model_name]["values"].append(cell_value)
 
         if row_error_count > 0:
@@ -7699,6 +7702,28 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     f"{self.django_lookup_field_name} with value {cell_value} "
                     f"for column {self.xlsx_column_header_name}"
                 )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
+            if related_model_instances.count() == 0:
+                error_message = (
+                    f"Can't find any {self.django_import_field_name} records by looking up "
+                    f"{lookup_field} with value {cell_value} "
+                    f"for column {self.xlsx_column_header_name}"
+                )
+                if "," in cell_value[0]:
+                    error_message += (
+                        " (Hint: The delimiter for many to many fields is '"
+                        f"{settings.OCR_BULK_IMPORT_M2M_DELIMITER}' not ',')"
+                    )
                 errors.append(
                     {
                         "row_index": index,
