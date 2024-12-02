@@ -5882,7 +5882,8 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                             OccurrenceReport._meta.model_name
                         ]
                         if (
-                            not current_model_instance.species
+                            current_model_instance.species
+                            and not current_model_instance.species
                             == occurrence_report.species
                         ):
                             error_message = (
@@ -5893,6 +5894,25 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                                 {
                                     "row_index": index,
                                     "error_type": "invalid_occurrence_species",
+                                    "data": model_data,
+                                    "error_message": error_message,
+                                }
+                            )
+                            return
+
+                        if (
+                            current_model_instance.community
+                            and not current_model_instance.community
+                            == occurrence_report.community
+                        ):
+                            error_message = (
+                                "The community of the occurrence does not match "
+                                "the community of the occurrence report"
+                            )
+                            errors.append(
+                                {
+                                    "row_index": index,
+                                    "error_type": "invalid_occurrence_community",
                                     "data": model_data,
                                     "error_message": error_message,
                                 }
