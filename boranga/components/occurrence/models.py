@@ -5661,8 +5661,31 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         geometries = {}
         many_to_many_fields = {}
 
-        # Validate each cell
+        # Find any sets of columns (models) where the fields are all empty
+        # so that we can exclude them from the row data (and therefor not bother validating them)
+        required_content_types = []
         for column_index, column in enumerate(self.schema.columns.all()):
+            cell_value = row[column_index]
+            if (
+                cell_value is not None
+                and column.django_import_content_type not in required_content_types
+            ):
+                required_content_types.append(column.django_import_content_type)
+
+        indexes_to_remove = []
+        for column_index, column in enumerate(self.schema.columns.all()):
+            if column.django_import_content_type not in required_content_types:
+                indexes_to_remove.append(column_index)
+
+        row = [i for j, i in enumerate(row) if j not in indexes_to_remove]
+        headers = [i for j, i in enumerate(headers) if j not in indexes_to_remove]
+
+        # Validate each cell
+        for column_index, column in enumerate(
+            self.schema.columns.filter(
+                django_import_content_type__in=required_content_types
+            )
+        ):
             column_error_count = 0
 
             cell_value = row[column_index]
