@@ -46,12 +46,12 @@
                         v-if="wild_status_list && wild_status_list.length > 0 && !wild_status_list.map((d) => d.id).includes(occurrence_obj.wild_status)">
                         <input type="text" v-if="occurrence_obj.wild_status_name" class="form-control mb-3"
                             :value="occurrence_obj.wild_status_name + ' (Now Archived)'" disabled />
-                        <div class="mb-3 text-muted">
+                        <div v-if="occurrence_obj.wild_status" class="mb-3 text-muted">
                             Change wild status to:
                         </div>
                     </template>
                     <select :disabled="isReadOnly" class="form-select" v-model="occurrence_obj.wild_status">
-                        <option value="" selected disabled>Select Wild Status</option>
+                        <option :value="null" selected disabled>Select Wild Status</option>
                         <option v-for="option in wild_status_list" :value="option.id" :key="option.id">
                             {{ option.name }}
                         </option>
