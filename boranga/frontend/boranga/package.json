@@ -33,7 +33,7 @@
         "select2-bootstrap-5-theme": "^1.3.0",
         "shpjs": "^6.1.0",
         "sortablejs": "^1.15.6",
-        "sweetalert2": "^11.4",
+        "sweetalert2": "11.4.8",
         "uuid": "^11.0",
         "vue": "^3.4",
         "vue-router": "^4.0"
