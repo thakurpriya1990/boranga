@@ -190,7 +190,13 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.post(helpers.add_endpoint_join(api_endpoints.occurrence_report, '/' + (vm.occurrence_report.id + '/propose_approve/')), JSON.stringify(vm.propose_approve))
+                    fetch(helpers.add_endpoint_join(api_endpoints.occurrence_report, '/' + (vm.occurrence_report.id + '/propose_approve/')), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(vm.propose_approve),
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Proposal to Approve Successful',

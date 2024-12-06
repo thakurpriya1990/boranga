@@ -3,79 +3,75 @@
         <div class="row" style="padding-bottom: 50px;">
             <h3>{{ display_group_type }} {{ display_number }} - {{ display_name }}</h3>
             <div v-if="!comparing" class="col-md-3">
-                <template>
-                    <div class="">
-                        <div class="card card-default mb-3">
-                            <div class="card-header">
-                                Image
+                <div class="">
+                    <div class="card card-default mb-3">
+                        <div class="card-header">
+                            Image
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-2 pb-2">
+                                <div v-if="!uploadingImage && speciesCommunitiesImage" class="col">
+                                    <div class="rounded"
+                                        :class="downloadingImage ? 'animated-background bg-secondary' : ''"
+                                        style="width:258px;" :style="downloadingImage ? 'height:258px;' : ''">
+                                        <img v-show="!downloadingImage" @load="onImageLoad"
+                                            :src="speciesCommunitiesImage" width="258"
+                                            class="img-thumbnail img-fluid rounded" />
+                                    </div>
+                                </div>
+                                <div v-else
+                                    class="col d-flex bg-light bg-gradient justify-content-center align-content-middle mx-2"
+                                    style="height:258px;">
+                                    <div class="align-self-center text-muted">No Image Uploaded</div>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <template>
-                                    <div class="row mb-2 pb-2">
-                                        <div v-if="!uploadingImage && speciesCommunitiesImage" class="col">
-                                            <div class="rounded"
-                                                :class="downloadingImage ? 'animated-background bg-secondary' : ''"
-                                                style="width:258px;" :style="downloadingImage ? 'height:258px;' : ''">
-                                                <img v-show="!downloadingImage" @load="onImageLoad"
-                                                    :src="speciesCommunitiesImage" width="258"
-                                                    class="img-thumbnail img-fluid rounded" />
-                                            </div>
-                                        </div>
-                                        <div v-else
-                                            class="col d-flex bg-light bg-gradient justify-content-center align-content-middle mx-2"
-                                            style="height:258px;">
-                                            <div class="align-self-center text-muted">No Image Uploaded</div>
-                                        </div>
+                            <div v-if="hasUserEditMode && species_community.processing_status != 'Discarded'"
+                                class="row border-top pt-3 mb-2">
+                                <div class="col">
+                                    <div class="d-flex justify-content-center">
+                                        <div class="text-muted">Image Actions</div>
                                     </div>
-                                    <div v-if="hasUserEditMode && species_community.processing_status != 'Discarded'"
-                                        class="row border-top pt-3 mb-2">
-                                        <div class="col">
-                                            <div class="d-flex justify-content-center">
-                                                <div class="text-muted">Image Actions</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div v-if="hasUserEditMode && species_community.processing_status != 'Discarded'"
-                                        class="row">
-                                        <div class="col">
-                                            <div class="d-flex align-items-center flex-column">
-                                                <label v-if="!speciesCommunitiesImage" for="image-upload" role="button"
-                                                    class="btn btn-primary btn-sm w-50 mb-2 text-start"><i
-                                                        class="bi bi-upload me-3"></i>
-                                                    Upload</label>
-                                                <input id="image-upload" class="d-none" type="file" accept="image/*"
-                                                    ref="speciesCommunitiesImage" @change="uploadImage">
-                                                <button class="btn btn-secondary btn-sm w-50 mb-2 text-start"
-                                                    @click="showReinstateImageModal"><i
-                                                        class="bi bi-clock-history me-3"></i> Reinstate</button>
-                                                <template v-if="!uploadingImage && speciesCommunitiesImage">
-                                                    <label for="image-upload" role="button"
-                                                        class="btn btn-primary btn-sm w-50 mb-2 text-start"><i
-                                                            class="bi bi-pencil-fill me-3"></i>
-                                                        Replace</label>
-                                                    <input id="image-upload" class="d-none" type="file" accept="image/*"
-                                                        ref="speciesCommunitiesImage" @change="uploadImage">
+                                </div>
+                            </div>
+                            <div v-if="hasUserEditMode && species_community.processing_status != 'Discarded'"
+                                class="row">
+                                <div class="col">
+                                    <div class="d-flex align-items-center flex-column">
+                                        <label v-if="!speciesCommunitiesImage" for="image-upload" role="button"
+                                            class="btn btn-primary btn-sm w-50 mb-2 text-start"><i
+                                                class="bi bi-upload me-3"></i>
+                                            Upload</label>
+                                        <input id="image-upload" class="d-none" type="file" accept="image/*"
+                                            ref="speciesCommunitiesImage" @change="uploadImage">
+                                        <button class="btn btn-secondary btn-sm w-50 mb-2 text-start"
+                                            @click="showReinstateImageModal"><i class="bi bi-clock-history me-3"></i>
+                                            Reinstate</button>
+                                        <template v-if="!uploadingImage && speciesCommunitiesImage">
+                                            <label for="image-upload" role="button"
+                                                class="btn btn-primary btn-sm w-50 mb-2 text-start"><i
+                                                    class="bi bi-pencil-fill me-3"></i>
+                                                Replace</label>
+                                            <input id="image-upload" class="d-none" type="file" accept="image/*"
+                                                ref="speciesCommunitiesImage" @change="uploadImage">
 
-                                                    <button @click="confirmDiscardImage"
-                                                        class="btn btn-danger btn-sm w-50 mb-2 text-start"><i
-                                                            class="bi bi-trash3-fill me-3"></i>
-                                                        Discard</button>
-                                                </template>
-                                                <button v-if="uploadingImage"
-                                                    class="btn btn-primary btn-sm w-50 mb-2 text-start">
-                                                    <span class="spinner-border spinner-border-sm me-3" role="status"
-                                                        aria-hidden="true"></span>
-                                                    Uploading
-                                                    <span class="visually-hidden">Loading...</span>
-                                                </button>
-                                            </div>
-                                        </div>
+                                            <button @click="confirmDiscardImage"
+                                                class="btn btn-danger btn-sm w-50 mb-2 text-start"><i
+                                                    class="bi bi-trash3-fill me-3"></i>
+                                                Discard</button>
+                                        </template>
+                                        <button v-if="uploadingImage"
+                                            class="btn btn-primary btn-sm w-50 mb-2 text-start">
+                                            <span class="spinner-border spinner-border-sm me-3" role="status"
+                                                aria-hidden="true"></span>
+                                            Uploading
+                                            <span class="visually-hidden">Loading...</span>
+                                        </button>
                                     </div>
-                                </template>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </template>
+                </div>
 
                 <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
                     :disable_add_entry="!species_community.can_add_log" class="mb-3" />
@@ -188,79 +184,76 @@
             </div>
             <div class="col-md-9">
                 <div class="row">
-                    <template>
-                        <div class="">
-                            <div class="row">
-                                <form :action="species_community_form_url" method="post" name="new_species"
-                                    enctype="multipart/form-data">
-                                    <ProposalSpeciesCommunities ref="species_communities"
-                                        :species_community="species_community"
-                                        :species_community_original="species_community_original"
-                                        id="speciesCommunityStart" :is_internal="true"
-                                        :is_readonly="species_community.readonly || species_community.processing_status == 'Discarded'">
-                                    </ProposalSpeciesCommunities>
-                                    <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                                    <input type='hidden' name="species_community_id" :value="1" />
-                                    <div class="row" style="margin-bottom: 50px">
-                                        <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                            <div class="container">
-                                                <div class="col-md-6">
-                                                    <button class="btn btn-primary me-2 pull-left"
-                                                        style="margin-top:5px;" @click.prevent="returnToDashboard">
-                                                        Return to Dashboard</button>
-                                                </div>
-                                                <div v-if="species_community.can_user_edit && species_community.processing_status != 'Discarded'"
-                                                    class="col-md-6 text-end">
-                                                    <button v-if="savingSpeciesCommunity"
-                                                        class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
-                                                        disabled>Save and Continue <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary me-2 ull-right"
-                                                        style="margin-top:5px;" @click.prevent="save()"
-                                                        :disabled="saveExitSpeciesCommunity || submitSpeciesCommunity">Save
-                                                        and Continue</button>
+                    <div class="">
+                        <div class="row">
+                            <form :action="species_community_form_url" method="post" name="new_species"
+                                enctype="multipart/form-data">
+                                <ProposalSpeciesCommunities ref="species_communities"
+                                    :species_community="species_community"
+                                    :species_community_original="species_community_original" id="speciesCommunityStart"
+                                    :is_internal="true"
+                                    :is_readonly="species_community.readonly || species_community.processing_status == 'Discarded'">
+                                </ProposalSpeciesCommunities>
+                                <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
+                                <input type='hidden' name="species_community_id" :value="1" />
+                                <div class="row" style="margin-bottom: 50px">
+                                    <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                                        <div class="container">
+                                            <div class="col-md-6">
+                                                <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
+                                                    @click.prevent="returnToDashboard">
+                                                    Return to Dashboard</button>
+                                            </div>
+                                            <div v-if="species_community.can_user_edit && species_community.processing_status != 'Discarded'"
+                                                class="col-md-6 text-end">
+                                                <button v-if="savingSpeciesCommunity"
+                                                    class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
+                                                    disabled>Save and Continue <span
+                                                        class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Loading...</span></button>
+                                                <button v-else class="btn btn-primary me-2 ull-right"
+                                                    style="margin-top:5px;" @click.prevent="save()"
+                                                    :disabled="saveExitSpeciesCommunity || submitSpeciesCommunity">Save
+                                                    and Continue</button>
 
-                                                    <button v-if="saveExitSpeciesCommunity"
-                                                        class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
-                                                        disabled>Save and Exit <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary me-2 pull-right"
-                                                        style="margin-top:5px;" @click.prevent="save_exit()"
-                                                        :disabled="savingSpeciesCommunity || submitSpeciesCommunity">Save
-                                                        and Exit</button>
+                                                <button v-if="saveExitSpeciesCommunity"
+                                                    class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
+                                                    disabled>Save and Exit <span
+                                                        class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Loading...</span></button>
+                                                <button v-else class="btn btn-primary me-2 pull-right"
+                                                    style="margin-top:5px;" @click.prevent="save_exit()"
+                                                    :disabled="savingSpeciesCommunity || submitSpeciesCommunity">Save
+                                                    and Exit</button>
 
-                                                    <button v-if="submitSpeciesCommunity"
-                                                        class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                        disabled>Submit <span class="spinner-border spinner-border-sm"
-                                                            role="status" aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" @click.prevent="submit()"
-                                                        :disabled="saveExitSpeciesCommunity || savingSpeciesCommunity">Submit</button>
-                                                </div>
-                                                <div v-else-if="hasUserEditMode && species_community.processing_status != 'Discarded'"
-                                                    class="col-md-6 text-end">
-                                                    <button v-if="savingSpeciesCommunity"
-                                                        class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                        disabled>Save Changes <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" @click.prevent="save()">Save
-                                                        Changes</button>
-                                                </div>
+                                                <button v-if="submitSpeciesCommunity" class="btn btn-primary pull-right"
+                                                    style="margin-top:5px;" disabled>Submit <span
+                                                        class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Loading...</span></button>
+                                                <button v-else class="btn btn-primary pull-right"
+                                                    style="margin-top:5px;" @click.prevent="submit()"
+                                                    :disabled="saveExitSpeciesCommunity || savingSpeciesCommunity">Submit</button>
+                                            </div>
+                                            <div v-else-if="hasUserEditMode && species_community.processing_status != 'Discarded'"
+                                                class="col-md-6 text-end">
+                                                <button v-if="savingSpeciesCommunity" class="btn btn-primary pull-right"
+                                                    style="margin-top:5px;" disabled>Save Changes <span
+                                                        class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Loading...</span></button>
+                                                <button v-else class="btn btn-primary pull-right"
+                                                    style="margin-top:5px;" @click.prevent="save()">Save
+                                                    Changes</button>
                                             </div>
                                         </div>
                                     </div>
-                                </form>
-                            </div>
+                                </div>
+                            </form>
                         </div>
-                    </template>
+                    </div>
                 </div>
             </div>
         </div>
@@ -465,13 +458,18 @@ export default {
                 else {
                     var api_url = api_endpoints.species;
                 }
-                vm.$http.post(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/upload_image')), data, {
-                    emulateJSON: true
-                }).then((response) => {
+                fetch(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/upload_image')), {
+                    method: 'POST',
+                    body: data,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }).then(async (response) => {
+                    const data = await response.json();
                     vm.uploadingImage = false;
                     vm.speciesCommunitiesImage = null;
-                    vm.speciesCommunitiesImage = response.body.image_doc;
-                    vm.species_community.image_doc = response.body.image_doc;
+                    vm.speciesCommunitiesImage = data.image_doc;
+                    vm.species_community.image_doc = data.image_doc;
                 }, (error) => {
                     console.log(error);
                     vm.uploadingImage = false;
@@ -515,7 +513,12 @@ export default {
                 }
 
                 if (swalresult.isConfirmed) {
-                    await vm.$http.post(`${endpoint}/${this.species_community.id}/reopen_species_community.json`).then(res => {
+                    await fetch(`${endpoint}/${this.species_community.id}/reopen_species_community.json`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }).then(async (response) => {
                         swal.fire({
                             title: "Reopened",
                             text: "Record has been reopened",
@@ -548,7 +551,12 @@ export default {
             else {
                 var api_url = api_endpoints.species;
             }
-            vm.$http.patch(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/reinstate_image')), {
+            fetch(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/reinstate_image'), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }), {
                 pk: image.id
             }).then(() => {
                 this.speciesCommunitiesImage = image.url;
@@ -603,13 +611,17 @@ export default {
                 });
             } else {
                 if (vm.species_community.image_doc) {
-                    vm.$http.post(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/delete_image')), {
-                        emulateJSON: true
-                    }).then((response) => {
+                    fetch(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/delete_image')), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }).then(async (response) => {
+                        const data = await response.json();
                         vm.uploadingImage = false;
                         vm.speciesCommunitiesImage = null;
-                        vm.speciesCommunitiesImage = response.body.image_doc;
-                        vm.species_community.image_doc = response.body.image_doc;
+                        vm.speciesCommunitiesImage = data.image_doc;
+                        vm.species_community.image_doc = data.image_doc;
                     }, (error) => {
                         console.log(error);
                         vm.uploadingImage = false;
@@ -646,7 +658,12 @@ export default {
                 reverseButtons: true
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_species_proposal(vm.species_community.id))
+                    fetch(api_endpoints.discard_species_proposal(vm.species_community.id), {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -691,8 +708,14 @@ export default {
                 was_public = " - record is now private"
             }
 
-            await vm.$http.post(vm.species_community_form_url, payload).then(res => {
-                vm.species_community = res.body;
+            await fetch(vm.species_community_form_url, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (response) => {
+                vm.species_community = await response.json();
                 vm.species_community_original = helpers.copyObject(vm.species_community); //update original after save
                 swal.fire({
                     title: "Saved",
@@ -757,7 +780,13 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, vm.species_community);
-            const result = await vm.$http.post(vm.species_community_form_url, payload).then(res => {
+            const result = await fetch(vm.species_community_form_url, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (response) => {
                 //return true;
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
@@ -862,8 +891,14 @@ export default {
                         let submit_url = this.species_community.group_type === "community" ?
                             helpers.add_endpoint_json(api_endpoints.community, vm.species_community.id + '/submit') :
                             helpers.add_endpoint_json(api_endpoints.species, vm.species_community.id + '/submit')
-                        vm.$http.post(submit_url, payload).then(res => {
-                            vm.species_community = res.body;
+                        fetch(submit_url, {
+                            method: 'POST',
+                            body: JSON.stringify(payload),
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        }).then(async (response) => {
+                            vm.species_community = await response.json();
                             vm.species_community_original = helpers.copyObject(vm.species_community);
                             vm.$router.push({
                                 name: 'internal-species-communities-dash'
@@ -889,21 +924,29 @@ export default {
         save_wo: function () {
             let vm = this;
             let formData = new FormData(vm.form);
-            vm.$http.post(vm.proposal_form_url, formData).then(res => {
+            fetch(vm.proposal_form_url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (response) => {
             }, err => {
             });
         },
-        refreshFromResponse: function (response) {
+        refreshFromResponse: async function (response) {
             let vm = this;
-            vm.species_community = helpers.copyObject(response.body);
+            const data = await response.json();
+            vm.species_community = helpers.copyObject(data);
             vm.species_community_original = copyObject(vm.species_community);
         },
         refreshSpeciesCommunity: function () {
             let vm = this;
             if (vm.species_community.group_type === 'flora' || vm.species_community.group_type === "fauna") {
-                Vue.http.get(`/api/species/${vm.species_community.id}/internal_species.json`)
-                    .then(res => {
-                        vm.species_community = res.body.species_obj;
+                fetch(`/api/species/${vm.species_community.id}/internal_species.json`)
+                    .then(async (response) => {
+                        const data = await response.json();
+                        vm.species_community = data.species_obj;
                         vm.species_community_original = helpers.copyObject(vm.species_community);
                         vm.speciesCommunitiesImage = vm.species_community.image_doc;
                     },
@@ -911,9 +954,10 @@ export default {
                             console.log(err);
                         });
             } else {
-                Vue.http.get(`/api/community/${vm.species_community.id}/internal_community.json`)
-                    .then(res => {
-                        vm.species_community = res.body.community_obj;
+                fetch(`/api/community/${vm.species_community.id}/internal_community.json`)
+                    .then(async (response) => {
+                        const data = await response.json();
+                        vm.species_community = data.community_obj;
                         vm.species_community_original = helpers.copyObject(vm.species_community);
                         vm.speciesCommunitiesImage = vm.species_community.image_doc;
                     },
@@ -929,11 +973,18 @@ export default {
                 const createUrl = api_endpoints.species + "/";
                 let payload = new Object();
                 payload.group_type_id = this.species_community.group_type_id;
-                let savedSpecies = await Vue.http.post(createUrl, payload);
+                let savedSpecies = await fetch(createUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
                 if (savedSpecies) {
                     newSpeciesId1 = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId1}/internal_species.json`).then(res => {
-                        let species_obj = res.body.species_obj;
+                    fetch(`/api/species/${newSpeciesId1}/internal_species.json`).then(async (response) => {
+                        const data = await response.json();
+                        let species_obj = data.species_obj;
                         //--- to add empty documents array
                         species_obj.documents = []
                         //---empty threats array added to store the select threat ids in from the child component
@@ -956,11 +1007,18 @@ export default {
                 const createUrl = api_endpoints.species + "/";
                 let payload = new Object();
                 payload.group_type_id = this.species_community.group_type_id
-                let savedSpecies = await Vue.http.post(createUrl, payload);
+                let savedSpecies = await fetch(createUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
                 if (savedSpecies) {
                     newSpeciesId2 = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId2}/internal_species.json`).then(res => {
-                        let species_obj = res.body.species_obj;
+                    fetch(`/api/species/${newSpeciesId2}/internal_species.json`).then(async (response) => {
+                        const data = await response.json();
+                        let species_obj = data.species_obj;
                         // to add documents id array from original species
                         species_obj.documents = []
                         //---empty threats array added to store the select threat ids in from the child component
@@ -987,11 +1045,18 @@ export default {
                 const createUrl = api_endpoints.species + "/";
                 let payload = new Object();
                 payload.group_type_id = this.species_community.group_type_id;
-                let savedSpecies = await Vue.http.post(createUrl, payload);
+                let savedSpecies = await fetch(createUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
                 if (savedSpecies) {
                     newSpeciesId = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId}/internal_species.json`).then(res => {
-                        let species_obj = res.body.species_obj;
+                    fetch(`/api/species/${newSpeciesId}/internal_species.json`).then(async (response) => {
+                        const data = response.json();
+                        let species_obj = data.species_obj;
                         //--- to add empty documents array
                         species_obj.documents = []
                         //---empty threats array added to store the selected threat ids in from the child component
@@ -1014,7 +1079,7 @@ export default {
         },
         renameSpecies: async function () {
             let rename_species_obj = null;
-            let newRenameSpecies = await Vue.http.get(`/api/species/${this.species_community.id}/rename_deep_copy.json`)
+            let newRenameSpecies = await fetch(`/api/species/${this.species_community.id}/rename_deep_copy.json`)
             if (newRenameSpecies) {
                 rename_species_obj = newRenameSpecies.body.species_obj;
                 this.$refs.species_rename.new_rename_species = rename_species_obj;
@@ -1037,11 +1102,15 @@ export default {
                 vm.species_community.publishing_status.species_public = false;
             }
             let data = JSON.stringify(vm.species_community.publishing_status)
-            vm.$http.post(helpers.add_endpoint_json(endpoint, (vm.species_community.id + '/update_publishing_status')), data, {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(endpoint, (vm.species_community.id + '/update_publishing_status')),  {
+                method: 'POST',
+                body: data,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (response) => {
                 vm.updatingPublishing = false;
-                vm.species_community.publishing_status = response.body;
+                vm.species_community.publishing_status = await response.json();
                 vm.species_community_original.publishing_status = helpers.copyObject(vm.species_community.publishing_status);
                 swal.fire({
                     title: 'Saved',
@@ -1074,8 +1143,9 @@ export default {
             if (this.$route.query.group_type_name === 'community') {
                 end_point_type = 'community';
             }
-            Vue.http.get(`/api/${end_point_type}/${this.$route.params.species_community_id}/internal_${end_point_type}.json`).then(res => {
-                this.species_community = res.body[`${end_point_type}_obj`]; //--temp community_obj
+            fetch(`/api/${end_point_type}/${this.$route.params.species_community_id}/internal_${end_point_type}.json`).then(async (response) => {
+                const data = await response.json();
+                this.species_community = data[`${end_point_type}_obj`]; //--temp community_obj
                 this.species_community_original = helpers.copyObject(this.species_community);
                 this.speciesCommunitiesImage = this.species_community.image_doc;
             },
@@ -1095,9 +1165,10 @@ export default {
         if (to.query.group_type_name === 'community') {
             end_point_type = 'community';
         }
-        Vue.http.get(`/api/${end_point_type}/${to.params.species_community_id}/internal_${end_point_type}.json`).then(res => {
-            next(vm => {
-                vm.species_community = res.body[`${end_point_type}_obj`]; //--temp community_obj
+        fetch(`/api/${end_point_type}/${to.params.species_community_id}/internal_${end_point_type}.json`).then(async (response) => {
+            next(async vm => {
+                const data = await response.json();
+                vm.species_community = data[`${end_point_type}_obj`]; //--temp community_obj
                 vm.species_community_original = helpers.copyObject(vm.species_community);
                 vm.speciesCommunitiesImage = vm.species_community.image_doc;
             });

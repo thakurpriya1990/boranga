@@ -7,14 +7,17 @@
                     <template v-if="!isReadOnly">
                         <template
                             v-if="observation_method_list && observation_method_list.length > 0 && occurrence_obj.observation_detail.observation_method_id && !observation_method_list.map((d) => d.id).includes(occurrence_obj.observation_detail.observation_method_id)">
-                            <input type="text" v-if="occurrence_obj.observation_detail.observation_method" class="form-control mb-3"
-                                :value="occurrence_obj.observation_detail.observation_method + ' (Now Archived)'" disabled />
+                            <input type="text" v-if="occurrence_obj.observation_detail.observation_method"
+                                class="form-control mb-3"
+                                :value="occurrence_obj.observation_detail.observation_method + ' (Now Archived)'"
+                                disabled />
                             <div class="mb-3 text-muted">
                                 Change observation method to:
                             </div>
                         </template>
                         <select class="form-select" v-model="occurrence_obj.observation_detail.observation_method_id">
-                            <option v-for="observation_method in observation_method_list" :value="observation_method.id" v-bind:key="observation_method.id">
+                            <option v-for="observation_method in observation_method_list" :value="observation_method.id"
+                                v-bind:key="observation_method.id">
                                 {{ observation_method.name }}
                             </option>
                         </select>
@@ -95,13 +98,15 @@
                             v-if="identification_certainty_list && identification_certainty_list.length > 0 && occurrence_obj.identification.identification_certainty_id && !identification_certainty_list.map((d) => d.id).includes(occurrence_obj.identification.identification_certainty_id)">
                             <input type="text" v-if="occurrence_obj.identification.identification_certainty"
                                 class="form-control mb-3"
-                                :value="occurrence_obj.identification.identification_certainty + ' (Now Archived)'" disabled />
+                                :value="occurrence_obj.identification.identification_certainty + ' (Now Archived)'"
+                                disabled />
                             <div class="mb-3 text-muted">
                                 Change identification certainty to:
                             </div>
                         </template>
                         <select class="form-select" v-model="occurrence_obj.identification.identification_certainty_id">
-                            <option v-for="option in identification_certainty_list" :value="option.id" v-bind:key="option.id">
+                            <option v-for="option in identification_certainty_list" :value="option.id"
+                                v-bind:key="option.id">
                                 {{ option.name }}
                             </option>
                         </select>
@@ -309,11 +314,15 @@ export default {
         updateObservationDetails: function () {
             let vm = this;
             vm.updatingObservationDetails = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_observation_details')), JSON.stringify(vm.occurrence_obj.observation_detail), {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_observation_details')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vm.occurrence_obj.observation_detail)
+            }).then(async (response) => {
                 vm.updatingObservationDetails = false;
-                vm.occurrence_obj.observation_detail = response.body;
+                vm.occurrence_obj.observation_detail = await response.json();
                 swal.fire({
                     title: 'Saved',
                     text: 'Observation details have been saved',
@@ -342,11 +351,15 @@ export default {
         updateIdentificationDetails: function () {
             let vm = this;
             vm.updatingIdentificationDetails = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_identification_details')), JSON.stringify(vm.occurrence_obj.identification), {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_identification_details')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vm.occurrence_obj.identification)
+            }).then(async (response) => {
                 vm.updatingIdentificationDetails = false;
-                vm.occurrence_obj.identification = response.body;
+                vm.occurrence_obj.identification = await response.json();
                 swal.fire({
                     title: 'Saved',
                     text: 'Identification details have been saved',
@@ -433,8 +446,8 @@ export default {
     created: async function () {
         let vm = this;
         //------fetch list of values
-        const res = await Vue.http.get(`/api/occurrence/observation_list_of_values.json?group_type=${vm.occurrence_obj.group_type}`);
-        vm.listOfValuesDict = res.body;
+        const repsonse = await fetch(`/api/occurrence/observation_list_of_values.json?group_type=${vm.occurrence_obj.group_type}`);
+        vm.listOfValuesDict = await repsonse.json();
         vm.observation_method_list = vm.listOfValuesDict.observation_method_list;
         vm.observation_method_list.splice(0, 0,
             {

@@ -117,8 +117,10 @@
                                                                 class="pull-right btn btn-primary"
                                                                 @click.prevent="updateAddress()">Update</button>
                                                             <button v-else disabled
-                                                                class="pull-right btn btn-primary">Updating <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                                                    <span class="visually-hidden">Loading...</span></button>
+                                                                class="pull-right btn btn-primary">Updating <span
+                                                                    class="spinner-border spinner-border-sm"
+                                                                    role="status" aria-hidden="true"></span>
+                                                                <span class="visually-hidden">Loading...</span></button>
                                                         </div>
                                                     </div>
                                                 </form>
@@ -168,8 +170,10 @@
                                                                 class="pull-right btn btn-primary"
                                                                 @click.prevent="updateContact()">Update</button>
                                                             <button v-else disabled
-                                                                class="pull-right btn btn-primary">Updating <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                                                    <span class="visually-hidden">Loading...</span></button>
+                                                                class="pull-right btn btn-primary">Updating <span
+                                                                    class="spinner-border spinner-border-sm"
+                                                                    role="status" aria-hidden="true"></span>
+                                                                <span class="visually-hidden">Loading...</span></button>
                                                         </div>
                                                     </div>
                                                 </form>
@@ -338,8 +342,12 @@ export default {
                 });
                 return;
             }
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.users, (vm.user.id + '/update_personal')), JSON.stringify(vm.user), {
-                emulateJSON: true
+            fetch(helpers.add_endpoint_json(api_endpoints.users, (vm.user.id + '/update_personal')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vm.user)
             }).then((response) => {
                 swal({
                     title: 'Update Personal Details',
@@ -368,11 +376,15 @@ export default {
         updateContact: function () {
             let vm = this;
             vm.updatingContact = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.users, (vm.user.id + '/update_contact')), JSON.stringify(vm.user), {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.users, (vm.user.id + '/update_contact')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vm.user)
+            }).then(async (response) => {
                 vm.updatingContact = false;
-                vm.user = response.body;
+                vm.user = await response.json();
                 if (vm.user.residential_address == null) { vm.user.residential_address = {}; }
                 swal({
                     title: 'Update Contact Details',
@@ -395,11 +407,15 @@ export default {
         updateAddress: function () {
             let vm = this;
             vm.updatingAddress = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.users, (vm.user.id + '/update_address')), JSON.stringify(vm.user.residential_address), {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.users, (vm.user.id + '/update_address')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vm.user)
+            }).then(async (response) => {
                 vm.updatingAddress = false;
-                vm.user = response.body;
+                vm.user = await response.json();
                 if (vm.user.residential_address == null) { vm.user.residential_address = {}; }
                 swal({
                     title: 'Update Address Details',
@@ -430,11 +446,15 @@ export default {
                 confirmButtonText: 'Accept'
             }).then((result) => {
                 if (result.value) {
-                    vm.$http.post(helpers.add_endpoint_json(api_endpoints.organisations, org.id + '/unlink_user'), JSON.stringify(vm.user), {
-                        emulateJSON: true
+                    fetch(helpers.add_endpoint_json(api_endpoints.organisations, org.id + '/unlink_user'), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ user_id: vm.user.id })
                     }).then((response) => {
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.users, vm.user.id)).then((response) => {
-                            vm.user = response.body
+                        fetch(helpers.add_endpoint_json(api_endpoints.users, vm.user.id)).then(async (response) => {
+                            vm.user = await response.json();
                             if (vm.user.residential_address == null) { vm.user.residential_address = {}; }
                             if (vm.user.borangacompliance_organisations && vm.user.borangacompliance_organisations.length > 0) {
                                 vm.managesOrg = 'Yes'
@@ -486,8 +506,12 @@ export default {
                     type: 'error'
                 });
             } else {
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.users, (vm.user.id + '/upload_id')), data, {
-                    emulateJSON: true
+                fetch(helpers.add_endpoint_json(api_endpoints.users, (vm.user.id + '/upload_id')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: data
                 }).then((response) => {
                     vm.uploadingID = false;
                     vm.uploadedID = null;

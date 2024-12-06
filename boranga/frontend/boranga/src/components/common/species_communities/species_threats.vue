@@ -434,10 +434,11 @@ export default {
         fetchFilterLists: function () {
             let vm = this;
             //Category, Current Impact, Potential Impact (generic to all threats)
-            vm.$http.get('/api/threat/threat_list_of_values/').then((response) => {
-                vm.threat_category_filter_list = response.body["threat_category_lists"];
-                vm.threat_current_impact_filter_list = response.body["current_impact_lists"];
-                vm.threat_potential_impact_filter_list = response.body["potential_impact_lists"];
+            fetch('/api/threat/threat_list_of_values/').then(async (response) => {
+                const data = await response.json();
+                vm.threat_category_filter_list = data["threat_category_lists"];
+                vm.threat_current_impact_filter_list = data["current_impact_lists"];
+                vm.threat_potential_impact_filter_list = data["potential_impact_lists"];
             }, (error) => {
                 console.log(error);
             })
@@ -465,9 +466,10 @@ export default {
             let vm = this;
             this.$refs.threat_detail.threat_id = id;
             this.$refs.threat_detail.threat_action = 'edit';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.threat, id)).then((response) => {
-                this.$refs.threat_detail.threatObj = response.body;
-                this.$refs.threat_detail.threatObj.date_observed = response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD') : '';
+            fetch(helpers.add_endpoint_json(api_endpoints.threat, id)).then(async (response) => {
+                const data = await response.json();
+                this.$refs.threat_detail.threatObj = data;
+                this.$refs.threat_detail.threatObj.date_observed = data.date_observed != null && data.date_observed != undefined ? moment(data.date_observed).format('yyyy-MM-DD') : '';
             },
                 err => {
                     console.log(err);
@@ -478,9 +480,10 @@ export default {
             let vm = this;
             this.$refs.threat_detail.threat_id = id;
             this.$refs.threat_detail.threat_action = 'view';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.threat, id)).then((response) => {
-                this.$refs.threat_detail.threatObj = response.body;
-                this.$refs.threat_detail.threatObj.date_observed = response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD') : '';
+            fetch(helpers.add_endpoint_json(api_endpoints.threat, id)).then(async (response) => {
+                const data = await response.json();
+                this.$refs.threat_detail.threatObj = data;
+                this.$refs.threat_detail.threatObj.date_observed = data.date_observed != null && data.date_observed != undefined ? moment(data.date_observed).format('yyyy-MM-DD') : '';
             },
                 err => {
                     console.log(err);
@@ -520,7 +523,10 @@ export default {
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.threat, id + '/discard'))
+                    fetch(helpers.add_endpoint_json(api_endpoints.threat, id + '/discard'), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -560,7 +566,10 @@ export default {
                 },
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.threat, id + '/reinstate'))
+                    fetch(helpers.add_endpoint_json(api_endpoints.threat, id + '/reinstate'), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',

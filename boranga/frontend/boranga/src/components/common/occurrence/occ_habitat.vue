@@ -239,7 +239,7 @@
                         v-model="habitat_cond_sum" />
                 </div>
             </div>
-            <div v-if="occurrence_obj.group_type=='community'"  class="row mb-3">
+            <div v-if="occurrence_obj.group_type == 'community'" class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Count Date: </label>
                 <div class="col-sm-9">
                     <input v-model="occurrence_obj.habitat_condition.count_date
@@ -549,11 +549,15 @@ export default {
         updateHabitatCompositionDetails: function () {
             let vm = this;
             vm.updatingHabitatCompositionDetails = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_habitat_composition_details')), JSON.stringify(vm.occurrence_obj.habitat_composition), {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_habitat_composition_details')), {
+                method: 'POST',
+                body: JSON.stringify(vm.occurrence_obj.habitat_composition),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (response) => {
                 vm.updatingHabitatCompositionDetails = false;
-                vm.occurrence_obj.habitat_composition = response.body;
+                vm.occurrence_obj.habitat_composition = await response.json();
                 swal.fire({
                     title: 'Saved',
                     text: 'Habitat Composition details have been saved',
@@ -580,11 +584,15 @@ export default {
             var valKeigheryTotal = vm.calcKeigheryTotal();
             if (valKeigheryTotal) {
                 vm.updatingHabitatConditionDetails = true;
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_habitat_condition_details')), JSON.stringify(vm.occurrence_obj.habitat_condition), {
-                    emulateJSON: true
-                }).then((response) => {
+                fetch(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_habitat_condition_details')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(vm.occurrence_obj.habitat_condition),
+                }).then(async (response) => {
                     vm.updatingHabitatConditionDetails = false;
-                    vm.occurrence_obj.habitat_condition = response.body;
+                    vm.occurrence_obj.habitat_condition = await response.json();
                     swal.fire({
                         title: 'Saved',
                         text: 'Habitat Condition details have been saved',
@@ -610,11 +618,15 @@ export default {
         updateVegetationStructure: function () {
             let vm = this;
             vm.updatingVegetationStructure = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_vegetation_structure')), JSON.stringify(vm.occurrence_obj.vegetation_structure), {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_vegetation_structure')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vm.occurrence_obj.vegetation_structure),
+            }).then(async (response) => {
                 vm.updatingVegetationStructure = false;
-                vm.occurrence_obj.vegetation_structure = response.body;
+                vm.occurrence_obj.vegetation_structure = await response.json();
                 swal.fire({
                     title: 'Saved',
                     text: 'Vegetation Structure details have been saved',
@@ -644,11 +656,15 @@ export default {
         updateFireHistoryDetails: function () {
             let vm = this;
             vm.updatingFireHistoryDetails = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_fire_history_details')), JSON.stringify(vm.occurrence_obj.fire_history), {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_fire_history_details')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vm.occurrence_obj.fire_history),
+            }).then(async (response) => {
                 vm.updatingFireHistoryDetails = false;
-                vm.occurrence_obj.fire_history = response.body;
+                vm.occurrence_obj.fire_history = await response.json();
                 swal.fire({
                     title: 'Saved',
                     text: 'Fire History details have been saved',
@@ -674,11 +690,15 @@ export default {
         updateAssociatedSpeciesDetails: function () {
             let vm = this;
             vm.updatingAssociatedSpeciesDetails = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_associated_species_details')), JSON.stringify(vm.occurrence_obj.associated_species), {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_associated_species_details')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vm.occurrence_obj.associated_species),
+            }).then(async (response) => {
                 vm.updatingAssociatedSpeciesDetails = false;
-                vm.occurrence_obj.associated_species = response.body;
+                vm.occurrence_obj.associated_species = await response.json();
                 swal.fire({
                     title: 'Saved',
                     text: 'Associated Species details have been saved',
@@ -732,8 +752,8 @@ export default {
     created: async function () {
         let vm = this;
         //------fetch list of values
-        const res = await Vue.http.get('/api/occurrence/list_of_values.json');
-        vm.listOfValuesDict = res.body;
+        const response = await fetch('/api/occurrence/list_of_values.json');
+        vm.listOfValuesDict = await response.json();
         vm.land_form_list = vm.listOfValuesDict.land_form_list;
         vm.land_form_list.splice(0, 0,
             {

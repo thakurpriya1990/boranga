@@ -250,76 +250,76 @@
                     </div>
                     <div v-if="occurrence_report.user_is_assessor" class="card-body border-top text-center">
                         <button style="width:80%;" class="btn btn-primary mb-1"
-                            @click.prevent="copyOccurrenceReport()"><i class="bi bi-copy me-1"></i> Copy {{ occurrence_report.occurrence_report_number }}</button><br />
+                            @click.prevent="copyOccurrenceReport()"><i class="bi bi-copy me-1"></i> Copy {{
+                                occurrence_report.occurrence_report_number
+                            }}</button><br />
                     </div>
                 </div>
             </div>
             <div class="col-md-9">
-                <template>
-                    <form :action="occurrence_report_form_url" method="post" name="occurrence_report"
-                        enctype="multipart/form-data">
-                        <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
-                            id="OccurrenceReportStart" :canEditStatus="false" :is_external="false" :is_internal="true"
-                            ref="occurrence_report" @refreshFromResponse="refreshFromResponse"
-                            @refreshOccurrenceReport="refreshOccurrenceReport()"
-                            @saveOccurrenceReport="save_before_submit()">
-                        </ProposalOccurrenceReport>
+                <form :action="occurrence_report_form_url" method="post" name="occurrence_report"
+                    enctype="multipart/form-data">
+                    <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
+                        id="OccurrenceReportStart" :canEditStatus="false" :is_external="false" :is_internal="true"
+                        ref="occurrence_report" @refreshFromResponse="refreshFromResponse"
+                        @refreshOccurrenceReport="refreshOccurrenceReport()"
+                        @saveOccurrenceReport="save_before_submit()">
+                    </ProposalOccurrenceReport>
 
-                        <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                        <input type='hidden' name="occurrence_report_id" :value="1" />
-                        <div class="row" style="margin-bottom: 50px">
-                            <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                <div class="container">
-                                    <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
-                                        @click.prevent="returnToDashboard">
-                                        Return to Dashboard</button>
-                                    <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit"
-                                        class="col-md-6 text-end">
-                                        <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
-                                            style="margin-top:5px;" disabled>Save and Continue&nbsp;
-                                            <span class="spinner-border spinner-border-sm" role="status"
-                                                aria-hidden="true"></span>
-                                            <span class="visually-hidden">Loading...</span></button>
-                                        <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
-                                            @click.prevent="save()"
-                                            :disabled="saveExitOccurrenceReport || submitOccurrenceReport">Save
-                                            and Continue</button>
+                    <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
+                    <input type='hidden' name="occurrence_report_id" :value="1" />
+                    <div class="row" style="margin-bottom: 50px">
+                        <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                            <div class="container">
+                                <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
+                                    @click.prevent="returnToDashboard">
+                                    Return to Dashboard</button>
+                                <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit"
+                                    class="col-md-6 text-end">
+                                    <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
+                                        style="margin-top:5px;" disabled>Save and Continue&nbsp;
+                                        <span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        <span class="visually-hidden">Loading...</span></button>
+                                    <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
+                                        @click.prevent="save()"
+                                        :disabled="saveExitOccurrenceReport || submitOccurrenceReport">Save
+                                        and Continue</button>
 
-                                        <button v-if="saveExitOccurrenceReport" class="btn btn-primary me-2"
-                                            style="margin-top:5px;" disabled>Save and Exit&nbsp;
-                                            <span class="spinner-border spinner-border-sm" role="status"
-                                                aria-hidden="true"></span>
-                                            <span class="visually-hidden">Loading...</span></button>
-                                        <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
-                                            @click.prevent="save_exit()"
-                                            :disabled="savingOccurrenceReport || submitOccurrenceReport">Save
-                                            and Exit</button>
+                                    <button v-if="saveExitOccurrenceReport" class="btn btn-primary me-2"
+                                        style="margin-top:5px;" disabled>Save and Exit&nbsp;
+                                        <span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        <span class="visually-hidden">Loading...</span></button>
+                                    <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
+                                        @click.prevent="save_exit()"
+                                        :disabled="savingOccurrenceReport || submitOccurrenceReport">Save
+                                        and Exit</button>
 
-                                        <button v-if="submitOccurrenceReport" class="btn btn-primary"
-                                            style="margin-top:5px;" disabled>Submit&nbsp;
-                                            <span class="spinner-border spinner-border-sm" role="status"
-                                                aria-hidden="true"></span>
-                                            <span class="visually-hidden">Loading...</span></button>
-                                        <button v-else class="btn btn-primary" style="margin-top:5px;"
-                                            @click.prevent="submit()"
-                                            :disabled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
-                                    </div>
-                                    <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)"
-                                        class="col-md-6 text-end">
-                                        <button v-if="savingOccurrenceReport" class="btn btn-primary"
-                                            style="margin-top:5px;" disabled>Save Changes <span
-                                                class="spinner-border spinner-border-sm" role="status"
-                                                aria-hidden="true"></span>
-                                            <span class="visually-hidden">Loading...</span></button>
-                                        <button v-else class="btn btn-primary" style="margin-top:5px;"
-                                            @click.prevent="save()">Save
-                                            Changes</button>
-                                    </div>
+                                    <button v-if="submitOccurrenceReport" class="btn btn-primary"
+                                        style="margin-top:5px;" disabled>Submit&nbsp;
+                                        <span class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        <span class="visually-hidden">Loading...</span></button>
+                                    <button v-else class="btn btn-primary" style="margin-top:5px;"
+                                        @click.prevent="submit()"
+                                        :disabled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
+                                </div>
+                                <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)"
+                                    class="col-md-6 text-end">
+                                    <button v-if="savingOccurrenceReport" class="btn btn-primary"
+                                        style="margin-top:5px;" disabled>Save Changes <span
+                                            class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"></span>
+                                        <span class="visually-hidden">Loading...</span></button>
+                                    <button v-else class="btn btn-primary" style="margin-top:5px;"
+                                        @click.prevent="save()">Save
+                                        Changes</button>
                                 </div>
                             </div>
                         </div>
-                    </form>
-                </template>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -521,7 +521,12 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_ocr_proposal(vm.occurrence_report.id))
+                    fetch(api_endpoints.discard_ocr_proposal(vm.occurrence_report.id), {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -557,8 +562,13 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.post(`/api/occurrence_report/${vm.occurrence_report.id}/unlock_occurrence_report.json`)
-                        .then((response) => {
+                    fetch(`/api/occurrence_report/${vm.occurrence_report.id}/unlock_occurrence_report.json`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                        .then(async (response) => {
                             swal.fire({
                                 title: 'Unlocked',
                                 text: 'The approved occurrence report has been unlocked for editing',
@@ -567,7 +577,7 @@ export default {
                                     confirmButton: 'btn btn-primary',
                                 },
                             });
-                            vm.occurrence_report = response.body;
+                            vm.occurrence_report = await response.json();
                         }, (error) => {
                             console.log(error);
                         });
@@ -591,8 +601,13 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.post(`/api/occurrence_report/${vm.occurrence_report.id}/lock_occurrence_report.json`)
-                        .then((response) => {
+                    fetch(`/api/occurrence_report/${vm.occurrence_report.id}/lock_occurrence_report.json`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                        .then(async (response) => {
                             swal.fire({
                                 title: 'Locked',
                                 text: 'The approved occurrence report has been locked from editing',
@@ -601,7 +616,7 @@ export default {
                                     confirmButton: 'btn btn-primary',
                                 },
                             });
-                            vm.occurrence_report = response.body;
+                            vm.occurrence_report = await response.json();
                         }, (error) => {
                             console.log(error);
                         });
@@ -658,7 +673,13 @@ export default {
             }
 
             let payload = { proposal: vm.occurrence_report };
-            await vm.$http.post(vm.occurrence_report_form_url, payload).then(res => {
+            await fetch(vm.occurrence_report_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
                 swal.fire({
                     title: "Saved",
                     text: "Your changes have been saved",
@@ -669,7 +690,7 @@ export default {
                 });
                 vm.savingOccurrenceReport = false;
                 vm.isSaved = true;
-                vm.occurrence_report = res.body
+                vm.occurrence_report = await response.json();
                 vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
                     false
                 );
@@ -726,7 +747,13 @@ export default {
             }
 
             let payload = { proposal: vm.occurrence_report };
-            const result = await vm.$http.post(vm.occurrence_report_form_url, payload).then(res => {
+            const result = await fetch(vm.occurrence_report_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
 
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
@@ -824,8 +851,14 @@ export default {
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.occurrence_report);
-                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, vm.occurrence_report.id + '/submit'), payload).then(res => {
-                            vm.occurrence = res.body;
+                        fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, vm.occurrence_report.id + '/submit'), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        }).then(async (response) => {
+                            vm.occurrence = await response.json();
                             vm.$router.push({
                                 name: 'internal-occurrence-dash'
                             });
@@ -861,8 +894,13 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    this.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, this.occurrence_report.id + '/copy')).then(res => {
-                        const ocr_copy = res.body;
+                    fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, this.occurrence_report.id + '/copy'), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }).then(async (response) => {
+                        const ocr_copy = await response.json();
                         swal.fire({
                             title: 'Copied',
                             text: `The occurrence report has been copied to ${ocr_copy.occurrence_report_number}. When you click OK, the new occurrence report will open in a new window.`,
@@ -887,10 +925,11 @@ export default {
                 console.log(error);
             });
         },
-        refreshFromResponse: function (response) {
+        refreshFromResponse: async function (response) {
             let vm = this;
-            vm.original_occurrence = helpers.copyObject(response.body);
-            vm.occurrence_report = helpers.copyObject(response.body);
+            const data = await response.json();
+            vm.original_occurrence = helpers.copyObject(data);
+            vm.occurrence_report = helpers.copyObject(data);
             vm.$nextTick(() => {
                 vm.initialiseAssignedOfficerSelect(true);
                 vm.updateAssignedOfficerSelect();
@@ -909,12 +948,17 @@ export default {
             let formData = new FormData(vm.form);
             vm.sendingReferral = true;
             let data = { 'email': vm.selected_referral, 'text': vm.referral_text };
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/send_referral')), JSON.stringify(data), {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/send_referral')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            }).then(async (response) => {
+                const data = await response.json();
                 vm.sendingReferral = false;
-                vm.original_occurrence_report = helpers.copyObject(response.body);
-                vm.occurrence_report = response.body;
+                vm.original_occurrence_report = helpers.copyObject(data);
+                vm.occurrence_report = data;
                 swal.fire({
                     title: 'Referral Sent',
                     text: `The referral has been sent to ${vm.selected_referral}`,
@@ -941,9 +985,10 @@ export default {
         },
         remindReferral: function (r) {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, r.id + '/remind')).then(response => {
-                vm.original_occurrence_report = helpers.copyObject(response.body);
-                vm.occurrence_report = response.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.ocr_referrals, r.id + '/remind')).then(async (response) => {
+                const data = await response.json();
+                vm.original_occurrence_report = helpers.copyObject(data);
+                vm.occurrence_report = data;
                 swal.fire({
                     title: 'Referral Reminder',
                     text: 'A reminder has been sent to ' + vm.department_users.find(d => d.id == r.referral.id).name,
@@ -966,9 +1011,10 @@ export default {
         },
         recallReferral: function (r) {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, r.id + '/recall')).then(response => {
-                vm.original_occurrence_report = helpers.copyObject(response.body);
-                vm.occurrence_report = response.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.ocr_referrals, r.id + '/recall')).then(async (response) => {
+                const data = await response.json();
+                vm.original_occurrence_report = helpers.copyObject(data);
+                vm.occurrence_report = data;
                 $('.popover').hide();
                 vm.enablePopovers();
                 swal.fire({
@@ -993,9 +1039,10 @@ export default {
         },
         resendReferral: function (r) {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, r.id + '/resend')).then(response => {
-                vm.original_occurrence_report = helpers.copyObject(response.body);
-                vm.occurrence_report = response.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.ocr_referrals, r.id + '/resend')).then(async (response) => {
+                const data = await response.json();
+                vm.original_occurrence_report = helpers.copyObject(data);
+                vm.occurrence_report = data;
                 $('.popover').hide();
                 vm.enablePopovers();
                 swal.fire({
@@ -1020,8 +1067,8 @@ export default {
         },
         fetchDeparmentUsers: function () {
             let vm = this;
-            vm.$http.get(api_endpoints.department_users).then((response) => {
-                vm.department_users = response.body
+            fetch(api_endpoints.department_users).then(async (response) => {
+                vm.department_users = await response.json();
             }, (error) => {
                 console.log(error);
             })
@@ -1095,19 +1142,22 @@ export default {
         },
         remindExternalReferee: function (external_referee_invite) {
             let vm = this;
-            vm.$http.post(
+            fetch(
                 helpers.add_endpoint_join(
                     api_endpoints.ocr_external_referee_invites,
                     `/${external_referee_invite.id}/remind/`
-                ),
-            )
-                .then((response) => {
-                    swal.fire({
-                        title: 'Reminder Email Sent',
-                        text: `A reminder email was successfully sent to ${external_referee_invite.full_name} (${external_referee_invite.email}).`,
-                        icon: 'success',
-                    });
-                })
+                ), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then((response) => {
+                swal.fire({
+                    title: 'Reminder Email Sent',
+                    text: `A reminder email was successfully sent to ${external_referee_invite.full_name} (${external_referee_invite.email}).`,
+                    icon: 'success',
+                });
+            })
                 .catch((error) => {
                     console.error(`Error sending reminder. ${error}`);
                 });
@@ -1128,11 +1178,16 @@ export default {
             }).then((result) => {
                 if (result.isConfirmed) {
                     let vm = this;
-                    vm.$http.patch(
+                    fetch(
                         helpers.add_endpoint_join(
                             api_endpoints.ocr_external_referee_invites,
                             `/${external_referee_invite.id}/retract/`
-                        ),
+                        ), {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }
                     )
                         .then((response) => {
                             this.refreshOccurrenceReport();
@@ -1214,11 +1269,16 @@ export default {
                 data = { 'assessor_id': vm.occurrence_report.assigned_officer };
             }
             if (!unassign) {
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/assign_to')), JSON.stringify(data), {
-                    emulateJSON: true
-                }).then((response) => {
-                    vm.occurrence_report = response.body;
-                    vm.original_occurrence_report = helpers.copyObject(response.body);
+                fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/assign_to')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                }).then(async (response) => {
+                    const data = await response.json();
+                    vm.occurrence_report = data;
+                    vm.original_occurrence_report = helpers.copyObject(data);
                     vm.updateAssignedOfficerSelect();
                 }, (error) => {
                     vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
@@ -1234,10 +1294,10 @@ export default {
                 });
             }
             else {
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/unassign')))
-                    .then((response) => {
-                        vm.occurrence_report = response.body;
-                        vm.original_occurrence_report = helpers.copyObject(response.body);
+                fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/unassign')))
+                    .then(async (response) => {
+                        vm.occurrence_report = data;
+                        vm.original_occurrence_report = helpers.copyObject(data);
                         vm.updateAssignedOfficerSelect();
                     }, (error) => {
                         vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
@@ -1255,10 +1315,10 @@ export default {
         },
         assignRequestUser: function () {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/assign_request_user')))
-                .then((response) => {
-                    vm.occurrence_report = response.body;
-                    vm.original_occurrence_report = helpers.copyObject(response.body);
+            fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/assign_request_user')))
+                .then(async (response) => {
+                    vm.occurrence_report = data;
+                    vm.original_occurrence_report = helpers.copyObject(data);
                     vm.updateAssignedOfficerSelect();
                     vm.$nextTick(() => {
                         vm.initialiseReferreeSelect();
@@ -1295,8 +1355,8 @@ export default {
         },
         fetchOccurrenceReport: function (id) {
             let vm = this;
-            Vue.http.get(`/api/occurrence_report/${id}/`).then(res => {
-                vm.occurrence_report = res.body;
+            fetch(`/api/occurrence_report/${id}/`).then(async (repsonse) => {
+                vm.occurrence_report = await repsonse.json();
             },
                 err => {
                     console.log(err);
@@ -1323,9 +1383,9 @@ export default {
         });
     },
     beforeRouteEnter: function (to, from, next) {
-        Vue.http.get(`/api/occurrence_report/${to.params.occurrence_report_id}/`).then(res => {
-            next(vm => {
-                vm.occurrence_report = res.body;
+        fetch(`/api/occurrence_report/${to.params.occurrence_report_id}/`).then(async (response) => {
+            next(async vm => {
+                vm.occurrence_report = await response.json();
             });
         },
             err => {

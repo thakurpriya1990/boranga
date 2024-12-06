@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="declineForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row">
@@ -115,8 +115,12 @@ export default {
             let decline = JSON.parse(JSON.stringify(vm.decline));
             vm.decliningProposal = true;
             if (vm.processing_status != 'With Approver') {
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals, vm.proposal_id + '/proposed_decline'), JSON.stringify(decline), {
-                    emulateJSON: true,
+                fetch(helpers.add_endpoint_json(api_endpoints.proposals, vm.proposal_id + '/proposed_decline'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(decline),
                 }).then((response) => {
                     vm.decliningProposal = false;
                     vm.close();
@@ -129,8 +133,12 @@ export default {
                 });
             }
             else {
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.proposals, vm.proposal_id + '/final_decline'), JSON.stringify(decline), {
-                    emulateJSON: true,
+                fetch(helpers.add_endpoint_json(api_endpoints.proposals, vm.proposal_id + '/final_decline'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(decline),
                 }).then((response) => {
                     vm.decliningProposal = false;
                     vm.close();

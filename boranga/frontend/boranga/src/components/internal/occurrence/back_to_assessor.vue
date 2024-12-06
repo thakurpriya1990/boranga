@@ -87,8 +87,12 @@ export default {
         backToAssessor: function () {
             let vm = this;
             vm.errorString = '';
-            vm.$http.post(api_endpoints.occurrence_report + `/${vm.occurrence_report_id}/back_to_assessor/`, JSON.stringify(vm.back_to_assessor), {
-                emulateJSON: true,
+            fetch(api_endpoints.occurrence_report + `/${vm.occurrence_report_id}/back_to_assessor/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vm.back_to_assessor),
             }).then((response) => {
                 swal.fire({
                     title: 'Sent Back',
@@ -102,7 +106,7 @@ export default {
                 });
                 /*vm.close();
 
-                Vue.http.get(`/api/occurrence_report/${vm.occurrence_report_id}/internal_occurrence_report.json`).then((response) => {
+                fetch(`/api/occurrence_report/${vm.occurrence_report_id}/internal_occurrence_report.json`).then((response) => {
                     vm.$emit('refreshFromResponse', response);
 
                 }, (error) => {

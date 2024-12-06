@@ -370,9 +370,16 @@ export default {
                 const createUrl = api_endpoints.meeting + "/";
                 let payload = new Object();
                 payload.meeting_type = 'meeting';
-                let savedMeeting = await Vue.http.post(createUrl, payload);
+                let response = await fetch(createUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+                let savedMeeting = await response.json();
                 if (savedMeeting) {
-                    newMeetingId = savedMeeting.body.id;
+                    newMeetingId = savedMeeting.id;
                 }
                 this.$router.push({
                     name: 'internal-meetings',
@@ -402,7 +409,12 @@ export default {
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_meeting(meeting_id))
+                    fetch(api_endpoints.discard_meeting(meeting_id), {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -434,7 +446,12 @@ export default {
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.reinstate_meeting(meeting_id))
+                    fetch(api_endpoints.reinstate_meeting(meeting_id), {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        })
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',
@@ -470,8 +487,8 @@ export default {
         },
         fetchProfile: function () {
             let vm = this;
-            Vue.http.get(api_endpoints.profile).then((response) => {
-                vm.profile = response.body;
+            fetch(api_endpoints.profile).then(async (response) => {
+                vm.profile = await response.json();
             })
         },
     },

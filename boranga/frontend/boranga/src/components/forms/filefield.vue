@@ -239,11 +239,16 @@ export default {
                 },
                 reverseButtons: true,
             }).then(() => {
-                vm.$http.post(vm.delete_url, data, {
-                    emulateJSON: true,
-                }).then((response) => {
-                    vm.uploaded_documents = response.body;
-                    vm.$emit('refreshFromResponse', response.body);
+                fetch(vm.delete_url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                }).then(async (response) => {
+                    const data = await response.json();
+                    vm.uploaded_documents = data;
+                    vm.$emit('refreshFromResponse', data);
                     vm.show_spinner = false;
                 }, err => {
                     console.log(err);

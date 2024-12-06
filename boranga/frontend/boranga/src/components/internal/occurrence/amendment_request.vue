@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="amendForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="row mb-3">
                                 <div class="col-sm-6">
@@ -127,8 +127,8 @@ export default {
         },
         fetchAmendmentChoices: function () {
             let vm = this;
-            vm.$http.get('/api/proposal_amendment_request_reason_choices.json').then((response) => {
-                vm.reason_choices = response.body;
+            fetch('/api/proposal_amendment_request_reason_choices.json').then(async (response) => {
+                vm.reason_choices = await response.json();
             }, (error) => {
                 console.log(error);
             });
@@ -151,8 +151,12 @@ export default {
             amendment.update = true;
             formData.append('data', JSON.stringify(amendment));
 
-            vm.$http.post('/api/ocr_amendment_request.json', formData, {
-                emulateJSON: true,
+            fetch('/api/ocr_amendment_request.json', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             }).then((response) => {
                 swal.fire({
                     title: 'Sent',
@@ -165,7 +169,7 @@ export default {
                 vm.amendingProposal = true;
                 vm.close();
 
-                Vue.http.get(`/api/occurrence_report/${vm.occurrence_report_id}`).then((response) => {
+                fetch(`/api/occurrence_report/${vm.occurrence_report_id}`).then((response) => {
                     vm.$emit('refreshFromResponse', response);
 
                 }, (error) => {

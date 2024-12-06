@@ -177,7 +177,13 @@ export default {
             vm.isSaved = false;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            await vm.$http.post(vm.cs_proposal_form_url, payload).then(res => {
+            await fetch(vm.cs_proposal_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
                 let swalHtml = '<p>Your conservation status proposal has been saved as a draft.</p>';
                 if (vm.saveExitCSProposal) {
                     swalHtml += '<p>It has <span class="fw-bold">NOT</span> been submitted.</p>';
@@ -235,7 +241,13 @@ export default {
             });
         },
         save_wo_confirm: function () {
-            this.$http.post(this.cs_proposal_form_url, this.conservation_status_obj).then(res => {
+            fetch(this.cs_proposal_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(this.conservation_status_obj),
+            }).then(async (response) => {
 
             }, err => {
                 console.log(err);
@@ -247,7 +259,7 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            const result = await vm.$http.post(vm.cs_proposal_form_url, payload).then(res => {
+            const result = await fetch(vm.cs_proposal_form_url, payload).then(async (response) => {
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
@@ -383,8 +395,8 @@ export default {
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.conservation_status_obj);
-                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/submit'), payload).then(res => {
-                            vm.conservation_status_obj = res.body;
+                        fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/submit'), payload).then(async (response) => {
+                            vm.conservation_status_obj = await response.json();
                             vm.$router.push({
                                 name: 'submit_cs_proposal',
                                 params: { conservation_status_obj: vm.conservation_status_obj }
@@ -412,8 +424,8 @@ export default {
     },
     created: function () {
         if (!this.conservation_status_obj) {
-            Vue.http.get(`/api/conservation_status/${this.$route.params.conservation_status_id}.json`).then(res => {
-                this.conservation_status_obj = res.body;
+            fetch(`/api/conservation_status/${this.$route.params.conservation_status_id}.json`).then(async (response) => {
+                this.conservation_status_obj = await response.json();
             },
                 err => {
                     console.log(err);
@@ -428,12 +440,13 @@ export default {
     beforeRouteEnter: function (to, from, next) {
         if (to.params.conservation_status_id) {
             let vm = this;
-            Vue.http.get(`/api/conservation_status/${to.params.conservation_status_id}.json`).then(res => {
-                next(vm => {
-                    vm.conservation_status_obj = res.body;
+            fetch(`/api/conservation_status/${to.params.conservation_status_id}.json`).then(async (response) => {
+                next(async vm => {
+                    const data = await response.json();
+                    vm.conservation_status_obj = data;
                     vm.setdata(vm.conservation_status_obj.readonly);
-                    Vue.http.get(helpers.add_endpoint_json(api_endpoints.conservation_status, to.params.conservation_status_id + '/amendment_request')).then((res) => {
-                        vm.setAmendmentData(res.body);
+                    fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, to.params.conservation_status_id + '/amendment_request')).then((res) => {
+                        vm.setAmendmentData(data);
                     },
                         err => {
                             console.log(err);
@@ -445,9 +458,14 @@ export default {
                 });
         }
         else {
-            Vue.http.post('/api/conservation_status.json').then(res => {
-                next(vm => {
-                    vm.conservation_status_obj = res.body;
+            fetch('/api/conservation_status.json', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (response) => {
+                next(async vm => {
+                    vm.conservation_status_obj = await response.json();
                 });
             },
                 err => {
@@ -455,7 +473,7 @@ export default {
                 });
         }
     },
-    beforeDestroy: function () {
+    beforeUnmount: function () {
         window.removeEventListener('beforeunload', this.leaving);
     }
 }

@@ -6,7 +6,7 @@
                     <FormSection :formCollapse="false" :label="sectionTypeDisplay">
                         <div class="card-body card-collapse">
                             <div v-for="(value,index) in sectionObjExpanded">
-                                <div v-if="value && index != 'id' ">  
+                                <div v-if="value && index != 'id' ">
                                     <div v-if="typeof value == 'object'" >
                                         <div v-for="(o_value,o_index) in value" class="row mb-3">
                                             <label class="col-sm-6 control-label">{{index}}.{{o_index}}:</label>
@@ -24,8 +24,8 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>  
-                        </div>            
+                            </div>
+                        </div>
                     </FormSection>
                 </div>
             </div>
@@ -87,9 +87,9 @@ export default {
         fetchSectionData: function(){
             let vm = this;
             if (vm.sectionObj.occurrence_id !== undefined) {
-                vm.$http.get(api_endpoints.lookup_occ_section_values(vm.sectionType,vm.sectionObj.occurrence_id))
-                .then((response) => {
-                    vm.sectionObjExpanded = response.body;         
+                fetch(api_endpoints.lookup_occ_section_values(vm.sectionType,vm.sectionObj.occurrence_id))
+                .then(async (response) => {
+                    vm.sectionObjExpanded = await response.json();
                 },(error) => {
                     console.log(error);
                 })

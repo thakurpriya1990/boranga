@@ -120,8 +120,9 @@ export default {
         remindReferral: function (_id, user) {
             let vm = this;
 
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, _id + '/remind')).then(response => {
-                vm.$emit('refreshFromResponse', response);
+            fetch(helpers.add_endpoint_json(api_endpoints.ocr_referrals, _id + '/remind')).then(async (response) => {
+                const data = await response.json();
+                vm.$emit('refreshFromResponse', data);
                 vm.table.ajax.reload();
                 swal.fire({
                     title: 'Referral Reminder',
@@ -145,8 +146,9 @@ export default {
         },
         resendReferral: function (_id, user) {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, _id + '/resend')).then(response => {
-                vm.$emit('refreshFromResponse', response);
+            fetch(helpers.add_endpoint_json(api_endpoints.ocr_referrals, _id + '/resend')).then(async (response) => {
+                const data = await response.json();
+                vm.$emit('refreshFromResponse', data);
                 vm.table.ajax.reload();
                 swal.fire({
                     title: 'Referral Resent',
@@ -170,8 +172,9 @@ export default {
         },
         recallReferral: function (_id, user) {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, _id + '/recall')).then(response => {
-                vm.$emit('refreshFromResponse', response);
+            fetch(helpers.add_endpoint_json(api_endpoints.ocr_referrals, _id + '/recall')).then(async (response) => {
+                const data = await response.json();
+                vm.$emit('refreshFromResponse', data);
                 vm.table.ajax.reload();
                 swal.fire({
                     title: 'Referral Recall',

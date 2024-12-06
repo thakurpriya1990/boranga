@@ -107,7 +107,13 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.post(helpers.add_endpoint_join(api_endpoints.occurrence_report, '/' + (vm.occurrence_report_id + '/decline/')), JSON.stringify(vm.decline))
+                    fetch(helpers.add_endpoint_join(api_endpoints.occurrence_report, '/' + (vm.occurrence_report_id + '/decline/')), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(vm.decline),
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Occurrence Report Successfully Declined',

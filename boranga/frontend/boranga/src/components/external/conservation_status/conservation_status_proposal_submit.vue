@@ -18,14 +18,16 @@
                             <br />
                         </div>
                         <table>
-                            <tr>
-                                <td><strong>Proposal Number:</strong></td>
-                                <td><strong>{{ conservation_status_obj.conservation_status_number }}</strong></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Date/Time:</strong></td>
-                                <td><strong> {{ conservation_status_obj.lodgement_date | formatDate }}</strong></td>
-                            </tr>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Proposal Number:</strong></td>
+                                    <td><strong>{{ conservation_status_obj.conservation_status_number }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Date/Time:</strong></td>
+                                    <td><strong> {{ formatDate(conservation_status_obj.lodgement_date) }}</strong></td>
+                                </tr>
+                            </tbody>
                         </table>
                         <br />
                         <label>You will receive a notification email if there is any incomplete information or documents
@@ -69,7 +71,7 @@ export default {
             return api_endpoints.group_type_community;
         }
     },
-    filters: {
+    methods: {
         formatDate: function (data) {
             return data ? moment(data).format('DD/MM/YYYY HH:mm:ss') : '';
         }

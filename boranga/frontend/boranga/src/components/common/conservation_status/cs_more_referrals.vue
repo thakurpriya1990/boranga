@@ -119,8 +119,9 @@ export default {
         remindReferral: function (_id, user) {
             let vm = this;
 
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, _id + '/remind')).then(response => {
-                vm.$emit('refreshFromResponse', response);
+            fetch(helpers.add_endpoint_json(api_endpoints.cs_referrals, _id + '/remind')).then(async (response) => {
+                const data = await response.json();
+                vm.$emit('refreshFromResponse', data);
                 vm.table.ajax.reload();
                 swal.fire({
                     title: 'Referral Reminder',
@@ -144,8 +145,9 @@ export default {
         },
         resendReferral: function (_id, user) {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, _id + '/resend')).then(response => {
-                vm.$emit('refreshFromResponse', response);
+            fetch(helpers.add_endpoint_json(api_endpoints.cs_referrals, _id + '/resend')).then(async (response) => {
+                const data = await response.json();
+                vm.$emit('refreshFromResponse', data);
                 vm.table.ajax.reload();
                 swal.fire({
                     title: 'Referral Resent',
@@ -177,10 +179,14 @@ export default {
                     swal.showLoading()
                 }
             })
-            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.cs_referrals, _id + '/recall')).then(response => {
+            fetch(helpers.add_endpoint_json(api_endpoints.cs_referrals, _id + '/recall'), {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', }
+            }).then(async (response) => {
+                const data = await response.json();
                 swal.hideLoading();
                 swal.close();
-                vm.$emit('refreshFromResponse', response);
+                vm.$emit('refreshFromResponse', data);
                 vm.table.ajax.reload();
                 swal.fire({
                     title: 'Referral Recall',

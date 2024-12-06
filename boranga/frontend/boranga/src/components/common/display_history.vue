@@ -30,7 +30,7 @@
                 <input type="checkbox" class="form-check-input" id="checkbox" v-model="showNullFields" v-on:change="formatHistoryData()"/>
             </div>
             <div>
-            <strong>Data:</strong> 
+            <strong>Data:</strong>
             </div>
             <textarea disabled class="form-control" rows="25">{{ JSON.stringify(version_data_formatted, null, '\t') }}</textarea>
             </div>
@@ -40,7 +40,7 @@
                 <FormSection :formCollapse="false" :label="data.model_display_name+' - '+data.pk" :Index="itemObjKey+data.pk">
                     <div class="card-body card-collapse">
                         <div v-for="(value,index) in data.fields">
-                            <div v-if="value" class="row-sm-12">  
+                            <div v-if="value" class="row-sm-12">
                                 <div v-if="typeof value == 'object'" class="col-sm-12">
                                     <div v-for="(o_value,o_index) in value">
                                         <label class="col-sm-6 control-label"><strong>{{index}}.{{o_index}}:</strong></label>
@@ -52,8 +52,8 @@
                                     <input :disabled="true" type="text" class="form-control col-sm-6" :value=value>
                                 </div>
                             </div>
-                        </div>  
-                    </div>            
+                        </div>
+                    </div>
                 </FormSection>
                 </div>
                 <div v-else>
@@ -61,7 +61,7 @@
                     <FormSection :formCollapse="false" :label="sub_data.model_display_name+' - '+sub_data.pk" :Index="itemObjKey+sub_data.pk">
                         <div class="card-body card-collapse">
                             <div v-for="(value,index) in sub_data.fields">
-                                <div v-if="value" class="row-sm-12">  
+                                <div v-if="value" class="row-sm-12">
                                     <div v-if="typeof value == 'object'" class="col-sm-12">
                                         <div v-for="(o_value,o_index) in value">
                                             <label class="col-sm-6 control-label"><strong>{{index}}.{{o_index}}:</strong></label>
@@ -73,8 +73,8 @@
                                         <input :disabled="true" type="text" class="form-control col-sm-6" :value=value>
                                     </div>
                                 </div>
-                            </div>  
-                        </div>            
+                            </div>
+                        </div>
                     </FormSection>
                     </div>
                 </div>
@@ -165,12 +165,13 @@ export default {
         },
         fetchHistoryData: function(){
             let vm = this;
-            vm.$http.get(api_endpoints.lookup_revision_versions(vm.primary_model,vm.revision_id))
-            .then((response) => {
-                vm.revision_date = response.body['date_created'];
-                vm.revision_user = response.body['revision_user'];
-                vm.version_data = response.body['version_data'];
-                vm.formatHistoryData();                
+            fetch(api_endpoints.lookup_revision_versions(vm.primary_model,vm.revision_id))
+            .then(async (response) => {
+                const data = await response.json();
+                vm.revision_date = data['date_created'];
+                vm.revision_user = data['revision_user'];
+                vm.version_data = data['version_data'];
+                vm.formatHistoryData();
             },(error) => {
                 console.log(error);
             })

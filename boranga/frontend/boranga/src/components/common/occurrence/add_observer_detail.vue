@@ -193,8 +193,12 @@ export default {
             if (vm.observerObj.id) {
                 vm.updatingObserver = true;
                 formData.append('data', JSON.stringify(observerObj));
-                vm.$http.put(helpers.add_endpoint_json(vm.url, observerObj.id), formData, {
-                    emulateJSON: true,
+                fetch(helpers.add_endpoint_json(vm.url, observerObj.id), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
                 }).then((response) => {
                     vm.updatingObserver = false;
                     vm.$parent.updatedObserverDetails();
@@ -206,8 +210,12 @@ export default {
             } else {
                 vm.addingObserver = true;
                 formData.append('data', JSON.stringify(observerObj));
-                vm.$http.post(vm.url, formData, {
-                    emulateJSON: true,
+                fetch(vm.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
                 }).then((response) => {
                     vm.addingObserver = false;
                     vm.$parent.updatedObserverDetails();

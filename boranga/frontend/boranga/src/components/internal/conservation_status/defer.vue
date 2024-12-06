@@ -32,8 +32,8 @@
                                 <div class="col">
                                     <div class="form-group">
                                         <label class="control-label mb-3" for="review-due-date">Review Due Date</label>
-                                        <input type="date" class="form-control" id="review-due-date" name="review-due-date"
-                                            ref="review-due-date" v-model="reviewDueDate" />
+                                        <input type="date" class="form-control" id="review-due-date"
+                                            name="review-due-date" ref="review-due-date" v-model="reviewDueDate" />
                                     </div>
                                 </div>
                             </div>
@@ -101,8 +101,10 @@ export default {
             let vm = this;
             vm.errors = null;
             let data = { 'review_due_date': vm.reviewDueDate, 'reason': vm.reason }
-            vm.$http.patch(api_endpoints.defer_cs_proposal(vm.conservation_status.id), JSON.stringify(data), {
-                emulateJSON: true,
+            fetch(api_endpoints.defer_cs_proposal(vm.conservation_status.id), {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify(data),
             })
                 .then((response) => {
                     vm.$emit('refreshFromResponse', response);

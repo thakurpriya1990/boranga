@@ -8,13 +8,10 @@
                 <div class="col-4">
                     <div class="card">
                         <div class="card-body">
-                            <h4 class="card-title mb-3">My Profile<i class="bi bi-person-fill ps-2 text-primary"></i></h4>
-                            <div
-                                class="table-responsive"
-                            >
-                                <table
-                                    class="table table-sm "
-                                >
+                            <h4 class="card-title mb-3">My Profile<i class="bi bi-person-fill ps-2 text-primary"></i>
+                            </h4>
+                            <div class="table-responsive">
+                                <table class="table table-sm ">
                                     <tbody>
                                         <tr>
                                             <td scope="row" class="fw-bold">Name</td>
@@ -47,8 +44,8 @@
                             <h4 class="card-title mb-3">My Area of Interest<i
                                     class="bi bi-search-heart ps-2 text-primary"></i></h4>
                             <div class="mb-4">
-                                <select type="text" class="form-select text-muted" name="area-of-interest"
-                                    id="area-of-interest" placeholder="Name" v-model="profile.area_of_interest"
+                                <select class="form-select text-muted" name="area-of-interest" id="area-of-interest"
+                                    placeholder="Name" v-model="profile.area_of_interest"
                                     @change="updateAreaOfInterest">
                                     <option :value="null">No Specific Area</option>
                                     <option value="flora">Flora</option>
@@ -97,7 +94,7 @@ import { api_endpoints } from '@/utils/hooks'
 
 export default {
     name: 'Home',
-    data() {
+    data: function() {
         return {
             profile: null,
         }
@@ -114,8 +111,15 @@ export default {
     methods: {
         updateAreaOfInterest: function () {
             let vm = this;
-            vm.$http.patch(api_endpoints.save_area_of_interest, { area_of_interest: vm.profile.area_of_interest }).then(async (response) => {
-                vm.profile.area_of_interest = await response.body.area_of_interest;
+            fetch(api_endpoints.save_area_of_interest, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ area_of_interest: vm.profile.area_of_interest })
+            }).then(async (response) => {
+                const json = await response.json();
+                vm.profile.area_of_interest = json.area_of_interest;
             }, (error) => {
                 console.log(error);
             });
@@ -126,8 +130,13 @@ export default {
         },
         fetchProfile: function () {
             let vm = this;
-            vm.$http.get(api_endpoints.profile).then(async (response) => {
-                vm.profile = await response.body;
+            fetch(api_endpoints.profile, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(async (response) => {
+                vm.profile = await response.json();
             }, (error) => {
 
             });
@@ -136,7 +145,7 @@ export default {
     created: function () {
         // env variable is set in base.html template from django
         var user_is_authenticated = `${env['user_is_authenticated']}`
-        if(user_is_authenticated.toString() === 'true') {
+        if (user_is_authenticated.toString() === 'true') {
             this.fetchProfile();
         }
     }

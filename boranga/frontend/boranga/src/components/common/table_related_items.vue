@@ -172,8 +172,8 @@ export default {
         fetchFilterList: function () {
             let vm = this;
             //large FilterList of Species Values object
-            vm.$http.get(vm.filter_list_url).then((response) => {
-                vm.related_type_filter_list = response.body;
+            fetch(vm.filter_list_url).then(async (response) => {
+                vm.related_type_filter_list = await response.json();
             }, (error) => {
                 console.log(error);
             })

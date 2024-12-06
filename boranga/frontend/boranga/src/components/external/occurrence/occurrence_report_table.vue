@@ -447,8 +447,8 @@ export default {
         fetchFilterLists: function () {
             let vm = this;
             vm.proposal_status = vm.external_status;
-            vm.$http.get(api_endpoints.group_types_dict).then((response) => {
-                vm.group_types = response.body;
+            fetch(api_endpoints.group_types_dict).then(async (response) => {
+                vm.group_types = await response.json();
             }, (error) => {
                 console.log(error);
             });
@@ -471,9 +471,16 @@ export default {
                         const createUrl = api_endpoints.occurrence_report + "/";
                         let payload = new Object();
                         payload.group_type_id = group_type
-                        let savedOCR = await Vue.http.post(createUrl, payload);
-                        if (savedOCR) {
-                            newOCRId = savedOCR.body;
+                        let response = await fetch(createUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        });
+                        const data = await response.json();
+                        if (data) {
+                            newOCRId = data;
                         }
                     }
                     catch (err) {
@@ -501,7 +508,10 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_ocr_proposal(occurrence_report_id))
+                    fetch(api_endpoints.discard_ocr_proposal(occurrence_report_id), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Occurrence Report Discarded',
@@ -533,7 +543,10 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.patch(api_endpoints.reinstate_ocr_proposal(occurrence_report_id))
+                    fetch(api_endpoints.reinstate_ocr_proposal(occurrence_report_id), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',
@@ -567,8 +580,11 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    this.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, occurrence_report_id + '/copy')).then(res => {
-                        const ocr_copy = res.body;
+                    fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, occurrence_report_id + '/copy'), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', }
+                    }).then(async (response) => {
+                        const ocr_copy = await response.json();
                         swal.fire({
                             title: 'Copied',
                             text: `The occurrence report has been copied to ${ocr_copy.occurrence_report_number}. When you click OK, the new occurrence report will open in a new window.`,

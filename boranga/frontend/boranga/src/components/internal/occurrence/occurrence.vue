@@ -6,11 +6,9 @@
                         }}</span></h3>
                 <h4 v-if="occurrence.combined_occurrence" class="text-muted mb-3">
                     Combined in to Occurrence:
-                    <template>
-                        OCC{{ occurrence.combined_occurrence_id }} <small><a
-                                :href="`/internal/occurrence/${occurrence.combined_occurrence_id}?group_type_name=${occurrence.group_type}&action=view`"
-                                target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
-                    </template>
+                    OCC{{ occurrence.combined_occurrence_id }} <small><a
+                            :href="`/internal/occurrence/${occurrence.combined_occurrence_id}?group_type_name=${occurrence.group_type}&action=view`"
+                            target="_blank"><i class="bi bi-box-arrow-up-right"></i></a></small>
                 </h4>
                 <div class="row pb-4">
                     <div v-if="!comparing" class="col-md-3">
@@ -83,39 +81,37 @@
                         </div>
                     </div>
                     <div class="col-md-9">
-                        <template>
-                            <form :action="occurrence_form_url" method="post" name="occurrence"
-                                enctype="multipart/form-data">
+                        <form :action="occurrence_form_url" method="post" name="occurrence"
+                            enctype="multipart/form-data">
 
-                                <ProposalOccurrence v-if="occurrence" :occurrence_obj="occurrence" id="OccurrenceStart"
-                                    ref="occurrence" @refreshFromResponse="refreshFromResponse">
-                                </ProposalOccurrence>
+                            <ProposalOccurrence v-if="occurrence" :occurrence_obj="occurrence" id="OccurrenceStart"
+                                ref="occurrence" @refreshFromResponse="refreshFromResponse">
+                            </ProposalOccurrence>
 
-                                <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                                <input type='hidden' name="occurrence_id" :value="1" />
-                                <div class="row" style="margin-bottom: 50px">
-                                    <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                        <div class="container">
-                                            <div class="col-md-6">
-                                                <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
-                                                    @click.prevent="returnToDashboard">
-                                                    Return to Dashboard</button>
-                                            </div>
-                                            <div v-if="hasUserEditMode" class="col-md-6 text-end">
-                                                <button v-if="savingOccurrence" class="btn btn-primary pull-right"
-                                                    style="margin-top:5px;" disabled>Save Changes <span
-                                                        class="spinner-border spinner-border-sm" role="status"
-                                                        aria-hidden="true"></span>
-                                                    <span class="visually-hidden">Loading...</span></button>
-                                                <button v-else class="btn btn-primary pull-right"
-                                                    style="margin-top:5px;" @click.prevent="save()">Save
-                                                    Changes</button>
-                                            </div>
+                            <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
+                            <input type='hidden' name="occurrence_id" :value="1" />
+                            <div class="row" style="margin-bottom: 50px">
+                                <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                                    <div class="container">
+                                        <div class="col-md-6">
+                                            <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
+                                                @click.prevent="returnToDashboard">
+                                                Return to Dashboard</button>
+                                        </div>
+                                        <div v-if="hasUserEditMode" class="col-md-6 text-end">
+                                            <button v-if="savingOccurrence" class="btn btn-primary pull-right"
+                                                style="margin-top:5px;" disabled>Save Changes <span
+                                                    class="spinner-border spinner-border-sm" role="status"
+                                                    aria-hidden="true"></span>
+                                                <span class="visually-hidden">Loading...</span></button>
+                                            <button v-else class="btn btn-primary pull-right" style="margin-top:5px;"
+                                                @click.prevent="save()">Save
+                                                Changes</button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
-                        </template>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -279,7 +275,14 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, vm.occurrence);
-            await vm.$http.post(vm.occurrence_form_url, payload).then(res => {
+            await fetch(vm.occurrence_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            }).then(async (response) => {
+                const data = await response.json();
                 swal.fire({
                     title: "Saved",
                     text: "Your changes have been saved",
@@ -290,7 +293,7 @@ export default {
                 });
                 vm.savingOccurrence = false;
                 vm.isSaved = true;
-                vm.refreshFromResponse(res);
+                vm.refreshFromResponse(data);
                 vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(false);
                 vm.$refs.occurrence.$refs.occ_location.incrementComponentMapKey();
                 vm.$refs.occurrence.$refs.occ_location.refreshDatatables();
@@ -343,7 +346,13 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, vm.occurrence);
-            const result = await vm.$http.post(vm.occurrence_form_url, payload).then(res => {
+            const result = await fetch(vm.occurrence_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            }).then(async (response) => {
                 //return true;
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
@@ -418,8 +427,14 @@ export default {
                         let payload = new Object();
                         Object.assign(payload, vm.occurrence);
                         helpers.add_endpoint_json(api_endpoints.occurrence, vm.occurrence.id + '/submit');
-                        vm.$http.post(submit_url, payload).then(res => {
-                            vm.occurrence = res.body;
+                        fetch(submit_url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload)
+                        }).then(async (repsonse) => {
+                            vm.occurrence = await repsonse.json();
                             vm.$router.push({
                                 name: 'internal-occurrence-dash'
                             });
@@ -445,15 +460,21 @@ export default {
                 name: 'internal-occurrence-dash'
             });
         },
-        refreshFromResponse: function (response) {
+        refreshFromResponse: async function (response) {
             let vm = this;
-            vm.original_occurrence = helpers.copyObject(response.body);
-            vm.occurrence = helpers.copyObject(response.body);
+            const data = await response.json();
+            vm.original_occurrence = helpers.copyObject(data);
+            vm.occurrence = helpers.copyObject(data);
             vm.combine_key++;
         },
         activateOccurrence: async function () {
             let vm = this;
-            await vm.$http.post(`/api/occurrence/${this.occurrence.id}/activate.json`).then(res => {
+            await fetch(`/api/occurrence/${this.occurrence.id}/activate.json`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (repsonse) => {
                 swal.fire({
                     title: "Activated",
                     text: "Occurrence has been Activated",
@@ -478,7 +499,12 @@ export default {
         },
         lockOccurrence: async function () {
             let vm = this;
-            await vm.$http.post(`/api/occurrence/${this.occurrence.id}/lock_occurrence.json`).then(res => {
+            await fetch(`/api/occurrence/${this.occurrence.id}/lock_occurrence.json`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (repsonse) => {
                 swal.fire({
                     title: "Locked",
                     text: "Occurrence has been Locked",
@@ -503,7 +529,12 @@ export default {
         },
         unlockOccurrence: async function () {
             let vm = this;
-            await vm.$http.post(`/api/occurrence/${this.occurrence.id}/unlock_occurrence.json`).then(res => {
+            await fetch(`/api/occurrence/${this.occurrence.id}/unlock_occurrence.json`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (repsonse) => {
                 swal.fire({
                     title: "Unlocked",
                     text: "Occurrence has been Unlocked",
@@ -541,7 +572,12 @@ export default {
                 reverseButtons: true,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
-                    await vm.$http.post(`/api/occurrence/${this.occurrence.id}/close_occurrence.json`).then(res => {
+                    await fetch(`/api/occurrence/${this.occurrence.id}/close_occurrence.json`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }).then(async (repsonse) => {
                         swal.fire({
                             title: "Closed",
                             text: "Occurrence has been Closed",
@@ -583,7 +619,12 @@ export default {
                 reverseButtons: true,
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
-                    await vm.$http.post(`/api/occurrence/${this.occurrence.id}/reopen_occurrence.json`).then(res => {
+                    await fetch(`/api/occurrence/${this.occurrence.id}/reopen_occurrence.json`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }).then(async (repsonse) => {
                         swal.fire({
                             title: "Reopened",
                             text: "Occurrence has been Reopened",
@@ -616,8 +657,8 @@ export default {
         },
         fetchOccurrence: function () {
             let vm = this;
-            Vue.http.get(`/api/occurrence/${this.$route.params.occurrence_id}/`).then(res => {
-                vm.occurrence = res.body;
+            fetch(`/api/occurrence/${this.$route.params.occurrence_id}/`).then(async (repsonse) => {
+                vm.occurrence = await response.json();
             },
                 err => {
                     console.log(err);
@@ -637,9 +678,9 @@ export default {
     },
     beforeRouteEnter: function (to, from, next) {
         //if (to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna") {
-        Vue.http.get(`/api/occurrence/${to.params.occurrence_id}/`).then(res => {
-            next(vm => {
-                vm.occurrence = res.body;
+        fetch(`/api/occurrence/${to.params.occurrence_id}/`).then(async (repsonse) => {
+            next(async vm => {
+                vm.occurrence = await response.json();
             });
         },
             err => {

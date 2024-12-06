@@ -1124,8 +1124,8 @@ export default {
         fetchFilterLists: function () {
             let vm = this;
 
-            vm.$http.get(api_endpoints.community_filter_dict + '?group_type_name=' + vm.group_type_name).then((response) => {
-                vm.filterListsCommunities = response.body;
+            fetch(api_endpoints.community_filter_dict + '?group_type_name=' + vm.group_type_name).then(async (response) => {
+                vm.filterListsCommunities = await response.json();
                 vm.communities_data_list = vm.filterListsCommunities.community_data_list;
                 vm.wa_legislative_lists = vm.filterListsCommunities.wa_legislative_lists;
                 vm.wa_legislative_categories = vm.filterListsCommunities.wa_legislative_categories;
@@ -1157,9 +1157,14 @@ export default {
                         let payload = new Object();
                         payload.application_type_id = this.group_type_id
                         payload.internal_application = true
-                        let savedCommunityCS = await Vue.http.post(createUrl, payload);
-                        if (savedCommunityCS) {
-                            newCommunityCSId = savedCommunityCS.body.id;
+                        let response = await fetch(createUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', },
+                            body: JSON.stringify(payload),
+                        });
+                        const data = await response.json();
+                        if (data) {
+                            newCommunityCSId = data.id;
                         }
                     }
                     catch (err) {
@@ -1187,7 +1192,10 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_cs_proposal(conservation_status_id))
+                    fetch(api_endpoints.discard_cs_proposal(conservation_status_id), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -1221,7 +1229,10 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.reinstate_cs_proposal(conservation_status_id))
+                    fetch(api_endpoints.reinstate_cs_proposal(conservation_status_id), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',
@@ -1244,8 +1255,12 @@ export default {
             let vm = this;
             let payload = new Object();
             payload.conservation_status_id = conservation_status_id;
-            Vue.http.post(`/api/meeting/${vm.meeting_obj.id}/add_agenda_item.json`, payload).then(res => {
-                vm.meeting_obj.agenda_items_arr = res.body;
+            fetch(`/api/meeting/${vm.meeting_obj.id}/add_agenda_item.json`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
+                vm.meeting_obj.agenda_items_arr = await response.json();
                 vm.$refs.cs_communities_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                 this.$emit('updateAgendaItems');
             },

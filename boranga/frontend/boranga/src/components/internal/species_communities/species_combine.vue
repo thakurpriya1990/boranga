@@ -1,10 +1,11 @@
 <template lang="html">
     <div id="combineSpecies">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" extraLarge id="species-combine-modal">
+        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" extraLarge
+            id="species-combine-modal">
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="combineSpeciesForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div>
                             <div class="col-md-12">
                                 <ul v-if="is_internal" class="nav nav-pills" id="combine-pills-tab" role="tablist">
@@ -46,7 +47,7 @@
                                     <div class="tab-pane" :id="newSpeciesBody" role="tabpanel"
                                         aria-labelledby="pills-new-species-tab">
                                         <SpeciesCombineForm v-if="new_combine_species && new_combine_species.id"
-                                            ref="species_communities_new" :species_community.sync="new_combine_species"
+                                            ref="species_communities_new" :species_community="new_combine_species"
                                             :original_species_combine_list="original_species_combine_list"
                                             id="new_combine_species" :is_internal="true" :key="speciesCombineFormKey">
                                         </SpeciesCombineForm>
@@ -55,7 +56,7 @@
                                         :key="'div' + species.id" class="tab-pane fade" :id="'species-body-' + index"
                                         role="tabpanel" :aria-labelledby="'pills-species' + index + '-tab'">
                                         <SpeciesCommunitiesComponent :ref="'species_communities_species' + index"
-                                            :species_community_original="species" :species_community.sync="species"
+                                            :species_community_original="species" :species_community="species"
                                             :id="'species-' + index" :is_internal="true" :is_readonly="true">
                                         </SpeciesCommunitiesComponent>
                                     </div>
@@ -225,7 +226,13 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, new_species);
-            const result = await vm.$http.post(`/api/species/${new_species.id}/species_split_save.json`, payload).then(res => {
+            const result = await fetch(`/api/species/${new_species.id}/species_split_save.json`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
                 return true;
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
@@ -310,8 +317,14 @@ export default {
                         let payload = new Object();
                         Object.assign(payload, new_species);
                         let submit_url = helpers.add_endpoint_json(api_endpoints.species, new_species.id + '/combine_new_species_submit')
-                        vm.$http.post(submit_url, payload).then(res => {
-                            vm.new_species = res.body;
+                        fetch(submit_url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        }).then(async (response) => {
+                            vm.new_species = await response.json();
                             vm.$router.push({
                                 name: 'internal-species-communities-dash'
                             });
@@ -340,7 +353,12 @@ export default {
             let vm = this;
             try {
                 // In this case we are allowing a http DELETE call to remove the species
-                vm.$http.delete(api_endpoints.remove_species_proposal(species_id));
+                fetch(api_endpoints.remove_species_proposal(species_id), {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
             }
             catch (err) {
                 console.log(err);

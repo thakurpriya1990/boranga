@@ -270,8 +270,8 @@ export default {
             let vm = this;
             this.$refs.contact_detail.contact_detail_id = id;
             this.$refs.contact_detail.contact_detail_action = 'edit';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.contact_detail, id)).then((response) => {
-                this.$refs.contact_detail.contactObj = response.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.contact_detail, id)).then(async (response) => {
+                this.$refs.contact_detail.contactObj = await response.json();
             },
                 err => {
                     console.log(err);
@@ -282,8 +282,8 @@ export default {
             let vm = this;
             this.$refs.contact_detail.contact_detail_id = id;
             this.$refs.contact_detail.contact_detail_action = 'view';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.contact_detail, id)).then((response) => {
-                this.$refs.contact_detail.contactObj = response.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.contact_detail, id)).then(async (response) => {
+                this.$refs.contact_detail.contactObj = await response.json();
             },
                 err => {
                     console.log(err);
@@ -305,7 +305,10 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.contact_detail, id + '/discard'))
+                    fetch(helpers.add_endpoint_json(api_endpoints.contact_detail, id + '/discard'), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -331,7 +334,10 @@ export default {
         },
         reinstateContactDetail: function (id) {
             let vm = this;
-            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.contact_detail, id + '/reinstate'))
+            fetch(helpers.add_endpoint_json(api_endpoints.contact_detail, id + '/reinstate'), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                 .then((response) => {
                     swal.fire({
                         title: 'Reinstated',

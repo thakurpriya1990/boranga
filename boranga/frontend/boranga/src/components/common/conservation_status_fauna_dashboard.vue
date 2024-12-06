@@ -1324,8 +1324,8 @@ export default {
         fetchFilterLists: function () {
             let vm = this;
             //large FilterList of Species Values object
-            vm.$http.get(api_endpoints.filter_lists_species + '?group_type_name=' + vm.group_type_name).then((response) => {
-                vm.filterListsSpecies = response.body;
+            fetch(api_endpoints.filter_lists_species + '?group_type_name=' + vm.group_type_name).then(async (response) => {
+                vm.filterListsSpecies = await response.json();
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
@@ -1361,9 +1361,14 @@ export default {
                         let payload = new Object();
                         payload.application_type_id = this.group_type_id
                         payload.internal_application = true
-                        let savedFaunaCS = await Vue.http.post(createUrl, payload);
-                        if (savedFaunaCS) {
-                            newFaunaCSId = savedFaunaCS.body.id;
+                        let response = await fetch(createUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', },
+                            body: JSON.stringify(payload),
+                        });
+                        const data = await response.json();
+                        if (data) {
+                            newFaunaCSId = data.id;
                         }
                     }
                     catch (err) {
@@ -1391,7 +1396,10 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_cs_proposal(conservation_status_id))
+                    fetch(api_endpoints.discard_cs_proposal(conservation_status_id), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -1425,7 +1433,10 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.reinstate_cs_proposal(conservation_status_id))
+                    fetch(api_endpoints.reinstate_cs_proposal(conservation_status_id), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',
@@ -1448,8 +1459,12 @@ export default {
             let vm = this;
             let payload = new Object();
             payload.conservation_status_id = conservation_status_id;
-            Vue.http.post(`/api/meeting/${vm.meeting_obj.id}/add_agenda_item.json`, payload).then(res => {
-                vm.meeting_obj.agenda_items_arr = res.body;
+            fetch(`/api/meeting/${vm.meeting_obj.id}/add_agenda_item.json`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
+                vm.meeting_obj.agenda_items_arr = await response.json();
                 vm.$refs.fauna_cs_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
                 this.$emit('updateAgendaItems');
             },

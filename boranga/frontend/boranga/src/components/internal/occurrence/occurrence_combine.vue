@@ -486,7 +486,13 @@ export default {
             let vm = this;
             let formData = new FormData();
             formData.append('data', JSON.stringify(vm.occ_combine_data));
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence, vm.main_occurrence_obj.id + '/combine'), formData)
+            fetch(helpers.add_endpoint_json(api_endpoints.occurrence, vm.main_occurrence_obj.id + '/combine'), {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
                 .then((response) => {
                     swal.fire({
                         title: 'Combined',
@@ -641,14 +647,20 @@ export default {
             let formData = new FormData()
             formData.append("occurrence_ids", JSON.stringify(vm.selectedOccurrenceIds));
             //get all key contact ids for all OCCs
-            vm.$http.post(
-                api_endpoints.combine_key_contacts_lookup, formData
-            ).then((response) => {
+            fetch(
+                api_endpoints.combine_key_contacts_lookup, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(async (response) => {
+                const data = await response.json();
                 //copy old list
                 let old_list = vm.key_contact_ids;
                 //add to main list
-                vm.key_contact_ids = response.body.id_list;
-                vm.key_contacts = response.body.values_list;
+                vm.key_contact_ids = data.id_list;
+                vm.key_contacts = data.values_list;
 
                 let contact_names = {};
                 let taken_names = [];
@@ -667,7 +679,7 @@ export default {
                 });
 
                 //add new ids to combine list if not in old list - unless they share a name
-                response.body.id_list.forEach(id => {
+                data.id_list.forEach(id => {
                     if (!old_list.includes(id) && !taken_names.includes(contact_names[id])) {
                         vm.occ_combine_data.combine_key_contact_ids.push(id);
                         taken_names.push(contact_names[id]);
@@ -684,22 +696,28 @@ export default {
             let formData = new FormData()
             formData.append("occurrence_ids", JSON.stringify(vm.selectedOccurrenceIds));
             //get all document ids for all OCCs
-            vm.$http.post(
-                api_endpoints.combine_documents_lookup, formData
-            ).then((response) => {
+            fetch(
+                api_endpoints.combine_documents_lookup, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(async (response) => {
+                const data = await response.json();
                 //copy old list
                 let old_list = vm.document_ids;
                 //add to main list
-                vm.document_ids = response.body.id_list;
-                vm.documents = response.body.values_list;
+                vm.document_ids = data.id_list;
+                vm.documents = data.values_list;
                 //remove ids from combine list if not in new list
                 vm.occ_combine_data.combine_document_ids.forEach(id => {
-                    if (!response.body.id_list.includes(id)) {
+                    if (!data.id_list.includes(id)) {
                         vm.occ_combine_data.combine_document_ids.splice(vm.occ_combine_data.combine_document_ids.indexOf(id), 1);
                     }
                 });
                 //add new ids to combine list if not in old list
-                response.body.id_list.forEach(id => {
+                data.id_list.forEach(id => {
                     if (!old_list.includes(id)) {
                         vm.occ_combine_data.combine_document_ids.push(id);
                     }
@@ -715,14 +733,20 @@ export default {
             let formData = new FormData()
             formData.append("occurrence_ids", JSON.stringify(vm.selectedOccurrenceIds));
             //get all threat ids for all OCCs
-            vm.$http.post(
-                api_endpoints.combine_threats_lookup, formData
-            ).then((response) => {
+            fetch(
+                api_endpoints.combine_threats_lookup, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(async (response) => {
+                const data = await response.json();
                 //copy old list
                 let old_list = vm.threat_ids;
                 //add to main list
-                vm.threat_ids = response.body.id_list;
-                vm.threats = response.body.values_list;
+                vm.threat_ids = data.id_list;
+                vm.threats = data.values_list;
 
                 let threat_original_reports = {};
                 let taken_reports = [];
@@ -735,12 +759,12 @@ export default {
 
                 //remove ids from combine list if not in new list
                 vm.occ_combine_data.combine_threat_ids.forEach(id => {
-                    if (!response.body.id_list.includes(id)) {
+                    if (!data.id_list.includes(id)) {
                         vm.occ_combine_data.combine_threat_ids.splice(vm.occ_combine_data.combine_threat_ids.indexOf(id), 1);
                     }
                 });
                 //add new ids to combine list if not in old list - unless they share an original report
-                response.body.id_list.forEach(id => {
+                data.id_list.forEach(id => {
                     if (!old_list.includes(id) && !taken_reports.includes(threat_original_reports[id])) {
                         vm.occ_combine_data.combine_threat_ids.push(id);
                         taken_reports.push(threat_original_reports[id]);
@@ -756,14 +780,20 @@ export default {
             let formData = new FormData()
             formData.append("occurrence_ids", JSON.stringify(vm.selectedOccurrenceIds));
             //get all site ids for all OCCs
-            vm.$http.post(
-                api_endpoints.combine_sites_lookup, formData
-            ).then((response) => {
+            fetch(
+                api_endpoints.combine_sites_lookup, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(async (response) => {
+                const data = await response.json();
                 //copy old list
                 let old_list = vm.site_ids;
                 //add to main list
-                vm.site_ids = response.body.id_list;
-                vm.sites = response.body.values_list;
+                vm.site_ids = data.id_list;
+                vm.sites = data.values_list;
 
                 let site_names = {};
                 let taken_names = [];
@@ -782,7 +812,7 @@ export default {
                 });
 
                 //add new ids to combine list if not in old list - unless they share a name
-                response.body.id_list.forEach(id => {
+                data.id_list.forEach(id => {
                     if (!old_list.includes(id) && !taken_names.includes(site_names[id])) {
                         vm.occ_combine_data.combine_site_ids.push(id);
                         taken_names.push(site_names[id]);
@@ -799,14 +829,20 @@ export default {
             let formData = new FormData()
             formData.append("occurrence_ids", JSON.stringify(vm.selectedOccurrenceIds));
             //get all site ids for all OCCs
-            vm.$http.post(
-                api_endpoints.combine_tenures_lookup, formData
-            ).then((response) => {
+            fetch(
+                api_endpoints.combine_tenures_lookup, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(async (response) => {
+                const data = await response.json();
                 //copy old list
                 let old_list = vm.tenure_ids;
                 //add to main list
-                vm.tenure_ids = response.body.id_list;
-                vm.tenures = response.body.values_list;
+                vm.tenure_ids = data.id_list;
+                vm.tenures = data.values_list;
 
                 let tenure_feature_ids = {};
                 let taken_feature_ids = [];
@@ -827,7 +863,7 @@ export default {
                 });
 
                 //add new ids to combine list if not in old list - unless they share a feature id while current
-                response.body.id_list.forEach(id => {
+                data.id_list.forEach(id => {
                     if (!old_list.includes(id) && !(tenure_feature_ids[id] && taken_feature_ids.includes(tenure_feature_ids[id]))) {
                         vm.occ_combine_data.combine_tenure_ids.push(id);
                         if (tenure_feature_ids[id]) {
@@ -907,8 +943,8 @@ export default {
                 vm.getTenureIds();
 
                 let dict_url = api_endpoints.occ_profile_dict + '?group_type=' + vm.main_occurrence_obj.group_type
-                vm.$http.get(dict_url).then((response) => {
-                    vm.occ_profile_dict = response.body;
+                fetch(dict_url).then(async (response) => {
+                    vm.occ_profile_dict = await response.json();
                     vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
                     vm.occurrence_source_list = vm.occ_profile_dict.occurrence_source_list;
                 }, (error) => {

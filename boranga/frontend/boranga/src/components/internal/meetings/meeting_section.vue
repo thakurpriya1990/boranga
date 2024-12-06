@@ -286,8 +286,8 @@ export default {
         fetchCommitteeMembers: function () {
             let vm = this;
             if (vm.meeting_obj.committee_id) {
-                vm.$http.get(api_endpoints.committee_members(vm.meeting_obj.committee_id)).then((response) => {
-                    vm.committee_members = response.body;
+                fetch(api_endpoints.committee_members(vm.meeting_obj.committee_id)).then(async (response) => {
+                    vm.committee_members = await response.json();
                     if (vm.meeting_obj.selected_committee_members.length === vm.activeMembers.length) {
                         vm.all_members_attending = true;
                     }
@@ -328,8 +328,8 @@ export default {
     created: async function () {
         let vm = this;
         //------fetch list of values
-        vm.$http.get(api_endpoints.meeting_dict).then((response) => {
-            vm.meeting_dict = response.body;
+        fetch(api_endpoints.meeting_dict).then(async (response) => {
+            vm.meeting_dict = await response.json();
             if (vm.meeting_obj.processing_status == 'completed') {
                 vm.meetingStatusEditable = false;
             }

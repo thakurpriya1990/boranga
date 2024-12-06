@@ -141,11 +141,11 @@ export default {
             if (vm.occurrence_obj?.community_id) {
                 let community_display_url = api_endpoints.community_display +
                     "?community_id=" + vm.occurrence_obj.community_id
-                vm.$http.get(community_display_url).then(
-                    (response) => {
-                        var newOption = new Option(response.body.name, response.body.id, false, true);
+                fetch(community_display_url).then(async (response) => {
+                        const data = await response.json();
+                        var newOption = new Option(data.name, data.id, false, true);
                         $('#' + vm.community_name_lookup).append(newOption);
-                        vm.community_display = response.body.name
+                        vm.community_display = data.name
                     })
             }
         },
@@ -159,8 +159,8 @@ export default {
         let action = this.$route.query.action;
         let dict_url = action == "view" ? api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type_id + '&action=' + action :
             api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type_id
-        vm.$http.get(dict_url).then((response) => {
-            vm.occ_profile_dict = response.body;
+        fetch(dict_url).then(async (response) => {
+            vm.occ_profile_dict = await response.json();
             vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
             vm.occurrence_source_list = vm.occ_profile_dict.occurrence_source_list;
             this.getCommunityDisplay();

@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="commsForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
@@ -225,8 +225,13 @@ export default {
             vm.errors = false;
             let comms = new FormData(vm.form);
             vm.addingComms = true;
-            vm.$http.post(vm.url, comms, {
-            }).then((response) => {
+            fetch(vm.url,
+                {
+                    method: 'POST',
+                    body: comms,
+                    'Content-Type': 'application/json',
+                }
+            ).then((response) => {
                 vm.addingComms = false;
                 vm.close();
             }, (error) => {
@@ -234,7 +239,6 @@ export default {
                 vm.addingComms = false;
                 vm.errorString = helpers.apiVueResourceError(error);
             });
-
         },
         addFormValidations: function () {
             let vm = this;

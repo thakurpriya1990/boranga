@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="siteForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <alert v-if="change_warning && !isReadOnly" type="warning"><strong>{{ change_warning }}</strong>
                         </alert>
                         <div class="col-sm-12">
@@ -40,16 +40,15 @@
                                     <template v-if="!isReadOnly">
                                         <template
                                             v-if="datum_list && datum_list.length > 0 && siteObj.datum && !datum_list.map((d) => d.srid).includes(siteObj.datum)">
-                                            <input type="text" v-if="siteObj.datum_name"
-                                                class="form-control mb-3"
-                                                :value="siteObj.datum_name + ' (Now Archived)'"
-                                                disabled />
+                                            <input type="text" v-if="siteObj.datum_name" class="form-control mb-3"
+                                                :value="siteObj.datum_name + ' (Now Archived)'" disabled />
                                             <div class="mb-3 text-muted">
                                                 Change datum to:
                                             </div>
                                         </template>
                                         <select class="form-select" v-model="siteObj.datum">
-                                            <option v-for="datum in datum_list" :value="datum.srid" v-bind:key="datum.srid">
+                                            <option v-for="datum in datum_list" :value="datum.srid"
+                                                v-bind:key="datum.srid">
                                                 {{ datum.name }}
                                             </option>
                                         </select>
@@ -68,16 +67,15 @@
                                     <template v-if="!isReadOnly">
                                         <template
                                             v-if="site_type_list && site_type_list.length > 0 && siteObj.site_type && !site_type_list.map((d) => d.id).includes(siteObj.site_type)">
-                                            <input type="text" v-if="siteObj.site_type_name"
-                                                class="form-control mb-3"
-                                                :value="siteObj.site_type_name + ' (Now Archived)'"
-                                                disabled />
+                                            <input type="text" v-if="siteObj.site_type_name" class="form-control mb-3"
+                                                :value="siteObj.site_type_name + ' (Now Archived)'" disabled />
                                             <div class="mb-3 text-muted">
                                                 Change site type to:
                                             </div>
                                         </template>
                                         <select class="form-select" v-model="siteObj.site_type">
-                                            <option v-for="site_type in site_type_list" :value="site_type.id" v-bind:key="site_type.id">
+                                            <option v-for="site_type in site_type_list" :value="site_type.id"
+                                                v-bind:key="site_type.id">
                                                 {{ site_type.name }}
                                             </option>
                                         </select>
@@ -115,7 +113,7 @@
                                     <div class="col-sm-9">
                                         <textarea :disabled="isReadOnly" rows=2 class="form-control"
                                             v-model="siteObj.comments">
-                                        </textarea>
+            </textarea>
                                     </div>
                                 </div>
                             </div>
@@ -262,8 +260,12 @@ export default {
             if (vm.siteObj.id) {
                 vm.updatingSite = true;
                 formData.append('data', JSON.stringify(siteObj));
-                vm.$http.put(helpers.add_endpoint_json(vm.url, siteObj.id), formData, {
-                    emulateJSON: true,
+                fetch(helpers.add_endpoint_json(vm.url, siteObj.id), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
                 }).then((response) => {
                     vm.updatingSite = false;
                     vm.$parent.updatedSites();
@@ -276,8 +278,12 @@ export default {
             } else {
                 vm.addingSite = true;
                 formData.append('data', JSON.stringify(siteObj));
-                vm.$http.post(vm.url, formData, {
-                    emulateJSON: true,
+                fetch(vm.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
                 }).then((response) => {
                     vm.addingSite = false;
                     vm.close();
@@ -294,9 +300,10 @@ export default {
         }
     },
     created: async function () {
-        let res = await this.$http.get('/api/occurrence_sites/site_list_of_values/');
+        let response = await fetch('/api/occurrence_sites/site_list_of_values/');
+        const data = await response.json();
         let site_list_of_values_res = {};
-        Object.assign(site_list_of_values_res, res.body);
+        Object.assign(site_list_of_values_res, data);
         this.site_type_list = site_list_of_values_res.site_type_list;
         this.site_type_list.splice(0, 0,
             {

@@ -218,7 +218,15 @@ export default {
                 // Provide an action to have the backend lock the geometry
                 payload.action = 'submit';
             }
-            const res = await vm.$http.post(vm.ocr_proposal_form_url, payload).then(res => {
+            const res = await fetch(vm.ocr_proposal_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
+                const data = await response.json();
+
                 let swalHtml = '<p>Your occurrence report has been saved as a draft.</p>';
                 if (vm.saveExitOCRProposal) {
                     swalHtml += '<p>It has <span class="fw-bold">NOT</span> been submitted.</p><p>You can find the draft on the occurrence report dashboard to continue working on the report later.</p>'
@@ -234,13 +242,12 @@ export default {
                     },
                 });
                 vm.savingOCRProposal = false;
-                const resData = res.data;
-                this.occurrence_report_obj = Object.assign({}, resData);
+                this.occurrence_report_obj = Object.assign({}, data);
                 this.$nextTick(async () => {
                     this.$refs.occurrence_report.$refs.ocr_location.incrementComponentMapKey();
                 });
                 vm.isSaved = true;
-                return resData;
+                return data;
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
@@ -285,8 +292,12 @@ export default {
         save_wo_confirm: function (e) {
             let vm = this;
             let formData = vm.set_formData()
-
-            vm.$http.post(vm.ocr_proposal_form_url, formData);
+            fetch(vm.ocr_proposal_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
         },
         save_before_submit: async function (e) {
             console.log('save before submit');
@@ -330,7 +341,13 @@ export default {
                 // Provide an action to have the backend lock the geometry
                 payload.action = 'submit';
             }
-            const result = await vm.$http.post(vm.ocr_proposal_form_url, payload).then(res => {
+            const result = await fetch(vm.ocr_proposal_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
                 console.log('saved before submit');
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
@@ -544,8 +561,14 @@ export default {
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.occurrence_report_obj);
-                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, vm.occurrence_report_obj.id + '/submit'), payload).then(res => {
-                            vm.occurrence_report_obj = res.body;
+                        fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, vm.occurrence_report_obj.id + '/submit'), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        }).then(async (response) => {
+                            vm.occurrence_report_obj = await response.json();
                             vm.$router.push({
                                 name: 'submit_ocr_proposal',
                                 params: { occurrence_report_obj: vm.occurrence_report_obj }
@@ -573,8 +596,9 @@ export default {
         },
         fetchOccurrenceReport: function (id) {
             let vm = this;
-            Vue.http.get(`/api/occurrence_report/${id}/`).then(res => {
-                vm.occurrence_report_obj = Object.assign({}, res.body);
+            fetch(`/api/occurrence_report/${id}/`).then(async (response) => {
+                const data = await response.json();
+                vm.occurrence_report_obj = Object.assign({}, data);
             },
                 err => {
                     console.log(err);
@@ -597,16 +621,17 @@ export default {
     beforeRouteEnter: function (to, from, next) {
         if (to.params.occurrence_report_id) {
             let vm = this;
-            Vue.http.get(`/api/occurrence_report/${to.params.occurrence_report_id}.json`).then(res => {
-                next(vm => {
+            fetch(`/api/occurrence_report/${to.params.occurrence_report_id}.json`).then(async (response) => {
+                next(async vm => {
+                    const data = await response.json();
                     vm.loading.push('occurrence report proposal')
-                    vm.occurrence_report_obj = res.body;
+                    vm.occurrence_report_obj = data;
                     vm.loading.splice('fetching occurrence report proposal', 1);
                     vm.setdata(vm.occurrence_report_obj.readonly);
 
-                    Vue.http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report, to.params.occurrence_report_id + '/amendment_request')).then((res) => {
+                    fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, to.params.occurrence_report_id + '/amendment_request')).then((res) => {
 
-                        vm.setAmendmentData(res.body);
+                        vm.setAmendmentData(data);
 
                     },
                         err => {
@@ -619,10 +644,15 @@ export default {
                 });
         }
         else {
-            Vue.http.post('/api/occurrence_report.json').then(res => {
-                next(vm => {
+            fetch('/api/occurrence_report.json', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (response) => {
+                next(async vm => {
                     vm.loading.push('fetching occurrence report proposal')
-                    vm.occurrence_report_obj = res.body;
+                    vm.occurrence_report_obj = await response.json();
                     vm.loading.splice('fetching occurrence report proposal', 1);
                 });
             },
@@ -631,7 +661,7 @@ export default {
                 });
         }
     },
-    beforeDestroy: function () {
+    beforeUnmount: function () {
         window.removeEventListener('beforeunload', this.leaving);
     }
 }

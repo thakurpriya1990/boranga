@@ -279,7 +279,6 @@ import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 import MapComponent from '../component_map.vue';
-import { VueSelect } from 'vue-select';
 import OccurrenceSiteDatatable from '@/components/internal/occurrence/occurrence_site_datatable.vue';
 import OccurrenceTenureDatatable from '@/components/internal/occurrence/occurrence_tenure_datatable.vue';
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
@@ -293,7 +292,6 @@ export default {
     components: {
         MapComponent,
         FormSection,
-        VueSelect,
         OccurrenceSiteDatatable,
         OccurrenceTenureDatatable,
         RelatedReports,
@@ -492,8 +490,8 @@ export default {
                 console.error('Error fetching location values list:', error);
             });
 
-        const response = await Vue.http.get('/api/region_district_filter_dict/');
-        vm.filterRegionDistrict = response.body;
+        const response = await fetch('/api/region_district_filter_dict/');
+        vm.filterRegionDistrict = await response.json();
         vm.region_list = vm.filterRegionDistrict.region_list;
         vm.district_list = vm.filterRegionDistrict.district_list;
         vm.region_list.splice(0, 0,
@@ -619,10 +617,9 @@ export default {
                         emulateJSON: true,
                     }
                 )
-                .then(
-                    (response) => {
+                .then(async (response) => {
                         vm.updatingLocationDetails = false;
-                        vm.occurrence_obj.location = response.body;
+                        vm.occurrence_obj.location = await response.json();
                         swal.fire({
                             title: 'Saved',
                             text: 'Location details have been saved',

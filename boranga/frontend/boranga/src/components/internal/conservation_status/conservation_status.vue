@@ -27,13 +27,14 @@
                                 <strong>
                                     <template v-if="conservation_status_obj.most_recent_meeting_completed">Meeting
                                         Completed<i class="bi bi-check-circle-fill ms-2 text-success"></i></template>
-                                    <template v-else>Awaiting Meeting<i class="bi bi-hourglass-split ms-2 text-secondary"></i></template>
+                                    <template v-else>Awaiting Meeting<i
+                                            class="bi bi-hourglass-split ms-2 text-secondary"></i></template>
                                 </strong><br />
                                 <a :href="`/internal/meetings/${conservation_status_obj.most_recent_meeting.id}?action=edit`"
                                     target="_blank">{{
                                         conservation_status_obj.most_recent_meeting.title ?
-                                            conservation_status_obj.most_recent_meeting.title : 'Meeting
-                                    Draft' }}<i class="bi bi-box-arrow-up-right ms-2"></i></a>
+                                            conservation_status_obj.most_recent_meeting.title : 'Meeting Draft' }}<i
+                                        class="bi bi-box-arrow-up-right ms-2"></i></a>
                             </p>
                         </template>
                     </div>
@@ -359,78 +360,75 @@
             </div>
             <div class="col-md-9">
                 <div class="row">
-                    <template>
-                        <div class="">
-                            <div class="row">
-                                <form :action="species_community_cs_form_url" method="post"
-                                    name="new_conservation_status" enctype="multipart/form-data">
-                                    <ProposalConservationStatus ref="conservation_status"
-                                        :conservation_status_obj="conservation_status_obj"
-                                        :canEditStatus="canEditStatus" id="ConservationStatusStart" :is_internal="true"
-                                        @saveConservationStatus="save_wo()">
-                                    </ProposalConservationStatus>
-                                    <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                                    <input type='hidden' name="conservation_status_id" :value="1" />
-                                    <div class="row" style="margin-bottom: 50px">
-                                        <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                            <!--the below as internal proposal submission ELSE just saving proposal changes -->
-                                            <div class="container">
-                                                <div class="col-md-6">
-                                                    <p class="pull-right" style="margin-top:5px;">
-                                                        <router-link class="btn btn-primary"
-                                                            :to="{ name: 'internal-conservation-status-dash' }">Back to
-                                                            Dashboard</router-link>
-                                                    </p>
-                                                </div>
-                                                <div v-if="conservation_status_obj.internal_user_edit"
-                                                    class="col-md-6 text-end">
-                                                    <button v-if="savingConservationStatus" class="btn btn-primary me-2"
-                                                        style="margin-top:5px;" disabled>Save and Continue <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
-                                                        @click.prevent="save()"
-                                                        :disabled="saveExitConservationStatus || submitConservationStatus">Save
-                                                        and Continue</button>
+                    <div class="">
+                        <div class="row">
+                            <form :action="species_community_cs_form_url" method="post" name="new_conservation_status"
+                                enctype="multipart/form-data">
+                                <ProposalConservationStatus ref="conservation_status"
+                                    :conservation_status_obj="conservation_status_obj" :canEditStatus="canEditStatus"
+                                    id="ConservationStatusStart" :is_internal="true"
+                                    @saveConservationStatus="save_wo()">
+                                </ProposalConservationStatus>
+                                <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
+                                <input type='hidden' name="conservation_status_id" :value="1" />
+                                <div class="row" style="margin-bottom: 50px">
+                                    <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                                        <!--the below as internal proposal submission ELSE just saving proposal changes -->
+                                        <div class="container">
+                                            <div class="col-md-6">
+                                                <p class="pull-right" style="margin-top:5px;">
+                                                    <router-link class="btn btn-primary"
+                                                        :to="{ name: 'internal-conservation-status-dash' }">Back to
+                                                        Dashboard</router-link>
+                                                </p>
+                                            </div>
+                                            <div v-if="conservation_status_obj.internal_user_edit"
+                                                class="col-md-6 text-end">
+                                                <button v-if="savingConservationStatus" class="btn btn-primary me-2"
+                                                    style="margin-top:5px;" disabled>Save and Continue <span
+                                                        class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Loading...</span></button>
+                                                <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
+                                                    @click.prevent="save()"
+                                                    :disabled="saveExitConservationStatus || submitConservationStatus">Save
+                                                    and Continue</button>
 
-                                                    <button v-if="saveExitConservationStatus"
-                                                        class="btn btn-primary me-2" style="margin-top:5px;"
-                                                        disabled>Save and Exit <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
-                                                        @click.prevent="save_exit()"
-                                                        :disabled="savingConservationStatus || submitConservationStatus">Save
-                                                        and Exit</button>
+                                                <button v-if="saveExitConservationStatus" class="btn btn-primary me-2"
+                                                    style="margin-top:5px;" disabled>Save and Exit <span
+                                                        class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Loading...</span></button>
+                                                <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
+                                                    @click.prevent="save_exit()"
+                                                    :disabled="savingConservationStatus || submitConservationStatus">Save
+                                                    and Exit</button>
 
-                                                    <button v-if="submitConservationStatus" class="btn btn-primary"
-                                                        style="margin-top:5px;" disabled>Submit <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary" style="margin-top:5px;"
-                                                        @click.prevent="submit()"
-                                                        :disbaled="saveExitConservationStatus || savingConservationStatus">Submit</button>
-                                                </div>
-                                                <div v-else-if="hasAssessorMode" class="col-md-6 text-end">
-                                                    <button v-if="savingConservationStatus" class="btn btn-primary"
-                                                        style="margin-top:5px;" disabled>Save Changes <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary" style="margin-top:5px;"
-                                                        @click.prevent="save()">Save
-                                                        Changes</button>
-                                                </div>
+                                                <button v-if="submitConservationStatus" class="btn btn-primary"
+                                                    style="margin-top:5px;" disabled>Submit <span
+                                                        class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Loading...</span></button>
+                                                <button v-else class="btn btn-primary" style="margin-top:5px;"
+                                                    @click.prevent="submit()"
+                                                    :disbaled="saveExitConservationStatus || savingConservationStatus">Submit</button>
+                                            </div>
+                                            <div v-else-if="hasAssessorMode" class="col-md-6 text-end">
+                                                <button v-if="savingConservationStatus" class="btn btn-primary"
+                                                    style="margin-top:5px;" disabled>Save Changes <span
+                                                        class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Loading...</span></button>
+                                                <button v-else class="btn btn-primary" style="margin-top:5px;"
+                                                    @click.prevent="save()">Save
+                                                    Changes</button>
                                             </div>
                                         </div>
                                     </div>
-                                </form>
-                            </div>
+                                </div>
+                            </form>
                         </div>
-                    </template>
+                    </div>
                 </div>
             </div>
         </div>
@@ -726,8 +724,14 @@ export default {
         },
         unlockConservationStatus: async function () {
             let vm = this;
-            await vm.$http.patch(`/api/conservation_status/${vm.conservation_status_obj.id}/unlock_conservation_status.json`).then(response => {
-                vm.conservation_status_obj = Object.assign({}, response.body);
+            await fetch(`/api/conservation_status/${vm.conservation_status_obj.id}/unlock_conservation_status.json`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (response) => {
+                const data = await response.json();
+                vm.conservation_status_obj = Object.assign({}, data);
                 swal.fire({
                     title: 'Conservation Status Unlocked',
                     icon: 'success',
@@ -762,9 +766,15 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.patch(`/api/conservation_status/${vm.conservation_status_obj.id}/lock_conservation_status.json`)
-                        .then((response) => {
-                            vm.conservation_status_obj = Object.assign({}, response.body);
+                    fetch(`/api/conservation_status/${vm.conservation_status_obj.id}/lock_conservation_status.json`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                        .then(async (response) => {
+                            const data = await response.json();
+                            vm.conservation_status_obj = Object.assign({}, data);
                             swal.fire({
                                 title: 'Conservation Status Locked',
                                 icon: 'success',
@@ -794,7 +804,12 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_cs_proposal(vm.conservation_status_obj.id))
+                    fetch(api_endpoints.discard_cs_proposal(vm.conservation_status_obj.id), {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -846,7 +861,12 @@ export default {
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.delist_cs_proposal(vm.conservation_status_obj.id))
+                    fetch(api_endpoints.delist_cs_proposal(vm.conservation_status_obj.id), {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Delisted',
@@ -938,7 +958,13 @@ export default {
             vm.savingConservationStatus = true;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            await vm.$http.post(vm.species_community_cs_form_url, payload).then(res => {
+            await fetch(vm.species_community_cs_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
                 swal.fire({
                     title: 'Saved',
                     text: 'Your changes have been saved',
@@ -994,8 +1020,14 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            const result = await vm.$http.post(vm.species_community_cs_form_url, payload).then(res => {
-                //return true;
+            const result = await fetch(vm.species_community_cs_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
+
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
@@ -1090,8 +1122,14 @@ export default {
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.conservation_status_obj);
-                        vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/submit'), payload).then(res => {
-                            vm.conservation_status_obj = res.body;
+                        fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/submit'), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        }).then(async (response) => {
+                            vm.conservation_status_obj = await response.json();
                             vm.$router.push({
                                 name: 'internal-conservation-status-dash'
                             });
@@ -1117,14 +1155,21 @@ export default {
             let vm = this;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            vm.$http.post(vm.species_community_cs_form_url, payload).then(res => {
+            fetch(vm.species_community_cs_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
             }, err => {
             });
         },
-        refreshFromResponse: function (response) {
+        refreshFromResponse: async function (response) {
+            const data = await response.json();
             let vm = this;
-            vm.original_conservation_status_obj = helpers.copyObject(response.body);
-            vm.conservation_status_obj = helpers.copyObject(response.body);
+            vm.original_conservation_status_obj = helpers.copyObject(data);
+            vm.conservation_status_obj = helpers.copyObject(data);
             vm.$nextTick(() => {
                 vm.initialisedSelects = false;
                 vm.initialiseSelects();
@@ -1143,11 +1188,16 @@ export default {
                 data = { 'assessor_id': vm.conservation_status_obj.assigned_officer };
             }
             if (!unassign) {
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assign_to')), JSON.stringify(data), {
-                    emulateJSON: true
-                }).then((response) => {
-                    vm.conservation_status_obj = response.body;
-                    vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assign_to')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                }).then(async (response) => {
+                    const data = await response.json();
+                    vm.conservation_status_obj = data;
+                    vm.original_conservation_status_obj = helpers.copyObject(data);
                     vm.updateAssignedOfficerSelect();
                 }, (error) => {
                     vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
@@ -1163,10 +1213,11 @@ export default {
                 });
             }
             else {
-                vm.$http.get(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/unassign')))
-                    .then((response) => {
-                        vm.conservation_status_obj = response.body;
-                        vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/unassign')))
+                    .then(async (response) => {
+                        const data = await response.json();
+                        vm.conservation_status_obj = data;
+                        vm.original_conservation_status_obj = helpers.copyObject(data);
                         vm.updateAssignedOfficerSelect();
                     }, (error) => {
                         vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
@@ -1196,10 +1247,11 @@ export default {
         },
         assignRequestUser: function () {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assign_request_user')))
-                .then((response) => {
-                    vm.conservation_status_obj = response.body;
-                    vm.original_conservation_status_obj = helpers.copyObject(response.body);
+            fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assign_request_user')))
+                .then(async (response) => {
+                    const data = await response.json();
+                    vm.conservation_status_obj = data;
+                    vm.original_conservation_status_obj = helpers.copyObject(data);
                     vm.updateAssignedOfficerSelect();
                     vm.$nextTick(() => {
                         vm.initialisedSelects = false;
@@ -1257,8 +1309,8 @@ export default {
         fetchDeparmentUsers: function () {
             let vm = this;
             vm.loading.push('Loading Department Users');
-            vm.$http.get(api_endpoints.department_users).then((response) => {
-                vm.department_users = response.body
+            fetch(api_endpoints.department_users).then(async (response) => {
+                vm.department_users = await response.json();
                 vm.loading.splice('Loading Department Users', 1);
             }, (error) => {
                 console.log(error);
@@ -1338,11 +1390,17 @@ export default {
         },
         remindExternalReferee: function (external_referee_invite) {
             let vm = this;
-            vm.$http.post(
+            fetch(
                 helpers.add_endpoint_join(
                     api_endpoints.cs_external_referee_invites,
                     `/${external_referee_invite.id}/remind/`
                 ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
             )
                 .then((response) => {
                     swal.fire({
@@ -1371,12 +1429,16 @@ export default {
             }).then((result) => {
                 if (result.isConfirmed) {
                     let vm = this;
-                    vm.$http.patch(
+                    fetch(
                         helpers.add_endpoint_join(
                             api_endpoints.cs_external_referee_invites,
                             `/${external_referee_invite.id}/retract/`
-                        ),
-                    )
+                        ), {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
                         .then((response) => {
                             this.fetchConservationStatus();
                             swal.fire({
@@ -1403,14 +1465,25 @@ export default {
             vm.sendingReferral = true;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
-            vm.$http.post(vm.species_community_cs_form_url, payload).then(res => {
+            fetch(vm.species_community_cs_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
                 let data = { 'email': vm.selected_referral, 'text': vm.referral_text };
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assesor_send_referral')), JSON.stringify(data), {
-                    emulateJSON: true
-                }).then((response) => {
+                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assesor_send_referral')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                }).then(async (response) => {
+                    const data = await response.json();
                     vm.sendingReferral = false;
-                    vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                    vm.conservation_status_obj = response.body;
+                    vm.original_conservation_status_obj = helpers.copyObject(data);
+                    vm.conservation_status_obj = data;
                     swal.fire({
                         title: 'Referral Sent',
                         text: `The referral has been sent to ${vm.selected_referral}`,
@@ -1439,9 +1512,10 @@ export default {
         },
         remindReferral: function (r) {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/remind')).then(response => {
-                vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                vm.conservation_status_obj = response.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/remind')).then(async (response) => {
+                const data = await response.json();
+                vm.original_conservation_status_obj = helpers.copyObject(data);
+                vm.conservation_status_obj = data;
                 swal.fire({
                     title: 'Referral Reminder',
                     text: `A reminder has been sent to ${r.referral.fullname}`,
@@ -1464,9 +1538,15 @@ export default {
         },
         recallReferral: function (r) {
             let vm = this;
-            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/recall')).then(response => {
-                vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                vm.conservation_status_obj = response.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/recall'), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (response) => {
+                const data = await response.json();
+                vm.original_conservation_status_obj = helpers.copyObject(data);
+                vm.conservation_status_obj = data;
                 $(".popover").hide()
                 vm.enablePopovers();
                 swal.fire({
@@ -1491,9 +1571,10 @@ export default {
         },
         resendReferral: function (r) {
             let vm = this;
-            vm.$http.get(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/resend')).then(response => {
-                vm.original_conservation_status_obj = helpers.copyObject(response.body);
-                vm.conservation_status_obj = response.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/resend')).then(async (response) => {
+                const data = await response.json();
+                vm.original_conservation_status_obj = helpers.copyObject(data);
+                vm.conservation_status_obj = data;
                 $(".popover").hide()
                 vm.enablePopovers();
                 swal.fire({
@@ -1526,12 +1607,17 @@ export default {
             let vm = this;
             if (vm.conservation_status_obj.processing_status == 'Proposed DeListed' && status == 'with_assessor') {
                 let data = { 'status': status, 'approver_comment': vm.approver_comment }
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/switch_status')), JSON.stringify(data), {
-                    emulateJSON: true,
+                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/switch_status')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
                 })
-                    .then((response) => {
-                        vm.conservation_status_obj = response.body;
-                        vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                    .then(async (response) => {
+                        const data = await response.json();
+                        vm.conservation_status_obj = data;
+                        vm.original_conservation_status_obj = helpers.copyObject(data);
                         vm.approver_comment = '';
                         vm.$nextTick(() => {
                             vm.initialiseAssignedOfficerSelect(true);
@@ -1553,12 +1639,17 @@ export default {
             else {
                 let data = { 'status': status, 'approver_comment': vm.approver_comment }
                 vm.changingStatus = true;
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/switch_status')), JSON.stringify(data), {
-                    emulateJSON: true,
+                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/switch_status')), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
                 })
-                    .then((response) => {
-                        vm.conservation_status_obj = response.body;
-                        vm.original_conservation_status_obj = helpers.copyObject(response.body);
+                    .then(async (response) => {
+                        const data = await response.json();
+                        vm.conservation_status_obj = data;
+                        vm.original_conservation_status_obj = helpers.copyObject(data);
                         vm.approver_comment = '';
                         vm.$nextTick(() => {
                             vm.initialiseAssignedOfficerSelect(true);
@@ -1590,8 +1681,9 @@ export default {
         },
         fetchConservationStatus: function () {
             let vm = this;
-            vm.$http.get('/api/conservation_status/' + vm.$route.params.conservation_status_id + '/internal_conservation_status.json').then(res => {
-                vm.conservation_status_obj = res.body.conservation_status_obj;
+            fetch('/api/conservation_status/' + vm.$route.params.conservation_status_id + '/internal_conservation_status.json').then(async (response) => {
+                const data = await response.json();
+                vm.conservation_status_obj = data.conservation_status_obj;
             },
                 err => {
                     console.log(err);
@@ -1615,9 +1707,10 @@ export default {
         });
     },
     beforeRouteEnter: function (to, from, next) {
-        Vue.http.get(`/api/conservation_status/${to.params.conservation_status_id}/internal_conservation_status.json`).then(res => {
-            next(vm => {
-                vm.conservation_status_obj = res.body.conservation_status_obj;
+        fetch(`/api/conservation_status/${to.params.conservation_status_id}/internal_conservation_status.json`).then(async (response) => {
+            next(async vm => {
+                const data = await response.json();
+                vm.conservation_status_obj = data.conservation_status_obj;
             });
         },
             err => {

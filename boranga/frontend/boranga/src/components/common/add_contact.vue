@@ -3,7 +3,7 @@
         <modal @ok="ok()" @cancel="cancel()" :title="title()" large>
             <form class="form-horizontal" name="addContactForm">
                 <div class="row">
-                    <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                    <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                     <div class="col-lg-12">
                         <div class="row">
                             <div class="form-group">
@@ -119,8 +119,9 @@ export default {
         },
         fetchContact: function (id) {
             let vm = this;
-            vm.$http.get(api_endpoints.contact(id)).then((response) => {
-                vm.contact = response.body; vm.isModalOpen = true;
+            fetch(api_endpoints.contact(id)).then(async (response) => {
+                vm.contact = await response.json();
+                vm.isModalOpen = true;
             }, (error) => {
                 console.log(error);
             });
@@ -130,8 +131,12 @@ export default {
             vm.errors = false;
             if (vm.contact.id) {
                 let contact = vm.contact;
-                vm.$http.put(helpers.add_endpoint_json(api_endpoints.organisation_contacts, contact.id), JSON.stringify(contact), {
-                    emulateJSON: true,
+                fetch(helpers.add_endpoint_json(api_endpoints.organisation_contacts, contact.id), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(contact)
                 }).then((response) => {
                     vm.$parent.refreshDatatable();
                     vm.close();
@@ -144,16 +149,20 @@ export default {
                 let contact = JSON.parse(JSON.stringify(vm.contact));
                 contact.organisation = vm.org_id;
                 contact.user_status = 'contact_form';
-                vm.$http.post(api_endpoints.organisation_contacts, JSON.stringify(contact), {
-                    emulateJSON: true,
+                fetch(api_endpoints.organisation_contacts, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        body: JSON.stringify(contact)
+                    },
                 }).then((response) => {
-                    vm.close();
-                    vm.$parent.addedContact();
-                }, (error) => {
-                    console.log(error);
-                    vm.errors = true;
-                    vm.errorString = helpers.apiVueResourceError(error);
-                });
+                        vm.close();
+                        vm.$parent.addedContact();
+                    }, (error) => {
+                        console.log(error);
+                        vm.errors = true;
+                        vm.errorString = helpers.apiVueResourceError(error);
+                    });
 
             }
         },

@@ -5,7 +5,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="addSpeciesToCombine">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div>
                             <div class="row mb-3">
                                 <label for="" class="col-sm-3 control-label">Species:</label>
@@ -80,8 +80,9 @@ export default {
         addSpeciesToCombineList: function () {
             let vm = this;
             try {
-                Vue.http.get(`/api/species/${vm.combineSpeciesId}/internal_species.json`).then(res => {
-                    let species_obj = res.body.species_obj;
+                fetch(`/api/species/${vm.combineSpeciesId}/internal_species.json`).then(async (response) => {
+                    const data = await response.json();
+                    let species_obj = data.species_obj;
                     // user should not able select the same ID if already exists in the array to combine
                     let hasSpecies = false;
                     for (const species of vm.$parent.original_species_combine_list) {

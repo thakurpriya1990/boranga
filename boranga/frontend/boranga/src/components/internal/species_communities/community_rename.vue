@@ -131,7 +131,7 @@
                             <div class="col-md-12">
                                 <FormSpeciesCommunities v-if="species_community_original" ref="rename_community"
                                     :species_community_original="species_community_original"
-                                    :species_community.sync="species_community_original" id="rename_community"
+                                    :species_community="species_community_original" id="rename_community"
                                     :is_internal="true" :is_readonly="true" :rename_species="true"> // rename=true
                                     used to make only taxon
                                     select editable on form
@@ -272,10 +272,14 @@ export default {
             }).then((swalresult) => {
                 vm.finaliseCommunityLoading = true;
                 if (swalresult.isConfirmed) {
-                    vm.$http.post(api_endpoints.rename_community(vm.species_community_original.id), JSON.stringify(vm.new_community.taxonomy_details), {
-                        emulateJSON: true,
+                    fetch(api_endpoints.rename_community(vm.species_community_original.id), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(vm.new_community.taxonomy_details),
                     })
-                        .then(response => {
+                        .then(async (response) => {
                             console.log(response);
                             if (response.status === 200) {
                                 return response.json();
@@ -293,8 +297,8 @@ export default {
                             vm.$router.go();
                             vm.isModalOpen = false;
                         })
-                        .catch(response => {
-                            this.errors = response.body;
+                        .catch(async (response) => {
+                            this.errors = await response.json();
                         });
                 }
             }).finally(() => {

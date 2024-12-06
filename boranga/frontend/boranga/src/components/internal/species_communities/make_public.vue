@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="makePublicForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="row mb-3">
                             <label for="distribution_publishing" class="col-sm-6 control-label">Distribution: </label>
                             <div class="col-sm-6">
@@ -145,11 +145,15 @@ export default {
                 endpoint = api_endpoints.community;
             }
 
-            vm.$http.post(helpers.add_endpoint_json(endpoint, (vm.species_community.id + '/update_publishing_status')), data, {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(endpoint, (vm.species_community.id + '/update_publishing_status')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: data,
+            }).then(async (response) => {
                 vm.updatingPublishing = false;
-                vm.species_community.publishing_status = response.body;
+                vm.species_community.publishing_status = await response.json();
                 vm.species_community_original.publishing_status = helpers.copyObject(vm.species_community.publishing_status);
                 swal.fire({
                     title: 'Saved',

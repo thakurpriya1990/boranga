@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="approvalForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <alert type="danger" v-if="!isEffectiveDateValid"><strong>Please select Effective To Date that
                                 is after Effective From Date</strong></alert>
                         <div class="col-sm-12">
@@ -191,8 +191,12 @@ export default {
             let approval = JSON.parse(JSON.stringify(vm.approval));
             vm.issuingApproval = true;
             if (vm.state == 'proposed_approval') {
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/proposed_approval'), JSON.stringify(approval), {
-                    emulateJSON: true,
+                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/proposed_approval'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(approval)
                 }).then((response) => {
                     vm.issuingApproval = false;
                     vm.close();
@@ -211,8 +215,12 @@ export default {
                 formData.append('proposal_approval_document', vm.uploadedFile)
                 formData.append('data', JSON.stringify(approval));
 
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/final_approval'), formData, {
-                    emulateJSON: true,
+                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/final_approval'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: formData
                 }).then((response) => {
                     vm.issuingApproval = false;
                     vm.close();

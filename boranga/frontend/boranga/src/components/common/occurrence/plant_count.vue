@@ -469,11 +469,14 @@ export default {
             if (vm.is_report) {
                 endpoint = api_endpoints.occurrence_report;
             }
-            vm.$http.post(helpers.add_endpoint_json(endpoint, (vm.occurrence_id + '/update_plant_count_details')), JSON.stringify(vm.plant_count), {
-                emulateJSON: true
+            fetch(helpers.add_endpoint_json(endpoint, (vm.occurrence_id + '/update_plant_count_details')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vm.plant_count),
             }).then((response) => {
                 vm.updatingPlantCountDetails = false;
-                //vm.plant_count = response.body;
                 swal.fire({
                     title: 'Saved',
                     text: 'Plant Count details have been saved',
@@ -502,8 +505,8 @@ export default {
     },
     created: async function () {
         let vm = this;
-        const res = await Vue.http.get(`/api/occurrence/plant_count_list_of_values.json`);
-        vm.listOfPlantValuesDict = res.body;
+        const response = await fetch(`/api/occurrence/plant_count_list_of_values.json`);
+        vm.listOfPlantValuesDict = await response.json();
         vm.plant_count_method_list = vm.listOfPlantValuesDict.plant_count_method_list;
         vm.plant_count_method_list.splice(0, 0,
             {

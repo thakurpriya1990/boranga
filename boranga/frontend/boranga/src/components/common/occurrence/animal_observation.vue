@@ -477,11 +477,14 @@ export default {
             if (vm.is_report) {
                 endpoint = api_endpoints.occurrence_report;
             }
-            vm.$http.post(helpers.add_endpoint_json(endpoint, (vm.occurrence_id + '/update_animal_observation_details')), JSON.stringify(vm.animal_observation), {
-                emulateJSON: true
+            fetch(helpers.add_endpoint_json(endpoint, (vm.occurrence_id + '/update_animal_observation_details')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vm.animal_observation),
             }).then((response) => {
                 vm.updatingAnimalOnservationDetails = false;
-                //vm.animal_observation = response.body;
                 swal.fire({
                     title: 'Saved',
                     text: 'Animal Observation details have been saved',
@@ -510,8 +513,8 @@ export default {
     },
     created: async function () {
         let vm = this;
-        const res = await Vue.http.get(`/api/occurrence/animal_observation_list_of_values.json`);
-        vm.listOfAnimalValuesDict = res.body;
+        const response = await fetch(`/api/occurrence/animal_observation_list_of_values.json`);
+        vm.listOfAnimalValuesDict = await response.json();
         vm.primary_detection_method_list = vm.listOfAnimalValuesDict.primary_detection_method_list;
         vm.primary_detection_method_list.splice(0, 0,
             {

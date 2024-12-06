@@ -11,8 +11,7 @@
                 <MeetingSidePanel v-if="canSeeSidePanel" :submitter_first_name="submitter_first_name"
                     :submitter_last_name="submitter_last_name" :datetime_created="meeting_obj.datetime_created"
                     :datetime_scheduled="meeting_obj.datetime_scheduled"
-                    :datetime_completed="meeting_obj.datetime_completed"
-                    class="mt-3" />
+                    :datetime_completed="meeting_obj.datetime_completed" class="mt-3" />
 
                 <div class="mt-3">
                     <div class="card card-default">
@@ -27,7 +26,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div  v-if="showActions" class="card-body border-top">
+                        <div v-if="showActions" class="card-body border-top">
                             <div class="row">
                                 <div class="col-sm-12">
                                     <div class="col-sm-12">
@@ -69,70 +68,67 @@
             </div>
             <div class="col-md-9">
                 <div class="row">
-                    <template>
-                        <div class="">
-                            <div class="row">
-                                <form :action="meeting_form_url" method="post" name="new_meeting"
-                                    enctype="multipart/form-data">
-                                    <MeetingSection ref="meeting" :meeting_obj="meeting_obj" :userCanEdit="userCanEdit"
-                                        id="MeetingStart" :is_internal="true">
-                                    </MeetingSection>
-                                    <CSQueue ref="cs_queue" :meeting_obj="meeting_obj" id="CSQueue" :is_internal="true">
-                                    </CSQueue>
-                                    <Minutes ref="minutes" :meeting_obj="meeting_obj" id="Minutes" :is_internal="true">
-                                    </Minutes>
-                                    <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                                    <input type='hidden' name="meeting_id" :value="1" />
-                                    <div class="row" style="margin-bottom: 50px">
-                                        <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                            <!--the below as internal proposal submission ELSE just saving proposal changes -->
-                                            <div class="container">
-                                                <div class="col-md-6" style="margin-top:5px">
-                                                    <div class="col-md-6">
-                                                        <button class="btn btn-primary me-2 pull-left"
-                                                            style="margin-top:5px;" @click.prevent="returnToDashboard">
-                                                            Return to Dashboard</button>
-                                                    </div>
+                    <div class="">
+                        <div class="row">
+                            <form :action="meeting_form_url" method="post" name="new_meeting"
+                                enctype="multipart/form-data">
+                                <MeetingSection ref="meeting" :meeting_obj="meeting_obj" :userCanEdit="userCanEdit"
+                                    id="MeetingStart" :is_internal="true">
+                                </MeetingSection>
+                                <CSQueue ref="cs_queue" :meeting_obj="meeting_obj" id="CSQueue" :is_internal="true">
+                                </CSQueue>
+                                <Minutes ref="minutes" :meeting_obj="meeting_obj" id="Minutes" :is_internal="true">
+                                </Minutes>
+                                <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
+                                <input type='hidden' name="meeting_id" :value="1" />
+                                <div class="row" style="margin-bottom: 50px">
+                                    <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                                        <!--the below as internal proposal submission ELSE just saving proposal changes -->
+                                        <div class="container">
+                                            <div class="col-md-6" style="margin-top:5px">
+                                                <div class="col-md-6">
+                                                    <button class="btn btn-primary me-2 pull-left"
+                                                        style="margin-top:5px;" @click.prevent="returnToDashboard">
+                                                        Return to Dashboard</button>
                                                 </div>
-                                                <div v-if="meeting_obj.can_user_edit" class="col-md-6 text-end">
-                                                    <button v-if="savingMeeting" class="btn btn-primary me-2 pull-right"
-                                                        style="margin-top:5px;" disabled>Save and Continue <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary me-2 pull-right"
-                                                        style="margin-top:5px;" @click.prevent="save()"
-                                                        :disabled="saveExitMeeting || submitMeeting">Save and
-                                                        Continue</button>
+                                            </div>
+                                            <div v-if="meeting_obj.can_user_edit" class="col-md-6 text-end">
+                                                <button v-if="savingMeeting" class="btn btn-primary me-2 pull-right"
+                                                    style="margin-top:5px;" disabled>Save and Continue <span
+                                                        class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Loading...</span></button>
+                                                <button v-else class="btn btn-primary me-2 pull-right"
+                                                    style="margin-top:5px;" @click.prevent="save()"
+                                                    :disabled="saveExitMeeting || submitMeeting">Save and
+                                                    Continue</button>
 
-                                                    <button v-if="saveExitMeeting"
-                                                        class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
-                                                        disabled>Save and Exit <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary me-2 pull-right"
-                                                        style="margin-top:5px;" @click.prevent="save_exit()"
-                                                        :disabled="savingMeeting || submitMeeting">Save and
-                                                        Exit</button>
-                                                </div>
-                                                <div v-else-if="userCanEdit" class="col-md-6 text-end">
-                                                    <button v-if="savingMeeting" class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" disabled>Save Changes <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" @click.prevent="save_exit()">Save
-                                                        Changes</button>
-                                                </div>
+                                                <button v-if="saveExitMeeting" class="btn btn-primary me-2 pull-right"
+                                                    style="margin-top:5px;" disabled>Save and Exit <span
+                                                        class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Loading...</span></button>
+                                                <button v-else class="btn btn-primary me-2 pull-right"
+                                                    style="margin-top:5px;" @click.prevent="save_exit()"
+                                                    :disabled="savingMeeting || submitMeeting">Save and
+                                                    Exit</button>
+                                            </div>
+                                            <div v-else-if="userCanEdit" class="col-md-6 text-end">
+                                                <button v-if="savingMeeting" class="btn btn-primary pull-right"
+                                                    style="margin-top:5px;" disabled>Save Changes <span
+                                                        class="spinner-border spinner-border-sm" role="status"
+                                                        aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Loading...</span></button>
+                                                <button v-else class="btn btn-primary pull-right"
+                                                    style="margin-top:5px;" @click.prevent="save_exit()">Save
+                                                    Changes</button>
                                             </div>
                                         </div>
                                     </div>
-                                </form>
-                            </div>
+                                </div>
+                            </form>
                         </div>
-                    </template>
+                    </div>
                 </div>
             </div>
         </div>
@@ -274,7 +270,13 @@ export default {
             vm.savingMeeting = true;
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            await vm.$http.put(vm.meeting_form_url, payload).then(res => {
+            await fetch(vm.meeting_form_url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            }).then(async (response) => {
                 swal.fire({
                     title: 'Saved',
                     text: 'Your changes have been saved',
@@ -333,8 +335,15 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            const result = await vm.$http.put(vm.meeting_form_url, payload).then(res => {
-                //return true;
+            let result = null;
+            await fetch(vm.meeting_form_url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            }).then(async (response) => {
+                result = await response.json();
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
                 swal.fire({
@@ -371,8 +380,8 @@ export default {
                 //  to also check the start and end date of meeting validation befor saving
                 blank_fields.push('Please select End Date that is later than Start Date');
             }
-            if (vm.$refs.meeting.isCommitteeMeeting){
-                if(vm.meeting_obj.selected_committee_members  == null || vm.meeting_obj.selected_committee_members  == '' || vm.meeting_obj.selected_committee_members.length<2  ) {
+            if (vm.$refs.meeting.isCommitteeMeeting) {
+                if (vm.meeting_obj.selected_committee_members == null || vm.meeting_obj.selected_committee_members == '' || vm.meeting_obj.selected_committee_members.length < 2) {
                     //  to also check the start and end date of meeting validation befor saving
                     blank_fields.push('Please select at least two committee members who will be attending');
                 }
@@ -483,8 +492,14 @@ export default {
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.meeting_obj);
-                        vm.$http.put(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/schedule_meeting'), payload).then(res => {
-                            vm.meeting_obj = res.body;
+                        fetch(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/schedule_meeting'), {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload)
+                        }).then(async (response) => {
+                            vm.meeting_obj = await response.json();
                         }, err => {
                             swal.fire({
                                 title: 'Schedule Error',
@@ -534,8 +549,14 @@ export default {
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.meeting_obj);
-                        vm.$http.put(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/complete_meeting'), payload).then(res => {
-                            vm.meeting_obj = res.body;
+                        fetch(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/complete_meeting'), {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload)
+                        }).then(async (response) => {
+                            vm.meeting_obj = await response.json();
                             vm.completingMeeting = false;
                         }, err => {
                             swal.fire({
@@ -569,8 +590,13 @@ export default {
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        vm.$http.patch(api_endpoints.discard_meeting(vm.meeting_obj.id))
-                            .then((response) => {
+                        fetch(api_endpoints.discard_meeting(vm.meeting_obj.id), {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        })
+                            .then(async (response) => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'Your meeting has been discarded',
@@ -579,7 +605,7 @@ export default {
                                         confirmButton: 'btn btn-primary',
                                     },
                                 });
-                                vm.meeting_obj = response.body;
+                                vm.meeting_obj = await response.json();
                             }, (error) => {
                                 console.log(error);
                             });
@@ -614,8 +640,13 @@ export default {
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        vm.$http.patch(api_endpoints.reinstate_meeting(vm.meeting_obj.id))
-                            .then((response) => {
+                        fetch(api_endpoints.reinstate_meeting(vm.meeting_obj.id), {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        })
+                            .then(async (response) => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'Your meeting has been reinstated',
@@ -624,7 +655,7 @@ export default {
                                         confirmButton: 'btn btn-primary',
                                     },
                                 });
-                                vm.meeting_obj = response.body;
+                                vm.meeting_obj = await response.json();
                             }, (error) => {
                                 console.log(error);
                             });
@@ -676,8 +707,14 @@ export default {
                     if (!vm.saveError) {
                         let payload = new Object();
                         Object.assign(payload, vm.meeting_obj);
-                        vm.$http.put(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/submit'), payload).then(res => {
-                            vm.meeting_obj = res.body;
+                        fetch(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/submit'), {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload)
+                        }).then(async (response) => {
+                            vm.meeting_obj = await response.json();
                             vm.$router.push({
                                 name: 'internal-meetings-dash'
                             });
@@ -701,7 +738,13 @@ export default {
             let vm = this;
             let payload = new Object();
             Object.assign(payload, vm.meeting_obj);
-            vm.$http.put(vm.meeting_form_url, payload).then(res => {
+            fetch(vm.meeting_form_url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            }).then(async (response) => {
             }, err => {
             });
         },
@@ -709,8 +752,8 @@ export default {
     created: function () {
         let vm = this;
         if (!this.meeting_obj) {
-            Vue.http.get(`/api/meeting/${vm.$route.params.meeting_id}/internal_meeting.json`).then(res => {
-                vm.meeting_obj = res.body;
+            fetch(`/api/meeting/${vm.$route.params.meeting_id}/internal_meeting.json`).then(async (response) => {
+                vm.meeting_obj = await response.json();
                 if (vm.meeting_obj.start_date == null) {
                     vm.meeting_obj.start_date = vm.$refs.meeting.start_date;
                 }
@@ -730,9 +773,9 @@ export default {
         });
     },
     beforeRouteEnter: function (to, from, next) {
-        Vue.http.get(`/api/meeting/${to.params.meeting_id}/internal_meeting.json`).then(res => {
-            next(vm => {
-                vm.meeting_obj = res.body;
+        fetch(`/api/meeting/${to.params.meeting_id}/internal_meeting.json`).then(async (response) => {
+            next(async (vm) => {
+                vm.meeting_obj = await response.json();
                 vm.meeting_obj.selected_committee_members = [];
             });
         },

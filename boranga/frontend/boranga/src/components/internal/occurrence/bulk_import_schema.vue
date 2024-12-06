@@ -65,20 +65,17 @@
                                 </div>
                                 <div class="pb-0 mb-0">
                                     <div class="row align-items-center">
-                                        <template>
-                                            <label for="schema-name" class="col-sm-2 col-form-label">Master Schema<i
-                                                    class="bi bi-lock-fill text-warning ms-2"
-                                                    title="This is a Master Schema. When copied by an Occurrence Approver, any columns from the master will be locked."
-                                                    v-if="schema.is_master"></i></label>
-                                            <div v-if="schema.can_user_toggle_master" class="col-sm-1">
-                                                <div class="form-check form-switch form-switch-lg"
-                                                    style="transform: scale(1.3);">
-                                                    <input class="form-check-input" type="checkbox"
-                                                        id="is-master-schema" v-model="schema.is_master"
-                                                        @change="save()">
-                                                </div>
+                                        <label for="schema-name" class="col-sm-2 col-form-label">Master Schema<i
+                                                class="bi bi-lock-fill text-warning ms-2"
+                                                title="This is a Master Schema. When copied by an Occurrence Approver, any columns from the master will be locked."
+                                                v-if="schema.is_master"></i></label>
+                                        <div v-if="schema.can_user_toggle_master" class="col-sm-1">
+                                            <div class="form-check form-switch form-switch-lg"
+                                                style="transform: scale(1.3);">
+                                                <input class="form-check-input" type="checkbox" id="is-master-schema"
+                                                    v-model="schema.is_master" @change="save()">
                                             </div>
-                                        </template>
+                                        </div>
                                         <label for="schema-tags" class="col-sm-1 col-form-label">Tags</label>
                                         <div class="col-sm-6">
                                             <template v-if="schema.tags && schema.tags.length > 0">
@@ -128,14 +125,17 @@
                                         <td class="ps-3 fw-bold" style="font-size:0.9em; width:40%"
                                             :class="selectedColumn == column ? 'py-1' : ''">
                                             <span class="text-truncate pe-1"
-                                                :class="selectedColumn == column ? 'text-light' : ''" :title="column.xlsx_column_header_name">{{
-                                                    column.xlsx_column_header_name.length < 34 ? column.xlsx_column_header_name : column.xlsx_column_header_name.substr(0, 31) + '...' }}</span>
-                                            <span class="text-danger" title="Mandatory Column"
-                                                v-if="column.xlsx_data_validation_allow_blank == false">*</span>
-                                            <small class="d-block text-capitalize mb-0"
-                                                :class="selectedColumn == column ? 'text-light' : 'text-muted'">
-                                                {{ column.model_name }}
-                                            </small>
+                                                :class="selectedColumn == column ? 'text-light' : ''"
+                                                :title="column.xlsx_column_header_name">{{
+                                                    column.xlsx_column_header_name.length < 34 ?
+                                                        column.xlsx_column_header_name :
+                                                        column.xlsx_column_header_name.substr(0, 31) + '...' }}</span>
+                                                    <span class="text-danger" title="Mandatory Column"
+                                                        v-if="column.xlsx_data_validation_allow_blank == false">*</span>
+                                                    <small class="d-block text-capitalize mb-0"
+                                                        :class="selectedColumn == column ? 'text-light' : 'text-muted'">
+                                                        {{ column.model_name }}
+                                                    </small>
                                         </td>
                                         <td class="text-center"
                                             :class="selectedColumn == column ? 'text-light' : 'text-muted'"
@@ -611,18 +611,18 @@ export default {
     },
     methods: {
         fetchLookupSchematypes() {
-            this.$http.get(api_endpoints.lookup_schema_types)
-                .then(response => {
-                    this.lookupSchematypes = response.data
+            fetch(api_endpoints.lookup_schema_types)
+                .then(async (response) => {
+                    this.lookupSchematypes = await response.json();
                 })
                 .catch(error => {
                     console.error(error)
                 })
         },
         fetchBulkImportSchema() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.$route.params.bulk_import_schema_id}/`)
-                .then(response => {
-                    this.schema = response.data
+            fetch(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.$route.params.bulk_import_schema_id}/`)
+                .then(async (response) => {
+                    this.schema = await response.json();
                     this.fetchContentTypes()
                     this.$nextTick(() => {
                         if (!this.schema.can_user_edit) {
@@ -652,9 +652,9 @@ export default {
                 })
         },
         fetchContentTypes() {
-            this.$http.get(`${api_endpoints.content_types}ocr_bulk_import_content_types/`)
-                .then(response => {
-                    this.djangoContentTypes = response.data
+            fetch(`${api_endpoints.content_types}ocr_bulk_import_content_types/`)
+                .then(async (response) => {
+                    this.djangoContentTypes = await response.json();
                     // Filter out content types that have no fields
                     this.djangoContentTypesFiltered = this.djangoContentTypes.filter(
                         djangoContentType => djangoContentType.model_fields.length > 0
@@ -674,9 +674,9 @@ export default {
                 })
         },
         fetchDefaultValueChoices() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas}default_value_choices/`)
-                .then(response => {
-                    this.defaultValueChoices = response.data
+            fetch(`${api_endpoints.occurrence_report_bulk_import_schemas}default_value_choices/`)
+                .then(async (response) => {
+                    this.defaultValueChoices = await response.json();
                 })
                 .catch(error => {
                     console.error(error)
@@ -963,11 +963,12 @@ export default {
         },
         validate() {
             this.validatingSchema = true;
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/validate/`)
-                .then(response => {
+            fetch(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/validate/`)
+                .then(async (response) => {
+                    const data = await response.json();
                     swal.fire({
                         title: 'Schema Validated Successfully',
-                        text: response.data,
+                        text: data,
                         icon: 'success',
                         confirmButtonText: 'OK',
                         customClass: {
@@ -1025,10 +1026,17 @@ export default {
 
             this.saving = true;
             this.errors = null;
-            this.$http.put(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/`, this.schema)
-                .then(response => {
+            fetch(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(this.schema)
+            })
+                .then(async (response) => {
+                    const data = await response.json();
                     this.saving = false;
-                    this.schema = Object.assign({}, response.data)
+                    this.schema = Object.assign({}, data)
                     if (this.addEditMode) {
                         this.selectedColumn = this.schema.columns[this.selectedColumnIndex]
                     }
@@ -1044,8 +1052,14 @@ export default {
             this.$router.push(`/internal/occurrence-report/bulk_import_schema/`)
         },
         copySchema(id) {
-            this.$http.post(`${api_endpoints.occurrence_report_bulk_import_schemas}${id}/copy/`)
-                .then(response => {
+            fetch(`${api_endpoints.occurrence_report_bulk_import_schemas}${id}/copy/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(async (response) => {
+                    const data = await response.json();
                     if (response.status === 201) {
                         swal.fire({
                             title: 'Success',
@@ -1054,7 +1068,7 @@ export default {
                             showConfirmButton: false,
                             timer: 1500
                         })
-                        this.$router.push(`/internal/occurrence-report/bulk_import_schema/${response.data.id}`)
+                        this.$router.push(`/internal/occurrence-report/bulk_import_schema/${data.id}`)
                         this.fetchBulkImportSchema()
                     }
                 })

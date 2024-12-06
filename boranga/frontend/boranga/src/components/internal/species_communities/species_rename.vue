@@ -1,15 +1,16 @@
 <template lang="html">
     <div id="renameSpecies">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" extraLarge id="species-rename-modal">
+        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" extraLarge
+            id="species-rename-modal">
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="renameSpeciesForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div>
                             <div class="col-md-12">
                                 <SpeciesCommunitiesComponent v-if="new_rename_species != null" ref="rename_species"
                                     :species_community_original="new_rename_species"
-                                    :species_community.sync="new_rename_species" id="rename_species" :is_internal="true"
+                                    :species_community="new_rename_species" id="rename_species" :is_internal="true"
                                     :is_readonly="true" :rename_species="true"> // rename=true used to make only taxon
                                     select editable on form
                                 </SpeciesCommunitiesComponent>
@@ -100,7 +101,12 @@ export default {
             let vm = this;
             try {
                 // In this case we are allowing a http DELETE call to remove the species
-                vm.$http.delete(api_endpoints.remove_species_proposal(species_id));
+                fetch(api_endpoints.remove_species_proposal(species_id), {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
             }
             catch (err) {
                 console.log(err);
@@ -114,7 +120,13 @@ export default {
             vm.saveError = false;
             let payload = new Object();
             Object.assign(payload, new_species);
-            const result = await vm.$http.post(`/api/species/${new_species.id}/species_save.json`, payload).then(res => {
+            const result = await fetch(`/api/species/${new_species.id}/species_save.json`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            }).then(async (response) => {
                 return true;
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
@@ -134,7 +146,7 @@ export default {
         },
         sendData: async function () {
             let vm = this;
-            if(!vm.new_rename_species.taxonomy_id){
+            if (!vm.new_rename_species.taxonomy_id) {
                 swal.fire({
                     title: "Please fix following errors",
                     text: "Please select a species by searching for the scientific name",
@@ -181,8 +193,14 @@ export default {
                             let payload = new Object();
                             Object.assign(payload, new_species);
                             let submit_url = helpers.add_endpoint_json(api_endpoints.species, new_species.id + '/rename_new_species_submit')
-                            vm.$http.post(submit_url, payload).then(res => {
-                                vm.new_species = res.body;
+                            fetch(submit_url, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(payload)
+                            }).then(async (response) => {
+                                vm.new_species = await response.json();
                                 vm.$router.push({
                                     name: 'internal-species-communities-dash'
                                 });

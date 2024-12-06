@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="threatForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <alert v-if="change_warning && !isReadOnly" type="warning"><strong>{{ change_warning }}</strong>
                         </alert>
                         <div class="col-sm-12">
@@ -90,8 +90,7 @@
                                                     Change current impact to:
                                                 </div>
                                             </template>
-                                            <template
-                                                v-if="current_impact_list && current_impact_list.length > 0">
+                                            <template v-if="current_impact_list && current_impact_list.length > 0">
                                                 <div v-for="current_impact in current_impact_list"
                                                     class="form-check form-check-inline ">
                                                     <input :disabled="isReadOnly" type="radio" class="form-check-input"
@@ -99,10 +98,9 @@
                                                         :id="'current_impact_' + current_impact.id"
                                                         v-bind:key="current_impact.id"
                                                         v-model="threatObj.current_impact" />
-                                                    <label
-                                                        :for="'current_impact_' + current_impact.id">{{
-                                                            current_impact.name
-                                                        }}</label>
+                                                    <label :for="'current_impact_' + current_impact.id">{{
+                                                        current_impact.name
+                                                    }}</label>
                                                 </div>
                                             </template>
                                             <template v-else>
@@ -131,8 +129,7 @@
                                                     Change potential impact to:
                                                 </div>
                                             </template>
-                                            <template
-                                                v-if="potential_impact_list && potential_impact_list.length > 0">
+                                            <template v-if="potential_impact_list && potential_impact_list.length > 0">
                                                 <div v-for="potential_impact in potential_impact_list"
                                                     class="form-check form-check-inline ">
                                                     <input :disabled="isReadOnly" type="radio" class="form-check-input"
@@ -140,10 +137,9 @@
                                                         :id="'potential_impact_' + potential_impact.id"
                                                         v-bind:key="potential_impact.id"
                                                         v-model="threatObj.potential_impact" />
-                                                    <label
-                                                        :for="'potential_impact_' + potential_impact.id">{{
-                                                            potential_impact.name
-                                                        }}</label>
+                                                    <label :for="'potential_impact_' + potential_impact.id">{{
+                                                        potential_impact.name
+                                                    }}</label>
                                                 </div>
                                             </template>
                                             <template v-else>
@@ -330,8 +326,12 @@ export default {
             if (vm.threatObj.id) {
                 vm.updatingThreat = true;
                 formData.append('data', JSON.stringify(threatObj));
-                vm.$http.put(helpers.add_endpoint_json(vm.url, threatObj.id), formData, {
-                    emulateJSON: true,
+                fetch(helpers.add_endpoint_json(vm.url, threatObj.id), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
                 }).then((response) => {
                     vm.updatingThreat = false;
                     vm.$parent.updatedThreats();
@@ -344,8 +344,12 @@ export default {
             } else {
                 vm.addingThreat = true;
                 formData.append('data', JSON.stringify(threatObj));
-                vm.$http.post(vm.url, formData, {
-                    emulateJSON: true,
+                fetch(vm.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
                 }).then((response) => {
                     vm.addingThreat = false;
                     vm.close();
@@ -362,9 +366,10 @@ export default {
         }
     },
     created: async function () {
-        let res = await this.$http.get('/api/threat/threat_list_of_values/');
+        let response = await fetch('/api/threat/threat_list_of_values/');
         let threat_list_of_values_res = {};
-        Object.assign(threat_list_of_values_res, res.body);
+        const data = await response.json();
+        Object.assign(threat_list_of_values_res, data);
         this.threat_category_list = threat_list_of_values_res.active_threat_category_lists;
         this.threat_category_list.splice(0, 0,
             {

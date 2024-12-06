@@ -1029,8 +1029,8 @@ export default {
         fetchFilterLists: function () {
             let vm = this;
 
-            vm.$http.get(api_endpoints.filter_lists_species + '?group_type_name=' + vm.group_type_name).then((response) => {
-                vm.filterListsSpecies = response.body;
+            fetch(api_endpoints.filter_lists_species + '?group_type_name=' + vm.group_type_name).then(async (response) => {
+                vm.filterListsSpecies = await response.json();
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.common_name_list = vm.filterListsSpecies.common_name_list;
                 vm.family_list = vm.filterListsSpecies.family_list;
@@ -1045,8 +1045,8 @@ export default {
             }, (error) => {
                 console.log(error);
             })
-            vm.$http.get(api_endpoints.region_district_filter_dict).then((response) => {
-                vm.filterRegionDistrict = response.body;
+            fetch(api_endpoints.region_district_filter_dict).then(async (response) => {
+                vm.filterRegionDistrict = await response.json();
                 vm.region_list = vm.filterRegionDistrict.region_list;
                 vm.district_list = vm.filterRegionDistrict.district_list;
             }, (error) => {
@@ -1088,9 +1088,16 @@ export default {
                         const createUrl = api_endpoints.species + "/";
                         let payload = new Object();
                         payload.group_type_id = this.group_type_id
-                        let savedFauna = await Vue.http.post(createUrl, payload);
-                        if (savedFauna) {
-                            newFaunaId = savedFauna.body.id;
+                        let response = await fetch(createUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        });
+                        const data = await response.json();
+                        if (data) {
+                            newFaunaId = data.id;
                         }
                     }
                     catch (err) {
@@ -1122,7 +1129,10 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_species_proposal(species_id))
+                    fetch(api_endpoints.discard_species_proposal(species_id), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -1156,7 +1166,10 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.reinstate_species_proposal(species_id))
+                    fetch(api_endpoints.reinstate_species_proposal(species_id), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',

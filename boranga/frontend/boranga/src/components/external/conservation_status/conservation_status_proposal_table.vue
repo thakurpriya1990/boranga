@@ -493,8 +493,8 @@ export default {
         },
         fetchFilterLists: function () {
             let vm = this;
-            vm.$http.get(api_endpoints.group_types_dict).then((response) => {
-                vm.group_types = response.body;
+            fetch(api_endpoints.group_types_dict).then(async (response) => {
+                vm.group_types = await response.json();
             }, (error) => {
                 console.log(error);
             });
@@ -517,9 +517,16 @@ export default {
                         const createUrl = api_endpoints.conservation_status + "/";
                         let payload = new Object();
                         payload.application_type_id = group_type
-                        let savedCS = await Vue.http.post(createUrl, payload);
-                        if (savedCS) {
-                            newCSId = savedCS.body.id;
+                        let response = await fetch(createUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        });
+                        const data = await response.json();
+                        if (data) {
+                            newCSId = data.id;
                         }
                     }
                     catch (err) {
@@ -548,7 +555,10 @@ export default {
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_cs_proposal(conservation_status_id))
+                    fetch(api_endpoints.discard_cs_proposal(conservation_status_id), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -582,7 +592,10 @@ export default {
 
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(api_endpoints.reinstate_cs_proposal(conservation_status_id))
+                    fetch(api_endpoints.reinstate_cs_proposal(conservation_status_id), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',

@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="agendaForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div>
                             <div class="col-md-12">
                                 <ul class="nav nav-pills" id="pills-tab" role="tablist">
@@ -236,8 +236,8 @@ export default {
         })
     },
     created: function () {
-        this.$http.get(api_endpoints.group_types_dict).then((response) => {
-            this.group_types = response.body;
+        fetch(api_endpoints.group_types_dict).then(async (response) => {
+            this.group_types = await response.json();
         }, (error) => {
             console.log(error);
         });

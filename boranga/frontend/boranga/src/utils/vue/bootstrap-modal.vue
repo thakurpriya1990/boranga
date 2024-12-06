@@ -122,7 +122,7 @@ export default {
             document.body.className += ' modal-open';
         }
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.body.className = document.body.className.replace(/\s?modal-open/, '');
     },
     watch: {

@@ -10,15 +10,19 @@
                             <template v-if="!disabled">
                                 <template
                                     v-if="submitter_categories && submitter_categories.length > 0 && submitter_information.submitter_category && !submitter_categories.map((d) => d.id).includes(submitter_information.submitter_category)">
-                                    <input type="text" v-if="submitter_information.submitter_category_name" class="form-control mb-3"
-                                        :value="submitter_information.submitter_category_name + ' (Now Archived)'" disabled />
+                                    <input type="text" v-if="submitter_information.submitter_category_name"
+                                        class="form-control mb-3"
+                                        :value="submitter_information.submitter_category_name + ' (Now Archived)'"
+                                        disabled />
                                     <div class="mb-3 text-muted">
                                         Change submitter category to:
                                     </div>
                                 </template>
-                                <select class="form-select" id="submitter_category" ref="submitter_category" v-model="submitter_information.submitter_category">
+                                <select class="form-select" id="submitter_category" ref="submitter_category"
+                                    v-model="submitter_information.submitter_category">
                                     <option :value="null" disabled>Please select a submitter category</option>
-                                    <option v-for="submitter_category in submitter_categories" :value="submitter_category.id" v-bind:key="submitter_category.id">
+                                    <option v-for="submitter_category in submitter_categories"
+                                        :value="submitter_category.id" v-bind:key="submitter_category.id">
                                         {{ submitter_category.name }}
                                     </option>
                                 </select>
@@ -36,7 +40,8 @@
                                 v-model="submitter_information.name">
                         </div>
                     </div>
-                    <div v-if="show_submitter_contact_details && Object.hasOwn(submitter_information, 'contact_details')" class="row mb-3 pb-3 border-bottom">
+                    <div v-if="show_submitter_contact_details && Object.hasOwn(submitter_information, 'contact_details')"
+                        class="row mb-3 pb-3 border-bottom">
                         <label for="contact_details" class="col-sm-2 col-form-label">Contact Details</label>
                         <div class="col-sm-6">
                             <textarea class="form-control" id="contact_details"
@@ -129,7 +134,7 @@ export default {
         },
         fetchSubmitterCategories: function () {
             fetch(api_endpoints.submitter_categories)
-                .then(async response => {
+                .then(async (response) => {
                     this.submitter_categories = await response.json();
                 })
                 .catch(error => {
@@ -137,7 +142,13 @@ export default {
                 });
         },
         saveSubmitterInformation: function () {
-            this.$http.put(api_endpoints.save_submitter_information, this.submitter_information)
+            fetch(api_endpoints.save_submitter_information, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(this.submitter_information)
+            })
                 .then(response => response.json())
                 .then(data => {
                     console.log(data);

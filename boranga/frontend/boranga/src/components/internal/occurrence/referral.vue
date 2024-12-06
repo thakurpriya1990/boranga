@@ -59,35 +59,34 @@
             </div>
             <div class="col-md-9">
                 <div class="row">
-                    <template>
-                        <div class="">
-                            <div class="row">
-                                <form :action="species_community_ocr_form_url" method="post"
-                                    name="new_occurrence_report" enctype="multipart/form-data">
-                                    <ProposalOccurrenceReport v-if="occurrence_report_obj && profile"
-                                        :occurrence_report_obj="occurrence_report_obj" id="OccurrenceReportStart"
-                                        :canEditStatus="canEditStatus" ref="occurrence_report" :referral="referral"
-                                        @refreshOccurrenceReport="refreshOccurrenceReport()" :show_observer_contact_information="false"
-                                        @refreshFromResponse="refreshFromResponse" :is_internal="profile.is_internal">
-                                    </ProposalOccurrenceReport>
-                                    <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                                    <input type='hidden' name="occurrence_report_id" :value="1" />
-                                    <div class="row" style="margin-bottom: 50px">
-                                        <div class="navbar fixed-bottom" style="background-color: #f5f5f5;"
-                                            v-if="!occurrence_report_obj.can_user_edit && !isFinalised">
-                                            <div v-if="!isFinalised" class="container">
-                                                <div class="col-md-12 text-end">
-                                                    <button class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                        @click.prevent="save()">Save
-                                                        Changes</button>
-                                                </div>
+                    <div class="">
+                        <div class="row">
+                            <form :action="species_community_ocr_form_url" method="post" name="new_occurrence_report"
+                                enctype="multipart/form-data">
+                                <ProposalOccurrenceReport v-if="occurrence_report_obj && profile"
+                                    :occurrence_report_obj="occurrence_report_obj" id="OccurrenceReportStart"
+                                    :canEditStatus="canEditStatus" ref="occurrence_report" :referral="referral"
+                                    @refreshOccurrenceReport="refreshOccurrenceReport()"
+                                    :show_observer_contact_information="false"
+                                    @refreshFromResponse="refreshFromResponse" :is_internal="profile.is_internal">
+                                </ProposalOccurrenceReport>
+                                <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
+                                <input type='hidden' name="occurrence_report_id" :value="1" />
+                                <div class="row" style="margin-bottom: 50px">
+                                    <div class="navbar fixed-bottom" style="background-color: #f5f5f5;"
+                                        v-if="!occurrence_report_obj.can_user_edit && !isFinalised">
+                                        <div v-if="!isFinalised" class="container">
+                                            <div class="col-md-12 text-end">
+                                                <button class="btn btn-primary pull-right" style="margin-top:5px;"
+                                                    @click.prevent="save()">Save
+                                                    Changes</button>
                                             </div>
                                         </div>
                                     </div>
-                                </form>
-                            </div>
+                                </div>
+                            </form>
                         </div>
-                    </template>
+                    </div>
                 </div>
             </div>
         </div>
@@ -165,7 +164,13 @@ export default {
                     component_map.getJSONFeatures(layerName);
                 component_map.setLoadingMap(true);
             }
-            vm.$http.post(vm.species_community_ocr_referral_form_url, payload).then(res => {
+            fetch(vm.species_community_ocr_referral_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            }).then(async (response) => {
                 swal.fire({
                     title: 'Saved',
                     text: 'Your changes have been saved',
@@ -184,9 +189,10 @@ export default {
                 component_map.setLoadingMap(false);
             });
         },
-        refreshFromResponse: function (response) {
+        refreshFromResponse: async function (response) {
             let vm = this;
-            vm.occurrence_report_obj = helpers.copyObject(response.body);
+            const data = await response.json();
+            vm.occurrence_report_obj = helpers.copyObject(data);
         },
         completeReferral: function () {
             let vm = this;
@@ -219,9 +225,16 @@ export default {
                 if (result.isConfirmed) {
                     let payload = new Object();
                     Object.assign(payload, vm.referral);
-                    vm.$http.post(vm.species_community_ocr_referral_form_url, payload).then(res => {
-                        vm.$http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, vm.$route.params.referral_id + '/complete')).then(res => {
-                            vm.referral = Object.assign({}, res.body);
+                    fetch(vm.species_community_ocr_referral_form_url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    }).then(async (response) => {
+                        fetch(helpers.add_endpoint_json(api_endpoints.ocr_referrals, vm.$route.params.referral_id + '/complete')).then(async (response) => {
+                            const data = await response.json();
+                            vm.referral = Object.assign({}, data);
                         },
                             error => {
                                 swal.fire({
@@ -247,17 +260,18 @@ export default {
         },
         fetchReferral: function () {
             let vm = this;
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, vm.$route.params.referral_id)).then(res => {
-                vm.referral = Object.assign({}, res.body);
+            fetch(helpers.add_endpoint_json(api_endpoints.ocr_referrals, vm.$route.params.referral_id)).then(async (response) => {
+                const data = await response.json();
+                vm.referral = Object.assign({}, data);
             },
                 err => {
                     console.log(err);
                 });
         },
         fetchProfile() {
-            this.$http.get(api_endpoints.profile)
-                .then(response => {
-                    this.profile = response.data
+            fetch(api_endpoints.profile)
+                .then(async (response) => {
+                    this.profile = await response.json();
                 })
                 .catch(error => {
                     console.log(error)
@@ -271,9 +285,10 @@ export default {
         }
     },
     beforeRouteEnter: function (to, from, next) {
-        Vue.http.get(helpers.add_endpoint_json(api_endpoints.ocr_referrals, to.params.referral_id)).then(res => {
-            next(vm => {
-                vm.referral = res.body;
+        fetch(helpers.add_endpoint_json(api_endpoints.ocr_referrals, to.params.referral_id)).then(async (reponse) => {
+            const data = await response.json();
+            next(async vm => {
+                vm.referral = data;
             });
         },
             err => {

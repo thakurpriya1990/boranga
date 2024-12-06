@@ -157,7 +157,13 @@ export default {
             let vm = this;
             vm.errors = false;
             const url = `/api/${vm.model}/${vm.pk}/external_referee_invite/`;
-            vm.$http.post(url, JSON.stringify(vm.external_referee_invite))
+            fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(vm.external_referee_invite),
+            })
                 .then((response) => {
                     swal.fire({
                         title: 'Success',
@@ -172,8 +178,8 @@ export default {
                         vm.close();
                     });
                 })
-                .catch((response) => {
-                    vm.errors = response.body;
+                .catch(async (response) => {
+                    vm.errors = await response.json();
                 });
         },
     },

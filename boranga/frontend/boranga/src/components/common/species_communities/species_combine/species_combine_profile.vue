@@ -1799,8 +1799,8 @@ export default {
         fetchRegions: function () {
             let vm = this;
 
-            vm.$http.get(api_endpoints.regions).then((response) => {
-                vm.api_regions = response.body;
+            fetch(api_endpoints.regions).then(async (response) => {
+                vm.api_regions = await response.json();
                 for (var i = 0; i < vm.api_regions.length; i++) {
                     this.region_list.push({ text: vm.api_regions[i].name, value: vm.api_regions[i].id, districts: vm.api_regions[i].districts });
                 }
@@ -1910,8 +1910,8 @@ export default {
             vm.time_to_maturity_range_new = true;
         }
         //------fetch list of values
-        const res = await Vue.http.get('/api/species_profile_dict/');
-        vm.species_profile_dict = res.body;
+        const response = await fetch('/api/species_profile_dict/');
+        vm.species_profile_dict = await response.json();
         vm.flora_recruitment_type_list = vm.species_profile_dict.flora_recruitment_type_list;
         vm.flora_recruitment_type_list.splice(0, 0,
             {
@@ -1930,16 +1930,6 @@ export default {
                 id: null,
                 name: null,
             });
-        // const response = await Vue.http.get('/api/region_district_filter_dict/');
-        // vm.filterRegionDistrict= response.body;
-        // vm.region_list= vm.filterRegionDistrict.region_list;
-        // vm.district_list= vm.filterRegionDistrict.district_list;
-        // vm.region_list.splice(0,0,
-        // {
-        //     id: null,
-        //     name: null,
-        // });
-        // this.filterDistrict();
         vm.fetchRegions();
     },
     mounted: function () {

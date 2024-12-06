@@ -125,32 +125,33 @@
                 <div class="row mb-3">
                     <label for="" class="col-sm-5 col-form-label">Extent of Occurrences:
                         <HelpText v-if="species_community.distribution.eoo_auto"
-                            section_id="communities_extent_of_occurrences" /></label>
-                        <div class="col-sm-4">
-                            <div class="input-group">
-                                <input v-if="species_community.distribution.eoo_auto" :disabled="isEOOReadOnly"
-                                    type="number" class="form-control" id="extent_of_occurrence" placeholder=""
-                                    v-model="species_community.area_occurrence_convex_hull_km2" />
-                                <input v-else :disabled="isEOOReadOnly" type="number" class="form-control"
-                                    id="extent_of_occurrence" ref="extent_of_occurrence" placeholder=""
-                                    v-model="species_community.distribution.extent_of_occurrences" />
-                                <span class="input-group-text" id="area_of_occupancy_km2-addon">km&#xb2;</span>
-                            </div>
+                            section_id="communities_extent_of_occurrences" />
+                    </label>
+                    <div class="col-sm-4">
+                        <div class="input-group">
+                            <input v-if="species_community.distribution.eoo_auto" :disabled="isEOOReadOnly"
+                                type="number" class="form-control" id="extent_of_occurrence" placeholder=""
+                                v-model="species_community.area_occurrence_convex_hull_km2" />
+                            <input v-else :disabled="isEOOReadOnly" type="number" class="form-control"
+                                id="extent_of_occurrence" ref="extent_of_occurrence" placeholder=""
+                                v-model="species_community.distribution.extent_of_occurrences" />
+                            <span class="input-group-text" id="area_of_occupancy_km2-addon">km&#xb2;</span>
                         </div>
-                        <div v-if="!isReadOnly" class="col-sm-3 d-flex align-items-center">
-                            <div class="form-check form-check-inline">
-                                <input :disabled="isReadOnly" type="radio" :value="true" class="form-check-input"
-                                    id="eoo_auto" @click="switchEOO('true')"
-                                    v-model="species_community.distribution.eoo_auto">
-                                <label class="form-check-label">auto</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input :disabled="isReadOnly" type="radio" :value="false" class="form-check-input"
-                                    id="eoo_manual" @click="switchEOO('false')"
-                                    v-model="species_community.distribution.eoo_auto">
-                                <label class="form-check-label">manual</label>
-                            </div>
+                    </div>
+                    <div v-if="!isReadOnly" class="col-sm-3 d-flex align-items-center">
+                        <div class="form-check form-check-inline">
+                            <input :disabled="isReadOnly" type="radio" :value="true" class="form-check-input"
+                                id="eoo_auto" @click="switchEOO('true')"
+                                v-model="species_community.distribution.eoo_auto">
+                            <label class="form-check-label">auto</label>
                         </div>
+                        <div class="form-check form-check-inline">
+                            <input :disabled="isReadOnly" type="radio" :value="false" class="form-check-input"
+                                id="eoo_manual" @click="switchEOO('false')"
+                                v-model="species_community.distribution.eoo_auto">
+                            <label class="form-check-label">manual</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="row mb-3">
                     <label for="" class="col-sm-5 col-form-label">Area of Occupancy:</label>
@@ -163,8 +164,10 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label for="" class="col-sm-5 col-form-label">Actual Area of Occupancy: <HelpText v-if="species_community.distribution.aoo_actual_auto"
-                        section_id="communities_actual_area_of_occupancy" /></label>
+                    <label for="" class="col-sm-5 col-form-label">Actual Area of Occupancy:
+                        <HelpText v-if="species_community.distribution.aoo_actual_auto"
+                            section_id="communities_actual_area_of_occupancy" />
+                    </label>
                     <div class="col-sm-4">
                         <div class="input-group">
                             <input v-if="species_community.distribution.aoo_actual_auto" :disabled="isAOOActualReadOnly"
@@ -622,11 +625,15 @@ export default {
         },
         updatePublishing(data) {
             let vm = this;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.community, (vm.species_community.id + '/update_publishing_status')), data, {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.community, (vm.species_community.id + '/update_publishing_status')), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: data
+            }).then(async (response) => {
                 vm.updatingPublishing = false;
-                vm.species_community.publishing_status = response.body;
+                vm.species_community.publishing_status = await response.json();
                 vm.species_community_original.publishing_status = helpers.copyObject(vm.species_community.publishing_status);
                 swal.fire({
                     title: 'Saved',
@@ -703,8 +710,8 @@ export default {
         fetchRegions: function () {
             let vm = this;
 
-            vm.$http.get(api_endpoints.regions).then((response) => {
-                vm.api_regions = response.body;
+            fetch(api_endpoints.regions).then(async (response) => {
+                vm.api_regions = await response.json();
                 for (var i = 0; i < vm.api_regions.length; i++) {
                     this.region_list.push({ text: vm.api_regions[i].name, value: vm.api_regions[i].id, districts: vm.api_regions[i].districts });
                 }
@@ -970,24 +977,14 @@ export default {
             }
         }
         //------fetch list of values
-        const res_obj = await Vue.http.get('/api/community_profile_dict/');
-        vm.community_profile_dict = res_obj.body;
+        const response = await fetch('/api/community_profile_dict/');
+        vm.community_profile_dict = await response.json();
         vm.post_fire_habitatat_interactions_list = vm.community_profile_dict.post_fire_habitatat_interactions_list;
         vm.post_fire_habitatat_interactions_list.splice(0, 0,
             {
                 id: null,
                 name: null,
             });
-        //const response = await Vue.http.get('/api/region_district_filter_dict/');
-        //vm.filterRegionDistrict= response.body;
-        //vm.region_list = vm.filterRegionDistrict.region_list;
-        //vm.district_list= vm.filterRegionDistrict.district_list;
-        //vm.region_list.splice(0,0,
-        //{
-        //    id: null,
-        //    name: null,
-        //});
-        //this.filterDistrict();
         vm.fetchRegions();
     },
     mounted: function () {

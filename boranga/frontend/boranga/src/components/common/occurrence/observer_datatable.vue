@@ -249,8 +249,8 @@ export default {
         },
         editObserverDetail: async function (id) {
             this.$refs.observer_detail.observer_detail_action = 'edit';
-            await Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then((response) => {
-                this.$refs.observer_detail.observerObj = response.body;
+            await fetch(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then(async (response) => {
+                this.$refs.observer_detail.observerObj = await response.json();
                 this.$refs.observer_detail.observerObj.id = id;
             },
                 err => {
@@ -261,8 +261,8 @@ export default {
         viewObserverDetail: async function (id) {
             this.$refs.observer_detail.observer_detail_id = id;
             this.$refs.observer_detail.observer_detail_action = 'view';
-            await Vue.http.get(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then((response) => {
-                this.$refs.observer_detail.observerObj = response.body;
+            await fetch(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then(async (response) => {
+                this.$refs.observer_detail.observerObj = await response.json();
                 this.$refs.observer_detail.observerObj.id = id;
             },
                 err => {
@@ -285,7 +285,10 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.observer_detail, id + '/discard'))
+                    fetch(helpers.add_endpoint_json(api_endpoints.observer_detail, id + '/discard'), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -311,7 +314,10 @@ export default {
         },
         reinstateObserverDetail: function (id) {
             let vm = this;
-            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.observer_detail, id + '/reinstate'))
+            fetch(helpers.add_endpoint_json(api_endpoints.observer_detail, id + '/reinstate'), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                 .then((response) => {
                     swal.fire({
                         title: 'Reinstated',

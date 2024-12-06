@@ -201,8 +201,8 @@ export default {
         // This function was used to call api and then add row to datatable manually on ANY ACTION
         constructCSQueueTable: function () {
             let vm = this;
-            Vue.http.get(`/api/meeting/${vm.meeting_obj.id}/fetch_agenda_items.json`).then(res => {
-                vm.agenda_items = res.body;
+            fetch(`/api/meeting/${vm.meeting_obj.id}/fetch_agenda_items.json`).then(async (response) => {
+                vm.agenda_items = await response.json();
                 vm.$refs.cs_queue_datatable.vmDataTable.clear()
                 vm.$refs.cs_queue_datatable.vmDataTable.rows.add(vm.agenda_items);
                 vm.$refs.cs_queue_datatable.vmDataTable.draw();
@@ -267,8 +267,14 @@ export default {
                 if (result.isConfirmed) {
                     let payload = new Object();
                     payload.conservation_status_id = conservation_status_id;
-                    Vue.http.post(`/api/meeting/${vm.meeting_obj.id}/remove_agenda_item.json`, payload)
-                        .then((res) => {
+                    fetch(`/api/meeting/${vm.meeting_obj.id}/remove_agenda_item.json`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    })
+                        .then(async (response) => {
                             swal.fire({
                                 title: 'Removed',
                                 text: 'Your agenda item is removed',
@@ -277,7 +283,7 @@ export default {
                                     confirmButton: 'btn btn-primary',
                                 },
                             });
-                            vm.meeting_obj.agenda_items_arr = res.body;
+                            vm.meeting_obj.agenda_items_arr = await response.json();
                             vm.$refs.cs_queue_datatable.vmDataTable.ajax.reload(vm.addTableListeners, false);
                             // Open the CS details page in a new tab
                             var new_window = window.open(`/internal/conservation-status/${conservation_status_id}?action=view`, '_blank');

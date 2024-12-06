@@ -43,7 +43,8 @@
                             </thead>
                             <tbody class="text-muted">
                                 <tr v-for="schema in bulkSchemas" :class="schema.is_master ? 'master-schema' : ''">
-                                    <td>{{ schema.version }}<i class="bi bi-lock-fill text-warning fs-5 ps-2" v-if="schema.is_master"></i></td>
+                                    <td>{{ schema.version }}<i class="bi bi-lock-fill text-warning fs-5 ps-2"
+                                            v-if="schema.is_master"></i></td>
                                     <td class="text-truncate text-align-end" style="max-width: 285px;"
                                         :title="schema.name">{{
                                             schema.name }}</td>
@@ -63,7 +64,10 @@
                                     <td>
                                         <a class="btn btn-sm btn-primary my-0 me-2" role="button"
                                             :href="`/internal/occurrence-report/bulk_import_schema/${schema.id}`"><i
-                                                class="bi me-2" :class="schema.can_user_edit ? 'bi-pencil-fill' : 'bi-eye-fill'"></i> <template v-if="schema.can_user_edit">Edit</template><template v-else>View</template></a>
+                                                class="bi me-2"
+                                                :class="schema.can_user_edit ? 'bi-pencil-fill' : 'bi-eye-fill'"></i>
+                                            <template v-if="schema.can_user_edit">Edit</template><template
+                                                v-else>View</template></a>
 
                                         <button class="btn btn-sm btn-primary my-0"
                                             @click.prevent="copySchema(schema.id)"><i class="bi bi-copy me-2"></i>
@@ -104,9 +108,9 @@ export default {
     },
     methods: {
         fetchGroupTypes() {
-            this.$http.get(api_endpoints.group_types_dict)
-                .then(response => {
-                    this.groupTypes = response.data
+            fetch(api_endpoints.group_types_dict)
+                .then(async (response) => {
+                    this.groupTypes = await response.json();
                 })
                 .catch(error => {
                     console.error(error)
@@ -119,13 +123,12 @@ export default {
             }
             localStorage.setItem('ocr-bulk-import-group-type', this.groupType)
             this.loadingSchemas = true
-            this.$http.get(api_endpoints.occurrence_report_bulk_import_schemas, {
-                params: {
-                    group_type: this.groupType
-                }
-            })
-                .then(response => {
-                    this.bulkSchemas = response.data.results
+            fetch(api_endpoints.occurrence_report_bulk_import_schemas + '?' + new URLSearchParams(
+                { group_type: this.groupType }
+            ).toString())
+                .then(async (response) => {
+                    const data = await response.json()
+                    this.bulkSchemas = data.results
                 })
                 .catch(error => {
                     console.error(error)
@@ -135,8 +138,14 @@ export default {
                 })
         },
         copySchema(id) {
-            this.$http.post(`${api_endpoints.occurrence_report_bulk_import_schemas}${id}/copy/`)
-                .then(response => {
+            fetch(`${api_endpoints.occurrence_report_bulk_import_schemas}${id}/copy/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(async (response) => {
+                    const data = await response.json()
                     if (response.status === 201) {
                         swal.fire({
                             title: 'Success',
@@ -145,7 +154,7 @@ export default {
                             showConfirmButton: false,
                             timer: 1500
                         })
-                        this.$router.push(`/internal/occurrence-report/bulk_import_schema/${response.data.id}`)
+                        this.$router.push(`/internal/occurrence-report/bulk_import_schema/${data.id}`)
                     }
                 })
                 .catch(error => {
@@ -153,10 +162,17 @@ export default {
                 })
         },
         createNewVersion() {
-            this.$http.post(api_endpoints.occurrence_report_bulk_import_schemas, {
-                group_type: this.groupType
+            fetch(api_endpoints.occurrence_report_bulk_import_schemas, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    group_type: this.groupType
+                })
             })
-                .then(response => {
+                .then(async (response) => {
+                    const data = await response.json()
                     if (response.status === 201) {
                         swal.fire({
                             title: 'Success',
@@ -165,7 +181,7 @@ export default {
                             showConfirmButton: false,
                             timer: 1500
                         })
-                        this.$router.push(`/internal/occurrence-report/bulk_import_schema/${response.data.id}`)
+                        this.$router.push(`/internal/occurrence-report/bulk_import_schema/${data.id}`)
                     }
                 })
                 .catch(error => {

@@ -247,14 +247,14 @@ import MapComponent from '../component_map.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 // require("select2/dist/css/select2.min.css");
 // require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
-import { VueSelect } from 'vue-select';
+// import { VueSelect } from 'vue-select';
 
 export default {
     name: 'OCRLocation',
     components: {
         FormSection,
         MapComponent,
-        VueSelect,
+        // VueSelect,
     },
     props: {
         occurrence_report_obj: {
@@ -465,8 +465,8 @@ export default {
                 console.error('Error fetching location values list:', error);
             });
 
-        const response = await Vue.http.get('/api/region_district_filter_dict/');
-        vm.filterRegionDistrict = response.body;
+        const response = await fetch('/api/region_district_filter_dict/');
+        vm.filterRegionDistrict = await response.json();
         vm.region_list = vm.filterRegionDistrict.region_list;
         vm.district_list = vm.filterRegionDistrict.district_list;
         vm.region_list.splice(0, 0,
@@ -543,10 +543,9 @@ export default {
                         emulateJSON: true,
                     }
                 )
-                .then(
-                    (response) => {
+                .then(async (response) => {
                         vm.updatingLocationDetails = false;
-                        vm.occurrence_report_obj.location = response.body;
+                        vm.occurrence_report_obj.location = await response.json();
                         swal.fire({
                             title: 'Saved',
                             text: 'Location details have been saved',
@@ -634,7 +633,7 @@ export default {
 </script>
 
 <style lang="css" scoped>
-@import 'vue-select/dist/vue-select.css';
+/* @import 'vue-select/dist/vue-select.css'; */
 
 /*ul, li {
         zoom:1;

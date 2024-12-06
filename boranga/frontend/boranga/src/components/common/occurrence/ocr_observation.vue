@@ -290,11 +290,15 @@ export default {
         updateObservationDetails: function () {
             let vm = this;
             vm.updatingObservationDetails = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report_obj.id + '/update_observation_details')), JSON.stringify(vm.occurrence_report_obj.observation_detail), {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report_obj.id + '/update_observation_details')), {
+                method: 'POST',
+                body: JSON.stringify(vm.occurrence_report_obj.observation_detail),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (response) => {
                 vm.updatingObservationDetails = false;
-                vm.occurrence_report_obj.observation_detail = response.body;
+                vm.occurrence_report_obj.observation_detail = await response.json();
                 swal.fire({
                     title: 'Saved',
                     text: 'Observation details have been saved',
@@ -323,11 +327,15 @@ export default {
         updateIdentificationDetails: function () {
             let vm = this;
             vm.updatingIdentificationDetails = true;
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report_obj.id + '/update_identification_details')), JSON.stringify(vm.occurrence_report_obj.identification), {
-                emulateJSON: true
-            }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report_obj.id + '/update_identification_details')), {
+                method: 'POST',
+                body: JSON.stringify(vm.occurrence_report_obj.identification),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(async (response) => {
                 vm.updatingIdentificationDetails = false;
-                vm.occurrence_report_obj.identification = response.body;
+                vm.occurrence_report_obj.identification = await response.json();
                 swal.fire({
                     title: 'Saved',
                     text: 'Identification details have been saved',
@@ -357,8 +365,8 @@ export default {
     created: async function () {
         let vm = this;
         //------fetch list of values
-        const res = await Vue.http.get(`/api/occurrence/observation_list_of_values.json?group_type=${vm.occurrence_report_obj.group_type}`);
-        vm.listOfValuesDict = res.body;
+        const response = await fetch(`/api/occurrence/observation_list_of_values.json?group_type=${vm.occurrence_report_obj.group_type}`);
+        vm.listOfValuesDict = await response.json();
         vm.observation_method_list = vm.listOfValuesDict.observation_method_list;
         vm.observation_method_list.splice(0, 0,
             {

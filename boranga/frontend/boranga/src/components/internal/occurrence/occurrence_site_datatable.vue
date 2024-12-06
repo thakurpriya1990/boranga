@@ -3,30 +3,19 @@
         <form class="form-horizontal" action="index.html" method="post">
             <div class="col-sm-12">
                 <div class="text-end">
-                    <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 "
-                        @click.prevent="newSite">
+                    <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 " @click.prevent="newSite">
                         <i class="fa-solid fa-circle-plus"></i>
                         Add New Site
                     </button>
                 </div>
             </div>
         </form>
-        <datatable
-            :id="datatable_id"
-            ref="occurrence_site_datatable"
-            :dt-options="options"
-            :dt-headers="headers"
-        />
-        <SiteDetail 
-            ref="site_detail" 
-            @refreshFromResponse="updatedSites" 
-            :url="occ_site_url"
-            :occurrence_obj="occurrence_obj"
-            >
+        <datatable :id="datatable_id" ref="occurrence_site_datatable" :dt-options="options" :dt-headers="headers" />
+        <SiteDetail ref="site_detail" @refreshFromResponse="updatedSites" :url="occ_site_url"
+            :occurrence_obj="occurrence_obj">
         </SiteDetail>
         <div v-if="occSiteHistoryId">
-            <OCCSiteHistory ref="occ_site_history" :key="occSiteHistoryId"
-                :site-id="occSiteHistoryId" />
+            <OCCSiteHistory ref="occ_site_history" :key="occSiteHistoryId" :site-id="occSiteHistoryId" />
         </div>
     </div>
 </template>
@@ -115,7 +104,7 @@ export default {
                             coord1 += ".0";
                         }
                         if (Number.isInteger((full.point_coord2))) {
-                            coord2 += ".0"; 
+                            coord2 += ".0";
                         }
 
                         let value = coord2 + ", " + coord1;
@@ -270,27 +259,27 @@ export default {
             let vm = this;
             this.$refs.site_detail.site_id = id;
             this.$refs.site_detail.site_action = 'edit';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then((response) => {
-                this.$refs.site_detail.siteObj = response.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then(async (response) => {
+                this.$refs.site_detail.siteObj = await response.json();
             },
-            err => {
-                console.log(err);
-            });
+                err => {
+                    console.log(err);
+                });
             this.$refs.site_detail.isModalOpen = true;
         },
         viewSite: function (id) {
             let vm = this;
             this.$refs.site_detail.site_id = id;
             this.$refs.site_detail.site_action = 'view';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then((response) => {
-                this.$refs.site_detail.siteObj = response.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then(async (response) => {
+                this.$refs.site_detail.siteObj = await response.json();
             },
-            err => {
-                console.log(err);
-            });
+                err => {
+                    console.log(err);
+                });
             this.$refs.site_detail.isModalOpen = true;
         },
-        updatedSites: function() {
+        updatedSites: function () {
             this.$refs.occurrence_site_datatable.vmDataTable.ajax.reload();
             this.$emit('updatedSites');
         },
@@ -309,7 +298,12 @@ export default {
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/discard'))
+                    fetch(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/discard'), {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -331,29 +325,34 @@ export default {
         },
         reinstateSite: function (id) {
             let vm = this;
-            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/reinstate'))
-            .then((response) => {
-                swal.fire({
-                    title: 'Reinstated',
-                    text: 'The Site has been reinstated',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                }).then((result) => {
-                    vm.updatedSites();
+            fetch(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/reinstate'), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then((response) => {
+                    swal.fire({
+                        title: 'Reinstated',
+                        text: 'The Site has been reinstated',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    }).then((result) => {
+                        vm.updatedSites();
+                    });
+                }, (error) => {
+                    var errorText = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 });
-            }, (error) => {
-                var errorText = helpers.apiVueResourceError(error);
-                swal.fire({
-                    title: 'Error',
-                    text: errorText,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-            });            
         },
         historySite: function (id) {
             this.occSiteHistoryId = parseInt(id);

@@ -163,7 +163,7 @@ export default {
             let vm = this;
             if (vm.selected_scientific_name && !vm.adding_species) {
                 vm.adding_species = true
-                vm.$http.get("/api/occurrence/" + this.occurrence_obj.id + '/add_related_species?species=' + vm.selected_scientific_name)
+                fetch("/api/occurrence/" + this.occurrence_obj.id + '/add_related_species?species=' + vm.selected_scientific_name)
                     .then((response) => {
                         swal.fire({
                             title: 'Added',
@@ -197,7 +197,7 @@ export default {
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.get("/api/occurrence/" + this.occurrence_obj.id + '/remove_related_species?species=' + id)
+                    fetch("/api/occurrence/" + this.occurrence_obj.id + '/remove_related_species?species=' + id)
                         .then((response) => {
                             swal.fire({
                                 title: 'Removed',

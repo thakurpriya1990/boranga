@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="modalForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <alert v-if="changeWarning && !isReadOnly" type="warning"><strong>{{ changeWarning }}</strong>
                         </alert>
                         <div class="col-sm-12">

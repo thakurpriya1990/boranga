@@ -159,8 +159,8 @@ export default {
         },
     },
     created: function () {
-        this.$http.get(api_endpoints.group_types_dict).then((response) => {
-                this.group_types= response.body;
+        fetch(api_endpoints.group_types_dict).then(async (response) => {
+                this.group_types= await response.json();
                 },(error) => {
                 console.log(error);
             });

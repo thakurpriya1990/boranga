@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="documentForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
@@ -274,8 +274,12 @@ export default {
             if (vm.documentObj.id) {
                 vm.updatingDocument = true;
                 formData.append('data', JSON.stringify(documentObj));
-                vm.$http.put(helpers.add_endpoint_json(vm.url, documentObj.id), formData, {
-                    emulateJSON: true,
+                fetch(helpers.add_endpoint_json(vm.url, documentObj.id), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
                 }).then((response) => {
                     vm.updatingDocument = false;
                     vm.$parent.updatedDocuments();
@@ -288,8 +292,12 @@ export default {
             } else {
                 vm.addingDocument = true;
                 formData.append('data', JSON.stringify(documentObj));
-                vm.$http.post(vm.url, formData, {
-                    emulateJSON: true,
+                fetch(vm.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        body: JSON.stringify(formData)
+                    },
                 }).then((response) => {
                     vm.addingDocument = false;
                     vm.close();
@@ -306,8 +314,8 @@ export default {
         }
     },
     created: async function () {
-        this.$http.get(api_endpoints.document_categories_dict).then(response => {
-            let document_dict = response.body;
+        fetch(api_endpoints.document_categories_dict).then(async (response) => {
+            let document_dict = await response.json();
             this.documentCategories = document_dict.document_category_list;
             // blank entry allows user to clear selection
             this.documentCategories.splice(0, 0,

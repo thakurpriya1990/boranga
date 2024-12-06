@@ -222,12 +222,12 @@ export default {
                     method: 'POST',
                 })
                     .then(async (response) => {
-                        const resData = await response.json();
+                        const data = await response.json();
                         if (!response.ok) {
-                            throw new Error(resData);
+                            throw new Error(data);
                         }
-                        this.documents = resData.filedata;
-                        this.commsLogId = resData.comms_instance_id;
+                        this.documents = data.filedata;
+                        this.commsLogId = data.comms_instance_id;
                     })
                     .catch((error) => {
                         swal.fire({
@@ -259,13 +259,13 @@ export default {
             formData.append('document_id', file.id);
             formData.append('csrfmiddlewaretoken', this.csrf_token);
             if (this.document_action_url) {
-                const res = await fetch(this.document_action_url, {
+                const response = await fetch(this.document_action_url, {
                     body: formData,
                     method: 'POST',
                 });
-                const resData = await res.json();
-                this.documents = resData.filedata;
-                this.commsLogId = resData.comms_instance_id;
+                const data = await response.json();
+                this.documents = data.filedata;
+                this.commsLogId = data.comms_instance_id;
             }
             this.show_spinner = false;
         },
@@ -308,11 +308,11 @@ export default {
                 !this.temporary_document_collection_id
             ) {
                 // If temporary_document, create TemporaryDocumentCollection object and allow document_action_url to update
-                const res = await fetch(this.document_action_url, {
+                const response = await fetch(this.document_action_url, {
                     method: 'POST',
                 });
-                const resData = await res.json();
-                this.temporary_document_collection_id = resData.id;
+                const data = await response.json();
+                this.temporary_document_collection_id = data.id;
                 await this.handleChange(e);
                 await this.$emit(
                     'update-temp-doc-coll-id',

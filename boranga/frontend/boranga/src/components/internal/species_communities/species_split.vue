@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="splitSpeciesForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div>
                             <div class="col-md-12">
                                 <ul v-if="is_internal" class="nav nav-pills" id="split-pills-tab" role="tablist">
@@ -47,7 +47,7 @@
                                         <SpeciesCommunitiesComponent v-if="species_community_original != null"
                                             ref="species_communities_original"
                                             :species_community_original="species_community_original"
-                                            :species_community.sync="species_community_original" id="species_original"
+                                            :species_community="species_community_original" id="species_original"
                                             :is_internal="true" :is_readonly="true">
                                             <!-- this prop is only send from split species form to make the original species readonly -->
                                         </SpeciesCommunitiesComponent>
@@ -56,9 +56,8 @@
                                         class="tab-pane fade" :id="'species-body-' + index" role="tabpanel"
                                         :aria-labelledby="'pills-species-' + index + '-tab'">
                                         <SpeciesSplitForm :ref="'species_communities_species' + index"
-                                            :species_community.sync="species"
-                                            :species_original="species_community_original" :id="'species-' + index"
-                                            :is_internal="true">
+                                            :species_community="species" :species_original="species_community_original"
+                                            :id="'species-' + index" :is_internal="true">
                                         </SpeciesSplitForm>
                                     </div>
                                     <div v-if="species_community_original && new_species_list && new_species_list.length > 0"
@@ -211,7 +210,13 @@ export default {
 
             let payload = new Object();
             Object.assign(payload, new_species);
-            const result = await vm.$http.post(`/api/species/${new_species.id}/species_split_save.json`, payload).then(res => {
+            const result = await fetch(`/api/species/${new_species.id}/species_split_save.json`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
                 return true;
             }, err => {
                 var errorText = helpers.apiVueResourceError(err);
@@ -294,8 +299,14 @@ export default {
                             let payload = new Object();
                             Object.assign(payload, new_species);
                             let submit_url = helpers.add_endpoint_json(api_endpoints.species, new_species.id + '/split_new_species_submit')
-                            vm.$http.post(submit_url, payload).then(res => {
-                                vm.new_species = res.body;
+                            fetch(submit_url, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(payload),
+                            }).then(async (response) => {
+                                vm.new_species = await response.json();
                                 //-- to change status of original species only after all new split species are submitted
                                 if (index == vm.new_species_list.length - 1) {
                                     vm.submit_original_species();
@@ -325,8 +336,14 @@ export default {
             let payload = new Object();
             Object.assign(payload, vm.species_community_original);
             let submit_url = helpers.add_endpoint_json(api_endpoints.species, vm.species_community_original.id + '/change_status_historical')
-            vm.$http.post(submit_url, payload).then(res => {
-                vm.species_community_original = res.body;
+            fetch(submit_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            }).then(async (response) => {
+                vm.species_community_original = await response.json();
                 vm.$router.push({
                     name: 'internal-species-communities-dash'
                 });
@@ -346,7 +363,12 @@ export default {
 
             try {
                 // In this case we are allowing a http DELETE call to remove the species
-                vm.$http.delete(api_endpoints.remove_species_proposal(species_id));
+                fetch(api_endpoints.remove_species_proposal(species_id), {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
             }
             catch (err) {
                 console.log(err);
@@ -376,10 +398,17 @@ export default {
                         let payload = new Object();
                         payload.group_type_id = vm.species_community_original.group_type_id;
                         payload.parent_species_id = vm.species_community_original.id;
-                        Vue.http.post(createUrl, payload).then(resp => {
+                        fetch(createUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        }).then(resp => {
                             newSpeciesId = resp.body.id;
-                            Vue.http.get(`/api/species/${newSpeciesId}/internal_species.json`).then(res => {
-                                let species_obj = res.body.species_obj;
+                            fetch(`/api/species/${newSpeciesId}/internal_species.json`).then(async (response) => {
+                                const data = await response.json();
+                                let species_obj = data.species_obj;
                                 //---documents array added to store the select document ids in from the child component
                                 species_obj.documents = []
                                 //---threats array added to store the select threat ids in from the child component

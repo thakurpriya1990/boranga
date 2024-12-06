@@ -81,8 +81,12 @@ export default {
             let vm = this;
             vm.errors = null;
             let data = { 'status': 'with_assessor', 'approver_comment': vm.approver_comment }
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_id + '/switch_status')), JSON.stringify(data), {
-                emulateJSON: true,
+            fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_id + '/switch_status')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
             })
                 .then((response) => {
                     vm.$emit('refreshFromResponse', response);

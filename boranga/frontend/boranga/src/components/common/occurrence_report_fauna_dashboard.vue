@@ -622,8 +622,8 @@ export default {
         fetchFilterLists: function () {
             let vm = this;
             //large FilterList of Species Values object
-            vm.$http.get(api_endpoints.filter_lists_species + '?group_type_name=' + vm.group_type_name).then((response) => {
-                vm.filterListsSpecies = response.body;
+            fetch(api_endpoints.filter_lists_species + '?group_type_name=' + vm.group_type_name).then(async (response) => {
+                vm.filterListsSpecies = await response.json();
                 vm.occurrence_list = vm.filterListsSpecies.occurrence_list;
                 vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
                 vm.status_list = vm.filterListsSpecies.status_list;
@@ -653,9 +653,16 @@ export default {
                         let payload = new Object();
                         payload.group_type_id = this.group_type_id
                         payload.internal_application = true
-                        let savedFaunaOCR = await Vue.http.post(createUrl, payload);
-                        if (savedFaunaOCR) {
-                            newFaunaOCRId = savedFaunaOCR.body.id;
+                        let response = await fetch(createUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        });
+                        const data = await response.json();
+                        if (data) {
+                            newFaunaOCRId = data.id;
                         }
                     }
                     catch (err) {
@@ -683,7 +690,10 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_ocr_proposal(occurrence_report_id))
+                    fetch(api_endpoints.discard_ocr_proposal(occurrence_report_id), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -717,7 +727,10 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.patch(api_endpoints.reinstate_ocr_proposal(occurrence_report_id))
+                    fetch(api_endpoints.reinstate_ocr_proposal(occurrence_report_id), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',

@@ -234,8 +234,7 @@
                                     v-if="iucn_versions && iucn_versions.length > 0 && conservation_status_obj.iucn_version_id && !iucn_versions.map((d) => d.id).includes(conservation_status_obj.iucn_version_id)">
                                     <input type="text" v-if="conservation_status_obj.iucn_version"
                                         class="form-control mb-3"
-                                        :value="conservation_status_obj.iucn_version + ' (Now Archived)'"
-                                        disabled />
+                                        :value="conservation_status_obj.iucn_version + ' (Now Archived)'" disabled />
                                     <div class="mb-3 text-muted">
                                         Change iucn version to:
                                     </div>
@@ -243,8 +242,7 @@
                                 <select :disabled="isReadOnly" class="form-select"
                                     v-model="conservation_status_obj.iucn_version_id" id="proposed_iucnversion">
                                     <option :value="null" disabled>Select the appropriate IUCN Version</option>
-                                    <option v-for="option in iucn_versions" :value="option.id"
-                                        v-bind:key="option.id">
+                                    <option v-for="option in iucn_versions" :value="option.id" v-bind:key="option.id">
                                         {{ option.code }} - {{ option.label }}
                                     </option>
                                 </select>
@@ -337,7 +335,8 @@
                                 <select :disabled="isReadOnly" class="form-select"
                                     v-model="conservation_status_obj.commonwealth_conservation_category_id"
                                     id="proposed_commonwealth_conservation_category">
-                                    <option :value="null" disabled>Select the appropriate Commonwealth Conservation Category
+                                    <option :value="null" disabled>Select the appropriate Commonwealth Conservation
+                                        Category
                                     </option>
                                     <option v-for="option in commonwealth_conservation_categories" :value="option.id"
                                         v-bind:key="option.id">
@@ -452,15 +451,13 @@
                             </select>
                         </div>
                     </div>
-                    <div v-if="conservation_status_obj.current_conservation_status.iucn_version_id"
-                        class="row mb-3">
+                    <div v-if="conservation_status_obj.current_conservation_status.iucn_version_id" class="row mb-3">
                         <label for="current_iucn_version" class="col-sm-5 col-form-label">IUCN Version:</label>
                         <div class="col-sm-7">
                             <select :disabled="true" class="form-select"
                                 v-model="conservation_status_obj.current_conservation_status.iucn_version_id"
                                 id="current_iucn_version">
-                                <option v-for="option in iucn_versions" :value="option.id"
-                                    v-bind:key="option.id">
+                                <option v-for="option in iucn_versions" :value="option.id" v-bind:key="option.id">
                                     {{ option.code }}
                                 </option>
                             </select>
@@ -496,7 +493,8 @@
                     </div>
                     <div v-if="conservation_status_obj.current_conservation_status.commonwealth_conservation_category_id"
                         class="row mb-3">
-                        <label for="current_commonwealth_conservation_category" class="col-sm-5 col-form-label">Commonwealth
+                        <label for="current_commonwealth_conservation_category"
+                            class="col-sm-5 col-form-label">Commonwealth
                             Conservation Category:</label>
                         <div class="col-sm-7">
                             <select :disabled="true" class="form-select"
@@ -587,21 +585,23 @@
                                                 <h6 class="text-muted">Referral Comments</h6>
                                             </div>
                                         </div>
-                                        <div v-for="ref in referral_comments_boxes" class="row mb-3"
-                                            v-if="ref.box_view">
-                                            <div class="col">
-                                                <div class="form-floating m-3 mt-1">
-                                                    <textarea v-if='!ref.readonly' :disabled="true" :id="ref.name"
-                                                        :name="ref.name" class="form-control" :placeholder="ref.label"
-                                                        v-model="referral.referral_comment" />
-                                                    <textarea v-else :disabled="true" :name="ref.name"
-                                                        :value="ref.value || ''" class="form-control"
-                                                        :placeholder="ref.label" />
-                                                    <label :for="ref.name" class="form-label">{{ ref.label
-                                                        }}</label>
+                                        <template v-if="ref.box_view">
+                                            <div v-for="ref in referral_comments_boxes" class="row mb-3">
+                                                <div class="col">
+                                                    <div class="form-floating m-3 mt-1">
+                                                        <textarea v-if='!ref.readonly' :disabled="true" :id="ref.name"
+                                                            :name="ref.name" class="form-control"
+                                                            :placeholder="ref.label"
+                                                            v-model="referral.referral_comment" />
+                                                        <textarea v-else :disabled="true" :name="ref.name"
+                                                            :value="ref.value || ''" class="form-control"
+                                                            :placeholder="ref.label" />
+                                                        <label :for="ref.name" class="form-label">{{ ref.label
+                                                            }}</label>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -830,11 +830,11 @@ export default {
             if (vm.conservation_status_obj?.community_id) {
                 let community_display_url = api_endpoints.community_display +
                     '?community_id=' + vm.conservation_status_obj.community_id
-                vm.$http.get(community_display_url).then(
-                    (response) => {
-                        var newOption = new Option(response.body.name, response.body.id, false, true);
+                fetch(community_display_url).then(async (response) => {
+                        const data = await response.json();
+                        var newOption = new Option(data.name, data.id, false, true);
                         $('#' + vm.community_name_lookup).append(newOption);
-                        vm.community_display = response.body.name
+                        vm.community_display = data.name
                     })
             }
         },
@@ -901,8 +901,8 @@ export default {
         let action = this.$route.query.action;
         let dict_url = action == 'view' ? api_endpoints.cs_profile_dict + '?group_type=' + vm.conservation_status_obj.group_type + '&action=' + action :
             api_endpoints.cs_profile_dict + '?group_type=' + vm.conservation_status_obj.group_type
-        vm.$http.get(dict_url).then((response) => {
-            vm.cs_profile_dict = response.body;
+        fetch(dict_url).then(async (response) => {
+            vm.cs_profile_dict = await response.json();
             vm.wa_legislative_lists = vm.cs_profile_dict.wa_legislative_lists;
             vm.wa_legislative_categories = vm.cs_profile_dict.wa_legislative_categories;
             vm.iucn_versions = vm.cs_profile_dict.iucn_versions;

@@ -51,9 +51,9 @@ export default {
         fetchHelpText: function () {
             let vm = this;
             if (!vm.helpTextEntry) {
-                vm.$http.get(`${api_endpoints.help_text_entries}/${vm.section_id}/`)
-                    .then(response => {
-                        vm.helpTextEntry = response.data;
+                fetch(`${api_endpoints.help_text_entries}/${vm.section_id}/`)
+                    .then(async (response) => {
+                        vm.helpTextEntry = await response.json();
                         this.$nextTick(() => {
                             this.$nextTick(() => {
                                 if (vm.helpTextEntry.icon_with_popover) {
@@ -63,9 +63,10 @@ export default {
                             });
                         });
                     })
-                    .catch(response => {
-                        console.log(response.body.detail);
-                        this.errorText = response.body.detail;
+                    .catch(async (response) => {
+                        const data = await response.json();
+                        console.log(data.detail);
+                        this.errorText = data.detail;
                     });
             }
         }

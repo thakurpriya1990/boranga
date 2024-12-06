@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="amendForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="row mb-3">
                                 <div class="col-sm-offset-2 col-sm-8">
@@ -122,8 +122,8 @@ export default {
         },
         fetchAmendmentChoices: function () {
             let vm = this;
-            vm.$http.get('/api/proposal_amendment_request_reason_choices.json').then((response) => {
-                vm.reason_choices = response.body;
+            fetch('/api/proposal_amendment_request_reason_choices.json').then(async (response) => {
+                vm.reason_choices = await response.json();
             }, (error) => {
                 console.log(error);
             });
@@ -147,9 +147,12 @@ export default {
 
             formData.append('data', JSON.stringify(amendment));
 
-            // vm.$http.post('/api/amendment_request.json',JSON.stringify(amendment),{
-            vm.$http.post('/api/cs_amendment_request.json', formData, {
-                emulateJSON: true,
+            fetch('/api/cs_amendment_request.json', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             }).then((response) => {
                 swal.fire({
                     title: 'Sent',
@@ -162,7 +165,7 @@ export default {
                 vm.amendingProposal = true;
                 vm.close();
                 //vm.$emit('refreshFromResponse',response);
-                Vue.http.get(`/api/conservation_status/${vm.conservation_status_id}/internal_conservation_status.json`).then((response) => {
+                fetch(`/api/conservation_status/${vm.conservation_status_id}/internal_conservation_status.json`).then((response) => {
                     vm.$emit('refreshFromResponse', response);
 
                 }, (error) => {

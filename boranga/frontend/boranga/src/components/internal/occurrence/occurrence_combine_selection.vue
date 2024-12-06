@@ -151,8 +151,8 @@ export default {
         viewSection:function (id) {
             let vm=this;
             //get occ object with id
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.occurrence,id)).then((response) => {
-                let occObj=response.body;
+            fetch(helpers.add_endpoint_json(api_endpoints.occurrence,id)).then(async (response) => {
+                let occObj=response.json();
 
                 vm.sectionObj = occObj[vm.section_type];
                 vm.sectionOCCId = id;

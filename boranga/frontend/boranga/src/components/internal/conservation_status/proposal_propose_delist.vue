@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal needs-validation" id="delistForm" name="delistForm" novalidate>
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
@@ -135,8 +135,10 @@ export default {
             let delist = JSON.parse(JSON.stringify(vm.delist));
             vm.delistingProposal = true;
             if (vm.processing_status == 'Approved') {
-                vm.$http.patch(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/propose_delist'), JSON.stringify(delist), {
-                    emulateJSON: true,
+                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/propose_delist'), {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', },
+                    body: JSON.stringify(delist),
                 }).then((response) => {
                     vm.delistingProposal = false;
                     vm.close();

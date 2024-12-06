@@ -63,11 +63,11 @@
                                 </div>
                                 <div v-if="selected_schema_version" class="border-top w-75 mb-3 pt-2">
                                     <label for="bulk-import-file" class="form-label"><span class="fw-bold">Step 3:
-                                        </span> Select the .zip file containing any associated documents (Optional)</label>
+                                        </span> Select the .zip file containing any associated documents
+                                        (Optional)</label>
                                     <div class="input-group">
                                         <input type="file" class="form-control text-secondary"
-                                            id="bulk-import-associated-files-zip"
-                                            ref="bulk-import-associated-files-zip"
+                                            id="bulk-import-associated-files-zip" ref="bulk-import-associated-files-zip"
                                             accept=".zip">
                                     </div>
                                 </div>
@@ -77,8 +77,7 @@
                                     <div class="input-group">
                                         <input type="file" class="form-control text-secondary"
                                             :class="importFileErrors ? 'is-invalid' : ''" id="bulk-import-file"
-                                            ref="bulk-import-file"
-                                            @change="bulkImportFileSelected"
+                                            ref="bulk-import-file" @change="bulkImportFileSelected"
                                             accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
                                         <div v-if="importFileErrors" class="invalid-feedback mt-3">
                                             <ul>
@@ -116,8 +115,7 @@
                                                 :title="queuedImport.file_name">{{
                                                     queuedImport.file_name }}</td>
                                             <td>{{ queuedImport.file_size_megabytes }} MB</td>
-                                            <td class="text-end pe-3">{{ queuedImport.rows ? queuedImport.rows : 'Not
-                                                Counted' }}</td>
+                                            <td class="text-end pe-3">{{ queuedImport.rows ? queuedImport.rows : 'Not Counted' }}</td>
                                             <td>{{ queuedImport.estimated_processing_time_human_readable }}</td>
                                         </tr>
                                     </tbody>
@@ -327,8 +325,8 @@ export default {
             return `Version: ${schema_version.version} - ${schema_version.name ? schema_version.name : 'No Name'}`;
         },
         resetFileField() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.selected_schema.id}/`).then((response) => {
-                this.selected_schema_version = response.body;
+            fetch(`${api_endpoints.occurrence_report_bulk_import_schemas}${this.selected_schema.id}/`).then(async (response) => {
+                this.selected_schema_version = await response.json();
                 this.$nextTick(() => {
                     this.importFileErrors = null;
                     this.form.classList.remove('was-validated');
@@ -358,14 +356,21 @@ export default {
             const formData = new FormData();
             formData.append('_file', file);
             const associated_files = this.$refs['bulk-import-associated-files-zip'].files;
-            if(associated_files.length > 0) {
+            if (associated_files.length > 0) {
                 formData.append('_associated_files_zip', associated_files[0]);
             }
             formData.append('schema_id', this.selected_schema_version.id);
 
-            this.$http.post(api_endpoints.occurrence_report_bulk_imports, formData).then((response) => {
+            fetch(api_endpoints.occurrence_report_bulk_imports, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }).then(async (response) => {
+                const data = await response.json();
                 if (response.status >= 200 && response.status < 300) {
-                    console.log(response.body);
+                    console.log(data);
                     this.importFileErrors = null;
                     this.form.classList.remove('was-validated');
                     this.$refs['bulk-import-file'].value = '';
@@ -381,7 +386,7 @@ export default {
                         },
                     });
                 } else {
-                    this.importFileErrors = response.body;
+                    this.importFileErrors = data;
                     event.target.value = '';
                     this.$refs['bulk-import-associated-files-zip'].value = '';
                     this.$refs['bulk-import-file'].setCustomValidity('Invalid field');
@@ -416,8 +421,8 @@ export default {
             });
         },
         fetchSchemas() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_import_schemas_by_group_type}?group_type=${this.$route.query.group_type}`).then((response) => {
-                this.schema_versions = response.body;
+            fetch(`${api_endpoints.occurrence_report_bulk_import_schemas_by_group_type}?group_type=${this.$route.query.group_type}`).then(async (response) => {
+                this.schema_versions = await response.json();
             }, (error) => {
                 console.log(error);
             });
@@ -426,22 +431,24 @@ export default {
 
         },
         fetchQueuedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=queued&schema__group_type__name=${this.$route.query.group_type}`).then((response) => {
-                this.queuedImports = response.body.results;
+            fetch(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=queued&schema__group_type__name=${this.$route.query.group_type}`).then(async (response) => {
+                const data = await response.json();
+                this.queuedImports = data.results;
             }, (error) => {
                 console.log(error);
             });
         },
         fetchCurrentlyRunningImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=started&schema__group_type__name=${this.$route.query.group_type}`).then((response) => {
-                this.currentlyRunningImports = response.body.results;
+            fetch(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=started&schema__group_type__name=${this.$route.query.group_type}`).then(async (response) => {
+                const data = await response.json();
+                this.currentlyRunningImports = data.results;
             }, (error) => {
                 console.log(error);
             });
         },
         fetchFailedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=failed&schema__group_type__name=${this.$route.query.group_type}&limit=${this.failedImportsLimit}&ordering=-datetime_started`).then((response) => {
-                this.failedImports = response.body;
+            fetch(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=failed&schema__group_type__name=${this.$route.query.group_type}&limit=${this.failedImportsLimit}&ordering=-datetime_started`).then(async (response) => {
+                this.failedImports = await response.json();
             }, (error) => {
                 console.log(error);
             });
@@ -451,8 +458,8 @@ export default {
             this.fetchFailedImports();
         },
         fetchCompletedImports() {
-            this.$http.get(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=completed&schema__group_type__name=${this.$route.query.group_type}&limit=${this.completedImportsLimit}&ordering=-datetime_completed`).then((response) => {
-                this.completedImports = response.body;
+            fetch(`${api_endpoints.occurrence_report_bulk_imports}?processing_status=completed&schema__group_type__name=${this.$route.query.group_type}&limit=${this.completedImportsLimit}&ordering=-datetime_completed`).then(async (response) => {
+                this.completedImports = await response.json();
             }, (error) => {
                 console.log(error);
             });
@@ -463,7 +470,12 @@ export default {
         },
         retryBulkImportTask(bulkImportTaskId) {
             // Call the api to retry the bulk import task
-            this.$http.patch(`${api_endpoints.occurrence_report_bulk_imports}${bulkImportTaskId}/retry/`).then((response) => {
+            fetch(`${api_endpoints.occurrence_report_bulk_imports}${bulkImportTaskId}/retry/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then((response) => {
                 console.log(response);
                 // Remove the failed import from the failed imports list
                 this.failedImports = this.failedImports.filter((failedImport) => {
@@ -490,7 +502,12 @@ export default {
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Call the api to revert the bulk import task
-                    this.$http.patch(`${api_endpoints.occurrence_report_bulk_imports}${bulkImportTaskId}/revert/`).then((response) => {
+                    fetch(`${api_endpoints.occurrence_report_bulk_imports}${bulkImportTaskId}/revert/`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    }).then((response) => {
                         console.log(response);
                         // Remove the completed import from the completed imports list
                         this.completedImports = this.completedImports.results.filter((completedImport) => {
@@ -561,7 +578,7 @@ export default {
             this.fetchCurrentlyRunningImports()
         }, 1000)
     },
-    beforeDestroy() {
+    beforeUnmount() {
         clearInterval(this.timer)
         clearInterval(this.currentlyRunningTimer)
     }

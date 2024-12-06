@@ -4,7 +4,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal needs-validation" name="contactDetailForm" novalidate>
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row modal-input-row mb-3">
@@ -182,9 +182,13 @@ export default {
             if (vm.contactObj.id) {
                 vm.updatingContact = true;
                 formData.append('data', JSON.stringify(contactObj));
-                vm.$http.put(helpers.add_endpoint_json(vm.url, contactObj.id), formData, {
-                    emulateJSON: true,
-                }).then((response) => {
+                fetch(helpers.add_endpoint_json(vm.url, contactObj.id), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+            }).then((response) => {
                     vm.updatingContact = false;
                     vm.$parent.updatedContactDetails();
                     vm.close();
@@ -196,8 +200,12 @@ export default {
             } else {
                 vm.addingContact = true;
                 formData.append('data', JSON.stringify(contactObj));
-                vm.$http.post(vm.url, formData, {
-                    emulateJSON: true,
+                fetch(vm.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
                 }).then((response) => {
                     vm.addingContact = false;
                     vm.$parent.updatedContactDetails();

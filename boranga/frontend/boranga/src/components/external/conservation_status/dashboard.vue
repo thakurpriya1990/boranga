@@ -53,9 +53,9 @@ export default {
     },
     methods: {
         fetchProfile() {
-            this.$http.get(api_endpoints.profile)
-                .then(response => {
-                    this.profile = response.data
+            fetch(api_endpoints.profile)
+                .then(async (response) => {
+                    this.profile = await response.json()
                 })
                 .catch(error => {
                     console.log(error)

@@ -80,7 +80,15 @@ export default {
         },
         readyForAgenda: function () {
             let vm = this;
-            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/ready_for_agenda'), { 'assessor_comment': vm.assessor_comment }).then((response) => {
+            fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/ready_for_agenda'), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    'assessor_comment': vm.assessor_comment
+                })
+            }).then((response) => {
                 vm.$router.push({ path: '/internal/conservation-status/' });
             }, (error) => {
                 vm.errors = true;

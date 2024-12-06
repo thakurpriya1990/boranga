@@ -257,12 +257,13 @@ export default {
             this.$refs.document_detail.document_id = id;
             this.$refs.document_detail.document_action = 'edit';
             this.$refs.document_detail.title = 'Edit a Document';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.species_documents, id)).then((response) => {
-                this.$refs.document_detail.documentObj = response.body;
-                this.$refs.document_detail.documentObj.uploaded_date = response.body.uploaded_date != null && response.body.uploaded_date != undefined ? moment(response.body.uploaded_date).format('yyyy-MM-DDTHH:mm') : '';
-                this.$refs.document_detail.uploaded_document = [response.body];
+            fetch(helpers.add_endpoint_json(api_endpoints.species_documents, id)).then(async (response) => {
+                const data = await response.json();
+                this.$refs.document_detail.documentObj = data;
+                this.$refs.document_detail.documentObj.uploaded_date = data.uploaded_date != null && data.uploaded_date != undefined ? moment(data.uploaded_date).format('yyyy-MM-DDTHH:mm') : '';
+                this.$refs.document_detail.uploaded_document = [data];
                 //-----this method is called as it wasn't fetching subcategory
-                this.$refs.document_detail.fetchSubCategory(response.body.document_category);
+                this.$refs.document_detail.fetchSubCategory(data.document_category);
 
             },
                 err => {
@@ -293,7 +294,10 @@ export default {
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.species_documents, id + '/discard'))
+                    fetch(helpers.add_endpoint_json(api_endpoints.species_documents, id + '/discard'), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Discarded',
@@ -327,7 +331,10 @@ export default {
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.species_documents, id + '/reinstate'))
+                    fetch(helpers.add_endpoint_json(api_endpoints.species_documents, id + '/reinstate'), {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', }
+                    })
                         .then((response) => {
                             swal.fire({
                                 title: 'Reinstated',

@@ -12,23 +12,28 @@
         </div>
         <div v-if="datetime_created" class="card-body border-top py-2">
             <strong>Created on</strong><br />
-            {{ datetime_created | formatDateDay }} <span class="fw-light">at</span> {{ datetime_created | formatDateTime }}
+            {{ formatDateDay(datetime_created) }} <span class="fw-light">at</span> {{ formatDateTime(datetime_created)
+            }}
         </div>
         <div v-if="datetime_scheduled" class="card-body border-top py-2">
             <strong>Scheduled on</strong><br />
-            {{ datetime_scheduled | formatDateDay }} <span class="fw-light">at</span> {{ datetime_scheduled | formatDateTime }}
+            {{ formatDateDay(datetime_scheduled) }} <span class="fw-light">at</span> {{
+                formatDateTime(datetime_scheduled) }}
         </div>
         <div v-if="datetime_completed" class="card-body border-top py-2">
             <strong>Marked as Completed on</strong><br />
-            {{ datetime_completed | formatDateDay }} <span class="fw-light">at</span> {{ datetime_completed | formatDateTime }}
+            {{ formatDateDay(datetime_completed) }} <span class="fw-light">at</span> {{
+                formatDateTime(datetime_completed) }}
         </div>
         <div v-if="enableHistory" class="card-body border-top py-2">
             <table class="table small-table">
-                <tr>
-                    <th>Lodgement</th>
-                    <th>Date</th>
-                    <th>Action</th>
-                </tr>
+                <tbody>
+                    <tr>
+                        <th>Lodgement</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
@@ -67,7 +72,7 @@ export default {
             default: false,
         },
     },
-    filters: {
+    methods: {
         formatDateDay: function (data) {
             return data ? moment(data).format('DD/MM/YYYY') : '';
         },
