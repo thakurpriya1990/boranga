@@ -1,12 +1,11 @@
-import Vue from 'vue'
-import Router from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router';
 import Home from '@/components/internal/Home'
 import external_routes from '@/components/external/routes'
 import internal_routes from '@/components/internal/routes'
-Vue.use(Router)
 
-export default new Router({
-    mode: 'history',
+const router = createRouter({
+    history: createWebHistory(),
+    strict: false,
     routes: [
         {
             path: '/',
@@ -16,3 +15,5 @@ export default new Router({
         internal_routes
     ]
 })
+
+export default router;

@@ -1,3 +1,5 @@
+import { RouterView } from 'vue-router';
+
 import SpeciesCommunitiesDash from '../species_communities/dashboard.vue'
 import ExternalConservationStatusDash from '../conservation_status/dashboard.vue'
 
@@ -16,12 +18,7 @@ import OCRProposalSubmit from '../occurrence/ocr_proposal_submit.vue'
 export default
     {
         path: '/external',
-        component:
-        {
-            render(c) {
-                return c('router-view')
-            }
-        },
+        component: RouterView,
         children: [
             {
                 path: 'species-communities',
@@ -30,26 +27,12 @@ export default
             },
             {
                 path: 'species-communities',
-                component: {
-                    render(c) {
-                        return c('router-view')
-                    },
-                },
+                component: RouterView,
                 children: [
                     {
                         path: ':species_community_id',
-                        component: {
-                            render(c) {
-                                return c('router-view')
-                            },
-                        },
-                        children: [
-                            {
-                                path: '/',
-                                component: ExternalSpeciesCommunity,
-                                name: "external-species-communities"
-                            },
-                        ]
+                        name: "external-species-communities",
+                        component: ExternalSpeciesCommunity,
                     },
                 ]
             },
@@ -60,11 +43,7 @@ export default
             },
             {
                 path: 'occurrence-report',
-                component: {
-                    render(c) {
-                        return c('router-view')
-                    },
-                },
+                component: RouterView,
                 children: [
                     {
                         path: ':occurrence_report_id',
@@ -90,11 +69,7 @@ export default
             },
             {
                 path: 'conservation-status',
-                component: {
-                    render(c) {
-                        return c('router-view')
-                    },
-                },
+                component: RouterView,
                 children: [
                     {
                         path: ':conservation_status_id',

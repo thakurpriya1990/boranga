@@ -1,3 +1,5 @@
+import { RouterView } from 'vue-router';
+
 import User from '../users/manage.vue'
 import SpeciesCommunitiesDash from '../species_communities/dashboard.vue'
 import SpeciesCommunities from '../species_communities/species_communities.vue'
@@ -17,12 +19,7 @@ import BulkImportSchema from '../occurrence/bulk_import_schema.vue'
 export default
     {
         path: '/internal',
-        component:
-        {
-            render(c) {
-                return c('router-view')
-            }
-        },
+        component: RouterView,
         children: [
             {
                 path: '/',
@@ -60,11 +57,7 @@ export default
             },
             {
                 path: 'occurrence-report',
-                component: {
-                    render(c) {
-                        return c('router-view')
-                    },
-                },
+                component: RouterView,
                 children: [
                     {
                         path: 'bulk_import_schema/:bulk_import_schema_id',
@@ -83,14 +76,10 @@ export default
                     },
                     {
                         path: ':occurrence_report_id',
-                        component: {
-                            render(c) {
-                                return c('router-view')
-                            },
-                        },
+                        component: RouterView,
                         children: [
                             {
-                                path: '/',
+                                path: '',
                                 component: OccurrenceReport,
                                 name: "internal-occurrence-report-detail",
                             },
@@ -105,11 +94,7 @@ export default
             },
             {
                 path: 'users',
-                component: {
-                    render(c) {
-                        return c('router-view')
-                    }
-                },
+                component: RouterView,
                 children: [
                     {
                         path: ':user_id',
@@ -120,11 +105,7 @@ export default
             },
             {
                 path: 'species-communities',
-                component: {
-                    render(c) {
-                        return c('router-view')
-                    },
-                },
+                component: RouterView,
                 children: [
                     {
                         path: ':species_community_id',
@@ -135,22 +116,14 @@ export default
             },
             {
                 path: 'conservation-status',
-                component: {
-                    render(c) {
-                        return c('router-view')
-                    },
-                },
+                component: RouterView,
                 children: [
                     {
                         path: ':conservation_status_id',
-                        component: {
-                            render(c) {
-                                return c('router-view')
-                            },
-                        },
+                        component: RouterView,
                         children: [
                             {
-                                path: '/',
+                                path: '',
                                 component: ConservationStatus,
                                 name: "internal-conservation-status"
                             },
