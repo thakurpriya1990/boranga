@@ -1,6 +1,4 @@
-import Vue from 'vue'
-import resource from 'vue-resource'
-import jszip from 'jszip';
+import { createApp } from 'vue';
 import App from './App'
 import router from './router'
 import helpers from '@/utils/helpers'
@@ -10,7 +8,7 @@ import 'datatables.net-bs5';
 import 'datatables.net-buttons-bs5';
 import 'datatables.net-responsive-bs5';
 import 'datatables.net-buttons/js/dataTables.buttons.js';
-import jsZip from 'jszip';
+const jsZip = require('jszip');
 window.JSZip = jsZip;
 import 'datatables.net-buttons/js/buttons.html5.js';
 import 'select2';
@@ -23,36 +21,36 @@ import 'select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css';
 import '@/../node_modules/datatables.net-bs5/css/dataTables.bootstrap5.min.css';
 import '@/../node_modules/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css';
 
-import api_endpoints from './api'
-
 require('@/../node_modules/@fortawesome/fontawesome-free/css/all.min.css')
 require('@/../node_modules/datatables.net-bs5/css/dataTables.bootstrap5.min.css')
 
 extendMoment(moment);
 
-
-Vue.config.devtools = true;
-Vue.config.productionTip = false
-Vue.use( resource );
-
 // Add CSRF Token to every request
-Vue.http.interceptors.push( function ( request, next ) {
-  // modify headers
-  if ( request.url != api_endpoints.countries ) {
-    request.headers.set( 'X-CSRFToken', helpers.getCookie( 'csrftoken' ) );
-  }
+const customHeaders = new Headers({
+    'X-CSRFToken': helpers.getCookie('csrftoken'),
+});
+const customHeadersJSON = new Headers({
+    'X-CSRFToken': helpers.getCookie('csrftoken'),
+    'Content-Type': 'application/json',
+});
 
-  // continue to next interceptor
-  next();
-} );
+const app = createApp(App);
 
+const fetch = window.fetch;
+window.fetch = ((originalFetch) => {
+    return (...args) => {
+        if (args.length > 1) {
+            if (typeof args[1].body === 'string') {
+                args[1].headers = customHeadersJSON;
+            } else {
+                args[1].headers = customHeaders;
+            }
+        }
+        const result = originalFetch.apply(this, args);
+        return result;
+    };
+})(fetch);
 
-/* eslint-disable no-new */
-new Vue( {
-  el: '#app',
-  router,
-  template: '<App/>',
-  components: {
-    App
-  }
-} )
+app.use(router);
+router.isReady().then(() => app.mount('#app'));
