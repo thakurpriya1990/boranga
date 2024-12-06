@@ -314,7 +314,7 @@ export default {
             let vm = this;
             let movement = direction == 'down' ? 'move_down' : 'move_up';
             try {
-                const res = await fetch(helpers.add_endpoint_json(api_endpoints.meeting_agenda_items, req + '/' + movement))
+                await fetch(helpers.add_endpoint_json(api_endpoints.meeting_agenda_items, req + '/' + movement))
                 this.$parent.uuid++;
             } catch (error) {
                 console.log(error);

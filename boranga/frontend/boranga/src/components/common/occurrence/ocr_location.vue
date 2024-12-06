@@ -527,11 +527,6 @@ export default {
                 vm.$refs.component_map.setLoadingMap(true);
             }
 
-            // const res = await fetch(vm.proposal_form_url, {
-            //     body: JSON.stringify(payload),
-            //     method: 'POST',
-            // });
-
             vm.$http
                 .post(
                     helpers.add_endpoint_json(

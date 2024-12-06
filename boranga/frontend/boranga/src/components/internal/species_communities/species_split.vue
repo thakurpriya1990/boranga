@@ -404,8 +404,9 @@ export default {
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify(payload),
-                        }).then(resp => {
-                            newSpeciesId = resp.body.id;
+                        }).then(async (response) => {
+                            const data = await response.json();
+                            newSpeciesId = data.id;
                             fetch(`/api/species/${newSpeciesId}/internal_species.json`).then(async (response) => {
                                 const data = await response.json();
                                 let species_obj = data.species_obj;

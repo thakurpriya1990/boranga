@@ -601,11 +601,6 @@ export default {
 
             payload.site_geometry = vm.$refs.component_map.getJSONFeatures("site_layer");
 
-            // const res = await fetch(vm.proposal_form_url, {
-            //     body: JSON.stringify(payload),
-            //     method: 'POST',
-            // });
-
             vm.$http
                 .post(
                     helpers.add_endpoint_json(

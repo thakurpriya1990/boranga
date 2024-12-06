@@ -445,7 +445,7 @@ export default {
                     const data = await response.json();
                     vm.conservation_status_obj = data;
                     vm.setdata(vm.conservation_status_obj.readonly);
-                    fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, to.params.conservation_status_id + '/amendment_request')).then((res) => {
+                    fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, to.params.conservation_status_id + '/amendment_request')).then(async (response) => {
                         vm.setAmendmentData(data);
                     },
                         err => {

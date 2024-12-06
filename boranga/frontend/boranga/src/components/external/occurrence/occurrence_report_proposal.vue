@@ -218,7 +218,7 @@ export default {
                 // Provide an action to have the backend lock the geometry
                 payload.action = 'submit';
             }
-            const res = await fetch(vm.ocr_proposal_form_url, {
+            await fetch(vm.ocr_proposal_form_url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -628,11 +628,8 @@ export default {
                     vm.occurrence_report_obj = data;
                     vm.loading.splice('fetching occurrence report proposal', 1);
                     vm.setdata(vm.occurrence_report_obj.readonly);
-
-                    fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, to.params.occurrence_report_id + '/amendment_request')).then((res) => {
-
+                    fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, to.params.occurrence_report_id + '/amendment_request')).then(async (response) => {
                         vm.setAmendmentData(data);
-
                     },
                         err => {
                             console.log(err);
