@@ -1,5 +1,6 @@
-{% extends "webtemplate_dbca/base_b5_auth_session.html" %}
+{% extends 'webtemplate_dbca/base_b5_auth_session.html' %}
 {% load static %}
+{% load django_vite %}
 
 {% load users %}
 {% load utils %}
@@ -13,64 +14,75 @@
 {% is_django_admin as is_django_admin_user %}
 {% build_tag as build_tag %}
 
-{% block header_top_menu %}{% endblock %}
+{% block header_top_menu %}
+{% endblock %}
 
 {% block extra_css %}
-    <link rel="icon" type="image/png" href="/static/boranga/favicon.ico">
+  <link rel="icon" type="image/png" href="/static/boranga/favicon.ico" />
 
-    <link rel="stylesheet" href="{% static 'boranga/css/base.css' %}?v={{build_tag}}">
-    <link rel="stylesheet" href="{% static 'boranga_vue/css/app.css' %}?v={{build_tag}}">
-    <link rel="stylesheet" href="{% static 'boranga_vue/css/chunk-vendors.css' %}?v={{build_tag}}">
+  <link rel="stylesheet" href="{% static 'boranga/css/base.css' %}?v={{ build_tag }}" />
+  {% if not use_vite_dev_server %}
+  <link rel="stylesheet" href="{% static 'boranga_vue/css/index.css' %}?v={{ build_tag }}" />
+  {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+    {% if use_vite_dev_server %}
+        {% vite_hmr_client %}
+    {% endif %}
 {% endblock %}
 
 {% block custom_js %}
-    <script language="javascript">
+  <script language="javascript">
             var env = {
                 "gis_server_url": "{{ GIS_SERVER_URL }}",
                 "user_is_authenticated": {% if request.user.is_authenticated %}true{% else %}false{% endif %},
             }
     </script>
-    <script type="text/javascript" src="{% static 'boranga_vue/js/chunk-vendors.js' %}?v={{build_tag}}"></script>
-    <script type="text/javascript" src="{% static 'boranga_vue/js/app.js' %}?v={{build_tag}}"></script>
-{% endblock %}
-
-{% block menu_items_left_brand %}
-<div class="navbar-nav">
-    <div class="nav-item">
-        <a class="nav-link{% if request.path == '/' %} active{% endif %}" href="{% url 'home'%}"><img src="/static/img/pwl_icon.png">Home</a>
-    </div>
-</div>
-{% endblock %}
-
-{% block menu_items2_right %}
-    {% if request.user.is_authenticated %}
-
+    {% if use_vite_dev_server %}
+        <script type="module" src="{% vite_asset_url vue3_entry_script %}?v={{ build_tag }}"></script>
     {% else %}
-    <a href="/ssologin" class="btn btn-primary btn-sm">Login</a>
+        <script type="module" src="{% static 'boranga_vue/js/index.js' %}?v={{ build_tag }}"></script>
     {% endif %}
 {% endblock %}
 
+{% block menu_items_left_brand %}
+  <div class="navbar-nav">
+    <div class="nav-item">
+      <a class="nav-link{% if request.path == '/' %} active{% endif %}" href="{% url 'home' %}"><img src="/static/img/pwl_icon.png" />Home</a>
+    </div>
+  </div>
+{% endblock %}
+
+{% block menu_items2_right %}
+  {% if request.user.is_authenticated %}
+
+  {% else %}
+    <a href="/ssologin" class="btn btn-primary btn-sm">Login</a>
+  {% endif %}
+{% endblock %}
+
 {% block menu_spacer %}
-    <br>
+  <br />
 {% endblock %}
 
 {% block footer %}
-{% application_version as application_version %}
-{% support_email as support_email %}
-{% dept_support_phone as dept_support_phone %}
-<footer class="footer fixed-bottom mt-3">
+  {% application_version as application_version %}
+  {% support_email as support_email %}
+  {% dept_support_phone as dept_support_phone %}
+  <footer class="footer fixed-bottom mt-3">
     <div class="container-fluid border-top py-2 bg-light text-secondary">
-        <div class="row">
-            <div class="col">
-                <small class="float-start">Version: {% application_version %}</small>
-            </div>
-            <div class="col">
-                <small>Support: <a href="mailto:{% support_email %}">{% support_email %}</a> | <a href="tel:{% dept_support_phone %}">{% dept_support_phone %}</a></small>
-            </div>
-            <div class="col">
-                <small class="float-end">&copy; {% dept_name %}</small>
-            </div>
+      <div class="row">
+        <div class="col">
+          <small class="float-start">Version:{% application_version %}</small>
         </div>
+        <div class="col">
+          <small>Support: <a href="mailto:{% support_email %}">{% support_email %}</a> | <a href="tel:{% dept_support_phone %}">{% dept_support_phone %}</a></small>
+        </div>
+        <div class="col">
+          <small class="float-end">&copy; {% dept_name %}</small>
+        </div>
+      </div>
     </div>
-</footer>
-{% endblock footer %}
+  </footer>
+{% endblock %}
