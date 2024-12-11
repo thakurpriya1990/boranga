@@ -1,5 +1,4 @@
 {
-    "editor.formatOnSaveMode": "file",
     "eslint.debug": true,
     "eslint.enable": true,
     "eslint.format.enable": true,
